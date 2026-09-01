@@ -1,0 +1,23 @@
+.property-filters {
+  padding: 1.25rem;
+  position: sticky;
+  top: 90px;
+}
+
+.property-filters__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.property-filters__header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+@media (max-width: 980px) {
+  .property-filters {
+    position: static;
+  }
+}

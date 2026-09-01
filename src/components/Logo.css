@@ -1,0 +1,97 @@
+.acl-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1;
+  user-select: none;
+}
+
+.acl-logo__mark {
+  flex-shrink: 0;
+  height: 2.1em;
+  width: auto;
+}
+
+.acl-logo--sm .acl-logo__mark {
+  height: 1.8em;
+}
+
+.acl-logo--lg .acl-logo__mark {
+  height: 3.4em;
+}
+
+.acl-logo__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+}
+
+.acl-logo__acl {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.5em;
+  letter-spacing: 0.03em;
+  color: var(--color-text);
+  background: linear-gradient(120deg, #0d3b73, #2f9bdc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.acl-logo--white .acl-logo__acl {
+  background: none;
+  -webkit-text-fill-color: unset;
+  color: #ffffff;
+}
+
+.acl-logo--black .acl-logo__acl {
+  background: none;
+  -webkit-text-fill-color: unset;
+  color: #0a0e14;
+}
+
+.acl-logo__tagline {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.5em;
+  letter-spacing: 0.32em;
+  color: var(--color-primary);
+}
+
+.acl-logo--white .acl-logo__tagline {
+  color: #ffffff;
+}
+
+.acl-logo--black .acl-logo__tagline {
+  color: #0a0e14;
+}
+
+.acl-logo__rule {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 1px;
+}
+
+.acl-logo__rule span {
+  display: block;
+  height: 2px;
+  background: var(--color-primary);
+  border-radius: 1px;
+}
+
+.acl-logo__rule span:first-child {
+  width: 100%;
+}
+
+.acl-logo__rule span:last-child {
+  width: 60%;
+}
+
+.acl-logo--white .acl-logo__rule span {
+  background: #ffffff;
+}
+
+.acl-logo--black .acl-logo__rule span {
+  background: #0a0e14;
+}

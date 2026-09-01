@@ -1,0 +1,27 @@
+.advisor-card {
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.advisor-card__photo {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 0.75rem;
+}
+
+.advisor-card h4 {
+  margin-bottom: 0.35rem;
+}
+
+.advisor-card__bio {
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.advisor-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

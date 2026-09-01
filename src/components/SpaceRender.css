@@ -1,0 +1,53 @@
+.space-render {
+  width: 130px;
+  height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 500px;
+  flex-shrink: 0;
+}
+
+.space-render--empty {
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.space-render__box {
+  position: relative;
+  width: var(--l);
+  height: var(--h);
+  transform-style: preserve-3d;
+  transform: rotateX(-25deg) rotateY(-35deg);
+}
+
+.space-render__face {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+}
+
+.space-render__face--front {
+  width: var(--l);
+  height: var(--h);
+  margin: calc(var(--h) / -2) 0 0 calc(var(--l) / -2);
+  background: var(--color-primary);
+  transform: translateZ(calc(var(--w) / 2));
+}
+
+.space-render__face--side {
+  width: var(--w);
+  height: var(--h);
+  margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2);
+  background: var(--color-primary-dark);
+  transform: rotateY(90deg) translateZ(calc(var(--l) / 2));
+}
+
+.space-render__face--top {
+  width: var(--l);
+  height: var(--w);
+  margin: calc(var(--w) / -2) 0 0 calc(var(--l) / -2);
+  background: var(--color-primary-light);
+  transform: rotateX(90deg) translateZ(calc(var(--h) / 2));
+}
