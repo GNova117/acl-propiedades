@@ -1,5 +1,6 @@
 import { ZONES, ADVISORS, PROPERTIES, DEMO_ADMIN } from "./seedData";
-import { toPerfilamientoPayload, PERFILAMIENTO_LIST_FIELDS } from "./perfilamiento";
+import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
+import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 
 const KEYS = {
   properties: "acl_local_properties",
@@ -10,7 +11,8 @@ const KEYS = {
   clientDocuments: "acl_local_client_documents",
   remodelProjects: "acl_local_remodel_projects",
   materialsCatalog: "acl_local_materials_catalog",
-  perfilamientos: "acl_local_perfilamientos",
+  perfilamientosVendedor: "acl_local_perfilamientos",
+  perfilamientosComprador: "acl_local_perfilamientos_comprador",
 };
 
 function readStore(key, fallback) {
@@ -432,52 +434,93 @@ export const localBackend = {
   },
 
   // Igual que en Supabase: la lista no incluye RFC/CURP/identificación.
-  async getPerfilamientos(clienteId) {
-    const items = readStore(KEYS.perfilamientos, []);
+  async getPerfilamientosVendedor(clienteId) {
+    const items = readStore(KEYS.perfilamientosVendedor, []);
     return items
       .filter((p) => p.cliente_id === clienteId)
       .sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion))
-      .map((p) => Object.fromEntries(PERFILAMIENTO_LIST_FIELDS.map((key) => [key, p[key]])));
+      .map((p) => Object.fromEntries(PERFILAMIENTO_VENDEDOR_LIST_FIELDS.map((key) => [key, p[key]])));
   },
 
-  async getPerfilamientoById(id) {
-    const items = readStore(KEYS.perfilamientos, []);
+  async getPerfilamientoVendedorById(id) {
+    const items = readStore(KEYS.perfilamientosVendedor, []);
     return items.find((p) => p.id === id) || null;
   },
 
-  async addPerfilamiento(clienteId, form) {
-    const items = readStore(KEYS.perfilamientos, []);
+  async addPerfilamientoVendedor(clienteId, payload) {
+    const items = readStore(KEYS.perfilamientosVendedor, []);
     const now = new Date().toISOString();
     const record = {
       id: uid("perf"),
       cliente_id: clienteId,
-      ...toPerfilamientoPayload(form),
+      ...payload,
       usuario_creo: DEMO_ADMIN.email,
       fecha_creacion: now,
       fecha_modificacion: now,
     };
     items.push(record);
-    writeStore(KEYS.perfilamientos, items);
+    writeStore(KEYS.perfilamientosVendedor, items);
     return record;
   },
 
-  async updatePerfilamiento(id, form) {
-    const items = readStore(KEYS.perfilamientos, []);
+  async updatePerfilamientoVendedor(id, payload) {
+    const items = readStore(KEYS.perfilamientosVendedor, []);
     const idx = items.findIndex((p) => p.id === id);
     if (idx === -1) throw new Error("Perfilamiento no encontrado");
-    const updated = {
-      ...items[idx],
-      ...toPerfilamientoPayload(form),
-      fecha_modificacion: new Date().toISOString(),
-    };
+    const updated = { ...items[idx], ...payload, fecha_modificacion: new Date().toISOString() };
     items[idx] = updated;
-    writeStore(KEYS.perfilamientos, items);
+    writeStore(KEYS.perfilamientosVendedor, items);
     return updated;
   },
 
-  async deletePerfilamiento(id) {
-    const items = readStore(KEYS.perfilamientos, []);
-    writeStore(KEYS.perfilamientos, items.filter((p) => p.id !== id));
+  async deletePerfilamientoVendedor(id) {
+    const items = readStore(KEYS.perfilamientosVendedor, []);
+    writeStore(KEYS.perfilamientosVendedor, items.filter((p) => p.id !== id));
+  },
+
+  // Igual que en Supabase: la lista no incluye NSS/CURP/RFC/contraseña de portal.
+  async getPerfilamientosComprador(clienteId) {
+    const items = readStore(KEYS.perfilamientosComprador, []);
+    return items
+      .filter((p) => p.cliente_id === clienteId)
+      .sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion))
+      .map((p) => Object.fromEntries(PERFILAMIENTO_COMPRADOR_LIST_FIELDS.map((key) => [key, p[key]])));
+  },
+
+  async getPerfilamientoCompradorById(id) {
+    const items = readStore(KEYS.perfilamientosComprador, []);
+    return items.find((p) => p.id === id) || null;
+  },
+
+  async addPerfilamientoComprador(clienteId, payload) {
+    const items = readStore(KEYS.perfilamientosComprador, []);
+    const now = new Date().toISOString();
+    const record = {
+      id: uid("perf"),
+      cliente_id: clienteId,
+      ...payload,
+      usuario_creo: DEMO_ADMIN.email,
+      fecha_creacion: now,
+      fecha_modificacion: now,
+    };
+    items.push(record);
+    writeStore(KEYS.perfilamientosComprador, items);
+    return record;
+  },
+
+  async updatePerfilamientoComprador(id, payload) {
+    const items = readStore(KEYS.perfilamientosComprador, []);
+    const idx = items.findIndex((p) => p.id === id);
+    if (idx === -1) throw new Error("Perfilamiento no encontrado");
+    const updated = { ...items[idx], ...payload, fecha_modificacion: new Date().toISOString() };
+    items[idx] = updated;
+    writeStore(KEYS.perfilamientosComprador, items);
+    return updated;
+  },
+
+  async deletePerfilamientoComprador(id) {
+    const items = readStore(KEYS.perfilamientosComprador, []);
+    writeStore(KEYS.perfilamientosComprador, items.filter((p) => p.id !== id));
   },
 
   async signIn(email, password) {

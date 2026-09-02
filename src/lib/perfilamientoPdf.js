@@ -1,8 +1,10 @@
-// Generación del PDF de perfilamiento sobre la hoja membretada de ACL.
-// No se dibuja el membrete a mano: se carga public/plantilla_acl.pdf (que ya
-// trae logo, marca de agua y pie) y se escribe el texto encima.
+// Generación del PDF de perfilamiento (vendedor o comprador) sobre la hoja
+// membretada de ACL. No se dibuja el membrete a mano: se carga
+// public/plantilla_acl.pdf (que ya trae logo, marca de agua y pie) y se
+// escribe el texto encima. Genérico por secciones — cualquier tipo de
+// perfilamiento nuevo reutiliza esta misma función.
 
-import { VENDEDOR_FIELDS, INMUEBLE_FIELDS, displayValue, isFieldVisible } from "./perfilamiento";
+import { displayValue, isFieldVisible } from "./perfilamientoShared";
 
 const TEMPLATE_URL = "/plantilla_acl.pdf";
 
@@ -72,7 +74,7 @@ function wrapText(text, font, size, maxWidth) {
 
 // `template` permite inyectar los bytes de la plantilla (se usa para probar la
 // generación fuera del navegador); en la app se descarga desde /public.
-export async function buildPerfilamientoPdf(perfilamiento, template) {
+export async function buildPerfilamientoPdf(data, sections, { title = "PERFILAMIENTO", template } = {}) {
   // pdf-lib se carga solo cuando de verdad se genera un PDF, para no meterlo
   // en el bundle que descarga todo visitante del sitio público.
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
@@ -126,12 +128,6 @@ export async function buildPerfilamientoPdf(perfilamiento, template) {
     y -= LINE_HEIGHT * 1.6;
   };
 
-  const drawGroupLabel = async (text) => {
-    await ensureSpace(LINE_HEIGHT * 1.5);
-    page.drawText(sanitize(text), { x: MARGIN_LEFT, y, size: SIZE_BODY, font: bold, color: black });
-    y -= LINE_HEIGHT;
-  };
-
   const drawField = async (label, value) => {
     const labelText = `${sanitize(label)}: `;
     const labelWidth = regular.widthOfTextAtSize(labelText, SIZE_BODY);
@@ -161,27 +157,25 @@ export async function buildPerfilamientoPdf(perfilamiento, template) {
 
   const drawFields = async (fields) => {
     for (const field of fields) {
-      if (!isFieldVisible(field, perfilamiento)) continue;
-      const value = displayValue(field, perfilamiento);
+      if (!isFieldVisible(field, data)) continue;
+      const value = displayValue(field, data);
       if (!value) continue; // los campos vacíos no se imprimen
       await drawField(field.label, value);
     }
   };
 
-  await drawTitle("PERFILAMIENTO");
+  await drawTitle(title);
 
-  await drawSubtitle("DATOS GENERALES DEL VENDEDOR");
-  await drawFields(VENDEDOR_FIELDS);
+  let first = true;
+  for (const section of sections) {
+    const hasContent = section.fields.some((f) => isFieldVisible(f, data) && displayValue(f, data));
+    if (section.optional && !hasContent) continue;
 
-  y -= LINE_HEIGHT * 0.5;
-  await drawSubtitle("DATOS GENERALES DEL INMUEBLE");
-  await drawFields(INMUEBLE_FIELDS.filter((f) => !f.key.startsWith("registro_")));
+    if (!first) y -= LINE_HEIGHT * 0.5;
+    first = false;
 
-  const registroFields = INMUEBLE_FIELDS.filter((f) => f.key.startsWith("registro_"));
-  if (registroFields.some((f) => displayValue(f, perfilamiento))) {
-    y -= LINE_HEIGHT * 0.3;
-    await drawGroupLabel("Datos de registro (Folio real)");
-    await drawFields(registroFields);
+    await drawSubtitle(section.title.toUpperCase());
+    await drawFields(section.fields);
   }
 
   return doc.save();
@@ -196,22 +190,24 @@ function fileSafe(text) {
     .slice(0, 60);
 }
 
-export function perfilamientoFileName(perfilamiento) {
+export function perfilamientoFileName(nombre, prefix = "Perfilamiento") {
   const now = new Date();
   const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
-  const nombre = fileSafe(perfilamiento.nombre_completo || "Vendedor") || "Vendedor";
-  return `Perfilamiento_${nombre}_${stamp}.pdf`;
+  const safeName = fileSafe(nombre || "Sin_nombre") || "Sin_nombre";
+  return `${prefix}_${safeName}_${stamp}.pdf`;
 }
 
 // Genera y dispara la descarga en el navegador (equivalente a
 // Content-Type: application/pdf + Content-Disposition: attachment).
-export async function downloadPerfilamientoPdf(perfilamiento) {
-  const bytes = await buildPerfilamientoPdf(perfilamiento);
+// `fileNombre`/`filePrefix` arman el nombre del archivo por separado del
+// título impreso en el PDF (que viene en `options.title`).
+export async function downloadPerfilamientoPdf(data, sections, options, fileNombre, filePrefix) {
+  const bytes = await buildPerfilamientoPdf(data, sections, options);
   const blob = new Blob([bytes], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = perfilamientoFileName(perfilamiento);
+  link.download = perfilamientoFileName(fileNombre, filePrefix);
   document.body.appendChild(link);
   link.click();
   link.remove();

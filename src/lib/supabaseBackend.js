@@ -1,5 +1,6 @@
 import { supabase } from "./supabaseClient";
-import { toPerfilamientoPayload, PERFILAMIENTO_LIST_FIELDS } from "./perfilamiento";
+import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
+import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 
 async function uploadFiles(bucket, files) {
   if (!files || files.length === 0) return [];
@@ -389,46 +390,76 @@ export const supabaseBackend = {
   },
 
   // La lista omite RFC/CURP/identificación: solo se piden al abrir uno.
-  async getPerfilamientos(clienteId) {
+  async getPerfilamientosVendedor(clienteId) {
     const { data, error } = await supabase
       .from("perfilamientos")
-      .select(PERFILAMIENTO_LIST_FIELDS.join(", "))
+      .select(PERFILAMIENTO_VENDEDOR_LIST_FIELDS.join(", "))
       .eq("cliente_id", clienteId)
       .order("fecha_creacion", { ascending: false });
     if (error) throw error;
     return data || [];
   },
 
-  async getPerfilamientoById(id) {
+  async getPerfilamientoVendedorById(id) {
     const { data, error } = await supabase.from("perfilamientos").select("*").eq("id", id).maybeSingle();
     if (error) throw error;
     return data;
   },
 
-  async addPerfilamiento(clienteId, form) {
+  async addPerfilamientoVendedor(clienteId, payload) {
     const { data: sessionData } = await supabase.auth.getSession();
-    const payload = {
-      ...toPerfilamientoPayload(form),
-      cliente_id: clienteId,
-      usuario_creo: sessionData?.session?.user?.email || null,
-    };
-    const { data, error } = await supabase.from("perfilamientos").insert(payload).select().single();
+    const row = { ...payload, cliente_id: clienteId, usuario_creo: sessionData?.session?.user?.email || null };
+    const { data, error } = await supabase.from("perfilamientos").insert(row).select().single();
     if (error) throw error;
     return data;
   },
 
-  async updatePerfilamiento(id, form) {
-    const payload = {
-      ...toPerfilamientoPayload(form),
-      fecha_modificacion: new Date().toISOString(),
-    };
-    const { data, error } = await supabase.from("perfilamientos").update(payload).eq("id", id).select().single();
+  async updatePerfilamientoVendedor(id, payload) {
+    const row = { ...payload, fecha_modificacion: new Date().toISOString() };
+    const { data, error } = await supabase.from("perfilamientos").update(row).eq("id", id).select().single();
     if (error) throw error;
     return data;
   },
 
-  async deletePerfilamiento(id) {
+  async deletePerfilamientoVendedor(id) {
     const { error } = await supabase.from("perfilamientos").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  // Lista omite NSS/CURP/RFC/contraseña de portal: solo se piden al abrir uno.
+  async getPerfilamientosComprador(clienteId) {
+    const { data, error } = await supabase
+      .from("perfilamientos_comprador")
+      .select(PERFILAMIENTO_COMPRADOR_LIST_FIELDS.join(", "))
+      .eq("cliente_id", clienteId)
+      .order("fecha_creacion", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getPerfilamientoCompradorById(id) {
+    const { data, error } = await supabase.from("perfilamientos_comprador").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async addPerfilamientoComprador(clienteId, payload) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = { ...payload, cliente_id: clienteId, usuario_creo: sessionData?.session?.user?.email || null };
+    const { data, error } = await supabase.from("perfilamientos_comprador").insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updatePerfilamientoComprador(id, payload) {
+    const row = { ...payload, fecha_modificacion: new Date().toISOString() };
+    const { data, error } = await supabase.from("perfilamientos_comprador").update(row).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deletePerfilamientoComprador(id) {
+    const { error } = await supabase.from("perfilamientos_comprador").delete().eq("id", id);
     if (error) throw error;
   },
 

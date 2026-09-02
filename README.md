@@ -80,8 +80,10 @@ acl-propiedades/
 │  │  ├─ localBackend.js     # implementación demo sobre localStorage
 │  │  ├─ dataStore.js        # elige backend automáticamente (db)
 │  │  ├─ seedData.js         # datos de ejemplo compartidos con seed.sql
-│  │  ├─ profileFields.js    # campos del perfilamiento comprador/vendedor (editable)
-│  │  └─ imageQuality.js     # validación de nitidez/exposición/alineación de documentos
+│  │  ├─ imageQuality.js     # validación de nitidez/exposición/alineación de documentos
+│  │  ├─ perfilamientoShared.js    # motor genérico de perfilamiento (validación, PDF, lectura)
+│  │  ├─ perfilamientoVendedor.js  # campos del perfilamiento del vendedor
+│  │  └─ perfilamientoComprador.js # campos del perfilamiento del comprador
 │  ├─ pages/             # Home, Properties, PropertyDetail, Calculator, About, Contact
 │  │  └─ admin/          # Login, Dashboard, CRUD de propiedades/asesores/zonas/clientes/remodelaciones
 │  ├─ App.jsx            # rutas
@@ -98,7 +100,9 @@ acl-propiedades/
 - **Calculadora**: estima el valor de una propiedad (m² × precio por m² de la zona × factor del tipo), con rango ±10% y aviso de que es solo referencial. Los precios por zona son editables desde `/admin/zonas`.
 - **Panel admin** (`/admin`): dashboard con totales, CRUD completo de propiedades (con carga de múltiples imágenes, selección de imagen principal, asignación de asesores) y de asesores, y edición de precios por zona. Todo se refleja de inmediato en el sitio público.
 - **Clientes** (`/admin/clientes`, interno): expediente por cliente comprador/vendedor/ambos, con captura de documentos de identidad (INE, CURP, cédula fiscal, acta de nacimiento) desde la cámara, con marco guía y validación automática de nitidez/exposición/alineación (estilo app bancaria) antes de guardarlos.
-- **Perfilamiento del vendedor** (`/admin/clientes/:id/perfilamiento`, interno): expediente por inmueble con datos del vendedor (incluye RFC/CURP validados) y del inmueble. Un cliente puede tener varios. Genera un PDF sobre la hoja membretada de la empresa (`public/plantilla_acl.pdf`) con `pdf-lib`, con salto de línea y de página automáticos.
+- **Perfilamiento** (`/admin/clientes/:id/perfilamiento`, interno): dos pestañas — **Vendedor** (expediente por inmueble, un cliente puede tener varios) y **Comprador** (datos personales, laborales y 2 referencias). Ambos generan un PDF sobre la hoja membretada de la empresa (`public/plantilla_acl.pdf`) con `pdf-lib`, con salto de línea y de página automáticos. RFC/CURP se validan en el formulario y también en la base de datos (restricciones `check`), así que ni siquiera saltándose el formulario se puede guardar un valor con formato inválido.
+
+  ⚠️ **Nota de seguridad — campo "Contraseña" del comprador**: la hoja de datos generales del comprador pide la contraseña del portal de crédito (INFONAVIT/FOVISSSTE/banco) del cliente, no una contraseña del sistema. A petición explícita del negocio, se guarda en la base de datos (`perfilamientos_comprador.contrasena_portal`) en texto plano, junto con el resto del perfil. Esto es un riesgo real y consciente: si la base de datos de Supabase llegara a comprometerse, esas contraseñas quedarían expuestas. En pantalla el campo se enmascara por defecto (con un botón para mostrarlo), pero eso solo evita que alguien lea por encima del hombro — no protege contra una fuga de la base de datos. Si en algún momento se prefiere dejar de guardarla, basta con quitar el campo `contrasena_portal` de `perfilamientos_comprador` (y de `src/lib/perfilamientoComprador.js`) para que solo viva en el PDF generado, nunca en la base.
 - **Remodelaciones** (`/admin/remodelaciones`, interno): calculadora de presupuestos de remodelación. Cada proyecto captura espacios individuales (largo/ancho/alto), con un mini render 3D a escala y sugerencia automática de material según el rendimiento definido en el catálogo (kg/m² de muro, etc.). Los materiales se seleccionan de `/admin/materiales` (catálogo con precio de ferretería propia y precio externo); la lista del proyecto calcula subtotales, totales y ahorro por línea y en general.
 - **Internacionalización**: botón ES/EN en el header y panel admin (i18next + detección de idioma guardada en `localStorage`).
 - **Modo oscuro**: botón de sol/luna en el header y panel admin, con preferencia guardada y respeto a `prefers-color-scheme`.
