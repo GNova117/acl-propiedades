@@ -207,8 +207,7 @@
     "phone": "Teléfono",
     "notes": "Notas",
     "noResults": "No se encontraron clientes.",
-    "viewDocuments": "Documentos",
-    "profileSection": "Perfil del cliente"
+    "viewDocuments": "Documentos"
   },
   "profiling": {
     "title": "Perfilamiento",
@@ -223,27 +222,6 @@
     "downloadPdf": "Descargar PDF",
     "saveAndPdf": "Guardar y generar PDF",
     "backToList": "Volver a la lista"
-  },
-  "clientProfile": {
-    "noFields": "No hay campos de perfil definidos para este tipo de cliente.",
-    "buyerSection": "Perfil de comprador",
-    "sellerSection": "Perfil de vendedor",
-    "fields": {
-      "budget": "Presupuesto aproximado",
-      "preferredZone": "Zona de interés",
-      "financing": "Tipo de financiamiento",
-      "reasonForSelling": "Motivo de venta",
-      "expectedPrice": "Precio esperado",
-      "hasLiens": "¿Tiene gravámenes o adeudos?"
-    },
-    "options": {
-      "financing": {
-        "infonavit": "INFONAVIT",
-        "bancario": "Crédito bancario",
-        "fovissste": "FOVISSSTE",
-        "contado": "Contado"
-      }
-    }
   },
   "documentCapture": {
     "instructions": "Coloca el documento dentro del marco, con buena iluminación y sin reflejos.",

@@ -255,7 +255,6 @@ export const localBackend = {
       email: data.email || null,
       phone: data.phone || null,
       notes: data.notes || null,
-      profile: data.profile || { buyer: {}, seller: {} },
       active: data.active !== false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -276,7 +275,6 @@ export const localBackend = {
       email: data.email || null,
       phone: data.phone || null,
       notes: data.notes || null,
-      profile: data.profile || { buyer: {}, seller: {} },
       active: data.active !== false,
       updated_at: new Date().toISOString(),
     };

@@ -3,7 +3,6 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { CLIENT_TYPES } from "../../lib/format";
-import ClientProfileForm from "../../components/ClientProfileForm";
 import "./admin.css";
 
 const EMPTY = {
@@ -13,7 +12,6 @@ const EMPTY = {
   phone: "",
   notes: "",
   active: true,
-  profile: { buyer: {}, seller: {} },
 };
 
 export default function AdminClientForm() {
@@ -38,7 +36,6 @@ export default function AdminClientForm() {
         phone: client.phone || "",
         notes: client.notes || "",
         active: client.active !== false,
-        profile: client.profile || { buyer: {}, seller: {} },
       });
       setLoading(false);
     });
@@ -132,15 +129,6 @@ export default function AdminClientForm() {
             <input type="checkbox" checked={form.active} onChange={handleChange("active")} style={{ marginRight: "0.5rem" }} />
             {t("common.active")}
           </label>
-        </div>
-
-        <div className="form-field">
-          <label>{t("clients.profileSection")}</label>
-          <ClientProfileForm
-            type={form.type}
-            profile={form.profile}
-            onChange={(profile) => setForm((prev) => ({ ...prev, profile }))}
-          />
         </div>
 
         <div className="admin-form__actions">

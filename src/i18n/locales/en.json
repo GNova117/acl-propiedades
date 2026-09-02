@@ -207,8 +207,7 @@
     "phone": "Phone",
     "notes": "Notes",
     "noResults": "No clients found.",
-    "viewDocuments": "Documents",
-    "profileSection": "Client profile"
+    "viewDocuments": "Documents"
   },
   "profiling": {
     "title": "Profiling",
@@ -223,27 +222,6 @@
     "downloadPdf": "Download PDF",
     "saveAndPdf": "Save and generate PDF",
     "backToList": "Back to list"
-  },
-  "clientProfile": {
-    "noFields": "No profile fields defined for this client type.",
-    "buyerSection": "Buyer profile",
-    "sellerSection": "Seller profile",
-    "fields": {
-      "budget": "Approximate budget",
-      "preferredZone": "Zone of interest",
-      "financing": "Financing type",
-      "reasonForSelling": "Reason for selling",
-      "expectedPrice": "Expected price",
-      "hasLiens": "Any liens or outstanding debts?"
-    },
-    "options": {
-      "financing": {
-        "infonavit": "INFONAVIT",
-        "bancario": "Bank loan",
-        "fovissste": "FOVISSSTE",
-        "contado": "Cash"
-      }
-    }
   },
   "documentCapture": {
     "instructions": "Place the document inside the frame, with good lighting and no glare.",

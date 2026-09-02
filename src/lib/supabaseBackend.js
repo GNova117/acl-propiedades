@@ -220,7 +220,6 @@ export const supabaseBackend = {
       email: data.email || null,
       phone: data.phone || null,
       notes: data.notes || null,
-      profile: data.profile || { buyer: {}, seller: {} },
       active: data.active !== false,
     };
     const { data: inserted, error } = await supabase.from("clients").insert(payload).select().single();
@@ -235,7 +234,6 @@ export const supabaseBackend = {
       email: data.email || null,
       phone: data.phone || null,
       notes: data.notes || null,
-      profile: data.profile || { buyer: {}, seller: {} },
       active: data.active !== false,
       updated_at: new Date().toISOString(),
     };
