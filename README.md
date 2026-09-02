@@ -54,14 +54,12 @@ npm run preview  # sirve el build de producción localmente
 
 Además crea un tercer bucket, `client-documents`, para los documentos de identidad capturados en el módulo de clientes (INE, CURP, cédula fiscal, acta de nacimiento). A diferencia de los dos anteriores, **es privado**: solo el admin autenticado puede subir/ver/eliminar esos archivos, y el panel los muestra vía URLs firmadas de corta duración, nunca URLs públicas.
 
-## Credenciales de acceso al panel admin
+## Acceso al panel admin
 
-| Modo | Correo | Contraseña |
-|---|---|---|
-| **Actual (Supabase real, ya configurado)** | `admin@aclpropiedades.com` | `Admin123!` |
-| **Demo (si borras `.env`)** | `admin@aclpropiedades.com` | `Admin123!` |
+Panel: `/admin` (redirige a `/admin/login` si no has iniciado sesión).
 
-Panel: `/admin` (redirige a `/admin/login` si no has iniciado sesión). **Cambia esta contraseña** desde el dashboard de Supabase (Authentication > Users) en cuanto puedas, ya que fue generada durante la configuración inicial.
+- **Con Supabase configurado (producción):** las credenciales del administrador se gestionan en el dashboard de Supabase, en **Authentication > Users**. No se documentan aquí a propósito: este repositorio está en GitHub y el panel da acceso a documentos de identidad de clientes (INE, CURP, actas de nacimiento).
+- **Modo demo (sin `.env`):** usa un login local de demostración cuyas credenciales aparecen en pantalla en la propia página de login. Solo sirve para explorar la app con datos de ejemplo en el navegador; no da acceso a ningún dato real.
 
 ## Estructura del proyecto
 
