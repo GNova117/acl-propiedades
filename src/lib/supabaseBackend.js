@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { toPerfilamientoPayload, PERFILAMIENTO_LIST_FIELDS } from "./perfilamiento";
 
 async function uploadFiles(bucket, files) {
   if (!files || files.length === 0) return [];
@@ -386,6 +387,50 @@ export const supabaseBackend = {
 
   async deleteMaterialCatalogItem(id) {
     const { error } = await supabase.from("materials_catalog").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  // La lista omite RFC/CURP/identificación: solo se piden al abrir uno.
+  async getPerfilamientos(clienteId) {
+    const { data, error } = await supabase
+      .from("perfilamientos")
+      .select(PERFILAMIENTO_LIST_FIELDS.join(", "))
+      .eq("cliente_id", clienteId)
+      .order("fecha_creacion", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getPerfilamientoById(id) {
+    const { data, error } = await supabase.from("perfilamientos").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async addPerfilamiento(clienteId, form) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const payload = {
+      ...toPerfilamientoPayload(form),
+      cliente_id: clienteId,
+      usuario_creo: sessionData?.session?.user?.email || null,
+    };
+    const { data, error } = await supabase.from("perfilamientos").insert(payload).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updatePerfilamiento(id, form) {
+    const payload = {
+      ...toPerfilamientoPayload(form),
+      fecha_modificacion: new Date().toISOString(),
+    };
+    const { data, error } = await supabase.from("perfilamientos").update(payload).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deletePerfilamiento(id) {
+    const { error } = await supabase.from("perfilamientos").delete().eq("id", id);
     if (error) throw error;
   },
 

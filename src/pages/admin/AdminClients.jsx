@@ -76,6 +76,9 @@ export default function AdminClients() {
                     <Link to={`/admin/clientes/${client.id}`} className="btn btn-outline btn-sm">
                       {t("common.edit")}
                     </Link>
+                    <Link to={`/admin/clientes/${client.id}/perfilamiento`} className="btn btn-outline btn-sm">
+                      {t("profiling.title")}
+                    </Link>
                     <Link to={`/admin/clientes/${client.id}/documentos`} className="btn btn-outline btn-sm">
                       {t("clients.viewDocuments")}
                     </Link>

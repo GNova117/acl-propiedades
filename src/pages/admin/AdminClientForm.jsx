@@ -81,9 +81,14 @@ export default function AdminClientForm() {
       <div className="admin-header">
         <h1>{isEdit ? t("admin.editClient") : t("admin.newClient")}</h1>
         {isEdit && (
-          <Link to={`/admin/clientes/${id}/documentos`} className="btn btn-outline">
-            {t("clients.viewDocuments")}
-          </Link>
+          <div className="admin-header__actions">
+            <Link to={`/admin/clientes/${id}/perfilamiento`} className="btn btn-outline">
+              {t("profiling.title")}
+            </Link>
+            <Link to={`/admin/clientes/${id}/documentos`} className="btn btn-outline">
+              {t("clients.viewDocuments")}
+            </Link>
+          </div>
         )}
       </div>
 

@@ -1,4 +1,5 @@
 import { ZONES, ADVISORS, PROPERTIES, DEMO_ADMIN } from "./seedData";
+import { toPerfilamientoPayload, PERFILAMIENTO_LIST_FIELDS } from "./perfilamiento";
 
 const KEYS = {
   properties: "acl_local_properties",
@@ -9,6 +10,7 @@ const KEYS = {
   clientDocuments: "acl_local_client_documents",
   remodelProjects: "acl_local_remodel_projects",
   materialsCatalog: "acl_local_materials_catalog",
+  perfilamientos: "acl_local_perfilamientos",
 };
 
 function readStore(key, fallback) {
@@ -429,6 +431,55 @@ export const localBackend = {
   async deleteMaterialCatalogItem(id) {
     const items = readStore(KEYS.materialsCatalog, []);
     writeStore(KEYS.materialsCatalog, items.filter((m) => m.id !== id));
+  },
+
+  // Igual que en Supabase: la lista no incluye RFC/CURP/identificación.
+  async getPerfilamientos(clienteId) {
+    const items = readStore(KEYS.perfilamientos, []);
+    return items
+      .filter((p) => p.cliente_id === clienteId)
+      .sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion))
+      .map((p) => Object.fromEntries(PERFILAMIENTO_LIST_FIELDS.map((key) => [key, p[key]])));
+  },
+
+  async getPerfilamientoById(id) {
+    const items = readStore(KEYS.perfilamientos, []);
+    return items.find((p) => p.id === id) || null;
+  },
+
+  async addPerfilamiento(clienteId, form) {
+    const items = readStore(KEYS.perfilamientos, []);
+    const now = new Date().toISOString();
+    const record = {
+      id: uid("perf"),
+      cliente_id: clienteId,
+      ...toPerfilamientoPayload(form),
+      usuario_creo: DEMO_ADMIN.email,
+      fecha_creacion: now,
+      fecha_modificacion: now,
+    };
+    items.push(record);
+    writeStore(KEYS.perfilamientos, items);
+    return record;
+  },
+
+  async updatePerfilamiento(id, form) {
+    const items = readStore(KEYS.perfilamientos, []);
+    const idx = items.findIndex((p) => p.id === id);
+    if (idx === -1) throw new Error("Perfilamiento no encontrado");
+    const updated = {
+      ...items[idx],
+      ...toPerfilamientoPayload(form),
+      fecha_modificacion: new Date().toISOString(),
+    };
+    items[idx] = updated;
+    writeStore(KEYS.perfilamientos, items);
+    return updated;
+  },
+
+  async deletePerfilamiento(id) {
+    const items = readStore(KEYS.perfilamientos, []);
+    writeStore(KEYS.perfilamientos, items.filter((p) => p.id !== id));
   },
 
   async signIn(email, password) {

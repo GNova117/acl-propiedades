@@ -210,6 +210,20 @@
     "viewDocuments": "Documents",
     "profileSection": "Client profile"
   },
+  "profiling": {
+    "title": "Profiling",
+    "sellerSection": "Seller general details",
+    "propertySection": "Property general details",
+    "seller": "Seller",
+    "property": "Property",
+    "createdAt": "Created on",
+    "noResults": "No profiling records for this client yet.",
+    "new": "New profiling record",
+    "open": "Open",
+    "downloadPdf": "Download PDF",
+    "saveAndPdf": "Save and generate PDF",
+    "backToList": "Back to list"
+  },
   "clientProfile": {
     "noFields": "No profile fields defined for this client type.",
     "buyerSection": "Buyer profile",

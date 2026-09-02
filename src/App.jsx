@@ -19,6 +19,7 @@ import AdminZones from "./pages/admin/AdminZones";
 import AdminClients from "./pages/admin/AdminClients";
 import AdminClientForm from "./pages/admin/AdminClientForm";
 import AdminClientDocuments from "./pages/admin/AdminClientDocuments";
+import AdminClientProfiling from "./pages/admin/AdminClientProfiling";
 import AdminRemodelProjects from "./pages/admin/AdminRemodelProjects";
 import AdminRemodelProjectForm from "./pages/admin/AdminRemodelProjectForm";
 import AdminMaterialsCatalog from "./pages/admin/AdminMaterialsCatalog";
@@ -67,6 +68,7 @@ export default function App() {
         <Route path="clientes/nuevo" element={<AdminClientForm />} />
         <Route path="clientes/:id" element={<AdminClientForm />} />
         <Route path="clientes/:id/documentos" element={<AdminClientDocuments />} />
+        <Route path="clientes/:id/perfilamiento" element={<AdminClientProfiling />} />
         <Route path="remodelaciones" element={<AdminRemodelProjects />} />
         <Route path="remodelaciones/nuevo" element={<AdminRemodelProjectForm />} />
         <Route path="remodelaciones/:id" element={<AdminRemodelProjectForm />} />

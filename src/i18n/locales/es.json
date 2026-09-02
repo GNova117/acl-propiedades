@@ -210,6 +210,20 @@
     "viewDocuments": "Documentos",
     "profileSection": "Perfil del cliente"
   },
+  "profiling": {
+    "title": "Perfilamiento",
+    "sellerSection": "Datos generales del vendedor",
+    "propertySection": "Datos generales del inmueble",
+    "seller": "Vendedor",
+    "property": "Inmueble",
+    "createdAt": "Fecha de creación",
+    "noResults": "Aún no hay perfilamientos para este cliente.",
+    "new": "Nuevo perfilamiento",
+    "open": "Abrir",
+    "downloadPdf": "Descargar PDF",
+    "saveAndPdf": "Guardar y generar PDF",
+    "backToList": "Volver a la lista"
+  },
   "clientProfile": {
     "noFields": "No hay campos de perfil definidos para este tipo de cliente.",
     "buyerSection": "Perfil de comprador",
