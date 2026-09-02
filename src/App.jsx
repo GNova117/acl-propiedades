@@ -13,6 +13,8 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProperties from "./pages/admin/AdminProperties";
 import AdminPropertyForm from "./pages/admin/AdminPropertyForm";
+import AdminPropertyLiquidacion from "./pages/admin/AdminPropertyLiquidacion";
+import PartnerRoute from "./components/PartnerRoute";
 import AdminAdvisors from "./pages/admin/AdminAdvisors";
 import AdminAdvisorForm from "./pages/admin/AdminAdvisorForm";
 import AdminZones from "./pages/admin/AdminZones";
@@ -60,6 +62,14 @@ export default function App() {
         <Route path="propiedades" element={<AdminProperties />} />
         <Route path="propiedades/nueva" element={<AdminPropertyForm />} />
         <Route path="propiedades/:id" element={<AdminPropertyForm />} />
+        <Route
+          path="propiedades/:id/liquidacion"
+          element={
+            <PartnerRoute>
+              <AdminPropertyLiquidacion />
+            </PartnerRoute>
+          }
+        />
         <Route path="asesores" element={<AdminAdvisors />} />
         <Route path="asesores/nuevo" element={<AdminAdvisorForm />} />
         <Route path="asesores/:id" element={<AdminAdvisorForm />} />

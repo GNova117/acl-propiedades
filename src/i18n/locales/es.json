@@ -260,6 +260,14 @@
     "addDocument": "Capturar documento",
     "capturedAt": "Capturado el"
   },
+  "liquidacion": {
+    "button": "Liquidación",
+    "title": "Liquidación de la vivienda",
+    "breakdownTitle": "Resumen",
+    "sameAsCaptador": "Misma persona que captó",
+    "restricted": "Este apartado es confidencial — acceso restringido a los socios.",
+    "disclaimer": "El desglose se calcula en automático a partir de los montos y porcentajes capturados; no se guarda como cifra fija, así que si ajustas cualquier dato de arriba el resumen se recalcula solo."
+  },
   "remodelCalculator": {
     "projectName": "Nombre del proyecto",
     "client": "Cliente",

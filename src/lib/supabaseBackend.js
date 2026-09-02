@@ -463,6 +463,35 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  // Confidencial: restringida por RLS a los dos socios (ver schema.sql). Un
+  // usuario autenticado que no sea socio simplemente recibe 0 filas / error
+  // de política, no un error de "tabla no existe" — es la protección real.
+  async getLiquidacionByProperty(propertyId) {
+    const { data, error } = await supabase.from("liquidaciones").select("*").eq("property_id", propertyId).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async addLiquidacion(propertyId, payload) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = { ...payload, property_id: propertyId, usuario_actualizo: sessionData?.session?.user?.email || null };
+    const { data, error } = await supabase.from("liquidaciones").insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateLiquidacion(id, payload) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = {
+      ...payload,
+      usuario_actualizo: sessionData?.session?.user?.email || null,
+      updated_at: new Date().toISOString(),
+    };
+    const { data, error } = await supabase.from("liquidaciones").update(row).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
   async signIn(email, password) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;

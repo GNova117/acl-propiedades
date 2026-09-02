@@ -13,6 +13,7 @@ const KEYS = {
   materialsCatalog: "acl_local_materials_catalog",
   perfilamientosVendedor: "acl_local_perfilamientos",
   perfilamientosComprador: "acl_local_perfilamientos_comprador",
+  liquidaciones: "acl_local_liquidaciones",
 };
 
 function readStore(key, fallback) {
@@ -521,6 +522,39 @@ export const localBackend = {
   async deletePerfilamientoComprador(id) {
     const items = readStore(KEYS.perfilamientosComprador, []);
     writeStore(KEYS.perfilamientosComprador, items.filter((p) => p.id !== id));
+  },
+
+  // En modo demo no hay restricción real de socios (ver AuthContext) — es
+  // un sandbox local, no un límite de seguridad.
+  async getLiquidacionByProperty(propertyId) {
+    const items = readStore(KEYS.liquidaciones, []);
+    return items.find((l) => l.property_id === propertyId) || null;
+  },
+
+  async addLiquidacion(propertyId, payload) {
+    const items = readStore(KEYS.liquidaciones, []);
+    const now = new Date().toISOString();
+    const record = {
+      id: uid("liq"),
+      property_id: propertyId,
+      ...payload,
+      usuario_actualizo: DEMO_ADMIN.email,
+      created_at: now,
+      updated_at: now,
+    };
+    items.push(record);
+    writeStore(KEYS.liquidaciones, items);
+    return record;
+  },
+
+  async updateLiquidacion(id, payload) {
+    const items = readStore(KEYS.liquidaciones, []);
+    const idx = items.findIndex((l) => l.id === id);
+    if (idx === -1) throw new Error("Liquidación no encontrada");
+    const updated = { ...items[idx], ...payload, usuario_actualizo: DEMO_ADMIN.email, updated_at: new Date().toISOString() };
+    items[idx] = updated;
+    writeStore(KEYS.liquidaciones, items);
+    return updated;
   },
 
   async signIn(email, password) {

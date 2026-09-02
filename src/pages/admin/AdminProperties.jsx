@@ -3,10 +3,12 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN, formatArea } from "../../lib/format";
+import { useAuth } from "../../context/AuthContext";
 import "./admin.css";
 
 export default function AdminProperties() {
   const { t } = useTranslation();
+  const { isPartner } = useAuth();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -79,6 +81,11 @@ export default function AdminProperties() {
                     <Link to={`/admin/propiedades/${property.id}`} className="btn btn-outline btn-sm">
                       {t("common.edit")}
                     </Link>
+                    {isPartner && (
+                      <Link to={`/admin/propiedades/${property.id}/liquidacion`} className="btn btn-outline btn-sm">
+                        {t("liquidacion.button")}
+                      </Link>
+                    )}
                     <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(property.id)}>
                       {t("common.delete")}
                     </button>

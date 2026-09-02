@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { db } from "../lib/dataStore";
 import { isSupabaseConfigured } from "../lib/supabaseClient";
+import { isPartnerEmail } from "../lib/partners";
 
 const AuthContext = createContext(null);
 
@@ -30,9 +31,13 @@ export function AuthProvider({ children }) {
     setSession(null);
   };
 
+  // En modo demo no hay un usuario real de Supabase — se trata como socio
+  // para poder explorar/probar el módulo confidencial en el sandbox local.
+  // La restricción real (base de datos en modo Supabase) vive en RLS.
   const value = {
     session,
     isAuthenticated: Boolean(session),
+    isPartner: !isSupabaseConfigured || isPartnerEmail(session?.user?.email),
     loading,
     login,
     logout,

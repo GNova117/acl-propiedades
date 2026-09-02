@@ -260,6 +260,14 @@
     "addDocument": "Capture document",
     "capturedAt": "Captured on"
   },
+  "liquidacion": {
+    "button": "Settlement",
+    "title": "Property settlement",
+    "breakdownTitle": "Summary",
+    "sameAsCaptador": "Same person who acquired it",
+    "restricted": "This section is confidential — access restricted to the partners.",
+    "disclaimer": "The breakdown recalculates automatically from the amounts and percentages above; it isn't stored as a fixed figure, so changing any input updates the summary on its own."
+  },
   "remodelCalculator": {
     "projectName": "Project name",
     "client": "Client",
