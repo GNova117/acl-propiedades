@@ -5,7 +5,6 @@ import Home from "./pages/Home";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
 import Calculator from "./pages/Calculator";
-import InfonavitSimulator from "./pages/InfonavitSimulator";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
@@ -27,6 +26,7 @@ import AdminRemodelProjects from "./pages/admin/AdminRemodelProjects";
 import AdminRemodelProjectForm from "./pages/admin/AdminRemodelProjectForm";
 import AdminMaterialsCatalog from "./pages/admin/AdminMaterialsCatalog";
 import AdminMaterialCatalogForm from "./pages/admin/AdminMaterialCatalogForm";
+import AdminInfonavitSimulator from "./pages/admin/AdminInfonavitSimulator";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function PublicLayout({ children }) {
@@ -47,7 +47,6 @@ export default function App() {
       <Route path="/propiedades" element={<PublicLayout><Properties /></PublicLayout>} />
       <Route path="/propiedades/:id" element={<PublicLayout><PropertyDetail /></PublicLayout>} />
       <Route path="/calculadora" element={<PublicLayout><Calculator /></PublicLayout>} />
-      <Route path="/credito-infonavit" element={<PublicLayout><InfonavitSimulator /></PublicLayout>} />
       <Route path="/nosotros" element={<PublicLayout><About /></PublicLayout>} />
       <Route path="/contacto" element={<PublicLayout><Contact /></PublicLayout>} />
 
@@ -87,6 +86,7 @@ export default function App() {
         <Route path="materiales" element={<AdminMaterialsCatalog />} />
         <Route path="materiales/nuevo" element={<AdminMaterialCatalogForm />} />
         <Route path="materiales/:id" element={<AdminMaterialCatalogForm />} />
+        <Route path="credito-infonavit" element={<AdminInfonavitSimulator />} />
       </Route>
 
       <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />

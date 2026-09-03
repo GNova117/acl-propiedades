@@ -3,7 +3,6 @@
     "home": "Home",
     "properties": "Properties",
     "calculator": "Calculator",
-    "infonavit": "Infonavit Credit",
     "about": "About",
     "contact": "Contact",
     "admin": "Admin Panel"
@@ -168,7 +167,8 @@
     "newMaterialCatalogItem": "New material",
     "editMaterialCatalogItem": "Edit material",
     "technicalSheet": "Technical sheet",
-    "newZone": "New zone"
+    "newZone": "New zone",
+    "infonavitSimulator": "Infonavit Credit"
   },
   "zones": {
     "name": "Zone name",

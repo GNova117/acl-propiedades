@@ -30,6 +30,7 @@ export default function AdminLayout() {
           <NavLink to="/admin/clientes">{t("admin.clients")}</NavLink>
           <NavLink to="/admin/remodelaciones">{t("admin.remodelProjects")}</NavLink>
           <NavLink to="/admin/materiales">{t("materialsCatalog.title")}</NavLink>
+          <NavLink to="/admin/credito-infonavit">{t("admin.infonavitSimulator")}</NavLink>
         </nav>
         <button type="button" className="admin-layout__logout" onClick={handleLogout}>
           {t("admin.logout")}

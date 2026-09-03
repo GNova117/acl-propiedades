@@ -1,8 +1,3 @@
-.infonavit-page {
-  padding-bottom: 4rem;
-  max-width: 980px;
-}
-
 .infonavit-layout {
   display: grid;
   grid-template-columns: 1fr 1.1fr;

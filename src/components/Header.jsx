@@ -10,7 +10,6 @@ const NAV_ITEMS = [
   { to: "/", key: "nav.home", end: true },
   { to: "/propiedades", key: "nav.properties" },
   { to: "/calculadora", key: "nav.calculator" },
-  { to: "/credito-infonavit", key: "nav.infonavit" },
   { to: "/nosotros", key: "nav.about" },
   { to: "/contacto", key: "nav.contact" },
 ];

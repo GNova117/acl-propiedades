@@ -3,7 +3,6 @@
     "home": "Inicio",
     "properties": "Propiedades",
     "calculator": "Calculadora",
-    "infonavit": "Crédito Infonavit",
     "about": "Nosotros",
     "contact": "Contacto",
     "admin": "Panel Admin"
@@ -168,7 +167,8 @@
     "newMaterialCatalogItem": "Nuevo material",
     "editMaterialCatalogItem": "Editar material",
     "technicalSheet": "Ficha técnica",
-    "newZone": "Nueva zona"
+    "newZone": "Nueva zona",
+    "infonavitSimulator": "Crédito Infonavit"
   },
   "zones": {
     "name": "Nombre de la zona",
