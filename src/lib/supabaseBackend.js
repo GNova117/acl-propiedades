@@ -194,6 +194,18 @@ export const supabaseBackend = {
     return data || [];
   },
 
+  async addZone(data) {
+    const payload = { name: data.name.trim(), price_per_m2: Number(data.price_per_m2) || 0 };
+    const { data: inserted, error } = await supabase.from("zones").insert(payload).select().single();
+    if (error) throw error;
+    return inserted;
+  },
+
+  async deleteZone(id) {
+    const { error } = await supabase.from("zones").delete().eq("id", id);
+    if (error) throw error;
+  },
+
   async updateZonePrice(id, price_per_m2) {
     const { data, error } = await supabase
       .from("zones")

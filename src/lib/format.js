@@ -16,7 +16,7 @@ export const PROPERTY_TYPES = ["casa", "departamento", "nave_industrial"];
 
 export const CLIENT_TYPES = ["comprador", "vendedor", "ambos"];
 
-export const DOC_TYPES = ["ine", "curp", "cedula_fiscal", "acta_nacimiento", "pago_avaluo"];
+export const DOC_TYPES = ["ine", "curp", "cedula_fiscal", "acta_nacimiento", "pago_avaluo", "contrato"];
 
 export const DOC_TYPE_ASPECT = {
   ine: 1.59,
@@ -24,4 +24,5 @@ export const DOC_TYPE_ASPECT = {
   cedula_fiscal: 0.77,
   acta_nacimiento: 0.77,
   pago_avaluo: 0.77,
+  contrato: 0.77,
 };

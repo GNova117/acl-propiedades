@@ -231,6 +231,23 @@ export const localBackend = {
     return readStore(KEYS.zones, ZONES);
   },
 
+  async addZone(data) {
+    const zones = readStore(KEYS.zones, ZONES);
+    const name = data.name.trim();
+    if (zones.some((z) => z.name.toLowerCase() === name.toLowerCase())) {
+      throw new Error("Ya existe una zona con ese nombre");
+    }
+    const record = { id: uid("zone"), name, price_per_m2: Number(data.price_per_m2) || 0 };
+    zones.push(record);
+    writeStore(KEYS.zones, zones);
+    return record;
+  },
+
+  async deleteZone(id) {
+    const zones = readStore(KEYS.zones, ZONES);
+    writeStore(KEYS.zones, zones.filter((z) => z.id !== id));
+  },
+
   async updateZonePrice(id, price_per_m2) {
     const zones = readStore(KEYS.zones, ZONES);
     const idx = zones.findIndex((z) => z.id === id);

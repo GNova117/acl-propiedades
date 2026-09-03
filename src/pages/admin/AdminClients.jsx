@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
@@ -8,6 +8,8 @@ export default function AdminClients() {
   const { t } = useTranslation();
   const [clients, setClients] = useState([]);
   const [typeFilter, setTypeFilter] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
   const [loading, setLoading] = useState(true);
 
   const load = () => {
@@ -19,6 +21,24 @@ export default function AdminClients() {
   };
 
   useEffect(load, [typeFilter]);
+
+  const months = t("dateFilter.months", { returnObjects: true });
+
+  const years = useMemo(() => {
+    const set = new Set(clients.filter((c) => c.created_at).map((c) => new Date(c.created_at).getFullYear()));
+    return Array.from(set).sort((a, b) => b - a);
+  }, [clients]);
+
+  const filteredClients = useMemo(() => {
+    if (!monthFilter && !yearFilter) return clients;
+    return clients.filter((c) => {
+      if (!c.created_at) return false;
+      const d = new Date(c.created_at);
+      if (monthFilter && d.getMonth() + 1 !== Number(monthFilter)) return false;
+      if (yearFilter && d.getFullYear() !== Number(yearFilter)) return false;
+      return true;
+    });
+  }, [clients, monthFilter, yearFilter]);
 
   const handleDelete = async (id) => {
     if (!window.confirm(t("common.confirmDelete"))) return;
@@ -35,14 +55,34 @@ export default function AdminClients() {
         </Link>
       </div>
 
-      <div className="form-field" style={{ maxWidth: 240, marginBottom: "1.25rem" }}>
-        <label htmlFor="client-type-filter">{t("clients.type")}</label>
-        <select id="client-type-filter" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
-          <option value="">—</option>
-          <option value="comprador">{t("clients.buyer")}</option>
-          <option value="vendedor">{t("clients.seller")}</option>
-          <option value="ambos">{t("clients.both")}</option>
-        </select>
+      <div className="form-row" style={{ maxWidth: 620, marginBottom: "1.25rem" }}>
+        <div className="form-field">
+          <label htmlFor="client-type-filter">{t("clients.type")}</label>
+          <select id="client-type-filter" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+            <option value="">—</option>
+            <option value="comprador">{t("clients.buyer")}</option>
+            <option value="vendedor">{t("clients.seller")}</option>
+            <option value="ambos">{t("clients.both")}</option>
+          </select>
+        </div>
+        <div className="form-field">
+          <label htmlFor="client-month-filter">{t("dateFilter.month")}</label>
+          <select id="client-month-filter" value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)}>
+            <option value="">{t("dateFilter.allMonths")}</option>
+            {months.map((name, i) => (
+              <option key={i} value={i + 1}>{name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="form-field">
+          <label htmlFor="client-year-filter">{t("dateFilter.year")}</label>
+          <select id="client-year-filter" value={yearFilter} onChange={(e) => setYearFilter(e.target.value)}>
+            <option value="">{t("dateFilter.allYears")}</option>
+            {years.map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="card admin-table-wrapper">
@@ -61,12 +101,12 @@ export default function AdminClients() {
               <tr>
                 <td colSpan={5}>{t("common.loading")}</td>
               </tr>
-            ) : clients.length === 0 ? (
+            ) : filteredClients.length === 0 ? (
               <tr>
                 <td colSpan={5}>{t("clients.noResults")}</td>
               </tr>
             ) : (
-              clients.map((client) => (
+              filteredClients.map((client) => (
                 <tr key={client.id}>
                   <td>{client.name}</td>
                   <td>{t(`clients.${client.type === "comprador" ? "buyer" : client.type === "vendedor" ? "seller" : "both"}`)}</td>

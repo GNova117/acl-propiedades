@@ -165,7 +165,23 @@
     "newRemodelProject": "New project",
     "editRemodelProject": "Edit project",
     "newMaterialCatalogItem": "New material",
-    "editMaterialCatalogItem": "Edit material"
+    "editMaterialCatalogItem": "Edit material",
+    "technicalSheet": "Technical sheet",
+    "newZone": "New zone"
+  },
+  "zones": {
+    "name": "Zone name",
+    "add": "Add zone",
+    "inUse_one": "{{count}} property uses this zone.",
+    "inUse_other": "{{count}} properties use this zone.",
+    "cannotDelete": "Can't delete: there are properties registered in this zone."
+  },
+  "dateFilter": {
+    "month": "Month",
+    "year": "Year",
+    "allMonths": "All months",
+    "allYears": "All years",
+    "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
   },
   "materialsCatalog": {
     "title": "Materials",
@@ -254,7 +270,8 @@
       "curp": "CURP",
       "cedula_fiscal": "Tax ID card",
       "acta_nacimiento": "Birth certificate",
-      "pago_avaluo": "Appraisal payment receipt"
+      "pago_avaluo": "Appraisal payment receipt",
+      "contrato": "Contract"
     },
     "noDocuments": "No documents captured for this client yet.",
     "addDocument": "Capture document",

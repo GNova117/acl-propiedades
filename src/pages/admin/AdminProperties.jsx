@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN, formatArea } from "../../lib/format";
+import { downloadFichaTecnicaPdf } from "../../lib/propertyFichaPdf";
 import { useAuth } from "../../context/AuthContext";
 import "./admin.css";
 
@@ -12,6 +13,7 @@ export default function AdminProperties() {
   const [properties, setProperties] = useState([]);
   const [remodelProjects, setRemodelProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [busyFichaId, setBusyFichaId] = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -33,6 +35,20 @@ export default function AdminProperties() {
   const toggleActive = async (property) => {
     await db.updateProperty(property.id, { ...property, active: !property.active, imageFiles: [], existingImages: property.images });
     load();
+  };
+
+  const handleDownloadFicha = async (property) => {
+    setBusyFichaId(property.id);
+    try {
+      await downloadFichaTecnicaPdf(property, {
+        typeLabel: t(`propertyType.${property.type}`),
+        statusLabel: t(`propertyStatus.${property.status}`),
+      });
+    } catch (err) {
+      window.alert(err.message || "Error al generar la ficha técnica");
+    } finally {
+      setBusyFichaId(null);
+    }
   };
 
   return (
@@ -85,6 +101,15 @@ export default function AdminProperties() {
                       <Link to={`/admin/propiedades/${property.id}`} className="btn btn-outline btn-sm">
                         {t("common.edit")}
                       </Link>
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        onClick={() => handleDownloadFicha(property)}
+                        disabled={busyFichaId === property.id}
+                      >
+                        {busyFichaId === property.id ? <span className="spinner" /> : null}
+                        {t("admin.technicalSheet")}
+                      </button>
                       {remodelProject && (
                         <Link to={`/admin/remodelaciones/${remodelProject.id}`} className="btn btn-outline btn-sm">
                           {t("remodelCalculator.button")}
