@@ -5,21 +5,25 @@
 export const DEFAULT_TASA_COMISION_CAPTACION = 40;
 export const DEFAULT_TASA_COMISION_VENTA = 30;
 export const DEFAULT_TASA_GASTOS_ADMIN = 10;
+export const DEFAULT_TASA_PAGO_SERVICIOS = 10;
 
-// costo_total e inversion_remodelacion NO viven aquí: se calculan en vivo en
-// AdminPropertyLiquidacion.jsx a partir del precio de la propiedad y del
-// total de materiales del proyecto de remodelación vinculado (ver
-// integración Propiedades → Remodelaciones → Liquidación), y se inyectan en
-// el objeto que se le pasa a computeLiquidacion. Nunca se capturan a mano ni
-// se guardan en la tabla liquidaciones.
+// costo_total vuelve a capturarse a mano (el precio de la propiedad ahora
+// solo es una referencia informativa — ver "Precio de la propiedad" en
+// AdminPropertyLiquidacion.jsx). inversion_remodelacion sigue sin vivir
+// aquí: se calcula en vivo desde el proyecto de remodelación vinculado y se
+// inyecta en el objeto que se le pasa a computeLiquidacion. El pago de
+// servicios deja de capturarse como monto — ahora es un porcentaje
+// (tasa_pago_servicios) sobre inversion_remodelacion, calculado dentro de
+// computeLiquidacion.
 export const EMPTY_LIQUIDACION = {
+  costo_total: "",
   devolucion_vendedor: "",
-  inversion_servicios: "",
   captador_id: "",
   vendedor_id: "",
   tasa_comision_captacion: DEFAULT_TASA_COMISION_CAPTACION,
   tasa_comision_venta: DEFAULT_TASA_COMISION_VENTA,
   tasa_gastos_admin: DEFAULT_TASA_GASTOS_ADMIN,
+  tasa_pago_servicios: DEFAULT_TASA_PAGO_SERVICIOS,
 };
 
 function num(value) {
@@ -34,7 +38,8 @@ export function computeLiquidacion(form) {
   const costoTotal = num(form.costo_total);
   const devolucion = num(form.devolucion_vendedor);
   const remodelacion = num(form.inversion_remodelacion);
-  const servicios = num(form.inversion_servicios);
+  const tasaServicios = num(form.tasa_pago_servicios);
+  const servicios = remodelacion * (tasaServicios / 100);
   const tasaCaptacion = num(form.tasa_comision_captacion);
   const tasaVenta = num(form.tasa_comision_venta);
   const tasaGastos = num(form.tasa_gastos_admin);
@@ -55,6 +60,7 @@ export function computeLiquidacion(form) {
   const utilidadNeta = utilidadOficina - gastosAdmin;
 
   return {
+    servicios,
     inversion,
     subtotal,
     comisionCaptacion,
@@ -69,13 +75,14 @@ export function computeLiquidacion(form) {
 
 export function toLiquidacionPayload(form) {
   return {
+    costo_total: num(form.costo_total),
     devolucion_vendedor: num(form.devolucion_vendedor),
-    inversion_servicios: num(form.inversion_servicios),
     captador_id: form.captador_id || null,
     vendedor_id: form.vendedor_id || null,
     tasa_comision_captacion: num(form.tasa_comision_captacion),
     tasa_comision_venta: num(form.tasa_comision_venta),
     tasa_gastos_admin: num(form.tasa_gastos_admin),
+    tasa_pago_servicios: num(form.tasa_pago_servicios),
   };
 }
 

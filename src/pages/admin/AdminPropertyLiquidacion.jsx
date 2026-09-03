@@ -33,7 +33,15 @@ export default function AdminPropertyLiquidacion() {
       setProperty(propertyData);
       setAdvisors(advisorsData);
       setExisting(liquidacionData);
-      setForm(toLiquidacionFormValues(liquidacionData));
+      const baseForm = toLiquidacionFormValues(liquidacionData);
+      setForm({
+        ...baseForm,
+        // Si todavía no hay liquidación guardada, se sugiere el precio de
+        // la propiedad como punto de partida editable — no es un valor
+        // fijo, el usuario lo puede cambiar libremente y de ahí en
+        // adelante ya no se vuelve a tocar solo.
+        costo_total: liquidacionData ? baseForm.costo_total : propertyData?.price ?? "",
+      });
       setRemodelProject(remodelData);
       setLoading(false);
     });
@@ -45,21 +53,22 @@ export default function AdminPropertyLiquidacion() {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  // Costo de liquidación e inversión en remodelación no se capturan aquí:
-  // vienen en vivo del precio de la propiedad y del total de materiales del
-  // proyecto de remodelación vinculado. Si el precio o los materiales
-  // cambian en su módulo de origen, se reflejan aquí en automático la
-  // siguiente vez que se abre o se guarda esta pantalla — no hay una cifra
-  // fija que confirmar ni migrar.
-  const costoTotal = Number(property?.price) || 0;
+  // Precio de la propiedad: solo referencia informativa (se sigue tomando
+  // en vivo de Propiedades). Ya no alimenta el cálculo directamente — el
+  // punto de partida real del RESUMEN es form.costo_total, capturado a
+  // mano (ver "Costo total de liquidación" más abajo).
+  const propertyPrice = Number(property?.price) || 0;
+
+  // Inversión en remodelación sigue sin capturarse aquí: viene en vivo del
+  // total de materiales del proyecto de remodelación vinculado.
   const inversionRemodelacion = useMemo(
     () => computeMaterialsTotals(remodelProject?.materials).grandTotalInternal,
     [remodelProject]
   );
 
   const breakdown = useMemo(
-    () => computeLiquidacion({ ...form, costo_total: costoTotal, inversion_remodelacion: inversionRemodelacion }),
-    [form, costoTotal, inversionRemodelacion]
+    () => computeLiquidacion({ ...form, inversion_remodelacion: inversionRemodelacion }),
+    [form, inversionRemodelacion]
   );
 
   const captador = advisors.find((a) => a.id === form.captador_id);
@@ -67,6 +76,7 @@ export default function AdminPropertyLiquidacion() {
 
   const validate = () => {
     const next = {};
+    if (!form.costo_total || Number(form.costo_total) <= 0) next.costo_total = t("contact.required");
     if (!form.captador_id) next.captador_id = t("contact.required");
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -108,20 +118,25 @@ export default function AdminPropertyLiquidacion() {
         <form className="card admin-form" onSubmit={handleSubmit} noValidate>
           <div className="form-row">
             <div className="form-field">
-              <label htmlFor="liq-costo-total">Costo total de liquidación</label>
-              <div id="liq-costo-total" className="liquidacion-readonly">{formatMXN(costoTotal)}</div>
+              <label htmlFor="liq-precio-propiedad">Precio de la propiedad</label>
+              <div id="liq-precio-propiedad" className="liquidacion-readonly">{formatMXN(propertyPrice)}</div>
               <span className="form-hint">
                 {t("liquidacion.autoFromProperty")}{" "}
                 <Link to={`/admin/propiedades/${id}`}>{t("liquidacion.editInProperty")}</Link>
               </span>
             </div>
             <div className="form-field">
-              <label htmlFor="liq-devolucion">Devolución al vendedor original</label>
-              <input id="liq-devolucion" type="number" min="0" value={form.devolucion_vendedor} onChange={handleChange("devolucion_vendedor")} />
+              <label htmlFor="liq-costo-total">Costo total de liquidación</label>
+              <input id="liq-costo-total" type="number" min="0" value={form.costo_total} onChange={handleChange("costo_total")} />
+              {errors.costo_total && <span className="form-error">{errors.costo_total}</span>}
             </div>
           </div>
 
           <div className="form-row">
+            <div className="form-field">
+              <label htmlFor="liq-devolucion">Devolución al vendedor original</label>
+              <input id="liq-devolucion" type="number" min="0" value={form.devolucion_vendedor} onChange={handleChange("devolucion_vendedor")} />
+            </div>
             <div className="form-field">
               <label htmlFor="liq-remodelacion">Inversión — costo de remodelación</label>
               <div id="liq-remodelacion" className="liquidacion-readonly">{formatMXN(inversionRemodelacion)}</div>
@@ -136,9 +151,17 @@ export default function AdminPropertyLiquidacion() {
                 )}
               </span>
             </div>
+          </div>
+
+          <div className="form-row">
             <div className="form-field">
               <label htmlFor="liq-servicios">Inversión — pago de servicios</label>
-              <input id="liq-servicios" type="number" min="0" value={form.inversion_servicios} onChange={handleChange("inversion_servicios")} />
+              <div id="liq-servicios" className="liquidacion-readonly">{formatMXN(breakdown.servicios)}</div>
+              <span className="form-hint">Se calcula como % de la inversión en remodelación.</span>
+            </div>
+            <div className="form-field">
+              <label htmlFor="liq-tasa-servicios">% Pago de servicios</label>
+              <input id="liq-tasa-servicios" type="number" min="0" max="100" value={form.tasa_pago_servicios} onChange={handleChange("tasa_pago_servicios")} />
             </div>
           </div>
 
@@ -197,7 +220,7 @@ export default function AdminPropertyLiquidacion() {
             <tbody>
               <tr>
                 <td>Costo total de liquidación</td>
-                <td>{formatMXN(costoTotal)}</td>
+                <td>{formatMXN(form.costo_total || 0)}</td>
               </tr>
               <tr>
                 <td>(−) Devolución al vendedor</td>
