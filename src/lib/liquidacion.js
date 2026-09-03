@@ -6,12 +6,14 @@ export const DEFAULT_TASA_COMISION_CAPTACION = 40;
 export const DEFAULT_TASA_COMISION_VENTA = 30;
 export const DEFAULT_TASA_GASTOS_ADMIN = 10;
 
-// costo_total e inversion_servicios vuelven a ser captura manual — el
-// precio de la propiedad (mostrado aparte, "Precio de la propiedad") queda
-// solo como referencia, ya no alimenta el cálculo. inversion_remodelacion
-// sigue sin vivir aquí: se calcula en vivo desde el proyecto de
-// remodelación vinculado y se inyecta en el objeto que se le pasa a
-// computeLiquidacion.
+// costo_total e inversion_servicios se capturan a mano. precio_propiedad
+// tampoco vive aquí: es el punto de partida real del cálculo, se toma en
+// vivo del precio vigente de la propiedad y se inyecta en el objeto que se
+// le pasa a computeLiquidacion — igual que inversion_remodelacion, nunca se
+// captura a mano ni se guarda. La utilidad neta de la sociedad parte del
+// precio de la propiedad, no del costo de liquidación: al precio se le
+// resta el costo de liquidación, la devolución al vendedor y la inversión;
+// el costo de liquidación es un descuento más, no la base del cálculo.
 export const EMPTY_LIQUIDACION = {
   costo_total: "",
   devolucion_vendedor: "",
@@ -32,7 +34,8 @@ function num(value) {
 // recalcula en cada render del formulario, no se guarda — así el modelo se
 // puede seguir ajustando sin tener que migrar liquidaciones ya capturadas.
 export function computeLiquidacion(form) {
-  const costoTotal = num(form.costo_total);
+  const precioPropiedad = num(form.precio_propiedad);
+  const costoLiquidacion = num(form.costo_total);
   const devolucion = num(form.devolucion_vendedor);
   const remodelacion = num(form.inversion_remodelacion);
   const servicios = num(form.inversion_servicios);
@@ -41,7 +44,7 @@ export function computeLiquidacion(form) {
   const tasaGastos = num(form.tasa_gastos_admin);
 
   const inversion = remodelacion + servicios;
-  const subtotal = costoTotal - devolucion - inversion;
+  const subtotal = precioPropiedad - costoLiquidacion - devolucion - inversion;
 
   const comisionCaptacion = subtotal * (tasaCaptacion / 100);
 

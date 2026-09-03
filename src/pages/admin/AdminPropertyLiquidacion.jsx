@@ -53,10 +53,10 @@ export default function AdminPropertyLiquidacion() {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  // Precio de la propiedad: solo referencia informativa (se sigue tomando
-  // en vivo de Propiedades). Ya no alimenta el cálculo directamente — el
-  // punto de partida real del RESUMEN es form.costo_total, capturado a
-  // mano (ver "Costo total de liquidación" más abajo).
+  // Precio de la propiedad: punto de partida real del cálculo (no una
+  // simple referencia) — se sigue tomando en vivo de Propiedades, nunca se
+  // captura a mano ni se guarda. De ahí se resta el costo de liquidación,
+  // la devolución y la inversión para llegar al Subtotal.
   const propertyPrice = Number(property?.price) || 0;
 
   // Inversión en remodelación sigue sin capturarse aquí: viene en vivo del
@@ -67,8 +67,8 @@ export default function AdminPropertyLiquidacion() {
   );
 
   const breakdown = useMemo(
-    () => computeLiquidacion({ ...form, inversion_remodelacion: inversionRemodelacion }),
-    [form, inversionRemodelacion]
+    () => computeLiquidacion({ ...form, precio_propiedad: propertyPrice, inversion_remodelacion: inversionRemodelacion }),
+    [form, propertyPrice, inversionRemodelacion]
   );
 
   const captador = advisors.find((a) => a.id === form.captador_id);
@@ -213,13 +213,13 @@ export default function AdminPropertyLiquidacion() {
           <h2 className="profiling-section-title">{t("liquidacion.breakdownTitle")}</h2>
           <table className="liquidacion-breakdown__table">
             <tbody>
-              <tr className="liquidacion-breakdown__sub">
-                <td>Precio de la propiedad (referencia)</td>
+              <tr>
+                <td>Precio de la propiedad</td>
                 <td>{formatMXN(propertyPrice)}</td>
               </tr>
               <tr>
-                <td>Costo total de liquidación</td>
-                <td>{formatMXN(form.costo_total || 0)}</td>
+                <td>(−) Costo total de liquidación</td>
+                <td>−{formatMXN(form.costo_total || 0)}</td>
               </tr>
               <tr>
                 <td>(−) Devolución al vendedor</td>
