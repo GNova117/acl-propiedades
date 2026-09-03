@@ -36,6 +36,8 @@ export const supabaseBackend = {
       .order("id", { ascending: true });
     if (filters.activeOnly) query = query.eq("active", true);
     if (filters.type) query = query.eq("type", filters.type);
+    else if (filters.types) query = query.in("type", filters.types);
+    if (filters.operation_type) query = query.eq("operation_type", filters.operation_type);
     if (filters.zone) query = query.eq("zone", filters.zone);
     if (filters.minPrice != null) query = query.gte("price", filters.minPrice);
     if (filters.maxPrice != null) query = query.lte("price", filters.maxPrice);
@@ -69,6 +71,7 @@ export const supabaseBackend = {
       lat: Number(data.lat),
       lng: Number(data.lng),
       status: data.status || "disponible",
+      operation_type: data.operation_type || "venta",
       active: data.active !== false,
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
@@ -107,6 +110,7 @@ export const supabaseBackend = {
       lat: Number(data.lat),
       lng: Number(data.lng),
       status: data.status,
+      operation_type: data.operation_type || "venta",
       active: data.active,
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",

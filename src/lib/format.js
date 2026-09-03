@@ -12,7 +12,23 @@ export function formatArea(value) {
   return `${new Intl.NumberFormat("es-MX").format(number)} m²`;
 }
 
-export const PROPERTY_TYPES = ["casa", "departamento", "nave_industrial"];
+export const PROPERTY_TYPES = ["casa", "departamento", "nave_industrial", "terreno"];
+
+// Casas y departamentos comparten el listado general "/propiedades"; naves
+// industriales y terrenos tienen su propio apartado del sitio (menú, ruta y
+// filtros independientes) — ver App.jsx / Header.jsx.
+export const RESIDENTIAL_TYPES = ["casa", "departamento"];
+
+export const PROPERTY_OPERATIONS = ["venta", "compra"];
+
+// A qué listado del sitio pertenece cada tipo de propiedad. Única fuente de
+// verdad para esta relación tipo → sección (CategoryCard y SearchBar la
+// usan para no duplicar la tabla).
+export function propertyListPath(type) {
+  if (type === "nave_industrial") return "/naves-industriales";
+  if (type === "terreno") return "/terrenos";
+  return "/propiedades";
+}
 
 export const CLIENT_TYPES = ["comprador", "vendedor", "ambos"];
 

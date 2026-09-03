@@ -8,6 +8,9 @@ const ICONS = {
   nave_industrial: (
     <path d="M3 21V11l5 3v-3l5 3v-3l5 3v7H3ZM6 21v-5M12 21v-5M18 21v-5" />
   ),
+  terreno: (
+    <path d="M3 20h18M5 20V8h14v12M9 8V4h2v4M13 8V4h2v4" />
+  ),
 };
 
 export default function PropertyTypeIcon({ type, size = 22, className = "" }) {

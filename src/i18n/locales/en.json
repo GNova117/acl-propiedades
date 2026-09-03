@@ -3,6 +3,8 @@
     "home": "Home",
     "properties": "Properties",
     "calculator": "Calculator",
+    "industrial": "Industrial Warehouses",
+    "land": "Land",
     "about": "About",
     "contact": "Contact",
     "admin": "Admin Panel"
@@ -16,7 +18,8 @@
     "searchMax": "Max price",
     "searchButton": "Search properties",
     "allTypes": "All types",
-    "allZones": "All zones"
+    "allZones": "All zones",
+    "allOperations": "Buying and selling"
   },
   "categories": {
     "eyebrow": "Browse by category",
@@ -26,12 +29,18 @@
     "cta": "View properties",
     "casa": { "title": "Houses", "desc": "Homes for your family in the best areas of the Comarca." },
     "departamento": { "title": "Apartments", "desc": "Comfort and location in vertical developments." },
-    "nave_industrial": { "title": "Industrial Warehouses", "desc": "Spaces for your growing business." }
+    "nave_industrial": { "title": "Industrial Warehouses", "desc": "Spaces for your growing business." },
+    "terreno": { "title": "Land", "desc": "Lots and land ready for your next project." }
   },
   "propertyType": {
     "casa": "House",
     "departamento": "Apartment",
-    "nave_industrial": "Industrial Warehouse"
+    "nave_industrial": "Industrial Warehouse",
+    "terreno": "Land"
+  },
+  "propertyOperation": {
+    "venta": "For sale",
+    "compra": "Buyer request"
   },
   "propertyStatus": {
     "disponible": "Available",
@@ -41,8 +50,13 @@
   "properties": {
     "title": "Available properties",
     "subtitle": "Filter by type, zone, price and area to find your ideal property.",
+    "industrialTitle": "Available industrial warehouses",
+    "industrialSubtitle": "Filter by zone, price and area to find the right warehouse for your business.",
+    "landTitle": "Available land",
+    "landSubtitle": "Filter by zone, price and area to find the right lot for your project.",
     "filters": "Filters",
     "type": "Type",
+    "operationType": "Transaction",
     "zone": "Zone",
     "minPrice": "Min. price",
     "maxPrice": "Max. price",

@@ -11,6 +11,7 @@ export const TYPE_FACTORS = {
   casa: 1,
   departamento: 1.05,
   nave_industrial: 0.65,
+  terreno: 0.4,
 };
 
 export const ADVISORS = [
@@ -63,6 +64,7 @@ export const PROPERTIES = [
     lat: 25.5719,
     lng: -103.3859,
     status: "disponible",
+    operation_type: "venta",
     active: true,
     main_image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1000&q=80",
     images: [
@@ -88,6 +90,7 @@ export const PROPERTIES = [
     lat: 25.5928,
     lng: -103.4884,
     status: "disponible",
+    operation_type: "venta",
     active: true,
     main_image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1000&q=80",
     images: [
@@ -112,6 +115,7 @@ export const PROPERTIES = [
     lat: 25.5361,
     lng: -103.5297,
     status: "apartada",
+    operation_type: "venta",
     active: true,
     main_image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1000&q=80",
     images: ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1000&q=80"],
@@ -133,6 +137,7 @@ export const PROPERTIES = [
     lat: 25.5445,
     lng: -103.4425,
     status: "disponible",
+    operation_type: "venta",
     active: true,
     main_image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1000&q=80",
     images: [
@@ -157,6 +162,7 @@ export const PROPERTIES = [
     lat: 25.559,
     lng: -103.497,
     status: "disponible",
+    operation_type: "venta",
     active: true,
     main_image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1000&q=80",
     images: ["https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1000&q=80"],
@@ -177,6 +183,7 @@ export const PROPERTIES = [
     lat: 25.5449,
     lng: -103.521,
     status: "vendida",
+    operation_type: "venta",
     active: true,
     main_image: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=1000&q=80",
     images: ["https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=1000&q=80"],
@@ -198,6 +205,7 @@ export const PROPERTIES = [
     lat: 25.6265,
     lng: -103.4429,
     status: "disponible",
+    operation_type: "venta",
     active: true,
     main_image: "https://images.unsplash.com/photo-1601599963565-b7f49deb2748?w=1000&q=80",
     images: [
@@ -222,6 +230,7 @@ export const PROPERTIES = [
     lat: 25.49,
     lng: -103.38,
     status: "disponible",
+    operation_type: "venta",
     active: true,
     main_image: "https://images.unsplash.com/photo-1553413077-190dd305871c?w=1000&q=80",
     images: ["https://images.unsplash.com/photo-1553413077-190dd305871c?w=1000&q=80"],
@@ -243,6 +252,7 @@ export const PROPERTIES = [
     lat: 25.52,
     lng: -103.54,
     status: "disponible",
+    operation_type: "venta",
     active: true,
     main_image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1000&q=80",
     images: ["https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1000&q=80"],

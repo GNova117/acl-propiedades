@@ -8,9 +8,9 @@ import PropertyMap from "../components/PropertyMap";
 import { db } from "../lib/dataStore";
 import "./Properties.css";
 
-const EMPTY_FILTERS = { type: "", zone: "", minPrice: "", maxPrice: "", minArea: "", maxArea: "" };
+const EMPTY_FILTERS = { type: "", operationType: "", zone: "", minPrice: "", maxPrice: "", minArea: "", maxArea: "" };
 
-export default function Properties() {
+export default function Properties({ allowedTypes, titleKey = "properties.title", subtitleKey = "properties.subtitle" }) {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState({
@@ -29,17 +29,23 @@ export default function Properties() {
     db.getZones().then(setZones).catch(() => setZones([]));
   }, []);
 
+  // Cuando el apartado solo tiene un tipo (naves industriales, terrenos) no
+  // tiene caso mostrar el filtro de Tipo — ya está implícito en la sección.
+  const typeOptions = allowedTypes.length > 1 ? allowedTypes : [];
+
   const queryFilters = useMemo(
     () => ({
       activeOnly: true,
       type: filters.type || undefined,
+      types: filters.type ? undefined : allowedTypes,
+      operation_type: filters.operationType || undefined,
       zone: filters.zone || undefined,
       minPrice: filters.minPrice ? Number(filters.minPrice) : undefined,
       maxPrice: filters.maxPrice ? Number(filters.maxPrice) : undefined,
       minArea: filters.minArea ? Number(filters.minArea) : undefined,
       maxArea: filters.maxArea ? Number(filters.maxArea) : undefined,
     }),
-    [filters]
+    [filters, allowedTypes]
   );
 
   useEffect(() => {
@@ -55,17 +61,23 @@ export default function Properties() {
 
   return (
     <>
-      <Seo title={t("nav.properties")} description={t("properties.subtitle")} />
+      <Seo title={t(titleKey)} description={t(subtitleKey)} />
 
       <div className="container properties-page">
         <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
-          <h2>{t("properties.title")}</h2>
-          <p>{t("properties.subtitle")}</p>
+          <h2>{t(titleKey)}</h2>
+          <p>{t(subtitleKey)}</p>
         </div>
 
         <div className="properties-page__layout">
           <aside>
-            <PropertyFilters filters={filters} zones={zones} onChange={setFilters} onClear={() => setFilters(EMPTY_FILTERS)} />
+            <PropertyFilters
+              filters={filters}
+              zones={zones}
+              typeOptions={typeOptions}
+              onChange={setFilters}
+              onClear={() => setFilters(EMPTY_FILTERS)}
+            />
           </aside>
 
           <div className="properties-page__results">

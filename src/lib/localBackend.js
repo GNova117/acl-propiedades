@@ -59,6 +59,8 @@ function withAdvisors(property, advisors) {
 function matchesFilters(property, filters = {}) {
   if (filters.activeOnly && !property.active) return false;
   if (filters.type && property.type !== filters.type) return false;
+  else if (!filters.type && filters.types && !filters.types.includes(property.type)) return false;
+  if (filters.operation_type && property.operation_type !== filters.operation_type) return false;
   if (filters.zone && property.zone !== filters.zone) return false;
   if (filters.minPrice != null && property.price < filters.minPrice) return false;
   if (filters.maxPrice != null && property.price > filters.maxPrice) return false;
@@ -117,6 +119,7 @@ export const localBackend = {
       lat: Number(data.lat),
       lng: Number(data.lng),
       status: data.status || "disponible",
+      operation_type: data.operation_type || "venta",
       active: data.active !== false,
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
@@ -159,6 +162,7 @@ export const localBackend = {
       lat: Number(data.lat),
       lng: Number(data.lng),
       status: data.status,
+      operation_type: data.operation_type || "venta",
       active: data.active,
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",

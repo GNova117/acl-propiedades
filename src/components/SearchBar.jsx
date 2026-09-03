@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
-import { PROPERTY_TYPES } from "../lib/format";
+import { PROPERTY_TYPES, propertyListPath } from "../lib/format";
 import "./SearchBar.css";
 
 export default function SearchBar() {
@@ -21,12 +21,15 @@ export default function SearchBar() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const path = propertyListPath(form.type);
     const params = new URLSearchParams();
-    if (form.type) params.set("tipo", form.type);
+    // El tipo solo va como parámetro de URL en /propiedades (casa/departamento
+    // conviven ahí); en los apartados de un solo tipo ya está implícito.
+    if (form.type && path === "/propiedades") params.set("tipo", form.type);
     if (form.zone) params.set("zona", form.zone);
     if (form.minPrice) params.set("min", form.minPrice);
     if (form.maxPrice) params.set("max", form.maxPrice);
-    navigate(`/propiedades?${params.toString()}`);
+    navigate(`${path}?${params.toString()}`);
   };
 
   return (

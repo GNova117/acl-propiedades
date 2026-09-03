@@ -9,13 +9,13 @@ import "./Home.css";
 
 export default function Home() {
   const { t } = useTranslation();
-  const [counts, setCounts] = useState({ casa: 0, departamento: 0, nave_industrial: 0 });
+  const [counts, setCounts] = useState({ casa: 0, departamento: 0, nave_industrial: 0, terreno: 0 });
 
   useEffect(() => {
     let active = true;
     db.getProperties({ activeOnly: true }).then((properties) => {
       if (!active) return;
-      const next = { casa: 0, departamento: 0, nave_industrial: 0 };
+      const next = { casa: 0, departamento: 0, nave_industrial: 0, terreno: 0 };
       properties.forEach((p) => {
         if (next[p.type] != null) next[p.type] += 1;
       });
@@ -30,7 +30,7 @@ export default function Home() {
     <>
       <Seo
         title={t("nav.home")}
-        description="ACL Propiedades: compra y venta de casas, departamentos y naves industriales en Torreón, Gómez Palacio y Lerdo."
+        description="ACL Propiedades: compra y venta de casas, departamentos, naves industriales y terrenos en Torreón, Gómez Palacio y Lerdo."
       />
 
       <section className="hero">

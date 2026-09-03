@@ -20,6 +20,7 @@ const EMPTY = {
   lat: "",
   lng: "",
   status: "disponible",
+  operation_type: "venta",
   active: true,
   advisor_ids: [],
 };
@@ -63,6 +64,7 @@ export default function AdminPropertyForm() {
         lat: property.lat,
         lng: property.lng,
         status: property.status,
+        operation_type: property.operation_type || "venta",
         active: property.active,
         advisor_ids: property.advisor_ids || [],
       });
@@ -193,6 +195,14 @@ export default function AdminPropertyForm() {
               <option value="vendida">{t("propertyStatus.vendida")}</option>
             </select>
           </div>
+        </div>
+
+        <div className="form-field">
+          <label htmlFor="p-operation">{t("properties.operationType")}</label>
+          <select id="p-operation" value={form.operation_type} onChange={handleChange("operation_type")}>
+            <option value="venta">{t("propertyOperation.venta")}</option>
+            <option value="compra">{t("propertyOperation.compra")}</option>
+          </select>
         </div>
 
         <div className="form-field">

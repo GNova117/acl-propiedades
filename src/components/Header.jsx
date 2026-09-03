@@ -9,7 +9,8 @@ import "./Header.css";
 const NAV_ITEMS = [
   { to: "/", key: "nav.home", end: true },
   { to: "/propiedades", key: "nav.properties" },
-  { to: "/calculadora", key: "nav.calculator" },
+  { to: "/naves-industriales", key: "nav.industrial" },
+  { to: "/terrenos", key: "nav.land" },
   { to: "/nosotros", key: "nav.about" },
   { to: "/contacto", key: "nav.contact" },
 ];

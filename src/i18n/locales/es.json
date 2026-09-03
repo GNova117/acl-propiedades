@@ -3,6 +3,8 @@
     "home": "Inicio",
     "properties": "Propiedades",
     "calculator": "Calculadora",
+    "industrial": "Naves Industriales",
+    "land": "Terrenos",
     "about": "Nosotros",
     "contact": "Contacto",
     "admin": "Panel Admin"
@@ -16,7 +18,8 @@
     "searchMax": "Precio máximo",
     "searchButton": "Buscar propiedades",
     "allTypes": "Todos los tipos",
-    "allZones": "Todas las zonas"
+    "allZones": "Todas las zonas",
+    "allOperations": "Compra y venta"
   },
   "categories": {
     "eyebrow": "Explora por categoría",
@@ -26,12 +29,18 @@
     "cta": "Ver propiedades",
     "casa": { "title": "Casas", "desc": "Hogares para tu familia en las mejores zonas de la Comarca." },
     "departamento": { "title": "Departamentos", "desc": "Comodidad y ubicación en desarrollos verticales." },
-    "nave_industrial": { "title": "Naves Industriales", "desc": "Espacios para tu empresa o negocio en crecimiento." }
+    "nave_industrial": { "title": "Naves Industriales", "desc": "Espacios para tu empresa o negocio en crecimiento." },
+    "terreno": { "title": "Terrenos", "desc": "Lotes y terrenos listos para tu próximo proyecto." }
   },
   "propertyType": {
     "casa": "Casa",
     "departamento": "Departamento",
-    "nave_industrial": "Nave Industrial"
+    "nave_industrial": "Nave Industrial",
+    "terreno": "Terreno"
+  },
+  "propertyOperation": {
+    "venta": "En venta",
+    "compra": "Se busca comprar"
   },
   "propertyStatus": {
     "disponible": "Disponible",
@@ -41,8 +50,13 @@
   "properties": {
     "title": "Propiedades disponibles",
     "subtitle": "Filtra por tipo, zona, precio y superficie para encontrar tu propiedad ideal.",
+    "industrialTitle": "Naves industriales disponibles",
+    "industrialSubtitle": "Filtra por zona, precio y superficie para encontrar la nave ideal para tu negocio.",
+    "landTitle": "Terrenos disponibles",
+    "landSubtitle": "Filtra por zona, precio y superficie para encontrar el terreno ideal para tu proyecto.",
     "filters": "Filtros",
     "type": "Tipo",
+    "operationType": "Operación",
     "zone": "Zona",
     "minPrice": "Precio mín.",
     "maxPrice": "Precio máx.",
