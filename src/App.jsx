@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
 import Calculator from "./pages/Calculator";
+import InfonavitSimulator from "./pages/InfonavitSimulator";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
@@ -46,6 +47,7 @@ export default function App() {
       <Route path="/propiedades" element={<PublicLayout><Properties /></PublicLayout>} />
       <Route path="/propiedades/:id" element={<PublicLayout><PropertyDetail /></PublicLayout>} />
       <Route path="/calculadora" element={<PublicLayout><Calculator /></PublicLayout>} />
+      <Route path="/credito-infonavit" element={<PublicLayout><InfonavitSimulator /></PublicLayout>} />
       <Route path="/nosotros" element={<PublicLayout><About /></PublicLayout>} />
       <Route path="/contacto" element={<PublicLayout><Contact /></PublicLayout>} />
 
