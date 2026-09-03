@@ -7,16 +7,16 @@ export const DEFAULT_TASA_COMISION_VENTA = 30;
 export const DEFAULT_TASA_GASTOS_ADMIN = 10;
 export const DEFAULT_TASA_PAGO_SERVICIOS = 10;
 
-// costo_total vuelve a capturarse a mano (el precio de la propiedad ahora
-// solo es una referencia informativa — ver "Precio de la propiedad" en
-// AdminPropertyLiquidacion.jsx). inversion_remodelacion sigue sin vivir
-// aquí: se calcula en vivo desde el proyecto de remodelación vinculado y se
-// inyecta en el objeto que se le pasa a computeLiquidacion. El pago de
-// servicios deja de capturarse como monto — ahora es un porcentaje
-// (tasa_pago_servicios) sobre inversion_remodelacion, calculado dentro de
-// computeLiquidacion.
+// costo_total NO vive aquí: el resumen siempre calcula directo desde el
+// precio vigente de la propiedad (property.price), inyectado en vivo por
+// AdminPropertyLiquidacion.jsx en el objeto que se le pasa a
+// computeLiquidacion — igual que inversion_remodelacion. Ninguno de los dos
+// se captura a mano ni se guarda en la tabla liquidaciones: si el precio
+// cambia en Propiedades, el resumen lo refleja de inmediato sin que nadie
+// tenga que resincronizar un número aparte. El pago de servicios tampoco se
+// captura como monto — es un porcentaje (tasa_pago_servicios) sobre
+// inversion_remodelacion, calculado dentro de computeLiquidacion.
 export const EMPTY_LIQUIDACION = {
-  costo_total: "",
   devolucion_vendedor: "",
   captador_id: "",
   vendedor_id: "",
@@ -75,7 +75,6 @@ export function computeLiquidacion(form) {
 
 export function toLiquidacionPayload(form) {
   return {
-    costo_total: num(form.costo_total),
     devolucion_vendedor: num(form.devolucion_vendedor),
     captador_id: form.captador_id || null,
     vendedor_id: form.vendedor_id || null,
