@@ -33,7 +33,15 @@ export default function AdminPropertyLiquidacion() {
       setProperty(propertyData);
       setAdvisors(advisorsData);
       setExisting(liquidacionData);
-      setForm(toLiquidacionFormValues(liquidacionData));
+      const baseForm = toLiquidacionFormValues(liquidacionData);
+      setForm({
+        ...baseForm,
+        // Si todavía no hay liquidación guardada, se sugiere el precio de
+        // la propiedad como punto de partida editable — no es un valor
+        // fijo, se puede cambiar libremente y de ahí en adelante ya no se
+        // vuelve a tocar solo.
+        costo_total: liquidacionData ? baseForm.costo_total : propertyData?.price ?? "",
+      });
       setRemodelProject(remodelData);
       setLoading(false);
     });
@@ -45,10 +53,10 @@ export default function AdminPropertyLiquidacion() {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  // Precio de la propiedad: única fuente del costo total de liquidación —
-  // se toma en vivo de Propiedades y alimenta directamente el RESUMEN
-  // (todas las restas parten de aquí). No se captura a mano ni se guarda:
-  // si el precio cambia en Propiedades, el resumen lo refleja de inmediato.
+  // Precio de la propiedad: solo referencia informativa (se sigue tomando
+  // en vivo de Propiedades). Ya no alimenta el cálculo directamente — el
+  // punto de partida real del RESUMEN es form.costo_total, capturado a
+  // mano (ver "Costo total de liquidación" más abajo).
   const propertyPrice = Number(property?.price) || 0;
 
   // Inversión en remodelación sigue sin capturarse aquí: viene en vivo del
@@ -59,8 +67,8 @@ export default function AdminPropertyLiquidacion() {
   );
 
   const breakdown = useMemo(
-    () => computeLiquidacion({ ...form, costo_total: propertyPrice, inversion_remodelacion: inversionRemodelacion }),
-    [form, propertyPrice, inversionRemodelacion]
+    () => computeLiquidacion({ ...form, inversion_remodelacion: inversionRemodelacion }),
+    [form, inversionRemodelacion]
   );
 
   const captador = advisors.find((a) => a.id === form.captador_id);
@@ -68,6 +76,7 @@ export default function AdminPropertyLiquidacion() {
 
   const validate = () => {
     const next = {};
+    if (!form.costo_total || Number(form.costo_total) <= 0) next.costo_total = t("contact.required");
     if (!form.captador_id) next.captador_id = t("contact.required");
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -116,6 +125,11 @@ export default function AdminPropertyLiquidacion() {
                 <Link to={`/admin/propiedades/${id}`}>{t("liquidacion.editInProperty")}</Link>
               </span>
             </div>
+            <div className="form-field">
+              <label htmlFor="liq-costo-total">Costo total de liquidación</label>
+              <input id="liq-costo-total" type="number" min="0" value={form.costo_total} onChange={handleChange("costo_total")} />
+              {errors.costo_total && <span className="form-error">{errors.costo_total}</span>}
+            </div>
           </div>
 
           <div className="form-row">
@@ -142,12 +156,7 @@ export default function AdminPropertyLiquidacion() {
           <div className="form-row">
             <div className="form-field">
               <label htmlFor="liq-servicios">Inversión — pago de servicios</label>
-              <div id="liq-servicios" className="liquidacion-readonly">{formatMXN(breakdown.servicios)}</div>
-              <span className="form-hint">Se calcula como % de la inversión en remodelación.</span>
-            </div>
-            <div className="form-field">
-              <label htmlFor="liq-tasa-servicios">% Pago de servicios</label>
-              <input id="liq-tasa-servicios" type="number" min="0" max="100" value={form.tasa_pago_servicios} onChange={handleChange("tasa_pago_servicios")} />
+              <input id="liq-servicios" type="number" min="0" value={form.inversion_servicios} onChange={handleChange("inversion_servicios")} />
             </div>
           </div>
 
@@ -204,9 +213,13 @@ export default function AdminPropertyLiquidacion() {
           <h2 className="profiling-section-title">{t("liquidacion.breakdownTitle")}</h2>
           <table className="liquidacion-breakdown__table">
             <tbody>
+              <tr className="liquidacion-breakdown__sub">
+                <td>Precio de la propiedad (referencia)</td>
+                <td>{formatMXN(propertyPrice)}</td>
+              </tr>
               <tr>
                 <td>Costo total de liquidación</td>
-                <td>{formatMXN(propertyPrice)}</td>
+                <td>{formatMXN(form.costo_total || 0)}</td>
               </tr>
               <tr>
                 <td>(−) Devolución al vendedor</td>
