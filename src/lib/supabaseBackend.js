@@ -1,6 +1,7 @@
 import { supabase } from "./supabaseClient";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
+import { slugify } from "./format";
 
 async function uploadFiles(bucket, files) {
   if (!files || files.length === 0) return [];
@@ -71,7 +72,7 @@ export const supabaseBackend = {
       lat: Number(data.lat),
       lng: Number(data.lng),
       status: data.status || "disponible",
-      operation_type: data.operation_type || "venta",
+      operation_type: data.operation_type || "compra",
       active: data.active !== false,
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
@@ -110,7 +111,7 @@ export const supabaseBackend = {
       lat: Number(data.lat),
       lng: Number(data.lng),
       status: data.status,
-      operation_type: data.operation_type || "venta",
+      operation_type: data.operation_type || "compra",
       active: data.active,
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
@@ -207,6 +208,25 @@ export const supabaseBackend = {
 
   async deleteZone(id) {
     const { error } = await supabase.from("zones").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  async getPropertyTypes() {
+    const { data, error } = await supabase.from("property_types").select("*").order("label");
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addPropertyType(data) {
+    const label = data.label.trim();
+    const payload = { key: slugify(label), label };
+    const { data: inserted, error } = await supabase.from("property_types").insert(payload).select().single();
+    if (error) throw error;
+    return inserted;
+  },
+
+  async deletePropertyType(id) {
+    const { error } = await supabase.from("property_types").delete().eq("id", id);
     if (error) throw error;
   },
 

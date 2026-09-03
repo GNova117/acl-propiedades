@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import PropertyTypeIcon from "./PropertyTypeIcon";
-import { formatMXN, formatArea } from "../lib/format";
+import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./PropertyCard.css";
 
 export default function PropertyCard({ property }) {
@@ -19,7 +19,7 @@ export default function PropertyCard({ property }) {
       <div className="property-card__body">
         <div className="property-card__type">
           <PropertyTypeIcon type={property.type} size={16} />
-          <span>{t(`propertyType.${property.type}`)}</span>
+          <span>{propertyTypeLabel(t, property.type)}</span>
           <span className="property-card__zone">· {property.zone}</span>
         </div>
         <h3 className="property-card__title">

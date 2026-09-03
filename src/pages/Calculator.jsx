@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import { db, TYPE_FACTORS } from "../lib/dataStore";
-import { formatMXN, PROPERTY_TYPES } from "../lib/format";
+import { formatMXN, propertyTypeLabel } from "../lib/format";
 import "./Calculator.css";
 
 export default function Calculator() {
   const { t } = useTranslation();
   const [zones, setZones] = useState([]);
+  const [propertyTypes, setPropertyTypes] = useState([]);
   const [area, setArea] = useState(120);
   const [zoneId, setZoneId] = useState("");
   const [type, setType] = useState("casa");
@@ -17,6 +18,7 @@ export default function Calculator() {
       setZones(data);
       if (data.length > 0) setZoneId(data[0].id);
     });
+    db.getPropertyTypes().then(setPropertyTypes);
   }, []);
 
   const selectedZone = zones.find((z) => z.id === zoneId);
@@ -78,9 +80,9 @@ export default function Calculator() {
             <div className="form-field">
               <label htmlFor="calc-type">{t("calculator.type")}</label>
               <select id="calc-type" value={type} onChange={(e) => setType(e.target.value)}>
-                {PROPERTY_TYPES.map((t2) => (
-                  <option key={t2} value={t2}>
-                    {t(`propertyType.${t2}`)}
+                {propertyTypes.map((pt) => (
+                  <option key={pt.id} value={pt.key}>
+                    {propertyTypeLabel(t, pt.key)}
                   </option>
                 ))}
               </select>

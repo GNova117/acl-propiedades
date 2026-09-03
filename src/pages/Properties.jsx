@@ -10,7 +10,14 @@ import "./Properties.css";
 
 const EMPTY_FILTERS = { type: "", operationType: "", zone: "", minPrice: "", maxPrice: "", minArea: "", maxArea: "" };
 
-export default function Properties({ allowedTypes, titleKey = "properties.title", subtitleKey = "properties.subtitle" }) {
+// `fixedType`: apartado de un solo tipo (naves industriales, terrenos) — el
+// filtro de Tipo no se muestra, ya está implícito en la sección, y el
+// filtro de Operación tampoco (solo aplica en Propiedades, por ahora).
+// `excludeTypes`: apartado general "/propiedades" — la lista de tipos
+// seleccionables sale en vivo de property_types, menos los que ya tienen
+// su propio apartado; un tipo nuevo que se agregue desde /admin/zonas cae
+// aquí por default sin tocar código.
+export default function Properties({ fixedType, excludeTypes = [], titleKey = "properties.title", subtitleKey = "properties.subtitle" }) {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState({
@@ -22,30 +29,36 @@ export default function Properties({ allowedTypes, titleKey = "properties.title"
   });
   const [properties, setProperties] = useState([]);
   const [zones, setZones] = useState([]);
+  const [propertyTypes, setPropertyTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
 
   useEffect(() => {
     db.getZones().then(setZones).catch(() => setZones([]));
+    db.getPropertyTypes().then(setPropertyTypes).catch(() => setPropertyTypes([]));
   }, []);
 
-  // Cuando el apartado solo tiene un tipo (naves industriales, terrenos) no
-  // tiene caso mostrar el filtro de Tipo — ya está implícito en la sección.
-  const typeOptions = allowedTypes.length > 1 ? allowedTypes : [];
+  const sectionTypes = useMemo(() => {
+    if (fixedType) return [fixedType];
+    return propertyTypes.map((pt) => pt.key).filter((key) => !excludeTypes.includes(key));
+  }, [fixedType, excludeTypes, propertyTypes]);
+
+  // Con un solo tipo en la sección no tiene caso mostrar el filtro de Tipo.
+  const typeOptions = fixedType ? [] : sectionTypes;
 
   const queryFilters = useMemo(
     () => ({
       activeOnly: true,
-      type: filters.type || undefined,
-      types: filters.type ? undefined : allowedTypes,
-      operation_type: filters.operationType || undefined,
+      type: fixedType || filters.type || undefined,
+      types: fixedType || filters.type ? undefined : sectionTypes,
+      operation_type: fixedType ? undefined : filters.operationType || undefined,
       zone: filters.zone || undefined,
       minPrice: filters.minPrice ? Number(filters.minPrice) : undefined,
       maxPrice: filters.maxPrice ? Number(filters.maxPrice) : undefined,
       minArea: filters.minArea ? Number(filters.minArea) : undefined,
       maxArea: filters.maxArea ? Number(filters.maxArea) : undefined,
     }),
-    [filters, allowedTypes]
+    [filters, fixedType, sectionTypes]
   );
 
   useEffect(() => {
@@ -75,6 +88,7 @@ export default function Properties({ allowedTypes, titleKey = "properties.title"
               filters={filters}
               zones={zones}
               typeOptions={typeOptions}
+              showOperation={!fixedType}
               onChange={setFilters}
               onClear={() => setFilters(EMPTY_FILTERS)}
             />

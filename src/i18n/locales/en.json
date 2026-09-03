@@ -19,7 +19,7 @@
     "searchButton": "Search properties",
     "allTypes": "All types",
     "allZones": "All zones",
-    "allOperations": "Buying and selling"
+    "allOperations": "All transaction types"
   },
   "categories": {
     "eyebrow": "Browse by category",
@@ -39,8 +39,8 @@
     "terreno": "Land"
   },
   "propertyOperation": {
-    "venta": "For sale",
-    "compra": "Buyer request"
+    "compra": "Buy",
+    "renta": "Rent"
   },
   "propertyStatus": {
     "disponible": "Available",
@@ -182,7 +182,9 @@
     "editMaterialCatalogItem": "Edit material",
     "technicalSheet": "Technical sheet",
     "newZone": "New zone",
-    "infonavitSimulator": "Infonavit Credit"
+    "infonavitSimulator": "Infonavit Credit",
+    "propertyTypes": "Property types",
+    "newPropertyType": "New property type"
   },
   "zones": {
     "name": "Zone name",
@@ -190,6 +192,13 @@
     "inUse_one": "{{count}} property uses this zone.",
     "inUse_other": "{{count}} properties use this zone.",
     "cannotDelete": "Can't delete: there are properties registered in this zone."
+  },
+  "propertyTypesModule": {
+    "name": "Type name",
+    "add": "Add type",
+    "inUse_one": "{{count}} property uses this type.",
+    "inUse_other": "{{count}} properties use this type.",
+    "cannotDelete": "Can't delete: there are properties registered with this type."
   },
   "dateFilter": {
     "month": "Month",

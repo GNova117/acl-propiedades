@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { formatMXN, formatArea } from "../../lib/format";
+import { formatMXN, formatArea, propertyTypeLabel } from "../../lib/format";
 import { downloadFichaTecnicaPdf } from "../../lib/propertyFichaPdf";
 import { useAuth } from "../../context/AuthContext";
 import "./admin.css";
@@ -41,7 +41,7 @@ export default function AdminProperties() {
     setBusyFichaId(property.id);
     try {
       await downloadFichaTecnicaPdf(property, {
-        typeLabel: t(`propertyType.${property.type}`),
+        typeLabel: propertyTypeLabel(t, property.type),
         statusLabel: t(`propertyStatus.${property.status}`),
       });
     } catch (err) {
@@ -87,7 +87,7 @@ export default function AdminProperties() {
                   <tr key={property.id}>
                     <td><img src={property.main_image} alt="" /></td>
                     <td>{property.title}</td>
-                    <td>{t(`propertyType.${property.type}`)}</td>
+                    <td>{propertyTypeLabel(t, property.type)}</td>
                     <td>{property.zone}</td>
                     <td>{formatMXN(property.price)}</td>
                     <td>{formatArea(property.area_m2)}</td>

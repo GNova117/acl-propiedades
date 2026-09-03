@@ -28,7 +28,9 @@ import AdminMaterialsCatalog from "./pages/admin/AdminMaterialsCatalog";
 import AdminMaterialCatalogForm from "./pages/admin/AdminMaterialCatalogForm";
 import AdminInfonavitSimulator from "./pages/admin/AdminInfonavitSimulator";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { RESIDENTIAL_TYPES } from "./lib/format";
+import { SPECIAL_SECTION_TYPES } from "./lib/format";
+
+const SPECIAL_SECTION_KEYS = Object.keys(SPECIAL_SECTION_TYPES);
 
 function PublicLayout({ children }) {
   return (
@@ -45,13 +47,13 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
-      <Route path="/propiedades" element={<PublicLayout><Properties allowedTypes={RESIDENTIAL_TYPES} /></PublicLayout>} />
+      <Route path="/propiedades" element={<PublicLayout><Properties excludeTypes={SPECIAL_SECTION_KEYS} /></PublicLayout>} />
       <Route path="/propiedades/:id" element={<PublicLayout><PropertyDetail /></PublicLayout>} />
       <Route
         path="/naves-industriales"
         element={
           <PublicLayout>
-            <Properties allowedTypes={["nave_industrial"]} titleKey="properties.industrialTitle" subtitleKey="properties.industrialSubtitle" />
+            <Properties fixedType="nave_industrial" titleKey="properties.industrialTitle" subtitleKey="properties.industrialSubtitle" />
           </PublicLayout>
         }
       />
@@ -59,7 +61,7 @@ export default function App() {
         path="/terrenos"
         element={
           <PublicLayout>
-            <Properties allowedTypes={["terreno"]} titleKey="properties.landTitle" subtitleKey="properties.landSubtitle" />
+            <Properties fixedType="terreno" titleKey="properties.landTitle" subtitleKey="properties.landSubtitle" />
           </PublicLayout>
         }
       />

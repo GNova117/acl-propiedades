@@ -7,7 +7,7 @@ import AdvisorCard from "../components/AdvisorCard";
 import PropertyTypeIcon from "../components/PropertyTypeIcon";
 import PropertyMap from "../components/PropertyMap";
 import { db } from "../lib/dataStore";
-import { formatMXN, formatArea } from "../lib/format";
+import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./PropertyDetail.css";
 
 export default function PropertyDetail() {
@@ -54,7 +54,7 @@ export default function PropertyDetail() {
               <div>
                 <div className="property-card__type">
                   <PropertyTypeIcon type={property.type} size={16} />
-                  <span>{t(`propertyType.${property.type}`)}</span>
+                  <span>{propertyTypeLabel(t, property.type)}</span>
                   <span className="property-card__zone">· {property.zone}</span>
                 </div>
                 <h1>{property.title}</h1>

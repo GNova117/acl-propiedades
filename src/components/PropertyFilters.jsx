@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
+import { propertyTypeLabel } from "../lib/format";
 import "./PropertyFilters.css";
 
-export default function PropertyFilters({ filters, zones, typeOptions = [], onChange, onClear }) {
+export default function PropertyFilters({ filters, zones, typeOptions = [], showOperation = true, onChange, onClear }) {
   const { t } = useTranslation();
 
   const handle = (field) => (e) => onChange({ ...filters, [field]: e.target.value });
@@ -22,21 +23,23 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], onCh
             <option value="">{t("hero.allTypes")}</option>
             {typeOptions.map((type) => (
               <option key={type} value={type}>
-                {t(`propertyType.${type}`)}
+                {propertyTypeLabel(t, type)}
               </option>
             ))}
           </select>
         </div>
       )}
 
-      <div className="form-field">
-        <label htmlFor="filter-operation">{t("properties.operationType")}</label>
-        <select id="filter-operation" value={filters.operationType} onChange={handle("operationType")}>
-          <option value="">{t("hero.allOperations")}</option>
-          <option value="venta">{t("propertyOperation.venta")}</option>
-          <option value="compra">{t("propertyOperation.compra")}</option>
-        </select>
-      </div>
+      {showOperation && (
+        <div className="form-field">
+          <label htmlFor="filter-operation">{t("properties.operationType")}</label>
+          <select id="filter-operation" value={filters.operationType} onChange={handle("operationType")}>
+            <option value="">{t("hero.allOperations")}</option>
+            <option value="compra">{t("propertyOperation.compra")}</option>
+            <option value="renta">{t("propertyOperation.renta")}</option>
+          </select>
+        </div>
+      )}
 
       <div className="form-field">
         <label htmlFor="filter-zone">{t("properties.zone")}</label>

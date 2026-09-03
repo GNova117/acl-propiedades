@@ -4,8 +4,13 @@ import Seo from "../components/Seo";
 import SearchBar from "../components/SearchBar";
 import CategoryCard from "../components/CategoryCard";
 import { db } from "../lib/dataStore";
-import { PROPERTY_TYPES } from "../lib/format";
 import "./Home.css";
+
+// Las tarjetas de categoría del inicio son contenido curado (imagen + copy
+// propios en CategoryCard.jsx/i18n), no la lista completa de tipos — se
+// quedan fijas en estos 4 aunque se agreguen más tipos desde
+// /admin/zonas; un tipo nuevo solo aparece en el filtro de "/propiedades".
+const HOME_CATEGORY_TYPES = ["casa", "departamento", "nave_industrial", "terreno"];
 
 export default function Home() {
   const { t } = useTranslation();
@@ -49,7 +54,7 @@ export default function Home() {
             <h2>{t("categories.title")}</h2>
           </div>
           <div className="home-categories">
-            {PROPERTY_TYPES.map((type) => (
+            {HOME_CATEGORY_TYPES.map((type) => (
               <CategoryCard key={type} type={type} count={counts[type]} />
             ))}
           </div>

@@ -1,11 +1,13 @@
-import { ZONES, ADVISORS, PROPERTIES, DEMO_ADMIN } from "./seedData";
+import { ZONES, ADVISORS, PROPERTIES, PROPERTY_TYPES_SEED, DEMO_ADMIN } from "./seedData";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
+import { slugify } from "./format";
 
 const KEYS = {
   properties: "acl_local_properties",
   advisors: "acl_local_advisors",
   zones: "acl_local_zones",
+  propertyTypes: "acl_local_property_types",
   session: "acl_local_session",
   clients: "acl_local_clients",
   clientDocuments: "acl_local_client_documents",
@@ -119,7 +121,7 @@ export const localBackend = {
       lat: Number(data.lat),
       lng: Number(data.lng),
       status: data.status || "disponible",
-      operation_type: data.operation_type || "venta",
+      operation_type: data.operation_type || "compra",
       active: data.active !== false,
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
@@ -162,7 +164,7 @@ export const localBackend = {
       lat: Number(data.lat),
       lng: Number(data.lng),
       status: data.status,
-      operation_type: data.operation_type || "venta",
+      operation_type: data.operation_type || "compra",
       active: data.active,
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
@@ -259,6 +261,28 @@ export const localBackend = {
     zones[idx] = { ...zones[idx], price_per_m2: Number(price_per_m2) };
     writeStore(KEYS.zones, zones);
     return zones[idx];
+  },
+
+  async getPropertyTypes() {
+    return readStore(KEYS.propertyTypes, PROPERTY_TYPES_SEED);
+  },
+
+  async addPropertyType(data) {
+    const types = readStore(KEYS.propertyTypes, PROPERTY_TYPES_SEED);
+    const label = data.label.trim();
+    const key = slugify(label);
+    if (types.some((t) => t.key === key)) {
+      throw new Error("Ya existe un tipo de propiedad con ese nombre");
+    }
+    const record = { id: uid("type"), key, label };
+    types.push(record);
+    writeStore(KEYS.propertyTypes, types);
+    return record;
+  },
+
+  async deletePropertyType(id) {
+    const types = readStore(KEYS.propertyTypes, PROPERTY_TYPES_SEED);
+    writeStore(KEYS.propertyTypes, types.filter((t) => t.id !== id));
   },
 
   async submitContactMessage(data) {

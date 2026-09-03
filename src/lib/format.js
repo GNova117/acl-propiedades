@@ -12,22 +12,45 @@ export function formatArea(value) {
   return `${new Intl.NumberFormat("es-MX").format(number)} m²`;
 }
 
-export const PROPERTY_TYPES = ["casa", "departamento", "nave_industrial", "terreno"];
+// Tipos de propiedad: casa/departamento/nave_industrial/terreno vienen
+// sembrados de fábrica, pero desde /admin/zonas (sección "Tipos de
+// propiedad") se pueden agregar más — el catálogo real vive en la tabla
+// property_types (db.getPropertyTypes()), no aquí. Estas dos siguen fijas
+// en código porque tienen apartado propio del sitio (menú, ruta y filtros
+// independientes) — cualquier tipo nuevo que se agregue cae por default en
+// el listado general "/propiedades".
+export const SPECIAL_SECTION_TYPES = { nave_industrial: "/naves-industriales", terreno: "/terrenos" };
 
-// Casas y departamentos comparten el listado general "/propiedades"; naves
-// industriales y terrenos tienen su propio apartado del sitio (menú, ruta y
-// filtros independientes) — ver App.jsx / Header.jsx.
-export const RESIDENTIAL_TYPES = ["casa", "departamento"];
-
-export const PROPERTY_OPERATIONS = ["venta", "compra"];
-
-// A qué listado del sitio pertenece cada tipo de propiedad. Única fuente de
-// verdad para esta relación tipo → sección (CategoryCard y SearchBar la
-// usan para no duplicar la tabla).
 export function propertyListPath(type) {
-  if (type === "nave_industrial") return "/naves-industriales";
-  if (type === "terreno") return "/terrenos";
-  return "/propiedades";
+  return SPECIAL_SECTION_TYPES[type] || "/propiedades";
+}
+
+// Convierte el texto que escribe el admin en un tipo nuevo ("Bodega") a un
+// identificador técnico estable ("bodega") — mismo tratamiento que se le
+// da a cualquier slug en este proyecto (sin acentos, minúsculas, guión
+// bajo). No se persiste el acento porque `type` funciona como llave para
+// filtros/rutas, no como texto a mostrar.
+export function slugify(text) {
+  return String(text)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+// Etiqueta a mostrar para un tipo de propiedad: usa la traducción i18n si
+// existe (los 4 tipos de fábrica están traducidos ES/EN); si no — un tipo
+// que el admin acaba de agregar — cae a una versión legible del slug en
+// vez de mostrar la clave de traducción cruda ("propertyType.bodega").
+export function propertyTypeLabel(t, type) {
+  const key = `propertyType.${type}`;
+  const translated = t(key);
+  if (translated !== key) return translated;
+  return String(type)
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export const CLIENT_TYPES = ["comprador", "vendedor", "ambos"];

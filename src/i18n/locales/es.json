@@ -19,7 +19,7 @@
     "searchButton": "Buscar propiedades",
     "allTypes": "Todos los tipos",
     "allZones": "Todas las zonas",
-    "allOperations": "Compra y venta"
+    "allOperations": "Todas las operaciones"
   },
   "categories": {
     "eyebrow": "Explora por categoría",
@@ -39,8 +39,8 @@
     "terreno": "Terreno"
   },
   "propertyOperation": {
-    "venta": "En venta",
-    "compra": "Se busca comprar"
+    "compra": "Compra",
+    "renta": "Renta"
   },
   "propertyStatus": {
     "disponible": "Disponible",
@@ -182,7 +182,9 @@
     "editMaterialCatalogItem": "Editar material",
     "technicalSheet": "Ficha técnica",
     "newZone": "Nueva zona",
-    "infonavitSimulator": "Crédito Infonavit"
+    "infonavitSimulator": "Crédito Infonavit",
+    "propertyTypes": "Tipos de propiedad",
+    "newPropertyType": "Nuevo tipo de propiedad"
   },
   "zones": {
     "name": "Nombre de la zona",
@@ -190,6 +192,13 @@
     "inUse_one": "{{count}} propiedad usa esta zona.",
     "inUse_other": "{{count}} propiedades usan esta zona.",
     "cannotDelete": "No se puede eliminar: hay propiedades registradas en esta zona."
+  },
+  "propertyTypesModule": {
+    "name": "Nombre del tipo",
+    "add": "Agregar tipo",
+    "inUse_one": "{{count}} propiedad usa este tipo.",
+    "inUse_other": "{{count}} propiedades usan este tipo.",
+    "cannotDelete": "No se puede eliminar: hay propiedades registradas con este tipo."
   },
   "dateFilter": {
     "month": "Mes",

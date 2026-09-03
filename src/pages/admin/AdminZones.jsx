@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { formatMXN } from "../../lib/format";
+import { formatMXN, propertyTypeLabel } from "../../lib/format";
 import "./admin.css";
 
 export default function AdminZones() {
   const { t } = useTranslation();
   const [zones, setZones] = useState([]);
   const [properties, setProperties] = useState([]);
+  const [propertyTypes, setPropertyTypes] = useState([]);
   const [drafts, setDrafts] = useState({});
   const [savingId, setSavingId] = useState(null);
   const [savedId, setSavedId] = useState(null);
@@ -15,11 +16,15 @@ export default function AdminZones() {
   const [newPrice, setNewPrice] = useState("");
   const [adding, setAdding] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [newTypeLabel, setNewTypeLabel] = useState("");
+  const [addingType, setAddingType] = useState(false);
+  const [deletingTypeId, setDeletingTypeId] = useState(null);
 
   const load = () => {
-    Promise.all([db.getZones(), db.getProperties({})]).then(([zoneData, propertyData]) => {
+    Promise.all([db.getZones(), db.getProperties({}), db.getPropertyTypes()]).then(([zoneData, propertyData, typeData]) => {
       setZones(zoneData);
       setProperties(propertyData);
+      setPropertyTypes(typeData);
       setDrafts(Object.fromEntries(zoneData.map((z) => [z.id, z.price_per_m2])));
     });
   };
@@ -27,6 +32,7 @@ export default function AdminZones() {
   useEffect(load, []);
 
   const propertyCountByZone = (zoneName) => properties.filter((p) => p.zone === zoneName).length;
+  const propertyCountByType = (typeKey) => properties.filter((p) => p.type === typeKey).length;
 
   const handleSave = async (zone) => {
     setSavingId(zone.id);
@@ -66,6 +72,34 @@ export default function AdminZones() {
       window.alert(err.message || "Error al eliminar la zona");
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleAddType = async (e) => {
+    e.preventDefault();
+    if (!newTypeLabel.trim()) return;
+    setAddingType(true);
+    try {
+      await db.addPropertyType({ label: newTypeLabel });
+      setNewTypeLabel("");
+      load();
+    } catch (err) {
+      window.alert(err.message || "Error al agregar el tipo de propiedad");
+    } finally {
+      setAddingType(false);
+    }
+  };
+
+  const handleDeleteType = async (type) => {
+    if (!window.confirm(t("common.confirmDelete"))) return;
+    setDeletingTypeId(type.id);
+    try {
+      await db.deletePropertyType(type.id);
+      load();
+    } catch (err) {
+      window.alert(err.message || "Error al eliminar el tipo de propiedad");
+    } finally {
+      setDeletingTypeId(null);
     }
   };
 
@@ -121,6 +155,45 @@ export default function AdminZones() {
                 onClick={() => handleDelete(zone)}
                 disabled={inUse > 0 || deletingId === zone.id}
                 title={inUse > 0 ? t("zones.cannotDelete") : undefined}
+              >
+                {t("common.delete")}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="admin-header" style={{ marginTop: "2.5rem" }}>
+        <h1>{t("admin.propertyTypes")}</h1>
+      </div>
+
+      <form className="card admin-form" onSubmit={handleAddType} style={{ maxWidth: 480, marginBottom: "1.5rem" }}>
+        <h2 className="profiling-section-title">{t("admin.newPropertyType")}</h2>
+        <div className="form-field">
+          <label htmlFor="type-new-name">{t("propertyTypesModule.name")}</label>
+          <input id="type-new-name" value={newTypeLabel} onChange={(e) => setNewTypeLabel(e.target.value)} placeholder="Bodega" />
+        </div>
+        <div className="admin-form__actions">
+          <button type="submit" className="btn btn-primary" disabled={addingType || !newTypeLabel.trim()}>
+            {addingType ? <span className="spinner" /> : null}
+            {t("propertyTypesModule.add")}
+          </button>
+        </div>
+      </form>
+
+      <div className="admin-zones-grid">
+        {propertyTypes.map((type) => {
+          const inUse = propertyCountByType(type.key);
+          return (
+            <div key={type.id} className="card admin-zone-card">
+              <h3>{propertyTypeLabel(t, type.key)}</h3>
+              <p className="form-hint">{t(inUse === 1 ? "propertyTypesModule.inUse_one" : "propertyTypesModule.inUse_other", { count: inUse })}</p>
+              <button
+                type="button"
+                className="btn btn-danger btn-sm"
+                onClick={() => handleDeleteType(type)}
+                disabled={inUse > 0 || deletingTypeId === type.id}
+                title={inUse > 0 ? t("propertyTypesModule.cannotDelete") : undefined}
               >
                 {t("common.delete")}
               </button>

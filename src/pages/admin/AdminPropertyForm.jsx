@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { PROPERTY_TYPES } from "../../lib/format";
+import { propertyTypeLabel } from "../../lib/format";
 import ImageUploader from "../../components/ImageUploader";
 import "./admin.css";
 
@@ -20,7 +20,7 @@ const EMPTY = {
   lat: "",
   lng: "",
   status: "disponible",
-  operation_type: "venta",
+  operation_type: "compra",
   active: true,
   advisor_ids: [],
 };
@@ -34,6 +34,7 @@ export default function AdminPropertyForm() {
   const [form, setForm] = useState(EMPTY);
   const [zones, setZones] = useState([]);
   const [advisors, setAdvisors] = useState([]);
+  const [propertyTypes, setPropertyTypes] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
   const [newFiles, setNewFiles] = useState([]);
   const [mainIndex, setMainIndex] = useState(0);
@@ -44,6 +45,7 @@ export default function AdminPropertyForm() {
   useEffect(() => {
     db.getZones().then(setZones);
     db.getAdvisors().then(setAdvisors);
+    db.getPropertyTypes().then(setPropertyTypes);
   }, []);
 
   useEffect(() => {
@@ -64,7 +66,7 @@ export default function AdminPropertyForm() {
         lat: property.lat,
         lng: property.lng,
         status: property.status,
-        operation_type: property.operation_type || "venta",
+        operation_type: property.operation_type || "compra",
         active: property.active,
         advisor_ids: property.advisor_ids || [],
       });
@@ -136,8 +138,8 @@ export default function AdminPropertyForm() {
           <div className="form-field">
             <label htmlFor="p-type">{t("properties.type")}</label>
             <select id="p-type" value={form.type} onChange={handleChange("type")}>
-              {PROPERTY_TYPES.map((type) => (
-                <option key={type} value={type}>{t(`propertyType.${type}`)}</option>
+              {propertyTypes.map((pt) => (
+                <option key={pt.id} value={pt.key}>{propertyTypeLabel(t, pt.key)}</option>
               ))}
             </select>
           </div>
@@ -200,8 +202,8 @@ export default function AdminPropertyForm() {
         <div className="form-field">
           <label htmlFor="p-operation">{t("properties.operationType")}</label>
           <select id="p-operation" value={form.operation_type} onChange={handleChange("operation_type")}>
-            <option value="venta">{t("propertyOperation.venta")}</option>
             <option value="compra">{t("propertyOperation.compra")}</option>
+            <option value="renta">{t("propertyOperation.renta")}</option>
           </select>
         </div>
 

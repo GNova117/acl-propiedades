@@ -2,17 +2,19 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
-import { PROPERTY_TYPES, propertyListPath } from "../lib/format";
+import { propertyListPath, propertyTypeLabel } from "../lib/format";
 import "./SearchBar.css";
 
 export default function SearchBar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [zones, setZones] = useState([]);
+  const [propertyTypes, setPropertyTypes] = useState([]);
   const [form, setForm] = useState({ type: "", zone: "", minPrice: "", maxPrice: "" });
 
   useEffect(() => {
     db.getZones().then(setZones).catch(() => setZones([]));
+    db.getPropertyTypes().then(setPropertyTypes).catch(() => setPropertyTypes([]));
   }, []);
 
   const handleChange = (e) => {
@@ -38,9 +40,9 @@ export default function SearchBar() {
         <label htmlFor="search-type">{t("hero.searchType")}</label>
         <select id="search-type" name="type" value={form.type} onChange={handleChange}>
           <option value="">{t("hero.allTypes")}</option>
-          {PROPERTY_TYPES.map((type) => (
-            <option key={type} value={type}>
-              {t(`propertyType.${type}`)}
+          {propertyTypes.map((pt) => (
+            <option key={pt.id} value={pt.key}>
+              {propertyTypeLabel(t, pt.key)}
             </option>
           ))}
         </select>
