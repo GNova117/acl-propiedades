@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { formatMXN } from "../lib/format";
+import { computeMaterialsTotals } from "../lib/materialsTotals";
 import "./MaterialsTable.css";
 
 function uid() {
@@ -71,9 +72,7 @@ export default function MaterialsTable({ materials, onChange }) {
   const addRow = () => onChange((prev) => [...prev, { id: uid(), ...EMPTY_ROW }]);
   const removeRow = (id) => onChange((prev) => prev.filter((row) => row.id !== id));
 
-  const grandTotalInternal = materials.reduce((sum, row) => sum + (lineTotal(row, "unit_price_internal") || 0), 0);
-  const grandTotalExternal = materials.reduce((sum, row) => sum + (lineTotal(row, "unit_price_external") || 0), 0);
-  const totalSavings = grandTotalExternal - grandTotalInternal;
+  const { grandTotalInternal, grandTotalExternal, totalSavings } = computeMaterialsTotals(materials);
   const hasAnyPrice = materials.some(
     (row) =>
       (row.unit_price_internal !== "" && row.unit_price_internal != null) ||

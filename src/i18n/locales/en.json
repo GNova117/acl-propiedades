@@ -266,9 +266,16 @@
     "breakdownTitle": "Summary",
     "sameAsCaptador": "Same person who acquired it",
     "restricted": "This section is confidential — access restricted to the partners.",
-    "disclaimer": "The breakdown recalculates automatically from the amounts and percentages above; it isn't stored as a fixed figure, so changing any input updates the summary on its own."
+    "disclaimer": "The breakdown recalculates automatically from the amounts and percentages above; it isn't stored as a fixed figure, so changing any input updates the summary on its own.",
+    "autoFromProperty": "Taken automatically from the property's price.",
+    "autoFromRemodel": "Taken automatically from the total materials cost of the linked remodel project.",
+    "editInProperty": "Edit price in Properties",
+    "editInRemodel": "Edit in Remodel projects",
+    "noRemodelProject": "This property doesn't have a linked remodel project yet."
   },
   "remodelCalculator": {
+    "button": "Remodel",
+    "linkedProperty": "Linked to property",
     "projectName": "Project name",
     "client": "Client",
     "noClient": "No client associated",

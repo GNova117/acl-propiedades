@@ -76,6 +76,17 @@ export const supabaseBackend = {
     const { data: inserted, error } = await supabase.from("properties").insert(payload).select().single();
     if (error) throw error;
     await this._syncAdvisors(inserted.id, data.advisor_ids || []);
+    // Cada propiedad nueva llega ya con su proyecto de remodelación
+    // vinculado — no requiere seleccionarse/capturarse a mano en
+    // Remodelaciones (ver integración Propiedades → Remodelaciones →
+    // Liquidación).
+    await this.addRemodelProject({
+      name: inserted.title,
+      property_id: inserted.id,
+      area_m2: inserted.area_m2,
+      materials: [],
+      spaces: [],
+    });
     return inserted;
   },
 
@@ -303,10 +314,20 @@ export const supabaseBackend = {
     return data;
   },
 
+  // El proyecto que se creó automáticamente al dar de alta la propiedad
+  // (ver addProperty). Alimenta "Inversión — costo de remodelación" en
+  // Liquidación.
+  async getRemodelProjectByProperty(propertyId) {
+    const { data, error } = await supabase.from("remodel_projects").select("*").eq("property_id", propertyId).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
   async addRemodelProject(data) {
     const payload = {
       name: data.name,
       client_id: data.client_id || null,
+      property_id: data.property_id || null,
       area_m2: Number(data.area_m2),
       notes: data.notes || null,
       materials: data.materials || [],

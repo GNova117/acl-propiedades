@@ -266,9 +266,16 @@
     "breakdownTitle": "Resumen",
     "sameAsCaptador": "Misma persona que captó",
     "restricted": "Este apartado es confidencial — acceso restringido a los socios.",
-    "disclaimer": "El desglose se calcula en automático a partir de los montos y porcentajes capturados; no se guarda como cifra fija, así que si ajustas cualquier dato de arriba el resumen se recalcula solo."
+    "disclaimer": "El desglose se calcula en automático a partir de los montos y porcentajes capturados; no se guarda como cifra fija, así que si ajustas cualquier dato de arriba el resumen se recalcula solo.",
+    "autoFromProperty": "Se toma automáticamente del precio de la propiedad.",
+    "autoFromRemodel": "Se toma automáticamente del total de materiales del proyecto de remodelación vinculado.",
+    "editInProperty": "Editar precio en Propiedades",
+    "editInRemodel": "Editar en Remodelaciones",
+    "noRemodelProject": "Esta propiedad aún no tiene un proyecto de remodelación vinculado."
   },
   "remodelCalculator": {
+    "button": "Remodelación",
+    "linkedProperty": "Vinculado a la propiedad",
     "projectName": "Nombre del proyecto",
     "client": "Cliente",
     "noClient": "Sin cliente asociado",

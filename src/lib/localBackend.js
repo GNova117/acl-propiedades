@@ -124,6 +124,17 @@ export const localBackend = {
     };
     properties.push(record);
     writeStore(KEYS.properties, properties);
+    // Cada propiedad nueva llega ya con su proyecto de remodelación
+    // vinculado — no requiere seleccionarse/capturarse a mano en
+    // Remodelaciones (ver integración Propiedades → Remodelaciones →
+    // Liquidación).
+    await this.addRemodelProject({
+      name: record.title,
+      property_id: record.id,
+      area_m2: record.area_m2,
+      materials: [],
+      spaces: [],
+    });
     return record;
   },
 
@@ -334,12 +345,21 @@ export const localBackend = {
     return projects.find((p) => p.id === id) || null;
   },
 
+  // El proyecto que se creó automáticamente al dar de alta la propiedad
+  // (ver addProperty). Alimenta "Inversión — costo de remodelación" en
+  // Liquidación.
+  async getRemodelProjectByProperty(propertyId) {
+    const projects = readStore(KEYS.remodelProjects, []);
+    return projects.find((p) => p.property_id === propertyId) || null;
+  },
+
   async addRemodelProject(data) {
     const projects = readStore(KEYS.remodelProjects, []);
     const record = {
       id: uid("remodel"),
       name: data.name,
       client_id: data.client_id || null,
+      property_id: data.property_id || null,
       area_m2: Number(data.area_m2),
       notes: data.notes || null,
       materials: data.materials || [],

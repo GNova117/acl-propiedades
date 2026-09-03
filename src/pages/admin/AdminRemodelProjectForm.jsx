@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import MaterialsTable from "../../components/MaterialsTable";
@@ -16,6 +16,7 @@ export default function AdminRemodelProjectForm() {
 
   const [form, setForm] = useState(EMPTY);
   const [clients, setClients] = useState([]);
+  const [linkedProperty, setLinkedProperty] = useState(null);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
@@ -36,6 +37,12 @@ export default function AdminRemodelProjectForm() {
         materials: project.materials || [],
         spaces: project.spaces || [],
       });
+      // property_id no se edita aquí: es un vínculo fijado al crear la
+      // propiedad (ver addProperty en supabaseBackend/localBackend). Solo se
+      // muestra como referencia.
+      if (project.property_id) {
+        db.getPropertyById(project.property_id).then(setLinkedProperty);
+      }
       setLoading(false);
     });
   }, [id, isEdit]);
@@ -84,6 +91,12 @@ export default function AdminRemodelProjectForm() {
       </div>
 
       <form className="card admin-form" onSubmit={handleSubmit} noValidate>
+        {linkedProperty && (
+          <p className="form-hint">
+            {t("remodelCalculator.linkedProperty")}: <Link to={`/admin/propiedades/${linkedProperty.id}`}>{linkedProperty.title}</Link>
+          </p>
+        )}
+
         <div className="form-row">
           <div className="form-field">
             <label htmlFor="r-name">{t("remodelCalculator.projectName")}</label>

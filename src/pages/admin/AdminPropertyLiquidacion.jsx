@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN } from "../../lib/format";
+import { computeMaterialsTotals } from "../../lib/materialsTotals";
 import { EMPTY_LIQUIDACION, computeLiquidacion, toLiquidacionPayload, toLiquidacionFormValues } from "../../lib/liquidacion";
 import "./AdminPropertyLiquidacion.css";
 import "./admin.css";
@@ -13,6 +14,7 @@ export default function AdminPropertyLiquidacion() {
 
   const [property, setProperty] = useState(null);
   const [advisors, setAdvisors] = useState([]);
+  const [remodelProject, setRemodelProject] = useState(null);
   const [existing, setExisting] = useState(null); // registro guardado, null si aún no existe
   const [form, setForm] = useState(EMPTY_LIQUIDACION);
   const [errors, setErrors] = useState({});
@@ -22,15 +24,19 @@ export default function AdminPropertyLiquidacion() {
 
   const load = () => {
     setLoading(true);
-    Promise.all([db.getPropertyById(id), db.getAdvisors(), db.getLiquidacionByProperty(id)]).then(
-      ([propertyData, advisorsData, liquidacionData]) => {
-        setProperty(propertyData);
-        setAdvisors(advisorsData);
-        setExisting(liquidacionData);
-        setForm(toLiquidacionFormValues(liquidacionData));
-        setLoading(false);
-      }
-    );
+    Promise.all([
+      db.getPropertyById(id),
+      db.getAdvisors(),
+      db.getLiquidacionByProperty(id),
+      db.getRemodelProjectByProperty(id),
+    ]).then(([propertyData, advisorsData, liquidacionData, remodelData]) => {
+      setProperty(propertyData);
+      setAdvisors(advisorsData);
+      setExisting(liquidacionData);
+      setForm(toLiquidacionFormValues(liquidacionData));
+      setRemodelProject(remodelData);
+      setLoading(false);
+    });
   };
 
   useEffect(load, [id]);
@@ -39,14 +45,28 @@ export default function AdminPropertyLiquidacion() {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  const breakdown = useMemo(() => computeLiquidacion(form), [form]);
+  // Costo de liquidación e inversión en remodelación no se capturan aquí:
+  // vienen en vivo del precio de la propiedad y del total de materiales del
+  // proyecto de remodelación vinculado. Si el precio o los materiales
+  // cambian en su módulo de origen, se reflejan aquí en automático la
+  // siguiente vez que se abre o se guarda esta pantalla — no hay una cifra
+  // fija que confirmar ni migrar.
+  const costoTotal = Number(property?.price) || 0;
+  const inversionRemodelacion = useMemo(
+    () => computeMaterialsTotals(remodelProject?.materials).grandTotalInternal,
+    [remodelProject]
+  );
+
+  const breakdown = useMemo(
+    () => computeLiquidacion({ ...form, costo_total: costoTotal, inversion_remodelacion: inversionRemodelacion }),
+    [form, costoTotal, inversionRemodelacion]
+  );
 
   const captador = advisors.find((a) => a.id === form.captador_id);
   const vendedor = advisors.find((a) => a.id === form.vendedor_id);
 
   const validate = () => {
     const next = {};
-    if (!form.costo_total || Number(form.costo_total) <= 0) next.costo_total = t("contact.required");
     if (!form.captador_id) next.captador_id = t("contact.required");
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -89,8 +109,11 @@ export default function AdminPropertyLiquidacion() {
           <div className="form-row">
             <div className="form-field">
               <label htmlFor="liq-costo-total">Costo total de liquidación</label>
-              <input id="liq-costo-total" type="number" min="0" value={form.costo_total} onChange={handleChange("costo_total")} />
-              {errors.costo_total && <span className="form-error">{errors.costo_total}</span>}
+              <div id="liq-costo-total" className="liquidacion-readonly">{formatMXN(costoTotal)}</div>
+              <span className="form-hint">
+                {t("liquidacion.autoFromProperty")}{" "}
+                <Link to={`/admin/propiedades/${id}`}>{t("liquidacion.editInProperty")}</Link>
+              </span>
             </div>
             <div className="form-field">
               <label htmlFor="liq-devolucion">Devolución al vendedor original</label>
@@ -101,7 +124,17 @@ export default function AdminPropertyLiquidacion() {
           <div className="form-row">
             <div className="form-field">
               <label htmlFor="liq-remodelacion">Inversión — costo de remodelación</label>
-              <input id="liq-remodelacion" type="number" min="0" value={form.inversion_remodelacion} onChange={handleChange("inversion_remodelacion")} />
+              <div id="liq-remodelacion" className="liquidacion-readonly">{formatMXN(inversionRemodelacion)}</div>
+              <span className="form-hint">
+                {remodelProject ? (
+                  <>
+                    {t("liquidacion.autoFromRemodel")}{" "}
+                    <Link to={`/admin/remodelaciones/${remodelProject.id}`}>{t("liquidacion.editInRemodel")}</Link>
+                  </>
+                ) : (
+                  t("liquidacion.noRemodelProject")
+                )}
+              </span>
             </div>
             <div className="form-field">
               <label htmlFor="liq-servicios">Inversión — pago de servicios</label>
@@ -164,7 +197,7 @@ export default function AdminPropertyLiquidacion() {
             <tbody>
               <tr>
                 <td>Costo total de liquidación</td>
-                <td>{formatMXN(form.costo_total || 0)}</td>
+                <td>{formatMXN(costoTotal)}</td>
               </tr>
               <tr>
                 <td>(−) Devolución al vendedor</td>

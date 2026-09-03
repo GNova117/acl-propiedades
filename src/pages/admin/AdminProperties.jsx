@@ -10,12 +10,14 @@ export default function AdminProperties() {
   const { t } = useTranslation();
   const { isPartner } = useAuth();
   const [properties, setProperties] = useState([]);
+  const [remodelProjects, setRemodelProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const load = () => {
     setLoading(true);
-    db.getProperties({}).then((data) => {
-      setProperties(data);
+    Promise.all([db.getProperties({}), db.getRemodelProjects({})]).then(([propertyData, remodelData]) => {
+      setProperties(propertyData);
+      setRemodelProjects(remodelData);
       setLoading(false);
     });
   };
@@ -63,35 +65,43 @@ export default function AdminProperties() {
             ) : properties.length === 0 ? (
               <tr><td colSpan={9}>{t("properties.noResults")}</td></tr>
             ) : (
-              properties.map((property) => (
-                <tr key={property.id}>
-                  <td><img src={property.main_image} alt="" /></td>
-                  <td>{property.title}</td>
-                  <td>{t(`propertyType.${property.type}`)}</td>
-                  <td>{property.zone}</td>
-                  <td>{formatMXN(property.price)}</td>
-                  <td>{formatArea(property.area_m2)}</td>
-                  <td>{t(`propertyStatus.${property.status}`)}</td>
-                  <td>
-                    <button type="button" className={`badge ${property.active ? "badge-available" : "badge-sold"}`} onClick={() => toggleActive(property)}>
-                      {property.active ? t("common.active") : t("common.inactive")}
-                    </button>
-                  </td>
-                  <td className="admin-table__actions">
-                    <Link to={`/admin/propiedades/${property.id}`} className="btn btn-outline btn-sm">
-                      {t("common.edit")}
-                    </Link>
-                    {isPartner && (
-                      <Link to={`/admin/propiedades/${property.id}/liquidacion`} className="btn btn-outline btn-sm">
-                        {t("liquidacion.button")}
+              properties.map((property) => {
+                const remodelProject = remodelProjects.find((r) => r.property_id === property.id);
+                return (
+                  <tr key={property.id}>
+                    <td><img src={property.main_image} alt="" /></td>
+                    <td>{property.title}</td>
+                    <td>{t(`propertyType.${property.type}`)}</td>
+                    <td>{property.zone}</td>
+                    <td>{formatMXN(property.price)}</td>
+                    <td>{formatArea(property.area_m2)}</td>
+                    <td>{t(`propertyStatus.${property.status}`)}</td>
+                    <td>
+                      <button type="button" className={`badge ${property.active ? "badge-available" : "badge-sold"}`} onClick={() => toggleActive(property)}>
+                        {property.active ? t("common.active") : t("common.inactive")}
+                      </button>
+                    </td>
+                    <td className="admin-table__actions">
+                      <Link to={`/admin/propiedades/${property.id}`} className="btn btn-outline btn-sm">
+                        {t("common.edit")}
                       </Link>
-                    )}
-                    <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(property.id)}>
-                      {t("common.delete")}
-                    </button>
-                  </td>
-                </tr>
-              ))
+                      {remodelProject && (
+                        <Link to={`/admin/remodelaciones/${remodelProject.id}`} className="btn btn-outline btn-sm">
+                          {t("remodelCalculator.button")}
+                        </Link>
+                      )}
+                      {isPartner && (
+                        <Link to={`/admin/propiedades/${property.id}/liquidacion`} className="btn btn-outline btn-sm">
+                          {t("liquidacion.button")}
+                        </Link>
+                      )}
+                      <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(property.id)}>
+                        {t("common.delete")}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

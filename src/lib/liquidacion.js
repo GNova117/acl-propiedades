@@ -6,10 +6,14 @@ export const DEFAULT_TASA_COMISION_CAPTACION = 40;
 export const DEFAULT_TASA_COMISION_VENTA = 30;
 export const DEFAULT_TASA_GASTOS_ADMIN = 10;
 
+// costo_total e inversion_remodelacion NO viven aquí: se calculan en vivo en
+// AdminPropertyLiquidacion.jsx a partir del precio de la propiedad y del
+// total de materiales del proyecto de remodelación vinculado (ver
+// integración Propiedades → Remodelaciones → Liquidación), y se inyectan en
+// el objeto que se le pasa a computeLiquidacion. Nunca se capturan a mano ni
+// se guardan en la tabla liquidaciones.
 export const EMPTY_LIQUIDACION = {
-  costo_total: "",
   devolucion_vendedor: "",
-  inversion_remodelacion: "",
   inversion_servicios: "",
   captador_id: "",
   vendedor_id: "",
@@ -65,9 +69,7 @@ export function computeLiquidacion(form) {
 
 export function toLiquidacionPayload(form) {
   return {
-    costo_total: num(form.costo_total),
     devolucion_vendedor: num(form.devolucion_vendedor),
-    inversion_remodelacion: num(form.inversion_remodelacion),
     inversion_servicios: num(form.inversion_servicios),
     captador_id: form.captador_id || null,
     vendedor_id: form.vendedor_id || null,
