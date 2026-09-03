@@ -29,6 +29,17 @@ export default function About() {
             <p>{t("about.mission")}</p>
           </div>
           <div className="card about-page__block">
+            <h3>{t("about.visionTitle")}</h3>
+            <p>{t("about.vision")}</p>
+          </div>
+          <div className="card about-page__block">
+            <h3>{t("about.valuesTitle")}</h3>
+            <p>{t("about.values")}</p>
+          </div>
+        </div>
+
+        <div className="about-page__grid about-page__grid--two">
+          <div className="card about-page__block">
             <h3>{t("about.hoursTitle")}</h3>
             <p>{t("about.hours1")}</p>
             <p>{t("about.hours2")}</p>

@@ -9,6 +9,10 @@
   margin-bottom: 3rem;
 }
 
+.about-page__grid--two {
+  grid-template-columns: repeat(2, 1fr);
+}
+
 .about-page__block {
   padding: 1.5rem;
 }
