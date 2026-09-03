@@ -295,7 +295,10 @@
       "cedula_fiscal": "Tax ID card",
       "acta_nacimiento": "Birth certificate",
       "pago_avaluo": "Appraisal payment receipt",
-      "contrato": "Contract"
+      "contrato": "Contract",
+      "carta_deslindamiento": "Liability waiver letter",
+      "aviso_privacidad": "Privacy notice",
+      "carta_derechos": "Rights letter"
     },
     "noDocuments": "No documents captured for this client yet.",
     "addDocument": "Capture document",

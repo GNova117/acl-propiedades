@@ -295,7 +295,10 @@
       "cedula_fiscal": "Cédula fiscal",
       "acta_nacimiento": "Acta de nacimiento",
       "pago_avaluo": "Pago de avalúo",
-      "contrato": "Contrato"
+      "contrato": "Contrato",
+      "carta_deslindamiento": "Carta de deslindamiento",
+      "aviso_privacidad": "Aviso de privacidad",
+      "carta_derechos": "Carta de derechos"
     },
     "noDocuments": "Aún no se han capturado documentos para este cliente.",
     "addDocument": "Capturar documento",

@@ -55,7 +55,17 @@ export function propertyTypeLabel(t, type) {
 
 export const CLIENT_TYPES = ["comprador", "vendedor", "ambos"];
 
-export const DOC_TYPES = ["ine", "curp", "cedula_fiscal", "acta_nacimiento", "pago_avaluo", "contrato"];
+export const DOC_TYPES = [
+  "ine",
+  "curp",
+  "cedula_fiscal",
+  "acta_nacimiento",
+  "pago_avaluo",
+  "contrato",
+  "carta_deslindamiento",
+  "aviso_privacidad",
+  "carta_derechos",
+];
 
 export const DOC_TYPE_ASPECT = {
   ine: 1.59,
@@ -64,4 +74,7 @@ export const DOC_TYPE_ASPECT = {
   acta_nacimiento: 0.77,
   pago_avaluo: 0.77,
   contrato: 0.77,
+  carta_deslindamiento: 0.77,
+  aviso_privacidad: 0.77,
+  carta_derechos: 0.77,
 };

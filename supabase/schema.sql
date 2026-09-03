@@ -586,4 +586,32 @@ alter table liquidaciones drop column if exists costo_total;
 
 alter table liquidaciones add column if not exists costo_total numeric not null default 0;
 alter table liquidaciones add column if not exists inversion_servicios numeric not null default 0;
+
+-- ─────────────────────────────────────────────
+-- Tres apartados nuevos capturables en el expediente de documentos del
+-- cliente: carta de deslindamiento, aviso de privacidad, carta de derechos.
+-- Mismo patrón que pago_avaluo/contrato — se busca y reemplaza el
+-- constraint existente por su definición real, no por nombre adivinado.
+-- Sin límite de imágenes por tipo, igual que los 6 tipos ya existentes:
+-- client_documents ya es una fila por imagen, así que varias capturas del
+-- mismo doc_type para el mismo cliente ya funcionan sin cambios adicionales.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+do $$
+declare
+  con record;
+begin
+  for con in
+    select conname from pg_constraint
+    where conrelid = 'client_documents'::regclass
+      and contype = 'c'
+      and pg_get_constraintdef(oid) ilike '%doc_type%'
+  loop
+    execute format('alter table client_documents drop constraint %I', con.conname);
+  end loop;
+end $$;
+
+alter table client_documents add constraint client_documents_doc_type_check
+  check (doc_type in ('ine', 'curp', 'cedula_fiscal', 'acta_nacimiento', 'pago_avaluo', 'contrato', 'carta_deslindamiento', 'aviso_privacidad', 'carta_derechos'));
 alter table liquidaciones drop column if exists tasa_pago_servicios;
