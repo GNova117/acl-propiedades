@@ -5,13 +5,6 @@ import { UMA_2026, simularCreditoInfonavit } from "../../lib/infonavitSimulator"
 import "./AdminInfonavitSimulator.css";
 import "./admin.css";
 
-const FUENTES = [
-  { label: "INEGI — Valor de la UMA 2026 (comunicado)", url: "https://x.com/INEGI_INFORMA/status/2009235303110987852" },
-  { label: "Infonavit — Portal oficial (tabla de tasas diferenciadas)", url: "https://portalmx.infonavit.org.mx" },
-  { label: "El Siglo de Torreón — Tasa de interés del crédito Infonavit", url: "https://www.elsiglodetorreon.com.mx/noticia/2026/cual-es-la-tasa-de-interes-de-un-credito-infonavit.html" },
-  { label: "Infobae — Créditos Infonavit 2026 según edad y sueldo", url: "https://www.infobae.com/mexico/2026/06/19/creditos-infonavit-2026-asi-quedaria-tu-pago-mensual-segun-tu-edad-y-sueldo-actual/" },
-];
-
 const EMPTY = { edad: 30, sexo: "hombre", salarioMensual: 12000, ssv: 30000 };
 
 export default function AdminInfonavitSimulator() {
@@ -78,63 +71,17 @@ export default function AdminInfonavitSimulator() {
           </div>
         </div>
 
-        <div className="infonavit-results">
-          <div className="card infonavit-hero">
-            <span className="infonavit-hero__label">{t("infonavit.totalCapacity")}</span>
-            <span className="infonavit-hero__value">{formatMXN(result.capacidadTotal)}</span>
-            <div className="infonavit-hero__breakdown">
-              <span>{t("infonavit.creditAmount")}: <strong>{formatMXN(result.montoCredito)}</strong></span>
-              <span>{t("infonavit.ssvBalance")}: <strong>{formatMXN(result.saldoSsv)}</strong></span>
-            </div>
-            <div className="infonavit-hero__payment">
-              {t("infonavit.monthlyPayment")}: <strong>{formatMXN(result.pagoMensual)}</strong>
-            </div>
+        <div className="card infonavit-hero">
+          <span className="infonavit-hero__label">{t("infonavit.totalCapacity")}</span>
+          <span className="infonavit-hero__value">{formatMXN(result.capacidadTotal)}</span>
+          <div className="infonavit-hero__breakdown">
+            <span>{t("infonavit.creditAmount")}: <strong>{formatMXN(result.montoCredito)}</strong></span>
+            <span>{t("infonavit.ssvBalance")}: <strong>{formatMXN(result.saldoSsv)}</strong></span>
           </div>
-
-          {result.plazoAnios === 0 && <p className="infonavit-warning">{t("infonavit.ageLimitWarning")}</p>}
-
-          <div className="card">
-            <h3 className="profiling-section-title">{t("infonavit.breakdownTitle")}</h3>
-            <table className="infonavit-breakdown-table">
-              <tbody>
-                <tr>
-                  <td>{t("infonavit.titlingExpenses")}</td>
-                  <td>{result.exentoTitulacion ? t("infonavit.titlingExempt") : t("infonavit.titlingApplies")}</td>
-                </tr>
-                <tr>
-                  <td>{t("infonavit.financialFees")}</td>
-                  <td>{formatMXN(0)} — {t("infonavit.financialFeesNote")}</td>
-                </tr>
-                <tr>
-                  <td>{t("infonavit.appraisalReference")}</td>
-                  <td>
-                    {formatMXN(result.capacidadTotal)}
-                    <span className="form-hint infonavit-inline-hint"> ({t("infonavit.appraisalHint")})</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>{t("infonavit.termYears")}</td>
-                  <td>{result.plazoAnios} {t("infonavit.years")}</td>
-                </tr>
-              </tbody>
-            </table>
-            <p className="form-hint">{t("infonavit.complementaryNote")}</p>
+          <div className="infonavit-hero__payment">
+            {t("infonavit.monthlyPayment")}: <strong>{formatMXN(result.pagoMensual)}</strong>
           </div>
         </div>
-      </div>
-
-      <div className="card infonavit-disclaimer">
-        <h3>{t("infonavit.disclaimerTitle")}</h3>
-        <p>{t("infonavit.disclaimerBody")}</p>
-        <p>{t("infonavit.disclaimerRates")}</p>
-        <p className="infonavit-sources__title">{t("infonavit.sourcesTitle")}:</p>
-        <ul className="infonavit-sources">
-          {FUENTES.map((f) => (
-            <li key={f.url}>
-              <a href={f.url} target="_blank" rel="noreferrer">{f.label}</a>
-            </li>
-          ))}
-        </ul>
       </div>
     </div>
   );

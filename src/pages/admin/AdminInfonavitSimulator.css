@@ -1,14 +1,9 @@
 .infonavit-layout {
-  display: grid;
-  grid-template-columns: 1fr 1.1fr;
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
-  align-items: start;
-}
-
-@media (max-width: 860px) {
-  .infonavit-layout {
-    grid-template-columns: 1fr;
-  }
+  max-width: 640px;
+  margin: 0 auto;
 }
 
 .infonavit-form {
@@ -55,12 +50,6 @@
   font-weight: 600;
 }
 
-.infonavit-results {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
 .infonavit-hero {
   background: var(--color-bg-alt);
   padding: 1.75rem;
@@ -99,66 +88,4 @@
   padding-top: 1rem;
   border-top: 1px solid var(--color-border);
   font-size: 0.95rem;
-}
-
-.infonavit-warning {
-  background: var(--color-bg-alt);
-  border: 1px solid var(--color-warning);
-  border-left-width: 4px;
-  border-radius: var(--radius-sm);
-  padding: 0.85rem 1rem;
-  font-size: 0.85rem;
-  margin: 0;
-}
-
-.infonavit-breakdown-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-
-.infonavit-breakdown-table td {
-  padding: 0.6rem 0;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.infonavit-breakdown-table td:first-child {
-  color: var(--color-text-muted);
-  width: 40%;
-}
-
-.infonavit-breakdown-table td:last-child {
-  text-align: right;
-}
-
-.infonavit-inline-hint {
-  display: block;
-  font-size: 0.72rem;
-}
-
-.infonavit-disclaimer {
-  margin-top: 1.75rem;
-  padding: 1.5rem 1.75rem;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-}
-
-.infonavit-disclaimer h3 {
-  font-size: 1rem;
-  color: var(--color-text);
-  margin: 0 0 0.6rem;
-}
-
-.infonavit-disclaimer p {
-  margin: 0 0 0.6rem;
-}
-
-.infonavit-sources__title {
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.infonavit-sources {
-  margin: 0;
-  padding-left: 1.2rem;
 }
