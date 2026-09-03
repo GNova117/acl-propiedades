@@ -10,6 +10,14 @@ import "./Properties.css";
 
 const EMPTY_FILTERS = { type: "", operationType: "", zone: "", minPrice: "", maxPrice: "", minArea: "", maxArea: "" };
 
+// Referencia estable para el default de `excludeTypes`: un `= []` inline en
+// la firma de la función crea un arreglo nuevo en cada render, lo que
+// invalidaba el useMemo de queryFilters en cada pasada y disparaba un
+// fetch en loop infinito en /naves-industriales y /terrenos (no se notaba
+// en modo demo local porque el backend local resuelve casi instantáneo;
+// contra Supabase real sí quedaba pegado en "Cargando...").
+const NO_EXCLUDED_TYPES = [];
+
 // `fixedType`: apartado de un solo tipo (naves industriales, terrenos) — el
 // filtro de Tipo no se muestra, ya está implícito en la sección, y el
 // filtro de Operación tampoco (solo aplica en Propiedades, por ahora).
@@ -17,7 +25,7 @@ const EMPTY_FILTERS = { type: "", operationType: "", zone: "", minPrice: "", max
 // seleccionables sale en vivo de property_types, menos los que ya tienen
 // su propio apartado; un tipo nuevo que se agregue desde /admin/zonas cae
 // aquí por default sin tocar código.
-export default function Properties({ fixedType, excludeTypes = [], titleKey = "properties.title", subtitleKey = "properties.subtitle" }) {
+export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES, titleKey = "properties.title", subtitleKey = "properties.subtitle" }) {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState({
