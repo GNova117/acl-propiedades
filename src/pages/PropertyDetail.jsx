@@ -220,18 +220,20 @@ export default function PropertyDetail() {
               </div>
             </div>
 
-            <ul className="property-detail__features">
-              <li><strong>{formatArea(property.area_m2)}</strong><span>{t("properties.area")}</span></li>
-              {property.bedrooms != null && (
-                <li><strong>{property.bedrooms}</strong><span>{t("properties.bedrooms")}</span></li>
-              )}
-              {property.bathrooms != null && (
-                <li><strong>{property.bathrooms}</strong><span>{t("properties.bathrooms")}</span></li>
-              )}
-              {property.parking != null && (
-                <li><strong>{property.parking}</strong><span>Estacionamiento</span></li>
-              )}
-            </ul>
+            {property.type !== "nave_industrial" && (
+              <ul className="property-detail__features">
+                <li><strong>{formatArea(property.area_m2)}</strong><span>{t("properties.area")}</span></li>
+                {property.bedrooms != null && (
+                  <li><strong>{property.bedrooms}</strong><span>{t("properties.bedrooms")}</span></li>
+                )}
+                {property.bathrooms != null && (
+                  <li><strong>{property.bathrooms}</strong><span>{t("properties.bathrooms")}</span></li>
+                )}
+                {property.parking != null && (
+                  <li><strong>{property.parking}</strong><span>Estacionamiento</span></li>
+                )}
+              </ul>
+            )}
 
             <section>
               <h2>{t("detail.description")}</h2>
