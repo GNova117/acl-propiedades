@@ -68,6 +68,9 @@ export default function AdminRemodelProjects() {
                     <Link to={`/admin/remodelaciones/${project.id}`} className="btn btn-outline btn-sm">
                       {t("common.edit")}
                     </Link>
+                    <Link to={`/admin/remodelaciones/${project.id}/progreso`} className="btn btn-outline btn-sm">
+                      {t("remodelProgress.button")}
+                    </Link>
                     <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(project.id)}>
                       {t("common.delete")}
                     </button>

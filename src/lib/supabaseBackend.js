@@ -428,6 +428,44 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  async getRemodelProgress(remodelProjectId) {
+    const { data, error } = await supabase
+      .from("remodel_progress_entries")
+      .select("*")
+      .eq("remodel_project_id", remodelProjectId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    if (!data?.length) return [];
+    const paths = data.map((d) => d.file_path);
+    const { data: signed } = await supabase.storage.from("remodel-progress").createSignedUrls(paths, 300);
+    return data.map((entry, i) => ({ ...entry, signed_url: signed?.[i]?.signedUrl || null }));
+  },
+
+  async addRemodelProgress({ remodel_project_id, entry_type, blob, note }) {
+    const ext = (blob.name?.split(".").pop() || "jpg").toLowerCase();
+    const path = `${remodel_project_id}/${entry_type}-${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("remodel-progress")
+      .upload(path, blob, { contentType: blob.type || "image/jpeg", upsert: false });
+    if (uploadError) throw uploadError;
+    const { data, error } = await supabase
+      .from("remodel_progress_entries")
+      .insert({ remodel_project_id, entry_type, file_path: path, note: note || null })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteRemodelProgress(id) {
+    const { data: entry } = await supabase.from("remodel_progress_entries").select("file_path").eq("id", id).maybeSingle();
+    if (entry?.file_path) {
+      await supabase.storage.from("remodel-progress").remove([entry.file_path]);
+    }
+    const { error } = await supabase.from("remodel_progress_entries").delete().eq("id", id);
+    if (error) throw error;
+  },
+
   async getMaterialsCatalog(filters = {}) {
     let query = supabase.from("materials_catalog").select("*").order("name");
     if (filters.activeOnly) query = query.eq("active", true);

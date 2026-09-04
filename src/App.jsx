@@ -26,6 +26,7 @@ import AdminClientDocuments from "./pages/admin/AdminClientDocuments";
 import AdminClientProfiling from "./pages/admin/AdminClientProfiling";
 import AdminRemodelProjects from "./pages/admin/AdminRemodelProjects";
 import AdminRemodelProjectForm from "./pages/admin/AdminRemodelProjectForm";
+import AdminRemodelProgress from "./pages/admin/AdminRemodelProgress";
 import AdminMaterialsCatalog from "./pages/admin/AdminMaterialsCatalog";
 import AdminMaterialCatalogForm from "./pages/admin/AdminMaterialCatalogForm";
 import AdminInfonavitSimulator from "./pages/admin/AdminInfonavitSimulator";
@@ -153,6 +154,7 @@ export default function App() {
         <Route path="remodelaciones" element={<RequireSection section="remodelaciones"><AdminRemodelProjects /></RequireSection>} />
         <Route path="remodelaciones/nuevo" element={<RequireSection section="remodelaciones"><AdminRemodelProjectForm /></RequireSection>} />
         <Route path="remodelaciones/:id" element={<RequireSection section="remodelaciones"><AdminRemodelProjectForm /></RequireSection>} />
+        <Route path="remodelaciones/:id/progreso" element={<RequireSection section="remodelaciones"><AdminRemodelProgress /></RequireSection>} />
         <Route path="materiales" element={<RequireSection section="materiales"><AdminMaterialsCatalog /></RequireSection>} />
         <Route path="materiales/nuevo" element={<RequireSection section="materiales"><AdminMaterialCatalogForm /></RequireSection>} />
         <Route path="materiales/:id" element={<RequireSection section="materiales"><AdminMaterialCatalogForm /></RequireSection>} />

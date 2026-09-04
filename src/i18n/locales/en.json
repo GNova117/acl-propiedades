@@ -527,5 +527,17 @@
     "emptyCatalog": "No materials in the catalog yet.",
     "manageCatalog": "Manage materials catalog",
     "disclaimer": "Totals are calculated only from the captured line items; they do not include labor or contingencies unless added as extra lines."
+  },
+  "remodelProgress": {
+    "button": "Progress",
+    "title": "Remodel progress",
+    "avanceTab": "Work progress",
+    "reciboTab": "Receipts",
+    "addPhoto": "Add photo",
+    "notePlaceholder": "Note (optional)",
+    "noEntries": "No photos here yet.",
+    "addedAt": "Added on",
+    "confirmAdd": "Add",
+    "cancelAdd": "Cancel"
   }
 }

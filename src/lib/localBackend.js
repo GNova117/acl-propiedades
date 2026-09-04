@@ -12,6 +12,7 @@ const KEYS = {
   clients: "acl_local_clients",
   clientDocuments: "acl_local_client_documents",
   remodelProjects: "acl_local_remodel_projects",
+  remodelProgress: "acl_local_remodel_progress",
   materialsCatalog: "acl_local_materials_catalog",
   perfilamientosVendedor: "acl_local_perfilamientos",
   perfilamientosComprador: "acl_local_perfilamientos_comprador",
@@ -475,6 +476,35 @@ export const localBackend = {
   async deleteRemodelProject(id) {
     const projects = readStore(KEYS.remodelProjects, []);
     writeStore(KEYS.remodelProjects, projects.filter((p) => p.id !== id));
+  },
+
+  async getRemodelProgress(remodelProjectId) {
+    const entries = readStore(KEYS.remodelProgress, []);
+    return entries
+      .filter((e) => e.remodel_project_id === remodelProjectId)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .map((e) => ({ ...e, signed_url: e.file_path }));
+  },
+
+  async addRemodelProgress({ remodel_project_id, entry_type, blob, note }) {
+    const entries = readStore(KEYS.remodelProgress, []);
+    const file_path = await fileToDataUrl(blob);
+    const record = {
+      id: uid("progress"),
+      remodel_project_id,
+      entry_type,
+      file_path,
+      note: note || null,
+      created_at: new Date().toISOString(),
+    };
+    entries.push(record);
+    writeStore(KEYS.remodelProgress, entries);
+    return record;
+  },
+
+  async deleteRemodelProgress(id) {
+    const entries = readStore(KEYS.remodelProgress, []);
+    writeStore(KEYS.remodelProgress, entries.filter((e) => e.id !== id));
   },
 
   async getMaterialsCatalog(filters = {}) {

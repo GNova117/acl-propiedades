@@ -527,5 +527,17 @@
     "emptyCatalog": "Aún no hay materiales en el catálogo.",
     "manageCatalog": "Administrar catálogo de materiales",
     "disclaimer": "Los totales se calculan solo con los renglones capturados; no incluyen mano de obra ni imprevistos salvo que se agreguen como líneas adicionales."
+  },
+  "remodelProgress": {
+    "button": "Progreso",
+    "title": "Progreso de la remodelación",
+    "avanceTab": "Avance de obra",
+    "reciboTab": "Recibos",
+    "addPhoto": "Agregar foto",
+    "notePlaceholder": "Nota (opcional)",
+    "noEntries": "Aún no hay fotos aquí.",
+    "addedAt": "Agregado el",
+    "confirmAdd": "Agregar",
+    "cancelAdd": "Cancelar"
   }
 }
