@@ -34,6 +34,75 @@ const SPEC_FIELDS = [
   { key: "mantenimiento_pct", labelKey: "detail.mantenimiento", suffix: "%" },
 ];
 
+// Ficha técnica de Naves Industriales — grupos de tarjetas al estilo de los
+// portales del ramo (Spot2, etc.), a diferencia de la lista simple que usan
+// casa/departamento/terreno. Es una función pura (no un componente) porque
+// solo arma datos ya calculados a partir de `property`; cada fila se omite
+// si el dato no fue capturado.
+function buildFichaTecnica(property, t) {
+  const isRenta = property.operation_type === "renta";
+  const pricePerM2 = property.area_m2 > 0 ? property.price / property.area_m2 : null;
+  const maintenanceAmount =
+    isRenta && property.mantenimiento_pct != null ? (property.price * property.mantenimiento_pct) / 100 : null;
+
+  const groups = [
+    {
+      titleKey: "detail.fichaTecnica.classification",
+      rows: [
+        [t("detail.fichaTecnica.propertyType"), propertyTypeLabel(t, property.type)],
+        [t("detail.condicionPropiedad"), property.condicion_propiedad],
+        [t("detail.estatusConstruccion"), property.estatus_construccion],
+        [t("detail.techumbre"), property.techumbre],
+        [t("detail.anioConstruccion"), property.anio_construccion],
+      ],
+    },
+    {
+      titleKey: "detail.fichaTecnica.dimensions",
+      rows: [
+        [t("detail.fichaTecnica.totalArea"), formatArea(property.area_m2)],
+        [t("detail.areaMinimaDivisible"), property.area_minima_divisible != null ? formatArea(property.area_minima_divisible) : null],
+        [t("detail.alturaLibre"), property.altura_libre != null ? `${property.altura_libre} m` : null],
+        [t("detail.areaOficina"), property.area_oficina != null ? formatArea(property.area_oficina) : null],
+        [t("detail.luzNatural"), property.luz_natural_pct != null ? `${property.luz_natural_pct}%` : null],
+      ],
+    },
+    {
+      titleKey: "detail.fichaTecnica.securityInfra",
+      rows: [
+        [t("detail.fichaTecnica.parkingSpaces"), property.parking],
+        [t("detail.andenesCarga"), property.andenes_carga],
+        [t("detail.rampasVehiculares"), property.rampas_vehiculares],
+        [t("detail.sistemaContraIncendios"), property.sistema_contra_incendios],
+        [t("detail.tipoSeguridad"), property.tipo_seguridad],
+      ],
+    },
+    {
+      titleKey: "detail.fichaTecnica.priceDetail",
+      rows: [
+        [t("detail.fichaTecnica.operationType"), t(`propertyOperation.${property.operation_type}`)],
+        [t("detail.fichaTecnica.totalPrice"), formatMXN(property.price)],
+        [t("detail.fichaTecnica.pricePerM2"), pricePerM2 != null ? formatMXN(pricePerM2) : null],
+        [t("detail.mantenimiento"), property.mantenimiento_pct != null ? `${property.mantenimiento_pct}%` : null],
+        [t("detail.fichaTecnica.maintenanceAmount"), maintenanceAmount != null ? formatMXN(maintenanceAmount) : null],
+        [t("detail.fichaTecnica.totalMonthly"), maintenanceAmount != null ? formatMXN(property.price + maintenanceAmount) : null],
+      ],
+    },
+    {
+      titleKey: "detail.specsTitle",
+      rows: [
+        [t("detail.colindancias"), property.colindancias],
+        [t("detail.servicios"), property.servicios],
+        [t("detail.acabados"), property.acabados],
+        [t("detail.sistemaConstructivo"), property.sistema_constructivo],
+      ],
+    },
+  ];
+
+  return groups
+    .map((group) => ({ ...group, rows: group.rows.filter(([, value]) => value != null && value !== "") }))
+    .filter((group) => group.rows.length > 0);
+}
+
 export default function PropertyDetail() {
   const { id } = useParams();
   const { t } = useTranslation();
@@ -111,20 +180,47 @@ export default function PropertyDetail() {
               <p>{property.description}</p>
             </section>
 
-            {(() => {
-              const specEntries = SPEC_FIELDS.filter((f) => property[f.key] != null && property[f.key] !== "");
-              if (specEntries.length === 0) return null;
-              return (
-                <section>
-                  <h2>{t("detail.specsTitle")}</h2>
-                  <ul className="property-detail__specs">
-                    {specEntries.map((f) => (
-                      <li key={f.key}><strong>{t(f.labelKey)}:</strong> {property[f.key]}{f.suffix || ""}</li>
-                    ))}
-                  </ul>
-                </section>
-              );
-            })()}
+            {property.type === "nave_industrial" ? (
+              (() => {
+                const groups = buildFichaTecnica(property, t);
+                if (groups.length === 0) return null;
+                return (
+                  <section>
+                    <h2>{t("detail.fichaTecnica.title")}</h2>
+                    <div className="property-detail__ficha-grid">
+                      {groups.map((group) => (
+                        <div className="card property-detail__ficha-card" key={group.titleKey}>
+                          <h3>{t(group.titleKey)}</h3>
+                          <dl>
+                            {group.rows.map(([label, value]) => (
+                              <div className="property-detail__ficha-row" key={label}>
+                                <dt>{label}</dt>
+                                <dd>{value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })()
+            ) : (
+              (() => {
+                const specEntries = SPEC_FIELDS.filter((f) => property[f.key] != null && property[f.key] !== "");
+                if (specEntries.length === 0) return null;
+                return (
+                  <section>
+                    <h2>{t("detail.specsTitle")}</h2>
+                    <ul className="property-detail__specs">
+                      {specEntries.map((f) => (
+                        <li key={f.key}><strong>{t(f.labelKey)}:</strong> {property[f.key]}{f.suffix || ""}</li>
+                      ))}
+                    </ul>
+                  </section>
+                );
+              })()
+            )}
 
             <section>
               <h2>{t("detail.location")}</h2>

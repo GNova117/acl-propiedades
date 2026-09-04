@@ -98,6 +98,59 @@
   color: var(--color-text);
 }
 
+.property-detail__ficha-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.property-detail__ficha-card {
+  padding: 1.5rem;
+}
+
+.property-detail__ficha-card dl {
+  margin: 0;
+}
+
+.property-detail__ficha-card h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+}
+
+.property-detail__ficha-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.property-detail__ficha-row:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.property-detail__ficha-row dt {
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+}
+
+.property-detail__ficha-row dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .property-detail__ficha-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .property-detail__sidebar {
   position: sticky;
   top: 90px;

@@ -103,7 +103,22 @@
     "tipoSeguridad": "Tipo de seguridad",
     "andenesCarga": "Andenes de carga",
     "rampasVehiculares": "Rampas vehiculares",
-    "mantenimiento": "Mantenimiento"
+    "mantenimiento": "Mantenimiento",
+    "fichaTecnica": {
+      "title": "Ficha técnica",
+      "classification": "Clasificación",
+      "dimensions": "Dimensiones",
+      "securityInfra": "Seguridad e infraestructura",
+      "priceDetail": "Precio detallado",
+      "propertyType": "Tipo de propiedad",
+      "totalArea": "Área total",
+      "operationType": "Tipo de operación",
+      "totalPrice": "Precio total",
+      "pricePerM2": "Precio por m²",
+      "maintenanceAmount": "Mantenimiento mensual estimado",
+      "totalMonthly": "Total mensual estimado",
+      "parkingSpaces": "Cajones de estacionamiento"
+    }
   },
   "calculator": {
     "title": "Calculadora de valor estimado",

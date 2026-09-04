@@ -103,7 +103,22 @@
     "tipoSeguridad": "Security type",
     "andenesCarga": "Loading docks",
     "rampasVehiculares": "Vehicle ramps",
-    "mantenimiento": "Maintenance"
+    "mantenimiento": "Maintenance",
+    "fichaTecnica": {
+      "title": "Technical sheet",
+      "classification": "Classification",
+      "dimensions": "Dimensions",
+      "securityInfra": "Security & infrastructure",
+      "priceDetail": "Price detail",
+      "propertyType": "Property type",
+      "totalArea": "Total area",
+      "operationType": "Transaction type",
+      "totalPrice": "Total price",
+      "pricePerM2": "Price per sqm",
+      "maintenanceAmount": "Estimated monthly maintenance",
+      "totalMonthly": "Estimated monthly total",
+      "parkingSpaces": "Parking spaces"
+    }
   },
   "calculator": {
     "title": "Estimated value calculator",
