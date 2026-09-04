@@ -16,19 +16,18 @@
   align-items: start;
 }
 
-/* Siempre apilado (título arriba, precio abajo) en vez de intentar un
-   layout lado a lado que dependiera de que el título "quepa" junto al
-   precio: con flex-wrap orgánico, un título largo (común en este sitio)
-   envolvía el bloque de precio a su propia línea incluso en pantallas
-   anchas —la barra lateral de 320px deja poco espacio para el título—, y
-   ese bloque quedaba atrapado en su ancho máximo alineado a la derecha en
-   vez de usar el ancho disponible. Apilar siempre es predecible en
-   cualquier ancho y con cualquier largo de título. */
+/* Grid de 2 columnas (título flexible + precio de ancho fijo) en vez de
+   flexbox con wrap: con flex-wrap orgánico, un título largo envolvía el
+   bloque de precio completo a su propia línea, y ese bloque quedaba
+   atrapado en su ancho máximo alineado a la derecha en vez de usar el
+   ancho disponible — se veía descolocado. Con grid, la columna del título
+   envuelve su propio texto en varias líneas sin nunca desplazar la
+   columna del precio; el precio se queda a la derecha siempre. */
 .property-detail__header {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.75rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: start;
   margin: 1.5rem 0 1rem;
 }
 
@@ -45,24 +44,39 @@
 .property-detail__price-block {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 0.5rem;
-  width: 100%;
 }
 
 .property-detail__price {
   font-family: var(--font-heading);
   font-size: 1.8rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .property-detail__credit-notice {
   margin: 0;
-  max-width: 480px;
+  max-width: 300px;
   font-size: 0.75rem;
   line-height: 1.4;
   color: var(--color-text-muted);
-  text-align: left;
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .property-detail__header {
+    grid-template-columns: 1fr;
+  }
+
+  .property-detail__price-block {
+    align-items: flex-start;
+  }
+
+  .property-detail__credit-notice {
+    max-width: none;
+    text-align: left;
+  }
 }
 
 .property-detail__features {
