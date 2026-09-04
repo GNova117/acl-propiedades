@@ -7,7 +7,17 @@ import { downloadFichaTecnicaPdf } from "../../lib/propertyFichaPdf";
 import { useAuth } from "../../context/AuthContext";
 import "./admin.css";
 
-export default function AdminProperties() {
+// `fixedType`: apartado de un solo tipo (Naves Industriales) — la lista solo
+// muestra propiedades de ese tipo y "Nueva" cae directo en ese tipo.
+// `excludeTypes`: apartado general "Propiedades" — oculta los tipos que ya
+// tienen su propio apartado, mismo criterio que la parte pública del sitio.
+export default function AdminProperties({
+  fixedType,
+  excludeTypes = [],
+  titleKey = "admin.properties",
+  newLabelKey = "admin.newProperty",
+  basePath = "/admin/propiedades",
+}) {
   const { t } = useTranslation();
   const { hasSection } = useAuth();
   const [properties, setProperties] = useState([]);
@@ -18,13 +28,16 @@ export default function AdminProperties() {
   const load = () => {
     setLoading(true);
     Promise.all([db.getProperties({}), db.getRemodelProjects({})]).then(([propertyData, remodelData]) => {
-      setProperties(propertyData);
+      const filtered = fixedType
+        ? propertyData.filter((p) => p.type === fixedType)
+        : propertyData.filter((p) => !excludeTypes.includes(p.type));
+      setProperties(filtered);
       setRemodelProjects(remodelData);
       setLoading(false);
     });
   };
 
-  useEffect(load, []);
+  useEffect(load, [fixedType]);
 
   const handleDelete = async (id) => {
     if (!window.confirm(t("common.confirmDelete"))) return;
@@ -54,9 +67,9 @@ export default function AdminProperties() {
   return (
     <div>
       <div className="admin-header">
-        <h1>{t("admin.properties")}</h1>
-        <Link to="/admin/propiedades/nueva" className="btn btn-primary">
-          {t("admin.newProperty")}
+        <h1>{t(titleKey)}</h1>
+        <Link to={`${basePath}/nueva`} className="btn btn-primary">
+          {t(newLabelKey)}
         </Link>
       </div>
 
@@ -98,7 +111,7 @@ export default function AdminProperties() {
                       </button>
                     </td>
                     <td className="admin-table__actions">
-                      <Link to={`/admin/propiedades/${property.id}`} className="btn btn-outline btn-sm">
+                      <Link to={`${basePath}/${property.id}`} className="btn btn-outline btn-sm">
                         {t("common.edit")}
                       </Link>
                       <button

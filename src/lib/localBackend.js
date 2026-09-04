@@ -1,7 +1,7 @@
 import { ZONES, ADVISORS, PROPERTIES, PROPERTY_TYPES_SEED, DEMO_ADMIN, ADMIN_ROLES_SEED, ADMIN_ACCESS_SEED } from "./seedData";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
-import { slugify } from "./format";
+import { slugify, numOrNull } from "./format";
 
 const KEYS = {
   properties: "acl_local_properties",
@@ -132,6 +132,19 @@ export const localBackend = {
       servicios: data.servicios || null,
       acabados: data.acabados || null,
       sistema_constructivo: data.sistema_constructivo || null,
+      techumbre: data.techumbre || null,
+      condicion_propiedad: data.condicion_propiedad || null,
+      estatus_construccion: data.estatus_construccion || null,
+      altura_libre: numOrNull(data.altura_libre),
+      anio_construccion: numOrNull(data.anio_construccion),
+      area_minima_divisible: numOrNull(data.area_minima_divisible),
+      area_oficina: numOrNull(data.area_oficina),
+      luz_natural_pct: numOrNull(data.luz_natural_pct),
+      sistema_contra_incendios: data.sistema_contra_incendios || null,
+      tipo_seguridad: data.tipo_seguridad || null,
+      andenes_carga: numOrNull(data.andenes_carga),
+      rampas_vehiculares: numOrNull(data.rampas_vehiculares),
+      mantenimiento_pct: numOrNull(data.mantenimiento_pct),
     };
     properties.push(record);
     writeStore(KEYS.properties, properties);
@@ -179,6 +192,19 @@ export const localBackend = {
       servicios: data.servicios || null,
       acabados: data.acabados || null,
       sistema_constructivo: data.sistema_constructivo || null,
+      techumbre: data.techumbre || null,
+      condicion_propiedad: data.condicion_propiedad || null,
+      estatus_construccion: data.estatus_construccion || null,
+      altura_libre: numOrNull(data.altura_libre),
+      anio_construccion: numOrNull(data.anio_construccion),
+      area_minima_divisible: numOrNull(data.area_minima_divisible),
+      area_oficina: numOrNull(data.area_oficina),
+      luz_natural_pct: numOrNull(data.luz_natural_pct),
+      sistema_contra_incendios: data.sistema_contra_incendios || null,
+      tipo_seguridad: data.tipo_seguridad || null,
+      andenes_carga: numOrNull(data.andenes_carga),
+      rampas_vehiculares: numOrNull(data.rampas_vehiculares),
+      mantenimiento_pct: numOrNull(data.mantenimiento_pct),
     };
     properties[idx] = updated;
     writeStore(KEYS.properties, properties);

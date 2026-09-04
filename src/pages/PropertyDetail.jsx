@@ -10,6 +10,30 @@ import { db } from "../lib/dataStore";
 import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./PropertyDetail.css";
 
+// Todos los campos "especificaciones" que puede tener una propiedad —
+// genéricos (NOM-247) más los propios de Naves Industriales. Se listan
+// aquí para no repetir 17 bloques casi idénticos en el JSX; cada uno se
+// muestra solo si la propiedad tiene ese dato capturado.
+const SPEC_FIELDS = [
+  { key: "colindancias", labelKey: "detail.colindancias" },
+  { key: "servicios", labelKey: "detail.servicios" },
+  { key: "acabados", labelKey: "detail.acabados" },
+  { key: "sistema_constructivo", labelKey: "detail.sistemaConstructivo" },
+  { key: "techumbre", labelKey: "detail.techumbre" },
+  { key: "condicion_propiedad", labelKey: "detail.condicionPropiedad" },
+  { key: "estatus_construccion", labelKey: "detail.estatusConstruccion" },
+  { key: "altura_libre", labelKey: "detail.alturaLibre", suffix: " m" },
+  { key: "anio_construccion", labelKey: "detail.anioConstruccion" },
+  { key: "area_minima_divisible", labelKey: "detail.areaMinimaDivisible", suffix: " m²" },
+  { key: "area_oficina", labelKey: "detail.areaOficina", suffix: " m²" },
+  { key: "luz_natural_pct", labelKey: "detail.luzNatural", suffix: "%" },
+  { key: "sistema_contra_incendios", labelKey: "detail.sistemaContraIncendios" },
+  { key: "tipo_seguridad", labelKey: "detail.tipoSeguridad" },
+  { key: "andenes_carga", labelKey: "detail.andenesCarga" },
+  { key: "rampas_vehiculares", labelKey: "detail.rampasVehiculares" },
+  { key: "mantenimiento_pct", labelKey: "detail.mantenimiento", suffix: "%" },
+];
+
 export default function PropertyDetail() {
   const { id } = useParams();
   const { t } = useTranslation();
@@ -87,25 +111,20 @@ export default function PropertyDetail() {
               <p>{property.description}</p>
             </section>
 
-            {(property.colindancias || property.servicios || property.acabados || property.sistema_constructivo) && (
-              <section>
-                <h2>{t("detail.specsTitle")}</h2>
-                <ul className="property-detail__specs">
-                  {property.colindancias && (
-                    <li><strong>{t("detail.colindancias")}:</strong> {property.colindancias}</li>
-                  )}
-                  {property.servicios && (
-                    <li><strong>{t("detail.servicios")}:</strong> {property.servicios}</li>
-                  )}
-                  {property.acabados && (
-                    <li><strong>{t("detail.acabados")}:</strong> {property.acabados}</li>
-                  )}
-                  {property.sistema_constructivo && (
-                    <li><strong>{t("detail.sistemaConstructivo")}:</strong> {property.sistema_constructivo}</li>
-                  )}
-                </ul>
-              </section>
-            )}
+            {(() => {
+              const specEntries = SPEC_FIELDS.filter((f) => property[f.key] != null && property[f.key] !== "");
+              if (specEntries.length === 0) return null;
+              return (
+                <section>
+                  <h2>{t("detail.specsTitle")}</h2>
+                  <ul className="property-detail__specs">
+                    {specEntries.map((f) => (
+                      <li key={f.key}><strong>{t(f.labelKey)}:</strong> {property[f.key]}{f.suffix || ""}</li>
+                    ))}
+                  </ul>
+                </section>
+              );
+            })()}
 
             <section>
               <h2>{t("detail.location")}</h2>

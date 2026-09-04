@@ -1,3 +1,11 @@
+// Convierte "" o null/undefined a null y cualquier otro valor a Number —
+// usado por ambos backends para los campos numéricos opcionales de
+// propiedades (bedrooms, altura_libre, mantenimiento_pct, etc.), que llegan
+// del formulario como string vacío cuando no se capturan.
+export function numOrNull(value) {
+  return value === "" || value == null ? null : Number(value);
+}
+
 export function formatMXN(value) {
   const number = Number(value) || 0;
   return new Intl.NumberFormat("es-MX", {

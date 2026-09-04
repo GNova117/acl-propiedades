@@ -84,7 +84,14 @@ export default function App() {
         }
       >
         <Route index element={<AdminDashboard />} />
-        <Route path="propiedades" element={<RequireSection section="propiedades"><AdminProperties /></RequireSection>} />
+        <Route
+          path="propiedades"
+          element={
+            <RequireSection section="propiedades">
+              <AdminProperties excludeTypes={["nave_industrial"]} />
+            </RequireSection>
+          }
+        />
         <Route path="propiedades/nueva" element={<RequireSection section="propiedades"><AdminPropertyForm /></RequireSection>} />
         <Route path="propiedades/:id" element={<RequireSection section="propiedades"><AdminPropertyForm /></RequireSection>} />
         <Route
@@ -92,6 +99,45 @@ export default function App() {
           element={
             <RequireSection section="liquidaciones">
               <AdminPropertyLiquidacion />
+            </RequireSection>
+          }
+        />
+        <Route
+          path="naves-industriales"
+          element={
+            <RequireSection section="propiedades">
+              <AdminProperties
+                fixedType="nave_industrial"
+                titleKey="admin.industrialWarehouses"
+                newLabelKey="admin.newIndustrialWarehouse"
+                basePath="/admin/naves-industriales"
+              />
+            </RequireSection>
+          }
+        />
+        <Route
+          path="naves-industriales/nueva"
+          element={
+            <RequireSection section="propiedades">
+              <AdminPropertyForm
+                fixedType="nave_industrial"
+                listPath="/admin/naves-industriales"
+                newTitleKey="admin.newIndustrialWarehouse"
+                editTitleKey="admin.editIndustrialWarehouse"
+              />
+            </RequireSection>
+          }
+        />
+        <Route
+          path="naves-industriales/:id"
+          element={
+            <RequireSection section="propiedades">
+              <AdminPropertyForm
+                fixedType="nave_industrial"
+                listPath="/admin/naves-industriales"
+                newTitleKey="admin.newIndustrialWarehouse"
+                editTitleKey="admin.editIndustrialWarehouse"
+              />
             </RequireSection>
           }
         />

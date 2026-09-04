@@ -27,15 +27,36 @@ const EMPTY = {
   servicios: "",
   acabados: "",
   sistema_constructivo: "",
+  techumbre: "",
+  condicion_propiedad: "",
+  estatus_construccion: "",
+  altura_libre: "",
+  anio_construccion: "",
+  area_minima_divisible: "",
+  area_oficina: "",
+  luz_natural_pct: "",
+  sistema_contra_incendios: "",
+  tipo_seguridad: "",
+  andenes_carga: "",
+  rampas_vehiculares: "",
+  mantenimiento_pct: "",
 };
 
-export default function AdminPropertyForm() {
+// `fixedType`: apartado de un solo tipo (Naves Industriales) — el tipo
+// llega fijo, el selector de Tipo no se muestra, y al guardar/cancelar
+// regresa a `listPath` en vez del listado general de Propiedades.
+export default function AdminPropertyForm({
+  fixedType,
+  listPath = "/admin/propiedades",
+  newTitleKey = "admin.newProperty",
+  editTitleKey = "admin.editProperty",
+}) {
   const { id } = useParams();
   const isEdit = Boolean(id);
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState(EMPTY);
+  const [form, setForm] = useState(() => (fixedType ? { ...EMPTY, type: fixedType } : EMPTY));
   const [zones, setZones] = useState([]);
   const [advisors, setAdvisors] = useState([]);
   const [propertyTypes, setPropertyTypes] = useState([]);
@@ -77,6 +98,19 @@ export default function AdminPropertyForm() {
         servicios: property.servicios || "",
         acabados: property.acabados || "",
         sistema_constructivo: property.sistema_constructivo || "",
+        techumbre: property.techumbre || "",
+        condicion_propiedad: property.condicion_propiedad || "",
+        estatus_construccion: property.estatus_construccion || "",
+        altura_libre: property.altura_libre ?? "",
+        anio_construccion: property.anio_construccion ?? "",
+        area_minima_divisible: property.area_minima_divisible ?? "",
+        area_oficina: property.area_oficina ?? "",
+        luz_natural_pct: property.luz_natural_pct ?? "",
+        sistema_contra_incendios: property.sistema_contra_incendios || "",
+        tipo_seguridad: property.tipo_seguridad || "",
+        andenes_carga: property.andenes_carga ?? "",
+        rampas_vehiculares: property.rampas_vehiculares ?? "",
+        mantenimiento_pct: property.mantenimiento_pct ?? "",
       });
       setExistingImages(property.images || []);
       setLoading(false);
@@ -120,7 +154,7 @@ export default function AdminPropertyForm() {
       } else {
         await db.addProperty(payload);
       }
-      navigate("/admin/propiedades");
+      navigate(listPath);
     } catch (err) {
       window.alert(err.message || "Error al guardar");
     } finally {
@@ -130,10 +164,14 @@ export default function AdminPropertyForm() {
 
   if (loading) return <div className="empty-state">{t("common.loading")}</div>;
 
+  const typeOptions = fixedType
+    ? propertyTypes.filter((pt) => pt.key === fixedType)
+    : propertyTypes.filter((pt) => pt.key !== "nave_industrial");
+
   return (
     <div>
       <div className="admin-header">
-        <h1>{isEdit ? t("admin.editProperty") : t("admin.newProperty")}</h1>
+        <h1>{isEdit ? t(editTitleKey) : t(newTitleKey)}</h1>
       </div>
 
       <form className="card admin-form" onSubmit={handleSubmit} noValidate>
@@ -143,14 +181,16 @@ export default function AdminPropertyForm() {
             <input id="p-title" value={form.title} onChange={handleChange("title")} />
             {errors.title && <span className="form-error">{errors.title}</span>}
           </div>
-          <div className="form-field">
-            <label htmlFor="p-type">{t("properties.type")}</label>
-            <select id="p-type" value={form.type} onChange={handleChange("type")}>
-              {propertyTypes.map((pt) => (
-                <option key={pt.id} value={pt.key}>{propertyTypeLabel(t, pt.key)}</option>
-              ))}
-            </select>
-          </div>
+          {!fixedType && (
+            <div className="form-field">
+              <label htmlFor="p-type">{t("properties.type")}</label>
+              <select id="p-type" value={form.type} onChange={handleChange("type")}>
+                {typeOptions.map((pt) => (
+                  <option key={pt.id} value={pt.key}>{propertyTypeLabel(t, pt.key)}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         <div className="form-field">
@@ -257,6 +297,83 @@ export default function AdminPropertyForm() {
           </div>
         </div>
 
+        {fixedType === "nave_industrial" && (
+          <>
+            <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{t("admin.industrialSpecsHint")}</p>
+
+            <div className="form-row">
+              <div className="form-field">
+                <label htmlFor="p-techumbre">{t("detail.techumbre")}</label>
+                <input id="p-techumbre" value={form.techumbre} onChange={handleChange("techumbre")} />
+              </div>
+              <div className="form-field">
+                <label htmlFor="p-condicion">{t("detail.condicionPropiedad")}</label>
+                <input id="p-condicion" value={form.condicion_propiedad} onChange={handleChange("condicion_propiedad")} />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-field">
+                <label htmlFor="p-estatus-construccion">{t("detail.estatusConstruccion")}</label>
+                <input id="p-estatus-construccion" value={form.estatus_construccion} onChange={handleChange("estatus_construccion")} />
+              </div>
+              <div className="form-field">
+                <label htmlFor="p-anio-construccion">{t("detail.anioConstruccion")}</label>
+                <input id="p-anio-construccion" type="number" min="1900" value={form.anio_construccion} onChange={handleChange("anio_construccion")} />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-field">
+                <label htmlFor="p-altura-libre">{t("detail.alturaLibre")} (m)</label>
+                <input id="p-altura-libre" type="number" min="0" step="0.1" value={form.altura_libre} onChange={handleChange("altura_libre")} />
+              </div>
+              <div className="form-field">
+                <label htmlFor="p-area-minima">{t("detail.areaMinimaDivisible")} (m²)</label>
+                <input id="p-area-minima" type="number" min="0" value={form.area_minima_divisible} onChange={handleChange("area_minima_divisible")} />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-field">
+                <label htmlFor="p-area-oficina">{t("detail.areaOficina")} (m²)</label>
+                <input id="p-area-oficina" type="number" min="0" value={form.area_oficina} onChange={handleChange("area_oficina")} />
+              </div>
+              <div className="form-field">
+                <label htmlFor="p-luz-natural">{t("detail.luzNatural")} (%)</label>
+                <input id="p-luz-natural" type="number" min="0" max="100" step="0.1" value={form.luz_natural_pct} onChange={handleChange("luz_natural_pct")} />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-field">
+                <label htmlFor="p-andenes">{t("detail.andenesCarga")}</label>
+                <input id="p-andenes" type="number" min="0" value={form.andenes_carga} onChange={handleChange("andenes_carga")} />
+              </div>
+              <div className="form-field">
+                <label htmlFor="p-rampas">{t("detail.rampasVehiculares")}</label>
+                <input id="p-rampas" type="number" min="0" value={form.rampas_vehiculares} onChange={handleChange("rampas_vehiculares")} />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-field">
+                <label htmlFor="p-contra-incendios">{t("detail.sistemaContraIncendios")}</label>
+                <input id="p-contra-incendios" value={form.sistema_contra_incendios} onChange={handleChange("sistema_contra_incendios")} />
+              </div>
+              <div className="form-field">
+                <label htmlFor="p-seguridad">{t("detail.tipoSeguridad")}</label>
+                <input id="p-seguridad" value={form.tipo_seguridad} onChange={handleChange("tipo_seguridad")} />
+              </div>
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="p-mantenimiento">{t("detail.mantenimiento")} (%)</label>
+              <input id="p-mantenimiento" type="number" min="0" max="100" step="0.1" value={form.mantenimiento_pct} onChange={handleChange("mantenimiento_pct")} />
+            </div>
+          </>
+        )}
+
         <div className="form-field">
           <label>
             <input type="checkbox" checked={form.active} onChange={handleChange("active")} style={{ marginRight: "0.5rem" }} />
@@ -301,7 +418,7 @@ export default function AdminPropertyForm() {
             {saving ? <span className="spinner" /> : null}
             {t("common.save")}
           </button>
-          <button type="button" className="btn btn-outline" onClick={() => navigate("/admin/propiedades")}>
+          <button type="button" className="btn btn-outline" onClick={() => navigate(listPath)}>
             {t("common.cancel")}
           </button>
         </div>

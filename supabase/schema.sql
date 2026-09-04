@@ -765,6 +765,24 @@ alter table properties add column if not exists servicios text;
 alter table properties add column if not exists acabados text;
 alter table properties add column if not exists sistema_constructivo text;
 
+-- Especificaciones propias de Naves Industriales — Naves Industriales pasa
+-- a tener su propio apartado en el admin (separado de Propiedades), con
+-- estos campos extra además de los genéricos (área, precio, estacionamientos,
+-- etc.) que ya comparte con casa/departamento/terreno. Todo opcional.
+alter table properties add column if not exists techumbre text;
+alter table properties add column if not exists condicion_propiedad text;
+alter table properties add column if not exists estatus_construccion text;
+alter table properties add column if not exists altura_libre numeric;
+alter table properties add column if not exists anio_construccion int;
+alter table properties add column if not exists area_minima_divisible numeric;
+alter table properties add column if not exists area_oficina numeric;
+alter table properties add column if not exists luz_natural_pct numeric;
+alter table properties add column if not exists sistema_contra_incendios text;
+alter table properties add column if not exists tipo_seguridad text;
+alter table properties add column if not exists andenes_carga int;
+alter table properties add column if not exists rampas_vehiculares int;
+alter table properties add column if not exists mantenimiento_pct numeric;
+
 drop policy if exists "Authenticated can delete client documents" on storage.objects;
 create policy "Rol con apartado clientes borra documentos" on storage.objects
   for delete using (bucket_id = 'client-documents' and has_admin_section('clientes'));

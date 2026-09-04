@@ -90,7 +90,20 @@
     "colindancias": "Colindancias",
     "servicios": "Instalaciones de servicios",
     "acabados": "Acabados",
-    "sistemaConstructivo": "Sistema constructivo"
+    "sistemaConstructivo": "Sistema constructivo",
+    "techumbre": "Techumbre",
+    "condicionPropiedad": "Condición de la propiedad",
+    "estatusConstruccion": "Estatus de construcción",
+    "alturaLibre": "Altura libre",
+    "anioConstruccion": "Año de construcción",
+    "areaMinimaDivisible": "Área mínima divisible",
+    "areaOficina": "Área de oficina",
+    "luzNatural": "Luz natural",
+    "sistemaContraIncendios": "Sistema contra incendios",
+    "tipoSeguridad": "Tipo de seguridad",
+    "andenesCarga": "Andenes de carga",
+    "rampasVehiculares": "Rampas vehiculares",
+    "mantenimiento": "Mantenimiento"
   },
   "calculator": {
     "title": "Calculadora de valor estimado",
@@ -202,7 +215,11 @@
     "infonavitSimulator": "Crédito Infonavit",
     "propertyTypes": "Tipos de propiedad",
     "newPropertyType": "Nuevo tipo de propiedad",
-    "propertySpecsHint": "Estos datos se muestran en la ficha pública de la propiedad (requeridos por la NOM-247 para publicidad inmobiliaria). Déjalos vacíos si aún no los tienes."
+    "propertySpecsHint": "Estos datos se muestran en la ficha pública de la propiedad (requeridos por la NOM-247 para publicidad inmobiliaria). Déjalos vacíos si aún no los tienes.",
+    "industrialWarehouses": "Naves Industriales",
+    "newIndustrialWarehouse": "Nueva nave industrial",
+    "editIndustrialWarehouse": "Editar nave industrial",
+    "industrialSpecsHint": "Datos técnicos específicos de naves industriales. Opcionales — se muestran en la ficha pública si se capturan."
   },
   "accessControl": {
     "restricted": "No tienes acceso a este apartado.",

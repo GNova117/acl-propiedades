@@ -90,7 +90,20 @@
     "colindancias": "Boundaries",
     "servicios": "Utility installations",
     "acabados": "Finishes",
-    "sistemaConstructivo": "Construction system"
+    "sistemaConstructivo": "Construction system",
+    "techumbre": "Roofing system",
+    "condicionPropiedad": "Property condition",
+    "estatusConstruccion": "Construction status",
+    "alturaLibre": "Clear height",
+    "anioConstruccion": "Year built",
+    "areaMinimaDivisible": "Minimum divisible area",
+    "areaOficina": "Office area",
+    "luzNatural": "Natural light",
+    "sistemaContraIncendios": "Fire suppression system",
+    "tipoSeguridad": "Security type",
+    "andenesCarga": "Loading docks",
+    "rampasVehiculares": "Vehicle ramps",
+    "mantenimiento": "Maintenance"
   },
   "calculator": {
     "title": "Estimated value calculator",
@@ -202,7 +215,11 @@
     "infonavitSimulator": "Infonavit Credit",
     "propertyTypes": "Property types",
     "newPropertyType": "New property type",
-    "propertySpecsHint": "This information is shown on the property's public page (required by NOM-247 for real estate advertising). Leave blank if not yet available."
+    "propertySpecsHint": "This information is shown on the property's public page (required by NOM-247 for real estate advertising). Leave blank if not yet available.",
+    "industrialWarehouses": "Industrial Warehouses",
+    "newIndustrialWarehouse": "New industrial warehouse",
+    "editIndustrialWarehouse": "Edit industrial warehouse",
+    "industrialSpecsHint": "Technical data specific to industrial warehouses. Optional — shown on the public page when filled in."
   },
   "accessControl": {
     "restricted": "You don't have access to this section.",
