@@ -65,6 +65,7 @@ export default function PropertyDetail() {
                   {t(`propertyStatus.${property.status}`)}
                 </span>
                 <span className="property-detail__price">{formatMXN(property.price)}</span>
+                <p className="property-detail__credit-notice">{t("detail.creditNotice")}</p>
               </div>
             </div>
 
@@ -85,6 +86,26 @@ export default function PropertyDetail() {
               <h2>{t("detail.description")}</h2>
               <p>{property.description}</p>
             </section>
+
+            {(property.colindancias || property.servicios || property.acabados || property.sistema_constructivo) && (
+              <section>
+                <h2>{t("detail.specsTitle")}</h2>
+                <ul className="property-detail__specs">
+                  {property.colindancias && (
+                    <li><strong>{t("detail.colindancias")}:</strong> {property.colindancias}</li>
+                  )}
+                  {property.servicios && (
+                    <li><strong>{t("detail.servicios")}:</strong> {property.servicios}</li>
+                  )}
+                  {property.acabados && (
+                    <li><strong>{t("detail.acabados")}:</strong> {property.acabados}</li>
+                  )}
+                  {property.sistema_constructivo && (
+                    <li><strong>{t("detail.sistemaConstructivo")}:</strong> {property.sistema_constructivo}</li>
+                  )}
+                </ul>
+              </section>
+            )}
 
             <section>
               <h2>{t("detail.location")}</h2>

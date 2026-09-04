@@ -756,6 +756,15 @@ drop policy if exists "Authenticated can upload client documents" on storage.obj
 create policy "Rol con apartado clientes sube documentos" on storage.objects
   for insert with check (bucket_id = 'client-documents' and has_admin_section('clientes'));
 
+-- Especificaciones mínimas de publicidad inmobiliaria (NOM-247-SE-2021,
+-- numeral 5): colindancias, instalaciones de servicios, acabados y
+-- sistema constructivo. Opcionales — se capturan desde el formulario de
+-- Propiedades y solo se muestran en la ficha pública si están llenas.
+alter table properties add column if not exists colindancias text;
+alter table properties add column if not exists servicios text;
+alter table properties add column if not exists acabados text;
+alter table properties add column if not exists sistema_constructivo text;
+
 drop policy if exists "Authenticated can delete client documents" on storage.objects;
 create policy "Rol con apartado clientes borra documentos" on storage.objects
   for delete using (bucket_id = 'client-documents' and has_admin_section('clientes'));

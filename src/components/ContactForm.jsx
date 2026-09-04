@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 
@@ -65,6 +66,11 @@ export default function ContactForm() {
 
       {status === "success" && <p className="form-hint" style={{ color: "var(--color-success)" }}>{t("contact.success")}</p>}
       {status === "error" && <p className="form-error">{t("contact.error")}</p>}
+
+      <p className="form-hint" style={{ marginBottom: "1rem" }}>
+        {t("contact.privacyNotice")}{" "}
+        <Link to="/aviso-de-privacidad">{t("contact.privacyLinkLabel")}</Link>.
+      </p>
 
       <button type="submit" className="btn btn-primary btn-block" disabled={status === "sending"}>
         {status === "sending" ? <span className="spinner" /> : null}

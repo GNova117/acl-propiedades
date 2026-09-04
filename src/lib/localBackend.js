@@ -128,6 +128,10 @@ export const localBackend = {
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
       advisor_ids: data.advisor_ids || [],
+      colindancias: data.colindancias || null,
+      servicios: data.servicios || null,
+      acabados: data.acabados || null,
+      sistema_constructivo: data.sistema_constructivo || null,
     };
     properties.push(record);
     writeStore(KEYS.properties, properties);
@@ -171,6 +175,10 @@ export const localBackend = {
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
       advisor_ids: data.advisor_ids || [],
+      colindancias: data.colindancias || null,
+      servicios: data.servicios || null,
+      acabados: data.acabados || null,
+      sistema_constructivo: data.sistema_constructivo || null,
     };
     properties[idx] = updated;
     writeStore(KEYS.properties, properties);

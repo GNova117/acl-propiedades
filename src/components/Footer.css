@@ -63,12 +63,40 @@
   background: var(--color-primary);
 }
 
+.site-footer__legal {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.1rem 1.5rem;
+}
+
+.site-footer__legal p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #7a879d;
+  max-width: 720px;
+}
+
 .site-footer__bottom {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding: 1.25rem 0;
   font-size: 0.8rem;
   color: #7a879d;
   text-align: center;
+}
+
+.site-footer__bottom-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem 1.25rem;
+}
+
+.site-footer__bottom-row a {
+  color: #93a1b8;
+}
+
+.site-footer__bottom-row a:hover {
+  color: #ffffff;
 }
 
 @media (max-width: 860px) {

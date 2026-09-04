@@ -48,6 +48,15 @@
   font-weight: 700;
 }
 
+.property-detail__credit-notice {
+  margin: 0;
+  max-width: 280px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
 .property-detail__features {
   display: flex;
   gap: 2rem;
@@ -72,6 +81,21 @@
 .property-detail__features span {
   font-size: 0.8rem;
   color: var(--color-text-muted);
+}
+
+.property-detail__specs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.property-detail__specs li {
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.property-detail__specs strong {
+  color: var(--color-text);
 }
 
 .property-detail__sidebar {

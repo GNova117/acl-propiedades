@@ -76,6 +76,10 @@ export const supabaseBackend = {
       active: data.active !== false,
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
+      colindancias: data.colindancias || null,
+      servicios: data.servicios || null,
+      acabados: data.acabados || null,
+      sistema_constructivo: data.sistema_constructivo || null,
     };
     const { data: inserted, error } = await supabase.from("properties").insert(payload).select().single();
     if (error) throw error;
@@ -115,6 +119,10 @@ export const supabaseBackend = {
       active: data.active,
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
+      colindancias: data.colindancias || null,
+      servicios: data.servicios || null,
+      acabados: data.acabados || null,
+      sistema_constructivo: data.sistema_constructivo || null,
     };
     const { data: updated, error } = await supabase.from("properties").update(payload).eq("id", id).select().single();
     if (error) throw error;

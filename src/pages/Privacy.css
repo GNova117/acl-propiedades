@@ -1,0 +1,45 @@
+.privacy-page {
+  padding-bottom: 4rem;
+  max-width: 820px;
+}
+
+.privacy-page__updated {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  margin: 0 0 2.5rem;
+}
+
+.privacy-page__sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.privacy-page__block {
+  padding: 1.5rem 1.75rem;
+}
+
+.privacy-page__block h3 {
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
+}
+
+.privacy-page__block p {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.privacy-page__rights-list {
+  padding: 1.75rem 1.75rem 1.75rem 2.75rem;
+}
+
+.privacy-page__rights-list li {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.privacy-page__rights-list li:last-child {
+  margin-bottom: 0;
+}

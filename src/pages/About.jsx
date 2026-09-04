@@ -51,6 +51,11 @@ export default function About() {
           </div>
         </div>
 
+        <div className="card about-page__block" style={{ marginBottom: "3rem" }}>
+          <h3>{t("about.paymentMethodsTitle")}</h3>
+          <p>{t("about.paymentMethodsBody")}</p>
+        </div>
+
         <h3 className="about-page__team-title">{t("about.team")}</h3>
         <div className="about-page__team">
           {advisors.map((advisor) => (

@@ -84,7 +84,13 @@
     "call": "Call",
     "whatsapp": "WhatsApp",
     "email": "Email",
-    "notFound": "Property not found."
+    "notFound": "Property not found.",
+    "creditNotice": "Price in Mexican pesos (MXN). For financed purchases, the final total price depends on variable credit and notarial costs, which must be confirmed with our sales advisors.",
+    "specsTitle": "Property specifications",
+    "colindancias": "Boundaries",
+    "servicios": "Utility installations",
+    "acabados": "Finishes",
+    "sistemaConstructivo": "Construction system"
   },
   "calculator": {
     "title": "Estimated value calculator",
@@ -111,7 +117,9 @@
     "hours1": "Monday to Friday: 8:00 AM - 2:00 PM",
     "hours2": "Monday to Friday: 4:00 PM - 6:00 PM",
     "addressTitle": "Location",
-    "address": "Blvd. Independencia, Local 16, Plaza San Luciano"
+    "address": "Blvd. Independencia, Local 16, Plaza San Luciano",
+    "paymentMethodsTitle": "Payment methods",
+    "paymentMethodsBody": "We accept cash payment, bank financing, INFONAVIT credit, and FOVISSSTE credit, subject to each institution's conditions and required documentation. Check with your advisor for the options available for each property."
   },
   "contact": {
     "title": "Contact us",
@@ -125,14 +133,19 @@
     "success": "Thank you! Your message was sent, we will contact you soon.",
     "error": "There was a problem sending your message. Please try again.",
     "required": "This field is required",
-    "invalidEmail": "Invalid email address"
+    "invalidEmail": "Invalid email address",
+    "privacyNotice": "By submitting this form, your data will be handled according to our",
+    "privacyLinkLabel": "Privacy Notice"
   },
   "footer": {
     "tagline": "Buying and selling houses, land, commercial spaces and industrial warehouses in La Comarca Lagunera.",
     "quickLinks": "Quick links",
     "contactInfo": "Contact",
     "followUs": "Follow us",
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "privacyLink": "Privacy Notice",
+    "rightsLink": "Consumer Rights Notice",
+    "creditNotice": "Prices in Mexican pesos (MXN). For financed purchases, the final total price depends on variable credit and notarial costs, which must be confirmed with our sales advisors."
   },
   "common": {
     "loading": "Loading...",
@@ -188,7 +201,8 @@
     "newZone": "New zone",
     "infonavitSimulator": "Infonavit Credit",
     "propertyTypes": "Property types",
-    "newPropertyType": "New property type"
+    "newPropertyType": "New property type",
+    "propertySpecsHint": "This information is shown on the property's public page (required by NOM-247 for real estate advertising). Leave blank if not yet available."
   },
   "accessControl": {
     "restricted": "You don't have access to this section.",
@@ -367,6 +381,62 @@
     "ssvBalance": "Housing Subaccount balance",
     "totalCapacity": "Total available for purchase",
     "monthlyPayment": "Estimated monthly payroll deduction"
+  },
+  "privacy": {
+    "title": "Privacy Notice",
+    "intro": "ACL Propiedades is responsible for processing your personal data in accordance with Mexico's Federal Law on Protection of Personal Data Held by Private Parties (LFPDPPP) and NOM-247-SE-2021.",
+    "updated": "Last updated: September 2026",
+    "sections": [
+      {
+        "title": "Data controller",
+        "body": "ACL Propiedades, located at Blvd. Independencia, Local 16, Plaza San Luciano, Torreón, Coahuila, is responsible for the use and protection of your personal data. You can reach us at inmobiliaria@aclpropiedades.com or by phone at 871 324 3271."
+      },
+      {
+        "title": "Personal data we collect",
+        "body": "Through this site's contact form we collect your name, email address, phone number, and the content of the message you choose to share. If you later start a purchase, sale, rental or advisory process with one of our advisors, we may request additional data needed for that process; that data is collected directly by the advisor, not through this website."
+      },
+      {
+        "title": "Purposes of processing",
+        "body": "We use your data to respond to your inquiries, contact you about properties of interest, and provide real estate advisory services. Additionally and optionally, we may use it to inform you about new properties or promotions; you may object to this secondary use at any time without affecting the handling of your original request."
+      },
+      {
+        "title": "Data transfers",
+        "body": "We do not share, sell, or transfer your personal data to third parties, except when necessary to comply with a legal obligation or a request from a competent authority."
+      },
+      {
+        "title": "ARCO rights",
+        "body": "You have the right to Access, Rectify, and Cancel your personal data, as well as to Object to its use (ARCO rights). To exercise them, write to us at inmobiliaria@aclpropiedades.com stating your name and your request; we will respond within a reasonable time as required by the LFPDPPP."
+      },
+      {
+        "title": "Cookies and tracking technologies",
+        "body": "This site does not use tracking cookies for advertising purposes and does not share browsing information with third parties. We only use your browser's local storage to remember your language and appearance (light/dark mode) preferences."
+      },
+      {
+        "title": "Changes to this notice",
+        "body": "Any changes to this Privacy Notice will be published on this same page."
+      }
+    ]
+  },
+  "rights": {
+    "title": "Consumer Rights Notice",
+    "intro": "In every residential real estate transaction, ACL Propiedades commits to acting in accordance with the Federal Consumer Protection Law (LFPC), its Regulations, and NOM-247-SE-2021, and accordingly recognizes that, as a consumer, you have the following rights:",
+    "items": [
+      "To receive truthful, clear, and up-to-date information and advertising about the properties offered, regardless of the medium used —including digital media—, so that you can make the best purchase decision knowing the property's actual characteristics.",
+      "To know the property's characteristics, including: lot size, built area, type of structure, installations, finishes, accessories, parking space, common-use areas, available services, and the property's overall physical condition.",
+      "To freely choose the property that best fits your needs and purchasing capacity.",
+      "To not make any payment until the contractual relationship is documented in writing, except for deposits and operating expenses, as provided by the LFPC.",
+      "To sign a standard-form contract based on the model registered with the Federal Consumer Protection Agency (PROFECO), stating the terms and conditions of the sale. After signing, the provider must give you a copy of the signed contract.",
+      "To acquire a property that meets the safety and quality standards set by applicable regulations and reflected in the information and advertising you received.",
+      "To receive the property within the timeframe and conditions agreed in the corresponding contract.",
+      "Where applicable, to exercise the warranties on real estate provided by the LFPC, per the specifications of the corresponding contract.",
+      "To receive the corresponding compensation under the LFPC if, after the warranty is exercised, defects or faults persist in the property; as well as to have the necessary repairs made, or to choose to have the property replaced or the contract rescinded when applicable.",
+      "To have free and accessible channels for inquiries, requests, complaints, and suggestions, and to know the address the provider has designated to receive notifications.",
+      "To receive protection from the competent authorities under applicable law, including the right to file complaints and claims with them.",
+      "To have a Privacy Notice available explaining how your personal data will be handled and to consent to it where applicable, as well as to know the available means to exercise your rights of Access, Rectification, Cancellation, and Objection.",
+      "To receive treatment free of discrimination, without being denied or conditioned service or the sale of a home based on gender, nationality, ethnic origin, sexual orientation, religion, or any other characteristic, as provided by applicable law.",
+      "To freely choose the notary public for the deed-signing process."
+    ],
+    "footnote": "Based on Appendix A of NOM-247-SE-2021 and the Federal Consumer Protection Law."
   },
   "remodelCalculator": {
     "button": "Remodel",

@@ -84,7 +84,13 @@
     "call": "Llamar",
     "whatsapp": "WhatsApp",
     "email": "Correo",
-    "notFound": "Propiedad no encontrada."
+    "notFound": "Propiedad no encontrada.",
+    "creditNotice": "Precio en pesos mexicanos (MXN). En operaciones de crédito, el precio total se determinará en función de los montos variables de conceptos de crédito y gastos notariales, mismos que deben consultarse con nuestros promotores.",
+    "specsTitle": "Especificaciones del inmueble",
+    "colindancias": "Colindancias",
+    "servicios": "Instalaciones de servicios",
+    "acabados": "Acabados",
+    "sistemaConstructivo": "Sistema constructivo"
   },
   "calculator": {
     "title": "Calculadora de valor estimado",
@@ -111,7 +117,9 @@
     "hours1": "Lunes a viernes: 8:00 AM - 2:00 PM",
     "hours2": "Lunes a viernes: 4:00 PM - 6:00 PM",
     "addressTitle": "Ubicación",
-    "address": "Blvd. Independencia, Local 16, Plaza San Luciano"
+    "address": "Blvd. Independencia, Local 16, Plaza San Luciano",
+    "paymentMethodsTitle": "Formas de pago",
+    "paymentMethodsBody": "Aceptamos pago de contado, crédito bancario, crédito INFONAVIT y crédito FOVISSSTE, sujetos a las condiciones y documentación que exija cada institución. Consulta con tu asesor las opciones disponibles para cada propiedad."
   },
   "contact": {
     "title": "Contáctanos",
@@ -125,14 +133,19 @@
     "success": "¡Gracias! Tu mensaje fue enviado, pronto te contactaremos.",
     "error": "Hubo un problema al enviar tu mensaje. Intenta de nuevo.",
     "required": "Este campo es obligatorio",
-    "invalidEmail": "Correo electrónico no válido"
+    "invalidEmail": "Correo electrónico no válido",
+    "privacyNotice": "Al enviar este formulario, tus datos serán tratados conforme a nuestro",
+    "privacyLinkLabel": "Aviso de Privacidad"
   },
   "footer": {
     "tagline": "Compra y venta de casas, terrenos, locales comerciales y naves industriales en La Comarca Lagunera.",
     "quickLinks": "Enlaces rápidos",
     "contactInfo": "Contacto",
     "followUs": "Síguenos",
-    "rights": "Todos los derechos reservados."
+    "rights": "Todos los derechos reservados.",
+    "privacyLink": "Aviso de Privacidad",
+    "rightsLink": "Carta de Derechos",
+    "creditNotice": "Precios en pesos mexicanos (MXN). En operaciones de crédito, el precio total se determinará en función de los montos variables de conceptos de crédito y gastos notariales, que deben consultarse con nuestros promotores."
   },
   "common": {
     "loading": "Cargando...",
@@ -188,7 +201,8 @@
     "newZone": "Nueva zona",
     "infonavitSimulator": "Crédito Infonavit",
     "propertyTypes": "Tipos de propiedad",
-    "newPropertyType": "Nuevo tipo de propiedad"
+    "newPropertyType": "Nuevo tipo de propiedad",
+    "propertySpecsHint": "Estos datos se muestran en la ficha pública de la propiedad (requeridos por la NOM-247 para publicidad inmobiliaria). Déjalos vacíos si aún no los tienes."
   },
   "accessControl": {
     "restricted": "No tienes acceso a este apartado.",
@@ -367,6 +381,62 @@
     "ssvBalance": "Saldo Subcuenta de Vivienda",
     "totalCapacity": "Total disponible para compra",
     "monthlyPayment": "Cuota / retención mensual estimada"
+  },
+  "privacy": {
+    "title": "Aviso de Privacidad",
+    "intro": "ACL Propiedades es responsable del tratamiento de tus datos personales conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) y a la NOM-247-SE-2021.",
+    "updated": "Última actualización: septiembre de 2026",
+    "sections": [
+      {
+        "title": "Responsable del tratamiento",
+        "body": "ACL Propiedades, con domicilio en Blvd. Independencia, Local 16, Plaza San Luciano, Torreón, Coahuila, es responsable del uso y protección de tus datos personales. Puedes contactarnos en inmobiliaria@aclpropiedades.com o al teléfono 871 324 3271."
+      },
+      {
+        "title": "Datos personales que recabamos",
+        "body": "A través del formulario de contacto de este sitio recabamos tu nombre, correo electrónico, teléfono y el contenido del mensaje que decidas compartir. Si más adelante inicias un proceso de compra, venta, renta o asesoría con uno de nuestros asesores, podríamos solicitarte datos adicionales necesarios para ese trámite; esos datos se recaban directamente por el asesor, no a través de este sitio web."
+      },
+      {
+        "title": "Finalidades del tratamiento",
+        "body": "Usamos tus datos para responder tus consultas, contactarte respecto a propiedades de tu interés y brindarte asesoría inmobiliaria. De forma adicional y opcional, podríamos usarlos para informarte sobre nuevas propiedades o promociones; puedes oponerte a este uso en cualquier momento sin que ello afecte la atención de tu solicitud original."
+      },
+      {
+        "title": "Transferencia de datos",
+        "body": "No compartimos, vendemos ni transferimos tus datos personales a terceros, salvo que sea necesario para cumplir con una obligación legal o un requerimiento de autoridad competente."
+      },
+      {
+        "title": "Derechos ARCO",
+        "body": "Tienes derecho a Acceder, Rectificar y Cancelar tus datos personales, así como a Oponerte a su uso (derechos ARCO). Para ejercerlos, escríbenos a inmobiliaria@aclpropiedades.com indicando tu nombre y tu solicitud; te responderemos en un plazo razonable conforme a la LFPDPPP."
+      },
+      {
+        "title": "Cookies y tecnologías de rastreo",
+        "body": "Este sitio no utiliza cookies de rastreo con fines publicitarios ni comparte información de navegación con terceros. Solo usamos el almacenamiento local de tu navegador para recordar tu preferencia de idioma y de apariencia (modo claro/oscuro)."
+      },
+      {
+        "title": "Cambios a este aviso",
+        "body": "Cualquier modificación a este Aviso de Privacidad será publicada en esta misma página."
+      }
+    ]
+  },
+  "rights": {
+    "title": "Carta de Derechos del Consumidor",
+    "intro": "En todas las transacciones comerciales de compraventa de casa habitación, ACL Propiedades se compromete a que éstas se lleven a cabo conforme a lo dispuesto en la Ley Federal de Protección al Consumidor (LFPC), su Reglamento y la NOM-247-SE-2021, por lo cual reconoce que, como consumidor, cuentas con los siguientes derechos:",
+    "items": [
+      "Recibir, respecto de los bienes inmuebles ofertados, información y publicidad veraz, clara y actualizada, sin importar el medio por el que se comunique —incluyendo medios digitales—, de forma que te permita tomar la mejor decisión de compra conociendo de manera veraz las características del inmueble que estás adquiriendo.",
+      "Conocer la información sobre las características del inmueble, entre ellas: la extensión del terreno, superficie construida, tipo de estructura, instalaciones, acabados, accesorios, lugar de estacionamiento, áreas de uso común, servicios con que cuenta y estado físico general del inmueble.",
+      "Elegir libremente el inmueble que mejor satisfaga tus necesidades y se ajuste a tu capacidad de compra.",
+      "No realizar pago alguno hasta que conste por escrito la relación contractual, exceptuando los referentes a anticipos y gastos operativos, en los términos previstos por la LFPC.",
+      "Firmar un contrato de adhesión bajo el modelo inscrito en la Procuraduría Federal del Consumidor (PROFECO), en el que consten los términos y condiciones de la compraventa. Posterior a su firma, el proveedor tiene la obligación de entregarte una copia del contrato firmado.",
+      "Adquirir un inmueble que cuente con las características de seguridad y calidad contenidas en la normatividad aplicable y plasmadas en la información y publicidad que hayas recibido.",
+      "Recibir el bien inmueble en el plazo y condiciones acordados en el contrato de adhesión respectivo.",
+      "En su caso, ejercer las garantías sobre bienes inmuebles previstas en la LFPC, considerando las especificaciones del contrato de adhesión respectivo.",
+      "Recibir la bonificación o compensación correspondiente en términos de la LFPC si, una vez ejercida la garantía, persisten defectos o fallas en el inmueble; así como a que se realicen las reparaciones necesarias, u optar por la sustitución del inmueble o la rescisión del contrato cuando proceda.",
+      "Contar con canales y mecanismos de atención gratuitos y accesibles para consultas, solicitudes, reclamaciones y sugerencias, y conocer el domicilio señalado por el proveedor para oír y recibir notificaciones.",
+      "Recibir protección por parte de las autoridades competentes conforme a las leyes aplicables, incluyendo el derecho a presentar denuncias y reclamaciones ante las mismas.",
+      "Tener a tu disposición un Aviso de Privacidad para conocer el tratamiento que se dará a tus datos personales y consentirlo, en su caso, así como conocer los mecanismos disponibles para ejercer tus derechos de Acceso, Rectificación, Cancelación y Oposición.",
+      "Recibir un trato libre de discriminación, sin que se te pueda negar o condicionar la atención o venta de una vivienda por razones de género, nacionalidad, origen étnico, preferencia sexual, religión o cualquier otra particularidad, en los términos de la legislación aplicable.",
+      "Elegir libremente al notario público para realizar el trámite de escrituración."
+    ],
+    "footnote": "Con base en el Apéndice A de la NOM-247-SE-2021 y la Ley Federal de Protección al Consumidor."
   },
   "remodelCalculator": {
     "button": "Remodelación",

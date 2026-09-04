@@ -7,6 +7,8 @@ import PropertyDetail from "./pages/PropertyDetail";
 import Calculator from "./pages/Calculator";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import Privacy from "./pages/Privacy";
+import Rights from "./pages/Rights";
 import NotFound from "./pages/NotFound";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -69,6 +71,8 @@ export default function App() {
       <Route path="/calculadora" element={<PublicLayout><Calculator /></PublicLayout>} />
       <Route path="/nosotros" element={<PublicLayout><About /></PublicLayout>} />
       <Route path="/contacto" element={<PublicLayout><Contact /></PublicLayout>} />
+      <Route path="/aviso-de-privacidad" element={<PublicLayout><Privacy /></PublicLayout>} />
+      <Route path="/carta-de-derechos" element={<PublicLayout><Rights /></PublicLayout>} />
 
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route

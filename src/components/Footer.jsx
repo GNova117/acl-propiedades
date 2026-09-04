@@ -46,9 +46,15 @@ export default function Footer() {
         </div>
       </div>
 
+      <div className="container site-footer__legal">
+        <p>{t("footer.creditNotice")}</p>
+      </div>
+
       <div className="site-footer__bottom">
-        <div className="container">
-          &copy; {year} ACL Propiedades. {t("footer.rights")}
+        <div className="container site-footer__bottom-row">
+          <span>&copy; {year} ACL Propiedades. {t("footer.rights")}</span>
+          <NavLink to="/aviso-de-privacidad">{t("footer.privacyLink")}</NavLink>
+          <NavLink to="/carta-de-derechos">{t("footer.rightsLink")}</NavLink>
         </div>
       </div>
     </footer>

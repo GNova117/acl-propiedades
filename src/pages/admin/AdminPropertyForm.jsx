@@ -23,6 +23,10 @@ const EMPTY = {
   operation_type: "compra",
   active: true,
   advisor_ids: [],
+  colindancias: "",
+  servicios: "",
+  acabados: "",
+  sistema_constructivo: "",
 };
 
 export default function AdminPropertyForm() {
@@ -69,6 +73,10 @@ export default function AdminPropertyForm() {
         operation_type: property.operation_type || "compra",
         active: property.active,
         advisor_ids: property.advisor_ids || [],
+        colindancias: property.colindancias || "",
+        servicios: property.servicios || "",
+        acabados: property.acabados || "",
+        sistema_constructivo: property.sistema_constructivo || "",
       });
       setExistingImages(property.images || []);
       setLoading(false);
@@ -224,6 +232,30 @@ export default function AdminPropertyForm() {
           </div>
         </div>
         {errors.lat && <span className="form-error">{errors.lat}</span>}
+
+        <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{t("admin.propertySpecsHint")}</p>
+
+        <div className="form-row">
+          <div className="form-field">
+            <label htmlFor="p-colindancias">{t("detail.colindancias")}</label>
+            <textarea id="p-colindancias" rows={2} value={form.colindancias} onChange={handleChange("colindancias")} />
+          </div>
+          <div className="form-field">
+            <label htmlFor="p-servicios">{t("detail.servicios")}</label>
+            <textarea id="p-servicios" rows={2} value={form.servicios} onChange={handleChange("servicios")} />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-field">
+            <label htmlFor="p-acabados">{t("detail.acabados")}</label>
+            <textarea id="p-acabados" rows={2} value={form.acabados} onChange={handleChange("acabados")} />
+          </div>
+          <div className="form-field">
+            <label htmlFor="p-sistema-constructivo">{t("detail.sistemaConstructivo")}</label>
+            <textarea id="p-sistema-constructivo" rows={2} value={form.sistema_constructivo} onChange={handleChange("sistema_constructivo")} />
+          </div>
+        </div>
 
         <div className="form-field">
           <label>
