@@ -169,7 +169,7 @@ export default function PropertyDetail() {
     let active = true;
     db.getProperties({ type: property.type, activeOnly: true }).then((data) => {
       if (!active) return;
-      const others = data.filter((p) => p.id !== property.id);
+      const others = data.filter((p) => p.id !== property.id && p.status === "disponible");
       others.sort((a, b) => (a.zone === property.zone ? 0 : 1) - (b.zone === property.zone ? 0 : 1));
       setSimilar(others.slice(0, 4));
     });
