@@ -269,6 +269,7 @@
     "restricted": "You don't have access to this section.",
     "sections": {
       "propiedades": "Properties",
+      "naves_industriales": "Industrial Warehouses",
       "asesores": "Advisors",
       "zonas": "Zones & pricing",
       "clientes": "Clients",

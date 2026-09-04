@@ -5,6 +5,7 @@
 // /admin/roles — no hace falta tocar RLS ni código de rutas para eso.
 export const SECTION_KEYS = [
   "propiedades",
+  "naves_industriales",
   "asesores",
   "zonas",
   "clientes",

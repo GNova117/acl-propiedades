@@ -831,3 +831,16 @@ create policy "Authenticated can upload remodel progress photos" on storage.obje
 drop policy if exists "Authenticated can delete remodel progress photos" on storage.objects;
 create policy "Authenticated can delete remodel progress photos" on storage.objects
   for delete using (bucket_id = 'remodel-progress' and auth.role() = 'authenticated');
+
+-- Naves Industriales pasa a tener su propio apartado ("naves_industriales")
+-- en el sistema de roles, separado de "propiedades" — hasta ahora
+-- compartían la misma llave, así que no se podían otorgar por separado
+-- (el checkbox de Naves Industriales no aparecía en /admin/roles). No hay
+-- cambio de RLS: la tabla properties sigue en auth.role() = 'authenticated'
+-- para ambos apartados, igual que antes — esto es solo gating de UI/rutas.
+-- Para no dejar a nadie sin el acceso que ya tenía, cualquier rol que hoy
+-- incluya "propiedades" recibe también "naves_industriales" automáticamente;
+-- de ahí en adelante se pueden otorgar por separado desde /admin/roles.
+update admin_roles
+set sections = array_append(sections, 'naves_industriales')
+where 'propiedades' = any(sections) and not ('naves_industriales' = any(sections));

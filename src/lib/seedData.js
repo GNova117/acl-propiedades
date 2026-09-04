@@ -280,10 +280,10 @@ export const ADMIN_ROLES_SEED = [
     id: "role-admin",
     slug: "admin",
     name: "Administrador",
-    sections: ["propiedades", "asesores", "zonas", "clientes", "remodelaciones", "materiales", "credito_infonavit", "liquidaciones", "roles"],
+    sections: ["propiedades", "naves_industriales", "asesores", "zonas", "clientes", "remodelaciones", "materiales", "credito_infonavit", "liquidaciones", "roles"],
   },
-  { id: "role-asesores", slug: "asesores", name: "Asesores", sections: ["propiedades", "clientes"] },
-  { id: "role-remodelaciones", slug: "remodelaciones", name: "Remodelaciones", sections: ["remodelaciones", "propiedades"] },
+  { id: "role-asesores", slug: "asesores", name: "Asesores", sections: ["propiedades", "naves_industriales", "clientes"] },
+  { id: "role-remodelaciones", slug: "remodelaciones", name: "Remodelaciones", sections: ["remodelaciones", "propiedades", "naves_industriales"] },
 ];
 
 export const ADMIN_ACCESS_SEED = [

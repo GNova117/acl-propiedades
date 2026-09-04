@@ -25,7 +25,7 @@ export default function AdminLayout() {
         <nav>
           <NavLink to="/admin" end>{t("admin.dashboard")}</NavLink>
           {hasSection("propiedades") && <NavLink to="/admin/propiedades">{t("admin.properties")}</NavLink>}
-          {hasSection("propiedades") && <NavLink to="/admin/naves-industriales">{t("admin.industrialWarehouses")}</NavLink>}
+          {hasSection("naves_industriales") && <NavLink to="/admin/naves-industriales">{t("admin.industrialWarehouses")}</NavLink>}
           {hasSection("asesores") && <NavLink to="/admin/asesores">{t("admin.advisors")}</NavLink>}
           {hasSection("zonas") && <NavLink to="/admin/zonas">{t("admin.zones")}</NavLink>}
           {hasSection("clientes") && <NavLink to="/admin/clientes">{t("admin.clients")}</NavLink>}

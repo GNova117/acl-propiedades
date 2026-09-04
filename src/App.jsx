@@ -106,7 +106,7 @@ export default function App() {
         <Route
           path="naves-industriales"
           element={
-            <RequireSection section="propiedades">
+            <RequireSection section="naves_industriales">
               <AdminProperties
                 fixedType="nave_industrial"
                 titleKey="admin.industrialWarehouses"
@@ -119,7 +119,7 @@ export default function App() {
         <Route
           path="naves-industriales/nueva"
           element={
-            <RequireSection section="propiedades">
+            <RequireSection section="naves_industriales">
               <AdminPropertyForm
                 fixedType="nave_industrial"
                 listPath="/admin/naves-industriales"
@@ -132,7 +132,7 @@ export default function App() {
         <Route
           path="naves-industriales/:id"
           element={
-            <RequireSection section="propiedades">
+            <RequireSection section="naves_industriales">
               <AdminPropertyForm
                 fixedType="nave_industrial"
                 listPath="/admin/naves-industriales"
