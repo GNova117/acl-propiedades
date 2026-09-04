@@ -274,3 +274,19 @@ export const DEMO_ADMIN = {
   email: "admin@aclpropiedades.com",
   password: "Admin123!",
 };
+
+export const ADMIN_ROLES_SEED = [
+  {
+    id: "role-admin",
+    slug: "admin",
+    name: "Administrador",
+    sections: ["propiedades", "asesores", "zonas", "clientes", "remodelaciones", "materiales", "credito_infonavit", "liquidaciones", "roles"],
+  },
+  { id: "role-asesores", slug: "asesores", name: "Asesores", sections: ["propiedades", "clientes"] },
+  { id: "role-remodelaciones", slug: "remodelaciones", name: "Remodelaciones", sections: ["remodelaciones", "propiedades"] },
+];
+
+export const ADMIN_ACCESS_SEED = [
+  { id: "access-1", email: "inmobiliaria@aclpropiedades.com", role_id: "role-admin" },
+  { id: "access-2", email: "mh@aclpropiedades.com", role_id: "role-admin" },
+];

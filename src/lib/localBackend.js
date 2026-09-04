@@ -1,4 +1,4 @@
-import { ZONES, ADVISORS, PROPERTIES, PROPERTY_TYPES_SEED, DEMO_ADMIN } from "./seedData";
+import { ZONES, ADVISORS, PROPERTIES, PROPERTY_TYPES_SEED, DEMO_ADMIN, ADMIN_ROLES_SEED, ADMIN_ACCESS_SEED } from "./seedData";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify } from "./format";
@@ -16,6 +16,8 @@ const KEYS = {
   perfilamientosVendedor: "acl_local_perfilamientos",
   perfilamientosComprador: "acl_local_perfilamientos_comprador",
   liquidaciones: "acl_local_liquidaciones",
+  adminRoles: "acl_local_admin_roles",
+  adminAccess: "acl_local_admin_access",
 };
 
 function readStore(key, fallback) {
@@ -620,6 +622,83 @@ export const localBackend = {
     items[idx] = updated;
     writeStore(KEYS.liquidaciones, items);
     return updated;
+  },
+
+  async getRoles() {
+    return readStore(KEYS.adminRoles, ADMIN_ROLES_SEED);
+  },
+
+  async addRole({ name, sections }) {
+    const roles = readStore(KEYS.adminRoles, ADMIN_ROLES_SEED);
+    const trimmed = name.trim();
+    const slug = slugify(trimmed);
+    if (roles.some((r) => r.slug === slug)) {
+      throw new Error("Ya existe un rol con ese nombre");
+    }
+    const record = { id: uid("role"), slug, name: trimmed, sections: sections || [] };
+    roles.push(record);
+    writeStore(KEYS.adminRoles, roles);
+    return record;
+  },
+
+  async updateRole(id, { name, sections }) {
+    const roles = readStore(KEYS.adminRoles, ADMIN_ROLES_SEED);
+    const idx = roles.findIndex((r) => r.id === id);
+    if (idx === -1) throw new Error("Rol no encontrado");
+    roles[idx] = { ...roles[idx], name: name.trim(), sections: sections || [] };
+    writeStore(KEYS.adminRoles, roles);
+    return roles[idx];
+  },
+
+  async deleteRole(id) {
+    const roles = readStore(KEYS.adminRoles, ADMIN_ROLES_SEED);
+    const access = readStore(KEYS.adminAccess, ADMIN_ACCESS_SEED);
+    if (access.some((a) => a.role_id === id)) {
+      throw new Error("Este rol tiene correos asignados; quítales el acceso antes de borrarlo");
+    }
+    writeStore(KEYS.adminRoles, roles.filter((r) => r.id !== id));
+  },
+
+  async getAccess() {
+    const roles = readStore(KEYS.adminRoles, ADMIN_ROLES_SEED);
+    const access = readStore(KEYS.adminAccess, ADMIN_ACCESS_SEED);
+    return access.map((a) => ({ ...a, role: roles.find((r) => r.id === a.role_id) || null }));
+  },
+
+  async getMyAccess(email) {
+    const roles = readStore(KEYS.adminRoles, ADMIN_ROLES_SEED);
+    const access = readStore(KEYS.adminAccess, ADMIN_ACCESS_SEED);
+    const found = access.find((a) => a.email === email.toLowerCase());
+    if (!found) return null;
+    return { ...found, role: roles.find((r) => r.id === found.role_id) || null };
+  },
+
+  async addAccess({ email, role_id }) {
+    const roles = readStore(KEYS.adminRoles, ADMIN_ROLES_SEED);
+    const access = readStore(KEYS.adminAccess, ADMIN_ACCESS_SEED);
+    const normalized = email.trim().toLowerCase();
+    if (access.some((a) => a.email === normalized)) {
+      throw new Error("Ese correo ya tiene acceso asignado");
+    }
+    const record = { id: uid("access"), email: normalized, role_id };
+    access.push(record);
+    writeStore(KEYS.adminAccess, access);
+    return { ...record, role: roles.find((r) => r.id === role_id) || null };
+  },
+
+  async updateAccess(id, { role_id }) {
+    const roles = readStore(KEYS.adminRoles, ADMIN_ROLES_SEED);
+    const access = readStore(KEYS.adminAccess, ADMIN_ACCESS_SEED);
+    const idx = access.findIndex((a) => a.id === id);
+    if (idx === -1) throw new Error("Acceso no encontrado");
+    access[idx] = { ...access[idx], role_id };
+    writeStore(KEYS.adminAccess, access);
+    return { ...access[idx], role: roles.find((r) => r.id === role_id) || null };
+  },
+
+  async deleteAccess(id) {
+    const access = readStore(KEYS.adminAccess, ADMIN_ACCESS_SEED);
+    writeStore(KEYS.adminAccess, access.filter((a) => a.id !== id));
   },
 
   async signIn(email, password) {

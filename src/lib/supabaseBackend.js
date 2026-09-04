@@ -549,6 +549,78 @@ export const supabaseBackend = {
     return data;
   },
 
+  async getRoles() {
+    const { data, error } = await supabase.from("admin_roles").select("*").order("name");
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addRole({ name, sections }) {
+    const trimmed = name.trim();
+    const payload = { slug: slugify(trimmed), name: trimmed, sections: sections || [] };
+    const { data, error } = await supabase.from("admin_roles").insert(payload).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateRole(id, { name, sections }) {
+    const payload = { name: name.trim(), sections: sections || [] };
+    const { data, error } = await supabase.from("admin_roles").update(payload).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteRole(id) {
+    const { error } = await supabase.from("admin_roles").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  async getAccess() {
+    const { data, error } = await supabase
+      .from("admin_access")
+      .select("*, role:admin_roles(*)")
+      .order("email");
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getMyAccess(email) {
+    const { data, error } = await supabase
+      .from("admin_access")
+      .select("*, role:admin_roles(*)")
+      .eq("email", email.toLowerCase())
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async addAccess({ email, role_id }) {
+    const payload = { email: email.trim().toLowerCase(), role_id };
+    const { data, error } = await supabase
+      .from("admin_access")
+      .insert(payload)
+      .select("*, role:admin_roles(*)")
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateAccess(id, { role_id }) {
+    const { data, error } = await supabase
+      .from("admin_access")
+      .update({ role_id })
+      .eq("id", id)
+      .select("*, role:admin_roles(*)")
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteAccess(id) {
+    const { error } = await supabase.from("admin_access").delete().eq("id", id);
+    if (error) throw error;
+  },
+
   async signIn(email, password) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;

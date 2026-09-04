@@ -9,7 +9,7 @@ import "./admin.css";
 
 export default function AdminProperties() {
   const { t } = useTranslation();
-  const { isPartner } = useAuth();
+  const { hasSection } = useAuth();
   const [properties, setProperties] = useState([]);
   const [remodelProjects, setRemodelProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -110,12 +110,12 @@ export default function AdminProperties() {
                         {busyFichaId === property.id ? <span className="spinner" /> : null}
                         {t("admin.technicalSheet")}
                       </button>
-                      {remodelProject && (
+                      {remodelProject && hasSection("remodelaciones") && (
                         <Link to={`/admin/remodelaciones/${remodelProject.id}`} className="btn btn-outline btn-sm">
                           {t("remodelCalculator.button")}
                         </Link>
                       )}
-                      {isPartner && (
+                      {hasSection("liquidaciones") && (
                         <Link to={`/admin/propiedades/${property.id}/liquidacion`} className="btn btn-outline btn-sm">
                           {t("liquidacion.button")}
                         </Link>

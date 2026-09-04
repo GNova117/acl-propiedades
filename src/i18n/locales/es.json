@@ -190,6 +190,35 @@
     "propertyTypes": "Tipos de propiedad",
     "newPropertyType": "Nuevo tipo de propiedad"
   },
+  "accessControl": {
+    "restricted": "No tienes acceso a este apartado.",
+    "sections": {
+      "propiedades": "Propiedades",
+      "asesores": "Asesores",
+      "zonas": "Zonas y precios",
+      "clientes": "Clientes",
+      "remodelaciones": "Remodelaciones",
+      "materiales": "Materiales",
+      "credito_infonavit": "Crédito Infonavit",
+      "liquidaciones": "Liquidaciones",
+      "roles": "Roles y accesos"
+    },
+    "rolesTitle": "Roles",
+    "newRole": "Nuevo rol",
+    "roleName": "Nombre del rol",
+    "roleSections": "Apartados que otorga",
+    "addRole": "Crear rol",
+    "adminRoleLocked": "Este rol siempre tiene acceso a todo y no se puede editar ni borrar.",
+    "roleInUse": "Este rol tiene correos asignados; quítales el acceso antes de borrarlo.",
+    "noRoles": "Aún no hay roles.",
+    "accessesTitle": "Accesos por correo",
+    "newAccess": "Dar acceso a un correo",
+    "accessEmail": "Correo",
+    "accessRole": "Rol",
+    "addAccess": "Dar acceso",
+    "removeAccess": "Quitar acceso",
+    "noAccess": "Aún no hay correos con acceso asignado."
+  },
   "zones": {
     "name": "Nombre de la zona",
     "add": "Agregar zona",

@@ -8,7 +8,7 @@ import "./AdminLayout.css";
 
 export default function AdminLayout() {
   const { t } = useTranslation();
-  const { logout } = useAuth();
+  const { logout, hasSection } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -24,13 +24,14 @@ export default function AdminLayout() {
         </NavLink>
         <nav>
           <NavLink to="/admin" end>{t("admin.dashboard")}</NavLink>
-          <NavLink to="/admin/propiedades">{t("admin.properties")}</NavLink>
-          <NavLink to="/admin/asesores">{t("admin.advisors")}</NavLink>
-          <NavLink to="/admin/zonas">{t("admin.zones")}</NavLink>
-          <NavLink to="/admin/clientes">{t("admin.clients")}</NavLink>
-          <NavLink to="/admin/remodelaciones">{t("admin.remodelProjects")}</NavLink>
-          <NavLink to="/admin/materiales">{t("materialsCatalog.title")}</NavLink>
-          <NavLink to="/admin/credito-infonavit">{t("admin.infonavitSimulator")}</NavLink>
+          {hasSection("propiedades") && <NavLink to="/admin/propiedades">{t("admin.properties")}</NavLink>}
+          {hasSection("asesores") && <NavLink to="/admin/asesores">{t("admin.advisors")}</NavLink>}
+          {hasSection("zonas") && <NavLink to="/admin/zonas">{t("admin.zones")}</NavLink>}
+          {hasSection("clientes") && <NavLink to="/admin/clientes">{t("admin.clients")}</NavLink>}
+          {hasSection("remodelaciones") && <NavLink to="/admin/remodelaciones">{t("admin.remodelProjects")}</NavLink>}
+          {hasSection("materiales") && <NavLink to="/admin/materiales">{t("materialsCatalog.title")}</NavLink>}
+          {hasSection("credito_infonavit") && <NavLink to="/admin/credito-infonavit">{t("admin.infonavitSimulator")}</NavLink>}
+          {hasSection("roles") && <NavLink to="/admin/roles">{t("accessControl.sections.roles")}</NavLink>}
         </nav>
         <button type="button" className="admin-layout__logout" onClick={handleLogout}>
           {t("admin.logout")}
