@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import Gallery from "../components/Gallery";
 import AdvisorCard from "../components/AdvisorCard";
+import PropertyCard from "../components/PropertyCard";
 import PropertyTypeIcon from "../components/PropertyTypeIcon";
 import PropertyMap from "../components/PropertyMap";
 import { db } from "../lib/dataStore";
@@ -103,11 +104,52 @@ function buildFichaTecnica(property, t) {
     .filter((group) => group.rows.length > 0);
 }
 
+// FAQ autogenerado a partir de los datos reales de la propiedad — nunca
+// afirma nada sobre un campo que no fue capturado (ausencia de dato no es
+// "no", así que esas preguntas simplemente no se incluyen). Máximo 6
+// preguntas para no saturar la página.
+function buildFaq(property, t) {
+  const candidates = [];
+
+  if (property.operation_type === "renta") {
+    candidates.push([t("detail.faq.rentQ"), t("detail.faq.rentA", { price: formatMXN(property.price) })]);
+  } else {
+    candidates.push([t("detail.faq.saleQ"), t("detail.faq.saleA", { price: formatMXN(property.price) })]);
+  }
+
+  candidates.push([
+    t("detail.faq.areaQ"),
+    property.area_minima_divisible != null
+      ? t("detail.faq.areaWithMinA", { total: formatArea(property.area_m2), min: formatArea(property.area_minima_divisible) })
+      : t("detail.faq.areaA", { area: formatArea(property.area_m2) }),
+  ]);
+
+  if (property.address && property.zone) {
+    candidates.push([t("detail.faq.locationQ"), t("detail.faq.locationA", { address: property.address, zone: property.zone })]);
+  }
+
+  if (property.type === "nave_industrial") {
+    if (property.andenes_carga != null) candidates.push([t("detail.faq.docksQ"), t("detail.faq.docksA", { count: property.andenes_carga })]);
+    if (property.altura_libre != null) candidates.push([t("detail.faq.heightQ"), t("detail.faq.heightA", { height: property.altura_libre })]);
+    if (property.tipo_seguridad) candidates.push([t("detail.faq.securityQ"), t("detail.faq.securityA", { security: property.tipo_seguridad })]);
+    if (property.sistema_contra_incendios) candidates.push([t("detail.faq.fireQ"), t("detail.faq.fireA", { system: property.sistema_contra_incendios })]);
+    if (property.anio_construccion != null) candidates.push([t("detail.faq.yearQ"), t("detail.faq.yearA", { year: property.anio_construccion })]);
+  } else {
+    if (property.bedrooms != null) candidates.push([t("detail.faq.bedroomsQ"), t("detail.faq.bedroomsA", { count: property.bedrooms })]);
+    if (property.bathrooms != null) candidates.push([t("detail.faq.bathroomsQ"), t("detail.faq.bathroomsA", { count: property.bathrooms })]);
+  }
+
+  if (property.parking != null) candidates.push([t("detail.faq.parkingQ"), t("detail.faq.parkingA", { count: property.parking })]);
+
+  return candidates.slice(0, 6);
+}
+
 export default function PropertyDetail() {
   const { id } = useParams();
   const { t } = useTranslation();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [similar, setSimilar] = useState([]);
 
   useEffect(() => {
     let active = true;
@@ -119,6 +161,22 @@ export default function PropertyDetail() {
       active = false;
     };
   }, [id]);
+
+  // Espacios similares: mismo tipo, disponibles, priorizando la misma zona.
+  // No es una recomendación "inteligente" — es un filtro simple y honesto.
+  useEffect(() => {
+    if (!property) return;
+    let active = true;
+    db.getProperties({ type: property.type, activeOnly: true }).then((data) => {
+      if (!active) return;
+      const others = data.filter((p) => p.id !== property.id);
+      others.sort((a, b) => (a.zone === property.zone ? 0 : 1) - (b.zone === property.zone ? 0 : 1));
+      setSimilar(others.slice(0, 4));
+    });
+    return () => {
+      active = false;
+    };
+  }, [property?.id, property?.type, property?.zone]);
 
   if (loading) return <div className="empty-state">{t("common.loading")}</div>;
   if (!property) {
@@ -226,6 +284,24 @@ export default function PropertyDetail() {
               <h2>{t("detail.location")}</h2>
               <PropertyMap properties={[property]} height={360} />
             </section>
+
+            {(() => {
+              const faq = buildFaq(property, t);
+              if (faq.length === 0) return null;
+              return (
+                <section>
+                  <h2>{t("detail.faq.title")}</h2>
+                  <div className="property-detail__faq">
+                    {faq.map(([question, answer]) => (
+                      <details className="property-detail__faq-item" key={question}>
+                        <summary>{question}</summary>
+                        <p>{answer}</p>
+                      </details>
+                    ))}
+                  </div>
+                </section>
+              );
+            })()}
           </div>
 
           <aside className="property-detail__sidebar">
@@ -237,6 +313,19 @@ export default function PropertyDetail() {
             )}
           </aside>
         </div>
+
+        {similar.length > 0 && (
+          <section className="property-detail__similar">
+            <h2>{t("detail.similarTitle")}</h2>
+            <div className="property-detail__similar-row">
+              {similar.map((p) => (
+                <div className="property-detail__similar-item" key={p.id}>
+                  <PropertyCard property={p} />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </>
   );
