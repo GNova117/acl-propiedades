@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
+import SplitHero from "../components/SplitHero";
 import SearchBar from "../components/SearchBar";
 import CategoryCard from "../components/CategoryCard";
 import { db } from "../lib/dataStore";
@@ -37,6 +38,8 @@ export default function Home() {
         title={t("nav.home")}
         description="ACL Propiedades: compra y venta de casas, departamentos, naves industriales y terrenos en Torreón, Gómez Palacio y Lerdo."
       />
+
+      <SplitHero />
 
       <section className="hero">
         <div className="hero__overlay" />

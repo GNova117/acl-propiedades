@@ -7,7 +7,7 @@ import "./CategoryCard.css";
 const IMAGES = {
   casa: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80",
   departamento: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=900&q=80",
-  nave_industrial: "https://images.unsplash.com/photo-1601599963565-b7f49deb2748?w=900&q=80",
+  nave_industrial: "https://images.unsplash.com/photo-1553413077-190dd305871c?w=900&q=80",
   terreno: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=900&q=80",
 };
 

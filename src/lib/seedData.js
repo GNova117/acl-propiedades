@@ -217,9 +217,9 @@ export const PROPERTIES = [
     status: "disponible",
     operation_type: "compra",
     active: true,
-    main_image: "https://images.unsplash.com/photo-1601599963565-b7f49deb2748?w=1000&q=80",
+    main_image: "https://images.unsplash.com/photo-1553413077-190dd305871c?w=1000&q=80",
     images: [
-      "https://images.unsplash.com/photo-1601599963565-b7f49deb2748?w=1000&q=80",
+      "https://images.unsplash.com/photo-1553413077-190dd305871c?w=1000&q=80",
       "https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=1000&q=80",
     ],
     advisor_ids: ["advisor-3"],

@@ -21,6 +21,11 @@
     "allZones": "All zones",
     "allOperations": "All transaction types"
   },
+  "splitHero": {
+    "cta": "See more",
+    "properties": { "title": "Properties", "subtitle": "Houses, apartments and land" },
+    "industrial": { "title": "Industrial Warehouses", "subtitle": "Commercial and industrial spaces" }
+  },
   "categories": {
     "eyebrow": "Browse by category",
     "title": "Find the right type of property for you",

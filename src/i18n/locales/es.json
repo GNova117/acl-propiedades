@@ -21,6 +21,11 @@
     "allZones": "Todas las zonas",
     "allOperations": "Todas las operaciones"
   },
+  "splitHero": {
+    "cta": "Ver más",
+    "properties": { "title": "Propiedades", "subtitle": "Casas, departamentos y terrenos" },
+    "industrial": { "title": "Naves Industriales", "subtitle": "Espacios comerciales e industriales" }
+  },
   "categories": {
     "eyebrow": "Explora por categoría",
     "title": "Encuentra el tipo de propiedad ideal para ti",

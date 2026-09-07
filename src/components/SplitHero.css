@@ -1,0 +1,120 @@
+.split-hero {
+  display: flex;
+  min-height: 460px;
+}
+
+.split-hero__panel {
+  position: relative;
+  flex: 1 1 0;
+  display: block;
+  overflow: hidden;
+  isolation: isolate;
+  transition: flex-grow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.split-hero__panel + .split-hero__panel {
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.split-hero__panel--grow {
+  flex-grow: 1.4;
+}
+
+.split-hero__panel--shrink {
+  flex-grow: 0.7;
+}
+
+.split-hero__panel:active {
+  transform: scale(0.985);
+}
+
+.split-hero__panel:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: -4px;
+}
+
+.split-hero__image {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.5s ease;
+}
+
+.split-hero__panel--grow .split-hero__image {
+  transform: scale(1.08);
+}
+
+.split-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(6, 14, 28, 0.55) 0%, rgba(6, 14, 28, 0.85) 100%);
+  transition: background 0.4s ease;
+}
+
+.split-hero__panel--grow .split-hero__overlay {
+  background: linear-gradient(180deg, rgba(6, 14, 28, 0.35) 0%, rgba(13, 59, 115, 0.78) 100%);
+}
+
+.split-hero__content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #ffffff;
+  padding: 2rem;
+}
+
+.split-hero__content h2 {
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.split-hero__content p {
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 1.5rem;
+}
+
+.split-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.65rem 1.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-md);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.split-hero__panel--grow .split-hero__cta {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+@media (max-width: 768px) {
+  .split-hero {
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .split-hero__panel {
+    min-height: 220px;
+    flex-grow: 1 !important;
+  }
+
+  .split-hero__panel--grow .split-hero__image {
+    transform: scale(1.04);
+  }
+
+  .split-hero__panel + .split-hero__panel {
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+  }
+}
