@@ -3,11 +3,30 @@ import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify, numOrNull } from "./format";
 
+// Supabase Storage rechaza ciertos caracteres en la key del objeto (espacios,
+// acentos, "{"/"}", etc. — el nombre real del archivo que sube el usuario no
+// se puede meter tal cual en la ruta). Se sanitiza la base y se conserva la
+// extensión real por separado, para no perder el tipo de archivo.
+function sanitizeFileName(name) {
+  const lastDot = name.lastIndexOf(".");
+  const base = lastDot > 0 ? name.slice(0, lastDot) : name;
+  const ext = lastDot > 0 ? name.slice(lastDot + 1) : "";
+  const safeBase =
+    base
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-zA-Z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 80) || "archivo";
+  const safeExt = ext.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+  return safeExt ? `${safeBase}.${safeExt}` : safeBase;
+}
+
 async function uploadFiles(bucket, files) {
   if (!files || files.length === 0) return [];
   const urls = [];
   for (const file of Array.from(files)) {
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name}`;
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${sanitizeFileName(file.name)}`;
     const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: false });
     if (error) throw error;
     const { data } = supabase.storage.from(bucket).getPublicUrl(path);
