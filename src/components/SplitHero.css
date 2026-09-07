@@ -1,6 +1,6 @@
 .split-hero {
   display: flex;
-  min-height: 460px;
+  min-height: 100vh;
 }
 
 .split-hero__panel {
@@ -101,11 +101,11 @@
 @media (max-width: 768px) {
   .split-hero {
     flex-direction: column;
-    min-height: 0;
+    min-height: 100vh;
   }
 
   .split-hero__panel {
-    min-height: 220px;
+    min-height: 50vh;
     flex-grow: 1 !important;
   }
 
