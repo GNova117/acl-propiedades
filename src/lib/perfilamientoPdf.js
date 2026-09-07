@@ -9,10 +9,12 @@ import { displayValue, isFieldVisible } from "./perfilamientoShared";
 const TEMPLATE_URL = "/plantilla_acl.pdf";
 
 // Área útil de la hoja membretada (medida sobre la plantilla real):
-// el encabezado azul termina cerca de y=660 y el pie empieza cerca de y=80.
+// el encabezado azul termina cerca de y=653 y el pie empieza cerca de y=80.
+// TOP_Y deja margen extra bajo el encabezado porque el ascenso de una fuente
+// bold de 14pt (el título) sube más de lo que parece desde la línea base.
 const MARGIN_LEFT = 60;
 const MARGIN_RIGHT = 60;
-const TOP_Y = 645;
+const TOP_Y = 628;
 const BOTTOM_Y = 115;
 const PAGE_WIDTH = 612;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
