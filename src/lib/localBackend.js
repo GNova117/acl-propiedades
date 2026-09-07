@@ -38,6 +38,25 @@ function writeStore(key, value) {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
+// Los videos de propiedad, guardados como data: URL en localStorage (igual
+// que las fotos), pueden fácilmente superar el límite de almacenamiento del
+// navegador (unos 5-10 MB por origen, muy por debajo de lo que pesa un
+// video real) — a diferencia de Supabase Storage, que sí puede con eso. Si
+// el guardado falla por cuota, se avisa con un mensaje claro en vez de
+// dejar pasar el DOMException genérico del navegador.
+function writeStoreOrThrowFriendly(key, value) {
+  try {
+    writeStore(key, value);
+  } catch (err) {
+    if (err.name === "QuotaExceededError") {
+      throw new Error(
+        "No se pudo guardar: el video es demasiado grande para el almacenamiento del navegador en modo demo. Prueba con un archivo más corto/ligero, o usa esta función con Supabase conectado (ahí no aplica este límite)."
+      );
+    }
+    throw err;
+  }
+}
+
 function uid(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -109,6 +128,8 @@ export const localBackend = {
     const properties = readStore(KEYS.properties, PROPERTIES);
     const newImages = await filesToDataUrls(data.imageFiles);
     const images = [...(data.existingImages || []), ...newImages];
+    const newVideos = await filesToDataUrls(data.videoFiles);
+    const videos = [...(data.existingVideos || []), ...newVideos];
     const record = {
       id: uid("prop"),
       title: data.title,
@@ -128,6 +149,7 @@ export const localBackend = {
       active: data.active !== false,
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
+      videos,
       advisor_ids: data.advisor_ids || [],
       colindancias: data.colindancias || null,
       servicios: data.servicios || null,
@@ -148,7 +170,7 @@ export const localBackend = {
       mantenimiento_pct: numOrNull(data.mantenimiento_pct),
     };
     properties.push(record);
-    writeStore(KEYS.properties, properties);
+    writeStoreOrThrowFriendly(KEYS.properties, properties);
     // Cada propiedad nueva llega ya con su proyecto de remodelación
     // vinculado — no requiere seleccionarse/capturarse a mano en
     // Remodelaciones (ver integración Propiedades → Remodelaciones →
@@ -169,6 +191,8 @@ export const localBackend = {
     if (idx === -1) throw new Error("Propiedad no encontrada");
     const newImages = await filesToDataUrls(data.imageFiles);
     const images = [...(data.existingImages || []), ...newImages];
+    const newVideos = await filesToDataUrls(data.videoFiles);
+    const videos = [...(data.existingVideos || []), ...newVideos];
     const updated = {
       ...properties[idx],
       title: data.title,
@@ -188,6 +212,7 @@ export const localBackend = {
       active: data.active,
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
+      videos,
       advisor_ids: data.advisor_ids || [],
       colindancias: data.colindancias || null,
       servicios: data.servicios || null,
@@ -208,7 +233,7 @@ export const localBackend = {
       mantenimiento_pct: numOrNull(data.mantenimiento_pct),
     };
     properties[idx] = updated;
-    writeStore(KEYS.properties, properties);
+    writeStoreOrThrowFriendly(KEYS.properties, properties);
     return updated;
   },
 

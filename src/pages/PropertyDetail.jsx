@@ -240,6 +240,17 @@ export default function PropertyDetail() {
               <p>{property.description}</p>
             </section>
 
+            {property.videos && property.videos.length > 0 && (
+              <section>
+                <h2>{t("detail.videosTitle")}</h2>
+                <div className="property-detail__videos">
+                  {property.videos.map((src) => (
+                    <video key={src} src={src} controls preload="metadata" />
+                  ))}
+                </div>
+              </section>
+            )}
+
             {property.type === "nave_industrial" ? (
               (() => {
                 const groups = buildFichaTecnica(property, t);

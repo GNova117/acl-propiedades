@@ -87,6 +87,7 @@
     "notFound": "Propiedad no encontrada.",
     "creditNotice": "Precio en pesos mexicanos (MXN). En operaciones de crédito, el precio total se determinará en función de los montos variables de conceptos de crédito y gastos notariales, mismos que deben consultarse con nuestros promotores.",
     "specsTitle": "Especificaciones del inmueble",
+    "videosTitle": "Videos",
     "similarTitle": "Espacios similares que podrían interesarte",
     "faq": {
       "title": "Preguntas frecuentes",
@@ -242,6 +243,10 @@
     "setMain": "Hacer principal",
     "images": "Imágenes",
     "uploadImages": "Subir imágenes",
+    "videos": "Videos",
+    "uploadVideos": "Subir videos",
+    "videoHint": "Formatos de video comunes (MP4, WebM, MOV). Máximo {{max}} MB por archivo.",
+    "videoTooLarge": "Estos archivos superan el máximo de {{max}} MB y no se agregaron: {{names}}",
     "demoModeTitle": "Modo demo (sin Supabase configurado)",
     "demoModeBody": "No se detectaron credenciales de Supabase. Los datos se guardan localmente en este navegador para fines de demostración.",
     "demoCredentials": "Usuario demo: {{email}} / Contraseña: {{password}}",

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { propertyTypeLabel } from "../../lib/format";
 import ImageUploader from "../../components/ImageUploader";
+import VideoUploader from "../../components/VideoUploader";
 import "./admin.css";
 
 const EMPTY = {
@@ -63,6 +64,8 @@ export default function AdminPropertyForm({
   const [existingImages, setExistingImages] = useState([]);
   const [newFiles, setNewFiles] = useState([]);
   const [mainIndex, setMainIndex] = useState(0);
+  const [existingVideos, setExistingVideos] = useState([]);
+  const [newVideoFiles, setNewVideoFiles] = useState([]);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
@@ -113,6 +116,7 @@ export default function AdminPropertyForm({
         mantenimiento_pct: property.mantenimiento_pct ?? "",
       });
       setExistingImages(property.images || []);
+      setExistingVideos(property.videos || []);
       setLoading(false);
     });
   }, [id, isEdit]);
@@ -148,7 +152,14 @@ export default function AdminPropertyForm({
     if (!validate()) return;
     setSaving(true);
     try {
-      const payload = { ...form, existingImages, imageFiles: newFiles, mainImageIndex: mainIndex };
+      const payload = {
+        ...form,
+        existingImages,
+        imageFiles: newFiles,
+        mainImageIndex: mainIndex,
+        existingVideos,
+        videoFiles: newVideoFiles,
+      };
       if (isEdit) {
         await db.updateProperty(id, payload);
       } else {
@@ -410,6 +421,17 @@ export default function AdminPropertyForm({
               setMainIndex(0);
             }}
             onSetMain={setMainIndex}
+          />
+        </div>
+
+        <div className="form-field">
+          <label>{t("admin.videos")}</label>
+          <VideoUploader
+            existingVideos={existingVideos}
+            files={newVideoFiles}
+            onAddFiles={(files) => setNewVideoFiles((prev) => [...prev, ...files])}
+            onRemoveExisting={(index) => setExistingVideos((prev) => prev.filter((_, i) => i !== index))}
+            onRemoveNew={(index) => setNewVideoFiles((prev) => prev.filter((_, i) => i !== index))}
           />
         </div>
 

@@ -48,9 +48,9 @@ npm run preview  # sirve el build de producción localmente
 4. Crea el usuario en **Authentication > Users > Add user** (correo + contraseña que tú definas, con "Auto Confirm User" activado). Cualquier usuario autenticado de Supabase puede iniciar sesión en `/admin`, pero sin un rol asignado no ve ningún apartado (solo el Panel principal): agrégalo desde `/admin/roles` con el correo con el que lo diste de alta aquí, o inclúyelo directo en el bloque SQL de `admin_access` en `schema.sql` si es de los primeros en entrar. Las cuentas se siguen creando manualmente desde este panel de Supabase — no hay alta de usuarios dentro de la app.
 5. Reinicia `npm run dev`. El sitio detectará las variables y usará Supabase automáticamente para propiedades, asesores, zonas, mensajes de contacto e imágenes.
 
-### Almacenamiento de imágenes
+### Almacenamiento de imágenes y videos
 
-`schema.sql` crea dos buckets públicos: `property-images` y `advisor-photos`. Las imágenes que subas desde el panel de administrador se guardan ahí y se sirven vía URL pública.
+`schema.sql` crea tres buckets públicos: `property-images`, `advisor-photos` y `property-videos`. Las imágenes/videos que subas desde el panel de administrador se guardan ahí y se sirven vía URL pública. A diferencia de los otros dos, `property-videos` sí tiene límite fijado a nivel de bucket (100 MB por archivo, tipos `mp4`/`webm`/`ogg`/`quicktime`) — los videos pesan mucho más que las fotos, así que aquí sí valía la pena ponerle un techo explícito. **En modo demo local** (sin Supabase configurado) los videos se guardan como `data:` URL en `localStorage`, igual que las fotos — pero el navegador solo da unos 5-10 MB por origen, muy por debajo de lo que pesa un video real, así que subir un video de tamaño normal en modo demo casi seguro falla con un mensaje claro (`localBackend.js`); en producción con Supabase conectado no aplica este límite.
 
 Además crea un tercer bucket, `client-documents`, para los documentos de identidad capturados en el módulo de clientes (INE, CURP, cédula fiscal, acta de nacimiento). A diferencia de los dos anteriores, **es privado**: solo el admin autenticado puede subir/ver/eliminar esos archivos, y el panel los muestra vía URLs firmadas de corta duración, nunca URLs públicas.
 

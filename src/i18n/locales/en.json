@@ -87,6 +87,7 @@
     "notFound": "Property not found.",
     "creditNotice": "Price in Mexican pesos (MXN). For financed purchases, the final total price depends on variable credit and notarial costs, which must be confirmed with our sales advisors.",
     "specsTitle": "Property specifications",
+    "videosTitle": "Videos",
     "similarTitle": "Similar spaces you might be interested in",
     "faq": {
       "title": "Frequently asked questions",
@@ -242,6 +243,10 @@
     "setMain": "Set as main",
     "images": "Images",
     "uploadImages": "Upload images",
+    "videos": "Videos",
+    "uploadVideos": "Upload videos",
+    "videoHint": "Common video formats (MP4, WebM, MOV). Maximum {{max}} MB per file.",
+    "videoTooLarge": "These files are over the {{max}} MB limit and were not added: {{names}}",
     "demoModeTitle": "Demo mode (Supabase not configured)",
     "demoModeBody": "No Supabase credentials were detected. Data is stored locally in this browser for demo purposes.",
     "demoCredentials": "Demo user: {{email}} / Password: {{password}}",

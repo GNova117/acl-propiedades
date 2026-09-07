@@ -58,6 +58,8 @@ export const supabaseBackend = {
   async addProperty(data) {
     const newImages = await uploadFiles("property-images", data.imageFiles);
     const images = [...(data.existingImages || []), ...newImages];
+    const newVideos = await uploadFiles("property-videos", data.videoFiles);
+    const videos = [...(data.existingVideos || []), ...newVideos];
     const payload = {
       title: data.title,
       type: data.type,
@@ -76,6 +78,7 @@ export const supabaseBackend = {
       active: data.active !== false,
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
+      videos,
       colindancias: data.colindancias || null,
       servicios: data.servicios || null,
       acabados: data.acabados || null,
@@ -114,6 +117,8 @@ export const supabaseBackend = {
   async updateProperty(id, data) {
     const newImages = await uploadFiles("property-images", data.imageFiles);
     const images = [...(data.existingImages || []), ...newImages];
+    const newVideos = await uploadFiles("property-videos", data.videoFiles);
+    const videos = [...(data.existingVideos || []), ...newVideos];
     const payload = {
       title: data.title,
       type: data.type,
@@ -132,6 +137,7 @@ export const supabaseBackend = {
       active: data.active,
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
+      videos,
       colindancias: data.colindancias || null,
       servicios: data.servicios || null,
       acabados: data.acabados || null,
