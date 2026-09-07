@@ -14,6 +14,7 @@
   flex-direction: column;
   gap: 0.35rem;
   text-align: left;
+  min-width: 0;
 }
 
 .search-bar__field label {
