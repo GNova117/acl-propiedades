@@ -47,6 +47,10 @@
     "compra": "Compra",
     "renta": "Renta"
   },
+  "naveTipo": {
+    "A": "Tipo A",
+    "B": "Tipo B"
+  },
   "propertyStatus": {
     "disponible": "Disponible",
     "apartada": "Apartada",
@@ -62,6 +66,7 @@
     "filters": "Filtros",
     "type": "Tipo",
     "operationType": "Operación",
+    "naveTipo": "Tipo de nave",
     "zone": "Zona",
     "minPrice": "Precio mín.",
     "maxPrice": "Precio máx.",
@@ -286,7 +291,8 @@
       "remodelaciones": "Remodelaciones",
       "materiales": "Materiales",
       "credito_infonavit": "Crédito Infonavit",
-      "liquidaciones": "Liquidaciones",
+      "liquidaciones": "Utilidad",
+      "documentos_legales": "Documentos legales",
       "roles": "Roles y accesos"
     },
     "rolesTitle": "Roles",
@@ -339,6 +345,16 @@
       "volume": "Volumen (m³)"
     },
     "consumptionHint": "Opcional — cuánto material se necesita por cada m²/m³. Si se define, aparecerá como sugerencia automática al capturar las medidas de un espacio en un proyecto."
+  },
+  "laborCatalog": {
+    "title": "Mano de obra",
+    "subtitle": "Conceptos de mano de obra y el precio que se cobra por unidad (m², ml, pieza, etc.).",
+    "new": "Nuevo concepto",
+    "concepto": "Concepto",
+    "unidad": "Unidad",
+    "precioUnitario": "Precio por unidad",
+    "add": "Agregar concepto",
+    "noResults": "Aún no hay conceptos de mano de obra registrados."
   },
   "spaces": {
     "title": "Espacios del proyecto",
@@ -424,8 +440,8 @@
     "capturedAt": "Capturado el"
   },
   "liquidacion": {
-    "button": "Liquidación",
-    "title": "Liquidación de la vivienda",
+    "button": "Utilidad",
+    "title": "Utilidad de la vivienda",
     "breakdownTitle": "Resumen",
     "sameAsCaptador": "Misma persona que captó",
     "restricted": "Este apartado es confidencial — acceso restringido a los socios.",
@@ -453,6 +469,13 @@
     "ssvBalance": "Saldo Subcuenta de Vivienda",
     "totalCapacity": "Total disponible para compra",
     "monthlyPayment": "Cuota / retención mensual estimada"
+  },
+  "legalDocs": {
+    "title": "Documentos legales",
+    "subtitle": "Descarga el Aviso de Privacidad y la Carta de Derechos sobre la hoja membretada, listos para imprimir y firmar. El texto es el mismo que se publica en el sitio.",
+    "privacyHint": "Mismo contenido publicado en /aviso-de-privacidad.",
+    "rightsHint": "Mismo contenido publicado en /carta-de-derechos.",
+    "download": "Descargar PDF"
   },
   "privacy": {
     "title": "Aviso de Privacidad",

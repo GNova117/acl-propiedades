@@ -14,6 +14,7 @@ const KEYS = {
   remodelProjects: "acl_local_remodel_projects",
   remodelProgress: "acl_local_remodel_progress",
   materialsCatalog: "acl_local_materials_catalog",
+  laborCatalog: "acl_local_labor_catalog",
   perfilamientosVendedor: "acl_local_perfilamientos",
   perfilamientosComprador: "acl_local_perfilamientos_comprador",
   liquidaciones: "acl_local_liquidaciones",
@@ -85,6 +86,7 @@ function matchesFilters(property, filters = {}) {
   if (filters.type && property.type !== filters.type) return false;
   else if (!filters.type && filters.types && !filters.types.includes(property.type)) return false;
   if (filters.operation_type && property.operation_type !== filters.operation_type) return false;
+  if (filters.tipo_nave && property.tipo_nave !== filters.tipo_nave) return false;
   if (filters.zone && property.zone !== filters.zone) return false;
   if (filters.minPrice != null && property.price < filters.minPrice) return false;
   if (filters.maxPrice != null && property.price > filters.maxPrice) return false;
@@ -168,6 +170,7 @@ export const localBackend = {
       andenes_carga: numOrNull(data.andenes_carga),
       rampas_vehiculares: numOrNull(data.rampas_vehiculares),
       mantenimiento_pct: numOrNull(data.mantenimiento_pct),
+      tipo_nave: data.tipo_nave || null,
     };
     properties.push(record);
     writeStoreOrThrowFriendly(KEYS.properties, properties);
@@ -231,6 +234,7 @@ export const localBackend = {
       andenes_carga: numOrNull(data.andenes_carga),
       rampas_vehiculares: numOrNull(data.rampas_vehiculares),
       mantenimiento_pct: numOrNull(data.mantenimiento_pct),
+      tipo_nave: data.tipo_nave || null,
     };
     properties[idx] = updated;
     writeStoreOrThrowFriendly(KEYS.properties, properties);
@@ -588,6 +592,38 @@ export const localBackend = {
   async deleteMaterialCatalogItem(id) {
     const items = readStore(KEYS.materialsCatalog, []);
     writeStore(KEYS.materialsCatalog, items.filter((m) => m.id !== id));
+  },
+
+  async getLaborCatalog() {
+    const items = readStore(KEYS.laborCatalog, []);
+    return items.slice().sort((a, b) => a.concepto.localeCompare(b.concepto));
+  },
+
+  async addLaborCatalogItem(data) {
+    const items = readStore(KEYS.laborCatalog, []);
+    const record = {
+      id: uid("labor"),
+      concepto: data.concepto.trim(),
+      unidad: data.unidad?.trim() || null,
+      precio_unitario: data.precio_unitario === "" ? null : Number(data.precio_unitario),
+    };
+    items.push(record);
+    writeStore(KEYS.laborCatalog, items);
+    return record;
+  },
+
+  async updateLaborPrice(id, precio_unitario) {
+    const items = readStore(KEYS.laborCatalog, []);
+    const idx = items.findIndex((m) => m.id === id);
+    if (idx === -1) throw new Error("Concepto de mano de obra no encontrado");
+    items[idx] = { ...items[idx], precio_unitario: Number(precio_unitario) };
+    writeStore(KEYS.laborCatalog, items);
+    return items[idx];
+  },
+
+  async deleteLaborCatalogItem(id) {
+    const items = readStore(KEYS.laborCatalog, []);
+    writeStore(KEYS.laborCatalog, items.filter((m) => m.id !== id));
   },
 
   // Igual que en Supabase: la lista no incluye RFC/CURP/identificación.

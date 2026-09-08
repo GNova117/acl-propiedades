@@ -58,6 +58,7 @@ export const supabaseBackend = {
     if (filters.type) query = query.eq("type", filters.type);
     else if (filters.types) query = query.in("type", filters.types);
     if (filters.operation_type) query = query.eq("operation_type", filters.operation_type);
+    if (filters.tipo_nave) query = query.eq("tipo_nave", filters.tipo_nave);
     if (filters.zone) query = query.eq("zone", filters.zone);
     if (filters.minPrice != null) query = query.gte("price", filters.minPrice);
     if (filters.maxPrice != null) query = query.lte("price", filters.maxPrice);
@@ -115,6 +116,7 @@ export const supabaseBackend = {
       andenes_carga: numOrNull(data.andenes_carga),
       rampas_vehiculares: numOrNull(data.rampas_vehiculares),
       mantenimiento_pct: numOrNull(data.mantenimiento_pct),
+      tipo_nave: data.tipo_nave || null,
     };
     const { data: inserted, error } = await supabase.from("properties").insert(payload).select().single();
     if (error) throw error;
@@ -174,6 +176,7 @@ export const supabaseBackend = {
       andenes_carga: numOrNull(data.andenes_carga),
       rampas_vehiculares: numOrNull(data.rampas_vehiculares),
       mantenimiento_pct: numOrNull(data.mantenimiento_pct),
+      tipo_nave: data.tipo_nave || null,
     };
     const { data: updated, error } = await supabase.from("properties").update(payload).eq("id", id).select().single();
     if (error) throw error;
@@ -540,6 +543,39 @@ export const supabaseBackend = {
 
   async deleteMaterialCatalogItem(id) {
     const { error } = await supabase.from("materials_catalog").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  async getLaborCatalog() {
+    const { data, error } = await supabase.from("labor_catalog").select("*").order("concepto");
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addLaborCatalogItem(data) {
+    const payload = {
+      concepto: data.concepto.trim(),
+      unidad: data.unidad?.trim() || null,
+      precio_unitario: data.precio_unitario === "" ? null : Number(data.precio_unitario),
+    };
+    const { data: inserted, error } = await supabase.from("labor_catalog").insert(payload).select().single();
+    if (error) throw error;
+    return inserted;
+  },
+
+  async updateLaborPrice(id, precio_unitario) {
+    const { data, error } = await supabase
+      .from("labor_catalog")
+      .update({ precio_unitario: Number(precio_unitario), updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteLaborCatalogItem(id) {
+    const { error } = await supabase.from("labor_catalog").delete().eq("id", id);
     if (error) throw error;
   },
 

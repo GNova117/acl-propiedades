@@ -13,6 +13,7 @@ export const SECTION_KEYS = [
   "materiales",
   "credito_infonavit",
   "liquidaciones",
+  "documentos_legales",
   "roles",
 ];
 

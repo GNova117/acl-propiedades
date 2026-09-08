@@ -47,6 +47,10 @@
     "compra": "Buy",
     "renta": "Rent"
   },
+  "naveTipo": {
+    "A": "Type A",
+    "B": "Type B"
+  },
   "propertyStatus": {
     "disponible": "Available",
     "apartada": "Reserved",
@@ -62,6 +66,7 @@
     "filters": "Filters",
     "type": "Type",
     "operationType": "Transaction",
+    "naveTipo": "Warehouse type",
     "zone": "Zone",
     "minPrice": "Min. price",
     "maxPrice": "Max. price",
@@ -286,7 +291,8 @@
       "remodelaciones": "Remodel projects",
       "materiales": "Materials",
       "credito_infonavit": "Infonavit Credit",
-      "liquidaciones": "Settlements",
+      "liquidaciones": "Profit",
+      "documentos_legales": "Legal documents",
       "roles": "Roles & access"
     },
     "rolesTitle": "Roles",
@@ -339,6 +345,16 @@
       "volume": "Volume (m³)"
     },
     "consumptionHint": "Optional — how much material is needed per sqm/m³. If set, it will show up as an automatic suggestion when a space's dimensions are entered in a project."
+  },
+  "laborCatalog": {
+    "title": "Labor",
+    "subtitle": "Labor concepts and the price charged per unit (sqm, linear meter, piece, etc.).",
+    "new": "New concept",
+    "concepto": "Concept",
+    "unidad": "Unit",
+    "precioUnitario": "Price per unit",
+    "add": "Add concept",
+    "noResults": "No labor concepts registered yet."
   },
   "spaces": {
     "title": "Project spaces",
@@ -424,8 +440,8 @@
     "capturedAt": "Captured on"
   },
   "liquidacion": {
-    "button": "Settlement",
-    "title": "Property settlement",
+    "button": "Profit",
+    "title": "Property profit",
     "breakdownTitle": "Summary",
     "sameAsCaptador": "Same person who acquired it",
     "restricted": "This section is confidential — access restricted to the partners.",
@@ -453,6 +469,13 @@
     "ssvBalance": "Housing Subaccount balance",
     "totalCapacity": "Total available for purchase",
     "monthlyPayment": "Estimated monthly payroll deduction"
+  },
+  "legalDocs": {
+    "title": "Legal documents",
+    "subtitle": "Download the Privacy Notice and the Consumer Rights Notice on the letterhead, ready to print and sign. Same text published on the site.",
+    "privacyHint": "Same content published at /aviso-de-privacidad.",
+    "rightsHint": "Same content published at /carta-de-derechos.",
+    "download": "Download PDF"
   },
   "privacy": {
     "title": "Privacy Notice",

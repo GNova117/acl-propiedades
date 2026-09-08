@@ -8,7 +8,7 @@ import PropertyMap from "../components/PropertyMap";
 import { db } from "../lib/dataStore";
 import "./Properties.css";
 
-const EMPTY_FILTERS = { type: "", operationType: "", zone: "", minPrice: "", maxPrice: "", minArea: "", maxArea: "" };
+const EMPTY_FILTERS = { type: "", operationType: "", tipoNave: "", zone: "", minPrice: "", maxPrice: "", minArea: "", maxArea: "" };
 
 // Referencia estable para el default de `excludeTypes`: un `= []` inline en
 // la firma de la función crea un arreglo nuevo en cada render, lo que
@@ -60,6 +60,7 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
       type: fixedType || filters.type || undefined,
       types: fixedType || filters.type ? undefined : sectionTypes,
       operation_type: fixedType ? undefined : filters.operationType || undefined,
+      tipo_nave: fixedType === "nave_industrial" ? filters.tipoNave || undefined : undefined,
       zone: filters.zone || undefined,
       minPrice: filters.minPrice ? Number(filters.minPrice) : undefined,
       maxPrice: filters.maxPrice ? Number(filters.maxPrice) : undefined,
@@ -97,6 +98,7 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
               zones={zones}
               typeOptions={typeOptions}
               showOperation={!fixedType}
+              showNaveTipo={fixedType === "nave_industrial"}
               onChange={setFilters}
               onClear={() => setFilters(EMPTY_FILTERS)}
             />

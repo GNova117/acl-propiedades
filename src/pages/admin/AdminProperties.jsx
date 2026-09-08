@@ -80,6 +80,7 @@ export default function AdminProperties({
               <th></th>
               <th>Título</th>
               <th>{t("properties.type")}</th>
+              {fixedType === "nave_industrial" && <th>{t("properties.naveTipo")}</th>}
               <th>{t("properties.zone")}</th>
               <th>Precio</th>
               <th>{t("properties.area")}</th>
@@ -90,9 +91,9 @@ export default function AdminProperties({
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={9}>{t("common.loading")}</td></tr>
+              <tr><td colSpan={fixedType === "nave_industrial" ? 10 : 9}>{t("common.loading")}</td></tr>
             ) : properties.length === 0 ? (
-              <tr><td colSpan={9}>{t("properties.noResults")}</td></tr>
+              <tr><td colSpan={fixedType === "nave_industrial" ? 10 : 9}>{t("properties.noResults")}</td></tr>
             ) : (
               properties.map((property) => {
                 const remodelProject = remodelProjects.find((r) => r.property_id === property.id);
@@ -101,6 +102,7 @@ export default function AdminProperties({
                     <td><img src={property.main_image} alt="" /></td>
                     <td>{property.title}</td>
                     <td>{propertyTypeLabel(t, property.type)}</td>
+                    {fixedType === "nave_industrial" && <td>{property.tipo_nave ? t(`naveTipo.${property.tipo_nave}`) : "—"}</td>}
                     <td>{property.zone}</td>
                     <td>{formatMXN(property.price)}</td>
                     <td>{formatArea(property.area_m2)}</td>

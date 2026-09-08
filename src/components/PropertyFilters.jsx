@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { propertyTypeLabel } from "../lib/format";
 import "./PropertyFilters.css";
 
-export default function PropertyFilters({ filters, zones, typeOptions = [], showOperation = true, onChange, onClear }) {
+export default function PropertyFilters({ filters, zones, typeOptions = [], showOperation = true, showNaveTipo = false, onChange, onClear }) {
   const { t } = useTranslation();
 
   const handle = (field) => (e) => onChange({ ...filters, [field]: e.target.value });
@@ -37,6 +37,17 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
             <option value="">{t("hero.allOperations")}</option>
             <option value="compra">{t("propertyOperation.compra")}</option>
             <option value="renta">{t("propertyOperation.renta")}</option>
+          </select>
+        </div>
+      )}
+
+      {showNaveTipo && (
+        <div className="form-field">
+          <label htmlFor="filter-nave-tipo">{t("properties.naveTipo")}</label>
+          <select id="filter-nave-tipo" value={filters.tipoNave} onChange={handle("tipoNave")}>
+            <option value="">{t("hero.allTypes")}</option>
+            <option value="A">{t("naveTipo.A")}</option>
+            <option value="B">{t("naveTipo.B")}</option>
           </select>
         </div>
       )}

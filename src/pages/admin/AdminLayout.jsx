@@ -32,6 +32,7 @@ export default function AdminLayout() {
           {hasSection("remodelaciones") && <NavLink to="/admin/remodelaciones">{t("admin.remodelProjects")}</NavLink>}
           {hasSection("materiales") && <NavLink to="/admin/materiales">{t("materialsCatalog.title")}</NavLink>}
           {hasSection("credito_infonavit") && <NavLink to="/admin/credito-infonavit">{t("admin.infonavitSimulator")}</NavLink>}
+          {hasSection("documentos_legales") && <NavLink to="/admin/documentos-legales">{t("accessControl.sections.documentos_legales")}</NavLink>}
           {hasSection("roles") && <NavLink to="/admin/roles">{t("accessControl.sections.roles")}</NavLink>}
         </nav>
         <button type="button" className="admin-layout__logout" onClick={handleLogout}>

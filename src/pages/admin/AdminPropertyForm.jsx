@@ -41,6 +41,7 @@ const EMPTY = {
   andenes_carga: "",
   rampas_vehiculares: "",
   mantenimiento_pct: "",
+  tipo_nave: "",
 };
 
 // `fixedType`: apartado de un solo tipo (Naves Industriales) — el tipo
@@ -114,6 +115,7 @@ export default function AdminPropertyForm({
         andenes_carga: property.andenes_carga ?? "",
         rampas_vehiculares: property.rampas_vehiculares ?? "",
         mantenimiento_pct: property.mantenimiento_pct ?? "",
+        tipo_nave: property.tipo_nave || "",
       });
       setExistingImages(property.images || []);
       setExistingVideos(property.videos || []);
@@ -311,6 +313,15 @@ export default function AdminPropertyForm({
         {fixedType === "nave_industrial" && (
           <>
             <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{t("admin.industrialSpecsHint")}</p>
+
+            <div className="form-field">
+              <label htmlFor="p-tipo-nave">{t("properties.naveTipo")}</label>
+              <select id="p-tipo-nave" value={form.tipo_nave} onChange={handleChange("tipo_nave")}>
+                <option value="">—</option>
+                <option value="A">{t("naveTipo.A")}</option>
+                <option value="B">{t("naveTipo.B")}</option>
+              </select>
+            </div>
 
             <div className="form-row">
               <div className="form-field">

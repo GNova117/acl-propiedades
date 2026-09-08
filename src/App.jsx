@@ -31,6 +31,7 @@ import AdminMaterialsCatalog from "./pages/admin/AdminMaterialsCatalog";
 import AdminMaterialCatalogForm from "./pages/admin/AdminMaterialCatalogForm";
 import AdminInfonavitSimulator from "./pages/admin/AdminInfonavitSimulator";
 import AdminRoles from "./pages/admin/AdminRoles";
+import AdminLegalDocs from "./pages/admin/AdminLegalDocs";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { SPECIAL_SECTION_TYPES } from "./lib/format";
 
@@ -159,6 +160,7 @@ export default function App() {
         <Route path="materiales/nuevo" element={<RequireSection section="materiales"><AdminMaterialCatalogForm /></RequireSection>} />
         <Route path="materiales/:id" element={<RequireSection section="materiales"><AdminMaterialCatalogForm /></RequireSection>} />
         <Route path="credito-infonavit" element={<RequireSection section="credito_infonavit"><AdminInfonavitSimulator /></RequireSection>} />
+        <Route path="documentos-legales" element={<RequireSection section="documentos_legales"><AdminLegalDocs /></RequireSection>} />
         <Route path="roles" element={<RequireSection section="roles"><AdminRoles /></RequireSection>} />
       </Route>
 
