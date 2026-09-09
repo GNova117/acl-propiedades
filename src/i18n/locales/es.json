@@ -23,6 +23,7 @@
   },
   "splitHero": {
     "cta": "Ver más",
+    "comingSoon": "Próximamente",
     "properties": { "title": "Propiedades", "subtitle": "Casas, departamentos y terrenos" },
     "industrial": { "title": "Naves Industriales", "subtitle": "Espacios comerciales e industriales" }
   },
@@ -32,6 +33,7 @@
     "properties_one": "{{count}} propiedad disponible",
     "properties_other": "{{count}} propiedades disponibles",
     "cta": "Ver propiedades",
+    "comingSoon": "Próximamente",
     "casa": { "title": "Casas", "desc": "Hogares para tu familia en las mejores zonas de la Comarca." },
     "departamento": { "title": "Departamentos", "desc": "Comodidad y ubicación en desarrollos verticales." },
     "nave_industrial": { "title": "Naves Industriales", "desc": "Espacios para tu empresa o negocio en crecimiento." },
@@ -76,6 +78,7 @@
     "results_one": "{{count}} resultado",
     "results_other": "{{count}} resultados",
     "noResults": "No se encontraron propiedades con esos filtros.",
+    "comingSoon": "Este apartado estará disponible próximamente.",
     "viewDetail": "Ver detalle",
     "advisor": "Asesor",
     "mapView": "Ver en mapa",
@@ -323,7 +326,9 @@
     "add": "Agregar tipo",
     "inUse_one": "{{count}} propiedad usa este tipo.",
     "inUse_other": "{{count}} propiedades usan este tipo.",
-    "cannotDelete": "No se puede eliminar: hay propiedades registradas con este tipo."
+    "cannotDelete": "No se puede eliminar: hay propiedades registradas con este tipo.",
+    "changeImage": "Cambiar imagen",
+    "comingSoon": "Próximamente"
   },
   "dateFilter": {
     "month": "Mes",

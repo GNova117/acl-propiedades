@@ -23,6 +23,7 @@
   },
   "splitHero": {
     "cta": "See more",
+    "comingSoon": "Coming soon",
     "properties": { "title": "Properties", "subtitle": "Houses, apartments and land" },
     "industrial": { "title": "Industrial Warehouses", "subtitle": "Commercial and industrial spaces" }
   },
@@ -32,6 +33,7 @@
     "properties_one": "{{count}} property available",
     "properties_other": "{{count}} properties available",
     "cta": "View properties",
+    "comingSoon": "Coming soon",
     "casa": { "title": "Houses", "desc": "Homes for your family in the best areas of the Comarca." },
     "departamento": { "title": "Apartments", "desc": "Comfort and location in vertical developments." },
     "nave_industrial": { "title": "Industrial Warehouses", "desc": "Spaces for your growing business." },
@@ -76,6 +78,7 @@
     "results_one": "{{count}} result",
     "results_other": "{{count}} results",
     "noResults": "No properties found matching those filters.",
+    "comingSoon": "This section will be available soon.",
     "viewDetail": "View detail",
     "advisor": "Advisor",
     "mapView": "Map view",
@@ -323,7 +326,9 @@
     "add": "Add type",
     "inUse_one": "{{count}} property uses this type.",
     "inUse_other": "{{count}} properties use this type.",
-    "cannotDelete": "Can't delete: there are properties registered with this type."
+    "cannotDelete": "Can't delete: there are properties registered with this type.",
+    "changeImage": "Change image",
+    "comingSoon": "Coming soon"
   },
   "dateFilter": {
     "month": "Month",

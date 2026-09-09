@@ -351,6 +351,25 @@ export const localBackend = {
     writeStore(KEYS.propertyTypes, types.filter((t) => t.id !== id));
   },
 
+  async togglePropertyTypeActive(id, active) {
+    const types = readStore(KEYS.propertyTypes, PROPERTY_TYPES_SEED);
+    const idx = types.findIndex((t) => t.id === id);
+    if (idx === -1) throw new Error("Tipo de propiedad no encontrado");
+    types[idx] = { ...types[idx], active };
+    writeStore(KEYS.propertyTypes, types);
+    return types[idx];
+  },
+
+  async updatePropertyTypeImage(id, file) {
+    const types = readStore(KEYS.propertyTypes, PROPERTY_TYPES_SEED);
+    const idx = types.findIndex((t) => t.id === id);
+    if (idx === -1) throw new Error("Tipo de propiedad no encontrado");
+    const [image_url] = await filesToDataUrls([file]);
+    types[idx] = { ...types[idx], image_url };
+    writeStore(KEYS.propertyTypes, types);
+    return types[idx];
+  },
+
   async submitContactMessage(data) {
     const key = "acl_local_messages";
     const messages = readStore(key, []);

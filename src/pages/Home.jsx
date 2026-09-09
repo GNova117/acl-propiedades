@@ -16,6 +16,7 @@ const HOME_CATEGORY_TYPES = ["casa", "departamento", "nave_industrial", "terreno
 export default function Home() {
   const { t } = useTranslation();
   const [counts, setCounts] = useState({ casa: 0, departamento: 0, nave_industrial: 0, terreno: 0 });
+  const [propertyTypes, setPropertyTypes] = useState([]);
 
   useEffect(() => {
     let active = true;
@@ -27,10 +28,15 @@ export default function Home() {
       });
       setCounts(next);
     });
+    db.getPropertyTypes().then((data) => {
+      if (active) setPropertyTypes(data);
+    });
     return () => {
       active = false;
     };
   }, []);
+
+  const typeByKey = (key) => propertyTypes.find((pt) => pt.key === key);
 
   return (
     <>
@@ -39,7 +45,7 @@ export default function Home() {
         description="ACL Propiedades: compra y venta de casas, departamentos, naves industriales y terrenos en Torreón, Gómez Palacio y Lerdo."
       />
 
-      <SplitHero />
+      <SplitHero propertyTypes={propertyTypes} />
 
       <section className="hero">
         <div className="hero__overlay" />
@@ -57,9 +63,18 @@ export default function Home() {
             <h2>{t("categories.title")}</h2>
           </div>
           <div className="home-categories">
-            {HOME_CATEGORY_TYPES.map((type) => (
-              <CategoryCard key={type} type={type} count={counts[type]} />
-            ))}
+            {HOME_CATEGORY_TYPES.map((type) => {
+              const typeRecord = typeByKey(type);
+              return (
+                <CategoryCard
+                  key={type}
+                  type={type}
+                  count={counts[type]}
+                  active={!typeRecord || typeRecord.active !== false}
+                  imageUrl={typeRecord?.image_url}
+                />
+              );
+            })}
           </div>
         </div>
       </section>

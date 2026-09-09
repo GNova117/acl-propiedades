@@ -72,3 +72,28 @@
 .category-card__cta {
   align-self: flex-start;
 }
+
+.category-card--disabled {
+  cursor: default;
+}
+
+.category-card--disabled .category-card__image {
+  filter: grayscale(0.6);
+}
+
+.category-card--disabled:hover .category-card__image {
+  transform: none;
+}
+
+.category-card__badge {
+  align-self: flex-start;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+}

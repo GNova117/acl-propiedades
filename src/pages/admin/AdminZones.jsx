@@ -19,6 +19,8 @@ export default function AdminZones() {
   const [newTypeLabel, setNewTypeLabel] = useState("");
   const [addingType, setAddingType] = useState(false);
   const [deletingTypeId, setDeletingTypeId] = useState(null);
+  const [togglingTypeId, setTogglingTypeId] = useState(null);
+  const [uploadingImageId, setUploadingImageId] = useState(null);
 
   const load = () => {
     Promise.all([db.getZones(), db.getProperties({}), db.getPropertyTypes()]).then(([zoneData, propertyData, typeData]) => {
@@ -103,6 +105,31 @@ export default function AdminZones() {
     }
   };
 
+  const handleToggleTypeActive = async (type) => {
+    setTogglingTypeId(type.id);
+    try {
+      await db.togglePropertyTypeActive(type.id, type.active === false);
+      load();
+    } catch (err) {
+      window.alert(err.message || "Error al cambiar el estado del tipo de propiedad");
+    } finally {
+      setTogglingTypeId(null);
+    }
+  };
+
+  const handleTypeImageChange = async (type, file) => {
+    if (!file) return;
+    setUploadingImageId(type.id);
+    try {
+      await db.updatePropertyTypeImage(type.id, file);
+      load();
+    } catch (err) {
+      window.alert(err.message || "Error al subir la imagen");
+    } finally {
+      setUploadingImageId(null);
+    }
+  };
+
   return (
     <div>
       <div className="admin-header">
@@ -184,19 +211,43 @@ export default function AdminZones() {
       <div className="admin-zones-grid">
         {propertyTypes.map((type) => {
           const inUse = propertyCountByType(type.key);
+          const isActive = type.active !== false;
           return (
             <div key={type.id} className="card admin-zone-card">
+              {type.image_url && <img src={type.image_url} alt="" className="admin-zone-card__thumb" />}
               <h3>{propertyTypeLabel(t, type.key)}</h3>
               <p className="form-hint">{t(inUse === 1 ? "propertyTypesModule.inUse_one" : "propertyTypesModule.inUse_other", { count: inUse })}</p>
-              <button
-                type="button"
-                className="btn btn-danger btn-sm"
-                onClick={() => handleDeleteType(type)}
-                disabled={inUse > 0 || deletingTypeId === type.id}
-                title={inUse > 0 ? t("propertyTypesModule.cannotDelete") : undefined}
-              >
-                {t("common.delete")}
-              </button>
+
+              <label className="btn btn-outline btn-sm" style={{ marginBottom: "0.6rem", display: "inline-block" }}>
+                {uploadingImageId === type.id ? <span className="spinner" /> : t("propertyTypesModule.changeImage")}
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={(e) => handleTypeImageChange(type, e.target.files?.[0])}
+                  disabled={uploadingImageId === type.id}
+                />
+              </label>
+
+              <div className="admin-zone-card__row">
+                <button
+                  type="button"
+                  className={`badge ${isActive ? "badge-available" : "badge-sold"}`}
+                  onClick={() => handleToggleTypeActive(type)}
+                  disabled={togglingTypeId === type.id}
+                >
+                  {isActive ? t("common.active") : t("propertyTypesModule.comingSoon")}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDeleteType(type)}
+                  disabled={inUse > 0 || deletingTypeId === type.id}
+                  title={inUse > 0 ? t("propertyTypesModule.cannotDelete") : undefined}
+                >
+                  {t("common.delete")}
+                </button>
+              </div>
             </div>
           );
         })}

@@ -38,13 +38,23 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
   const [properties, setProperties] = useState([]);
   const [zones, setZones] = useState([]);
   const [propertyTypes, setPropertyTypes] = useState([]);
+  const [typesLoaded, setTypesLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
 
   useEffect(() => {
     db.getZones().then(setZones).catch(() => setZones([]));
-    db.getPropertyTypes().then(setPropertyTypes).catch(() => setPropertyTypes([]));
+    db.getPropertyTypes()
+      .then(setPropertyTypes)
+      .catch(() => setPropertyTypes([]))
+      .finally(() => setTypesLoaded(true));
   }, []);
+
+  // Apartado dedicado a un tipo desactivado desde /admin/zonas (Naves
+  // Industriales/Terrenos hoy) — se muestra "Próximamente" en vez del
+  // listado vacío, por si alguien llega directo a la URL sin pasar por el
+  // menú (que ya lo oculta) o la tarjeta del inicio (que ya avisa).
+  const sectionDisabled = fixedType && typesLoaded && propertyTypes.some((pt) => pt.key === fixedType && pt.active === false);
 
   const sectionTypes = useMemo(() => {
     if (fixedType) return [fixedType];
@@ -80,6 +90,20 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
       active = false;
     };
   }, [queryFilters]);
+
+  if (sectionDisabled) {
+    return (
+      <>
+        <Seo title={t(titleKey)} description={t(subtitleKey)} />
+        <div className="container properties-page">
+          <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
+            <h2>{t(titleKey)}</h2>
+          </div>
+          <div className="empty-state">{t("properties.comingSoon")}</div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

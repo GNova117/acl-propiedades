@@ -292,6 +292,19 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  async togglePropertyTypeActive(id, active) {
+    const { data, error } = await supabase.from("property_types").update({ active }).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updatePropertyTypeImage(id, file) {
+    const [url] = await uploadFiles("property-images", [file]);
+    const { data, error } = await supabase.from("property_types").update({ image_url: url }).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
   async updateZonePrice(id, price_per_m2) {
     const { data, error } = await supabase
       .from("zones")
