@@ -740,8 +740,8 @@ export const supabaseBackend = {
     return data;
   },
 
-  async addAccess({ email, role_id }) {
-    const payload = { email: email.trim().toLowerCase(), role_id };
+  async addAccess({ email, role_id, advisor_id }) {
+    const payload = { email: email.trim().toLowerCase(), role_id, advisor_id: advisor_id || null };
     const { data, error } = await supabase
       .from("admin_access")
       .insert(payload)
@@ -751,10 +751,13 @@ export const supabaseBackend = {
     return data;
   },
 
-  async updateAccess(id, { role_id }) {
+  async updateAccess(id, { role_id, advisor_id } = {}) {
+    const payload = {};
+    if (role_id !== undefined) payload.role_id = role_id;
+    if (advisor_id !== undefined) payload.advisor_id = advisor_id || null;
     const { data, error } = await supabase
       .from("admin_access")
-      .update({ role_id })
+      .update(payload)
       .eq("id", id)
       .select("*, role:admin_roles(*)")
       .single();
@@ -764,6 +767,93 @@ export const supabaseBackend = {
 
   async deleteAccess(id) {
     const { error } = await supabase.from("admin_access").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  async getAgendaCitas() {
+    const { data, error } = await supabase
+      .from("agenda_citas")
+      .select("*")
+      .order("fecha", { ascending: true })
+      .order("hora", { ascending: true, nullsFirst: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades }) {
+    const payload = {
+      advisor_id,
+      client_id: client_id || null,
+      titulo: titulo.trim(),
+      fecha,
+      hora: hora || null,
+      actividades: actividades?.trim() || null,
+    };
+    const { data, error } = await supabase.from("agenda_citas").insert(payload).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async getAgendaCitaById(id) {
+    const { data, error } = await supabase.from("agenda_citas").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades }) {
+    const payload = {
+      advisor_id,
+      client_id: client_id || null,
+      titulo: titulo.trim(),
+      fecha,
+      hora: hora || null,
+      actividades: actividades?.trim() || null,
+      updated_at: new Date().toISOString(),
+    };
+    const { data, error } = await supabase.from("agenda_citas").update(payload).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteAgendaCita(id) {
+    const { error } = await supabase.from("agenda_citas").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  async getAgendaExpedientes(citaId) {
+    const { data, error } = await supabase
+      .from("agenda_expedientes")
+      .select("*")
+      .eq("cita_id", citaId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    if (!data?.length) return [];
+    const paths = data.map((d) => d.file_path);
+    const { data: signed } = await supabase.storage.from("agenda-expedientes").createSignedUrls(paths, 300);
+    return data.map((entry, i) => ({ ...entry, signed_url: signed?.[i]?.signedUrl || null }));
+  },
+
+  async addAgendaExpediente({ cita_id, file }) {
+    const path = `${cita_id}/${Date.now()}-${sanitizeFileName(file.name)}`;
+    const { error: uploadError } = await supabase.storage
+      .from("agenda-expedientes")
+      .upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
+    if (uploadError) throw uploadError;
+    const { data, error } = await supabase
+      .from("agenda_expedientes")
+      .insert({ cita_id, file_path: path, file_name: file.name })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteAgendaExpediente(id) {
+    const { data: entry } = await supabase.from("agenda_expedientes").select("file_path").eq("id", id).maybeSingle();
+    if (entry?.file_path) {
+      await supabase.storage.from("agenda-expedientes").remove([entry.file_path]);
+    }
+    const { error } = await supabase.from("agenda_expedientes").delete().eq("id", id);
     if (error) throw error;
   },
 

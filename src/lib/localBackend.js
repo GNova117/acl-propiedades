@@ -20,6 +20,8 @@ const KEYS = {
   liquidaciones: "acl_local_liquidaciones",
   adminRoles: "acl_local_admin_roles",
   adminAccess: "acl_local_admin_access",
+  agendaCitas: "acl_local_agenda_citas",
+  agendaExpedientes: "acl_local_agenda_expedientes",
 };
 
 function readStore(key, fallback) {
@@ -817,32 +819,110 @@ export const localBackend = {
     return { ...found, role: roles.find((r) => r.id === found.role_id) || null };
   },
 
-  async addAccess({ email, role_id }) {
+  async addAccess({ email, role_id, advisor_id }) {
     const roles = readStore(KEYS.adminRoles, ADMIN_ROLES_SEED);
     const access = readStore(KEYS.adminAccess, ADMIN_ACCESS_SEED);
     const normalized = email.trim().toLowerCase();
     if (access.some((a) => a.email === normalized)) {
       throw new Error("Ese correo ya tiene acceso asignado");
     }
-    const record = { id: uid("access"), email: normalized, role_id };
+    const record = { id: uid("access"), email: normalized, role_id, advisor_id: advisor_id || null };
     access.push(record);
     writeStore(KEYS.adminAccess, access);
     return { ...record, role: roles.find((r) => r.id === role_id) || null };
   },
 
-  async updateAccess(id, { role_id }) {
+  async updateAccess(id, { role_id, advisor_id } = {}) {
     const roles = readStore(KEYS.adminRoles, ADMIN_ROLES_SEED);
     const access = readStore(KEYS.adminAccess, ADMIN_ACCESS_SEED);
     const idx = access.findIndex((a) => a.id === id);
     if (idx === -1) throw new Error("Acceso no encontrado");
-    access[idx] = { ...access[idx], role_id };
+    const patch = {};
+    if (role_id !== undefined) patch.role_id = role_id;
+    if (advisor_id !== undefined) patch.advisor_id = advisor_id || null;
+    access[idx] = { ...access[idx], ...patch };
     writeStore(KEYS.adminAccess, access);
-    return { ...access[idx], role: roles.find((r) => r.id === role_id) || null };
+    return { ...access[idx], role: roles.find((r) => r.id === access[idx].role_id) || null };
   },
 
   async deleteAccess(id) {
     const access = readStore(KEYS.adminAccess, ADMIN_ACCESS_SEED);
     writeStore(KEYS.adminAccess, access.filter((a) => a.id !== id));
+  },
+
+  async getAgendaCitas() {
+    const citas = readStore(KEYS.agendaCitas, []);
+    return [...citas].sort((a, b) => (a.fecha + (a.hora || "")).localeCompare(b.fecha + (b.hora || "")));
+  },
+
+  async getAgendaCitaById(id) {
+    const citas = readStore(KEYS.agendaCitas, []);
+    return citas.find((c) => c.id === id) || null;
+  },
+
+  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades }) {
+    const citas = readStore(KEYS.agendaCitas, []);
+    const record = {
+      id: uid("cita"),
+      advisor_id,
+      client_id: client_id || null,
+      titulo: titulo.trim(),
+      fecha,
+      hora: hora || null,
+      actividades: actividades?.trim() || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    citas.push(record);
+    writeStore(KEYS.agendaCitas, citas);
+    return record;
+  },
+
+  async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades }) {
+    const citas = readStore(KEYS.agendaCitas, []);
+    const idx = citas.findIndex((c) => c.id === id);
+    if (idx === -1) throw new Error("Cita no encontrada");
+    citas[idx] = {
+      ...citas[idx],
+      advisor_id,
+      client_id: client_id || null,
+      titulo: titulo.trim(),
+      fecha,
+      hora: hora || null,
+      actividades: actividades?.trim() || null,
+      updated_at: new Date().toISOString(),
+    };
+    writeStore(KEYS.agendaCitas, citas);
+    return citas[idx];
+  },
+
+  async deleteAgendaCita(id) {
+    const citas = readStore(KEYS.agendaCitas, []);
+    writeStore(KEYS.agendaCitas, citas.filter((c) => c.id !== id));
+    const expedientes = readStore(KEYS.agendaExpedientes, []);
+    writeStore(KEYS.agendaExpedientes, expedientes.filter((e) => e.cita_id !== id));
+  },
+
+  async getAgendaExpedientes(citaId) {
+    const expedientes = readStore(KEYS.agendaExpedientes, []);
+    return expedientes
+      .filter((e) => e.cita_id === citaId)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .map((e) => ({ ...e, signed_url: e.file_path }));
+  },
+
+  async addAgendaExpediente({ cita_id, file }) {
+    const expedientes = readStore(KEYS.agendaExpedientes, []);
+    const [dataUrl] = await filesToDataUrls([file]);
+    const record = { id: uid("expediente"), cita_id, file_path: dataUrl, file_name: file.name, created_at: new Date().toISOString() };
+    expedientes.push(record);
+    writeStore(KEYS.agendaExpedientes, expedientes);
+    return record;
+  },
+
+  async deleteAgendaExpediente(id) {
+    const expedientes = readStore(KEYS.agendaExpedientes, []);
+    writeStore(KEYS.agendaExpedientes, expedientes.filter((e) => e.id !== id));
   },
 
   async signIn(email, password) {

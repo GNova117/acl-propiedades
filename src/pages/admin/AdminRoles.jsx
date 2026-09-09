@@ -8,20 +8,23 @@ export default function AdminRoles() {
   const { t } = useTranslation();
   const [roles, setRoles] = useState([]);
   const [access, setAccess] = useState([]);
+  const [advisors, setAdvisors] = useState([]);
   const [newRoleName, setNewRoleName] = useState("");
   const [newRoleSections, setNewRoleSections] = useState([]);
   const [addingRole, setAddingRole] = useState(false);
   const [deletingRoleId, setDeletingRoleId] = useState(null);
   const [newAccessEmail, setNewAccessEmail] = useState("");
   const [newAccessRoleId, setNewAccessRoleId] = useState("");
+  const [newAccessAdvisorId, setNewAccessAdvisorId] = useState("");
   const [addingAccess, setAddingAccess] = useState(false);
   const [deletingAccessId, setDeletingAccessId] = useState(null);
   const [changingAccessId, setChangingAccessId] = useState(null);
 
   const load = () => {
-    Promise.all([db.getRoles(), db.getAccess()]).then(([roleData, accessData]) => {
+    Promise.all([db.getRoles(), db.getAccess(), db.getAdvisors()]).then(([roleData, accessData, advisorData]) => {
       setRoles(roleData);
       setAccess(accessData);
+      setAdvisors(advisorData);
     });
   };
 
@@ -65,9 +68,10 @@ export default function AdminRoles() {
     if (!newAccessEmail.trim() || !newAccessRoleId) return;
     setAddingAccess(true);
     try {
-      await db.addAccess({ email: newAccessEmail, role_id: newAccessRoleId });
+      await db.addAccess({ email: newAccessEmail, role_id: newAccessRoleId, advisor_id: newAccessAdvisorId || null });
       setNewAccessEmail("");
       setNewAccessRoleId("");
+      setNewAccessAdvisorId("");
       load();
     } catch (err) {
       window.alert(err.message || "Error al dar acceso");
@@ -83,6 +87,18 @@ export default function AdminRoles() {
       load();
     } catch (err) {
       window.alert(err.message || "Error al cambiar el rol");
+    } finally {
+      setChangingAccessId(null);
+    }
+  };
+
+  const handleChangeAccessAdvisor = async (accessRow, advisorId) => {
+    setChangingAccessId(accessRow.id);
+    try {
+      await db.updateAccess(accessRow.id, { advisor_id: advisorId || null });
+      load();
+    } catch (err) {
+      window.alert(err.message || "Error al vincular el asesor");
     } finally {
       setChangingAccessId(null);
     }
@@ -189,6 +205,18 @@ export default function AdminRoles() {
               ))}
             </select>
           </div>
+          <div className="form-field">
+            <label htmlFor="access-new-advisor">{t("accessControl.accessAdvisor")}</label>
+            <select id="access-new-advisor" value={newAccessAdvisorId} onChange={(e) => setNewAccessAdvisorId(e.target.value)}>
+              <option value="">{t("accessControl.accessAdvisorNone")}</option>
+              {advisors.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+            <span className="form-hint">{t("accessControl.accessAdvisorHint")}</span>
+          </div>
         </div>
         <div className="admin-form__actions">
           <button type="submit" className="btn btn-primary" disabled={addingAccess || !newAccessEmail.trim() || !newAccessRoleId}>
@@ -204,6 +232,7 @@ export default function AdminRoles() {
             <tr>
               <th>{t("accessControl.accessEmail")}</th>
               <th>{t("accessControl.accessRole")}</th>
+              <th>{t("accessControl.accessAdvisor")}</th>
               <th></th>
             </tr>
           </thead>
@@ -220,6 +249,20 @@ export default function AdminRoles() {
                     ))}
                   </select>
                 </td>
+                <td>
+                  <select
+                    value={row.advisor_id || ""}
+                    onChange={(e) => handleChangeAccessAdvisor(row, e.target.value)}
+                    disabled={changingAccessId === row.id}
+                  >
+                    <option value="">{t("accessControl.accessAdvisorNone")}</option>
+                    {advisors.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
+                    ))}
+                  </select>
+                </td>
                 <td className="admin-table__actions">
                   <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDeleteAccess(row)} disabled={deletingAccessId === row.id}>
                     {t("accessControl.removeAccess")}
@@ -229,7 +272,7 @@ export default function AdminRoles() {
             ))}
             {access.length === 0 && (
               <tr>
-                <td colSpan={3}>{t("accessControl.noAccess")}</td>
+                <td colSpan={4}>{t("accessControl.noAccess")}</td>
               </tr>
             )}
           </tbody>

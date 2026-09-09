@@ -296,7 +296,8 @@
       "credito_infonavit": "Crédito Infonavit",
       "liquidaciones": "Utilidad",
       "documentos_legales": "Documentos legales",
-      "roles": "Roles y accesos"
+      "roles": "Roles y accesos",
+      "agenda": "Agenda"
     },
     "rolesTitle": "Roles",
     "newRole": "Nuevo rol",
@@ -310,6 +311,9 @@
     "newAccess": "Dar acceso a un correo",
     "accessEmail": "Correo",
     "accessRole": "Rol",
+    "accessAdvisor": "Asesor vinculado",
+    "accessAdvisorNone": "— (ve todas las agendas)",
+    "accessAdvisorHint": "Solo aplica al apartado Agenda: vincula este correo con su propio asesor para que solo vea y edite su propia agenda. Déjalo vacío para que vea las de todos.",
     "addAccess": "Dar acceso",
     "removeAccess": "Quitar acceso",
     "noAccess": "Aún no hay correos con acceso asignado."
@@ -578,5 +582,27 @@
     "addedAt": "Agregado el",
     "confirmAdd": "Agregar",
     "cancelAdd": "Cancelar"
+  },
+  "agenda": {
+    "myAgenda": "Mi agenda",
+    "allAgendas": "Agenda de asesores",
+    "advisorFilter": "Filtrar por asesor",
+    "allAdvisorsOption": "Todos los asesores",
+    "newAppointment": "Nueva cita",
+    "editAppointment": "Editar cita",
+    "titleField": "Título",
+    "date": "Fecha",
+    "time": "Hora",
+    "client": "Cliente",
+    "noClient": "— (sin cliente asignado)",
+    "advisor": "Asesor",
+    "activities": "Actividades por realizar",
+    "activitiesPlaceholder": "Ej. Preparar documentos, llamar al cliente...",
+    "noAppointments": "No hay citas registradas.",
+    "expedientes": "Expedientes",
+    "addFile": "Subir expediente",
+    "noFiles": "Aún no hay expedientes para esta cita.",
+    "fileName": "Archivo",
+    "uploadedAt": "Subido"
   }
 }

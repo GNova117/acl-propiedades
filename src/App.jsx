@@ -32,6 +32,9 @@ import AdminMaterialCatalogForm from "./pages/admin/AdminMaterialCatalogForm";
 import AdminInfonavitSimulator from "./pages/admin/AdminInfonavitSimulator";
 import AdminRoles from "./pages/admin/AdminRoles";
 import AdminLegalDocs from "./pages/admin/AdminLegalDocs";
+import AdminAgenda from "./pages/admin/AdminAgenda";
+import AdminAgendaForm from "./pages/admin/AdminAgendaForm";
+import AdminAgendaExpedientes from "./pages/admin/AdminAgendaExpedientes";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { SPECIAL_SECTION_TYPES } from "./lib/format";
 
@@ -162,6 +165,10 @@ export default function App() {
         <Route path="credito-infonavit" element={<RequireSection section="credito_infonavit"><AdminInfonavitSimulator /></RequireSection>} />
         <Route path="documentos-legales" element={<RequireSection section="documentos_legales"><AdminLegalDocs /></RequireSection>} />
         <Route path="roles" element={<RequireSection section="roles"><AdminRoles /></RequireSection>} />
+        <Route path="agenda" element={<RequireSection section="agenda"><AdminAgenda /></RequireSection>} />
+        <Route path="agenda/nueva" element={<RequireSection section="agenda"><AdminAgendaForm /></RequireSection>} />
+        <Route path="agenda/:id" element={<RequireSection section="agenda"><AdminAgendaForm /></RequireSection>} />
+        <Route path="agenda/:id/expedientes" element={<RequireSection section="agenda"><AdminAgendaExpedientes /></RequireSection>} />
       </Route>
 
       <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />

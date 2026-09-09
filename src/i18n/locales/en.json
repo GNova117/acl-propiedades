@@ -296,7 +296,8 @@
       "credito_infonavit": "Infonavit Credit",
       "liquidaciones": "Profit",
       "documentos_legales": "Legal documents",
-      "roles": "Roles & access"
+      "roles": "Roles & access",
+      "agenda": "Agenda"
     },
     "rolesTitle": "Roles",
     "newRole": "New role",
@@ -310,6 +311,9 @@
     "newAccess": "Grant access to an email",
     "accessEmail": "Email",
     "accessRole": "Role",
+    "accessAdvisor": "Linked advisor",
+    "accessAdvisorNone": "— (sees every agenda)",
+    "accessAdvisorHint": "Only applies to the Agenda section: link this email to their own advisor record so they only see and edit their own agenda. Leave empty so they see everyone's.",
     "addAccess": "Grant access",
     "removeAccess": "Remove access",
     "noAccess": "No emails have access assigned yet."
@@ -578,5 +582,27 @@
     "addedAt": "Added on",
     "confirmAdd": "Add",
     "cancelAdd": "Cancel"
+  },
+  "agenda": {
+    "myAgenda": "My agenda",
+    "allAgendas": "Advisor agendas",
+    "advisorFilter": "Filter by advisor",
+    "allAdvisorsOption": "All advisors",
+    "newAppointment": "New appointment",
+    "editAppointment": "Edit appointment",
+    "titleField": "Title",
+    "date": "Date",
+    "time": "Time",
+    "client": "Client",
+    "noClient": "— (no client assigned)",
+    "advisor": "Advisor",
+    "activities": "Activities to do",
+    "activitiesPlaceholder": "E.g. Prepare documents, call the client...",
+    "noAppointments": "No appointments registered.",
+    "expedientes": "Case files",
+    "addFile": "Upload case file",
+    "noFiles": "No case files for this appointment yet.",
+    "fileName": "File",
+    "uploadedAt": "Uploaded"
   }
 }

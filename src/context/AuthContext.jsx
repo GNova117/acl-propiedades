@@ -13,20 +13,26 @@ const DEMO_ROLE = { slug: ADMIN_ROLE_SLUG, name: "Administrador", sections: SECT
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [role, setRole] = useState(null);
+  const [advisorId, setAdvisorId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const loadRole = async (newSession) => {
     const email = newSession?.user?.email;
     if (!email) {
       setRole(null);
+      setAdvisorId(null);
       return;
     }
     if (!isSupabaseConfigured) {
+      // Modo demo: siempre "ve todas las agendas" (sin asesor vinculado),
+      // igual que el resto de secciones se tratan como administrador aquí.
       setRole(DEMO_ROLE);
+      setAdvisorId(null);
       return;
     }
     const access = await db.getMyAccess(email);
     setRole(access?.role || null);
+    setAdvisorId(access?.advisor_id || null);
   };
 
   useEffect(() => {
@@ -55,6 +61,7 @@ export function AuthProvider({ children }) {
     await db.signOut();
     setSession(null);
     setRole(null);
+    setAdvisorId(null);
   };
 
   const sections = role?.sections || [];
@@ -66,6 +73,7 @@ export function AuthProvider({ children }) {
     sections,
     hasSection: (key) => sections.includes(key),
     isAdmin: role?.slug === ADMIN_ROLE_SLUG,
+    advisorId,
     loading,
     login,
     logout,
