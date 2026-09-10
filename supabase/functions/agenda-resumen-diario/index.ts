@@ -86,9 +86,9 @@ Deno.serve(async (req) => {
               {
                 type: "body",
                 parameters: [
-                  { type: "text", text: name },
-                  { type: "text", text: String(advisorCitas.length) },
-                  { type: "text", text: lista },
+                  { type: "text", parameter_name: "nombre_asesor", text: name },
+                  { type: "text", parameter_name: "num_citas", text: String(advisorCitas.length) },
+                  { type: "text", parameter_name: "lista_citas", text: lista },
                 ],
               },
             ],

@@ -91,9 +91,9 @@ Deno.serve(async (req) => {
               {
                 type: "body",
                 parameters: [
-                  { type: "text", text: cita.titulo },
-                  { type: "text", text: cita.hora?.slice(0, 5) || "" },
-                  { type: "text", text: cliente?.name || "sin cliente asignado" },
+                  { type: "text", parameter_name: "titulo_cita", text: cita.titulo },
+                  { type: "text", parameter_name: "hora_cita", text: cita.hora?.slice(0, 5) || "" },
+                  { type: "text", parameter_name: "nombre_cliente", text: cliente?.name || "sin cliente asignado" },
                 ],
               },
             ],
