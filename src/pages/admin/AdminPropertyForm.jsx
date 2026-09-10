@@ -42,6 +42,7 @@ const EMPTY = {
   rampas_vehiculares: "",
   mantenimiento_pct: "",
   tipo_nave: "",
+  amenities: [],
 };
 
 // `fixedType`: apartado de un solo tipo (Naves Industriales) — el tipo
@@ -62,6 +63,8 @@ export default function AdminPropertyForm({
   const [zones, setZones] = useState([]);
   const [advisors, setAdvisors] = useState([]);
   const [propertyTypes, setPropertyTypes] = useState([]);
+  const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
+  const [propertyCode, setPropertyCode] = useState("");
   const [existingImages, setExistingImages] = useState([]);
   const [newFiles, setNewFiles] = useState([]);
   const [mainIndex, setMainIndex] = useState(0);
@@ -75,6 +78,7 @@ export default function AdminPropertyForm({
     db.getZones().then(setZones);
     db.getAdvisors().then(setAdvisors);
     db.getPropertyTypes().then(setPropertyTypes);
+    db.getAmenities().then(setAmenitiesCatalog).catch(() => setAmenitiesCatalog([]));
   }, []);
 
   useEffect(() => {
@@ -116,9 +120,11 @@ export default function AdminPropertyForm({
         rampas_vehiculares: property.rampas_vehiculares ?? "",
         mantenimiento_pct: property.mantenimiento_pct ?? "",
         tipo_nave: property.tipo_nave || "",
+        amenities: property.amenities || [],
       });
       setExistingImages(property.images || []);
       setExistingVideos(property.videos || []);
+      setPropertyCode(property.code || "");
       setLoading(false);
     });
   }, [id, isEdit]);
@@ -134,6 +140,13 @@ export default function AdminPropertyForm({
       advisor_ids: prev.advisor_ids.includes(advisorId)
         ? prev.advisor_ids.filter((a) => a !== advisorId)
         : [...prev.advisor_ids, advisorId],
+    }));
+  };
+
+  const toggleAmenity = (key) => {
+    setForm((prev) => ({
+      ...prev,
+      amenities: prev.amenities.includes(key) ? prev.amenities.filter((a) => a !== key) : [...prev.amenities, key],
     }));
   };
 
@@ -184,7 +197,10 @@ export default function AdminPropertyForm({
   return (
     <div>
       <div className="admin-header">
-        <h1>{isEdit ? t(editTitleKey) : t(newTitleKey)}</h1>
+        <div>
+          <h1>{isEdit ? t(editTitleKey) : t(newTitleKey)}</h1>
+          {isEdit && propertyCode && <p className="form-hint">{t("detail.code")}: {propertyCode}</p>}
+        </div>
       </div>
 
       <form className="card admin-form" onSubmit={handleSubmit} noValidate>
@@ -415,6 +431,20 @@ export default function AdminPropertyForm({
             ))}
           </div>
         </div>
+
+        {amenitiesCatalog.length > 0 && (
+          <div className="form-field">
+            <label>{t("properties.amenities")}</label>
+            <div className="access-control__checkbox-grid">
+              {amenitiesCatalog.map((amenity) => (
+                <label key={amenity.id} className="access-control__checkbox">
+                  <input type="checkbox" checked={form.amenities.includes(amenity.key)} onChange={() => toggleAmenity(amenity.key)} />
+                  {amenity.label}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="form-field">
           <label>{t("admin.images")}</label>

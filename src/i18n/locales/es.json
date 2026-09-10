@@ -85,7 +85,23 @@
     "listView": "Ver listado",
     "bedrooms": "Recámaras",
     "bathrooms": "Baños",
-    "area": "Superficie"
+    "area": "Superficie",
+    "moreFilters": "Más filtros",
+    "minBedrooms": "Recámaras mín.",
+    "minBathrooms": "Baños mín.",
+    "minParking": "Estacionamiento mín.",
+    "amenities": "Amenidades",
+    "sortBy": "Ordenar por",
+    "sort": {
+      "newest": "Más recientes",
+      "price_asc": "Precio: menor a mayor",
+      "price_desc": "Precio: mayor a menor",
+      "area_desc": "Superficie: mayor a menor"
+    },
+    "searchByCode": "Buscar por código",
+    "codePlaceholder": "ACL-1042",
+    "codeSearchButton": "Buscar",
+    "codeNotFound": "No se encontró ninguna propiedad con ese código."
   },
   "detail": {
     "back": "Volver a propiedades",
@@ -100,6 +116,8 @@
     "notFound": "Propiedad no encontrada.",
     "creditNotice": "Precio en pesos mexicanos (MXN). En operaciones de crédito, el precio total se determinará en función de los montos variables de conceptos de crédito y gastos notariales, mismos que deben consultarse con nuestros promotores.",
     "specsTitle": "Especificaciones del inmueble",
+    "amenitiesTitle": "Amenidades",
+    "code": "Código",
     "videosTitle": "Videos",
     "similarTitle": "Espacios similares que podrían interesarte",
     "faq": {
@@ -277,6 +295,8 @@
     "infonavitSimulator": "Crédito Infonavit",
     "propertyTypes": "Tipos de propiedad",
     "newPropertyType": "Nuevo tipo de propiedad",
+    "amenities": "Amenidades",
+    "newAmenity": "Nueva amenidad",
     "propertySpecsHint": "Estos datos se muestran en la ficha pública de la propiedad (requeridos por la NOM-247 para publicidad inmobiliaria). Déjalos vacíos si aún no los tienes.",
     "industrialWarehouses": "Naves Industriales",
     "newIndustrialWarehouse": "Nueva nave industrial",

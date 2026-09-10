@@ -85,7 +85,23 @@
     "listView": "List view",
     "bedrooms": "Bedrooms",
     "bathrooms": "Bathrooms",
-    "area": "Area"
+    "area": "Area",
+    "moreFilters": "More filters",
+    "minBedrooms": "Min. bedrooms",
+    "minBathrooms": "Min. bathrooms",
+    "minParking": "Min. parking spots",
+    "amenities": "Amenities",
+    "sortBy": "Sort by",
+    "sort": {
+      "newest": "Newest first",
+      "price_asc": "Price: low to high",
+      "price_desc": "Price: high to low",
+      "area_desc": "Area: largest first"
+    },
+    "searchByCode": "Search by code",
+    "codePlaceholder": "ACL-1042",
+    "codeSearchButton": "Search",
+    "codeNotFound": "No property was found with that code."
   },
   "detail": {
     "back": "Back to properties",
@@ -100,6 +116,8 @@
     "notFound": "Property not found.",
     "creditNotice": "Price in Mexican pesos (MXN). For financed purchases, the final total price depends on variable credit and notarial costs, which must be confirmed with our sales advisors.",
     "specsTitle": "Property specifications",
+    "amenitiesTitle": "Amenities",
+    "code": "Code",
     "videosTitle": "Videos",
     "similarTitle": "Similar spaces you might be interested in",
     "faq": {
@@ -277,6 +295,8 @@
     "infonavitSimulator": "Infonavit Credit",
     "propertyTypes": "Property types",
     "newPropertyType": "New property type",
+    "amenities": "Amenities",
+    "newAmenity": "New amenity",
     "propertySpecsHint": "This information is shown on the property's public page (required by NOM-247 for real estate advertising). Leave blank if not yet available.",
     "industrialWarehouses": "Industrial Warehouses",
     "newIndustrialWarehouse": "New industrial warehouse",

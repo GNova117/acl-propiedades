@@ -9,7 +9,23 @@ import Reveal from "../components/Reveal";
 import { db } from "../lib/dataStore";
 import "./Properties.css";
 
-const EMPTY_FILTERS = { type: "", operationType: "", tipoNave: "", zone: "", minPrice: "", maxPrice: "", minArea: "", maxArea: "" };
+const EMPTY_FILTERS = {
+  type: "",
+  operationType: "",
+  tipoNave: "",
+  zone: "",
+  minPrice: "",
+  maxPrice: "",
+  minArea: "",
+  maxArea: "",
+  minBedrooms: "",
+  minBathrooms: "",
+  minParking: "",
+  amenities: [],
+  sortBy: "newest",
+};
+
+const SORT_OPTIONS = ["newest", "price_asc", "price_desc", "area_desc"];
 
 // Referencia estable para el default de `excludeTypes`: un `= []` inline en
 // la firma de la función crea un arreglo nuevo en cada render, lo que
@@ -28,13 +44,21 @@ const NO_EXCLUDED_TYPES = [];
 // aquí por default sin tocar código.
 export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES, titleKey = "properties.title", subtitleKey = "properties.subtitle" }) {
   const { t } = useTranslation();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState({
-    ...EMPTY_FILTERS,
     type: searchParams.get("tipo") || "",
+    operationType: searchParams.get("operacion") || "",
+    tipoNave: searchParams.get("navetipo") || "",
     zone: searchParams.get("zona") || "",
     minPrice: searchParams.get("min") || "",
     maxPrice: searchParams.get("max") || "",
+    minArea: searchParams.get("minm2") || "",
+    maxArea: searchParams.get("maxm2") || "",
+    minBedrooms: searchParams.get("recamaras") || "",
+    minBathrooms: searchParams.get("banos") || "",
+    minParking: searchParams.get("estacionamiento") || "",
+    amenities: searchParams.get("amenidades")?.split(",").filter(Boolean) || [],
+    sortBy: searchParams.get("orden") || "newest",
   });
   const [properties, setProperties] = useState([]);
   const [zones, setZones] = useState([]);
@@ -50,6 +74,29 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
       .catch(() => setPropertyTypes([]))
       .finally(() => setTypesLoaded(true));
   }, []);
+
+  // Refleja los filtros en la URL en cada cambio — antes solo se leían al
+  // cargar y nunca se volvían a escribir, así que "Volver" desde una ficha
+  // reiniciaba la búsqueda. `replace: true` evita ensuciar el historial en
+  // cada tecleo: cada ajuste de filtro pisa la misma entrada, y es esa
+  // entrada (con el filtro ya actualizado) la que "Volver" restaura.
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters.type) params.set("tipo", filters.type);
+    if (filters.operationType) params.set("operacion", filters.operationType);
+    if (filters.tipoNave) params.set("navetipo", filters.tipoNave);
+    if (filters.zone) params.set("zona", filters.zone);
+    if (filters.minPrice) params.set("min", filters.minPrice);
+    if (filters.maxPrice) params.set("max", filters.maxPrice);
+    if (filters.minArea) params.set("minm2", filters.minArea);
+    if (filters.maxArea) params.set("maxm2", filters.maxArea);
+    if (filters.minBedrooms) params.set("recamaras", filters.minBedrooms);
+    if (filters.minBathrooms) params.set("banos", filters.minBathrooms);
+    if (filters.minParking) params.set("estacionamiento", filters.minParking);
+    if (filters.amenities.length) params.set("amenidades", filters.amenities.join(","));
+    if (filters.sortBy && filters.sortBy !== "newest") params.set("orden", filters.sortBy);
+    setSearchParams(params, { replace: true });
+  }, [filters, setSearchParams]);
 
   // Apartado dedicado a un tipo desactivado desde /admin/zonas (Naves
   // Industriales/Terrenos hoy) — se muestra "Próximamente" en vez del
@@ -77,6 +124,11 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
       maxPrice: filters.maxPrice ? Number(filters.maxPrice) : undefined,
       minArea: filters.minArea ? Number(filters.minArea) : undefined,
       maxArea: filters.maxArea ? Number(filters.maxArea) : undefined,
+      minBedrooms: filters.minBedrooms ? Number(filters.minBedrooms) : undefined,
+      minBathrooms: filters.minBathrooms ? Number(filters.minBathrooms) : undefined,
+      minParking: filters.minParking ? Number(filters.minParking) : undefined,
+      amenities: filters.amenities.length ? filters.amenities : undefined,
+      sortBy: filters.sortBy,
     }),
     [filters, fixedType, sectionTypes]
   );
@@ -132,13 +184,26 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
           <div className="properties-page__results">
             <div className="properties-page__toolbar">
               <span>{t(properties.length === 1 ? "properties.results_one" : "properties.results_other", { count: properties.length })}</span>
-              <div className="properties-page__view-toggle">
-                <button type="button" className={view === "list" ? "active" : ""} onClick={() => setView("list")}>
-                  {t("properties.listView")}
-                </button>
-                <button type="button" className={view === "map" ? "active" : ""} onClick={() => setView("map")}>
-                  {t("properties.mapView")}
-                </button>
+              <div className="properties-page__toolbar-actions">
+                <select
+                  aria-label={t("properties.sortBy")}
+                  value={filters.sortBy}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, sortBy: e.target.value }))}
+                >
+                  {SORT_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {t(`properties.sort.${option}`)}
+                    </option>
+                  ))}
+                </select>
+                <div className="properties-page__view-toggle">
+                  <button type="button" className={view === "list" ? "active" : ""} onClick={() => setView("list")}>
+                    {t("properties.listView")}
+                  </button>
+                  <button type="button" className={view === "map" ? "active" : ""} onClick={() => setView("map")}>
+                    {t("properties.mapView")}
+                  </button>
+                </div>
               </div>
             </div>
 

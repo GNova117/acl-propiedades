@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
@@ -150,6 +150,7 @@ export default function PropertyDetail() {
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [similar, setSimilar] = useState([]);
+  const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
 
   useEffect(() => {
     let active = true;
@@ -161,6 +162,75 @@ export default function PropertyDetail() {
       active = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    db.getAmenities().then(setAmenitiesCatalog).catch(() => setAmenitiesCatalog([]));
+  }, []);
+
+  const seoTitle = useMemo(() => {
+    if (!property) return "";
+    return `${propertyTypeLabel(t, property.type)} en ${t(`propertyOperation.${property.operation_type}`)} — ${property.zone} · ${formatMXN(property.price)}`;
+  }, [property, t]);
+
+  const seoDescription = useMemo(() => {
+    if (!property) return "";
+    const facts = [
+      property.bedrooms != null && `${property.bedrooms} ${t("properties.bedrooms")}`,
+      property.bathrooms != null && `${property.bathrooms} ${t("properties.bathrooms")}`,
+      formatArea(property.area_m2),
+    ]
+      .filter(Boolean)
+      .join(", ");
+    const lead = `${facts} en ${property.zone}. `;
+    const remaining = Math.max(0, 155 - lead.length);
+    return `${lead}${(property.description || "").slice(0, remaining)}`.trim();
+  }, [property, t]);
+
+  const jsonLd = useMemo(() => {
+    if (!property || typeof window === "undefined") return undefined;
+    const url = `${window.location.origin}/propiedades/${property.id}`;
+    return [
+      {
+        "@context": "https://schema.org",
+        "@type": "RealEstateListing",
+        name: property.title,
+        description: property.description,
+        url,
+        image: property.images,
+        offers: {
+          "@type": "Offer",
+          price: property.price,
+          priceCurrency: "MXN",
+          availability: property.status === "disponible" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        },
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: property.address,
+          addressLocality: property.zone,
+          addressCountry: "MX",
+        },
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: property.lat,
+          longitude: property.lng,
+        },
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Inicio", item: window.location.origin },
+          { "@type": "ListItem", position: 2, name: "Propiedades", item: `${window.location.origin}/propiedades` },
+          { "@type": "ListItem", position: 3, name: property.title, item: url },
+        ],
+      },
+    ];
+  }, [property]);
+
+  const propertyAmenities = useMemo(() => {
+    if (!property?.amenities?.length) return [];
+    return amenitiesCatalog.filter((a) => property.amenities.includes(a.key));
+  }, [property, amenitiesCatalog]);
 
   // Espacios similares: mismo tipo, disponibles, priorizando la misma zona.
   // No es una recomendación "inteligente" — es un filtro simple y honesto.
@@ -190,7 +260,7 @@ export default function PropertyDetail() {
 
   return (
     <>
-      <Seo title={property.title} description={property.description} />
+      <Seo title={seoTitle} description={seoDescription} jsonLd={jsonLd} />
 
       <div className="container property-detail">
         <Link to="/propiedades" className="property-detail__back">
@@ -239,6 +309,17 @@ export default function PropertyDetail() {
               <h2>{t("detail.description")}</h2>
               <p>{property.description}</p>
             </section>
+
+            {propertyAmenities.length > 0 && (
+              <section>
+                <h2>{t("detail.amenitiesTitle")}</h2>
+                <ul className="property-detail__amenities">
+                  {propertyAmenities.map((amenity) => (
+                    <li key={amenity.id}>{amenity.label}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {property.videos && property.videos.length > 0 && (
               <section>

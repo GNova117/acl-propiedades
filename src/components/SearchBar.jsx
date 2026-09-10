@@ -11,6 +11,9 @@ export default function SearchBar() {
   const [zones, setZones] = useState([]);
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [form, setForm] = useState({ type: "", zone: "", minPrice: "", maxPrice: "" });
+  const [codeInput, setCodeInput] = useState("");
+  const [codeError, setCodeError] = useState(false);
+  const [searchingCode, setSearchingCode] = useState(false);
 
   useEffect(() => {
     db.getZones().then(setZones).catch(() => setZones([]));
@@ -34,45 +37,79 @@ export default function SearchBar() {
     navigate(`${path}?${params.toString()}`);
   };
 
+  const handleCodeSearch = async (e) => {
+    e.preventDefault();
+    if (!codeInput.trim()) return;
+    setSearchingCode(true);
+    setCodeError(false);
+    try {
+      const found = await db.getPropertyByCode(codeInput);
+      if (found) {
+        navigate(`/propiedades/${found.id}`);
+      } else {
+        setCodeError(true);
+      }
+    } finally {
+      setSearchingCode(false);
+    }
+  };
+
   return (
-    <form className="search-bar" onSubmit={handleSubmit}>
-      <div className="search-bar__field">
-        <label htmlFor="search-type">{t("hero.searchType")}</label>
-        <select id="search-type" name="type" value={form.type} onChange={handleChange}>
-          <option value="">{t("hero.allTypes")}</option>
-          {propertyTypes.map((pt) => (
-            <option key={pt.id} value={pt.key}>
-              {propertyTypeLabel(t, pt.key)}
-            </option>
-          ))}
-        </select>
-      </div>
+    <div>
+      <form className="search-bar" onSubmit={handleSubmit}>
+        <div className="search-bar__field">
+          <label htmlFor="search-type">{t("hero.searchType")}</label>
+          <select id="search-type" name="type" value={form.type} onChange={handleChange}>
+            <option value="">{t("hero.allTypes")}</option>
+            {propertyTypes.map((pt) => (
+              <option key={pt.id} value={pt.key}>
+                {propertyTypeLabel(t, pt.key)}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <div className="search-bar__field">
-        <label htmlFor="search-zone">{t("hero.searchZone")}</label>
-        <select id="search-zone" name="zone" value={form.zone} onChange={handleChange}>
-          <option value="">{t("hero.allZones")}</option>
-          {zones.map((zone) => (
-            <option key={zone.id} value={zone.name}>
-              {zone.name}
-            </option>
-          ))}
-        </select>
-      </div>
+        <div className="search-bar__field">
+          <label htmlFor="search-zone">{t("hero.searchZone")}</label>
+          <input id="search-zone" name="zone" list="search-bar-zones" value={form.zone} onChange={handleChange} placeholder={t("hero.allZones")} />
+          <datalist id="search-bar-zones">
+            {zones.map((zone) => (
+              <option key={zone.id} value={zone.name} />
+            ))}
+          </datalist>
+        </div>
 
-      <div className="search-bar__field">
-        <label htmlFor="search-min">{t("hero.searchMin")}</label>
-        <input id="search-min" name="minPrice" type="number" min="0" placeholder="$0" value={form.minPrice} onChange={handleChange} />
-      </div>
+        <div className="search-bar__field">
+          <label htmlFor="search-min">{t("hero.searchMin")}</label>
+          <input id="search-min" name="minPrice" type="number" min="0" placeholder="$0" value={form.minPrice} onChange={handleChange} />
+        </div>
 
-      <div className="search-bar__field">
-        <label htmlFor="search-max">{t("hero.searchMax")}</label>
-        <input id="search-max" name="maxPrice" type="number" min="0" placeholder="$10,000,000" value={form.maxPrice} onChange={handleChange} />
-      </div>
+        <div className="search-bar__field">
+          <label htmlFor="search-max">{t("hero.searchMax")}</label>
+          <input id="search-max" name="maxPrice" type="number" min="0" placeholder="$10,000,000" value={form.maxPrice} onChange={handleChange} />
+        </div>
 
-      <button type="submit" className="btn btn-primary search-bar__submit">
-        {t("hero.searchButton")}
-      </button>
-    </form>
+        <button type="submit" className="btn btn-primary search-bar__submit">
+          {t("hero.searchButton")}
+        </button>
+      </form>
+
+      <form className="search-bar__code" onSubmit={handleCodeSearch}>
+        <label htmlFor="search-code">{t("properties.searchByCode")}</label>
+        <input
+          id="search-code"
+          placeholder={t("properties.codePlaceholder")}
+          value={codeInput}
+          onChange={(e) => {
+            setCodeInput(e.target.value);
+            setCodeError(false);
+          }}
+        />
+        <button type="submit" className="btn btn-outline btn-sm" disabled={searchingCode || !codeInput.trim()}>
+          {t("properties.codeSearchButton")}
+        </button>
+        {codeError && <span className="form-error">{t("properties.codeNotFound")}</span>}
+      </form>
+    </div>
   );
 }

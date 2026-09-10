@@ -1,4 +1,4 @@
-import { ZONES, ADVISORS, PROPERTIES, PROPERTY_TYPES_SEED, DEMO_ADMIN, ADMIN_ROLES_SEED, ADMIN_ACCESS_SEED } from "./seedData";
+import { ZONES, ADVISORS, PROPERTIES, PROPERTY_TYPES_SEED, AMENITIES_SEED, DEMO_ADMIN, ADMIN_ROLES_SEED, ADMIN_ACCESS_SEED } from "./seedData";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify, numOrNull } from "./format";
@@ -22,6 +22,8 @@ const KEYS = {
   adminAccess: "acl_local_admin_access",
   agendaCitas: "acl_local_agenda_citas",
   agendaExpedientes: "acl_local_agenda_expedientes",
+  amenities: "acl_local_amenities",
+  propertyCodeSeq: "acl_local_property_code_seq",
 };
 
 function readStore(key, fallback) {
@@ -64,6 +66,16 @@ function uid(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+// Arranca después de los 9 códigos sembrados (ACL-1001..1009) — mismo
+// esquema que la secuencia de Postgres (properties_code_seq start 1001),
+// solo que aquí no hay trigger de base de datos que lo haga solo.
+function nextPropertyCode() {
+  const current = Number(window.localStorage.getItem(KEYS.propertyCodeSeq) || "1009");
+  const next = current + 1;
+  window.localStorage.setItem(KEYS.propertyCodeSeq, String(next));
+  return `ACL-${next}`;
+}
+
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -94,8 +106,22 @@ function matchesFilters(property, filters = {}) {
   if (filters.maxPrice != null && property.price > filters.maxPrice) return false;
   if (filters.minArea != null && property.area_m2 < filters.minArea) return false;
   if (filters.maxArea != null && property.area_m2 > filters.maxArea) return false;
+  if (filters.minBedrooms != null && (property.bedrooms ?? -Infinity) < filters.minBedrooms) return false;
+  if (filters.minBathrooms != null && (property.bathrooms ?? -Infinity) < filters.minBathrooms) return false;
+  if (filters.minParking != null && (property.parking ?? -Infinity) < filters.minParking) return false;
+  if (filters.amenities?.length && !filters.amenities.every((a) => (property.amenities || []).includes(a))) return false;
   return true;
 }
+
+// "newest" en modo local es orden de inserción invertido — a diferencia
+// de Supabase, los registros sembrados/agregados aquí no tienen un
+// created_at real que ordenar.
+const SORTERS = {
+  newest: (list) => list.slice().reverse(),
+  price_asc: (list) => list.slice().sort((a, b) => a.price - b.price),
+  price_desc: (list) => list.slice().sort((a, b) => b.price - a.price),
+  area_desc: (list) => list.slice().sort((a, b) => b.area_m2 - a.area_m2),
+};
 
 const authListeners = new Set();
 
@@ -118,13 +144,23 @@ export const localBackend = {
   async getProperties(filters = {}) {
     const properties = readStore(KEYS.properties, PROPERTIES);
     const advisors = readStore(KEYS.advisors, ADVISORS);
-    return properties.filter((p) => matchesFilters(p, filters)).map((p) => withAdvisors(p, advisors));
+    const filtered = properties.filter((p) => matchesFilters(p, filters));
+    const sorted = (SORTERS[filters.sortBy] || SORTERS.newest)(filtered);
+    return sorted.map((p) => withAdvisors(p, advisors));
   },
 
   async getPropertyById(id) {
     const properties = readStore(KEYS.properties, PROPERTIES);
     const advisors = readStore(KEYS.advisors, ADVISORS);
     const found = properties.find((p) => p.id === id);
+    return found ? withAdvisors(found, advisors) : null;
+  },
+
+  async getPropertyByCode(code) {
+    const properties = readStore(KEYS.properties, PROPERTIES);
+    const advisors = readStore(KEYS.advisors, ADVISORS);
+    const normalized = code.trim().toUpperCase();
+    const found = properties.find((p) => p.code === normalized);
     return found ? withAdvisors(found, advisors) : null;
   },
 
@@ -136,6 +172,7 @@ export const localBackend = {
     const videos = [...(data.existingVideos || []), ...newVideos];
     const record = {
       id: uid("prop"),
+      code: nextPropertyCode(),
       title: data.title,
       type: data.type,
       description: data.description,
@@ -173,6 +210,7 @@ export const localBackend = {
       rampas_vehiculares: numOrNull(data.rampas_vehiculares),
       mantenimiento_pct: numOrNull(data.mantenimiento_pct),
       tipo_nave: data.tipo_nave || null,
+      amenities: data.amenities || [],
     };
     properties.push(record);
     writeStoreOrThrowFriendly(KEYS.properties, properties);
@@ -237,6 +275,8 @@ export const localBackend = {
       rampas_vehiculares: numOrNull(data.rampas_vehiculares),
       mantenimiento_pct: numOrNull(data.mantenimiento_pct),
       tipo_nave: data.tipo_nave || null,
+      amenities: data.amenities || [],
+      updated_at: new Date().toISOString(),
     };
     properties[idx] = updated;
     writeStoreOrThrowFriendly(KEYS.properties, properties);
@@ -351,6 +391,28 @@ export const localBackend = {
   async deletePropertyType(id) {
     const types = readStore(KEYS.propertyTypes, PROPERTY_TYPES_SEED);
     writeStore(KEYS.propertyTypes, types.filter((t) => t.id !== id));
+  },
+
+  async getAmenities() {
+    return readStore(KEYS.amenities, AMENITIES_SEED);
+  },
+
+  async addAmenity(data) {
+    const amenities = readStore(KEYS.amenities, AMENITIES_SEED);
+    const label = data.label.trim();
+    const key = slugify(label);
+    if (amenities.some((a) => a.key === key)) {
+      throw new Error("Ya existe una amenidad con ese nombre");
+    }
+    const record = { id: uid("amenity"), key, label, active: true };
+    amenities.push(record);
+    writeStore(KEYS.amenities, amenities);
+    return record;
+  },
+
+  async deleteAmenity(id) {
+    const amenities = readStore(KEYS.amenities, AMENITIES_SEED);
+    writeStore(KEYS.amenities, amenities.filter((a) => a.id !== id));
   },
 
   async togglePropertyTypeActive(id, active) {

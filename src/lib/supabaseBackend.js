@@ -45,15 +45,18 @@ function mapPropertyRow(row) {
 
 const PROPERTY_SELECT = "*, property_advisors(advisor_id, advisors(*))";
 
+const PROPERTY_SORTERS = {
+  newest: [["created_at", false], ["id", true]],
+  price_asc: [["price", true]],
+  price_desc: [["price", false]],
+  area_desc: [["area_m2", false]],
+};
+
 export const supabaseBackend = {
   mode: "supabase",
 
   async getProperties(filters = {}) {
-    let query = supabase
-      .from("properties")
-      .select(PROPERTY_SELECT)
-      .order("created_at", { ascending: false })
-      .order("id", { ascending: true });
+    let query = supabase.from("properties").select(PROPERTY_SELECT);
     if (filters.activeOnly) query = query.eq("active", true);
     if (filters.type) query = query.eq("type", filters.type);
     else if (filters.types) query = query.in("type", filters.types);
@@ -64,6 +67,13 @@ export const supabaseBackend = {
     if (filters.maxPrice != null) query = query.lte("price", filters.maxPrice);
     if (filters.minArea != null) query = query.gte("area_m2", filters.minArea);
     if (filters.maxArea != null) query = query.lte("area_m2", filters.maxArea);
+    if (filters.minBedrooms != null) query = query.gte("bedrooms", filters.minBedrooms);
+    if (filters.minBathrooms != null) query = query.gte("bathrooms", filters.minBathrooms);
+    if (filters.minParking != null) query = query.gte("parking", filters.minParking);
+    if (filters.amenities?.length) query = query.contains("amenities", filters.amenities);
+    for (const [column, ascending] of PROPERTY_SORTERS[filters.sortBy] || PROPERTY_SORTERS.newest) {
+      query = query.order(column, { ascending });
+    }
     const { data, error } = await query;
     if (error) throw error;
     return (data || []).map(mapPropertyRow);
@@ -71,6 +81,13 @@ export const supabaseBackend = {
 
   async getPropertyById(id) {
     const { data, error } = await supabase.from("properties").select(PROPERTY_SELECT).eq("id", id).maybeSingle();
+    if (error) throw error;
+    return data ? mapPropertyRow(data) : null;
+  },
+
+  async getPropertyByCode(code) {
+    const normalized = code.trim().toUpperCase();
+    const { data, error } = await supabase.from("properties").select(PROPERTY_SELECT).eq("code", normalized).maybeSingle();
     if (error) throw error;
     return data ? mapPropertyRow(data) : null;
   },
@@ -117,6 +134,7 @@ export const supabaseBackend = {
       rampas_vehiculares: numOrNull(data.rampas_vehiculares),
       mantenimiento_pct: numOrNull(data.mantenimiento_pct),
       tipo_nave: data.tipo_nave || null,
+      amenities: data.amenities || [],
     };
     const { data: inserted, error } = await supabase.from("properties").insert(payload).select().single();
     if (error) throw error;
@@ -177,6 +195,8 @@ export const supabaseBackend = {
       rampas_vehiculares: numOrNull(data.rampas_vehiculares),
       mantenimiento_pct: numOrNull(data.mantenimiento_pct),
       tipo_nave: data.tipo_nave || null,
+      amenities: data.amenities || [],
+      updated_at: new Date().toISOString(),
     };
     const { data: updated, error } = await supabase.from("properties").update(payload).eq("id", id).select().single();
     if (error) throw error;
@@ -289,6 +309,25 @@ export const supabaseBackend = {
 
   async deletePropertyType(id) {
     const { error } = await supabase.from("property_types").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  async getAmenities() {
+    const { data, error } = await supabase.from("amenities_catalog").select("*").order("label");
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addAmenity(data) {
+    const label = data.label.trim();
+    const payload = { key: slugify(label), label };
+    const { data: inserted, error } = await supabase.from("amenities_catalog").insert(payload).select().single();
+    if (error) throw error;
+    return inserted;
+  },
+
+  async deleteAmenity(id) {
+    const { error } = await supabase.from("amenities_catalog").delete().eq("id", id);
     if (error) throw error;
   },
 

@@ -60,6 +60,7 @@ export const ADVISORS = [
 export const PROPERTIES = [
   {
     id: "prop-1",
+    code: "ACL-1001",
     title: "Casa en Residencial Senderos",
     type: "casa",
     description:
@@ -83,9 +84,11 @@ export const PROPERTIES = [
       "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=1000&q=80",
     ],
     advisor_ids: ["advisor-1", "advisor-2"],
+    amenities: ["alberca", "seguridad_24h", "estacionamiento_techado"],
   },
   {
     id: "prop-2",
+    code: "ACL-1002",
     title: "Casa en Las Fuentes",
     type: "casa",
     description:
@@ -111,6 +114,7 @@ export const PROPERTIES = [
   },
   {
     id: "prop-3",
+    code: "ACL-1003",
     title: "Casa en Los Fresnos",
     type: "casa",
     description:
@@ -133,6 +137,7 @@ export const PROPERTIES = [
   },
   {
     id: "prop-4",
+    code: "ACL-1004",
     title: "Departamento en Centro de Torreón",
     type: "departamento",
     description:
@@ -155,9 +160,11 @@ export const PROPERTIES = [
       "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1000&q=80",
     ],
     advisor_ids: ["advisor-2"],
+    amenities: ["amueblado", "aire_acondicionado"],
   },
   {
     id: "prop-5",
+    code: "ACL-1005",
     title: "Departamento en Valle del Guadiana",
     type: "departamento",
     description:
@@ -180,6 +187,7 @@ export const PROPERTIES = [
   },
   {
     id: "prop-6",
+    code: "ACL-1006",
     title: "Departamento en Lerdo Centro",
     type: "departamento",
     description: "Cómodo departamento de un nivel cerca del centro de Lerdo, ideal para parejas o inversión en renta.",
@@ -201,6 +209,7 @@ export const PROPERTIES = [
   },
   {
     id: "prop-7",
+    code: "ACL-1007",
     title: "Nave Industrial en Parque Industrial Lagunero",
     type: "nave_industrial",
     description:
@@ -226,6 +235,7 @@ export const PROPERTIES = [
   },
   {
     id: "prop-8",
+    code: "ACL-1008",
     title: "Nave Industrial en Parque Industrial Torreón",
     type: "nave_industrial",
     description:
@@ -248,6 +258,7 @@ export const PROPERTIES = [
   },
   {
     id: "prop-9",
+    code: "ACL-1009",
     title: "Nave Industrial en Lerdo",
     type: "nave_industrial",
     description:
@@ -268,6 +279,17 @@ export const PROPERTIES = [
     images: ["https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1000&q=80"],
     advisor_ids: ["advisor-3"],
   },
+];
+
+export const AMENITIES_SEED = [
+  { id: "amenity-1", key: "alberca", label: "Alberca", active: true },
+  { id: "amenity-2", key: "seguridad_24h", label: "Seguridad 24h", active: true },
+  { id: "amenity-3", key: "acepta_mascotas", label: "Acepta mascotas", active: true },
+  { id: "amenity-4", key: "amueblado", label: "Amueblado", active: true },
+  { id: "amenity-5", key: "estacionamiento_techado", label: "Estacionamiento techado", active: true },
+  { id: "amenity-6", key: "area_comun", label: "Área común / jardín", active: true },
+  { id: "amenity-7", key: "aire_acondicionado", label: "Aire acondicionado", active: true },
+  { id: "amenity-8", key: "bodega", label: "Bodega", active: true },
 ];
 
 export const DEMO_ADMIN = {

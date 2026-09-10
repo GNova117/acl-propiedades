@@ -9,6 +9,7 @@ export default function AdminZones() {
   const [zones, setZones] = useState([]);
   const [properties, setProperties] = useState([]);
   const [propertyTypes, setPropertyTypes] = useState([]);
+  const [amenities, setAmenities] = useState([]);
   const [drafts, setDrafts] = useState({});
   const [savingId, setSavingId] = useState(null);
   const [savedId, setSavedId] = useState(null);
@@ -21,20 +22,27 @@ export default function AdminZones() {
   const [deletingTypeId, setDeletingTypeId] = useState(null);
   const [togglingTypeId, setTogglingTypeId] = useState(null);
   const [uploadingImageId, setUploadingImageId] = useState(null);
+  const [newAmenityLabel, setNewAmenityLabel] = useState("");
+  const [addingAmenity, setAddingAmenity] = useState(false);
+  const [deletingAmenityId, setDeletingAmenityId] = useState(null);
 
   const load = () => {
-    Promise.all([db.getZones(), db.getProperties({}), db.getPropertyTypes()]).then(([zoneData, propertyData, typeData]) => {
-      setZones(zoneData);
-      setProperties(propertyData);
-      setPropertyTypes(typeData);
-      setDrafts(Object.fromEntries(zoneData.map((z) => [z.id, z.price_per_m2])));
-    });
+    Promise.all([db.getZones(), db.getProperties({}), db.getPropertyTypes(), db.getAmenities()]).then(
+      ([zoneData, propertyData, typeData, amenityData]) => {
+        setZones(zoneData);
+        setProperties(propertyData);
+        setPropertyTypes(typeData);
+        setAmenities(amenityData);
+        setDrafts(Object.fromEntries(zoneData.map((z) => [z.id, z.price_per_m2])));
+      }
+    );
   };
 
   useEffect(load, []);
 
   const propertyCountByZone = (zoneName) => properties.filter((p) => p.zone === zoneName).length;
   const propertyCountByType = (typeKey) => properties.filter((p) => p.type === typeKey).length;
+  const propertyCountByAmenity = (key) => properties.filter((p) => (p.amenities || []).includes(key)).length;
 
   const handleSave = async (zone) => {
     setSavingId(zone.id);
@@ -127,6 +135,34 @@ export default function AdminZones() {
       window.alert(err.message || "Error al subir la imagen");
     } finally {
       setUploadingImageId(null);
+    }
+  };
+
+  const handleAddAmenity = async (e) => {
+    e.preventDefault();
+    if (!newAmenityLabel.trim()) return;
+    setAddingAmenity(true);
+    try {
+      await db.addAmenity({ label: newAmenityLabel });
+      setNewAmenityLabel("");
+      load();
+    } catch (err) {
+      window.alert(err.message || "Error al agregar la amenidad");
+    } finally {
+      setAddingAmenity(false);
+    }
+  };
+
+  const handleDeleteAmenity = async (amenity) => {
+    if (!window.confirm(t("common.confirmDelete"))) return;
+    setDeletingAmenityId(amenity.id);
+    try {
+      await db.deleteAmenity(amenity.id);
+      load();
+    } catch (err) {
+      window.alert(err.message || "Error al eliminar la amenidad");
+    } finally {
+      setDeletingAmenityId(null);
     }
   };
 
@@ -248,6 +284,45 @@ export default function AdminZones() {
                   {t("common.delete")}
                 </button>
               </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="admin-header" style={{ marginTop: "2.5rem" }}>
+        <h1>{t("admin.amenities")}</h1>
+      </div>
+
+      <form className="card admin-form" onSubmit={handleAddAmenity} style={{ maxWidth: 480, marginBottom: "1.5rem" }}>
+        <h2 className="profiling-section-title">{t("admin.newAmenity")}</h2>
+        <div className="form-field">
+          <label htmlFor="amenity-new-name">{t("properties.amenities")}</label>
+          <input id="amenity-new-name" value={newAmenityLabel} onChange={(e) => setNewAmenityLabel(e.target.value)} placeholder="Alberca" />
+        </div>
+        <div className="admin-form__actions">
+          <button type="submit" className="btn btn-primary" disabled={addingAmenity || !newAmenityLabel.trim()}>
+            {addingAmenity ? <span className="spinner" /> : null}
+            {t("admin.newAmenity")}
+          </button>
+        </div>
+      </form>
+
+      <div className="admin-zones-grid">
+        {amenities.map((amenity) => {
+          const inUse = propertyCountByAmenity(amenity.key);
+          return (
+            <div key={amenity.id} className="card admin-zone-card">
+              <h3>{amenity.label}</h3>
+              <p className="form-hint">{t(inUse === 1 ? "propertyTypesModule.inUse_one" : "propertyTypesModule.inUse_other", { count: inUse })}</p>
+              <button
+                type="button"
+                className="btn btn-danger btn-sm"
+                onClick={() => handleDeleteAmenity(amenity)}
+                disabled={inUse > 0 || deletingAmenityId === amenity.id}
+                title={inUse > 0 ? t("propertyTypesModule.cannotDelete") : undefined}
+              >
+                {t("common.delete")}
+              </button>
             </div>
           );
         })}

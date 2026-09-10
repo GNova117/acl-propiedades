@@ -78,6 +78,7 @@ export default function AdminProperties({
           <thead>
             <tr>
               <th></th>
+              <th>{t("detail.code")}</th>
               <th>Título</th>
               <th>{t("properties.type")}</th>
               {fixedType === "nave_industrial" && <th>{t("properties.naveTipo")}</th>}
@@ -91,15 +92,16 @@ export default function AdminProperties({
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={fixedType === "nave_industrial" ? 10 : 9}>{t("common.loading")}</td></tr>
+              <tr><td colSpan={fixedType === "nave_industrial" ? 11 : 10}>{t("common.loading")}</td></tr>
             ) : properties.length === 0 ? (
-              <tr><td colSpan={fixedType === "nave_industrial" ? 10 : 9}>{t("properties.noResults")}</td></tr>
+              <tr><td colSpan={fixedType === "nave_industrial" ? 11 : 10}>{t("properties.noResults")}</td></tr>
             ) : (
               properties.map((property) => {
                 const remodelProject = remodelProjects.find((r) => r.property_id === property.id);
                 return (
                   <tr key={property.id}>
                     <td><img src={property.main_image} alt="" /></td>
+                    <td>{property.code || "—"}</td>
                     <td>{property.title}</td>
                     <td>{propertyTypeLabel(t, property.type)}</td>
                     {fixedType === "nave_industrial" && <td>{property.tipo_nave ? t(`naveTipo.${property.tipo_nave}`) : "—"}</td>}

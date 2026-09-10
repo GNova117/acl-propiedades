@@ -1,11 +1,50 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { propertyTypeLabel } from "../lib/format";
+import { db } from "../lib/dataStore";
 import "./PropertyFilters.css";
+
+const MIN_OPTIONS = ["1", "2", "3", "4", "5"];
 
 export default function PropertyFilters({ filters, zones, typeOptions = [], showOperation = true, showNaveTipo = false, onChange, onClear }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [amenities, setAmenities] = useState([]);
+  const [codeInput, setCodeInput] = useState("");
+  const [codeError, setCodeError] = useState(false);
+  const [searchingCode, setSearchingCode] = useState(false);
+
+  useEffect(() => {
+    db.getAmenities().then(setAmenities).catch(() => setAmenities([]));
+  }, []);
 
   const handle = (field) => (e) => onChange({ ...filters, [field]: e.target.value });
+
+  const toggleAmenity = (key) => {
+    const current = filters.amenities || [];
+    onChange({
+      ...filters,
+      amenities: current.includes(key) ? current.filter((a) => a !== key) : [...current, key],
+    });
+  };
+
+  const handleCodeSearch = async (e) => {
+    e.preventDefault();
+    if (!codeInput.trim()) return;
+    setSearchingCode(true);
+    setCodeError(false);
+    try {
+      const found = await db.getPropertyByCode(codeInput);
+      if (found) {
+        navigate(`/propiedades/${found.id}`);
+      } else {
+        setCodeError(true);
+      }
+    } finally {
+      setSearchingCode(false);
+    }
+  };
 
   return (
     <div className="property-filters card">
@@ -15,6 +54,25 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
           {t("properties.clear")}
         </button>
       </div>
+
+      <form className="form-field" onSubmit={handleCodeSearch}>
+        <label htmlFor="filter-code">{t("properties.searchByCode")}</label>
+        <div className="property-filters__code-row">
+          <input
+            id="filter-code"
+            placeholder={t("properties.codePlaceholder")}
+            value={codeInput}
+            onChange={(e) => {
+              setCodeInput(e.target.value);
+              setCodeError(false);
+            }}
+          />
+          <button type="submit" className="btn btn-outline btn-sm" disabled={searchingCode || !codeInput.trim()}>
+            {t("properties.codeSearchButton")}
+          </button>
+        </div>
+        {codeError && <span className="form-error">{t("properties.codeNotFound")}</span>}
+      </form>
 
       {typeOptions.length > 0 && (
         <div className="form-field">
@@ -54,14 +112,12 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
 
       <div className="form-field">
         <label htmlFor="filter-zone">{t("properties.zone")}</label>
-        <select id="filter-zone" value={filters.zone} onChange={handle("zone")}>
-          <option value="">{t("hero.allZones")}</option>
+        <input id="filter-zone" list="property-filters-zones" value={filters.zone} onChange={handle("zone")} placeholder={t("hero.allZones")} />
+        <datalist id="property-filters-zones">
           {zones.map((zone) => (
-            <option key={zone.id} value={zone.name}>
-              {zone.name}
-            </option>
+            <option key={zone.id} value={zone.name} />
           ))}
-        </select>
+        </datalist>
       </div>
 
       <div className="form-row">
@@ -75,16 +131,74 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
         </div>
       </div>
 
-      <div className="form-row">
-        <div className="form-field">
-          <label htmlFor="filter-min-area">{t("properties.minArea")}</label>
-          <input id="filter-min-area" type="number" min="0" value={filters.minArea} onChange={handle("minArea")} />
+      <details className="property-filters__more" open>
+        <summary>{t("properties.moreFilters")}</summary>
+
+        <div className="form-row">
+          <div className="form-field">
+            <label htmlFor="filter-min-area">{t("properties.minArea")}</label>
+            <input id="filter-min-area" type="number" min="0" value={filters.minArea} onChange={handle("minArea")} />
+          </div>
+          <div className="form-field">
+            <label htmlFor="filter-max-area">{t("properties.maxArea")}</label>
+            <input id="filter-max-area" type="number" min="0" value={filters.maxArea} onChange={handle("maxArea")} />
+          </div>
         </div>
-        <div className="form-field">
-          <label htmlFor="filter-max-area">{t("properties.maxArea")}</label>
-          <input id="filter-max-area" type="number" min="0" value={filters.maxArea} onChange={handle("maxArea")} />
+
+        <div className="form-row">
+          <div className="form-field">
+            <label htmlFor="filter-bedrooms">{t("properties.minBedrooms")}</label>
+            <select id="filter-bedrooms" value={filters.minBedrooms} onChange={handle("minBedrooms")}>
+              <option value="">—</option>
+              {MIN_OPTIONS.map((n) => (
+                <option key={n} value={n}>
+                  {n}+
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-field">
+            <label htmlFor="filter-bathrooms">{t("properties.minBathrooms")}</label>
+            <select id="filter-bathrooms" value={filters.minBathrooms} onChange={handle("minBathrooms")}>
+              <option value="">—</option>
+              {MIN_OPTIONS.map((n) => (
+                <option key={n} value={n}>
+                  {n}+
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-field">
+            <label htmlFor="filter-parking">{t("properties.minParking")}</label>
+            <select id="filter-parking" value={filters.minParking} onChange={handle("minParking")}>
+              <option value="">—</option>
+              {MIN_OPTIONS.map((n) => (
+                <option key={n} value={n}>
+                  {n}+
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
+
+        {amenities.length > 0 && (
+          <div className="form-field">
+            <label>{t("properties.amenities")}</label>
+            <div className="property-filters__amenities">
+              {amenities.map((amenity) => (
+                <label key={amenity.id} className="property-filters__amenity">
+                  <input
+                    type="checkbox"
+                    checked={(filters.amenities || []).includes(amenity.key)}
+                    onChange={() => toggleAmenity(amenity.key)}
+                  />
+                  {amenity.label}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+      </details>
     </div>
   );
 }

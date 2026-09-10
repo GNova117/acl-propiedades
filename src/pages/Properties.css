@@ -20,6 +20,22 @@
   gap: 0.75rem;
 }
 
+.properties-page__toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.properties-page__toolbar-actions select {
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.85rem;
+}
+
 .properties-page__view-toggle {
   display: inline-flex;
   border: 1px solid var(--color-border);

@@ -21,3 +21,37 @@
     position: static;
   }
 }
+
+.property-filters__code-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.property-filters__code-row input {
+  flex: 1;
+}
+
+.property-filters__more {
+  margin-top: 0.5rem;
+}
+
+.property-filters__more summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.5rem 0;
+  color: var(--color-primary);
+}
+
+.property-filters__amenities {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem 1rem;
+}
+
+.property-filters__amenity {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 400;
+}
