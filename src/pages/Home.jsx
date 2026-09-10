@@ -4,6 +4,7 @@ import Seo from "../components/Seo";
 import SplitHero from "../components/SplitHero";
 import SearchBar from "../components/SearchBar";
 import CategoryCard from "../components/CategoryCard";
+import Reveal from "../components/Reveal";
 import { db } from "../lib/dataStore";
 import "./Home.css";
 
@@ -58,21 +59,22 @@ export default function Home() {
 
       <section className="section">
         <div className="container">
-          <div className="section-heading">
+          <Reveal className="section-heading">
             <span className="section-heading__eyebrow">{t("categories.eyebrow")}</span>
             <h2>{t("categories.title")}</h2>
-          </div>
+          </Reveal>
           <div className="home-categories">
-            {HOME_CATEGORY_TYPES.map((type) => {
+            {HOME_CATEGORY_TYPES.map((type, index) => {
               const typeRecord = typeByKey(type);
               return (
-                <CategoryCard
-                  key={type}
-                  type={type}
-                  count={counts[type]}
-                  active={!typeRecord || typeRecord.active !== false}
-                  imageUrl={typeRecord?.image_url}
-                />
+                <Reveal key={type} delay={index * 80}>
+                  <CategoryCard
+                    type={type}
+                    count={counts[type]}
+                    active={!typeRecord || typeRecord.active !== false}
+                    imageUrl={typeRecord?.image_url}
+                  />
+                </Reveal>
               );
             })}
           </div>

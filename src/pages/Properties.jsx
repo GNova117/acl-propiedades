@@ -5,6 +5,7 @@ import Seo from "../components/Seo";
 import PropertyFilters from "../components/PropertyFilters";
 import PropertyCard from "../components/PropertyCard";
 import PropertyMap from "../components/PropertyMap";
+import Reveal from "../components/Reveal";
 import { db } from "../lib/dataStore";
 import "./Properties.css";
 
@@ -149,8 +150,10 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
               <PropertyMap properties={properties} height={560} />
             ) : (
               <div className="properties-grid">
-                {properties.map((property) => (
-                  <PropertyCard key={property.id} property={property} />
+                {properties.map((property, index) => (
+                  <Reveal key={property.id} delay={(index % 6) * 70}>
+                    <PropertyCard property={property} />
+                  </Reveal>
                 ))}
               </div>
             )}

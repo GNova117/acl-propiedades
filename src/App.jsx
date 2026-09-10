@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -49,11 +49,17 @@ const AdminAgendaExpedientes = lazy(() => import("./pages/admin/AdminAgendaExped
 const SPECIAL_SECTION_KEYS = Object.keys(SPECIAL_SECTION_TYPES);
 
 function PublicLayout({ children }) {
+  // key={pathname}, no location.search: cambiar de página desvanece el
+  // contenido de entrada, pero cambiar solo un filtro (?tipo=casa) en la
+  // misma página no — eso ya lo maneja cada página por su cuenta.
+  const { pathname } = useLocation();
   return (
     <>
       <a href="#main-content" className="skip-link">Saltar al contenido</a>
       <Header />
-      <main id="main-content" style={{ flex: 1 }}>{children}</main>
+      <main id="main-content" key={pathname} className="page-transition" style={{ flex: 1 }}>
+        {children}
+      </main>
       <Footer />
     </>
   );
