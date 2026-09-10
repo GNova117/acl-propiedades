@@ -1,4 +1,6 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -10,33 +12,39 @@ import Contact from "./pages/Contact";
 import Privacy from "./pages/Privacy";
 import Rights from "./pages/Rights";
 import NotFound from "./pages/NotFound";
-import AdminLogin from "./pages/admin/AdminLogin";
-import AdminLayout from "./pages/admin/AdminLayout";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminProperties from "./pages/admin/AdminProperties";
-import AdminPropertyForm from "./pages/admin/AdminPropertyForm";
-import AdminPropertyLiquidacion from "./pages/admin/AdminPropertyLiquidacion";
 import RequireSection from "./components/RequireSection";
-import AdminAdvisors from "./pages/admin/AdminAdvisors";
-import AdminAdvisorForm from "./pages/admin/AdminAdvisorForm";
-import AdminZones from "./pages/admin/AdminZones";
-import AdminClients from "./pages/admin/AdminClients";
-import AdminClientForm from "./pages/admin/AdminClientForm";
-import AdminClientDocuments from "./pages/admin/AdminClientDocuments";
-import AdminClientProfiling from "./pages/admin/AdminClientProfiling";
-import AdminRemodelProjects from "./pages/admin/AdminRemodelProjects";
-import AdminRemodelProjectForm from "./pages/admin/AdminRemodelProjectForm";
-import AdminRemodelProgress from "./pages/admin/AdminRemodelProgress";
-import AdminMaterialsCatalog from "./pages/admin/AdminMaterialsCatalog";
-import AdminMaterialCatalogForm from "./pages/admin/AdminMaterialCatalogForm";
-import AdminInfonavitSimulator from "./pages/admin/AdminInfonavitSimulator";
-import AdminRoles from "./pages/admin/AdminRoles";
-import AdminLegalDocs from "./pages/admin/AdminLegalDocs";
-import AdminAgenda from "./pages/admin/AdminAgenda";
-import AdminAgendaForm from "./pages/admin/AdminAgendaForm";
-import AdminAgendaExpedientes from "./pages/admin/AdminAgendaExpedientes";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { SPECIAL_SECTION_TYPES } from "./lib/format";
+
+// Todo /admin va en su propio chunk, separado del bundle público — un
+// visitante que solo ve propiedades nunca descarga el código del panel de
+// administración. `Suspense` (con el mismo fallback que ya usan las
+// páginas del admin mientras cargan datos) cubre el instante de red que
+// tarda en bajar el chunk la primera vez que alguien entra a /admin.
+const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminProperties = lazy(() => import("./pages/admin/AdminProperties"));
+const AdminPropertyForm = lazy(() => import("./pages/admin/AdminPropertyForm"));
+const AdminPropertyLiquidacion = lazy(() => import("./pages/admin/AdminPropertyLiquidacion"));
+const AdminAdvisors = lazy(() => import("./pages/admin/AdminAdvisors"));
+const AdminAdvisorForm = lazy(() => import("./pages/admin/AdminAdvisorForm"));
+const AdminZones = lazy(() => import("./pages/admin/AdminZones"));
+const AdminClients = lazy(() => import("./pages/admin/AdminClients"));
+const AdminClientForm = lazy(() => import("./pages/admin/AdminClientForm"));
+const AdminClientDocuments = lazy(() => import("./pages/admin/AdminClientDocuments"));
+const AdminClientProfiling = lazy(() => import("./pages/admin/AdminClientProfiling"));
+const AdminRemodelProjects = lazy(() => import("./pages/admin/AdminRemodelProjects"));
+const AdminRemodelProjectForm = lazy(() => import("./pages/admin/AdminRemodelProjectForm"));
+const AdminRemodelProgress = lazy(() => import("./pages/admin/AdminRemodelProgress"));
+const AdminMaterialsCatalog = lazy(() => import("./pages/admin/AdminMaterialsCatalog"));
+const AdminMaterialCatalogForm = lazy(() => import("./pages/admin/AdminMaterialCatalogForm"));
+const AdminInfonavitSimulator = lazy(() => import("./pages/admin/AdminInfonavitSimulator"));
+const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
+const AdminLegalDocs = lazy(() => import("./pages/admin/AdminLegalDocs"));
+const AdminAgenda = lazy(() => import("./pages/admin/AdminAgenda"));
+const AdminAgendaForm = lazy(() => import("./pages/admin/AdminAgendaForm"));
+const AdminAgendaExpedientes = lazy(() => import("./pages/admin/AdminAgendaExpedientes"));
 
 const SPECIAL_SECTION_KEYS = Object.keys(SPECIAL_SECTION_TYPES);
 
@@ -52,7 +60,9 @@ function PublicLayout({ children }) {
 }
 
 export default function App() {
+  const { t } = useTranslation();
   return (
+    <Suspense fallback={<div className="empty-state">{t("common.loading")}</div>}>
     <Routes>
       <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
       <Route path="/propiedades" element={<PublicLayout><Properties excludeTypes={SPECIAL_SECTION_KEYS} /></PublicLayout>} />
@@ -173,5 +183,6 @@ export default function App() {
 
       <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />
     </Routes>
+    </Suspense>
   );
 }
