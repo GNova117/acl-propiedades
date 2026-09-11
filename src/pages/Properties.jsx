@@ -1,13 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import PropertyFilters from "../components/PropertyFilters";
 import PropertyCard from "../components/PropertyCard";
-import PropertyMap from "../components/PropertyMap";
 import Reveal from "../components/Reveal";
 import { db } from "../lib/dataStore";
 import "./Properties.css";
+
+// Leaflet (react-leaflet + leaflet, ~150KB) pesa bastante para algo que
+// la mayoría de las visitas nunca activa (por default se ve la lista, no
+// el mapa) — cargarlo solo cuando alguien de verdad le da a "Ver en
+// mapa" saca ese peso del bundle principal del sitio público.
+const PropertyMap = lazy(() => import("../components/PropertyMap"));
 
 const EMPTY_FILTERS = {
   type: "",
@@ -212,7 +217,9 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
             ) : properties.length === 0 ? (
               <div className="empty-state">{t("properties.noResults")}</div>
             ) : view === "map" ? (
-              <PropertyMap properties={properties} height={560} />
+              <Suspense fallback={<div className="empty-state" style={{ height: 560 }}>{t("common.loading")}</div>}>
+                <PropertyMap properties={properties} height={560} />
+              </Suspense>
             ) : (
               <div className="properties-grid">
                 {properties.map((property, index) => (

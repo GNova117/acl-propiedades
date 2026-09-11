@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
@@ -6,12 +6,17 @@ import Gallery from "../components/Gallery";
 import AdvisorCard from "../components/AdvisorCard";
 import PropertyCard from "../components/PropertyCard";
 import PropertyTypeIcon from "../components/PropertyTypeIcon";
-import PropertyMap from "../components/PropertyMap";
 import ShareButton from "../components/ShareButton";
 import FavoriteButton from "../components/FavoriteButton";
 import { db } from "../lib/dataStore";
 import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./PropertyDetail.css";
+
+// Leaflet (react-leaflet + leaflet, ~150KB) queda fuera del bundle
+// principal del sitio público — aquí siempre se termina mostrando (no es
+// opcional como en /propiedades), pero separarlo en su propio chunk
+// evita que cargue para cualquiera que solo visite el inicio o la lista.
+const PropertyMap = lazy(() => import("../components/PropertyMap"));
 
 // Todos los campos "especificaciones" que puede tener una propiedad —
 // genéricos (NOM-247) más los propios de Naves Industriales. Se listan
@@ -382,7 +387,9 @@ export default function PropertyDetail() {
 
             <section>
               <h2>{t("detail.location")}</h2>
-              <PropertyMap properties={[property]} height={360} />
+              <Suspense fallback={<div className="empty-state" style={{ height: 360 }}>{t("common.loading")}</div>}>
+                <PropertyMap properties={[property]} height={360} />
+              </Suspense>
             </section>
 
             {(() => {
