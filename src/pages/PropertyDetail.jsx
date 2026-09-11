@@ -401,7 +401,7 @@ export default function PropertyDetail() {
           <aside className="property-detail__sidebar">
             <h3 className="property-detail__sidebar-title">{t("detail.advisorCard")}</h3>
             {property.advisors && property.advisors.length > 0 ? (
-              property.advisors.map((advisor) => <AdvisorCard key={advisor.id} advisor={advisor} />)
+              property.advisors.map((advisor) => <AdvisorCard key={advisor.id} advisor={advisor} property={property} />)
             ) : (
               <p>{t("properties.noResults")}</p>
             )}

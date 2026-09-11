@@ -2,7 +2,21 @@ import { useTranslation } from "react-i18next";
 import { whatsappDigits } from "../lib/format";
 import "./AdvisorCard.css";
 
-export default function AdvisorCard({ advisor }) {
+// `property`: opcional — cuando la tarjeta se muestra en la ficha de una
+// propiedad (no en /nosotros, donde no aplica), precarga el WhatsApp con
+// el código/título y el link directo, para que el asesor sepa de qué
+// propiedad se trata sin tener que preguntar.
+function buildWhatsappHref(advisor, property) {
+  const number = whatsappDigits(advisor.whatsapp);
+  if (!property) return `https://wa.me/${number}`;
+  const url = `${window.location.origin}/propiedades/${property.id}`;
+  const title = property.title.trim();
+  const label = property.code ? `${title} (${property.code})` : title;
+  const text = `Hola, me interesa la propiedad ${label} — ${url}`;
+  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
+}
+
+export default function AdvisorCard({ advisor, property }) {
   const { t } = useTranslation();
   if (!advisor) return null;
 
@@ -16,7 +30,7 @@ export default function AdvisorCard({ advisor }) {
           {t("detail.call")}
         </a>
         <a
-          href={`https://wa.me/${whatsappDigits(advisor.whatsapp)}`}
+          href={buildWhatsappHref(advisor, property)}
           target="_blank"
           rel="noreferrer"
           className="btn btn-primary btn-sm btn-block"
