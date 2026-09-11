@@ -48,6 +48,12 @@
   gap: 0.5rem;
 }
 
+.property-detail__price-block-top {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
 .property-detail__price {
   font-family: var(--font-heading);
   font-size: 1.8rem;

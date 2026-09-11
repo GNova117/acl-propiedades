@@ -7,6 +7,7 @@ import AdvisorCard from "../components/AdvisorCard";
 import PropertyCard from "../components/PropertyCard";
 import PropertyTypeIcon from "../components/PropertyTypeIcon";
 import PropertyMap from "../components/PropertyMap";
+import ShareButton from "../components/ShareButton";
 import { db } from "../lib/dataStore";
 import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./PropertyDetail.css";
@@ -282,9 +283,12 @@ export default function PropertyDetail() {
                 <p className="property-detail__address">{property.address}</p>
               </div>
               <div className="property-detail__price-block">
-                <span className={`badge badge-${property.status === "disponible" ? "available" : property.status === "apartada" ? "reserved" : "sold"}`}>
-                  {t(`propertyStatus.${property.status}`)}
-                </span>
+                <div className="property-detail__price-block-top">
+                  <span className={`badge badge-${property.status === "disponible" ? "available" : property.status === "apartada" ? "reserved" : "sold"}`}>
+                    {t(`propertyStatus.${property.status}`)}
+                  </span>
+                  <ShareButton title={seoTitle} url={`${window.location.origin}/propiedades/${property.id}`} />
+                </div>
                 <span className="property-detail__price">{formatMXN(property.price)}</span>
                 <p className="property-detail__credit-notice">{t("detail.creditNotice")}</p>
               </div>
