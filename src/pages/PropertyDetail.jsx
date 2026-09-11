@@ -301,7 +301,7 @@ export default function PropertyDetail() {
 
   return (
     <>
-      <Seo title={seoTitle} description={seoDescription} jsonLd={jsonLd} />
+      <Seo title={seoTitle} description={seoDescription} image={property.main_image} jsonLd={jsonLd} />
 
       <div className="container property-detail">
         <Link to="/propiedades" className="property-detail__back">
