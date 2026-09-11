@@ -226,6 +226,17 @@
     "privacyNotice": "By submitting this form, your data will be handled according to our",
     "privacyLinkLabel": "Privacy Notice"
   },
+  "messages": {
+    "title": "Contact messages",
+    "subtitle": "Messages sent from the public site's contact form.",
+    "date": "Date",
+    "noResults": "No contact messages yet.",
+    "statusNew": "New",
+    "statusHandled": "Handled",
+    "filterAll": "All",
+    "showFull": "Show full message",
+    "showLess": "Show less"
+  },
   "footer": {
     "tagline": "Buying and selling houses, land, commercial spaces and industrial warehouses in La Comarca Lagunera.",
     "quickLinks": "Quick links",
@@ -301,7 +312,8 @@
     "industrialWarehouses": "Industrial Warehouses",
     "newIndustrialWarehouse": "New industrial warehouse",
     "editIndustrialWarehouse": "Edit industrial warehouse",
-    "industrialSpecsHint": "Technical data specific to industrial warehouses. Optional — shown on the public page when filled in."
+    "industrialSpecsHint": "Technical data specific to industrial warehouses. Optional — shown on the public page when filled in.",
+    "messages": "Messages"
   },
   "accessControl": {
     "restricted": "You don't have access to this section.",
@@ -317,7 +329,8 @@
       "liquidaciones": "Profit",
       "documentos_legales": "Legal documents",
       "roles": "Roles & access",
-      "agenda": "Agenda"
+      "agenda": "Agenda",
+      "mensajes": "Messages"
     },
     "rolesTitle": "Roles",
     "newRole": "New role",

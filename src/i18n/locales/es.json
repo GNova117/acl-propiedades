@@ -226,6 +226,17 @@
     "privacyNotice": "Al enviar este formulario, tus datos serán tratados conforme a nuestro",
     "privacyLinkLabel": "Aviso de Privacidad"
   },
+  "messages": {
+    "title": "Mensajes de contacto",
+    "subtitle": "Mensajes enviados desde el formulario de contacto del sitio público.",
+    "date": "Fecha",
+    "noResults": "Aún no hay mensajes de contacto.",
+    "statusNew": "Nuevo",
+    "statusHandled": "Atendido",
+    "filterAll": "Todos",
+    "showFull": "Ver completo",
+    "showLess": "Ver menos"
+  },
   "footer": {
     "tagline": "Compra y venta de casas, terrenos, locales comerciales y naves industriales en La Comarca Lagunera.",
     "quickLinks": "Enlaces rápidos",
@@ -301,7 +312,8 @@
     "industrialWarehouses": "Naves Industriales",
     "newIndustrialWarehouse": "Nueva nave industrial",
     "editIndustrialWarehouse": "Editar nave industrial",
-    "industrialSpecsHint": "Datos técnicos específicos de naves industriales. Opcionales — se muestran en la ficha pública si se capturan."
+    "industrialSpecsHint": "Datos técnicos específicos de naves industriales. Opcionales — se muestran en la ficha pública si se capturan.",
+    "messages": "Mensajes"
   },
   "accessControl": {
     "restricted": "No tienes acceso a este apartado.",
@@ -317,7 +329,8 @@
       "liquidaciones": "Utilidad",
       "documentos_legales": "Documentos legales",
       "roles": "Roles y accesos",
-      "agenda": "Agenda"
+      "agenda": "Agenda",
+      "mensajes": "Mensajes"
     },
     "rolesTitle": "Roles",
     "newRole": "Nuevo rol",

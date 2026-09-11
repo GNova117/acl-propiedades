@@ -361,6 +361,24 @@ export const supabaseBackend = {
     return true;
   },
 
+  async getContactMessages() {
+    const { data, error } = await supabase.from("contact_messages").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async updateContactMessageStatus(id, status) {
+    const { data, error } = await supabase.from("contact_messages").update({ status }).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteContactMessage(id) {
+    const { error } = await supabase.from("contact_messages").delete().eq("id", id);
+    if (error) throw error;
+    return true;
+  },
+
   async getClients(filters = {}) {
     let query = supabase.from("clients").select("*").order("created_at", { ascending: false });
     if (filters.type) query = query.eq("type", filters.type);

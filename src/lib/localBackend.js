@@ -24,6 +24,7 @@ const KEYS = {
   agendaExpedientes: "acl_local_agenda_expedientes",
   amenities: "acl_local_amenities",
   propertyCodeSeq: "acl_local_property_code_seq",
+  messages: "acl_local_messages",
 };
 
 function readStore(key, fallback) {
@@ -435,10 +436,29 @@ export const localBackend = {
   },
 
   async submitContactMessage(data) {
-    const key = "acl_local_messages";
-    const messages = readStore(key, []);
-    messages.push({ id: uid("msg"), ...data, created_at: new Date().toISOString() });
-    writeStore(key, messages);
+    const messages = readStore(KEYS.messages, []);
+    messages.push({ id: uid("msg"), ...data, status: "nuevo", created_at: new Date().toISOString() });
+    writeStore(KEYS.messages, messages);
+    return true;
+  },
+
+  async getContactMessages() {
+    const messages = readStore(KEYS.messages, []);
+    return messages.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  },
+
+  async updateContactMessageStatus(id, status) {
+    const messages = readStore(KEYS.messages, []);
+    const idx = messages.findIndex((m) => m.id === id);
+    if (idx === -1) throw new Error("Mensaje no encontrado");
+    messages[idx] = { ...messages[idx], status };
+    writeStore(KEYS.messages, messages);
+    return messages[idx];
+  },
+
+  async deleteContactMessage(id) {
+    const messages = readStore(KEYS.messages, []);
+    writeStore(KEYS.messages, messages.filter((m) => m.id !== id));
     return true;
   },
 
