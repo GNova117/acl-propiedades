@@ -115,6 +115,7 @@ acl-propiedades/
 - **Internacionalización**: botón ES/EN en el header y panel admin (i18next + detección de idioma guardada en `localStorage`).
 - **Modo oscuro**: botón de sol/luna en el header y panel admin, con preferencia guardada y respeto a `prefers-color-scheme`.
 - **Formulario de contacto**: validación de campos y envío funcional (guarda el mensaje en Supabase `contact_messages`, o en `localStorage` en modo demo).
+- **Google Analytics 4** (`src/lib/analytics.js`): opcional — se activa solo si `VITE_GA_MEASUREMENT_ID` está configurado. Mide únicamente el sitio público (se inicializa dentro de `PublicLayout`, nunca dentro de `AdminLayout`, así que entrar directo a `/admin` no carga el script ni cuenta como visita); cada cambio de ruta de React Router manda su propio evento `page_view` a mano (`send_page_view: false` en la config, para no duplicar el de la carga inicial).
 
 ## Notas
 

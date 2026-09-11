@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Header from "./components/Header";
@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import RequireSection from "./components/RequireSection";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { SPECIAL_SECTION_TYPES } from "./lib/format";
+import { initAnalytics, trackPageview } from "./lib/analytics";
 
 // Todo /admin va en su propio chunk, separado del bundle público — un
 // visitante que solo ve propiedades nunca descarga el código del panel de
@@ -55,6 +56,17 @@ function PublicLayout({ children }) {
   // contenido de entrada, pero cambiar solo un filtro (?tipo=casa) en la
   // misma página no — eso ya lo maneja cada página por su cuenta.
   const { pathname } = useLocation();
+
+  useEffect(() => {
+    // initAnalytics() se llama aquí (no en main.jsx) y no en AdminLayout —
+    // así el script de GA nunca se carga si alguien entra directo a
+    // /admin sin pasar por una página pública en la misma visita. Es
+    // idempotente (guardia interna en analytics.js), así que llamarla en
+    // cada cambio de ruta no reinicia nada.
+    initAnalytics();
+    trackPageview(pathname);
+  }, [pathname]);
+
   return (
     <>
       <a href="#main-content" className="skip-link">Saltar al contenido</a>
