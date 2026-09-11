@@ -29,6 +29,7 @@
 
 .property-filters__code-row input {
   flex: 1;
+  min-width: 0;
 }
 
 .property-filters__more {

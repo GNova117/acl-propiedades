@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { whatsappDigits } from "../lib/format";
 import "./AdvisorCard.css";
 
 export default function AdvisorCard({ advisor }) {
@@ -15,7 +16,7 @@ export default function AdvisorCard({ advisor }) {
           {t("detail.call")}
         </a>
         <a
-          href={`https://wa.me/${advisor.whatsapp}`}
+          href={`https://wa.me/${whatsappDigits(advisor.whatsapp)}`}
           target="_blank"
           rel="noreferrer"
           className="btn btn-primary btn-sm btn-block"

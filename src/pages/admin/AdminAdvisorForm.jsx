@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
+import { whatsappDigits } from "../../lib/format";
 import "./admin.css";
 
 const EMPTY = { name: "", phone: "", email: "", whatsapp: "", bio: "", active: true };
@@ -66,7 +67,7 @@ export default function AdminAdvisorForm() {
     if (!validate()) return;
     setSaving(true);
     try {
-      const payload = { ...form, existingPhoto, photoFile };
+      const payload = { ...form, whatsapp: whatsappDigits(form.whatsapp), existingPhoto, photoFile };
       if (isEdit) {
         await db.updateAdvisor(id, payload);
       } else {

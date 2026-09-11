@@ -6,6 +6,15 @@ export function numOrNull(value) {
   return value === "" || value == null ? null : Number(value);
 }
 
+// El admin captura WhatsApp como texto libre ("+52 871 487 1494" es lo
+// natural al escribir un número, aunque el formulario pida "521XXXXXXXXXX")
+// pero wa.me solo acepta dígitos — un "+" o espacio en medio del número
+// genera un enlace que no abre el chat. Se aplica tanto al guardar como al
+// construir el enlace, para que un dato ya guardado mal también se autocorrija.
+export function whatsappDigits(value) {
+  return (value || "").replace(/\D/g, "");
+}
+
 export function formatMXN(value) {
   const number = Number(value) || 0;
   return new Intl.NumberFormat("es-MX", {
