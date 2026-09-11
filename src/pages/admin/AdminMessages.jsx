@@ -36,6 +36,8 @@ export default function AdminMessages() {
     try {
       await db.updateContactMessageStatus(message.id, next);
       load();
+    } catch (err) {
+      window.alert(err.message || "Error al actualizar el mensaje");
     } finally {
       setUpdatingId(null);
     }
@@ -47,6 +49,8 @@ export default function AdminMessages() {
     try {
       await db.deleteContactMessage(id);
       load();
+    } catch (err) {
+      window.alert(err.message || "Error al eliminar el mensaje");
     } finally {
       setDeletingId(null);
     }
