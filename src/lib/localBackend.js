@@ -2,6 +2,7 @@ import { ZONES, ADVISORS, PROPERTIES, PROPERTY_TYPES_SEED, AMENITIES_SEED, DEMO_
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify, numOrNull } from "./format";
+import { compressImageFile, compressImageFiles } from "./imageCompression";
 
 const KEYS = {
   properties: "acl_local_properties",
@@ -169,7 +170,7 @@ export const localBackend = {
 
   async addProperty(data) {
     const properties = readStore(KEYS.properties, PROPERTIES);
-    const newImages = await filesToDataUrls(data.imageFiles);
+    const newImages = await filesToDataUrls(await compressImageFiles(data.imageFiles));
     const images = [...(data.existingImages || []), ...newImages];
     const newVideos = await filesToDataUrls(data.videoFiles);
     const videos = [...(data.existingVideos || []), ...newVideos];
@@ -235,7 +236,7 @@ export const localBackend = {
     const properties = readStore(KEYS.properties, PROPERTIES);
     const idx = properties.findIndex((p) => p.id === id);
     if (idx === -1) throw new Error("Propiedad no encontrada");
-    const newImages = await filesToDataUrls(data.imageFiles);
+    const newImages = await filesToDataUrls(await compressImageFiles(data.imageFiles));
     const images = [...(data.existingImages || []), ...newImages];
     const newVideos = await filesToDataUrls(data.videoFiles);
     const videos = [...(data.existingVideos || []), ...newVideos];
@@ -343,7 +344,7 @@ export const localBackend = {
   async addAdvisor(data) {
     const advisors = readStore(KEYS.advisors, ADVISORS);
     let photo_url = data.existingPhoto || "";
-    if (data.photoFile) photo_url = await fileToDataUrl(data.photoFile);
+    if (data.photoFile) photo_url = await fileToDataUrl(await compressImageFile(data.photoFile));
     const record = {
       id: uid("advisor"),
       name: data.name,
@@ -364,7 +365,7 @@ export const localBackend = {
     const idx = advisors.findIndex((a) => a.id === id);
     if (idx === -1) throw new Error("Asesor no encontrado");
     let photo_url = data.existingPhoto || advisors[idx].photo_url;
-    if (data.photoFile) photo_url = await fileToDataUrl(data.photoFile);
+    if (data.photoFile) photo_url = await fileToDataUrl(await compressImageFile(data.photoFile));
     const updated = { ...advisors[idx], ...data, photo_url };
     delete updated.photoFile;
     delete updated.existingPhoto;
@@ -518,7 +519,7 @@ export const localBackend = {
     const types = readStore(KEYS.propertyTypes, PROPERTY_TYPES_SEED);
     const idx = types.findIndex((t) => t.id === id);
     if (idx === -1) throw new Error("Tipo de propiedad no encontrado");
-    const [image_url] = await filesToDataUrls([file]);
+    const [image_url] = await filesToDataUrls(await compressImageFiles([file]));
     types[idx] = { ...types[idx], image_url };
     writeStore(KEYS.propertyTypes, types);
     return types[idx];

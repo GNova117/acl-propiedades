@@ -2,6 +2,7 @@ import { supabase } from "./supabaseClient";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify, numOrNull } from "./format";
+import { compressImageFiles } from "./imageCompression";
 
 // Supabase Storage rechaza ciertos caracteres en la key del objeto (espacios,
 // acentos, "{"/"}", etc. — el nombre real del archivo que sube el usuario no
@@ -24,8 +25,13 @@ function sanitizeFileName(name) {
 
 async function uploadFiles(bucket, files) {
   if (!files || files.length === 0) return [];
+  // Solo esta función sube property-images/property-videos/advisor-photos
+  // (documentos de clientes y adjuntos de Agenda suben por su cuenta más
+  // abajo en este archivo) — comprimir aquí es seguro: compressImageFiles
+  // deja pasar los videos tal cual, solo reencoda lo que sea una imagen.
+  const compressed = await compressImageFiles(files);
   const urls = [];
-  for (const file of Array.from(files)) {
+  for (const file of compressed) {
     const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${sanitizeFileName(file.name)}`;
     const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: false });
     if (error) throw error;
