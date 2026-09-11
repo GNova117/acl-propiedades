@@ -53,7 +53,7 @@ export default async function middleware(request) {
       Number(property.price) || 0
     );
     const title = `${property.title} — ${price}`;
-    const description = (property.description || "").slice(0, 200);
+    const description = (property.description || "").replace(/\s+/g, " ").trim().slice(0, 200);
     const pageUrl = `${SITE_URL}/propiedades/${id}`;
     const imageTag = property.main_image
       ? `<meta property="og:image" content="${escapeHtml(property.main_image)}">\n<meta name="twitter:image" content="${escapeHtml(property.main_image)}">`
