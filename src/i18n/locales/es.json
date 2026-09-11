@@ -267,6 +267,14 @@
     "reload": "Recargar página",
     "goHome": "Ir al inicio"
   },
+  "favorites": {
+    "title": "Favoritos",
+    "subtitle": "Las propiedades que has guardado en este navegador.",
+    "empty": "Aún no has guardado ninguna propiedad.",
+    "browseCta": "Ver propiedades",
+    "add": "Guardar en favoritos",
+    "remove": "Quitar de favoritos"
+  },
   "footer": {
     "tagline": "Compra y venta de casas, terrenos, locales comerciales y naves industriales en La Comarca Lagunera.",
     "quickLinks": "Enlaces rápidos",

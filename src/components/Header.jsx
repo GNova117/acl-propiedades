@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import Logo from "./Logo";
 import ThemeToggle from "./ThemeToggle";
 import LanguageToggle from "./LanguageToggle";
+import FavoritesLink from "./FavoritesLink";
 import { db } from "../lib/dataStore";
 import "./Header.css";
 
@@ -56,6 +57,7 @@ export default function Header() {
         </nav>
 
         <div className="site-header__actions">
+          <FavoritesLink />
           <ThemeToggle />
           <LanguageToggle />
           <button

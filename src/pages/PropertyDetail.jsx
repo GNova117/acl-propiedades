@@ -8,6 +8,7 @@ import PropertyCard from "../components/PropertyCard";
 import PropertyTypeIcon from "../components/PropertyTypeIcon";
 import PropertyMap from "../components/PropertyMap";
 import ShareButton from "../components/ShareButton";
+import FavoriteButton from "../components/FavoriteButton";
 import { db } from "../lib/dataStore";
 import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./PropertyDetail.css";
@@ -287,6 +288,7 @@ export default function PropertyDetail() {
                   <span className={`badge badge-${property.status === "disponible" ? "available" : property.status === "apartada" ? "reserved" : "sold"}`}>
                     {t(`propertyStatus.${property.status}`)}
                   </span>
+                  <FavoriteButton propertyId={property.id} className="favorite-button--inline" />
                   <ShareButton title={seoTitle} url={`${window.location.origin}/propiedades/${property.id}`} />
                 </div>
                 <span className="property-detail__price">{formatMXN(property.price)}</span>

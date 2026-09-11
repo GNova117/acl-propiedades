@@ -1,0 +1,37 @@
+.favorite-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.85);
+  color: #4b5563;
+  cursor: pointer;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.favorite-button:hover {
+  transform: scale(1.08);
+}
+
+.favorite-button--active {
+  color: #e0245e;
+}
+
+/* Variante en línea (ficha de propiedad, junto al botón de compartir) —
+   sin el fondo blanco que necesita para destacar sobre una foto. */
+.favorite-button--inline {
+  width: auto;
+  height: auto;
+  padding: 0.75rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.favorite-button--inline.favorite-button--active {
+  border-color: #e0245e;
+  color: #e0245e;
+}

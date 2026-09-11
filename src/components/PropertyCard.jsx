@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import PropertyTypeIcon from "./PropertyTypeIcon";
+import FavoriteButton from "./FavoriteButton";
 import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./PropertyCard.css";
 
@@ -15,6 +16,7 @@ export default function PropertyCard({ property }) {
         <span className={`badge badge-${property.status === "disponible" ? "available" : property.status === "apartada" ? "reserved" : "sold"} property-card__badge`}>
           {t(`propertyStatus.${property.status}`)}
         </span>
+        <FavoriteButton propertyId={property.id} className="property-card__favorite" />
       </Link>
       <div className="property-card__body">
         <div className="property-card__type">

@@ -267,6 +267,14 @@
     "reload": "Reload page",
     "goHome": "Go home"
   },
+  "favorites": {
+    "title": "Favorites",
+    "subtitle": "The properties you've saved in this browser.",
+    "empty": "You haven't saved any properties yet.",
+    "browseCta": "Browse properties",
+    "add": "Save to favorites",
+    "remove": "Remove from favorites"
+  },
   "footer": {
     "tagline": "Buying and selling houses, land, commercial spaces and industrial warehouses in La Comarca Lagunera.",
     "quickLinks": "Quick links",

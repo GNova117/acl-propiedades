@@ -6,6 +6,7 @@ import "./i18n";
 import App from "./App.jsx";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
+import { FavoritesProvider } from "./context/FavoritesContext";
 import LoadingScreen from "./components/LoadingScreen";
 
 // Después de un despliegue nuevo, una pestaña que ya tenía la página abierta
@@ -33,10 +34,12 @@ function Root() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
-          {showLoader && <LoadingScreen />}
-          <App />
-        </BrowserRouter>
+        <FavoritesProvider>
+          <BrowserRouter>
+            {showLoader && <LoadingScreen />}
+            <App />
+          </BrowserRouter>
+        </FavoritesProvider>
       </AuthProvider>
     </ThemeProvider>
   );
