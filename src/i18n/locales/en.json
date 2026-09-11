@@ -424,7 +424,8 @@
     "phone": "Phone",
     "notes": "Notes",
     "noResults": "No clients found.",
-    "viewDocuments": "Documents"
+    "viewDocuments": "Documents",
+    "searchPlaceholder": "Name or phone"
   },
   "profiling": {
     "title": "Profiling",

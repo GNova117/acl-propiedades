@@ -7,6 +7,7 @@ import "./admin.css";
 export default function AdminClients() {
   const { t } = useTranslation();
   const [clients, setClients] = useState([]);
+  const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
@@ -30,15 +31,18 @@ export default function AdminClients() {
   }, [clients]);
 
   const filteredClients = useMemo(() => {
-    if (!monthFilter && !yearFilter) return clients;
+    const term = search.trim().toLowerCase();
     return clients.filter((c) => {
-      if (!c.created_at) return false;
-      const d = new Date(c.created_at);
-      if (monthFilter && d.getMonth() + 1 !== Number(monthFilter)) return false;
-      if (yearFilter && d.getFullYear() !== Number(yearFilter)) return false;
+      if (term && !c.name?.toLowerCase().includes(term) && !c.phone?.includes(term)) return false;
+      if (!c.created_at && (monthFilter || yearFilter)) return false;
+      if (monthFilter || yearFilter) {
+        const d = new Date(c.created_at);
+        if (monthFilter && d.getMonth() + 1 !== Number(monthFilter)) return false;
+        if (yearFilter && d.getFullYear() !== Number(yearFilter)) return false;
+      }
       return true;
     });
-  }, [clients, monthFilter, yearFilter]);
+  }, [clients, search, monthFilter, yearFilter]);
 
   const handleDelete = async (id) => {
     if (!window.confirm(t("common.confirmDelete"))) return;
@@ -55,7 +59,17 @@ export default function AdminClients() {
         </Link>
       </div>
 
-      <div className="form-row" style={{ maxWidth: 620, marginBottom: "1.25rem" }}>
+      <div className="form-row" style={{ maxWidth: 820, marginBottom: "1.25rem" }}>
+        <div className="form-field">
+          <label htmlFor="client-search">{t("common.search")}</label>
+          <input
+            id="client-search"
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("clients.searchPlaceholder")}
+          />
+        </div>
         <div className="form-field">
           <label htmlFor="client-type-filter">{t("clients.type")}</label>
           <select id="client-type-filter" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>

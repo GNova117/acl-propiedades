@@ -424,7 +424,8 @@
     "phone": "Teléfono",
     "notes": "Notas",
     "noResults": "No se encontraron clientes.",
-    "viewDocuments": "Documentos"
+    "viewDocuments": "Documentos",
+    "searchPlaceholder": "Nombre o teléfono"
   },
   "profiling": {
     "title": "Perfilamiento",
