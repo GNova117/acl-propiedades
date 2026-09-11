@@ -8,14 +8,22 @@ import "./ShareButton.css";
 // escritorio hoy), se usa un <details>/<summary> como menú desplegable
 // sin JS extra para abrir/cerrar, mismo patrón que el FAQ de esta misma
 // página.
-export default function ShareButton({ title, url }) {
+// `text`: cuerpo enriquecido opcional (ya debe terminar con la URL propia,
+// como en una publicación de portal inmobiliario) — si no se manda, se
+// arma uno genérico con solo título y URL, para no romper otros usos
+// futuros de este botón que no tengan un texto propio que armar.
+export default function ShareButton({ title, text, url }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+  const shareText = text || `${title} — ${url}`;
 
   const handleNativeShare = async () => {
     try {
-      await navigator.share({ title, url });
+      // Se manda todo dentro de `text` (ya incluye la URL al final) en vez
+      // de separar `url` — varias apps del share sheet nativo pegan texto
+      // y url por su cuenta, y eso duplicaría el link.
+      await navigator.share({ title, text: shareText });
     } catch {
       // El usuario cerró la hoja de compartir sin elegir nada — no es un error.
     }
@@ -24,7 +32,7 @@ export default function ShareButton({ title, url }) {
   const handleCopy = async (e) => {
     e.preventDefault();
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(shareText);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -32,7 +40,7 @@ export default function ShareButton({ title, url }) {
       // navegadores/contextos embebidos tampoco soportan window.prompt,
       // así que esto también va en su propio try/catch.
       try {
-        window.prompt(t("detail.copyLinkManual"), url);
+        window.prompt(t("detail.copyLinkManual"), shareText);
       } catch {
         // No hay más alternativas sin backend — se queda callado en vez
         // de tronar con una excepción sin capturar.
@@ -47,8 +55,6 @@ export default function ShareButton({ title, url }) {
       </button>
     );
   }
-
-  const shareText = `${title} — ${url}`;
 
   return (
     <details className="share-button">

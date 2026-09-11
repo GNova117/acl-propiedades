@@ -22,6 +22,20 @@ const PropertyMap = lazy(() => import("../components/PropertyMap"));
 // genéricos (NOM-247) más los propios de Naves Industriales. Se listan
 // aquí para no repetir 17 bloques casi idénticos en el JSX; cada uno se
 // muestra solo si la propiedad tiene ese dato capturado.
+// Emoji por amenidad para el texto de "Compartir" — cubre las 8 sembradas
+// de fábrica; cualquier amenidad nueva que se dé de alta desde
+// /admin/zonas cae en el genérico "✅" en vez de romper o quedar sin ícono.
+const AMENITY_EMOJI = {
+  alberca: "🏊",
+  seguridad_24h: "🔒",
+  acepta_mascotas: "🐾",
+  amueblado: "🛋️",
+  estacionamiento_techado: "🚗",
+  area_comun: "🌳",
+  aire_acondicionado: "❄️",
+  bodega: "📦",
+};
+
 const SPEC_FIELDS = [
   { key: "colindancias", labelKey: "detail.colindancias" },
   { key: "servicios", labelKey: "detail.servicios" },
@@ -239,6 +253,26 @@ export default function PropertyDetail() {
     return amenitiesCatalog.filter((a) => property.amenities.includes(a.key));
   }, [property, amenitiesCatalog]);
 
+  // Texto para compartir en WhatsApp/redes, al estilo de las fichas que ya
+  // circulan en otros portales inmobiliarios (bloque con emojis + datos
+  // clave + link al final) — mucho más útil al reenviarse que un simple
+  // "Título — URL", que es lo único que se ve al abrirlo en otro lado.
+  const shareText = useMemo(() => {
+    if (!property || typeof window === "undefined") return "";
+    const lines = [
+      `📍 ${t(`propertyOperation.${property.operation_type}`)} | ${propertyTypeLabel(t, property.type)} en ${property.address}`,
+      "",
+      `💰 ${formatMXN(property.price)} MXN`,
+      `📐 ${formatArea(property.area_m2)}`,
+    ];
+    if (property.bedrooms != null) lines.push(`🛌 ${property.bedrooms} recámaras`);
+    if (property.bathrooms != null) lines.push(`🛁 ${property.bathrooms} baños`);
+    if (property.parking != null) lines.push(`🚗 ${property.parking} estacionamientos`);
+    propertyAmenities.forEach((amenity) => lines.push(`${AMENITY_EMOJI[amenity.key] || "✅"} ${amenity.label}`));
+    lines.push("", `${window.location.origin}/propiedades/${property.id}`);
+    return lines.join("\n");
+  }, [property, propertyAmenities, t]);
+
   // Espacios similares: mismo tipo, disponibles, priorizando la misma zona.
   // No es una recomendación "inteligente" — es un filtro simple y honesto.
   useEffect(() => {
@@ -294,7 +328,7 @@ export default function PropertyDetail() {
                     {t(`propertyStatus.${property.status}`)}
                   </span>
                   <FavoriteButton propertyId={property.id} className="favorite-button--inline" />
-                  <ShareButton title={seoTitle} url={`${window.location.origin}/propiedades/${property.id}`} />
+                  <ShareButton title={seoTitle} text={shareText} url={`${window.location.origin}/propiedades/${property.id}`} />
                 </div>
                 <span className="property-detail__price">{formatMXN(property.price)}</span>
                 <p className="property-detail__credit-notice">{t("detail.creditNotice")}</p>
