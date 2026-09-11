@@ -1,8 +1,9 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Logo from "../../components/Logo";
 import ThemeToggle from "../../components/ThemeToggle";
 import LanguageToggle from "../../components/LanguageToggle";
+import ErrorBoundary from "../../components/ErrorBoundary";
 import { useAuth } from "../../context/AuthContext";
 import "./AdminLayout.css";
 
@@ -10,6 +11,7 @@ export default function AdminLayout() {
   const { t } = useTranslation();
   const { logout, hasSection } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const handleLogout = async () => {
     await logout();
@@ -52,7 +54,9 @@ export default function AdminLayout() {
           </div>
         </header>
         <main className="admin-layout__content">
-          <Outlet />
+          <ErrorBoundary key={pathname} homePath="/admin">
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

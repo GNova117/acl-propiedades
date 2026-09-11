@@ -15,6 +15,7 @@ import Rights from "./pages/Rights";
 import NotFound from "./pages/NotFound";
 import RequireSection from "./components/RequireSection";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { SPECIAL_SECTION_TYPES } from "./lib/format";
 import { initAnalytics, trackPageview } from "./lib/analytics";
 
@@ -74,7 +75,7 @@ function PublicLayout({ children }) {
       <a href="#main-content" className="skip-link">Saltar al contenido</a>
       <Header />
       <main id="main-content" key={pathname} className="page-transition" style={{ flex: 1 }}>
-        {children}
+        <ErrorBoundary>{children}</ErrorBoundary>
       </main>
       <Footer />
       <FloatingWhatsApp />

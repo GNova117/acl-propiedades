@@ -262,6 +262,11 @@
     "noResults": "No changes recorded yet for this property.",
     "button": "History"
   },
+  "errorBoundary": {
+    "message": "There was a problem showing this page. Try reloading it.",
+    "reload": "Reload page",
+    "goHome": "Go home"
+  },
   "footer": {
     "tagline": "Buying and selling houses, land, commercial spaces and industrial warehouses in La Comarca Lagunera.",
     "quickLinks": "Quick links",

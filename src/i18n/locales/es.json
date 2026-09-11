@@ -262,6 +262,11 @@
     "noResults": "Aún no hay cambios registrados para esta propiedad.",
     "button": "Historial"
   },
+  "errorBoundary": {
+    "message": "Hubo un problema al mostrar esta página. Intenta recargarla.",
+    "reload": "Recargar página",
+    "goHome": "Ir al inicio"
+  },
   "footer": {
     "tagline": "Compra y venta de casas, terrenos, locales comerciales y naves industriales en La Comarca Lagunera.",
     "quickLinks": "Enlaces rápidos",

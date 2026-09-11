@@ -32,3 +32,14 @@ export function trackPageview(path) {
   if (!GA_ID || typeof window.gtag !== "function") return;
   window.gtag("event", "page_view", { page_path: path });
 }
+
+// Usado por ErrorBoundary.jsx — si GA nunca se inicializó (modo demo,
+// dentro del admin, o sin VITE_GA_MEASUREMENT_ID) esto no hace nada, igual
+// que trackPageview.
+export function trackException(error) {
+  if (!GA_ID || typeof window.gtag !== "function") return;
+  window.gtag("event", "exception", {
+    description: String(error?.message || error).slice(0, 150),
+    fatal: true,
+  });
+}
