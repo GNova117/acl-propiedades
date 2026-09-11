@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Logo from "./Logo";
+import WhatsAppIcon from "./icons/WhatsAppIcon";
 import "./Footer.css";
 
 function FacebookIcon() {
@@ -17,14 +18,6 @@ function LinkedInIcon() {
       <rect x="3" y="9" width="3.5" height="11" rx="0.5" />
       <circle cx="4.75" cy="4.5" r="2.2" />
       <path d="M10 9h3.4v1.9c.7-1.3 2.2-2.2 4-2.2 3.4 0 5.1 2.2 5.1 5.9V20h-3.5v-5.9c0-1.9-.7-3.1-2.3-3.1-1.3 0-2 .9-2.4 1.8-.15.35-.2.85-.2 1.35V20H10V9z" />
-    </svg>
-  );
-}
-
-function WhatsAppIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.902.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.908.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
     </svg>
   );
 }
