@@ -5,7 +5,16 @@ import { db } from "../lib/dataStore";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const initialForm = { name: "", email: "", phone: "", message: "" };
+const initialForm = { name: "", email: "", phone: "", message: "", empresa: "" };
+
+// Freno anti-spam simple, sin backend ni servicio externo (no hay
+// reCAPTCHA/hCaptcha aquí — eso implicaría pedirle al negocio crear otra
+// cuenta externa, fuera de alcance por ahora): un campo trampa que un
+// humano nunca ve ni llena, y un límite de un envío por minuto por
+// navegador. No detiene a un atacante dedicado, pero sí a los bots
+// genéricos que llenan cualquier <input> que encuentran.
+const RATE_LIMIT_KEY = "acl_contact_last_submit";
+const RATE_LIMIT_MS = 60_000;
 
 export default function ContactForm() {
   const { t } = useTranslation();
@@ -28,9 +37,26 @@ export default function ContactForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
+
+    // Campo trampa lleno: casi seguro es un bot. Se le muestra éxito falso
+    // (para no revelarle que fue detectado) sin escribir nada en la base.
+    if (form.empresa.trim()) {
+      setStatus("success");
+      setForm(initialForm);
+      return;
+    }
+
+    const lastSubmit = Number(window.localStorage.getItem(RATE_LIMIT_KEY) || 0);
+    if (Date.now() - lastSubmit < RATE_LIMIT_MS) {
+      setStatus("rateLimited");
+      return;
+    }
+
     setStatus("sending");
     try {
-      await db.submitContactMessage(form);
+      const { empresa: _empresa, ...payload } = form;
+      await db.submitContactMessage(payload);
+      window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
       setStatus("success");
       setForm(initialForm);
     } catch {
@@ -40,6 +66,13 @@ export default function ContactForm() {
 
   return (
     <form className="card contact-form" onSubmit={handleSubmit} noValidate style={{ padding: "1.75rem" }}>
+      {/* Campo trampa: invisible y fuera del tabulador para una persona,
+          pero un bot que llena cualquier <input> del formulario sí lo ve. */}
+      <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}>
+        <label htmlFor="contact-empresa">Empresa</label>
+        <input id="contact-empresa" name="empresa" value={form.empresa} onChange={handleChange} tabIndex={-1} autoComplete="off" />
+      </div>
+
       <div className="form-field">
         <label htmlFor="contact-name">{t("contact.name")}</label>
         <input id="contact-name" name="name" value={form.name} onChange={handleChange} aria-invalid={Boolean(errors.name)} />
@@ -66,6 +99,7 @@ export default function ContactForm() {
 
       {status === "success" && <p className="form-hint" style={{ color: "var(--color-success)" }}>{t("contact.success")}</p>}
       {status === "error" && <p className="form-error">{t("contact.error")}</p>}
+      {status === "rateLimited" && <p className="form-error">{t("contact.rateLimited")}</p>}
 
       <p className="form-hint" style={{ marginBottom: "1rem" }}>
         {t("contact.privacyNotice")}{" "}

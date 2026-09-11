@@ -225,6 +225,7 @@
     "sending": "Sending...",
     "success": "Thank you! Your message was sent, we will contact you soon.",
     "error": "There was a problem sending your message. Please try again.",
+    "rateLimited": "You already sent a message a moment ago. Please wait a bit before sending another.",
     "required": "This field is required",
     "invalidEmail": "Invalid email address",
     "privacyNotice": "By submitting this form, your data will be handled according to our",

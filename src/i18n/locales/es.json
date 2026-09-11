@@ -225,6 +225,7 @@
     "sending": "Enviando...",
     "success": "¡Gracias! Tu mensaje fue enviado, pronto te contactaremos.",
     "error": "Hubo un problema al enviar tu mensaje. Intenta de nuevo.",
+    "rateLimited": "Ya enviaste un mensaje hace un momento. Espera un poco antes de enviar otro.",
     "required": "Este campo es obligatorio",
     "invalidEmail": "Correo electrónico no válido",
     "privacyNotice": "Al enviar este formulario, tus datos serán tratados conforme a nuestro",
