@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN, formatArea, propertyTypeLabel } from "../../lib/format";
 import { downloadFichaTecnicaPdf } from "../../lib/propertyFichaPdf";
+import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
 import "./admin.css";
 
@@ -50,6 +51,25 @@ export default function AdminProperties({
     load();
   };
 
+  const handleExport = () => {
+    exportToCsv(`${basePath.split("/").pop()}.csv`, properties, [
+      { label: t("detail.code"), key: "code" },
+      { label: "Título", key: "title" },
+      { label: t("properties.type"), value: (p) => propertyTypeLabel(t, p.type) },
+      { label: t("properties.operationType"), value: (p) => t(`propertyOperation.${p.operation_type}`) },
+      { label: t("common.status"), value: (p) => t(`propertyStatus.${p.status}`) },
+      { label: t("properties.zone"), key: "zone" },
+      { label: "Dirección", key: "address" },
+      { label: "Precio", key: "price" },
+      { label: "Área m²", key: "area_m2" },
+      { label: t("properties.bedrooms"), key: "bedrooms" },
+      { label: t("properties.bathrooms"), key: "bathrooms" },
+      { label: "Estacionamiento", key: "parking" },
+      { label: t("common.active"), value: (p) => (p.active ? t("common.active") : t("common.inactive")) },
+      { label: t("messages.date"), value: (p) => (p.created_at ? new Date(p.created_at).toLocaleDateString("es-MX") : "") },
+    ]);
+  };
+
   const handleDownloadFicha = async (property) => {
     setBusyFichaId(property.id);
     try {
@@ -68,9 +88,14 @@ export default function AdminProperties({
     <div>
       <div className="admin-header">
         <h1>{t(titleKey)}</h1>
-        <Link to={`${basePath}/nueva`} className="btn btn-primary">
-          {t(newLabelKey)}
-        </Link>
+        <div className="admin-header__actions">
+          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={properties.length === 0}>
+            {t("common.exportCsv")}
+          </button>
+          <Link to={`${basePath}/nueva`} className="btn btn-primary">
+            {t(newLabelKey)}
+          </Link>
+        </div>
       </div>
 
       <div className="card admin-table-wrapper">

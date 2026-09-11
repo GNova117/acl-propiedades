@@ -260,7 +260,8 @@
     "active": "Activo",
     "inactive": "Inactivo",
     "close": "Cerrar",
-    "search": "Buscar"
+    "search": "Buscar",
+    "exportCsv": "Exportar CSV"
   },
   "admin": {
     "loginTitle": "Acceso administrador",

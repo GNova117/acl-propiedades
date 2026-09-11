@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
+import { exportToCsv } from "../../lib/csvExport";
 import "./admin.css";
+
+function clientTypeLabel(t, type) {
+  return t(`clients.${type === "comprador" ? "buyer" : type === "vendedor" ? "seller" : "both"}`);
+}
 
 export default function AdminClients() {
   const { t } = useTranslation();
@@ -50,13 +55,29 @@ export default function AdminClients() {
     load();
   };
 
+  const handleExport = () => {
+    exportToCsv("clientes.csv", filteredClients, [
+      { label: t("clients.name"), key: "name" },
+      { label: t("clients.type"), value: (c) => clientTypeLabel(t, c.type) },
+      { label: t("clients.phone"), key: "phone" },
+      { label: t("clients.email"), key: "email" },
+      { label: t("clients.notes"), key: "notes" },
+      { label: t("messages.date"), value: (c) => (c.created_at ? new Date(c.created_at).toLocaleDateString("es-MX") : "") },
+    ]);
+  };
+
   return (
     <div>
       <div className="admin-header">
         <h1>{t("clients.title")}</h1>
-        <Link to="/admin/clientes/nuevo" className="btn btn-primary">
-          {t("admin.newClient")}
-        </Link>
+        <div className="admin-header__actions">
+          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={filteredClients.length === 0}>
+            {t("common.exportCsv")}
+          </button>
+          <Link to="/admin/clientes/nuevo" className="btn btn-primary">
+            {t("admin.newClient")}
+          </Link>
+        </div>
       </div>
 
       <div className="form-row" style={{ maxWidth: 820, marginBottom: "1.25rem" }}>
@@ -123,7 +144,7 @@ export default function AdminClients() {
               filteredClients.map((client) => (
                 <tr key={client.id}>
                   <td>{client.name}</td>
-                  <td>{t(`clients.${client.type === "comprador" ? "buyer" : client.type === "vendedor" ? "seller" : "both"}`)}</td>
+                  <td>{clientTypeLabel(t, client.type)}</td>
                   <td>{client.phone}</td>
                   <td>{client.email}</td>
                   <td className="admin-table__actions">
