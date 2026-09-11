@@ -48,6 +48,7 @@ const AdminAgenda = lazy(() => import("./pages/admin/AdminAgenda"));
 const AdminAgendaForm = lazy(() => import("./pages/admin/AdminAgendaForm"));
 const AdminAgendaExpedientes = lazy(() => import("./pages/admin/AdminAgendaExpedientes"));
 const AdminMessages = lazy(() => import("./pages/admin/AdminMessages"));
+const AdminTestimonials = lazy(() => import("./pages/admin/AdminTestimonials"));
 
 const SPECIAL_SECTION_KEYS = Object.keys(SPECIAL_SECTION_TYPES);
 
@@ -201,6 +202,7 @@ export default function App() {
         <Route path="agenda/:id" element={<RequireSection section="agenda"><AdminAgendaForm /></RequireSection>} />
         <Route path="agenda/:id/expedientes" element={<RequireSection section="agenda"><AdminAgendaExpedientes /></RequireSection>} />
         <Route path="mensajes" element={<RequireSection section="mensajes"><AdminMessages /></RequireSection>} />
+        <Route path="testimonios" element={<RequireSection section="testimonios"><AdminTestimonials /></RequireSection>} />
       </Route>
 
       <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />

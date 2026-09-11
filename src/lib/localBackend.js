@@ -25,6 +25,7 @@ const KEYS = {
   amenities: "acl_local_amenities",
   propertyCodeSeq: "acl_local_property_code_seq",
   messages: "acl_local_messages",
+  testimonials: "acl_local_testimonials",
 };
 
 function readStore(key, fallback) {
@@ -414,6 +415,56 @@ export const localBackend = {
   async deleteAmenity(id) {
     const amenities = readStore(KEYS.amenities, AMENITIES_SEED);
     writeStore(KEYS.amenities, amenities.filter((a) => a.id !== id));
+  },
+
+  async getTestimonials() {
+    const testimonials = readStore(KEYS.testimonials, []);
+    return testimonials.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  },
+
+  async addTestimonial(data) {
+    const testimonials = readStore(KEYS.testimonials, []);
+    const record = {
+      id: uid("testimonial"),
+      name: data.name.trim(),
+      role: data.role?.trim() || null,
+      quote: data.quote.trim(),
+      rating: Number(data.rating) || 5,
+      active: true,
+      created_at: new Date().toISOString(),
+    };
+    testimonials.push(record);
+    writeStore(KEYS.testimonials, testimonials);
+    return record;
+  },
+
+  async updateTestimonial(id, data) {
+    const testimonials = readStore(KEYS.testimonials, []);
+    const idx = testimonials.findIndex((t) => t.id === id);
+    if (idx === -1) throw new Error("Testimonio no encontrado");
+    testimonials[idx] = {
+      ...testimonials[idx],
+      name: data.name.trim(),
+      role: data.role?.trim() || null,
+      quote: data.quote.trim(),
+      rating: Number(data.rating) || 5,
+    };
+    writeStore(KEYS.testimonials, testimonials);
+    return testimonials[idx];
+  },
+
+  async toggleTestimonialActive(id, active) {
+    const testimonials = readStore(KEYS.testimonials, []);
+    const idx = testimonials.findIndex((t) => t.id === id);
+    if (idx === -1) throw new Error("Testimonio no encontrado");
+    testimonials[idx] = { ...testimonials[idx], active };
+    writeStore(KEYS.testimonials, testimonials);
+    return testimonials[idx];
+  },
+
+  async deleteTestimonial(id) {
+    const testimonials = readStore(KEYS.testimonials, []);
+    writeStore(KEYS.testimonials, testimonials.filter((t) => t.id !== id));
   },
 
   async togglePropertyTypeActive(id, active) {

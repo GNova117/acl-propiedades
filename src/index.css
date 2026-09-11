@@ -233,6 +233,16 @@ ul {
   color: var(--color-danger);
 }
 
+.testimonial-stars {
+  color: var(--color-warning);
+  letter-spacing: 0.1em;
+  font-size: 0.95rem;
+}
+
+.testimonial-stars__empty {
+  color: var(--color-border);
+}
+
 .form-field {
   display: flex;
   flex-direction: column;

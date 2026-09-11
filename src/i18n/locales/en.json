@@ -237,6 +237,18 @@
     "showFull": "Show full message",
     "showLess": "Show less"
   },
+  "testimonials": {
+    "title": "Testimonials",
+    "subtitle": "Shown in the \"What our clients say\" section on the homepage — only the ones marked Active.",
+    "new": "New testimonial",
+    "name": "Name",
+    "role": "Context (optional)",
+    "rating": "Rating",
+    "quote": "Testimonial",
+    "noResults": "No testimonials yet.",
+    "homeEyebrow": "Trust",
+    "homeTitle": "What our clients say"
+  },
   "footer": {
     "tagline": "Buying and selling houses, land, commercial spaces and industrial warehouses in La Comarca Lagunera.",
     "quickLinks": "Quick links",
@@ -319,7 +331,8 @@
     "newIndustrialWarehouse": "New industrial warehouse",
     "editIndustrialWarehouse": "Edit industrial warehouse",
     "industrialSpecsHint": "Technical data specific to industrial warehouses. Optional — shown on the public page when filled in.",
-    "messages": "Messages"
+    "messages": "Messages",
+    "testimonials": "Testimonials"
   },
   "accessControl": {
     "restricted": "You don't have access to this section.",
@@ -336,7 +349,8 @@
       "documentos_legales": "Legal documents",
       "roles": "Roles & access",
       "agenda": "Agenda",
-      "mensajes": "Messages"
+      "mensajes": "Messages",
+      "testimonios": "Testimonials"
     },
     "rolesTitle": "Roles",
     "newRole": "New role",

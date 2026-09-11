@@ -5,6 +5,7 @@ import SplitHero from "../components/SplitHero";
 import SearchBar from "../components/SearchBar";
 import CategoryCard from "../components/CategoryCard";
 import Reveal from "../components/Reveal";
+import Stars from "../components/Stars";
 import { db } from "../lib/dataStore";
 import "./Home.css";
 
@@ -14,10 +15,13 @@ import "./Home.css";
 // /admin/zonas; un tipo nuevo solo aparece en el filtro de "/propiedades".
 const HOME_CATEGORY_TYPES = ["casa", "departamento", "nave_industrial", "terreno"];
 
+const MAX_HOME_TESTIMONIALS = 6;
+
 export default function Home() {
   const { t } = useTranslation();
   const [counts, setCounts] = useState({ casa: 0, departamento: 0, nave_industrial: 0, terreno: 0 });
   const [propertyTypes, setPropertyTypes] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
 
   useEffect(() => {
     let active = true;
@@ -32,6 +36,11 @@ export default function Home() {
     db.getPropertyTypes().then((data) => {
       if (active) setPropertyTypes(data);
     });
+    db.getTestimonials()
+      .then((data) => {
+        if (active) setTestimonials(data.filter((tst) => tst.active).slice(0, MAX_HOME_TESTIMONIALS));
+      })
+      .catch(() => {});
     return () => {
       active = false;
     };
@@ -80,6 +89,29 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {testimonials.length > 0 && (
+        <section className="section">
+          <div className="container">
+            <Reveal className="section-heading">
+              <span className="section-heading__eyebrow">{t("testimonials.homeEyebrow")}</span>
+              <h2>{t("testimonials.homeTitle")}</h2>
+            </Reveal>
+            <div className="testimonials-grid">
+              {testimonials.map((testimonial, index) => (
+                <Reveal key={testimonial.id} delay={(index % 6) * 70}>
+                  <div className="card testimonial-card">
+                    <Stars rating={testimonial.rating} />
+                    <p className="testimonial-card__quote">&ldquo;{testimonial.quote}&rdquo;</p>
+                    <p className="testimonial-card__name">{testimonial.name}</p>
+                    {testimonial.role && <p className="testimonial-card__role">{testimonial.role}</p>}
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </>
   );
 }

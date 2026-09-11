@@ -331,6 +331,47 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  async getTestimonials() {
+    const { data, error } = await supabase.from("testimonials").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addTestimonial(data) {
+    const payload = {
+      name: data.name.trim(),
+      role: data.role?.trim() || null,
+      quote: data.quote.trim(),
+      rating: Number(data.rating) || 5,
+    };
+    const { data: inserted, error } = await supabase.from("testimonials").insert(payload).select().single();
+    if (error) throw error;
+    return inserted;
+  },
+
+  async updateTestimonial(id, data) {
+    const payload = {
+      name: data.name.trim(),
+      role: data.role?.trim() || null,
+      quote: data.quote.trim(),
+      rating: Number(data.rating) || 5,
+    };
+    const { data: updated, error } = await supabase.from("testimonials").update(payload).eq("id", id).select().single();
+    if (error) throw error;
+    return updated;
+  },
+
+  async toggleTestimonialActive(id, active) {
+    const { data, error } = await supabase.from("testimonials").update({ active }).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteTestimonial(id) {
+    const { error } = await supabase.from("testimonials").delete().eq("id", id);
+    if (error) throw error;
+  },
+
   async togglePropertyTypeActive(id, active) {
     const { data, error } = await supabase.from("property_types").update({ active }).eq("id", id).select().single();
     if (error) throw error;

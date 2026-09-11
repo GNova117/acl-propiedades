@@ -237,6 +237,18 @@
     "showFull": "Ver completo",
     "showLess": "Ver menos"
   },
+  "testimonials": {
+    "title": "Testimonios",
+    "subtitle": "Se muestran en la sección \"Lo que dicen nuestros clientes\" del inicio — solo los marcados como Activos.",
+    "new": "Nuevo testimonio",
+    "name": "Nombre",
+    "role": "Contexto (opcional)",
+    "rating": "Calificación",
+    "quote": "Testimonio",
+    "noResults": "Aún no hay testimonios.",
+    "homeEyebrow": "Confianza",
+    "homeTitle": "Lo que dicen nuestros clientes"
+  },
   "footer": {
     "tagline": "Compra y venta de casas, terrenos, locales comerciales y naves industriales en La Comarca Lagunera.",
     "quickLinks": "Enlaces rápidos",
@@ -319,7 +331,8 @@
     "newIndustrialWarehouse": "Nueva nave industrial",
     "editIndustrialWarehouse": "Editar nave industrial",
     "industrialSpecsHint": "Datos técnicos específicos de naves industriales. Opcionales — se muestran en la ficha pública si se capturan.",
-    "messages": "Mensajes"
+    "messages": "Mensajes",
+    "testimonials": "Testimonios"
   },
   "accessControl": {
     "restricted": "No tienes acceso a este apartado.",
@@ -336,7 +349,8 @@
       "documentos_legales": "Documentos legales",
       "roles": "Roles y accesos",
       "agenda": "Agenda",
-      "mensajes": "Mensajes"
+      "mensajes": "Mensajes",
+      "testimonios": "Testimonios"
     },
     "rolesTitle": "Roles",
     "newRole": "Nuevo rol",

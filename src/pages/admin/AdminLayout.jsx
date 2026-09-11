@@ -30,6 +30,7 @@ export default function AdminLayout() {
           {hasSection("zonas") && <NavLink to="/admin/zonas">{t("admin.zones")}</NavLink>}
           {hasSection("clientes") && <NavLink to="/admin/clientes">{t("admin.clients")}</NavLink>}
           {hasSection("mensajes") && <NavLink to="/admin/mensajes">{t("admin.messages")}</NavLink>}
+          {hasSection("testimonios") && <NavLink to="/admin/testimonios">{t("admin.testimonials")}</NavLink>}
           {hasSection("remodelaciones") && <NavLink to="/admin/remodelaciones">{t("admin.remodelProjects")}</NavLink>}
           {hasSection("materiales") && <NavLink to="/admin/materiales">{t("materialsCatalog.title")}</NavLink>}
           {hasSection("credito_infonavit") && <NavLink to="/admin/credito-infonavit">{t("admin.infonavitSimulator")}</NavLink>}
