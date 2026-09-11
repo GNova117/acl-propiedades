@@ -218,6 +218,16 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  async getPropertyChanges(propertyId) {
+    const { data, error } = await supabase
+      .from("property_changes")
+      .select("*")
+      .eq("property_id", propertyId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
   async getAdvisors() {
     const { data, error } = await supabase.from("advisors").select("*").order("name");
     if (error) throw error;

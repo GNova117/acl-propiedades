@@ -249,6 +249,15 @@
     "homeEyebrow": "Trust",
     "homeTitle": "What our clients say"
   },
+  "propertyHistory": {
+    "title": "Change history",
+    "field": "Field",
+    "before": "Before",
+    "after": "After",
+    "changedBy": "Changed by",
+    "noResults": "No changes recorded yet for this property.",
+    "button": "History"
+  },
   "footer": {
     "tagline": "Buying and selling houses, land, commercial spaces and industrial warehouses in La Comarca Lagunera.",
     "quickLinks": "Quick links",

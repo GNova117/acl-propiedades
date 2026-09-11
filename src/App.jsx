@@ -29,6 +29,7 @@ const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminProperties = lazy(() => import("./pages/admin/AdminProperties"));
 const AdminPropertyForm = lazy(() => import("./pages/admin/AdminPropertyForm"));
 const AdminPropertyLiquidacion = lazy(() => import("./pages/admin/AdminPropertyLiquidacion"));
+const AdminPropertyHistory = lazy(() => import("./pages/admin/AdminPropertyHistory"));
 const AdminAdvisors = lazy(() => import("./pages/admin/AdminAdvisors"));
 const AdminAdvisorForm = lazy(() => import("./pages/admin/AdminAdvisorForm"));
 const AdminZones = lazy(() => import("./pages/admin/AdminZones"));
@@ -175,6 +176,15 @@ export default function App() {
                 newTitleKey="admin.newIndustrialWarehouse"
                 editTitleKey="admin.editIndustrialWarehouse"
               />
+            </RequireSection>
+          }
+        />
+        <Route path="propiedades/:id/historial" element={<RequireSection section="propiedades"><AdminPropertyHistory /></RequireSection>} />
+        <Route
+          path="naves-industriales/:id/historial"
+          element={
+            <RequireSection section="naves_industriales">
+              <AdminPropertyHistory listPath="/admin/naves-industriales" />
             </RequireSection>
           }
         />

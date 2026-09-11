@@ -143,6 +143,9 @@ export default function AdminProperties({
                       <Link to={`${basePath}/${property.id}`} className="btn btn-outline btn-sm">
                         {t("common.edit")}
                       </Link>
+                      <Link to={`${basePath}/${property.id}/historial`} className="btn btn-outline btn-sm">
+                        {t("propertyHistory.button")}
+                      </Link>
                       <button
                         type="button"
                         className="btn btn-outline btn-sm"

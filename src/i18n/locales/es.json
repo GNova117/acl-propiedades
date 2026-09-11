@@ -249,6 +249,15 @@
     "homeEyebrow": "Confianza",
     "homeTitle": "Lo que dicen nuestros clientes"
   },
+  "propertyHistory": {
+    "title": "Historial de cambios",
+    "field": "Campo",
+    "before": "Antes",
+    "after": "Después",
+    "changedBy": "Modificado por",
+    "noResults": "Aún no hay cambios registrados para esta propiedad.",
+    "button": "Historial"
+  },
   "footer": {
     "tagline": "Compra y venta de casas, terrenos, locales comerciales y naves industriales en La Comarca Lagunera.",
     "quickLinks": "Enlaces rápidos",

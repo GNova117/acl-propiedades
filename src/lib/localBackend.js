@@ -26,6 +26,7 @@ const KEYS = {
   propertyCodeSeq: "acl_local_property_code_seq",
   messages: "acl_local_messages",
   testimonials: "acl_local_testimonials",
+  propertyChanges: "acl_local_property_changes",
 };
 
 function readStore(key, fallback) {
@@ -280,9 +281,46 @@ export const localBackend = {
       amenities: data.amenities || [],
       updated_at: new Date().toISOString(),
     };
+    // Modo demo del "Historial" del admin: en Supabase esto lo hace un
+    // trigger (log_property_changes(), corre pase lo que pase); aquí no
+    // hay trigger real, así que se replica a mano justo antes de guardar,
+    // comparando el registro viejo contra el nuevo.
+    const changes = readStore(KEYS.propertyChanges, []);
+    const previous = properties[idx];
+    if (previous.price !== updated.price) {
+      changes.push({
+        id: uid("change"),
+        property_id: id,
+        changed_by: "Modo demo",
+        field: "price",
+        old_value: String(previous.price),
+        new_value: String(updated.price),
+        created_at: new Date().toISOString(),
+      });
+    }
+    if (previous.status !== updated.status) {
+      changes.push({
+        id: uid("change"),
+        property_id: id,
+        changed_by: "Modo demo",
+        field: "status",
+        old_value: previous.status,
+        new_value: updated.status,
+        created_at: new Date().toISOString(),
+      });
+    }
+    writeStore(KEYS.propertyChanges, changes);
     properties[idx] = updated;
     writeStoreOrThrowFriendly(KEYS.properties, properties);
     return updated;
+  },
+
+  async getPropertyChanges(propertyId) {
+    const changes = readStore(KEYS.propertyChanges, []);
+    return changes
+      .filter((c) => c.property_id === propertyId)
+      .slice()
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   },
 
   async deleteProperty(id) {
