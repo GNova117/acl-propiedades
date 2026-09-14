@@ -578,7 +578,9 @@
     },
     "noDocuments": "Aún no se han capturado documentos para este cliente.",
     "addDocument": "Capturar documento",
-    "capturedAt": "Capturado el"
+    "capturedAt": "Capturado el",
+    "uploadPdf": "Subir PDF",
+    "viewPdf": "Ver PDF"
   },
   "liquidacion": {
     "button": "Utilidad",

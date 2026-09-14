@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { DOC_TYPES } from "../../lib/format";
+import { DOC_TYPES, isPdfDoc } from "../../lib/format";
 import "./admin.css";
 
 function clientTypeLabel(t, type) {
@@ -127,7 +127,13 @@ export default function AdminClientJoint() {
                 <div className="admin-doc-card__list">
                   {items.map((doc) => (
                     <div className="admin-doc-card__item" key={doc.id}>
-                      <img src={doc.signed_url} alt="" />
+                      {isPdfDoc(doc) ? (
+                        <a href={doc.signed_url} target="_blank" rel="noreferrer" className="admin-doc-card__pdf">
+                          📄 {t("documentCapture.viewPdf")}
+                        </a>
+                      ) : (
+                        <img src={doc.signed_url} alt="" />
+                      )}
                       <span className="form-hint">{doc.owner.name}</span>
                     </div>
                   ))}

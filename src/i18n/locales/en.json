@@ -578,7 +578,9 @@
     },
     "noDocuments": "No documents captured for this client yet.",
     "addDocument": "Capture document",
-    "capturedAt": "Captured on"
+    "capturedAt": "Captured on",
+    "uploadPdf": "Upload PDF",
+    "viewPdf": "View PDF"
   },
   "liquidacion": {
     "button": "Profit",

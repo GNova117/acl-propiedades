@@ -504,10 +504,15 @@ export const supabaseBackend = {
   },
 
   async addClientDocument({ client_id, doc_type, blob, quality_metrics }) {
-    const path = `${client_id}/${doc_type}-${Date.now()}.jpg`;
+    // La foto capturada por cámara siempre es un jpeg (canvasToBlob en
+    // DocumentCapture.jsx), pero un PDF subido directo trae su propio
+    // blob.type — se respeta en vez de forzar siempre jpeg, para que el
+    // archivo se sirva/abra correctamente después.
+    const isPdf = blob.type === "application/pdf";
+    const path = `${client_id}/${doc_type}-${Date.now()}.${isPdf ? "pdf" : "jpg"}`;
     const { error: uploadError } = await supabase.storage
       .from("client-documents")
-      .upload(path, blob, { contentType: "image/jpeg", upsert: false });
+      .upload(path, blob, { contentType: blob.type || "image/jpeg", upsert: false });
     if (uploadError) throw uploadError;
     const { data, error } = await supabase
       .from("client_documents")

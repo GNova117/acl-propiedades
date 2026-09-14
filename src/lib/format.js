@@ -15,6 +15,16 @@ export function whatsappDigits(value) {
   return (value || "").replace(/\D/g, "");
 }
 
+// Un documento de cliente capturado por cámara siempre es jpeg; uno
+// subido directo puede ser un PDF (contrato, cédula fiscal, etc. que ya
+// existen como archivo). En modo demo file_path/signed_url es la propia
+// data URL (empieza con "data:application/pdf"); contra Supabase real es
+// la ruta del archivo en el bucket (termina en ".pdf") — cubre las dos.
+export function isPdfDoc(doc) {
+  const src = doc.signed_url || doc.file_path || "";
+  return src.startsWith("data:application/pdf") || src.toLowerCase().endsWith(".pdf");
+}
+
 export function formatMXN(value) {
   const number = Number(value) || 0;
   return new Intl.NumberFormat("es-MX", {

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { DOC_TYPES, DOC_TYPE_ASPECT } from "../../lib/format";
+import { DOC_TYPES, DOC_TYPE_ASPECT, isPdfDoc } from "../../lib/format";
 import DocumentCapture from "../../components/DocumentCapture";
 import "./admin.css";
 
@@ -30,6 +30,17 @@ export default function AdminClientDocuments() {
   const handleAccept = async ({ blob, qualityMetrics }) => {
     await db.addClientDocument({ client_id: id, doc_type: capturingType, blob, quality_metrics: qualityMetrics });
     setCapturingType(null);
+    load();
+  };
+
+  // Un PDF ya existente se sube tal cual, sin pasar por la cámara ni por
+  // el análisis de nitidez/brillo de DocumentCapture.jsx — ese análisis es
+  // de imagen, no aplica a un PDF.
+  const handlePdfUpload = async (docType, e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    await db.addClientDocument({ client_id: id, doc_type: docType, blob: file, quality_metrics: {} });
     load();
   };
 
@@ -103,23 +114,43 @@ export default function AdminClientDocuments() {
                 <p className="form-hint">{t("documentCapture.noDocuments")}</p>
               ) : (
                 <div className="admin-doc-card__list">
-                  {docsOfType.map((doc) => (
-                    <div className="admin-doc-card__item" key={doc.id}>
-                      <img src={doc.signed_url} alt="" />
-                      <span className="form-hint">
-                        {t("documentCapture.capturedAt")} {new Date(doc.captured_at).toLocaleString()}
-                      </span>
-                      <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDeleteDoc(doc.id)}>
-                        {t("common.delete")}
-                      </button>
-                    </div>
-                  ))}
+                  {docsOfType.map((doc) =>
+                    isPdfDoc(doc) ? (
+                      <div className="admin-doc-card__item" key={doc.id}>
+                        <a href={doc.signed_url} target="_blank" rel="noreferrer" className="admin-doc-card__pdf">
+                          📄 {t("documentCapture.viewPdf")}
+                        </a>
+                        <span className="form-hint">
+                          {t("documentCapture.capturedAt")} {new Date(doc.captured_at).toLocaleString()}
+                        </span>
+                        <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDeleteDoc(doc.id)}>
+                          {t("common.delete")}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="admin-doc-card__item" key={doc.id}>
+                        <img src={doc.signed_url} alt="" />
+                        <span className="form-hint">
+                          {t("documentCapture.capturedAt")} {new Date(doc.captured_at).toLocaleString()}
+                        </span>
+                        <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDeleteDoc(doc.id)}>
+                          {t("common.delete")}
+                        </button>
+                      </div>
+                    )
+                  )}
                 </div>
               )}
 
-              <button type="button" className="btn btn-primary btn-sm" onClick={() => setCapturingType(docType)}>
-                {t("documentCapture.addDocument")}
-              </button>
+              <div className="admin-doc-card__actions">
+                <button type="button" className="btn btn-primary btn-sm" onClick={() => setCapturingType(docType)}>
+                  {t("documentCapture.addDocument")}
+                </button>
+                <label className="btn btn-outline btn-sm">
+                  <input type="file" accept="application/pdf" hidden onChange={(e) => handlePdfUpload(docType, e)} />
+                  {t("documentCapture.uploadPdf")}
+                </label>
+              </div>
             </div>
           );
         })}
