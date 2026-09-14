@@ -6,7 +6,7 @@ Sitio web inmobiliario para **ACL Propiedades**, agencia ubicada en La Comarca L
 
 - **React 19** + **Vite** (SPA con React Router 7)
 - **Supabase** (Postgres + Auth + Storage) como backend
-- **Leaflet / react-leaflet** + OpenStreetMap para el mapa interactivo
+- **@react-google-maps/api** + Google Maps JavaScript API para el mapa interactivo de propiedades (necesita `VITE_GOOGLE_MAPS_API_KEY` — ver abajo). El mapa de la oficina en `/contacto` es un embed público de Google Maps sin llave.
 - **i18next** para español/inglés
 - CSS plano con variables (sin frameworks), modo claro/oscuro nativo
 
@@ -120,11 +120,19 @@ acl-propiedades/
 
   Usa OAuth2 con un refresh token, **no** una llave de cuenta de servicio — muchos proyectos nuevos de Google Cloud traen activada por default la política `iam.managed.disableServiceAccountKeyCreation` a nivel organización, y sin ser dueño de una organización no hay forma de desactivarla. OAuth2 no cae bajo esa restricción y de paso reusa el acceso que la propia persona ya tiene en GA4 (no hace falta agregar ninguna cuenta de servicio como Viewer de la propiedad). Necesita, solo en las Environment Variables de Vercel (nunca en `.env`, y sin el prefijo `VITE_`):
   1. Un proyecto en [Google Cloud Console](https://console.cloud.google.com) con la **Google Analytics Data API** habilitada.
-  2. Una pantalla de consentimiento de OAuth (tipo "External", en modo "Testing" está bien) y un **Client ID de OAuth** (tipo "Desktop app") en ese mismo proyecto — da un `client_id` y un `client_secret`.
-  3. Un **refresh token**: la forma más simple es con [Google OAuth Playground](https://developers.google.com/oauthplayground) — en su ⚙️ usar el client_id/client_secret propios, autorizar el scope `https://www.googleapis.com/auth/analytics.readonly` con la cuenta de Google que ya tiene acceso a GA4, y copiar el refresh token que entrega.
-  4. Cuatro variables en Vercel: `GA_OAUTH_CLIENT_ID`, `GA_OAUTH_CLIENT_SECRET`, `GA_OAUTH_REFRESH_TOKEN`, y `GA_PROPERTY_ID` (el ID numérico de la propiedad GA4, en Admin → Property Settings — no es el Measurement ID `G-XXXX`).
+  2. Una pantalla de consentimiento de OAuth (tipo "External", en modo "Testing" está bien, con tu propio correo como usuario de prueba) y un **Client ID de OAuth de tipo "Aplicación web"** en ese mismo proyecto — el tipo importa: "Desktop app" no trae la opción de agregar un URI de redirección, y el Playground (paso siguiente) lo exige. En "URIs de redireccionamiento autorizados" agrega exactamente `https://developers.google.com/oauthplayground`. Da un `client_id` y un `client_secret`.
+  3. Un **refresh token**: la forma más simple es con [Google OAuth Playground](https://developers.google.com/oauthplayground) — en su ⚙️ marcar "Use your own OAuth credentials" y pegar el client_id/client_secret del paso anterior (Access type ya viene en "Offline", déjalo así), autorizar el scope `https://www.googleapis.com/auth/analytics.readonly` con la cuenta de Google que ya tiene acceso a GA4, y en el Paso 2 del Playground darle "Exchange authorization code for tokens" — copiar el refresh token que entrega.
+  4. Cuatro variables en Vercel: `GA_OAUTH_CLIENT_ID`, `GA_OAUTH_CLIENT_SECRET`, `GA_OAUTH_REFRESH_TOKEN`, y `GA_PROPERTY_ID` (el ID numérico de la propiedad GA4, en Admin → Detalles de la propiedad — no es el Measurement ID `G-XXXX`).
 
   Si estas cuatro variables no están configuradas, el panel simplemente no aparece (sin error) hasta que se completen.
+
+- **Mapa interactivo de propiedades** (`src/components/PropertyMap.jsx`, ficha de propiedad + "Ver en mapa" del listado): usa Google Maps JavaScript API vía `@react-google-maps/api`. A diferencia del resumen de Analytics, esta API key es pública por diseño — vive en `VITE_GOOGLE_MAPS_API_KEY` (con el prefijo `VITE_`, se manda al navegador) y su seguridad se controla restringiéndola por dominio en Google Cloud Console, no ocultándola. Necesita:
+  1. En el mismo proyecto de Google Cloud (o uno nuevo), habilitar **Maps JavaScript API**.
+  2. **Vincular una cuenta de facturación** al proyecto — a diferencia de la Analytics Data API, Maps JavaScript API la pide incluso dentro de la capa gratuita mensual (Google Cloud Billing → vincular una tarjeta). No debería generar cargo real para el tráfico esperado de este sitio, pero es un paso real que hay que hacer conscientemente.
+  3. Crear una **API key** (APIs & Services → Credentials → Create Credentials → API key) y restringirla: en "Application restrictions" elegir "Websites" y agregar el dominio de producción (`acl-propiedades.vercel.app/*`); en "API restrictions" limitarla a "Maps JavaScript API" únicamente.
+  4. Esa key va en `VITE_GOOGLE_MAPS_API_KEY`, en Vercel y opcionalmente en el `.env` local.
+
+  Mientras no esté configurada, el mapa muestra "El mapa todavía no está configurado" en vez de fallar — el mapa de la oficina en `/contacto` (un simple embed, sin API) sigue funcionando siempre, sin depender de esto.
 
 ## Notas
 

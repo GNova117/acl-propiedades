@@ -14,10 +14,10 @@ import { db } from "../lib/dataStore";
 import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./PropertyDetail.css";
 
-// Leaflet (react-leaflet + leaflet, ~150KB) queda fuera del bundle
-// principal del sitio público — aquí siempre se termina mostrando (no es
-// opcional como en /propiedades), pero separarlo en su propio chunk
-// evita que cargue para cualquiera que solo visite el inicio o la lista.
+// @react-google-maps/api queda fuera del bundle principal del sitio
+// público — aquí siempre se termina mostrando (no es opcional como en
+// /propiedades), pero separarlo en su propio chunk evita que cargue para
+// cualquiera que solo visite el inicio o la lista.
 const PropertyMap = lazy(() => import("../components/PropertyMap"));
 
 // Todos los campos "especificaciones" que puede tener una propiedad —

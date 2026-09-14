@@ -8,10 +8,10 @@ import Reveal from "../components/Reveal";
 import { db } from "../lib/dataStore";
 import "./Properties.css";
 
-// Leaflet (react-leaflet + leaflet, ~150KB) pesa bastante para algo que
-// la mayoría de las visitas nunca activa (por default se ve la lista, no
-// el mapa) — cargarlo solo cuando alguien de verdad le da a "Ver en
-// mapa" saca ese peso del bundle principal del sitio público.
+// @react-google-maps/api pesa bastante para algo que la mayoría de las
+// visitas nunca activa (por default se ve la lista, no el mapa) —
+// cargarlo solo cuando alguien de verdad le da a "Ver en mapa" saca ese
+// peso del bundle principal del sitio público.
 const PropertyMap = lazy(() => import("../components/PropertyMap"));
 
 const EMPTY_FILTERS = {
