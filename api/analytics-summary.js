@@ -1,12 +1,21 @@
 // Segunda función serverless del proyecto (la primera es api/sitemap.js).
 // Trae un resumen de Google Analytics 4 (visitas de los últimos 7 días +
 // páginas más vistas) para mostrarlo en el Dashboard del admin, sin que
-// nadie tenga que salir del panel a analytics.google.com. La credencial
-// de la cuenta de servicio de Google NUNCA se manda al navegador — vive
-// solo aquí, en variables de entorno de Vercel, igual que el resto de
-// secretos de este proyecto (WhatsApp, cron).
+// nadie tenga que salir del panel a analytics.google.com. Las
+// credenciales de Google NUNCA se mandan al navegador — viven solo aquí,
+// en variables de entorno de Vercel, igual que el resto de secretos de
+// este proyecto (WhatsApp, cron).
+//
+// Usa OAuth2 con un refresh token (no una llave de cuenta de servicio):
+// el proyecto de Google Cloud de este negocio trae activada por default
+// la política "Disable service account key creation" a nivel
+// organización, y nadie con esa cuenta tiene el rol para desactivarla —
+// bloqueo cada vez más común en cuentas nuevas de Google. OAuth2 no cae
+// bajo esa restricción (aplica solo a llaves de cuentas de servicio) y
+// además reusa el acceso que la propia persona ya tiene en GA4, sin
+// tener que agregar una cuenta de servicio como Viewer de la propiedad.
 import { createClient } from "@supabase/supabase-js";
-import { JWT } from "google-auth-library";
+import { OAuth2Client } from "google-auth-library";
 
 const ANALYTICS_ENDPOINT = "https://analyticsdata.googleapis.com/v1beta";
 
@@ -31,19 +40,17 @@ async function getAuthenticatedUser(req) {
 }
 
 function getGaClient() {
-  const email = process.env.GA_SERVICE_ACCOUNT_EMAIL;
-  const privateKey = process.env.GA_SERVICE_ACCOUNT_PRIVATE_KEY;
+  const clientId = process.env.GA_OAUTH_CLIENT_ID;
+  const clientSecret = process.env.GA_OAUTH_CLIENT_SECRET;
+  const refreshToken = process.env.GA_OAUTH_REFRESH_TOKEN;
   const propertyId = process.env.GA_PROPERTY_ID;
-  if (!email || !privateKey || !propertyId) return null;
+  if (!clientId || !clientSecret || !refreshToken || !propertyId) return null;
 
-  const client = new JWT({
-    email,
-    // Vercel guarda el valor de la variable como una sola línea — los
-    // saltos de línea reales de la llave privada vienen escapados como
-    // "\n" literal, hay que devolverlos a saltos de línea de verdad.
-    key: privateKey.replace(/\\n/g, "\n"),
-    scopes: ["https://www.googleapis.com/auth/analytics.readonly"],
-  });
+  const client = new OAuth2Client({ clientId, clientSecret });
+  // Con solo el refresh token seteado, cualquier client.request() pide un
+  // access token nuevo por su cuenta antes de llamar a la API — no hace
+  // falta manejar la renovación a mano.
+  client.setCredentials({ refresh_token: refreshToken });
   return { client, propertyId };
 }
 
