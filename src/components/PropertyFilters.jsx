@@ -7,6 +7,14 @@ import "./PropertyFilters.css";
 
 const MIN_OPTIONS = ["1", "2", "3", "4", "5"];
 
+// Cuántos campos de `filters` tienen algo capturado — se muestra junto al
+// botón "Filtros" en celular para que se sepa si hay algo activo sin tener
+// que abrir el panel.
+function countActiveFilters(filters) {
+  const fields = ["type", "operationType", "tipoNave", "zone", "minPrice", "maxPrice", "minArea", "maxArea", "minBedrooms", "minBathrooms", "minParking"];
+  return fields.filter((field) => filters[field]).length + (filters.amenities?.length || 0);
+}
+
 export default function PropertyFilters({ filters, zones, typeOptions = [], showOperation = true, showNaveTipo = false, onChange, onClear }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -14,6 +22,12 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
   const [codeInput, setCodeInput] = useState("");
   const [codeError, setCodeError] = useState(false);
   const [searchingCode, setSearchingCode] = useState(false);
+  // En celular el panel arranca cerrado (el CSS lo esconde bajo los 980px,
+  // el mismo corte donde el panel deja de ser sticky) para que lo primero
+  // que se vea sean resultados, no un formulario largo — en escritorio esta
+  // bandera no importa, la regla que la usa vive dentro de esa media query.
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const activeCount = countActiveFilters(filters);
 
   useEffect(() => {
     db.getAmenities().then(setAmenities).catch(() => setAmenities([]));
@@ -50,10 +64,23 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
     <div className="property-filters card">
       <div className="property-filters__header">
         <h3>{t("properties.filters")}</h3>
-        <button type="button" className="btn btn-outline btn-sm" onClick={onClear}>
-          {t("properties.clear")}
-        </button>
+        <div className="property-filters__header-actions">
+          <button type="button" className="btn btn-outline btn-sm" onClick={onClear}>
+            {t("properties.clear")}
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm property-filters__toggle"
+            onClick={() => setMobileOpen((open) => !open)}
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? t("properties.hideFilters") : t("properties.showFilters")}
+            {activeCount > 0 && <span className="property-filters__toggle-count">{activeCount}</span>}
+          </button>
+        </div>
       </div>
+
+      <div className={`property-filters__body${mobileOpen ? " is-open" : ""}`}>
 
       <form className="form-field" onSubmit={handleCodeSearch}>
         <label htmlFor="filter-code">{t("properties.searchByCode")}</label>
@@ -199,6 +226,12 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
           </div>
         )}
       </details>
+
+      <button type="button" className="btn btn-primary btn-block property-filters__view-results" onClick={() => setMobileOpen(false)}>
+        {t("properties.viewResults")}
+      </button>
+
+      </div>
     </div>
   );
 }

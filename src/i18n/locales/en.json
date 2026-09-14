@@ -101,7 +101,10 @@
     "searchByCode": "Search by code",
     "codePlaceholder": "ACL-1042",
     "codeSearchButton": "Search",
-    "codeNotFound": "No property was found with that code."
+    "codeNotFound": "No property was found with that code.",
+    "showFilters": "Filters",
+    "hideFilters": "Hide filters",
+    "viewResults": "View results"
   },
   "detail": {
     "back": "Back to properties",
