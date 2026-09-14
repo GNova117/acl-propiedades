@@ -55,7 +55,7 @@ export default function Contact() {
                 style={{ border: 0, borderRadius: "var(--radius-md)" }}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                src="https://www.google.com/maps?q=25.5704828,-103.4209071&z=16&output=embed"
+                src="https://www.google.com/maps?q=ACL+Propiedades,+Torre%C3%B3n,+Coahuila&z=16&output=embed"
               />
             </div>
             <p className="contact-page__address">
