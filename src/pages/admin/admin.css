@@ -92,6 +92,16 @@
   white-space: nowrap;
 }
 
+.admin-dashboard-panel__analytics-totals {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.admin-dashboard-panel__analytics-totals .admin-stat-card__value {
+  font-size: 1.6rem;
+}
+
 .admin-table-wrapper {
   overflow-x: auto;
 }

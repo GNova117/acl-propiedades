@@ -116,6 +116,13 @@ acl-propiedades/
 - **Modo oscuro**: botón de sol/luna en el header y panel admin, con preferencia guardada y respeto a `prefers-color-scheme`.
 - **Formulario de contacto**: validación de campos y envío funcional (guarda el mensaje en Supabase `contact_messages`, o en `localStorage` en modo demo).
 - **Google Analytics 4** (`src/lib/analytics.js`): opcional — se activa solo si `VITE_GA_MEASUREMENT_ID` está configurado. Mide únicamente el sitio público (se inicializa dentro de `PublicLayout`, nunca dentro de `AdminLayout`, así que entrar directo a `/admin` no carga el script ni cuenta como visita); cada cambio de ruta de React Router manda su propio evento `page_view` a mano (`send_page_view: false` en la config, para no duplicar el de la carga inicial).
+- **Resumen de Analytics en el Dashboard** (`api/analytics-summary.js`): panel opcional en `/admin` con usuarios activos, vistas de página y páginas más vistas de los últimos 7 días, sin salir del panel. Es una función serverless de Vercel — la credencial de Google nunca llega al navegador. Necesita, solo en las Environment Variables de Vercel (nunca en `.env`, y sin el prefijo `VITE_`):
+  1. Un proyecto en [Google Cloud Console](https://console.cloud.google.com) con la **Google Analytics Data API** habilitada.
+  2. Una cuenta de servicio (Service Account) en ese proyecto, con una llave JSON descargada.
+  3. En GA4 (Admin de la propiedad → Property Access Management), agregar el correo de esa cuenta de servicio como **Viewer**.
+  4. Tres variables en Vercel: `GA_SERVICE_ACCOUNT_EMAIL` (el correo de la cuenta de servicio), `GA_SERVICE_ACCOUNT_PRIVATE_KEY` (el campo `private_key` del JSON, tal cual — con los `\n` literales), y `GA_PROPERTY_ID` (el ID numérico de la propiedad GA4, en Admin → Property Settings — no es el Measurement ID `G-XXXX`).
+
+  Si estas tres variables no están configuradas, el panel simplemente no aparece (sin error) hasta que se completen.
 
 ## Notas
 

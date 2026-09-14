@@ -8,7 +8,7 @@ import "./admin.css";
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
-  const { sections, hasSection, advisorId } = useAuth();
+  const { sections, hasSection, advisorId, session } = useAuth();
   const [properties, setProperties] = useState([]);
   const [advisors, setAdvisors] = useState([]);
   const [clients, setClients] = useState([]);
@@ -16,6 +16,7 @@ export default function AdminDashboard() {
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [messages, setMessages] = useState([]);
   const [citas, setCitas] = useState([]);
+  const [analytics, setAnalytics] = useState({ loading: true, data: null });
 
   const sectionsKey = sections.join(",");
   const seesAllAgendas = advisorId == null;
@@ -32,6 +33,23 @@ export default function AdminDashboard() {
     if (hasSection("agenda")) db.getAgendaCitas().then(setCitas);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sectionsKey]);
+
+  // No hay sección propia para esto (es tráfico agregado del sitio, no
+  // dato de cliente ni financiero) — se muestra a cualquiera que llegue
+  // al Dashboard, igual que este ya se ve completo sin RequireSection. En
+  // modo demo no hay access_token real, así que simplemente no se llama
+  // al endpoint (tampoco habría a qué Vercel Function pegarle).
+  useEffect(() => {
+    const token = session?.access_token;
+    if (!token) {
+      setAnalytics({ loading: false, data: null });
+      return;
+    }
+    fetch("/api/analytics-summary", { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setAnalytics({ loading: false, data }))
+      .catch(() => setAnalytics({ loading: false, data: null }));
+  }, [session]);
 
   const byType = propertyTypes.map((pt) => ({
     type: pt.key,
@@ -105,8 +123,42 @@ export default function AdminDashboard() {
           ))}
       </div>
 
-      {(hasSection("agenda") || hasSection("propiedades")) && (
+      {(hasSection("agenda") || hasSection("propiedades") || analytics.data) && (
         <div className="admin-dashboard-panels">
+          {analytics.data && (
+            <div className="card admin-dashboard-panel">
+              <div className="admin-dashboard-panel__header">
+                <h2>{t("admin.analyticsTitle")}</h2>
+              </div>
+              {analytics.data.configured === false ? (
+                <p className="form-hint">{t("admin.analyticsNotConfigured")}</p>
+              ) : (
+                <>
+                  <div className="admin-dashboard-panel__analytics-totals">
+                    <div>
+                      <span className="admin-stat-card__value">{analytics.data.activeUsers}</span>
+                      <span className="admin-stat-card__label">{t("admin.analyticsUsers")}</span>
+                    </div>
+                    <div>
+                      <span className="admin-stat-card__value">{analytics.data.pageViews}</span>
+                      <span className="admin-stat-card__label">{t("admin.analyticsPageViews")}</span>
+                    </div>
+                  </div>
+                  {analytics.data.topPages?.length > 0 && (
+                    <div className="admin-dashboard-panel__list">
+                      {analytics.data.topPages.map((page) => (
+                        <div key={page.title} className="admin-dashboard-panel__row">
+                          <span>{page.title}</span>
+                          <span className="admin-dashboard-panel__row-meta">{page.views}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
           {hasSection("agenda") && (
             <div className="card admin-dashboard-panel">
               <div className="admin-dashboard-panel__header">

@@ -18,7 +18,7 @@ const initialForm = { name: "", email: "", phone: "", date: "", time: "", note: 
 const RATE_LIMIT_KEY = "acl_contact_last_submit";
 const RATE_LIMIT_MS = 60_000;
 
-function buildVisitMessage(property, { date, time, note }, t) {
+function buildVisitMessage(property, { date, time, note }) {
   const dateLabel = date
     ? new Date(`${date}T00:00:00`).toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" })
     : "";
@@ -71,7 +71,7 @@ export default function ScheduleVisitCard({ property }) {
         name: form.name,
         email: form.email,
         phone: form.phone,
-        message: buildVisitMessage(property, form, t),
+        message: buildVisitMessage(property, form),
       });
       window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
       setStatus("success");
