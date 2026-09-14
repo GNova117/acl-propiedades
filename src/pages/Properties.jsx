@@ -181,6 +181,7 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
               typeOptions={typeOptions}
               showOperation={!fixedType}
               showNaveTipo={fixedType === "nave_industrial"}
+              showHomeFilters={fixedType !== "terreno"}
               onChange={setFilters}
               onClear={() => setFilters(EMPTY_FILTERS)}
             />

@@ -10,12 +10,13 @@ const MIN_OPTIONS = ["1", "2", "3", "4", "5"];
 // Cuántos campos de `filters` tienen algo capturado — se muestra junto al
 // botón "Filtros" en celular para que se sepa si hay algo activo sin tener
 // que abrir el panel.
-function countActiveFilters(filters) {
-  const fields = ["type", "operationType", "tipoNave", "zone", "minPrice", "maxPrice", "minArea", "maxArea", "minBedrooms", "minBathrooms", "minParking"];
-  return fields.filter((field) => filters[field]).length + (filters.amenities?.length || 0);
+function countActiveFilters(filters, showHomeFilters) {
+  const fields = ["type", "operationType", "tipoNave", "zone", "minPrice", "maxPrice", "minArea", "maxArea"];
+  if (showHomeFilters) fields.push("minBedrooms", "minBathrooms", "minParking");
+  return fields.filter((field) => filters[field]).length + (showHomeFilters ? filters.amenities?.length || 0 : 0);
 }
 
-export default function PropertyFilters({ filters, zones, typeOptions = [], showOperation = true, showNaveTipo = false, onChange, onClear }) {
+export default function PropertyFilters({ filters, zones, typeOptions = [], showOperation = true, showNaveTipo = false, showHomeFilters = true, onChange, onClear }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [amenities, setAmenities] = useState([]);
@@ -27,7 +28,7 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
   // que se vea sean resultados, no un formulario largo — en escritorio esta
   // bandera no importa, la regla que la usa vive dentro de esa media query.
   const [mobileOpen, setMobileOpen] = useState(false);
-  const activeCount = countActiveFilters(filters);
+  const activeCount = countActiveFilters(filters, showHomeFilters);
 
   useEffect(() => {
     db.getAmenities().then(setAmenities).catch(() => setAmenities([]));
@@ -172,43 +173,45 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
           </div>
         </div>
 
-        <div className="form-row">
-          <div className="form-field">
-            <label htmlFor="filter-bedrooms">{t("properties.minBedrooms")}</label>
-            <select id="filter-bedrooms" value={filters.minBedrooms} onChange={handle("minBedrooms")}>
-              <option value="">—</option>
-              {MIN_OPTIONS.map((n) => (
-                <option key={n} value={n}>
-                  {n}+
-                </option>
-              ))}
-            </select>
+        {showHomeFilters && (
+          <div className="form-row">
+            <div className="form-field">
+              <label htmlFor="filter-bedrooms">{t("properties.minBedrooms")}</label>
+              <select id="filter-bedrooms" value={filters.minBedrooms} onChange={handle("minBedrooms")}>
+                <option value="">—</option>
+                {MIN_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {n}+
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-field">
+              <label htmlFor="filter-bathrooms">{t("properties.minBathrooms")}</label>
+              <select id="filter-bathrooms" value={filters.minBathrooms} onChange={handle("minBathrooms")}>
+                <option value="">—</option>
+                {MIN_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {n}+
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-field">
+              <label htmlFor="filter-parking">{t("properties.minParking")}</label>
+              <select id="filter-parking" value={filters.minParking} onChange={handle("minParking")}>
+                <option value="">—</option>
+                {MIN_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {n}+
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="form-field">
-            <label htmlFor="filter-bathrooms">{t("properties.minBathrooms")}</label>
-            <select id="filter-bathrooms" value={filters.minBathrooms} onChange={handle("minBathrooms")}>
-              <option value="">—</option>
-              {MIN_OPTIONS.map((n) => (
-                <option key={n} value={n}>
-                  {n}+
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-field">
-            <label htmlFor="filter-parking">{t("properties.minParking")}</label>
-            <select id="filter-parking" value={filters.minParking} onChange={handle("minParking")}>
-              <option value="">—</option>
-              {MIN_OPTIONS.map((n) => (
-                <option key={n} value={n}>
-                  {n}+
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+        )}
 
-        {amenities.length > 0 && (
+        {showHomeFilters && amenities.length > 0 && (
           <div className="form-field">
             <label>{t("properties.amenities")}</label>
             <div className="property-filters__amenities">
