@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
@@ -12,9 +12,18 @@ export default function AdminAgendaForm() {
   const isEdit = Boolean(id);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { advisorId } = useAuth();
 
-  const [form, setForm] = useState(EMPTY);
+  // "Agendar cita" desde un mensaje de contacto (/admin/mensajes) llega
+  // aquí con state.prefill (título + actividades con el teléfono/correo/
+  // texto del mensaje) — a diferencia de la solicitud de visita del sitio
+  // público (que llega como mensaje para revisar, no entra directo aquí),
+  // esta sí cae directo en la Agenda porque quien la crea ya es alguien
+  // del equipo decidiendo agendarla. Fecha/hora se dejan en blanco a
+  // propósito: parsear una fecha en texto libre del mensaje no vale el
+  // riesgo de adivinar mal, es más rápido que quien agenda la escriba.
+  const [form, setForm] = useState(() => (!isEdit && location.state?.prefill ? { ...EMPTY, ...location.state.prefill } : EMPTY));
   const [advisors, setAdvisors] = useState([]);
   const [clients, setClients] = useState([]);
   const [errors, setErrors] = useState({});

@@ -244,7 +244,9 @@
     "statusHandled": "Atendido",
     "filterAll": "Todos",
     "showFull": "Ver completo",
-    "showLess": "Ver menos"
+    "showLess": "Ver menos",
+    "createClient": "Crear cliente",
+    "scheduleAppointment": "Agendar cita"
   },
   "testimonials": {
     "title": "Testimonios",

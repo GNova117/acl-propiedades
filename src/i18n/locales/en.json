@@ -244,7 +244,9 @@
     "statusHandled": "Handled",
     "filterAll": "All",
     "showFull": "Show full message",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "createClient": "Create client",
+    "scheduleAppointment": "Schedule appointment"
   },
   "testimonials": {
     "title": "Testimonials",

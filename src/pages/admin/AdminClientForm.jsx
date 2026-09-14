@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { CLIENT_TYPES } from "../../lib/format";
@@ -19,8 +19,13 @@ export default function AdminClientForm() {
   const isEdit = Boolean(id);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [form, setForm] = useState(EMPTY);
+  // "Crear cliente" desde un mensaje de contacto (/admin/mensajes) llega
+  // aquí con state.prefill — nombre/teléfono/correo ya capturados por la
+  // persona, no hace falta volver a teclearlos. Solo aplica al crear, no
+  // al editar un cliente ya existente.
+  const [form, setForm] = useState(() => (!isEdit && location.state?.prefill ? { ...EMPTY, ...location.state.prefill } : EMPTY));
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
