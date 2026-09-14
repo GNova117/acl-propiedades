@@ -26,7 +26,7 @@ export default function AdvisorCard({ advisor, property }) {
       <h4>{advisor.name}</h4>
       {advisor.bio && <p className="advisor-card__bio">{advisor.bio}</p>}
       <div className="advisor-card__actions">
-        <a href={`tel:${advisor.phone}`} className="btn btn-outline btn-sm btn-block">
+        <a href={`tel:${whatsappDigits(advisor.phone)}`} className="btn btn-outline btn-sm btn-block">
           {t("detail.call")}
         </a>
         <a
