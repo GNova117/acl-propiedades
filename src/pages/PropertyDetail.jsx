@@ -8,6 +8,7 @@ import PropertyCard from "../components/PropertyCard";
 import PropertyTypeIcon from "../components/PropertyTypeIcon";
 import ShareButton from "../components/ShareButton";
 import FavoriteButton from "../components/FavoriteButton";
+import CompareButton from "../components/CompareButton";
 import { db } from "../lib/dataStore";
 import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./PropertyDetail.css";
@@ -328,6 +329,7 @@ export default function PropertyDetail() {
                     {t(`propertyStatus.${property.status}`)}
                   </span>
                   <FavoriteButton propertyId={property.id} className="favorite-button--inline" />
+                  <CompareButton propertyId={property.id} className="compare-button--inline" />
                   <ShareButton title={seoTitle} text={shareText} url={`${window.location.origin}/propiedades/${property.id}`} />
                 </div>
                 <span className="property-detail__price">{formatMXN(property.price)}</span>

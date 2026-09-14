@@ -7,6 +7,7 @@ import App from "./App.jsx";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
+import { CompareProvider } from "./context/CompareContext";
 import LoadingScreen from "./components/LoadingScreen";
 
 // Después de un despliegue nuevo, una pestaña que ya tenía la página abierta
@@ -35,10 +36,12 @@ function Root() {
     <ThemeProvider>
       <AuthProvider>
         <FavoritesProvider>
-          <BrowserRouter>
-            {showLoader && <LoadingScreen />}
-            <App />
-          </BrowserRouter>
+          <CompareProvider>
+            <BrowserRouter>
+              {showLoader && <LoadingScreen />}
+              <App />
+            </BrowserRouter>
+          </CompareProvider>
         </FavoritesProvider>
       </AuthProvider>
     </ThemeProvider>

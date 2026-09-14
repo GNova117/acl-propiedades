@@ -11,6 +11,7 @@ import Calculator from "./pages/Calculator";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Favorites from "./pages/Favorites";
+import Compare from "./pages/Compare";
 import Privacy from "./pages/Privacy";
 import Rights from "./pages/Rights";
 import NotFound from "./pages/NotFound";
@@ -112,6 +113,7 @@ export default function App() {
       <Route path="/nosotros" element={<PublicLayout><About /></PublicLayout>} />
       <Route path="/contacto" element={<PublicLayout><Contact /></PublicLayout>} />
       <Route path="/favoritos" element={<PublicLayout><Favorites /></PublicLayout>} />
+      <Route path="/comparar" element={<PublicLayout><Compare /></PublicLayout>} />
       <Route path="/aviso-de-privacidad" element={<PublicLayout><Privacy /></PublicLayout>} />
       <Route path="/carta-de-derechos" element={<PublicLayout><Rights /></PublicLayout>} />
 

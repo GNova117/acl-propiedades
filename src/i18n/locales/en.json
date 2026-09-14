@@ -280,6 +280,19 @@
     "add": "Save to favorites",
     "remove": "Remove from favorites"
   },
+  "compare": {
+    "title": "Compare properties",
+    "subtitle": "Compare up to 4 properties side by side before deciding.",
+    "empty": "You don't have any properties to compare yet.",
+    "browseCta": "Browse properties",
+    "add": "Add to compare",
+    "remove": "Remove from compare",
+    "removeOne": "Remove",
+    "clearAll": "Clear comparison",
+    "full": "You already have {{max}} properties in comparison",
+    "price": "Price",
+    "parking": "Parking"
+  },
   "footer": {
     "tagline": "Buying and selling houses, land, commercial spaces and industrial warehouses in La Comarca Lagunera.",
     "quickLinks": "Quick links",

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import PropertyTypeIcon from "./PropertyTypeIcon";
 import FavoriteButton from "./FavoriteButton";
+import CompareButton from "./CompareButton";
 import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./PropertyCard.css";
 
@@ -17,6 +18,7 @@ export default function PropertyCard({ property }) {
           {t(`propertyStatus.${property.status}`)}
         </span>
         <FavoriteButton propertyId={property.id} className="property-card__favorite" />
+        <CompareButton propertyId={property.id} className="property-card__compare" />
       </Link>
       <div className="property-card__body">
         <div className="property-card__type">

@@ -37,6 +37,12 @@
   right: 0.75rem;
 }
 
+.property-card__compare {
+  position: absolute;
+  top: 0.75rem;
+  right: 3.5rem;
+}
+
 .property-card__body {
   padding: 1.1rem 1.2rem 1.3rem;
   display: flex;

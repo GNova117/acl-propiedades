@@ -5,6 +5,7 @@ import Logo from "./Logo";
 import ThemeToggle from "./ThemeToggle";
 import LanguageToggle from "./LanguageToggle";
 import FavoritesLink from "./FavoritesLink";
+import CompareLink from "./CompareLink";
 import { db } from "../lib/dataStore";
 import "./Header.css";
 
@@ -57,6 +58,7 @@ export default function Header() {
         </nav>
 
         <div className="site-header__actions">
+          <CompareLink />
           <FavoritesLink />
           <ThemeToggle />
           <LanguageToggle />
