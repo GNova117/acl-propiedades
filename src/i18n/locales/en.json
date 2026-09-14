@@ -220,6 +220,7 @@
   "contact": {
     "title": "Contact us",
     "subtitle": "Have questions or looking for a specific property? Write to us and an advisor will contact you.",
+    "directTitle": "Direct contact",
     "name": "Full name",
     "email": "Email address",
     "phone": "Phone",

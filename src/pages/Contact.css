@@ -20,6 +20,47 @@
   flex: 1;
 }
 
+.contact-page__info {
+  padding: 1.25rem 1.5rem;
+}
+
+.contact-page__info h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+}
+
+.contact-page__info-list {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.contact-page__info-list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-text);
+}
+
+.contact-page__info-list a:hover {
+  color: var(--color-primary);
+}
+
+.contact-page__hours-title {
+  margin: 0 0 0.15rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.contact-page__hours {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
 .contact-page__address {
   margin: 0;
   font-size: 0.85rem;

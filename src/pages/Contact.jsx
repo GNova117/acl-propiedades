@@ -1,7 +1,16 @@
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import ContactForm from "../components/ContactForm";
+import WhatsAppIcon from "../components/icons/WhatsAppIcon";
 import "./Contact.css";
+
+// Mismo número y formato que ya usan Footer.jsx y FloatingWhatsApp.jsx —
+// una sola fuente hubiera sido mejor desde el inicio, pero no vale la pena
+// tocar esos dos archivos ya probados solo para extraer una constante.
+const OFFICE_PHONE_DISPLAY = "871 324 3271";
+const OFFICE_PHONE_TEL = "+528713243271";
+const OFFICE_WHATSAPP_HREF = "https://wa.me/528713243271";
+const OFFICE_EMAIL = "inmobiliaria@aclpropiedades.com";
 
 export default function Contact() {
   const { t } = useTranslation();
@@ -19,6 +28,25 @@ export default function Contact() {
         <div className="contact-page__layout">
           <ContactForm />
           <div className="contact-page__map-block">
+            <div className="card contact-page__info">
+              <h3>{t("contact.directTitle")}</h3>
+              <ul className="contact-page__info-list">
+                <li>
+                  <a href={`tel:${OFFICE_PHONE_TEL}`}>{OFFICE_PHONE_DISPLAY}</a>
+                </li>
+                <li>
+                  <a href={`mailto:${OFFICE_EMAIL}`}>{OFFICE_EMAIL}</a>
+                </li>
+                <li>
+                  <a href={OFFICE_WHATSAPP_HREF} target="_blank" rel="noreferrer">
+                    <WhatsAppIcon size={14} /> WhatsApp
+                  </a>
+                </li>
+              </ul>
+              <p className="contact-page__hours-title">{t("about.hoursTitle")}</p>
+              <p className="contact-page__hours">{t("about.hours1")}</p>
+              <p className="contact-page__hours">{t("about.hours2")}</p>
+            </div>
             <div className="contact-page__map">
               <iframe
                 title="Ubicación ACL Propiedades"

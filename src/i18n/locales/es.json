@@ -220,6 +220,7 @@
   "contact": {
     "title": "Contáctanos",
     "subtitle": "¿Tienes dudas o buscas una propiedad específica? Escríbenos y un asesor te contactará.",
+    "directTitle": "Contacto directo",
     "name": "Nombre completo",
     "email": "Correo electrónico",
     "phone": "Teléfono",
