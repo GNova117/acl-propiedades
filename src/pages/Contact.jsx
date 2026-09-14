@@ -54,7 +54,8 @@ export default function Contact() {
                 height="100%"
                 style={{ border: 0, borderRadius: "var(--radius-md)" }}
                 loading="lazy"
-                src="https://www.openstreetmap.org/export/embed.html?bbox=-103.4409%2C25.5555%2C-103.4009%2C25.5855&layer=mapnik&marker=25.5704828%2C-103.4209071"
+                referrerPolicy="no-referrer-when-downgrade"
+                src="https://www.google.com/maps?q=25.5704828,-103.4209071&z=16&output=embed"
               />
             </div>
             <p className="contact-page__address">
