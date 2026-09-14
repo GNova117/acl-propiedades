@@ -5,6 +5,12 @@ import AdvisorCard from "../components/AdvisorCard";
 import { db } from "../lib/dataStore";
 import "./About.css";
 
+// Link corto de la ficha real de "ACL Propiedades" en Google Maps (Share
+// desde la app) — a propósito en vez de un link armado con las
+// coordenadas, que abriría un pin genérico sin nombre ni reseñas del
+// negocio.
+const GOOGLE_MAPS_BUSINESS_URL = "https://maps.app.goo.gl/3zYmxmYrREfk5fC78";
+
 export default function About() {
   const { t } = useTranslation();
   const [advisors, setAdvisors] = useState([]);
@@ -48,6 +54,9 @@ export default function About() {
             <h3>{t("about.addressTitle")}</h3>
             <p>{t("about.address")}</p>
             <p>Torreón, Coahuila</p>
+            <a href={GOOGLE_MAPS_BUSINESS_URL} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
+              {t("about.viewOnMaps")}
+            </a>
           </div>
         </div>
 
