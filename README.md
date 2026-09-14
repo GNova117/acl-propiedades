@@ -6,7 +6,7 @@ Sitio web inmobiliario para **ACL Propiedades**, agencia ubicada en La Comarca L
 
 - **React 19** + **Vite** (SPA con React Router 7)
 - **Supabase** (Postgres + Auth + Storage) como backend
-- **@react-google-maps/api** + Google Maps JavaScript API para el mapa interactivo de propiedades (necesita `VITE_GOOGLE_MAPS_API_KEY` — ver abajo). El mapa de la oficina en `/contacto` es un embed público de Google Maps sin llave.
+- **Leaflet / react-leaflet** + OpenStreetMap para el mapa interactivo de propiedades. El mapa de la oficina en `/contacto` es un embed público de Google Maps sin llave.
 - **i18next** para español/inglés
 - CSS plano con variables (sin frameworks), modo claro/oscuro nativo
 
@@ -125,14 +125,6 @@ acl-propiedades/
   4. Cuatro variables en Vercel: `GA_OAUTH_CLIENT_ID`, `GA_OAUTH_CLIENT_SECRET`, `GA_OAUTH_REFRESH_TOKEN`, y `GA_PROPERTY_ID` (el ID numérico de la propiedad GA4, en Admin → Detalles de la propiedad — no es el Measurement ID `G-XXXX`).
 
   Si estas cuatro variables no están configuradas, el panel simplemente no aparece (sin error) hasta que se completen.
-
-- **Mapa interactivo de propiedades** (`src/components/PropertyMap.jsx`, ficha de propiedad + "Ver en mapa" del listado): usa Google Maps JavaScript API vía `@react-google-maps/api`. A diferencia del resumen de Analytics, esta API key es pública por diseño — vive en `VITE_GOOGLE_MAPS_API_KEY` (con el prefijo `VITE_`, se manda al navegador) y su seguridad se controla restringiéndola por dominio en Google Cloud Console, no ocultándola. Necesita:
-  1. En el mismo proyecto de Google Cloud (o uno nuevo), habilitar **Maps JavaScript API**.
-  2. **Vincular una cuenta de facturación** al proyecto — a diferencia de la Analytics Data API, Maps JavaScript API la pide incluso dentro de la capa gratuita mensual (Google Cloud Billing → vincular una tarjeta). No debería generar cargo real para el tráfico esperado de este sitio, pero es un paso real que hay que hacer conscientemente.
-  3. Crear una **API key** (APIs & Services → Credentials → Create Credentials → API key) y restringirla: en "Application restrictions" elegir "Websites" y agregar el dominio de producción (`acl-propiedades.vercel.app/*`); en "API restrictions" limitarla a "Maps JavaScript API" únicamente.
-  4. Esa key va en `VITE_GOOGLE_MAPS_API_KEY`, en Vercel y opcionalmente en el `.env` local.
-
-  Mientras no esté configurada, el mapa muestra "El mapa todavía no está configurado" en vez de fallar — el mapa de la oficina en `/contacto` (un simple embed, sin API) sigue funcionando siempre, sin depender de esto.
 
 ## Notas
 

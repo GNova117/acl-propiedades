@@ -111,7 +111,6 @@
     "description": "Descripción",
     "features": "Características",
     "location": "Ubicación",
-    "mapNotConfigured": "El mapa todavía no está configurado.",
     "contactAdvisor": "Contactar al asesor",
     "advisorCard": "Asesor asignado",
     "call": "Llamar",
