@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Logo from "../../components/Logo";
@@ -5,6 +6,7 @@ import ThemeToggle from "../../components/ThemeToggle";
 import LanguageToggle from "../../components/LanguageToggle";
 import ErrorBoundary from "../../components/ErrorBoundary";
 import { useAuth } from "../../context/AuthContext";
+import { db } from "../../lib/dataStore";
 import "./AdminLayout.css";
 
 export default function AdminLayout() {
@@ -12,6 +14,20 @@ export default function AdminLayout() {
   const { logout, hasSection } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const [newMessagesCount, setNewMessagesCount] = useState(0);
+
+  // Se vuelve a consultar en cada cambio de ruta (no solo al montar) para
+  // que el aviso no se quede desactualizado si alguien pasa un rato largo
+  // en otra sección del panel sin recargar la página — es una consulta
+  // barata, no vale la pena montar un polling con setInterval solo para
+  // esto.
+  useEffect(() => {
+    if (!hasSection("mensajes")) return;
+    db.getContactMessages()
+      .then((messages) => setNewMessagesCount(messages.filter((m) => (m.status || "nuevo") === "nuevo").length))
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   const handleLogout = async () => {
     await logout();
@@ -31,7 +47,12 @@ export default function AdminLayout() {
           {hasSection("asesores") && <NavLink to="/admin/asesores">{t("admin.advisors")}</NavLink>}
           {hasSection("zonas") && <NavLink to="/admin/zonas">{t("admin.zones")}</NavLink>}
           {hasSection("clientes") && <NavLink to="/admin/clientes">{t("admin.clients")}</NavLink>}
-          {hasSection("mensajes") && <NavLink to="/admin/mensajes">{t("admin.messages")}</NavLink>}
+          {hasSection("mensajes") && (
+            <NavLink to="/admin/mensajes">
+              {t("admin.messages")}
+              {newMessagesCount > 0 && <span className="admin-layout__nav-badge">{newMessagesCount}</span>}
+            </NavLink>
+          )}
           {hasSection("testimonios") && <NavLink to="/admin/testimonios">{t("admin.testimonials")}</NavLink>}
           {hasSection("remodelaciones") && <NavLink to="/admin/remodelaciones">{t("admin.remodelProjects")}</NavLink>}
           {hasSection("materiales") && <NavLink to="/admin/materiales">{t("materialsCatalog.title")}</NavLink>}
