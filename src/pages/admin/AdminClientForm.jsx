@@ -30,6 +30,18 @@ export default function AdminClientForm() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
 
+  // Vínculo con otro cliente (expediente conjunto) — ej. una pareja que
+  // junta su crédito INFONAVIT y aplica como 2 acreditados. `otherClients`
+  // alimenta el selector; `link` es el vínculo ya guardado (si lo hay,
+  // solo aplica editando un cliente existente); `linkTargetId`/`linkLabel`
+  // son la selección pendiente de guardar (funciona también al crear un
+  // cliente nuevo — el vínculo se crea justo después de guardarlo).
+  const [otherClients, setOtherClients] = useState([]);
+  const [link, setLink] = useState(null);
+  const [linkTargetId, setLinkTargetId] = useState("");
+  const [linkLabel, setLinkLabel] = useState("");
+  const [linkBusy, setLinkBusy] = useState(false);
+
   useEffect(() => {
     if (!isEdit) return;
     db.getClientById(id).then((client) => {
@@ -44,7 +56,12 @@ export default function AdminClientForm() {
       });
       setLoading(false);
     });
+    db.getClientLink(id).then(setLink);
   }, [id, isEdit]);
+
+  useEffect(() => {
+    db.getClients().then((data) => setOtherClients(data.filter((c) => c.id !== id)));
+  }, [id]);
 
   const handleChange = (field) => (e) => {
     const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
@@ -66,13 +83,51 @@ export default function AdminClientForm() {
       if (isEdit) {
         await db.updateClient(id, form);
       } else {
-        await db.addClient(form);
+        const created = await db.addClient(form);
+        // El cliente recién creado también puede vincularse de una vez si
+        // ya se eligió con quién, sin necesidad de guardar y volver a
+        // entrar a editarlo.
+        if (linkTargetId) await db.linkClients(created.id, linkTargetId, linkLabel);
       }
       navigate("/admin/clientes");
     } catch (err) {
       window.alert(err.message || "Error al guardar");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleLink = async () => {
+    if (!linkTargetId) return;
+    setLinkBusy(true);
+    try {
+      const targetAlreadyLinked = await db.getClientLink(linkTargetId);
+      if (targetAlreadyLinked) {
+        window.alert(t("clients.linkTargetAlreadyLinked", { name: targetAlreadyLinked.other_client?.name || targetAlreadyLinked.client_a_id }));
+        return;
+      }
+      const created = await db.linkClients(id, linkTargetId, linkLabel);
+      const other = otherClients.find((c) => c.id === linkTargetId);
+      setLink({ ...created, other_client: other });
+      setLinkTargetId("");
+      setLinkLabel("");
+    } catch (err) {
+      window.alert(err.message || "Error al vincular");
+    } finally {
+      setLinkBusy(false);
+    }
+  };
+
+  const handleUnlink = async () => {
+    if (!link || !window.confirm(t("clients.confirmUnlink"))) return;
+    setLinkBusy(true);
+    try {
+      await db.unlinkClients(link.id);
+      setLink(null);
+    } catch (err) {
+      window.alert(err.message || "Error al quitar el vínculo");
+    } finally {
+      setLinkBusy(false);
     }
   };
 
@@ -146,6 +201,62 @@ export default function AdminClientForm() {
           </button>
         </div>
       </form>
+
+      <div className="card admin-form" style={{ marginTop: "1.25rem" }}>
+        <h3 style={{ marginTop: 0 }}>{t("clients.jointTitle")}</h3>
+        <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{t("clients.jointSubtitle")}</p>
+
+        {link ? (
+          <>
+            <p>
+              {t("clients.linkedWith")} <strong>{link.other_client?.name || "—"}</strong>
+              {link.label ? ` · ${link.label}` : ""}
+            </p>
+            <div className="admin-form__actions">
+              {isEdit && (
+                <Link to={`/admin/clientes/${id}/conjunto`} className="btn btn-primary btn-sm">
+                  {t("clients.viewJoint")}
+                </Link>
+              )}
+              <button type="button" className="btn btn-danger btn-sm" onClick={handleUnlink} disabled={linkBusy}>
+                {t("clients.unlink")}
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="form-row">
+            <div className="form-field">
+              <label htmlFor="c-link-target">{t("clients.linkWith")}</label>
+              <select id="c-link-target" value={linkTargetId} onChange={(e) => setLinkTargetId(e.target.value)}>
+                <option value="">—</option>
+                {otherClients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-field">
+              <label htmlFor="c-link-label">{t("clients.linkReason")}</label>
+              <input
+                id="c-link-label"
+                value={linkLabel}
+                onChange={(e) => setLinkLabel(e.target.value)}
+                placeholder={t("clients.linkReasonPlaceholder")}
+              />
+            </div>
+            {isEdit ? (
+              <div className="form-field" style={{ justifyContent: "flex-end" }}>
+                <button type="button" className="btn btn-outline" onClick={handleLink} disabled={!linkTargetId || linkBusy}>
+                  {t("clients.linkNow")}
+                </button>
+              </div>
+            ) : (
+              linkTargetId && <p className="form-hint" style={{ alignSelf: "center" }}>{t("clients.linkOnSave")}</p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

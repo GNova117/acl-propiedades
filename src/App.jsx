@@ -40,6 +40,7 @@ const AdminClients = lazy(() => import("./pages/admin/AdminClients"));
 const AdminClientForm = lazy(() => import("./pages/admin/AdminClientForm"));
 const AdminClientDocuments = lazy(() => import("./pages/admin/AdminClientDocuments"));
 const AdminClientProfiling = lazy(() => import("./pages/admin/AdminClientProfiling"));
+const AdminClientJoint = lazy(() => import("./pages/admin/AdminClientJoint"));
 const AdminRemodelProjects = lazy(() => import("./pages/admin/AdminRemodelProjects"));
 const AdminRemodelProjectForm = lazy(() => import("./pages/admin/AdminRemodelProjectForm"));
 const AdminRemodelProgress = lazy(() => import("./pages/admin/AdminRemodelProgress"));
@@ -202,6 +203,7 @@ export default function App() {
         <Route path="clientes/:id" element={<RequireSection section="clientes"><AdminClientForm /></RequireSection>} />
         <Route path="clientes/:id/documentos" element={<RequireSection section="clientes"><AdminClientDocuments /></RequireSection>} />
         <Route path="clientes/:id/perfilamiento" element={<RequireSection section="clientes"><AdminClientProfiling /></RequireSection>} />
+        <Route path="clientes/:id/conjunto" element={<RequireSection section="clientes"><AdminClientJoint /></RequireSection>} />
         <Route path="remodelaciones" element={<RequireSection section="remodelaciones"><AdminRemodelProjects /></RequireSection>} />
         <Route path="remodelaciones/nuevo" element={<RequireSection section="remodelaciones"><AdminRemodelProjectForm /></RequireSection>} />
         <Route path="remodelaciones/:id" element={<RequireSection section="remodelaciones"><AdminRemodelProjectForm /></RequireSection>} />

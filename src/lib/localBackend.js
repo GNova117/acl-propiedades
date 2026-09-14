@@ -12,6 +12,7 @@ const KEYS = {
   session: "acl_local_session",
   clients: "acl_local_clients",
   clientDocuments: "acl_local_client_documents",
+  clientLinks: "acl_local_client_links",
   remodelProjects: "acl_local_remodel_projects",
   remodelProgress: "acl_local_remodel_progress",
   materialsCatalog: "acl_local_materials_catalog",
@@ -636,6 +637,28 @@ export const localBackend = {
   async deleteClientDocument(id) {
     const docs = readStore(KEYS.clientDocuments, []);
     writeStore(KEYS.clientDocuments, docs.filter((d) => d.id !== id));
+  },
+
+  async getClientLink(clientId) {
+    const links = readStore(KEYS.clientLinks, []);
+    const link = links.find((l) => l.client_a_id === clientId || l.client_b_id === clientId);
+    if (!link) return null;
+    const otherId = link.client_a_id === clientId ? link.client_b_id : link.client_a_id;
+    const other = await this.getClientById(otherId);
+    return { ...link, other_client: other };
+  },
+
+  async linkClients(clientAId, clientBId, label) {
+    const links = readStore(KEYS.clientLinks, []);
+    const record = { id: uid("link"), client_a_id: clientAId, client_b_id: clientBId, label: label || null, created_at: new Date().toISOString() };
+    links.push(record);
+    writeStore(KEYS.clientLinks, links);
+    return record;
+  },
+
+  async unlinkClients(linkId) {
+    const links = readStore(KEYS.clientLinks, []);
+    writeStore(KEYS.clientLinks, links.filter((l) => l.id !== linkId));
   },
 
   async getRemodelProjects(filters = {}) {

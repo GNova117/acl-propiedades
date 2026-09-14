@@ -527,6 +527,39 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  // Un cliente tiene a lo más un vínculo activo a la vez (no hace falta
+  // una restricción única en la BD para esto, se cuida desde el UI) —
+  // .limit(1) en vez de .maybeSingle() por si alguna vez hay más de una
+  // fila, no truena, solo toma la primera.
+  async getClientLink(clientId) {
+    const { data, error } = await supabase
+      .from("client_links")
+      .select("*")
+      .or(`client_a_id.eq.${clientId},client_b_id.eq.${clientId}`)
+      .limit(1);
+    if (error) throw error;
+    const link = data?.[0];
+    if (!link) return null;
+    const otherId = link.client_a_id === clientId ? link.client_b_id : link.client_a_id;
+    const other = await this.getClientById(otherId);
+    return { ...link, other_client: other };
+  },
+
+  async linkClients(clientAId, clientBId, label) {
+    const { data, error } = await supabase
+      .from("client_links")
+      .insert({ client_a_id: clientAId, client_b_id: clientBId, label: label || null })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async unlinkClients(linkId) {
+    const { error } = await supabase.from("client_links").delete().eq("id", linkId);
+    if (error) throw error;
+  },
+
   async getRemodelProjects(filters = {}) {
     let query = supabase.from("remodel_projects").select("*").order("created_at", { ascending: false });
     if (filters.client_id) query = query.eq("client_id", filters.client_id);
