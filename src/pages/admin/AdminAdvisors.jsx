@@ -43,14 +43,15 @@ export default function AdminAdvisors() {
               <th>Teléfono</th>
               <th>Correo</th>
               <th>{t("common.status")}</th>
+              <th>Nosotros</th>
               <th>{t("common.actions")}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6}>{t("common.loading")}</td></tr>
+              <tr><td colSpan={7}>{t("common.loading")}</td></tr>
             ) : advisors.length === 0 ? (
-              <tr><td colSpan={6}>{t("properties.noResults")}</td></tr>
+              <tr><td colSpan={7}>{t("properties.noResults")}</td></tr>
             ) : (
               advisors.map((advisor) => (
                 <tr key={advisor.id}>
@@ -61,6 +62,11 @@ export default function AdminAdvisors() {
                   <td>
                     <span className={`badge ${advisor.active !== false ? "badge-available" : "badge-sold"}`}>
                       {advisor.active !== false ? t("common.active") : t("common.inactive")}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`badge ${advisor.show_in_team !== false ? "badge-available" : "badge-sold"}`}>
+                      {advisor.show_in_team !== false ? "En equipo" : "Oculto"}
                     </span>
                   </td>
                   <td className="admin-table__actions">

@@ -5,7 +5,7 @@ import { db } from "../../lib/dataStore";
 import { whatsappDigits } from "../../lib/format";
 import "./admin.css";
 
-const EMPTY = { name: "", phone: "", email: "", whatsapp: "", bio: "", active: true };
+const EMPTY = { name: "", phone: "", email: "", whatsapp: "", bio: "", active: true, show_in_team: true };
 
 export default function AdminAdvisorForm() {
   const { id } = useParams();
@@ -32,6 +32,7 @@ export default function AdminAdvisorForm() {
         whatsapp: advisor.whatsapp,
         bio: advisor.bio || "",
         active: advisor.active !== false,
+        show_in_team: advisor.show_in_team !== false,
       });
       setExistingPhoto(advisor.photo_url || "");
       setLoading(false);
@@ -143,6 +144,14 @@ export default function AdminAdvisorForm() {
             <input type="checkbox" checked={form.active} onChange={handleChange("active")} style={{ marginRight: "0.5rem" }} />
             {t("common.active")}
           </label>
+        </div>
+
+        <div className="form-field">
+          <label>
+            <input type="checkbox" checked={form.show_in_team} onChange={handleChange("show_in_team")} style={{ marginRight: "0.5rem" }} />
+            Mostrar en la página de Nosotros
+          </label>
+          <p className="form-hint">Desmárcalo para el contacto general de la empresa (ej. "ACL Propiedades") — sigue disponible como asesor de propiedades sin agente asignado, solo deja de listarse como integrante del equipo.</p>
         </div>
 
         <div className="admin-form__actions">

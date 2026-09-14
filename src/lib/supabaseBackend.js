@@ -260,6 +260,7 @@ export const supabaseBackend = {
       bio: data.bio,
       photo_url,
       active: data.active !== false,
+      show_in_team: data.show_in_team !== false,
     };
     const { data: inserted, error } = await supabase.from("advisors").insert(payload).select().single();
     if (error) throw error;
@@ -279,6 +280,7 @@ export const supabaseBackend = {
       whatsapp: data.whatsapp,
       bio: data.bio,
       active: data.active,
+      show_in_team: data.show_in_team !== false,
       ...(photo_url ? { photo_url } : {}),
     };
     const { data: updated, error } = await supabase.from("advisors").update(payload).eq("id", id).select().single();

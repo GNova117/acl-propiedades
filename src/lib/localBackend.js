@@ -354,6 +354,7 @@ export const localBackend = {
       bio: data.bio,
       photo_url,
       active: data.active !== false,
+      show_in_team: data.show_in_team !== false,
     };
     advisors.push(record);
     writeStore(KEYS.advisors, advisors);
