@@ -58,6 +58,11 @@ export default function AdminAdvisorForm() {
     if (!form.name.trim()) next.name = t("contact.required");
     if (!form.email.trim()) next.email = t("contact.required");
     if (!form.phone.trim()) next.phone = t("contact.required");
+    // El puesto/descripción se muestra debajo del nombre en /nosotros — sin
+    // este campo la tarjeta del asesor queda visualmente incompleta junto a
+    // las que sí lo tienen. Se exige desde aquí en adelante; los asesores ya
+    // guardados sin descripción no se tocan solos, hay que completarlos a mano.
+    if (!form.bio.trim()) next.bio = t("contact.required");
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -67,7 +72,13 @@ export default function AdminAdvisorForm() {
     if (!validate()) return;
     setSaving(true);
     try {
-      const payload = { ...form, whatsapp: whatsappDigits(form.whatsapp), existingPhoto, photoFile };
+      const payload = {
+        ...form,
+        email: form.email.trim().toLowerCase(),
+        whatsapp: whatsappDigits(form.whatsapp),
+        existingPhoto,
+        photoFile,
+      };
       if (isEdit) {
         await db.updateAdvisor(id, payload);
       } else {
@@ -115,8 +126,10 @@ export default function AdminAdvisorForm() {
         </div>
 
         <div className="form-field">
-          <label htmlFor="a-bio">Descripción breve</label>
-          <textarea id="a-bio" rows={3} value={form.bio} onChange={handleChange("bio")} />
+          <label htmlFor="a-bio">Puesto / descripción breve</label>
+          <textarea id="a-bio" rows={3} value={form.bio} onChange={handleChange("bio")} placeholder="Ej. Asesora Inmobiliaria" />
+          <p className="form-hint">Aparece debajo del nombre en la página de Nosotros — que no quede en blanco mantiene parejas todas las tarjetas del equipo.</p>
+          {errors.bio && <span className="form-error">{errors.bio}</span>}
         </div>
 
         <div className="form-field">
