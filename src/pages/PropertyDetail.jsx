@@ -9,6 +9,7 @@ import PropertyTypeIcon from "../components/PropertyTypeIcon";
 import ShareButton from "../components/ShareButton";
 import FavoriteButton from "../components/FavoriteButton";
 import CompareButton from "../components/CompareButton";
+import ScheduleVisitCard from "../components/ScheduleVisitCard";
 import { db } from "../lib/dataStore";
 import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./PropertyDetail.css";
@@ -454,6 +455,7 @@ export default function PropertyDetail() {
             ) : (
               <p>{t("properties.noResults")}</p>
             )}
+            <ScheduleVisitCard property={property} />
           </aside>
         </div>
 

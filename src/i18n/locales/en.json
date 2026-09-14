@@ -280,6 +280,17 @@
     "add": "Save to favorites",
     "remove": "Remove from favorites"
   },
+  "scheduleVisit": {
+    "title": "Want to visit it?",
+    "subtitle": "Suggest a day and an advisor will confirm the appointment.",
+    "cta": "Schedule a visit",
+    "date": "Preferred date",
+    "time": "Preferred time",
+    "note": "Note (optional)",
+    "notePlaceholder": "E.g. Afternoons only",
+    "submit": "Send request",
+    "success": "Done! An advisor will contact you to confirm the visit."
+  },
   "compare": {
     "title": "Compare properties",
     "subtitle": "Compare up to 4 properties side by side before deciding.",

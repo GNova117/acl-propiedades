@@ -280,6 +280,17 @@
     "add": "Guardar en favoritos",
     "remove": "Quitar de favoritos"
   },
+  "scheduleVisit": {
+    "title": "¿Quieres visitarla?",
+    "subtitle": "Propón un día y un asesor te confirma la cita.",
+    "cta": "Agendar visita",
+    "date": "Fecha preferida",
+    "time": "Hora preferida",
+    "note": "Nota (opcional)",
+    "notePlaceholder": "Ej. Solo puedo por la tarde",
+    "submit": "Enviar solicitud",
+    "success": "¡Listo! Un asesor te contactará para confirmar la visita."
+  },
   "compare": {
     "title": "Comparar propiedades",
     "subtitle": "Compara hasta 4 propiedades lado a lado antes de decidir.",
