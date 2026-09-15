@@ -43,7 +43,8 @@
     "casa": "Casa",
     "departamento": "Departamento",
     "nave_industrial": "Nave Industrial",
-    "terreno": "Terreno"
+    "terreno": "Terreno",
+    "local_comercial": "Local Comercial"
   },
   "propertyOperation": {
     "compra": "Compra",

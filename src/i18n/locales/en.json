@@ -43,7 +43,8 @@
     "casa": "House",
     "departamento": "Apartment",
     "nave_industrial": "Industrial Warehouse",
-    "terreno": "Land"
+    "terreno": "Land",
+    "local_comercial": "Commercial Space"
   },
   "propertyOperation": {
     "compra": "Buy",
