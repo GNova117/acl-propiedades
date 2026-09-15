@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { db } from "../lib/dataStore";
 import { isPdfDoc } from "../lib/format";
 import { downloadClientDocumentAsPdf } from "../lib/clientDocPdf";
 import "./DocumentPreviewModal.css";
@@ -9,10 +10,33 @@ import "./DocumentPreviewModal.css";
 // un <img> normal. El botón de descarga siempre entrega un .pdf — para una
 // imagen se convierte al vuelo (ver lib/clientDocPdf.js) para que el
 // resultado sea uniforme sin importar cómo se capturó el documento.
+//
+// No se usa doc.signed_url directo: esa URL se firmó al cargar la lista de
+// documentos y expira a los 300s (ver supabaseBackend.js), así que si la
+// pantalla lleva un rato abierta ya está vencida al momento de abrir la
+// vista previa. Se pide una nueva al montar el modal.
 export default function DocumentPreviewModal({ doc, title, subtitle, filePrefix, onClose }) {
   const { t } = useTranslation();
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewFailed, setPreviewFailed] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [downloadFailed, setDownloadFailed] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    setPreviewUrl(null);
+    setPreviewFailed(false);
+    db.getClientDocumentUrl(doc)
+      .then((url) => {
+        if (active) setPreviewUrl(url);
+      })
+      .catch(() => {
+        if (active) setPreviewFailed(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [doc]);
 
   const handleDownload = async () => {
     setDownloading(true);
@@ -44,10 +68,14 @@ export default function DocumentPreviewModal({ doc, title, subtitle, filePrefix,
       </div>
 
       <div className="document-preview__stage">
-        {isPdfDoc(doc) ? (
-          <iframe src={doc.signed_url} title={title} className="document-preview__frame" />
+        {previewFailed ? (
+          <p className="form-error">{t("documentCapture.previewError")}</p>
+        ) : !previewUrl ? (
+          <span className="spinner" />
+        ) : isPdfDoc(doc) ? (
+          <iframe src={previewUrl} title={title} className="document-preview__frame" />
         ) : (
-          <img src={doc.signed_url} alt="" className="document-preview__image" />
+          <img src={previewUrl} alt="" className="document-preview__image" />
         )}
       </div>
 

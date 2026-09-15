@@ -618,6 +618,13 @@ export const localBackend = {
       .map((d) => ({ ...d, signed_url: d.file_path }));
   },
 
+  // En demo file_path ya es la data URL completa (no expira, no requiere
+  // firmarse) — existe solo para que el llamador no necesite distinguir
+  // backend real vs demo antes de descargar/previsualizar un documento.
+  async getClientDocumentUrl(doc) {
+    return doc.file_path;
+  },
+
   async addClientDocument({ client_id, doc_type, blob, quality_metrics }) {
     const docs = readStore(KEYS.clientDocuments, []);
     const file_path = await fileToDataUrl(blob);

@@ -503,6 +503,17 @@ export const supabaseBackend = {
     return data.map((doc, i) => ({ ...doc, signed_url: signed?.[i]?.signedUrl || null }));
   },
 
+  // getClientDocuments firma todos los documentos con una URL que expira a
+  // los 300s (ver arriba) — si la pantalla de documentos se queda abierta
+  // más tiempo que eso, esa URL ya está vencida al momento de dar
+  // "Descargar PDF" o abrir la vista previa. Se vuelve a firmar al vuelo
+  // justo antes de usarla en lugar de confiar en la que trae doc.signed_url.
+  async getClientDocumentUrl(doc) {
+    const { data, error } = await supabase.storage.from("client-documents").createSignedUrl(doc.file_path, 300);
+    if (error) throw error;
+    return data.signedUrl;
+  },
+
   async addClientDocument({ client_id, doc_type, blob, quality_metrics }) {
     // La foto capturada por cámara siempre es un jpeg (canvasToBlob en
     // DocumentCapture.jsx), pero un PDF subido directo trae su propio

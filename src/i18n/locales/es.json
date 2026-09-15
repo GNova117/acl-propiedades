@@ -583,6 +583,7 @@
     "viewPdf": "Ver PDF",
     "downloadPdf": "Descargar PDF",
     "downloadError": "No se pudo descargar el documento. Intenta de nuevo.",
+    "previewError": "No se pudo cargar la vista previa. Intenta de nuevo.",
     "closePreview": "Cerrar vista previa"
   },
   "liquidacion": {
