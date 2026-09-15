@@ -85,11 +85,19 @@ export function propertyTypeLabel(t, type) {
 
 export const CLIENT_TYPES = ["comprador", "vendedor", "ambos"];
 
+// Nota: "cedula_fiscal" es el documento del RFC (la cédula de identificación
+// fiscal) — se etiqueta como "RFC" en la interfaz, no se creó un tipo
+// "rfc" aparte para no partir en dos los documentos ya capturados.
 export const DOC_TYPES = [
+  "solicitud_avaluo",
   "ine",
   "curp",
   "cedula_fiscal",
   "acta_nacimiento",
+  "escrituras",
+  "predial",
+  "agua",
+  "luz",
   "pago_avaluo",
   "contrato",
   "carta_deslindamiento",
@@ -97,11 +105,43 @@ export const DOC_TYPES = [
   "carta_derechos",
 ];
 
+// Qué documentos se capturan según el tipo de cliente: a un comprador no le
+// aplican escrituras/predial/agua/luz (son del inmueble que vende el
+// vendedor) y a un vendedor no le aplica la solicitud/pago de avalúo. Un
+// cliente "ambos" ve todo. El orden es el mismo del expediente para avalúos
+// (ver lib/expedienteAvaluoPdf.js) para que la pantalla de captura y el PDF
+// se lean igual.
+const DOC_TYPES_SHARED_TAIL = ["contrato", "carta_deslindamiento", "aviso_privacidad", "carta_derechos"];
+
+export const DOC_TYPES_BY_CLIENT_TYPE = {
+  comprador: ["solicitud_avaluo", "ine", "acta_nacimiento", "cedula_fiscal", "curp", "pago_avaluo", ...DOC_TYPES_SHARED_TAIL],
+  vendedor: [
+    "escrituras",
+    "predial",
+    "agua",
+    "luz",
+    "ine",
+    "acta_nacimiento",
+    "cedula_fiscal",
+    "curp",
+    ...DOC_TYPES_SHARED_TAIL,
+  ],
+};
+
+export function docTypesForClientType(clientType) {
+  return DOC_TYPES_BY_CLIENT_TYPE[clientType] || DOC_TYPES;
+}
+
 export const DOC_TYPE_ASPECT = {
   ine: 1.59,
   curp: 0.77,
   cedula_fiscal: 0.77,
   acta_nacimiento: 0.77,
+  solicitud_avaluo: 0.77,
+  escrituras: 0.77,
+  predial: 0.77,
+  agua: 0.77,
+  luz: 0.77,
   pago_avaluo: 0.77,
   contrato: 0.77,
   carta_deslindamiento: 0.77,

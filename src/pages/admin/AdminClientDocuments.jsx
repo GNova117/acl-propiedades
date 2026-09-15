@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { DOC_TYPES, DOC_TYPE_ASPECT, isPdfDoc } from "../../lib/format";
+import { DOC_TYPE_ASPECT, docTypesForClientType, isPdfDoc } from "../../lib/format";
 import { downloadClientDocumentAsPdf } from "../../lib/clientDocPdf";
 import DocumentCapture from "../../components/DocumentCapture";
 import DocumentPreviewModal from "../../components/DocumentPreviewModal";
+import ExpedienteAvaluoModal from "../../components/ExpedienteAvaluoModal";
 import "./admin.css";
 
 export default function AdminClientDocuments() {
@@ -13,8 +14,10 @@ export default function AdminClientDocuments() {
   const { t } = useTranslation();
   const [client, setClient] = useState(null);
   const [documents, setDocuments] = useState([]);
+  const [linkedClient, setLinkedClient] = useState(null);
   const [loading, setLoading] = useState(true);
   const [capturingType, setCapturingType] = useState(null);
+  const [expedienteOpen, setExpedienteOpen] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
   const [downloadingId, setDownloadingId] = useState(null);
   const [downloadErrorId, setDownloadErrorId] = useState(null);
@@ -32,6 +35,12 @@ export default function AdminClientDocuments() {
   };
 
   useEffect(load, [id]);
+
+  // El cliente vinculado (expediente conjunto) solo se usa para
+  // preseleccionarlo al armar el expediente para avalúos.
+  useEffect(() => {
+    db.getClientLink(id).then((link) => setLinkedClient(link?.other_client || null));
+  }, [id]);
 
   const handleAccept = async ({ blob, qualityMetrics }) => {
     await db.addClientDocument({ client_id: id, doc_type: capturingType, blob, quality_metrics: qualityMetrics });
@@ -97,9 +106,14 @@ export default function AdminClientDocuments() {
           <h1>{t("admin.clientDocuments")}</h1>
           <p className="form-hint">{client?.name}</p>
         </div>
-        <Link to={`/admin/clientes/${id}`} className="btn btn-outline">
-          {t("common.close")}
-        </Link>
+        <div className="admin-header__actions">
+          <button type="button" className="btn btn-primary" onClick={() => setExpedienteOpen(true)}>
+            {t("expedienteAvaluo.title")}
+          </button>
+          <Link to={`/admin/clientes/${id}`} className="btn btn-outline">
+            {t("common.close")}
+          </Link>
+        </div>
       </div>
 
       <div className="form-row" style={{ maxWidth: 480, marginBottom: "1.25rem" }}>
@@ -124,7 +138,7 @@ export default function AdminClientDocuments() {
       </div>
 
       <div className="admin-doc-grid">
-        {DOC_TYPES.map((docType) => {
+        {docTypesForClientType(client?.type).map((docType) => {
           const docsOfType = filteredDocuments.filter((d) => d.doc_type === docType);
           return (
             <div className="card admin-doc-card" key={docType}>
@@ -203,6 +217,10 @@ export default function AdminClientDocuments() {
           filePrefix={`${client?.name || "cliente"}_${previewDoc.doc_type}`}
           onClose={() => setPreviewDoc(null)}
         />
+      )}
+
+      {expedienteOpen && client && (
+        <ExpedienteAvaluoModal client={client} linkedClient={linkedClient} onClose={() => setExpedienteOpen(false)} />
       )}
     </div>
   );

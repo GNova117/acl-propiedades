@@ -569,8 +569,13 @@
     "docTypes": {
       "ine": "INE",
       "curp": "CURP",
-      "cedula_fiscal": "Tax ID card",
+      "cedula_fiscal": "RFC (tax ID card)",
       "acta_nacimiento": "Birth certificate",
+      "solicitud_avaluo": "Appraisal request",
+      "escrituras": "Property deed",
+      "predial": "Property tax receipt",
+      "agua": "Water bill",
+      "luz": "Electricity bill",
       "pago_avaluo": "Appraisal payment receipt",
       "contrato": "Contract",
       "carta_deslindamiento": "Liability waiver letter",
@@ -586,6 +591,21 @@
     "downloadError": "Couldn't download the document. Try again.",
     "previewError": "Couldn't load the preview. Try again.",
     "closePreview": "Close preview"
+  },
+  "expedienteAvaluo": {
+    "title": "Appraisal file",
+    "subtitle": "Pick whose documents go in. Everything downloads as a single PDF, in the order the appraiser expects.",
+    "buyers": "Buyer(s)",
+    "seller": "Seller",
+    "noBuyers": "No clients registered as buyers.",
+    "download": "Download file as PDF",
+    "building": "Building the PDF with the documents, this can take a few seconds...",
+    "downloadError": "Couldn't build the appraisal file.",
+    "pdfTitle": "APPRAISAL FILE",
+    "contents": "Contents",
+    "generatedOn": "Generated on",
+    "missing": "not captured",
+    "failed": "could not be attached"
   },
   "liquidacion": {
     "button": "Profit",

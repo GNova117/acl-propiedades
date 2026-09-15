@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { DOC_TYPES, isPdfDoc } from "../../lib/format";
+import { docTypesForClientType, isPdfDoc } from "../../lib/format";
 import { downloadClientDocumentAsPdf } from "../../lib/clientDocPdf";
 import DocumentPreviewModal from "../../components/DocumentPreviewModal";
 import "./admin.css";
@@ -93,6 +93,12 @@ export default function AdminClientJoint() {
 
   const people = [clientA, clientB];
 
+  // Los 2 vinculados pueden ser de tipo distinto (ej. comprador + vendedor),
+  // así que aquí se muestran los tipos de documento de ambos sin repetir.
+  const jointDocTypes = Array.from(
+    new Set([...docTypesForClientType(clientA.type), ...docTypesForClientType(clientB.type)])
+  );
+
   return (
     <div>
       <div className="admin-header">
@@ -134,7 +140,7 @@ export default function AdminClientJoint() {
 
       <h3>{t("clients.jointDocuments")}</h3>
       <div className="admin-doc-grid">
-        {DOC_TYPES.map((docType) => {
+        {jointDocTypes.map((docType) => {
           const itemsA = docsA.filter((d) => d.doc_type === docType).map((d) => ({ ...d, owner: clientA }));
           const itemsB = docsB.filter((d) => d.doc_type === docType).map((d) => ({ ...d, owner: clientB }));
           const items = [...itemsA, ...itemsB];

@@ -569,8 +569,13 @@
     "docTypes": {
       "ine": "INE",
       "curp": "CURP",
-      "cedula_fiscal": "Cédula fiscal",
+      "cedula_fiscal": "RFC (Cédula fiscal)",
       "acta_nacimiento": "Acta de nacimiento",
+      "solicitud_avaluo": "Solicitud de avalúo",
+      "escrituras": "Escrituras",
+      "predial": "Predial",
+      "agua": "Agua",
+      "luz": "Luz",
       "pago_avaluo": "Pago de avalúo",
       "contrato": "Contrato",
       "carta_deslindamiento": "Carta de deslindamiento",
@@ -586,6 +591,21 @@
     "downloadError": "No se pudo descargar el documento. Intenta de nuevo.",
     "previewError": "No se pudo cargar la vista previa. Intenta de nuevo.",
     "closePreview": "Cerrar vista previa"
+  },
+  "expedienteAvaluo": {
+    "title": "Expediente para avalúos",
+    "subtitle": "Elige de quién se arma el expediente. Todo se descarga en un solo PDF, en el orden que pide el valuador.",
+    "buyers": "Comprador(es)",
+    "seller": "Vendedor",
+    "noBuyers": "No hay clientes registrados como comprador.",
+    "download": "Descargar expediente en PDF",
+    "building": "Armando el PDF con los documentos, puede tardar unos segundos...",
+    "downloadError": "No se pudo generar el expediente.",
+    "pdfTitle": "EXPEDIENTE PARA AVALUOS",
+    "contents": "Contenido",
+    "generatedOn": "Generado el",
+    "missing": "no capturado",
+    "failed": "no se pudo anexar"
   },
   "liquidacion": {
     "button": "Utilidad",
