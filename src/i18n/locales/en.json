@@ -580,7 +580,10 @@
     "addDocument": "Capture document",
     "capturedAt": "Captured on",
     "uploadPdf": "Upload PDF",
-    "viewPdf": "View PDF"
+    "viewPdf": "View PDF",
+    "downloadPdf": "Download PDF",
+    "downloadError": "Couldn't download the document. Try again.",
+    "closePreview": "Close preview"
   },
   "liquidacion": {
     "button": "Profit",

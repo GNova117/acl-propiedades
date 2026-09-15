@@ -3,6 +3,8 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { DOC_TYPES, isPdfDoc } from "../../lib/format";
+import { downloadClientDocumentAsPdf } from "../../lib/clientDocPdf";
+import DocumentPreviewModal from "../../components/DocumentPreviewModal";
 import "./admin.css";
 
 function clientTypeLabel(t, type) {
@@ -24,6 +26,9 @@ export default function AdminClientJoint() {
   const [clientB, setClientB] = useState(null);
   const [docsA, setDocsA] = useState([]);
   const [docsB, setDocsB] = useState([]);
+  const [previewDoc, setPreviewDoc] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
+  const [downloadErrorId, setDownloadErrorId] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -54,6 +59,18 @@ export default function AdminClientJoint() {
       active = false;
     };
   }, [id]);
+
+  const handleDownload = async (doc) => {
+    setDownloadingId(doc.id);
+    setDownloadErrorId(null);
+    try {
+      await downloadClientDocumentAsPdf(doc, `${doc.owner?.name || "cliente"}_${doc.doc_type}`);
+    } catch {
+      setDownloadErrorId(doc.id);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   if (loading) return <div className="empty-state">{t("common.loading")}</div>;
 
@@ -128,13 +145,27 @@ export default function AdminClientJoint() {
                   {items.map((doc) => (
                     <div className="admin-doc-card__item" key={doc.id}>
                       {isPdfDoc(doc) ? (
-                        <a href={doc.signed_url} target="_blank" rel="noreferrer" className="admin-doc-card__pdf">
+                        <button type="button" className="admin-doc-card__pdf" onClick={() => setPreviewDoc(doc)}>
                           📄 {t("documentCapture.viewPdf")}
-                        </a>
+                        </button>
                       ) : (
-                        <img src={doc.signed_url} alt="" />
+                        <button type="button" className="admin-doc-card__thumb" onClick={() => setPreviewDoc(doc)}>
+                          <img src={doc.signed_url} alt="" />
+                        </button>
                       )}
                       <span className="form-hint">{doc.owner.name}</span>
+                      {downloadErrorId === doc.id && <p className="form-error">{t("documentCapture.downloadError")}</p>}
+                      <div className="admin-doc-card__item-actions">
+                        <button
+                          type="button"
+                          className="btn btn-outline btn-sm"
+                          onClick={() => handleDownload(doc)}
+                          disabled={downloadingId === doc.id}
+                        >
+                          {downloadingId === doc.id ? <span className="spinner" /> : null}
+                          {t("documentCapture.downloadPdf")}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -143,6 +174,16 @@ export default function AdminClientJoint() {
           );
         })}
       </div>
+
+      {previewDoc && (
+        <DocumentPreviewModal
+          doc={previewDoc}
+          title={t(`documentCapture.docTypes.${previewDoc.doc_type}`)}
+          subtitle={previewDoc.owner?.name}
+          filePrefix={`${previewDoc.owner?.name || "cliente"}_${previewDoc.doc_type}`}
+          onClose={() => setPreviewDoc(null)}
+        />
+      )}
     </div>
   );
 }

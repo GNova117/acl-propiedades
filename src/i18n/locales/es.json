@@ -580,7 +580,10 @@
     "addDocument": "Capturar documento",
     "capturedAt": "Capturado el",
     "uploadPdf": "Subir PDF",
-    "viewPdf": "Ver PDF"
+    "viewPdf": "Ver PDF",
+    "downloadPdf": "Descargar PDF",
+    "downloadError": "No se pudo descargar el documento. Intenta de nuevo.",
+    "closePreview": "Cerrar vista previa"
   },
   "liquidacion": {
     "button": "Utilidad",

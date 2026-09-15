@@ -3,7 +3,9 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { DOC_TYPES, DOC_TYPE_ASPECT, isPdfDoc } from "../../lib/format";
+import { downloadClientDocumentAsPdf } from "../../lib/clientDocPdf";
 import DocumentCapture from "../../components/DocumentCapture";
+import DocumentPreviewModal from "../../components/DocumentPreviewModal";
 import "./admin.css";
 
 export default function AdminClientDocuments() {
@@ -13,6 +15,9 @@ export default function AdminClientDocuments() {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [capturingType, setCapturingType] = useState(null);
+  const [previewDoc, setPreviewDoc] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
+  const [downloadErrorId, setDownloadErrorId] = useState(null);
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
 
@@ -48,6 +53,18 @@ export default function AdminClientDocuments() {
     if (!window.confirm(t("common.confirmDelete"))) return;
     await db.deleteClientDocument(docId);
     load();
+  };
+
+  const handleDownload = async (doc) => {
+    setDownloadingId(doc.id);
+    setDownloadErrorId(null);
+    try {
+      await downloadClientDocumentAsPdf(doc, `${client?.name || "cliente"}_${doc.doc_type}`);
+    } catch {
+      setDownloadErrorId(doc.id);
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   const months = t("dateFilter.months", { returnObjects: true });
@@ -114,31 +131,37 @@ export default function AdminClientDocuments() {
                 <p className="form-hint">{t("documentCapture.noDocuments")}</p>
               ) : (
                 <div className="admin-doc-card__list">
-                  {docsOfType.map((doc) =>
-                    isPdfDoc(doc) ? (
-                      <div className="admin-doc-card__item" key={doc.id}>
-                        <a href={doc.signed_url} target="_blank" rel="noreferrer" className="admin-doc-card__pdf">
+                  {docsOfType.map((doc) => (
+                    <div className="admin-doc-card__item" key={doc.id}>
+                      {isPdfDoc(doc) ? (
+                        <button type="button" className="admin-doc-card__pdf" onClick={() => setPreviewDoc(doc)}>
                           📄 {t("documentCapture.viewPdf")}
-                        </a>
-                        <span className="form-hint">
-                          {t("documentCapture.capturedAt")} {new Date(doc.captured_at).toLocaleString()}
-                        </span>
+                        </button>
+                      ) : (
+                        <button type="button" className="admin-doc-card__thumb" onClick={() => setPreviewDoc(doc)}>
+                          <img src={doc.signed_url} alt="" />
+                        </button>
+                      )}
+                      <span className="form-hint">
+                        {t("documentCapture.capturedAt")} {new Date(doc.captured_at).toLocaleString()}
+                      </span>
+                      {downloadErrorId === doc.id && <p className="form-error">{t("documentCapture.downloadError")}</p>}
+                      <div className="admin-doc-card__item-actions">
+                        <button
+                          type="button"
+                          className="btn btn-outline btn-sm"
+                          onClick={() => handleDownload(doc)}
+                          disabled={downloadingId === doc.id}
+                        >
+                          {downloadingId === doc.id ? <span className="spinner" /> : null}
+                          {t("documentCapture.downloadPdf")}
+                        </button>
                         <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDeleteDoc(doc.id)}>
                           {t("common.delete")}
                         </button>
                       </div>
-                    ) : (
-                      <div className="admin-doc-card__item" key={doc.id}>
-                        <img src={doc.signed_url} alt="" />
-                        <span className="form-hint">
-                          {t("documentCapture.capturedAt")} {new Date(doc.captured_at).toLocaleString()}
-                        </span>
-                        <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDeleteDoc(doc.id)}>
-                          {t("common.delete")}
-                        </button>
-                      </div>
-                    )
-                  )}
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -162,6 +185,16 @@ export default function AdminClientDocuments() {
           aspectRatio={DOC_TYPE_ASPECT[capturingType]}
           onAccept={handleAccept}
           onCancel={() => setCapturingType(null)}
+        />
+      )}
+
+      {previewDoc && (
+        <DocumentPreviewModal
+          doc={previewDoc}
+          title={t(`documentCapture.docTypes.${previewDoc.doc_type}`)}
+          subtitle={client?.name}
+          filePrefix={`${client?.name || "cliente"}_${previewDoc.doc_type}`}
+          onClose={() => setPreviewDoc(null)}
         />
       )}
     </div>
