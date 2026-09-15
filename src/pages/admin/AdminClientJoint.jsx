@@ -29,6 +29,7 @@ export default function AdminClientJoint() {
   const [previewDoc, setPreviewDoc] = useState(null);
   const [downloadingId, setDownloadingId] = useState(null);
   const [downloadErrorId, setDownloadErrorId] = useState(null);
+  const [downloadErrorDetail, setDownloadErrorDetail] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -65,8 +66,10 @@ export default function AdminClientJoint() {
     setDownloadErrorId(null);
     try {
       await downloadClientDocumentAsPdf(doc, `${doc.owner?.name || "cliente"}_${doc.doc_type}`);
-    } catch {
+    } catch (err) {
+      console.error("downloadClientDocumentAsPdf", err);
       setDownloadErrorId(doc.id);
+      setDownloadErrorDetail(err?.message || String(err));
     } finally {
       setDownloadingId(null);
     }
@@ -154,7 +157,11 @@ export default function AdminClientJoint() {
                         </button>
                       )}
                       <span className="form-hint">{doc.owner.name}</span>
-                      {downloadErrorId === doc.id && <p className="form-error">{t("documentCapture.downloadError")}</p>}
+                      {downloadErrorId === doc.id && (
+                        <p className="form-error">
+                          {t("documentCapture.downloadError")} ({downloadErrorDetail})
+                        </p>
+                      )}
                       <div className="admin-doc-card__item-actions">
                         <button
                           type="button"

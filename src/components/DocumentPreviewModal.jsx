@@ -19,8 +19,10 @@ export default function DocumentPreviewModal({ doc, title, subtitle, filePrefix,
   const { t } = useTranslation();
   const [previewUrl, setPreviewUrl] = useState(null);
   const [previewFailed, setPreviewFailed] = useState(false);
+  const [previewErrorDetail, setPreviewErrorDetail] = useState("");
   const [downloading, setDownloading] = useState(false);
   const [downloadFailed, setDownloadFailed] = useState(false);
+  const [downloadErrorDetail, setDownloadErrorDetail] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -30,8 +32,12 @@ export default function DocumentPreviewModal({ doc, title, subtitle, filePrefix,
       .then((url) => {
         if (active) setPreviewUrl(url);
       })
-      .catch(() => {
-        if (active) setPreviewFailed(true);
+      .catch((err) => {
+        console.error("getClientDocumentUrl", err);
+        if (active) {
+          setPreviewFailed(true);
+          setPreviewErrorDetail(err?.message || String(err));
+        }
       });
     return () => {
       active = false;
@@ -43,8 +49,10 @@ export default function DocumentPreviewModal({ doc, title, subtitle, filePrefix,
     setDownloadFailed(false);
     try {
       await downloadClientDocumentAsPdf(doc, filePrefix);
-    } catch {
+    } catch (err) {
+      console.error("downloadClientDocumentAsPdf", err);
       setDownloadFailed(true);
+      setDownloadErrorDetail(err?.message || String(err));
     } finally {
       setDownloading(false);
     }
@@ -69,7 +77,9 @@ export default function DocumentPreviewModal({ doc, title, subtitle, filePrefix,
 
       <div className="document-preview__stage">
         {previewFailed ? (
-          <p className="form-error">{t("documentCapture.previewError")}</p>
+          <p className="form-error">
+            {t("documentCapture.previewError")} ({previewErrorDetail})
+          </p>
         ) : !previewUrl ? (
           <span className="spinner" />
         ) : isPdfDoc(doc) ? (
@@ -80,7 +90,11 @@ export default function DocumentPreviewModal({ doc, title, subtitle, filePrefix,
       </div>
 
       <div className="document-preview__actions">
-        {downloadFailed && <p className="form-error">{t("documentCapture.downloadError")}</p>}
+        {downloadFailed && (
+          <p className="form-error">
+            {t("documentCapture.downloadError")} ({downloadErrorDetail})
+          </p>
+        )}
         <button type="button" className="btn btn-primary" onClick={handleDownload} disabled={downloading}>
           {downloading ? <span className="spinner" /> : null}
           {t("documentCapture.downloadPdf")}

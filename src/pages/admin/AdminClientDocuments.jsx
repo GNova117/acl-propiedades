@@ -18,6 +18,7 @@ export default function AdminClientDocuments() {
   const [previewDoc, setPreviewDoc] = useState(null);
   const [downloadingId, setDownloadingId] = useState(null);
   const [downloadErrorId, setDownloadErrorId] = useState(null);
+  const [downloadErrorDetail, setDownloadErrorDetail] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
 
@@ -60,8 +61,10 @@ export default function AdminClientDocuments() {
     setDownloadErrorId(null);
     try {
       await downloadClientDocumentAsPdf(doc, `${client?.name || "cliente"}_${doc.doc_type}`);
-    } catch {
+    } catch (err) {
+      console.error("downloadClientDocumentAsPdf", err);
       setDownloadErrorId(doc.id);
+      setDownloadErrorDetail(err?.message || String(err));
     } finally {
       setDownloadingId(null);
     }
@@ -145,7 +148,11 @@ export default function AdminClientDocuments() {
                       <span className="form-hint">
                         {t("documentCapture.capturedAt")} {new Date(doc.captured_at).toLocaleString()}
                       </span>
-                      {downloadErrorId === doc.id && <p className="form-error">{t("documentCapture.downloadError")}</p>}
+                      {downloadErrorId === doc.id && (
+                        <p className="form-error">
+                          {t("documentCapture.downloadError")} ({downloadErrorDetail})
+                        </p>
+                      )}
                       <div className="admin-doc-card__item-actions">
                         <button
                           type="button"
