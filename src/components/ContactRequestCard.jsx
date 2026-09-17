@@ -70,6 +70,10 @@ export default function ContactRequestCard({ property }) {
         email: "",
         phone: form.phone.trim(),
         message: buildRequestMessage(property),
+        // De aquí sale a quién le toca: /admin/mensajes muestra la
+        // propiedad y su asesor, y el trigger de Supabase le manda el
+        // aviso por WhatsApp al asesor asignado, no solo a la oficina.
+        property_id: property.id,
       });
       window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
       setStatus("success");

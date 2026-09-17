@@ -72,6 +72,9 @@ export default function ScheduleVisitCard({ property }) {
         email: form.email,
         phone: form.phone,
         message: buildVisitMessage(property, form),
+        // Igual que la tarjeta de contacto: deja la solicitud ligada a la
+        // propiedad para que llegue al asesor que la tiene asignada.
+        property_id: property.id,
       });
       window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
       setStatus("success");

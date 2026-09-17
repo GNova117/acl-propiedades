@@ -33,26 +33,56 @@ export default function AdminMessages() {
   const { t } = useTranslation();
   const { hasSection } = useAuth();
   const [messages, setMessages] = useState([]);
+  const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
+  const [advisorFilter, setAdvisorFilter] = useState("");
   const [expandedId, setExpandedId] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
   const load = () => {
     setLoading(true);
-    db.getContactMessages().then((data) => {
-      setMessages(data);
+    // Las propiedades vienen con sus asesores incluidos (property_advisors),
+    // así que no hace falta una consulta aparte de asesores: el mensaje
+    // guarda property_id y de ahí se deriva a quién le toca. Derivado, no
+    // copiado: si mañana se reasigna la propiedad a otro asesor, los
+    // mensajes viejos apuntan al asesor que la lleva hoy, que es a quien
+    // hay que buscar para darles seguimiento.
+    Promise.all([db.getContactMessages(), db.getProperties({})]).then(([messageData, propertyData]) => {
+      setMessages(messageData);
+      setProperties(propertyData);
       setLoading(false);
     });
   };
 
   useEffect(load, []);
 
+  const propertyById = useMemo(() => new Map(properties.map((p) => [p.id, p])), [properties]);
+
+  const advisorOptions = useMemo(() => {
+    const byId = new Map();
+    properties.forEach((p) => (p.advisors || []).forEach((a) => byId.set(a.id, a)));
+    return Array.from(byId.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [properties]);
+
+  const messageAdvisors = (message) => propertyById.get(message.property_id)?.advisors || [];
+
   const filtered = useMemo(() => {
-    if (!statusFilter) return messages;
-    return messages.filter((m) => (m.status || "nuevo") === statusFilter);
-  }, [messages, statusFilter]);
+    return messages.filter((m) => {
+      if (statusFilter && (m.status || "nuevo") !== statusFilter) return false;
+      if (advisorFilter) {
+        const advisors = propertyById.get(m.property_id)?.advisors || [];
+        // "Sin asesor": mensajes del formulario de Contacto (sin propiedad)
+        // y propiedades que todavía no tienen a nadie asignado — son los
+        // que nadie está viendo como propios, así que conviene poder
+        // aislarlos.
+        if (advisorFilter === "none") return advisors.length === 0;
+        if (!advisors.some((a) => a.id === advisorFilter)) return false;
+      }
+      return true;
+    });
+  }, [messages, statusFilter, advisorFilter, propertyById]);
 
   const handleToggleStatus = async (message) => {
     const next = (message.status || "nuevo") === "nuevo" ? "atendido" : "nuevo";
@@ -87,13 +117,25 @@ export default function AdminMessages() {
       </div>
       <p className="form-hint" style={{ marginTop: "-0.75rem", marginBottom: "1.25rem" }}>{t("messages.subtitle")}</p>
 
-      <div className="form-field" style={{ maxWidth: 220, marginBottom: "1.25rem" }}>
-        <label htmlFor="message-status-filter">{t("common.status")}</label>
-        <select id="message-status-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-          <option value="">{t("messages.filterAll")}</option>
-          <option value="nuevo">{t("messages.statusNew")}</option>
-          <option value="atendido">{t("messages.statusHandled")}</option>
-        </select>
+      <div className="form-row" style={{ maxWidth: 560, marginBottom: "1.25rem" }}>
+        <div className="form-field">
+          <label htmlFor="message-status-filter">{t("common.status")}</label>
+          <select id="message-status-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="">{t("messages.filterAll")}</option>
+            <option value="nuevo">{t("messages.statusNew")}</option>
+            <option value="atendido">{t("messages.statusHandled")}</option>
+          </select>
+        </div>
+        <div className="form-field">
+          <label htmlFor="message-advisor-filter">{t("messages.advisor")}</label>
+          <select id="message-advisor-filter" value={advisorFilter} onChange={(e) => setAdvisorFilter(e.target.value)}>
+            <option value="">{t("messages.allAdvisors")}</option>
+            {advisorOptions.map((a) => (
+              <option key={a.id} value={a.id}>{a.name}</option>
+            ))}
+            <option value="none">{t("messages.noAdvisor")}</option>
+          </select>
+        </div>
       </div>
 
       <div className="card admin-table-wrapper">
@@ -105,15 +147,16 @@ export default function AdminMessages() {
               <th>{t("contact.phone")}</th>
               <th>{t("contact.email")}</th>
               <th>{t("contact.message")}</th>
+              <th>{t("messages.propertyAndAdvisor")}</th>
               <th>{t("common.status")}</th>
               <th>{t("common.actions")}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7}>{t("common.loading")}</td></tr>
+              <tr><td colSpan={8}>{t("common.loading")}</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={7}>{t("messages.noResults")}</td></tr>
+              <tr><td colSpan={8}>{t("messages.noResults")}</td></tr>
             ) : (
               filtered.map((message) => {
                 const isNew = (message.status || "nuevo") === "nuevo";
@@ -143,6 +186,22 @@ export default function AdminMessages() {
                           </button>
                         </>
                       )}
+                    </td>
+                    <td style={{ whiteSpace: "normal", maxWidth: 200 }}>
+                      {(() => {
+                        const property = propertyById.get(message.property_id);
+                        if (!property) return t("messages.generalInquiry");
+                        const advisors = messageAdvisors(message);
+                        return (
+                          <>
+                            {property.code ? `${property.code} · ` : ""}
+                            {property.title}
+                            <span className="form-hint" style={{ display: "block", margin: 0 }}>
+                              {advisors.length > 0 ? advisors.map((a) => a.name).join(", ") : t("messages.noAdvisor")}
+                            </span>
+                          </>
+                        );
+                      })()}
                     </td>
                     <td>
                       <button

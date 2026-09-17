@@ -252,7 +252,12 @@
     "showFull": "Show full message",
     "showLess": "Show less",
     "createClient": "Create client",
-    "scheduleAppointment": "Schedule appointment"
+    "scheduleAppointment": "Schedule appointment",
+    "advisor": "Advisor",
+    "allAdvisors": "All advisors",
+    "noAdvisor": "No advisor assigned",
+    "propertyAndAdvisor": "Property / advisor",
+    "generalInquiry": "General inquiry"
   },
   "testimonials": {
     "title": "Testimonials",
