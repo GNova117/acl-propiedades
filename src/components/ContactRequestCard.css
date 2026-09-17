@@ -1,0 +1,30 @@
+/* Va dentro de la columna principal de la ficha (antes de Preguntas
+   frecuentes), no en la barra lateral: por eso se limita el ancho —
+   un formulario de 2 campos estirado a todo el ancho del contenido se
+   ve desbalanceado— y se separa de la sección de arriba como una más. */
+.contact-request-card {
+  margin-top: 2.5rem;
+  padding: 1.5rem 1.75rem;
+  max-width: 640px;
+}
+
+.contact-request-card__title {
+  font-size: 1.35rem;
+  margin-bottom: 0.35rem;
+}
+
+/* En pantallas angostas los 2 campos se apilan a la fuerza: el auto-fit
+   global de .form-row (minmax 180px) todavía arma 2 columnas aquí y, como
+   la columna del detalle no tiene min-width: 0, eso ensanchaba la página
+   entera (~108px de scroll horizontal en celular). */
+@media (max-width: 720px) {
+  .contact-request-card .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .contact-request-card {
+    padding: 1.25rem;
+  }
+}

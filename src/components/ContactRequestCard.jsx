@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
-import "./ScheduleVisitCard.css";
+import "./ContactRequestCard.css";
 
 // Reemplaza a las tarjetas de asesor (nombre + teléfono + correo + botones
 // de llamar/WhatsApp) que antes se mostraban en la ficha de cada
@@ -81,16 +81,16 @@ export default function ContactRequestCard({ property }) {
 
   if (status === "success") {
     return (
-      <div className="card schedule-visit-card">
-        <h3 className="property-detail__sidebar-title">{t("contactRequest.title")}</h3>
+      <div className="card contact-request-card">
+        <h2 className="contact-request-card__title">{t("contactRequest.title")}</h2>
         <p className="form-hint" style={{ color: "var(--color-success)" }}>{t("contactRequest.success")}</p>
       </div>
     );
   }
 
   return (
-    <div className="card schedule-visit-card">
-      <h3 className="property-detail__sidebar-title">{t("contactRequest.title")}</h3>
+    <div className="card contact-request-card">
+      <h2 className="contact-request-card__title">{t("contactRequest.title")}</h2>
       <p className="form-hint">{t("contactRequest.subtitle")}</p>
 
       <form onSubmit={handleSubmit} noValidate>
@@ -99,33 +99,38 @@ export default function ContactRequestCard({ property }) {
           <input id="callback-empresa" name="empresa" value={form.empresa} onChange={handleChange} tabIndex={-1} autoComplete="off" />
         </div>
 
-        <div className="form-field">
-          <label htmlFor="callback-name">{t("contact.name")}</label>
-          <input
-            id="callback-name"
-            name="name"
-            autoComplete="name"
-            value={form.name}
-            onChange={handleChange}
-            aria-invalid={Boolean(errors.name)}
-          />
-          {errors.name && <span className="form-error">{errors.name}</span>}
-        </div>
+        {/* Los 2 campos van a la par (se apilan solos en celular, igual
+            que en el formulario de Contacto): en la columna principal
+            hay ancho de sobra y así el formulario se lee de un vistazo. */}
+        <div className="form-row">
+          <div className="form-field">
+            <label htmlFor="callback-name">{t("contact.name")}</label>
+            <input
+              id="callback-name"
+              name="name"
+              autoComplete="name"
+              value={form.name}
+              onChange={handleChange}
+              aria-invalid={Boolean(errors.name)}
+            />
+            {errors.name && <span className="form-error">{errors.name}</span>}
+          </div>
 
-        <div className="form-field">
-          <label htmlFor="callback-phone">{t("contact.phone")}</label>
-          <input
-            id="callback-phone"
-            name="phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder={t("contactRequest.phonePlaceholder")}
-            value={form.phone}
-            onChange={handleChange}
-            aria-invalid={Boolean(errors.phone)}
-          />
-          {errors.phone && <span className="form-error">{errors.phone}</span>}
+          <div className="form-field">
+            <label htmlFor="callback-phone">{t("contact.phone")}</label>
+            <input
+              id="callback-phone"
+              name="phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder={t("contactRequest.phonePlaceholder")}
+              value={form.phone}
+              onChange={handleChange}
+              aria-invalid={Boolean(errors.phone)}
+            />
+            {errors.phone && <span className="form-error">{errors.phone}</span>}
+          </div>
         </div>
 
         {status === "error" && <p className="form-error">{t("contact.error")}</p>}

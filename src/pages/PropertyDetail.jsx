@@ -429,6 +429,14 @@ export default function PropertyDetail() {
               </Suspense>
             </section>
 
+            {/* Los datos del asesor (teléfono/correo/WhatsApp) ya no se
+                publican en la ficha: aquí el interesado deja su nombre y su
+                teléfono y el asesor le marca. Va en la columna principal,
+                justo antes de las preguntas frecuentes, no en la barra
+                lateral. El asesor asignado se sigue viendo en el panel y en
+                la ficha técnica en PDF. */}
+            <ContactRequestCard property={property} />
+
             {(() => {
               const faq = buildFaq(property, t);
               if (faq.length === 0) return null;
@@ -449,11 +457,6 @@ export default function PropertyDetail() {
           </div>
 
           <aside className="property-detail__sidebar">
-            {/* Los datos del asesor (teléfono/correo/WhatsApp) ya no se
-                publican aquí: ahora el interesado deja su nombre y su
-                teléfono y el asesor le marca. El asesor asignado se sigue
-                viendo en el panel y en la ficha técnica en PDF. */}
-            <ContactRequestCard property={property} />
             <ScheduleVisitCard property={property} />
           </aside>
         </div>

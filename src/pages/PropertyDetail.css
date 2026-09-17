@@ -16,6 +16,16 @@
   align-items: start;
 }
 
+/* Sin esto, el mínimo automático de una columna de grid es su contenido
+   (min-width: auto): la tira de miniaturas de la galería, que no encoge
+   (84px por miniatura), forzaba la columna a ~458px y empujaba la página
+   entera ~108px a lo ancho en celular — scroll horizontal en toda la
+   ficha. La tira ya tiene su propio overflow-x: auto, solo le faltaba que
+   la columna pudiera encogerse. */
+.property-detail__layout > * {
+  min-width: 0;
+}
+
 /* Grid de 2 columnas (título flexible + precio de ancho fijo) en vez de
    flexbox con wrap: con flex-wrap orgánico, un título largo envolvía el
    bloque de precio completo a su propia línea, y ese bloque quedaba
