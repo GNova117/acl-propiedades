@@ -25,7 +25,7 @@ function clientPrefill(message) {
 function visitPrefill(message) {
   return {
     titulo: `Cita con ${message.name}`,
-    actividades: `Solicitud desde Mensajes de contacto.\nTeléfono: ${message.phone || "—"}\nCorreo: ${message.email}\n\n${message.message}`,
+    actividades: `Solicitud desde Mensajes de contacto.\nTeléfono: ${message.phone || "—"}\nCorreo: ${message.email || "—"}\n\n${message.message}`,
   };
 }
 
@@ -127,7 +127,7 @@ export default function AdminMessages() {
                     <td>{new Date(message.created_at).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}</td>
                     <td>{message.name}</td>
                     <td>{message.phone || "—"}</td>
-                    <td>{message.email}</td>
+                    <td>{message.email || "—"}</td>
                     <td style={{ whiteSpace: "normal", maxWidth: 280 }}>
                       {shownText}
                       {isLong && (
@@ -160,9 +160,11 @@ export default function AdminMessages() {
                           {t("detail.whatsapp")}
                         </a>
                       )}
-                      <a href={`mailto:${message.email}`} className="btn btn-outline btn-sm">
-                        {t("detail.email")}
-                      </a>
+                      {message.email && (
+                        <a href={`mailto:${message.email}`} className="btn btn-outline btn-sm">
+                          {t("detail.email")}
+                        </a>
+                      )}
                       {hasSection("clientes") && (
                         <Link to="/admin/clientes/nuevo" state={{ prefill: clientPrefill(message) }} className="btn btn-outline btn-sm">
                           {t("messages.createClient")}

@@ -288,6 +288,14 @@
     "add": "Save to favorites",
     "remove": "Remove from favorites"
   },
+  "contactRequest": {
+    "title": "Interested in this property?",
+    "subtitle": "Leave your name and phone number and an advisor will call or message you on WhatsApp.",
+    "phonePlaceholder": "e.g. 871 123 4567",
+    "invalidPhone": "Enter a phone number with at least 10 digits",
+    "submit": "Have an advisor contact me",
+    "success": "Done! An advisor will contact you shortly."
+  },
   "scheduleVisit": {
     "title": "Want to visit it?",
     "subtitle": "Suggest a day and an advisor will confirm the appointment.",

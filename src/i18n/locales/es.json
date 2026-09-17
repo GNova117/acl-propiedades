@@ -288,6 +288,14 @@
     "add": "Guardar en favoritos",
     "remove": "Quitar de favoritos"
   },
+  "contactRequest": {
+    "title": "¿Te interesa esta propiedad?",
+    "subtitle": "Déjanos tu nombre y tu teléfono y un asesor te llama o te escribe por WhatsApp.",
+    "phonePlaceholder": "Ej. 871 123 4567",
+    "invalidPhone": "Escribe un teléfono de al menos 10 dígitos",
+    "submit": "Quiero que me contacten",
+    "success": "¡Listo! Un asesor te contactará muy pronto."
+  },
   "scheduleVisit": {
     "title": "¿Quieres visitarla?",
     "subtitle": "Propón un día y un asesor te confirma la cita.",

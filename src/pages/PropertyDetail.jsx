@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import Gallery from "../components/Gallery";
-import AdvisorCard from "../components/AdvisorCard";
+import ContactRequestCard from "../components/ContactRequestCard";
 import PropertyCard from "../components/PropertyCard";
 import PropertyTypeIcon from "../components/PropertyTypeIcon";
 import ShareButton from "../components/ShareButton";
@@ -449,12 +449,11 @@ export default function PropertyDetail() {
           </div>
 
           <aside className="property-detail__sidebar">
-            <h3 className="property-detail__sidebar-title">{t("detail.advisorCard")}</h3>
-            {property.advisors && property.advisors.length > 0 ? (
-              property.advisors.map((advisor) => <AdvisorCard key={advisor.id} advisor={advisor} property={property} />)
-            ) : (
-              <p>{t("properties.noResults")}</p>
-            )}
+            {/* Los datos del asesor (teléfono/correo/WhatsApp) ya no se
+                publican aquí: ahora el interesado deja su nombre y su
+                teléfono y el asesor le marca. El asesor asignado se sigue
+                viendo en el panel y en la ficha técnica en PDF. */}
+            <ContactRequestCard property={property} />
             <ScheduleVisitCard property={property} />
           </aside>
         </div>
