@@ -23,7 +23,10 @@ function sanitizeFileName(name) {
   return safeExt ? `${safeBase}.${safeExt}` : safeBase;
 }
 
-async function uploadFiles(bucket, files) {
+// El tercer parámetro va anotando cada archivo que ya quedó arriba, para
+// que quien llama pueda deshacer las subidas si el guardado no llega a
+// completarse (ver discardUploads).
+async function uploadFiles(bucket, files, uploaded) {
   if (!files || files.length === 0) return [];
   // Solo esta función sube property-images/property-videos/advisor-photos
   // (documentos de clientes y adjuntos de Agenda suben por su cuenta más
@@ -35,10 +38,46 @@ async function uploadFiles(bucket, files) {
     const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${sanitizeFileName(file.name)}`;
     const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: false });
     if (error) throw error;
+    uploaded?.push({ bucket, path });
     const { data } = supabase.storage.from(bucket).getPublicUrl(path);
     urls.push(data.publicUrl);
   }
   return urls;
+}
+
+// Borra las subidas que ya se habían hecho cuando el guardado termina mal.
+// A propósito no lanza: el error que le importa a quien llama es el que
+// abortó el guardado, no un tropiezo al limpiar. Solo se llama mientras
+// todavía no exista la fila que referencia los archivos — después del
+// insert/update esos archivos ya están en uso y borrarlos rompería la
+// propiedad guardada.
+async function discardUploads(uploaded) {
+  const byBucket = new Map();
+  for (const { bucket, path } of uploaded || []) {
+    byBucket.set(bucket, [...(byBucket.get(bucket) || []), path]);
+  }
+  for (const [bucket, paths] of byBucket) {
+    const { error } = await supabase.storage.from(bucket).remove(paths);
+    if (error) console.error("discardUploads", bucket, paths, error);
+  }
+}
+
+// Las imágenes se suben antes que los videos, así que un video rechazado
+// por Storage (demasiado grande, MIME no permitido) dejaba las imágenes ya
+// subidas sin dueño. Si cualquiera de las dos tandas falla, se deshace lo
+// que alcanzó a subir.
+async function collectMedia(data, uploaded) {
+  try {
+    const newImages = await uploadFiles("property-images", data.imageFiles, uploaded);
+    const newVideos = await uploadFiles("property-videos", data.videoFiles, uploaded);
+    return {
+      images: [...(data.existingImages || []), ...newImages],
+      videos: [...(data.existingVideos || []), ...newVideos],
+    };
+  } catch (err) {
+    await discardUploads(uploaded);
+    throw err;
+  }
 }
 
 function mapPropertyRow(row) {
@@ -99,10 +138,8 @@ export const supabaseBackend = {
   },
 
   async addProperty(data) {
-    const newImages = await uploadFiles("property-images", data.imageFiles);
-    const images = [...(data.existingImages || []), ...newImages];
-    const newVideos = await uploadFiles("property-videos", data.videoFiles);
-    const videos = [...(data.existingVideos || []), ...newVideos];
+    const uploaded = [];
+    const { images, videos } = await collectMedia(data, uploaded);
     const payload = {
       title: data.title,
       type: data.type,
@@ -143,7 +180,10 @@ export const supabaseBackend = {
       amenities: data.amenities || [],
     };
     const { data: inserted, error } = await supabase.from("properties").insert(payload).select().single();
-    if (error) throw error;
+    if (error) {
+      await discardUploads(uploaded);
+      throw error;
+    }
     await this._syncAdvisors(inserted.id, data.advisor_ids || []);
     // Cada propiedad nueva llega ya con su proyecto de remodelación
     // vinculado — no requiere seleccionarse/capturarse a mano en
@@ -160,10 +200,8 @@ export const supabaseBackend = {
   },
 
   async updateProperty(id, data) {
-    const newImages = await uploadFiles("property-images", data.imageFiles);
-    const images = [...(data.existingImages || []), ...newImages];
-    const newVideos = await uploadFiles("property-videos", data.videoFiles);
-    const videos = [...(data.existingVideos || []), ...newVideos];
+    const uploaded = [];
+    const { images, videos } = await collectMedia(data, uploaded);
     const payload = {
       title: data.title,
       type: data.type,
@@ -205,7 +243,10 @@ export const supabaseBackend = {
       updated_at: new Date().toISOString(),
     };
     const { data: updated, error } = await supabase.from("properties").update(payload).eq("id", id).select().single();
-    if (error) throw error;
+    if (error) {
+      await discardUploads(uploaded);
+      throw error;
+    }
     await this._syncAdvisors(id, data.advisor_ids || []);
     return updated;
   },
@@ -247,9 +288,10 @@ export const supabaseBackend = {
   },
 
   async addAdvisor(data) {
+    const uploaded = [];
     let photo_url = data.existingPhoto || "";
     if (data.photoFile) {
-      const [url] = await uploadFiles("advisor-photos", [data.photoFile]);
+      const [url] = await uploadFiles("advisor-photos", [data.photoFile], uploaded);
       photo_url = url;
     }
     const payload = {
@@ -263,14 +305,18 @@ export const supabaseBackend = {
       show_in_team: data.show_in_team !== false,
     };
     const { data: inserted, error } = await supabase.from("advisors").insert(payload).select().single();
-    if (error) throw error;
+    if (error) {
+      await discardUploads(uploaded);
+      throw error;
+    }
     return inserted;
   },
 
   async updateAdvisor(id, data) {
+    const uploaded = [];
     let photo_url = data.existingPhoto;
     if (data.photoFile) {
-      const [url] = await uploadFiles("advisor-photos", [data.photoFile]);
+      const [url] = await uploadFiles("advisor-photos", [data.photoFile], uploaded);
       photo_url = url;
     }
     const payload = {
@@ -284,7 +330,10 @@ export const supabaseBackend = {
       ...(photo_url ? { photo_url } : {}),
     };
     const { data: updated, error } = await supabase.from("advisors").update(payload).eq("id", id).select().single();
-    if (error) throw error;
+    if (error) {
+      await discardUploads(uploaded);
+      throw error;
+    }
     return updated;
   },
 
@@ -397,9 +446,13 @@ export const supabaseBackend = {
   },
 
   async updatePropertyTypeImage(id, file) {
-    const [url] = await uploadFiles("property-images", [file]);
+    const uploaded = [];
+    const [url] = await uploadFiles("property-images", [file], uploaded);
     const { data, error } = await supabase.from("property_types").update({ image_url: url }).eq("id", id).select().single();
-    if (error) throw error;
+    if (error) {
+      await discardUploads(uploaded);
+      throw error;
+    }
     return data;
   },
 
