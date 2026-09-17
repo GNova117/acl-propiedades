@@ -98,6 +98,7 @@ export const DOC_TYPES = [
   "predial",
   "agua",
   "luz",
+  "cuenta_bancaria",
   "pago_avaluo",
   "contrato",
   "carta_deslindamiento",
@@ -106,11 +107,12 @@ export const DOC_TYPES = [
 ];
 
 // Qué documentos se capturan según el tipo de cliente: a un comprador no le
-// aplican escrituras/predial/agua/luz (son del inmueble que vende el
-// vendedor) y a un vendedor no le aplica la solicitud/pago de avalúo. Un
-// cliente "ambos" ve todo. El orden es el mismo del expediente para avalúos
-// (ver lib/expedienteAvaluoPdf.js) para que la pantalla de captura y el PDF
-// se lean igual.
+// aplican escrituras/predial/agua/luz ni la cuenta bancaria (son del inmueble
+// y del cobro del vendedor) y a un vendedor no le aplica la solicitud/pago de
+// avalúo. Un cliente "ambos" ve todo. El orden es el mismo del expediente
+// para avalúos (ver lib/expedienteAvaluoPdf.js) para que la pantalla de
+// captura y el PDF se lean igual; la cuenta bancaria va al final de los
+// documentos del vendedor porque es para el pago, no para el valuador.
 const DOC_TYPES_SHARED_TAIL = ["contrato", "carta_deslindamiento", "aviso_privacidad", "carta_derechos"];
 
 export const DOC_TYPES_BY_CLIENT_TYPE = {
@@ -124,6 +126,7 @@ export const DOC_TYPES_BY_CLIENT_TYPE = {
     "acta_nacimiento",
     "cedula_fiscal",
     "curp",
+    "cuenta_bancaria",
     ...DOC_TYPES_SHARED_TAIL,
   ],
 };
@@ -142,6 +145,7 @@ export const DOC_TYPE_ASPECT = {
   predial: 0.77,
   agua: 0.77,
   luz: 0.77,
+  cuenta_bancaria: 0.77,
   pago_avaluo: 0.77,
   contrato: 0.77,
   carta_deslindamiento: 0.77,

@@ -595,6 +595,7 @@
       "predial": "Property tax receipt",
       "agua": "Water bill",
       "luz": "Electricity bill",
+      "cuenta_bancaria": "Bank account",
       "pago_avaluo": "Appraisal payment receipt",
       "contrato": "Contract",
       "carta_deslindamiento": "Liability waiver letter",
