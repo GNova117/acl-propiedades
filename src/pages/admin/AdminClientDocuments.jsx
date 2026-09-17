@@ -9,6 +9,11 @@ import DocumentPreviewModal from "../../components/DocumentPreviewModal";
 import ExpedienteAvaluoModal from "../../components/ExpedienteAvaluoModal";
 import "./admin.css";
 
+// Tope de Supabase Storage para el bucket client-documents: arriba de esto
+// el servidor rechaza la subida, así que se avisa antes de intentarla (un
+// escaneo de escrituras a 300 DPI se pasa fácil de este tamaño).
+const MAX_PDF_MB = 50;
+
 export default function AdminClientDocuments() {
   const { id } = useParams();
   const { t } = useTranslation();
@@ -22,6 +27,9 @@ export default function AdminClientDocuments() {
   const [downloadingId, setDownloadingId] = useState(null);
   const [downloadErrorId, setDownloadErrorId] = useState(null);
   const [downloadErrorDetail, setDownloadErrorDetail] = useState("");
+  const [uploadingType, setUploadingType] = useState(null);
+  const [uploadErrorType, setUploadErrorType] = useState(null);
+  const [uploadErrorDetail, setUploadErrorDetail] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
 
@@ -55,8 +63,28 @@ export default function AdminClientDocuments() {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    await db.addClientDocument({ client_id: id, doc_type: docType, blob: file, quality_metrics: {} });
-    load();
+    setUploadErrorType(null);
+    setUploadErrorDetail("");
+    if (file.size > MAX_PDF_MB * 1024 * 1024) {
+      setUploadErrorType(docType);
+      setUploadErrorDetail(
+        t("documentCapture.pdfTooLarge", { size: (file.size / (1024 * 1024)).toFixed(1), max: MAX_PDF_MB })
+      );
+      return;
+    }
+    setUploadingType(docType);
+    try {
+      await db.addClientDocument({ client_id: id, doc_type: docType, blob: file, quality_metrics: {} });
+      load();
+    } catch (err) {
+      // Sin esto la promesa quedaba rechazada sin dueño: el botón no hacía
+      // nada visible y no había forma de saber por qué no subió.
+      console.error("addClientDocument", err);
+      setUploadErrorType(docType);
+      setUploadErrorDetail(t("documentCapture.uploadError", { detail: err?.message || String(err) }));
+    } finally {
+      setUploadingType(null);
+    }
   };
 
   const handleDeleteDoc = async (docId) => {
@@ -186,13 +214,22 @@ export default function AdminClientDocuments() {
                 </div>
               )}
 
+              {uploadErrorType === docType && <p className="form-error">{uploadErrorDetail}</p>}
+
               <div className="admin-doc-card__actions">
                 <button type="button" className="btn btn-primary btn-sm" onClick={() => setCapturingType(docType)}>
                   {t("documentCapture.addDocument")}
                 </button>
                 <label className="btn btn-outline btn-sm">
-                  <input type="file" accept="application/pdf" hidden onChange={(e) => handlePdfUpload(docType, e)} />
-                  {t("documentCapture.uploadPdf")}
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    hidden
+                    disabled={uploadingType === docType}
+                    onChange={(e) => handlePdfUpload(docType, e)}
+                  />
+                  {uploadingType === docType ? <span className="spinner" /> : null}
+                  {uploadingType === docType ? t("documentCapture.uploading") : t("documentCapture.uploadPdf")}
                 </label>
               </div>
             </div>

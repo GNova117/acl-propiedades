@@ -606,6 +606,9 @@
     "viewPdf": "View PDF",
     "downloadPdf": "Download PDF",
     "downloadError": "Couldn't download the document. Try again.",
+    "uploadError": "Couldn't upload the PDF: {{detail}}",
+    "pdfTooLarge": "The PDF is {{size}} MB and the limit is {{max}} MB. Compress it (for example rescanning at 150 DPI) and upload it again.",
+    "uploading": "Uploading…",
     "previewError": "Couldn't load the preview. Try again.",
     "closePreview": "Close preview"
   },

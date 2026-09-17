@@ -606,6 +606,9 @@
     "viewPdf": "Ver PDF",
     "downloadPdf": "Descargar PDF",
     "downloadError": "No se pudo descargar el documento. Intenta de nuevo.",
+    "uploadError": "No se pudo subir el PDF: {{detail}}",
+    "pdfTooLarge": "El PDF pesa {{size}} MB y el máximo es {{max}} MB. Comprímelo (por ejemplo bajando el escaneo a 150 DPI) y vuelve a subirlo.",
+    "uploading": "Subiendo…",
     "previewError": "No se pudo cargar la vista previa. Intenta de nuevo.",
     "closePreview": "Cerrar vista previa"
   },
