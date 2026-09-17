@@ -1,6 +1,6 @@
 // Datos del expediente que se capturan junto con el cliente: del comprador
-// el NSS, la contraseña del portal de crédito y 2 referencias personales;
-// del vendedor el número de crédito.
+// el NSS, la contraseña del portal de crédito, los datos de la empresa donde
+// trabaja y 2 referencias personales; del vendedor el número de crédito.
 //
 // Estos mismos datos también se capturan en el perfilamiento (a petición
 // explícita del negocio se piden en los dos lados, cada pantalla guarda su
@@ -18,6 +18,15 @@ export const CLIENT_BUYER_FIELDS = [
   { key: "contrasena_portal", label: "Contraseña del portal (INFONAVIT/FOVISSSTE/banco)", type: "text", sensitive: true },
 ];
 
+// Empresa donde trabaja el comprador: es lo que pide el trámite de crédito
+// para comprobar la relación laboral. Mismas llaves que en el perfilamiento
+// del comprador (`tel_empresa` es el número de la empresa).
+export const CLIENT_COMPANY_FIELDS = [
+  { key: "razon_social", label: "Razón social", type: "text", full: true },
+  { key: "registro_patronal", label: "Registro patronal", type: "text" },
+  { key: "tel_empresa", label: "Número de la empresa", type: "tel" },
+];
+
 export const CLIENT_SELLER_FIELDS = [{ key: "numero_credito", label: "Número de crédito", type: "text" }];
 
 export const CLIENT_REFERENCE_FIELDS = [1, 2].flatMap((n) => [
@@ -27,18 +36,31 @@ export const CLIENT_REFERENCE_FIELDS = [1, 2].flatMap((n) => [
   { key: `referencia${n}_direccion`, label: `Referencia ${n} — dirección`, type: "text", full: true },
 ]);
 
-export const CLIENT_EXPEDIENTE_KEYS = [...CLIENT_BUYER_FIELDS, ...CLIENT_SELLER_FIELDS, ...CLIENT_REFERENCE_FIELDS].map(
-  (f) => f.key
-);
+export const CLIENT_EXPEDIENTE_KEYS = [
+  ...CLIENT_BUYER_FIELDS,
+  ...CLIENT_COMPANY_FIELDS,
+  ...CLIENT_SELLER_FIELDS,
+  ...CLIENT_REFERENCE_FIELDS,
+].map((f) => f.key);
 
-// Qué se le pide a un cliente según su tipo: al comprador todo (NSS,
-// contraseña y referencias) y al vendedor solo el número de crédito. Un
-// cliente "ambos" ve las dos cosas.
-export function clientExpedienteFields(clientType) {
-  const fields = [];
-  if (clientType !== "vendedor") fields.push(...CLIENT_BUYER_FIELDS, ...CLIENT_REFERENCE_FIELDS);
-  if (clientType !== "comprador") fields.push(...CLIENT_SELLER_FIELDS);
-  return fields;
+const COMPANY_TITLE = "Datos de la empresa";
+const REFERENCES_TITLE = "Referencias personales";
+
+// Qué se le pide a un cliente según su tipo: al comprador el crédito, la
+// empresa y las referencias; al vendedor solo el número de crédito. Un
+// cliente "ambos" ve las dos cosas. Se devuelve por bloques para que el
+// formulario y la hoja membretada muestren los mismos encabezados.
+export function clientExpedienteGroups(clientType) {
+  const groups = [];
+  if (clientType !== "vendedor") {
+    groups.push({ key: "credito", title: "Datos del crédito", fields: CLIENT_BUYER_FIELDS });
+    groups.push({ key: "empresa", title: COMPANY_TITLE, fields: CLIENT_COMPANY_FIELDS });
+    groups.push({ key: "referencias", title: REFERENCES_TITLE, fields: CLIENT_REFERENCE_FIELDS });
+  }
+  if (clientType !== "comprador") {
+    groups.push({ key: "venta", title: "Datos de la venta", fields: CLIENT_SELLER_FIELDS });
+  }
+  return groups;
 }
 
 const ROL_LABELS = { comprador: "Comprador", vendedor: "Vendedor", ambos: "Comprador y vendedor" };
@@ -62,7 +84,11 @@ export function clientSheetSections(client) {
   };
 
   if (client.type === "vendedor") return [datos];
-  return [datos, { key: "referencias", title: "Referencias personales", optional: true, fields: CLIENT_REFERENCE_FIELDS }];
+  return [
+    datos,
+    { key: "empresa", title: COMPANY_TITLE, optional: true, fields: CLIENT_COMPANY_FIELDS },
+    { key: "referencias", title: REFERENCES_TITLE, optional: true, fields: CLIENT_REFERENCE_FIELDS },
+  ];
 }
 
 // `rol` no es columna de la tabla: se deriva del tipo de cliente para que la

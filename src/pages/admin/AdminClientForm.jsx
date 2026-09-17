@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { CLIENT_TYPES } from "../../lib/format";
-import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteFields } from "../../lib/clientExpedienteFields";
+import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteGroups } from "../../lib/clientExpedienteFields";
 import "./admin.css";
 
 const EMPTY = {
@@ -189,19 +189,24 @@ export default function AdminClientForm() {
 
         <h3 style={{ margin: "0.5rem 0 0" }}>{t("clients.expedienteSection")}</h3>
         <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{t("clients.expedienteSectionHint")}</p>
-        <div className="form-row">
-          {clientExpedienteFields(form.type).map((field) => (
-            <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
-              <label htmlFor={`c-${field.key}`}>{field.label}</label>
-              <input
-                id={`c-${field.key}`}
-                type={field.type === "email" ? "email" : field.type === "tel" ? "tel" : "text"}
-                value={form[field.key]}
-                onChange={handleChange(field.key)}
-              />
+        {clientExpedienteGroups(form.type).map((group) => (
+          <div key={group.key}>
+            <h4 style={{ margin: "0 0 0.5rem" }}>{group.title}</h4>
+            <div className="form-row">
+              {group.fields.map((field) => (
+                <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
+                  <label htmlFor={`c-${field.key}`}>{field.label}</label>
+                  <input
+                    id={`c-${field.key}`}
+                    type={field.type === "email" ? "email" : field.type === "tel" ? "tel" : "text"}
+                    value={form[field.key]}
+                    onChange={handleChange(field.key)}
+                  />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
 
         <div className="form-field">
           <label>

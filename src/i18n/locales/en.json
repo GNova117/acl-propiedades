@@ -527,7 +527,7 @@
     "viewDocuments": "Documents",
     "searchPlaceholder": "Name or phone",
     "expedienteSection": "Appraisal file data",
-    "expedienteSectionHint": "Printed on the appraisal file's data sheet. Buyers are asked for their social security number, credit portal password and 2 references; sellers, for their credit number.",
+    "expedienteSectionHint": "Printed on the appraisal file's data sheet. Buyers are asked for their social security number, credit portal password, employer details and 2 references; sellers, for their credit number.",
     "jointTitle": "Linked client (joint file)",
     "jointSubtitle": "For cases like a joint INFONAVIT credit — each person stays their own record, with their own profiling and documents, but can be viewed together on one screen.",
     "linkedWith": "Linked with:",
