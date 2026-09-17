@@ -47,7 +47,7 @@
     "local_comercial": "Commercial Space"
   },
   "propertyOperation": {
-    "compra": "Buy",
+    "compra": "Sale",
     "renta": "Rent"
   },
   "naveTipo": {
@@ -79,7 +79,11 @@
     "results_one": "{{count}} result",
     "results_other": "{{count}} results",
     "noResults": "No properties found matching those filters.",
+    "emptySection": "There are no listings in this section right now.",
     "comingSoon": "This section will be available soon.",
+    "notifyLead": "Didn't find what you were looking for?",
+    "notifyCta": "Notify me on WhatsApp",
+    "notifyMessage": "Hi, I'd like to be notified when there are options in {{section}}.",
     "viewDetail": "View detail",
     "advisor": "Advisor",
     "mapView": "Map view",

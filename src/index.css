@@ -355,6 +355,10 @@ ul {
   color: var(--color-text-muted);
 }
 
+.empty-state__cta {
+  margin-top: 1.25rem;
+}
+
 @media (max-width: 640px) {
   .section {
     padding: 2.75rem 0;

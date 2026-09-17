@@ -32,6 +32,28 @@ const EMPTY_FILTERS = {
 
 const SORT_OPTIONS = ["newest", "price_asc", "price_desc", "area_desc"];
 
+// Número de oficina — mismo que usa Contact.jsx/Footer.jsx/
+// FloatingWhatsApp.jsx (cada uno lo tiene por separado, no hay una
+// constante compartida en el proyecto todavía).
+const OFFICE_WHATSAPP = "528713243271";
+
+// CTA para cuando un listado queda vacío (sin resultados con los filtros
+// actuales, o un apartado tipo Naves Industriales aún deshabilitado): sin
+// esto la página era un callejón sin salida — solo el mensaje de "no hay
+// nada", sin invitar a nada más.
+function NotifyMeCta({ section }) {
+  const { t } = useTranslation();
+  const href = `https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(t("properties.notifyMessage", { section }))}`;
+  return (
+    <p className="empty-state__cta">
+      {t("properties.notifyLead")}{" "}
+      <a href={href} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm">
+        {t("properties.notifyCta")}
+      </a>
+    </p>
+  );
+}
+
 // Referencia estable para el default de `excludeTypes`: un `= []` inline en
 // la firma de la función crea un arreglo nuevo en cada render, lo que
 // invalidaba el useMemo de queryFilters en cada pasada y disparaba un
@@ -117,6 +139,13 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
   // Con un solo tipo en la sección no tiene caso mostrar el filtro de Tipo.
   const typeOptions = fixedType ? [] : sectionTypes;
 
+  // Sin ningún filtro puesto, un listado vacío no es "no hay nada con esos
+  // filtros" sino "este apartado no tiene nada publicado" — decirle lo
+  // primero a alguien que ni tocó los filtros confunde (pasaba en Terrenos).
+  const hasActiveFilters = Object.keys(EMPTY_FILTERS).some((key) =>
+    key === "sortBy" ? false : Array.isArray(filters[key]) ? filters[key].length > 0 : Boolean(filters[key])
+  );
+
   const queryFilters = useMemo(
     () => ({
       activeOnly: true,
@@ -157,7 +186,10 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
           <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
             <h2>{t(titleKey)}</h2>
           </div>
-          <div className="empty-state">{t("properties.comingSoon")}</div>
+          <div className="empty-state">
+            {t("properties.comingSoon")}
+            <NotifyMeCta section={t(titleKey)} />
+          </div>
         </div>
       </>
     );
@@ -216,7 +248,10 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
             {loading ? (
               <div className="empty-state">{t("common.loading")}</div>
             ) : properties.length === 0 ? (
-              <div className="empty-state">{t("properties.noResults")}</div>
+              <div className="empty-state">
+                {t(hasActiveFilters ? "properties.noResults" : "properties.emptySection")}
+                <NotifyMeCta section={t(titleKey)} />
+              </div>
             ) : view === "map" ? (
               <Suspense fallback={<div className="empty-state" style={{ height: 560 }}>{t("common.loading")}</div>}>
                 <PropertyMap properties={properties} height={560} />

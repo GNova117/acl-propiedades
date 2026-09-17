@@ -47,7 +47,7 @@
     "local_comercial": "Local Comercial"
   },
   "propertyOperation": {
-    "compra": "Compra",
+    "compra": "Venta",
     "renta": "Renta"
   },
   "naveTipo": {
@@ -79,7 +79,11 @@
     "results_one": "{{count}} resultado",
     "results_other": "{{count}} resultados",
     "noResults": "No se encontraron propiedades con esos filtros.",
+    "emptySection": "Por ahora no tenemos propiedades publicadas en este apartado.",
     "comingSoon": "Este apartado estará disponible próximamente.",
+    "notifyLead": "¿No encontraste lo que buscabas?",
+    "notifyCta": "Avísame por WhatsApp",
+    "notifyMessage": "Hola, quiero que me avisen cuando haya opciones en {{section}}.",
     "viewDetail": "Ver detalle",
     "advisor": "Asesor",
     "mapView": "Ver en mapa",

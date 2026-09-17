@@ -10,9 +10,11 @@ import { db } from "../lib/dataStore";
 import "./Header.css";
 
 // `typeKey`: si el tipo de propiedad correspondiente está desactivado
-// (property_types.active) desde /admin/zonas, el enlace se oculta del menú
-// en vez de llevar a un apartado sin nada — Inicio/Propiedades/Nosotros/
-// Contacto no dependen de un tipo, siempre se muestran.
+// (property_types.active) desde /admin/zonas, o está activo pero sin
+// ninguna propiedad publicada, el enlace se oculta del menú en vez de
+// llevar a un apartado sin nada — reaparece solo en cuanto se publica una.
+// Inicio/Propiedades/Nosotros/Contacto no dependen de un tipo, siempre se
+// muestran.
 const NAV_ITEMS = [
   { to: "/", key: "nav.home", end: true },
   { to: "/propiedades", key: "nav.properties" },
@@ -22,13 +24,27 @@ const NAV_ITEMS = [
   { to: "/contacto", key: "nav.contact" },
 ];
 
+const NAV_TYPE_KEYS = NAV_ITEMS.filter((item) => item.typeKey).map((item) => item.typeKey);
+
 export default function Header() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [propertyTypes, setPropertyTypes] = useState([]);
+  // null = aún no llega (o falló): en ese caso no se oculta nada por
+  // conteo, igual que isTypeActive con propertyTypes vacío.
+  const [typeCounts, setTypeCounts] = useState(null);
 
   useEffect(() => {
     db.getPropertyTypes().then(setPropertyTypes).catch(() => setPropertyTypes([]));
+    db.getProperties({ activeOnly: true, types: NAV_TYPE_KEYS })
+      .then((properties) => {
+        const next = {};
+        properties.forEach((p) => {
+          next[p.type] = (next[p.type] || 0) + 1;
+        });
+        setTypeCounts(next);
+      })
+      .catch(() => setTypeCounts(null));
   }, []);
 
   const isTypeActive = (key) => {
@@ -36,7 +52,9 @@ export default function Header() {
     return !type || type.active !== false;
   };
 
-  const visibleNavItems = NAV_ITEMS.filter((item) => !item.typeKey || isTypeActive(item.typeKey));
+  const hasListings = (key) => !typeCounts || typeCounts[key] > 0;
+
+  const visibleNavItems = NAV_ITEMS.filter((item) => !item.typeKey || (isTypeActive(item.typeKey) && hasListings(item.typeKey)));
 
   return (
     <header className="site-header">

@@ -19,7 +19,7 @@ const MAX_HOME_TESTIMONIALS = 6;
 
 export default function Home() {
   const { t } = useTranslation();
-  const [counts, setCounts] = useState({ casa: 0, departamento: 0, nave_industrial: 0, terreno: 0 });
+  const [counts, setCounts] = useState(null);
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
 
@@ -48,6 +48,18 @@ export default function Home() {
 
   const typeByKey = (key) => propertyTypes.find((pt) => pt.key === key);
 
+  // Una categoría activa con 0 propiedades se oculta (antes decía "0
+  // propiedades disponibles", que hace ver el sitio abandonado) y vuelve a
+  // aparecer sola en cuanto se publica una. Las desactivadas desde
+  // /admin/zonas sí se quedan, como "Próximamente" — eso es un anuncio
+  // intencional del negocio, no un hueco. Mientras no llegan los conteos
+  // se muestran todas, para no brincar de 0 tarjetas a N.
+  const visibleCategoryTypes = HOME_CATEGORY_TYPES.filter((type) => {
+    const typeRecord = typeByKey(type);
+    const active = !typeRecord || typeRecord.active !== false;
+    return !active || !counts || counts[type] > 0;
+  });
+
   return (
     <>
       <Seo
@@ -72,14 +84,14 @@ export default function Home() {
             <span className="section-heading__eyebrow">{t("categories.eyebrow")}</span>
             <h2>{t("categories.title")}</h2>
           </Reveal>
-          <div className="home-categories">
-            {HOME_CATEGORY_TYPES.map((type, index) => {
+          <div className="home-categories" style={{ "--home-categories-cols": Math.min(visibleCategoryTypes.length, 3) }}>
+            {visibleCategoryTypes.map((type, index) => {
               const typeRecord = typeByKey(type);
               return (
                 <Reveal key={type} delay={index * 80}>
                   <CategoryCard
                     type={type}
-                    count={counts[type]}
+                    count={counts?.[type] ?? 0}
                     active={!typeRecord || typeRecord.active !== false}
                     imageUrl={typeRecord?.image_url}
                   />

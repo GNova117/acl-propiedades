@@ -122,12 +122,18 @@
 @media (max-width: 768px) {
   .split-hero {
     flex-direction: column;
-    min-height: 100vh;
+    min-height: auto;
   }
 
   .split-hero__panel {
-    min-height: 50vh;
+    min-height: 46vh;
     flex-grow: 1 !important;
+  }
+
+  /* El panel "Próximamente" no lleva a nada todavía — le cede parte de la
+     pantalla al panel activo en vez de ocupar la misma mitad que él. */
+  .split-hero__panel--disabled {
+    min-height: 30vh;
   }
 
   .split-hero__panel--grow .split-hero__image {
