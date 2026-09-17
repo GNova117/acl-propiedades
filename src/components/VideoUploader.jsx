@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import "./VideoUploader.css";
 
-const MAX_VIDEO_MB = 100;
+// Tope real de Supabase Storage: el bucket property-videos declara 100 MB
+// pero un límite por bucket no puede pasar del límite global del proyecto,
+// que en el plan actual son 50 MB — arriba de eso la subida se rechaza al
+// guardar, ya con las imágenes subidas. Subir este número sin subir antes
+// el global no sirve de nada.
+const MAX_VIDEO_MB = 50;
 
 export default function VideoUploader({ existingVideos, files, onRemoveExisting, onAddFiles, onRemoveNew }) {
   const { t } = useTranslation();
