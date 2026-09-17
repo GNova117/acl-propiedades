@@ -2,7 +2,15 @@ import { supabase } from "./supabaseClient";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify, numOrNull } from "./format";
+import { CLIENT_EXPEDIENTE_KEYS } from "./clientExpedienteFields";
 import { compressImageFiles } from "./imageCompression";
+
+// Los campos del expediente del cliente (NSS, contraseña del portal, número
+// de crédito y las 2 referencias) se guardan igual al crear y al editar — se
+// arman desde una sola lista para no repetirlos campo por campo.
+function clientExpedientePayload(data) {
+  return Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, data[key] || null]));
+}
 
 // Supabase Storage rechaza ciertos caracteres en la key del objeto (espacios,
 // acentos, "{"/"}", etc. — el nombre real del archivo que sube el usuario no
@@ -513,6 +521,7 @@ export const supabaseBackend = {
       phone: data.phone || null,
       notes: data.notes || null,
       active: data.active !== false,
+      ...clientExpedientePayload(data),
     };
     const { data: inserted, error } = await supabase.from("clients").insert(payload).select().single();
     if (error) throw error;
@@ -527,6 +536,7 @@ export const supabaseBackend = {
       phone: data.phone || null,
       notes: data.notes || null,
       active: data.active !== false,
+      ...clientExpedientePayload(data),
       updated_at: new Date().toISOString(),
     };
     const { data: updated, error } = await supabase.from("clients").update(payload).eq("id", id).select().single();

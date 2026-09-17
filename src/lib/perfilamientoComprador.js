@@ -34,8 +34,12 @@ export const COMPRADOR_SECTIONS = [
     fields: [
       { key: "referencia1_nombre", label: "Referencia 1 — nombre completo", type: "text" },
       { key: "referencia1_telefono", label: "Referencia 1 — teléfono", type: "tel" },
+      { key: "referencia1_correo", label: "Referencia 1 — correo", type: "email", format: "email" },
+      { key: "referencia1_direccion", label: "Referencia 1 — dirección", type: "textarea", full: true },
       { key: "referencia2_nombre", label: "Referencia 2 — nombre completo", type: "text" },
       { key: "referencia2_telefono", label: "Referencia 2 — teléfono", type: "tel" },
+      { key: "referencia2_correo", label: "Referencia 2 — correo", type: "email", format: "email" },
+      { key: "referencia2_direccion", label: "Referencia 2 — dirección", type: "textarea", full: true },
     ],
   },
 ];

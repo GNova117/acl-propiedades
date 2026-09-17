@@ -2,7 +2,12 @@ import { ZONES, ADVISORS, PROPERTIES, PROPERTY_TYPES_SEED, AMENITIES_SEED, DEMO_
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify, numOrNull } from "./format";
+import { CLIENT_EXPEDIENTE_KEYS } from "./clientExpedienteFields";
 import { compressImageFile, compressImageFiles } from "./imageCompression";
+
+function clientExpedientePayload(data) {
+  return Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, data[key] || null]));
+}
 
 const KEYS = {
   properties: "acl_local_properties",
@@ -576,6 +581,7 @@ export const localBackend = {
       phone: data.phone || null,
       notes: data.notes || null,
       active: data.active !== false,
+      ...clientExpedientePayload(data),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -596,6 +602,7 @@ export const localBackend = {
       phone: data.phone || null,
       notes: data.notes || null,
       active: data.active !== false,
+      ...clientExpedientePayload(data),
       updated_at: new Date().toISOString(),
     };
     clients[idx] = updated;

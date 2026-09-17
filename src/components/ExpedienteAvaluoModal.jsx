@@ -74,6 +74,7 @@ export default function ExpedienteAvaluoModal({ client, linkedClient, onClose })
           generatedOn: t("expedienteAvaluo.generatedOn"),
           missing: t("expedienteAvaluo.missing"),
           failed: t("expedienteAvaluo.failed"),
+          clientSheet: t("expedienteAvaluo.clientSheet"),
         },
       });
       onClose();

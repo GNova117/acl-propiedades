@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { CLIENT_TYPES } from "../../lib/format";
+import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteFields } from "../../lib/clientExpedienteFields";
 import "./admin.css";
 
 const EMPTY = {
@@ -12,6 +13,7 @@ const EMPTY = {
   phone: "",
   notes: "",
   active: true,
+  ...Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, ""])),
 };
 
 export default function AdminClientForm() {
@@ -53,6 +55,7 @@ export default function AdminClientForm() {
         phone: client.phone || "",
         notes: client.notes || "",
         active: client.active !== false,
+        ...Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, client[key] || ""])),
       });
       setLoading(false);
     });
@@ -182,6 +185,22 @@ export default function AdminClientForm() {
         <div className="form-field">
           <label htmlFor="c-notes">{t("clients.notes")}</label>
           <textarea id="c-notes" rows={3} value={form.notes} onChange={handleChange("notes")} />
+        </div>
+
+        <h3 style={{ margin: "0.5rem 0 0" }}>{t("clients.expedienteSection")}</h3>
+        <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{t("clients.expedienteSectionHint")}</p>
+        <div className="form-row">
+          {clientExpedienteFields(form.type).map((field) => (
+            <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
+              <label htmlFor={`c-${field.key}`}>{field.label}</label>
+              <input
+                id={`c-${field.key}`}
+                type={field.type === "email" ? "email" : field.type === "tel" ? "tel" : "text"}
+                value={form[field.key]}
+                onChange={handleChange(field.key)}
+              />
+            </div>
+          ))}
         </div>
 
         <div className="form-field">

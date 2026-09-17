@@ -526,6 +526,8 @@
     "noResults": "No se encontraron clientes.",
     "viewDocuments": "Documentos",
     "searchPlaceholder": "Nombre o teléfono",
+    "expedienteSection": "Datos del expediente",
+    "expedienteSectionHint": "Se imprimen en la hoja de datos del expediente para avalúos. Al comprador se le piden NSS, contraseña del portal y 2 referencias; al vendedor, el número de crédito.",
     "jointTitle": "Cliente vinculado (expediente conjunto)",
     "jointSubtitle": "Para casos como un crédito INFONAVIT conyugal — cada quien sigue siendo su propio registro, con su propio perfilamiento y documentos, pero se pueden ver juntos en una sola pantalla.",
     "linkedWith": "Vinculado con:",
@@ -625,7 +627,8 @@
     "contents": "Contenido",
     "generatedOn": "Generado el",
     "missing": "no capturado",
-    "failed": "no se pudo anexar"
+    "failed": "no se pudo anexar",
+    "clientSheet": "Datos del cliente"
   },
   "liquidacion": {
     "button": "Utilidad",

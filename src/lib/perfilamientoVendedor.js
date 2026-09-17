@@ -33,6 +33,10 @@ export const VENDEDOR_SECTIONS = [
       { key: "rfc", label: "RFC", type: "text", format: "rfc", uppercase: true },
       { key: "curp", label: "CURP", type: "text", format: "curp", uppercase: true },
       { key: "identificacion_oficial", label: "Número de identificación oficial", type: "text" },
+      // Crédito con el que el vendedor está pagando el inmueble que vende
+      // (lo que hay que liquidar en la operación) — al vendedor solo se le
+      // pide este dato del expediente, no NSS ni contraseña de portal.
+      { key: "numero_credito", label: "Número de crédito", type: "text" },
     ],
   },
   {

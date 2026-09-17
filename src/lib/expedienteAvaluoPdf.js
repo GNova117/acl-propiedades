@@ -9,6 +9,8 @@
 
 import { db } from "./dataStore";
 import { isPdfDoc } from "./format";
+import { clientSheetData, clientSheetSections } from "./clientExpedienteFields";
+import { buildPerfilamientoPdf } from "./perfilamientoPdf";
 
 const TEMPLATE_URL = "/plantilla_acl.pdf";
 
@@ -27,6 +29,18 @@ const LINE_HEIGHT = 15;
 // DOC_TYPES.
 export const AVALUO_BUYER_DOCS = ["solicitud_avaluo", "ine", "acta_nacimiento", "cedula_fiscal", "curp"];
 export const AVALUO_SELLER_DOCS = ["escrituras", "predial", "agua", "luz", "ine", "acta_nacimiento", "cedula_fiscal", "curp"];
+
+// El expediente se arma por persona, no por tipo de documento: van juntos
+// todos los documentos de cada quien, y de primero quien trae la solicitud
+// de avalúo (es de quien se está haciendo el trámite).
+const PRIORITY_DOC_TYPE = "solicitud_avaluo";
+
+function orderedPeople(people) {
+  const hasPriority = (person) => person.docs.some((d) => d.doc_type === PRIORITY_DOC_TYPE);
+  // sort es estable: quien no trae la solicitud conserva el orden en que se
+  // eligió en la pantalla.
+  return [...people].sort((a, b) => Number(hasPriority(b)) - Number(hasPriority(a)));
+}
 
 const SMART_CHARS = {
   "‘": "'",
@@ -96,25 +110,49 @@ async function appendPdfDoc(targetDoc, blob) {
   pages.forEach((page) => targetDoc.addPage(page));
 }
 
-// `sections` es [{ title, people: [{ client, docs }] }] ya en el orden final;
-// `docs` son los documentos de esa persona (varias filas por tipo es
-// normal: client_documents es una fila por archivo).
-async function buildBody(sections, docTypeLabel) {
+// Hoja membretada con los datos del cliente (contacto, NSS/contraseña del
+// portal o número de crédito, y referencias) al frente de sus documentos.
+// Reutiliza el generador del perfilamiento, que ya imprime "etiqueta: valor"
+// por secciones sobre la plantilla y omite lo que está vacío.
+async function appendClientSheet(targetDoc, client, sheetTitle) {
+  const { PDFDocument } = await import("pdf-lib");
+  const bytes = await buildPerfilamientoPdf(clientSheetData(client), clientSheetSections(client), {
+    title: `${sheetTitle} - ${client.name}`,
+  });
+  const source = await PDFDocument.load(bytes);
+  const pages = await targetDoc.copyPages(source, source.getPageIndices());
+  pages.forEach((page) => targetDoc.addPage(page));
+}
+
+// `sections` es [{ title, docTypes, people: [{ client, docs }] }]; `docs` son
+// los documentos de esa persona (varias filas por tipo es normal:
+// client_documents es una fila por archivo).
+async function buildBody(sections, docTypeLabel, labels) {
   const { PDFDocument, StandardFonts } = await import("pdf-lib");
   const body = await PDFDocument.create();
   const font = await body.embedFont(StandardFonts.Helvetica);
   const contents = [];
 
   for (const section of sections) {
-    for (const docType of section.docTypes) {
-      for (const person of section.people) {
+    for (const person of orderedPeople(section.people)) {
+      const entry = (label, status, detail) => contents.push({ section: section.title, person: person.client.name, label, status, detail });
+
+      try {
+        await appendClientSheet(body, person.client, labels.clientSheet);
+        entry(labels.clientSheet, "ok");
+      } catch (err) {
+        console.error("expedienteAvaluo: hoja de datos omitida", person.client.name, err);
+        entry(labels.clientSheet, "error", err?.message || String(err));
+      }
+
+      for (const docType of section.docTypes) {
         const matches = person.docs.filter((d) => d.doc_type === docType);
         if (!matches.length) {
-          contents.push({ section: section.title, label: docTypeLabel(docType), person: person.client.name, status: "missing" });
+          entry(docTypeLabel(docType), "missing");
           continue;
         }
         for (const doc of matches) {
-          const caption = `${section.title} · ${docTypeLabel(docType)} · ${person.client.name}`;
+          const caption = `${section.title} · ${person.client.name} · ${docTypeLabel(docType)}`;
           try {
             const blob = await fetchDocBytes(doc);
             if (isPdfDoc(doc)) {
@@ -122,16 +160,10 @@ async function buildBody(sections, docTypeLabel) {
             } else {
               await appendImageDoc(body, blob, caption, font);
             }
-            contents.push({ section: section.title, label: docTypeLabel(docType), person: person.client.name, status: "ok" });
+            entry(docTypeLabel(docType), "ok");
           } catch (err) {
             console.error("expedienteAvaluo: documento omitido", caption, err);
-            contents.push({
-              section: section.title,
-              label: docTypeLabel(docType),
-              person: person.client.name,
-              status: "error",
-              detail: err?.message || String(err),
-            });
+            entry(docTypeLabel(docType), "error", err?.message || String(err));
           }
         }
       }
@@ -181,24 +213,32 @@ async function buildCover(contents, { title, sections, labels }) {
   y -= LINE_HEIGHT * 2;
 
   for (const section of sections) {
-    await write(`${section.title}: ${section.people.map((p) => p.client.name).join(", ")}`);
+    await write(`${section.title}: ${orderedPeople(section.people).map((p) => p.client.name).join(", ")}`);
   }
   await write(`${labels.generatedOn}: ${new Date().toLocaleString()}`, { color: muted });
   y -= LINE_HEIGHT * 0.5;
 
   await write(labels.contents.toUpperCase(), { size: SIZE_SUBTITLE, font: bold, gap: LINE_HEIGHT * 1.4 });
 
+  // El índice sigue el mismo agrupamiento que el PDF: sección, luego cada
+  // persona con todos sus documentos.
   let currentSection = null;
+  let currentPerson = null;
   for (const entry of contents) {
     if (entry.section !== currentSection) {
       currentSection = entry.section;
+      currentPerson = null;
       await write(currentSection, { font: bold, gap: LINE_HEIGHT * 1.2 });
+    }
+    if (entry.person !== currentPerson) {
+      currentPerson = entry.person;
+      await write(currentPerson, { indent: 12, font: bold, gap: LINE_HEIGHT * 1.1 });
     }
     const mark = entry.status === "ok" ? "-" : "X";
     const suffix =
       entry.status === "missing" ? ` (${labels.missing})` : entry.status === "error" ? ` (${labels.failed}: ${entry.detail})` : "";
-    await write(`${mark} ${entry.label} - ${entry.person}${suffix}`, {
-      indent: 12,
+    await write(`${mark} ${entry.label}${suffix}`, {
+      indent: 24,
       color: entry.status === "ok" ? black : muted,
     });
   }
@@ -209,7 +249,7 @@ async function buildCover(contents, { title, sections, labels }) {
 // Devuelve los bytes del PDF final y el índice de lo que entró/faltó, para
 // poder avisarlo en pantalla además de imprimirlo en la portada.
 export async function buildExpedienteAvaluoPdf({ sections, docTypeLabel, labels, title }) {
-  const { body, contents } = await buildBody(sections, docTypeLabel);
+  const { body, contents } = await buildBody(sections, docTypeLabel, labels);
   const doc = await buildCover(contents, { title, sections, labels });
   const bodyPages = await doc.copyPages(body, body.getPageIndices());
   bodyPages.forEach((page) => doc.addPage(page));
@@ -220,7 +260,7 @@ export async function downloadExpedienteAvaluoPdf(options) {
   const { bytes, contents } = await buildExpedienteAvaluoPdf(options);
   const blob = new Blob([bytes], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
-  const names = options.sections.flatMap((s) => s.people.map((p) => p.client.name));
+  const names = options.sections.flatMap((s) => orderedPeople(s.people).map((p) => p.client.name));
   const now = new Date();
   const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
   const link = document.createElement("a");
