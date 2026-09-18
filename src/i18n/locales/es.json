@@ -431,7 +431,8 @@
       "agenda": "Agenda",
       "mensajes": "Mensajes",
       "testimonios": "Testimonios",
-      "reportes": "Ventas y reportes"
+      "reportes": "Ventas y reportes",
+      "bitacora": "Bitácora y gastos"
     },
     "rolesTitle": "Roles",
     "newRole": "Nuevo rol",
@@ -724,11 +725,96 @@
       "title": "Ventas registradas — {{period}}"
     }
   },
+  "propertyLog": {
+    "title": "Bitácora y gastos",
+    "button": "Bitácora",
+    "loadError": "No se pudo cargar la bitácora: {{error}}",
+    "saveError": "No se pudo guardar.",
+    "confirmDelete": "¿Eliminar esta entrada? Si tiene comprobante, el archivo también se borra.",
+    "noReceipt": "Sin comprobante",
+    "kinds": {
+      "gasto": "Gasto",
+      "nota": "Nota"
+    },
+    "categories": {
+      "predial": "Predial",
+      "agua": "Agua",
+      "luz": "Luz",
+      "gas": "Gas",
+      "mantenimiento": "Mantenimiento",
+      "remodelacion": "Remodelación",
+      "tramites": "Trámites y honorarios",
+      "otro": "Otro"
+    },
+    "summary": {
+      "totalSpent": "Total gastado",
+      "count": "{{count}} gasto(s) registrados",
+      "withoutReceipt": "{{count}} sin comprobante",
+      "inProfit": "Este total se resta en la pantalla de",
+      "byCategory": "Gasto por categoría",
+      "noExpenses": "Aún no hay gastos."
+    },
+    "budget": {
+      "houseTitle": "Presupuesto de la casa",
+      "remodelTitle": "Presupuesto de remodelación",
+      "of": "de {{budget}} presupuestados ({{pct}}%)",
+      "remaining": "Quedan {{amount}}",
+      "warn": "Cerca del límite: quedan {{amount}}",
+      "over": "Excedido por {{amount}}",
+      "noHouseBudget": "Aún no defines un presupuesto para esta casa.",
+      "setLabel": "Presupuesto total de la casa (MXN)",
+      "noRemodelBudget": "El proyecto de remodelación de esta casa no tiene materiales presupuestados.",
+      "remodelHint": "Se compara solo lo gastado en la categoría \"Remodelación\" contra el total de materiales del proyecto."
+    },
+    "form": {
+      "title": "Agregar a la bitácora",
+      "editTitle": "Corregir entrada",
+      "date": "Fecha",
+      "category": "Categoría",
+      "amount": "Monto (MXN)",
+      "amountInvalid": "Escribe un monto mayor a 0.",
+      "concept": "Concepto",
+      "conceptPlaceholder": "Ej. Predial 2026, recibo de luz, cerrajero…",
+      "description": "Descripción o nota",
+      "optional": "opcional",
+      "receipt": "Comprobante",
+      "attach": "Adjuntar foto o PDF",
+      "changeFile": "Cambiar archivo",
+      "removeFile": "Quitar",
+      "receiptHint": "Foto o PDF de un ticket, recibo o factura. Máximo {{mb}} MB.",
+      "replaceReceiptHint": "Para cambiar el comprobante, elimina la entrada y vuelve a capturarla.",
+      "add": "Agregar"
+    },
+    "fileErrors": {
+      "type": "Solo se aceptan fotos (JPG, PNG, WEBP, HEIC) o PDF.",
+      "size": "El archivo pesa más de {{mb}} MB."
+    },
+    "timeline": {
+      "title": "Resumen día a día",
+      "allKinds": "Gastos y notas",
+      "allMonths": "Todos los meses",
+      "month": "Mes",
+      "empty": "Aún no hay nada en la bitácora de esta casa.",
+      "noMatches": "Nada coincide con los filtros.",
+      "dayTotal": "Gastos del día: {{amount}}",
+      "cumulative": "Acumulado: {{amount}}"
+    },
+    "table": {
+      "type": "Tipo",
+      "detail": "Detalle",
+      "receipt": "Comprobante"
+    }
+  },
   "liquidacion": {
     "button": "Utilidad",
     "title": "Utilidad de la vivienda",
     "breakdownTitle": "Resumen",
     "sameAsCaptador": "Misma persona que captó",
+    "expensesLabel": "Gastos con comprobante (bitácora)",
+    "autoFromLog": "Suma automática de los gastos registrados en la bitácora de la casa.",
+    "editInLog": "Ver bitácora",
+    "expensesRow": "(−) Gastos con comprobante (bitácora)",
+    "doubleCountWarning": "Ya hay gastos con comprobante y también inversión capturada (servicios o remodelación). Revisa que el mismo pago no se cuente dos veces.",
     "restricted": "Este apartado es confidencial — acceso restringido a los socios.",
     "disclaimer": "El desglose se calcula en automático a partir de los montos y porcentajes capturados; no se guarda como cifra fija, así que si ajustas cualquier dato de arriba el resumen se recalcula solo.",
     "autoFromProperty": "Se toma automáticamente del precio de la propiedad.",

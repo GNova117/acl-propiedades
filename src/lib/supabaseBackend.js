@@ -3,7 +3,7 @@ import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify, numOrNull } from "./format";
 import { CLIENT_EXPEDIENTE_KEYS } from "./clientExpedienteFields";
-import { compressImageFiles } from "./imageCompression";
+import { compressImageFile, compressImageFiles } from "./imageCompression";
 
 // Los campos del expediente del cliente (NSS, contraseña del portal, número
 // de crédito y las 2 referencias) se guardan igual al crear y al editar — se
@@ -269,8 +269,15 @@ export const supabaseBackend = {
   },
 
   async deleteProperty(id) {
+    // Borrar la propiedad borra en cascada las filas de su bitácora, pero no
+    // los comprobantes en Storage: se anotan antes y se limpian después. Es
+    // "lo mejor posible" a propósito (sin el apartado 'bitacora' RLS devuelve
+    // 0 filas; si la tabla aún no existe, `data` llega vacío): nada de eso
+    // debe impedir borrar la propiedad.
+    const { data: logFiles } = await supabase.from("property_log").select("file_path").eq("property_id", id).not("file_path", "is", null);
     const { error } = await supabase.from("properties").delete().eq("id", id);
     if (error) throw error;
+    if (logFiles?.length) await supabase.storage.from("property-log-files").remove(logFiles.map((f) => f.file_path));
   },
 
   async getPropertyChanges(propertyId) {
@@ -974,6 +981,105 @@ export const supabaseBackend = {
     const { error } = await supabase.from("ventas").delete().eq("id", id);
     if (error) throw error;
     await this.setPropertyStatus(propertyId, "disponible");
+  },
+
+  // Bitácora y gastos por propiedad. Tablas property_log / property_budgets y
+  // bucket privado property-log-files, todos protegidos por RLS con
+  // has_admin_section('bitacora') (ver schema.sql): quien no tenga ese
+  // apartado recibe 0 filas, no un error.
+  async getPropertyLog(propertyId) {
+    const { data, error } = await supabase
+      .from("property_log")
+      .select("*")
+      .eq("property_id", propertyId)
+      .order("entry_date", { ascending: false })
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    const entries = data || [];
+    const withFile = entries.filter((e) => e.file_path);
+    if (withFile.length === 0) return entries;
+    // 1 h, no los 5 min de los expedientes: la pantalla puede quedarse abierta
+    // un rato mientras se capturan varios gastos y las miniaturas no deben
+    // romperse a la mitad.
+    const { data: signed } = await supabase.storage
+      .from("property-log-files")
+      .createSignedUrls(withFile.map((e) => e.file_path), 3600);
+    const urlByPath = new Map(withFile.map((e, i) => [e.file_path, signed?.[i]?.signedUrl || null]));
+    return entries.map((e) => ({ ...e, signed_url: e.file_path ? urlByPath.get(e.file_path) : null }));
+  },
+
+  // Solo los gastos, sin URLs firmadas: lo usan la Utilidad de una casa y el
+  // reporte de Ganancias (todas las casas cuando no se pasa propertyId).
+  async getExpenses(propertyId = null) {
+    let query = supabase.from("property_log").select("id, property_id, entry_date, categoria, monto").eq("kind", "gasto");
+    if (propertyId) query = query.eq("property_id", propertyId);
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addPropertyLogEntry({ property_id, file, ...fields }) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    let uploaded = null;
+    if (file) {
+      const prepared = await compressImageFile(file);
+      const path = `${property_id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${sanitizeFileName(prepared.name)}`;
+      const { error: uploadError } = await supabase.storage
+        .from("property-log-files")
+        .upload(path, prepared, { contentType: prepared.type || "application/octet-stream", upsert: false });
+      if (uploadError) throw uploadError;
+      uploaded = { path, name: file.name, type: prepared.type || file.type || null };
+    }
+    const row = {
+      ...fields,
+      property_id,
+      file_path: uploaded?.path || null,
+      file_name: uploaded?.name || null,
+      file_type: uploaded?.type || null,
+      created_by: sessionData?.session?.user?.email || null,
+    };
+    const { data, error } = await supabase.from("property_log").insert(row).select().single();
+    if (error) {
+      // El archivo ya estaba arriba pero la fila no se guardó: no dejarlo huérfano.
+      if (uploaded) await discardUploads([{ bucket: "property-log-files", path: uploaded.path }]);
+      throw error;
+    }
+    return data;
+  },
+
+  // Edita solo los campos de texto/monto/fecha. Para cambiar el comprobante se
+  // borra la entrada y se vuelve a capturar — así nunca hay un archivo
+  // reemplazado a medias entre Storage y la fila.
+  async updatePropertyLogEntry(id, fields) {
+    const { data, error } = await supabase.from("property_log").update(fields).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deletePropertyLogEntry(id) {
+    const { data: entry } = await supabase.from("property_log").select("file_path").eq("id", id).maybeSingle();
+    const { error } = await supabase.from("property_log").delete().eq("id", id);
+    if (error) throw error;
+    if (entry?.file_path) await supabase.storage.from("property-log-files").remove([entry.file_path]);
+  },
+
+  async getPropertyBudget(propertyId) {
+    const { data, error } = await supabase.from("property_budgets").select("monto").eq("property_id", propertyId).maybeSingle();
+    if (error) throw error;
+    return data ? Number(data.monto) : null;
+  },
+
+  async savePropertyBudget(propertyId, monto) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = {
+      property_id: propertyId,
+      monto: Number(monto) || 0,
+      usuario_actualizo: sessionData?.session?.user?.email || null,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from("property_budgets").upsert(row, { onConflict: "property_id" });
+    if (error) throw error;
+    return row.monto;
   },
 
   async getRoles() {

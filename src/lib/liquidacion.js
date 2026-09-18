@@ -39,12 +39,18 @@ export function computeLiquidacion(form) {
   const devolucion = num(form.devolucion_vendedor);
   const remodelacion = num(form.inversion_remodelacion);
   const servicios = num(form.inversion_servicios);
+  // Gastos con comprobante de la bitácora de la casa: como precio_propiedad
+  // y inversion_remodelacion, se inyectan en vivo (suma de property_log), no
+  // se capturan ni se guardan aquí. Es una línea aparte a propósito: no
+  // sustituye a "pago de servicios", así que una utilidad ya capturada da lo
+  // mismo mientras no haya gastos registrados.
+  const gastos = num(form.gastos_bitacora);
   const tasaCaptacion = num(form.tasa_comision_captacion);
   const tasaVenta = num(form.tasa_comision_venta);
   const tasaGastos = num(form.tasa_gastos_admin);
 
   const inversion = remodelacion + servicios;
-  const subtotal = precioPropiedad - costoLiquidacion - devolucion - inversion;
+  const subtotal = precioPropiedad - costoLiquidacion - devolucion - inversion - gastos;
 
   const comisionCaptacion = subtotal * (tasaCaptacion / 100);
 
@@ -61,6 +67,7 @@ export function computeLiquidacion(form) {
   return {
     servicios,
     inversion,
+    gastos,
     subtotal,
     comisionCaptacion,
     mismaPersona,

@@ -55,6 +55,7 @@ const AdminAgendaExpedientes = lazy(() => import("./pages/admin/AdminAgendaExped
 const AdminMessages = lazy(() => import("./pages/admin/AdminMessages"));
 const AdminTestimonials = lazy(() => import("./pages/admin/AdminTestimonials"));
 const AdminSalesReports = lazy(() => import("./pages/admin/AdminSalesReports"));
+const AdminPropertyBitacora = lazy(() => import("./pages/admin/AdminPropertyBitacora"));
 
 const SPECIAL_SECTION_KEYS = Object.keys(SPECIAL_SECTION_TYPES);
 
@@ -139,6 +140,15 @@ export default function App() {
         />
         <Route path="propiedades/nueva" element={<RequireSection section="propiedades"><AdminPropertyForm /></RequireSection>} />
         <Route path="propiedades/:id" element={<RequireSection section="propiedades"><AdminPropertyForm /></RequireSection>} />
+        <Route path="propiedades/:id/bitacora" element={<RequireSection section="bitacora"><AdminPropertyBitacora /></RequireSection>} />
+        <Route
+          path="naves-industriales/:id/bitacora"
+          element={
+            <RequireSection section="bitacora">
+              <AdminPropertyBitacora listPath="/admin/naves-industriales" />
+            </RequireSection>
+          }
+        />
         <Route
           path="propiedades/:id/liquidacion"
           element={

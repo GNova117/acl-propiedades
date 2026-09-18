@@ -173,7 +173,7 @@ export default function AdminSalesReports() {
   const [searchParams, setSearchParams] = useSearchParams();
   const monthLabels = useMonthLabels(i18n.language);
 
-  const [data, setData] = useState({ properties: [], advisors: [], ventas: [], propertyTypes: [], liquidaciones: [], remodelProjects: [] });
+  const [data, setData] = useState({ properties: [], advisors: [], ventas: [], propertyTypes: [], liquidaciones: [], remodelProjects: [], expenses: [] });
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
@@ -198,9 +198,10 @@ export default function AdminSalesReports() {
       db.getPropertyTypes(),
       canSeeProfit ? db.getLiquidaciones().catch(() => []) : [],
       canSeeProfit ? db.getRemodelProjects({}).catch(() => []) : [],
+      canSeeProfit ? db.getExpenses().catch(() => []) : [],
     ])
-      .then(([properties, advisors, ventas, propertyTypes, liquidaciones, remodelProjects]) => {
-        setData({ properties, advisors, ventas, propertyTypes, liquidaciones, remodelProjects });
+      .then(([properties, advisors, ventas, propertyTypes, liquidaciones, remodelProjects, expenses]) => {
+        setData({ properties, advisors, ventas, propertyTypes, liquidaciones, remodelProjects, expenses });
         setLoadError("");
       })
       .catch((err) => setLoadError(err.message || "Error"))
@@ -209,7 +210,7 @@ export default function AdminSalesReports() {
 
   useEffect(load, [canSeeProfit]);
 
-  const { properties, advisors, ventas, propertyTypes, liquidaciones, remodelProjects } = data;
+  const { properties, advisors, ventas, propertyTypes, liquidaciones, remodelProjects, expenses } = data;
   const soldIds = useMemo(() => new Set(ventas.map((v) => v.property_id)), [ventas]);
 
   // "Registrar venta" desde la lista de Propiedades llega con ?vender=<id>.
@@ -224,8 +225,8 @@ export default function AdminSalesReports() {
   }, [loading, searchParams]);
 
   const allRows = useMemo(
-    () => buildSaleRows({ ventas, properties, advisors, liquidaciones, remodelProjects }),
-    [ventas, properties, advisors, liquidaciones, remodelProjects]
+    () => buildSaleRows({ ventas, properties, advisors, liquidaciones, remodelProjects, expenses }),
+    [ventas, properties, advisors, liquidaciones, remodelProjects, expenses]
   );
   const years = useMemo(() => availableYears(properties, ventas), [properties, ventas]);
   const yearRows = useMemo(() => filterRows(allRows, { year, type }), [allRows, year, type]);

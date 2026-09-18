@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN } from "../../lib/format";
 import { computeMaterialsTotals } from "../../lib/materialsTotals";
+import { sumExpenses } from "../../lib/propertyLog";
+import { useAuth } from "../../context/AuthContext";
 import { EMPTY_LIQUIDACION, computeLiquidacion, toLiquidacionPayload, toLiquidacionFormValues } from "../../lib/liquidacion";
 import "./AdminPropertyLiquidacion.css";
 import "./admin.css";
@@ -11,10 +13,12 @@ import "./admin.css";
 export default function AdminPropertyLiquidacion() {
   const { id } = useParams();
   const { t } = useTranslation();
+  const { hasSection } = useAuth();
 
   const [property, setProperty] = useState(null);
   const [advisors, setAdvisors] = useState([]);
   const [remodelProject, setRemodelProject] = useState(null);
+  const [gastosTotal, setGastosTotal] = useState(0); // suma de gastos de la bitácora, en vivo
   const [existing, setExisting] = useState(null); // registro guardado, null si aún no existe
   const [form, setForm] = useState(EMPTY_LIQUIDACION);
   const [errors, setErrors] = useState({});
@@ -29,7 +33,10 @@ export default function AdminPropertyLiquidacion() {
       db.getAdvisors(),
       db.getLiquidacionByProperty(id),
       db.getRemodelProjectByProperty(id),
-    ]).then(([propertyData, advisorsData, liquidacionData, remodelData]) => {
+      // Sin el apartado 'bitacora' RLS devuelve 0 filas; si la tabla aún no existe, falla —
+      // en ambos casos la Utilidad sigue funcionando igual que antes, sin gastos.
+      db.getExpenses(id).catch(() => []),
+    ]).then(([propertyData, advisorsData, liquidacionData, remodelData, expensesData]) => {
       setProperty(propertyData);
       setAdvisors(advisorsData);
       setExisting(liquidacionData);
@@ -43,6 +50,7 @@ export default function AdminPropertyLiquidacion() {
         costo_total: liquidacionData ? baseForm.costo_total : propertyData?.price ?? "",
       });
       setRemodelProject(remodelData);
+      setGastosTotal(sumExpenses(expensesData.map((e) => ({ ...e, kind: "gasto" }))));
       setLoading(false);
     });
   };
@@ -67,8 +75,8 @@ export default function AdminPropertyLiquidacion() {
   );
 
   const breakdown = useMemo(
-    () => computeLiquidacion({ ...form, precio_propiedad: propertyPrice, inversion_remodelacion: inversionRemodelacion }),
-    [form, propertyPrice, inversionRemodelacion]
+    () => computeLiquidacion({ ...form, precio_propiedad: propertyPrice, inversion_remodelacion: inversionRemodelacion, gastos_bitacora: gastosTotal }),
+    [form, propertyPrice, inversionRemodelacion, gastosTotal]
   );
 
   const captador = advisors.find((a) => a.id === form.captador_id);
@@ -158,6 +166,14 @@ export default function AdminPropertyLiquidacion() {
               <label htmlFor="liq-servicios">Inversión — pago de servicios</label>
               <input id="liq-servicios" type="number" min="0" value={form.inversion_servicios} onChange={handleChange("inversion_servicios")} />
             </div>
+            <div className="form-field">
+              <label htmlFor="liq-gastos">{t("liquidacion.expensesLabel")}</label>
+              <div id="liq-gastos" className="liquidacion-readonly">{formatMXN(gastosTotal)}</div>
+              <span className="form-hint">
+                {t("liquidacion.autoFromLog")}{" "}
+                {hasSection("bitacora") && <Link to={`/admin/propiedades/${id}/bitacora`}>{t("liquidacion.editInLog")}</Link>}
+              </span>
+            </div>
           </div>
 
           <div className="form-row">
@@ -201,6 +217,10 @@ export default function AdminPropertyLiquidacion() {
             </div>
           </div>
 
+          {gastosTotal > 0 && (Number(form.inversion_servicios) > 0 || inversionRemodelacion > 0) && (
+            <p className="form-hint" role="status">⚠ {t("liquidacion.doubleCountWarning")}</p>
+          )}
+
           <div className="admin-form__actions">
             <button type="submit" className="btn btn-primary" disabled={saving}>
               {saving ? <span className="spinner" /> : null}
@@ -229,6 +249,12 @@ export default function AdminPropertyLiquidacion() {
                 <td>(−) Inversión (remodelación + servicios)</td>
                 <td>−{formatMXN(breakdown.inversion)}</td>
               </tr>
+              {gastosTotal > 0 && (
+                <tr>
+                  <td>{t("liquidacion.expensesRow")}</td>
+                  <td>−{formatMXN(gastosTotal)}</td>
+                </tr>
+              )}
               <tr className="liquidacion-breakdown__strong">
                 <td>= Subtotal</td>
                 <td>{formatMXN(breakdown.subtotal)}</td>

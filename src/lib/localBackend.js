@@ -26,6 +26,8 @@ const KEYS = {
   perfilamientosComprador: "acl_local_perfilamientos_comprador",
   liquidaciones: "acl_local_liquidaciones",
   ventas: "acl_local_ventas",
+  propertyLog: "acl_local_property_log",
+  propertyBudgets: "acl_local_property_budgets",
   adminRoles: "acl_local_admin_roles",
   adminAccess: "acl_local_admin_access",
   agendaCitas: "acl_local_agenda_citas",
@@ -60,15 +62,16 @@ function writeStore(key, value) {
 // video real) — a diferencia de Supabase Storage, que sí puede con eso. Si
 // el guardado falla por cuota, se avisa con un mensaje claro en vez de
 // dejar pasar el DOMException genérico del navegador.
-function writeStoreOrThrowFriendly(key, value) {
+const VIDEO_QUOTA_MESSAGE =
+  "No se pudo guardar: el video es demasiado grande para el almacenamiento del navegador en modo demo. Prueba con un archivo más corto/ligero, o usa esta función con Supabase conectado (ahí no aplica este límite).";
+const FILE_QUOTA_MESSAGE =
+  "No se pudo guardar: el archivo es demasiado grande para el almacenamiento del navegador en modo demo. Prueba con uno más ligero, o usa esta función con Supabase conectado (ahí no aplica este límite).";
+
+function writeStoreOrThrowFriendly(key, value, quotaMessage = VIDEO_QUOTA_MESSAGE) {
   try {
     writeStore(key, value);
   } catch (err) {
-    if (err.name === "QuotaExceededError") {
-      throw new Error(
-        "No se pudo guardar: el video es demasiado grande para el almacenamiento del navegador en modo demo. Prueba con un archivo más corto/ligero, o usa esta función con Supabase conectado (ahí no aplica este límite)."
-      );
-    }
+    if (err.name === "QuotaExceededError") throw new Error(quotaMessage);
     throw err;
   }
 }
@@ -338,6 +341,10 @@ export const localBackend = {
       KEYS.properties,
       properties.filter((p) => p.id !== id)
     );
+    // Igual que el ON DELETE CASCADE de Supabase: la bitácora y el
+    // presupuesto de la casa se van con ella.
+    writeStore(KEYS.propertyLog, readStore(KEYS.propertyLog, []).filter((e) => e.property_id !== id));
+    writeStore(KEYS.propertyBudgets, readStore(KEYS.propertyBudgets, []).filter((b) => b.property_id !== id));
   },
 
   async getAdvisors() {
@@ -1039,6 +1046,82 @@ export const localBackend = {
     const items = readStore(KEYS.ventas, VENTAS_SEED);
     writeStore(KEYS.ventas, items.filter((v) => v.id !== id));
     await this.setPropertyStatus(propertyId, "disponible");
+  },
+
+  // Bitácora y gastos por propiedad (modo demo: el comprobante vive como
+  // data: URL en localStorage, así que el tope real es la cuota del navegador).
+  async getPropertyLog(propertyId) {
+    const entries = readStore(KEYS.propertyLog, [])
+      .filter((e) => e.property_id === propertyId)
+      .sort((a, b) => b.entry_date.localeCompare(a.entry_date) || String(b.created_at).localeCompare(String(a.created_at)));
+    // Chrome no deja abrir un data: URL como página (un PDF en otra pestaña
+    // sale en blanco); un blob: sí. Se convierte al leer.
+    return Promise.all(
+      entries.map(async (e) => {
+        if (!e.file_path) return e;
+        try {
+          const blob = await (await fetch(e.file_path)).blob();
+          return { ...e, signed_url: URL.createObjectURL(blob) };
+        } catch {
+          return { ...e, signed_url: e.file_path };
+        }
+      })
+    );
+  },
+
+  async getExpenses(propertyId = null) {
+    return readStore(KEYS.propertyLog, [])
+      .filter((e) => e.kind === "gasto" && (!propertyId || e.property_id === propertyId))
+      .map(({ id, property_id, entry_date, categoria, monto }) => ({ id, property_id, entry_date, categoria, monto }));
+  },
+
+  async addPropertyLogEntry({ property_id, file, ...fields }) {
+    const items = readStore(KEYS.propertyLog, []);
+    let stored = { file_path: null, file_name: null, file_type: null };
+    if (file) {
+      const prepared = await compressImageFile(file);
+      const [dataUrl] = await filesToDataUrls([prepared]);
+      stored = { file_path: dataUrl, file_name: file.name, file_type: prepared.type || file.type || null };
+    }
+    const record = {
+      id: uid("log"),
+      ...fields,
+      property_id,
+      ...stored,
+      created_by: DEMO_ADMIN.email,
+      created_at: new Date().toISOString(),
+    };
+    items.push(record);
+    writeStoreOrThrowFriendly(KEYS.propertyLog, items, FILE_QUOTA_MESSAGE);
+    return record;
+  },
+
+  async updatePropertyLogEntry(id, fields) {
+    const items = readStore(KEYS.propertyLog, []);
+    const idx = items.findIndex((e) => e.id === id);
+    if (idx === -1) throw new Error("Entrada no encontrada");
+    items[idx] = { ...items[idx], ...fields };
+    writeStore(KEYS.propertyLog, items);
+    return items[idx];
+  },
+
+  async deletePropertyLogEntry(id) {
+    writeStore(KEYS.propertyLog, readStore(KEYS.propertyLog, []).filter((e) => e.id !== id));
+  },
+
+  async getPropertyBudget(propertyId) {
+    const found = readStore(KEYS.propertyBudgets, []).find((b) => b.property_id === propertyId);
+    return found ? Number(found.monto) : null;
+  },
+
+  async savePropertyBudget(propertyId, monto) {
+    const items = readStore(KEYS.propertyBudgets, []);
+    const record = { property_id: propertyId, monto: Number(monto) || 0, updated_at: new Date().toISOString() };
+    const idx = items.findIndex((b) => b.property_id === propertyId);
+    if (idx === -1) items.push(record);
+    else items[idx] = record;
+    writeStore(KEYS.propertyBudgets, items);
+    return record.monto;
   },
 
   async getRoles() {

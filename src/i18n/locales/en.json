@@ -431,7 +431,8 @@
       "agenda": "Agenda",
       "mensajes": "Messages",
       "testimonios": "Testimonials",
-      "reportes": "Sales & reports"
+      "reportes": "Sales & reports",
+      "bitacora": "Log & expenses"
     },
     "rolesTitle": "Roles",
     "newRole": "New role",
@@ -724,11 +725,96 @@
       "title": "Recorded sales — {{period}}"
     }
   },
+  "propertyLog": {
+    "title": "Log & expenses",
+    "button": "Log",
+    "loadError": "Couldn't load the log: {{error}}",
+    "saveError": "Couldn't save.",
+    "confirmDelete": "Delete this entry? If it has a receipt, the file is deleted too.",
+    "noReceipt": "No receipt",
+    "kinds": {
+      "gasto": "Expense",
+      "nota": "Note"
+    },
+    "categories": {
+      "predial": "Property tax",
+      "agua": "Water",
+      "luz": "Electricity",
+      "gas": "Gas",
+      "mantenimiento": "Maintenance",
+      "remodelacion": "Remodeling",
+      "tramites": "Paperwork & fees",
+      "otro": "Other"
+    },
+    "summary": {
+      "totalSpent": "Total spent",
+      "count": "{{count}} expense(s) recorded",
+      "withoutReceipt": "{{count}} without receipt",
+      "inProfit": "This total is subtracted on the",
+      "byCategory": "Spending by category",
+      "noExpenses": "No expenses yet."
+    },
+    "budget": {
+      "houseTitle": "House budget",
+      "remodelTitle": "Remodeling budget",
+      "of": "of {{budget}} budgeted ({{pct}}%)",
+      "remaining": "{{amount}} left",
+      "warn": "Close to the limit: {{amount}} left",
+      "over": "Over by {{amount}}",
+      "noHouseBudget": "You haven't set a budget for this house yet.",
+      "setLabel": "Total house budget (MXN)",
+      "noRemodelBudget": "This house's remodeling project has no budgeted materials.",
+      "remodelHint": "Only spending in the \"Remodeling\" category is compared against the project's materials total."
+    },
+    "form": {
+      "title": "Add to the log",
+      "editTitle": "Correct entry",
+      "date": "Date",
+      "category": "Category",
+      "amount": "Amount (MXN)",
+      "amountInvalid": "Enter an amount greater than 0.",
+      "concept": "Concept",
+      "conceptPlaceholder": "E.g. 2026 property tax, electricity bill, locksmith…",
+      "description": "Description or note",
+      "optional": "optional",
+      "receipt": "Receipt",
+      "attach": "Attach photo or PDF",
+      "changeFile": "Change file",
+      "removeFile": "Remove",
+      "receiptHint": "Photo or PDF of a ticket, receipt or invoice. Max {{mb}} MB.",
+      "replaceReceiptHint": "To change the receipt, delete the entry and record it again.",
+      "add": "Add"
+    },
+    "fileErrors": {
+      "type": "Only photos (JPG, PNG, WEBP, HEIC) or PDF are accepted.",
+      "size": "The file is larger than {{mb}} MB."
+    },
+    "timeline": {
+      "title": "Day-by-day summary",
+      "allKinds": "Expenses and notes",
+      "allMonths": "All months",
+      "month": "Month",
+      "empty": "Nothing in this house's log yet.",
+      "noMatches": "Nothing matches the filters.",
+      "dayTotal": "Expenses that day: {{amount}}",
+      "cumulative": "Running total: {{amount}}"
+    },
+    "table": {
+      "type": "Type",
+      "detail": "Detail",
+      "receipt": "Receipt"
+    }
+  },
   "liquidacion": {
     "button": "Profit",
     "title": "Property profit",
     "breakdownTitle": "Summary",
     "sameAsCaptador": "Same person who acquired it",
+    "expensesLabel": "Documented expenses (log)",
+    "autoFromLog": "Automatic sum of the expenses recorded in the house's log.",
+    "editInLog": "View log",
+    "expensesRow": "(−) Documented expenses (log)",
+    "doubleCountWarning": "There are documented expenses and also captured investment (services or remodeling). Check that the same payment isn't counted twice.",
     "restricted": "This section is confidential — access restricted to the partners.",
     "disclaimer": "The breakdown recalculates automatically from the amounts and percentages above; it isn't stored as a fixed figure, so changing any input updates the summary on its own.",
     "autoFromProperty": "Taken automatically from the property's price.",

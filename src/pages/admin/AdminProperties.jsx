@@ -165,6 +165,11 @@ export default function AdminProperties({
                           {t("liquidacion.button")}
                         </Link>
                       )}
+                      {hasSection("bitacora") && (
+                        <Link to={`${basePath}/${property.id}/bitacora`} className="btn btn-outline btn-sm">
+                          {t("propertyLog.button")}
+                        </Link>
+                      )}
                       {hasSection("reportes") && property.status !== "vendida" && (
                         <Link to={`/admin/reportes?vender=${property.id}`} className="btn btn-outline btn-sm">
                           {t("salesReports.registerSale")}

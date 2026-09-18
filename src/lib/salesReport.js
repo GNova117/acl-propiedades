@@ -6,7 +6,8 @@
 // Las ganancias NO se calculan aquí con un modelo propio: se reutiliza
 // computeLiquidacion() tal cual, con los mismos insumos que usa la pantalla de
 // Utilidad de cada propiedad (precio vivo de la propiedad + inversión en
-// remodelación viva del proyecto ligado). Así el reporte y la pantalla de
+// remodelación viva del proyecto ligado + gastos con comprobante de la
+// bitácora de la casa). Así el reporte y la pantalla de
 // Utilidad nunca pueden mostrar cifras distintas para la misma casa.
 
 import { computeLiquidacion } from "./liquidacion";
@@ -34,11 +35,15 @@ export function todayIso() {
 // (si el usuario puede ver liquidaciones y esa casa tiene una) su desglose de
 // utilidad. `profit` es null cuando no hay liquidación: se muestra como
 // "pendiente" y NO se suma como cero, para no aparentar una utilidad nula.
-export function buildSaleRows({ ventas, properties, advisors, liquidaciones = [], remodelProjects = [] }) {
+export function buildSaleRows({ ventas, properties, advisors, liquidaciones = [], remodelProjects = [], expenses = [] }) {
   const propertyById = new Map(properties.map((p) => [p.id, p]));
   const advisorById = new Map(advisors.map((a) => [a.id, a]));
   const liqByProperty = new Map(liquidaciones.map((l) => [l.property_id, l]));
   const remodelByProperty = new Map(remodelProjects.map((r) => [r.property_id, r]));
+  // Gastos con comprobante de la bitácora por casa: la Utilidad de cada casa
+  // también los resta (línea aparte), así que el reporte tiene que hacerlo igual.
+  const expensesByProperty = new Map();
+  for (const e of expenses) expensesByProperty.set(e.property_id, (expensesByProperty.get(e.property_id) || 0) + Number(e.monto || 0));
 
   const rows = [];
   for (const venta of ventas) {
@@ -63,6 +68,7 @@ export function buildSaleRows({ ventas, properties, advisors, liquidaciones = []
         ...liq,
         precio_propiedad: price,
         inversion_remodelacion: computeMaterialsTotals(remodel?.materials).grandTotalInternal,
+        gastos_bitacora: expensesByProperty.get(venta.property_id) || 0,
       });
       // Quién cobra qué sale de la liquidación (captador / vendedor), no de
       // quién quedó registrado en la venta: es el dinero real de cada asesor.
