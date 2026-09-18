@@ -966,5 +966,31 @@
     "noFiles": "No case files for this appointment yet.",
     "fileName": "File",
     "uploadedAt": "Uploaded"
+  },
+  "seasons": {
+    "anio-nuevo": {
+      "greeting": "Happy New Year {{year}}! May this be the year of your new home."
+    },
+    "san-valentin": {
+      "greeting": "Happy Valentine's Day. Fall in love with your next home."
+    },
+    "dia-de-las-madres": {
+      "greeting": "Happy Mother's Day! Thank you for turning every house into a home."
+    },
+    "dia-del-padre": {
+      "greeting": "Happy Father's Day! To everyone who builds a home, every day."
+    },
+    "fiestas-patrias": {
+      "greeting": "¡Viva México! Happy Independence month from ACL Propiedades."
+    },
+    "halloween": {
+      "greeting": "Happy Halloween! No haunted houses here, only dream homes."
+    },
+    "dia-de-muertos": {
+      "greeting": "Día de Muertos: honoring those who made their house a home."
+    },
+    "navidad": {
+      "greeting": "Merry Christmas and a Happy New Year from ACL Propiedades!"
+    }
   }
 }

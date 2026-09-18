@@ -966,5 +966,31 @@
     "noFiles": "Aún no hay expedientes para esta cita.",
     "fileName": "Archivo",
     "uploadedAt": "Subido"
+  },
+  "seasons": {
+    "anio-nuevo": {
+      "greeting": "¡Feliz Año Nuevo {{year}}! Que este sea el año de tu nuevo hogar."
+    },
+    "san-valentin": {
+      "greeting": "Feliz Día del Amor y la Amistad. Enamórate de tu próximo hogar."
+    },
+    "dia-de-las-madres": {
+      "greeting": "¡Feliz Día de las Madres! Gracias por hacer de cada casa un hogar."
+    },
+    "dia-del-padre": {
+      "greeting": "¡Feliz Día del Padre! Para quienes construyen un hogar todos los días."
+    },
+    "fiestas-patrias": {
+      "greeting": "¡Viva México! Felices fiestas patrias de parte de ACL Propiedades."
+    },
+    "halloween": {
+      "greeting": "¡Feliz Halloween! Aquí no hay casas embrujadas, solo casas de ensueño."
+    },
+    "dia-de-muertos": {
+      "greeting": "Día de Muertos: honramos a quienes hicieron de su casa un hogar."
+    },
+    "navidad": {
+      "greeting": "¡Feliz Navidad y próspero Año Nuevo! Les desea ACL Propiedades."
+    }
   }
 }

@@ -1,0 +1,156 @@
+/* Por debajo del menú fijo (z-index 200) y del botón de WhatsApp (500),
+   por encima del contenido. */
+.seasonal-particles {
+  --seasonal-bat: #2b2238;
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .seasonal-particles {
+  --seasonal-bat: #c7b3ee;
+}
+
+.seasonal-particle {
+  position: absolute;
+  top: 0;
+  left: var(--x);
+  animation: seasonal-fall var(--duration) linear var(--delay) 1 both;
+  will-change: transform;
+}
+
+.seasonal-particle--rise {
+  animation-name: seasonal-rise;
+}
+
+.seasonal-particle--fly {
+  top: var(--y);
+  left: 0;
+  animation-name: seasonal-fly;
+  animation-timing-function: ease-in-out;
+}
+
+.seasonal-particle--fly.seasonal-particle--reverse {
+  animation-direction: reverse;
+}
+
+.seasonal-particle--murcielago {
+  color: var(--seasonal-bat);
+}
+
+/* Vaivén lateral mientras cae (o sube / vuela). */
+.seasonal-particle__drift {
+  display: block;
+  animation: seasonal-drift calc(var(--duration) / 3) ease-in-out var(--delay) infinite alternate both;
+}
+
+.seasonal-particle--fly .seasonal-particle__drift {
+  animation-name: seasonal-bob;
+  animation-duration: 1.4s;
+}
+
+.seasonal-particle__shape {
+  display: block;
+  animation: seasonal-spin var(--spin) linear infinite;
+}
+
+.seasonal-particle--confeti .seasonal-particle__shape {
+  animation-name: seasonal-flutter;
+}
+
+.seasonal-particle--corazon .seasonal-particle__shape {
+  animation-name: seasonal-tilt;
+  animation-direction: alternate;
+  animation-timing-function: ease-in-out;
+}
+
+.seasonal-particle--murcielago .seasonal-particle__shape {
+  animation: seasonal-flap 0.22s ease-in-out infinite alternate;
+  transform-origin: 50% 45%;
+}
+
+@keyframes seasonal-fall {
+  from {
+    transform: translateY(-12vh);
+  }
+  to {
+    transform: translateY(112vh);
+  }
+}
+
+@keyframes seasonal-rise {
+  from {
+    transform: translateY(112vh);
+  }
+  to {
+    transform: translateY(-12vh);
+  }
+}
+
+@keyframes seasonal-fly {
+  from {
+    transform: translateX(-12vw);
+  }
+  to {
+    transform: translateX(112vw);
+  }
+}
+
+@keyframes seasonal-drift {
+  from {
+    transform: translateX(calc(var(--sway) * -1));
+  }
+  to {
+    transform: translateX(var(--sway));
+  }
+}
+
+@keyframes seasonal-bob {
+  from {
+    transform: translateY(-14px);
+  }
+  to {
+    transform: translateY(14px);
+  }
+}
+
+@keyframes seasonal-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes seasonal-flutter {
+  from {
+    transform: rotate3d(1, 0.4, 0.2, 0deg);
+  }
+  to {
+    transform: rotate3d(1, 0.4, 0.2, 360deg);
+  }
+}
+
+@keyframes seasonal-tilt {
+  from {
+    transform: rotate(-14deg);
+  }
+  to {
+    transform: rotate(14deg);
+  }
+}
+
+@keyframes seasonal-flap {
+  from {
+    transform: scaleY(1);
+  }
+  to {
+    transform: scaleY(0.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seasonal-particles {
+    display: none;
+  }
+}

@@ -18,6 +18,8 @@ import NotFound from "./pages/NotFound";
 import RequireSection from "./components/RequireSection";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
+import SeasonalGarland from "./components/SeasonalGarland";
+import SeasonalParticles from "./components/SeasonalParticles";
 import { SPECIAL_SECTION_TYPES } from "./lib/format";
 import { initAnalytics, trackPageview } from "./lib/analytics";
 
@@ -79,6 +81,7 @@ function PublicLayout({ children }) {
     <>
       <a href="#main-content" className="skip-link">Saltar al contenido</a>
       <Header />
+      <SeasonalGarland />
       <main id="main-content" key={pathname} className="page-transition" style={{ flex: 1 }}>
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>
@@ -90,8 +93,10 @@ function PublicLayout({ children }) {
 
 export default function App() {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
   return (
     <Suspense fallback={<div className="empty-state">{t("common.loading")}</div>}>
+    {!pathname.startsWith("/admin") && <SeasonalParticles />}
     <Routes>
       <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
       <Route path="/propiedades" element={<PublicLayout><Properties excludeTypes={SPECIAL_SECTION_KEYS} /></PublicLayout>} />
