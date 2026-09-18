@@ -1,4 +1,4 @@
-import { ZONES, ADVISORS, PROPERTIES, PROPERTY_TYPES_SEED, AMENITIES_SEED, DEMO_ADMIN, ADMIN_ROLES_SEED, ADMIN_ACCESS_SEED } from "./seedData";
+import { ZONES, ADVISORS, PROPERTIES, VENTAS_SEED, PROPERTY_TYPES_SEED, AMENITIES_SEED, DEMO_ADMIN, ADMIN_ROLES_SEED, ADMIN_ACCESS_SEED } from "./seedData";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify, numOrNull } from "./format";
@@ -25,6 +25,7 @@ const KEYS = {
   perfilamientosVendedor: "acl_local_perfilamientos",
   perfilamientosComprador: "acl_local_perfilamientos_comprador",
   liquidaciones: "acl_local_liquidaciones",
+  ventas: "acl_local_ventas",
   adminRoles: "acl_local_admin_roles",
   adminAccess: "acl_local_admin_access",
   agendaCitas: "acl_local_agenda_citas",
@@ -221,6 +222,7 @@ export const localBackend = {
       mantenimiento_pct: numOrNull(data.mantenimiento_pct),
       tipo_nave: data.tipo_nave || null,
       amenities: data.amenities || [],
+      created_at: new Date().toISOString(),
     };
     properties.push(record);
     writeStoreOrThrowFriendly(KEYS.properties, properties);
@@ -978,6 +980,65 @@ export const localBackend = {
     items[idx] = updated;
     writeStore(KEYS.liquidaciones, items);
     return updated;
+  },
+
+  async getLiquidaciones() {
+    return readStore(KEYS.liquidaciones, []);
+  },
+
+  // Cambia solo el estatus de una propiedad (sin pasar por el formulario
+  // completo, que exige reenviar fotos, asesores, etc.). Replica a mano el
+  // registro del Historial que en Supabase hace el trigger.
+  async setPropertyStatus(id, status) {
+    const properties = readStore(KEYS.properties, PROPERTIES);
+    const idx = properties.findIndex((p) => p.id === id);
+    if (idx === -1) throw new Error("Propiedad no encontrada");
+    if (properties[idx].status === status) return properties[idx];
+    const changes = readStore(KEYS.propertyChanges, []);
+    changes.push({
+      id: uid("change"),
+      property_id: id,
+      changed_by: "Modo demo",
+      field: "status",
+      old_value: properties[idx].status,
+      new_value: status,
+      created_at: new Date().toISOString(),
+    });
+    writeStore(KEYS.propertyChanges, changes);
+    properties[idx] = { ...properties[idx], status, updated_at: new Date().toISOString() };
+    writeStore(KEYS.properties, properties);
+    return properties[idx];
+  },
+
+  // Ventas registradas (quién vendió y cuándo). Una por propiedad. Registrar
+  // una venta también deja la propiedad en "vendida"; deshacerla la regresa
+  // a "disponible" — así el estatus público y el reporte no se contradicen.
+  async getVentas() {
+    return readStore(KEYS.ventas, VENTAS_SEED);
+  },
+
+  async saveVenta(propertyId, { advisor_id, fecha_venta }) {
+    const items = readStore(KEYS.ventas, VENTAS_SEED);
+    const idx = items.findIndex((v) => v.property_id === propertyId);
+    const record = {
+      id: idx === -1 ? uid("venta") : items[idx].id,
+      property_id: propertyId,
+      advisor_id: advisor_id || null,
+      fecha_venta,
+      usuario_registro: DEMO_ADMIN.email,
+      created_at: idx === -1 ? new Date().toISOString() : items[idx].created_at,
+    };
+    if (idx === -1) items.push(record);
+    else items[idx] = record;
+    writeStore(KEYS.ventas, items);
+    await this.setPropertyStatus(propertyId, "vendida");
+    return record;
+  },
+
+  async deleteVenta(id, propertyId) {
+    const items = readStore(KEYS.ventas, VENTAS_SEED);
+    writeStore(KEYS.ventas, items.filter((v) => v.id !== id));
+    await this.setPropertyStatus(propertyId, "disponible");
   },
 
   async getRoles() {

@@ -430,7 +430,8 @@
       "roles": "Roles y accesos",
       "agenda": "Agenda",
       "mensajes": "Mensajes",
-      "testimonios": "Testimonios"
+      "testimonios": "Testimonios",
+      "reportes": "Ventas y reportes"
     },
     "rolesTitle": "Roles",
     "newRole": "Nuevo rol",
@@ -630,6 +631,98 @@
     "missing": "no capturado",
     "failed": "no se pudo anexar",
     "clientSheet": "Datos del cliente"
+  },
+  "salesReports": {
+    "title": "Ventas y reportes",
+    "subtitle": "Uso interno — esta información no se muestra en el sitio público.",
+    "loadError": "No se pudieron cargar los datos: {{error}}",
+    "month": "Mes",
+    "noSales": "No hay ventas registradas en este periodo.",
+    "noAdvisor": "Sin asesor",
+    "registerSale": "Registrar venta",
+    "undo": "Deshacer venta",
+    "confirmUndo": "¿Deshacer la venta de \"{{title}}\"? Se borra el registro y la propiedad regresa a \"Disponible\".",
+    "viewChart": "Ver gráfica",
+    "viewTable": "Ver tabla",
+    "tabs": {
+      "summary": "Resumen",
+      "advisors": "Por asesor",
+      "profit": "Ganancias",
+      "sales": "Ventas"
+    },
+    "filters": {
+      "year": "Año",
+      "month": "Mes",
+      "allYear": "Todo el año",
+      "type": "Tipo",
+      "allTypes": "Todos"
+    },
+    "table": {
+      "property": "Propiedad",
+      "advisor": "Asesor",
+      "price": "Precio",
+      "date": "Fecha de venta"
+    },
+    "kpi": {
+      "sold": "Casas vendidas ({{period}})",
+      "volume": "Volumen vendido",
+      "officeProfit": "Utilidad de oficina",
+      "profitCoverage": "{{done}} de {{total}} ventas con utilidad capturada",
+      "inventory": "Casas en inventario",
+      "inventoryAge": "antigüedad promedio {{days}} días"
+    },
+    "inventory": {
+      "chartTitle": "Inventario: casas subidas vs. vendidas por mes",
+      "added": "Subidas al sistema",
+      "sold": "Vendidas",
+      "noData": "Aún no hay casas subidas ni vendidas en este año.",
+      "currentTitle": "Inventario actual (sin vender)",
+      "currentEmpty": "No hay casas en inventario.",
+      "daysInInventory": "Días en inventario",
+      "more": "y {{count}} más —"
+    },
+    "matrix": {
+      "title": "Casas vendidas por asesor y mes — {{year}}",
+      "total": "Total"
+    },
+    "performance": {
+      "title": "Desempeño por asesor — {{period}}",
+      "explain": "Promedio del equipo: {{avg}} ventas por asesor al mes. \"vs. equipo\" compara a cada asesor contra ese promedio.",
+      "sales": "Ventas",
+      "perMonth": "Ventas al mes (promedio)",
+      "vsTeam": "vs. equipo",
+      "avgDays": "Días promedio para vender",
+      "avgTicket": "Precio promedio",
+      "commission": "Comisión cobrada"
+    },
+    "profit": {
+      "netProfit": "Utilidad neta de la sociedad",
+      "commissions": "Comisiones a asesores",
+      "detailTitle": "Ganancias por venta — {{period}}",
+      "pendingNote": "{{count}} venta(s) de este periodo no tienen utilidad capturada y no están sumadas. Captúrala desde su fila.",
+      "captureLiquidation": "Capturar utilidad",
+      "mismatch": "El asesor de la venta es distinto al que marca la utilidad de esta propiedad.",
+      "disclaimer": "Las ganancias se calculan con la misma cuenta de la pantalla \"Utilidad\" de cada propiedad; solo se suman las ventas que ya tienen su utilidad capturada."
+    },
+    "pending": {
+      "banner": "{{count}} propiedad(es) marcadas como vendidas aún no tienen asesor ni fecha de venta.",
+      "review": "Revisar",
+      "title": "Vendidas pendientes de registrar",
+      "explain": "Estas propiedades están marcadas como \"Vendida\" pero falta decir quién las vendió y cuándo; hasta entonces no cuentan en los reportes."
+    },
+    "form": {
+      "title": "Registrar una venta",
+      "editTitle": "Corregir venta",
+      "advisor": "Asesor que vendió",
+      "date": "Fecha de venta",
+      "required": "Elige la propiedad, el asesor y la fecha.",
+      "futureDate": "La fecha de venta no puede ser futura.",
+      "saveError": "No se pudo guardar la venta.",
+      "hint": "Al registrar la venta, la propiedad pasa a \"Vendida\" en el sitio."
+    },
+    "list": {
+      "title": "Ventas registradas — {{period}}"
+    }
   },
   "liquidacion": {
     "button": "Utilidad",

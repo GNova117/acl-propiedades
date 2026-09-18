@@ -430,7 +430,8 @@
       "roles": "Roles & access",
       "agenda": "Agenda",
       "mensajes": "Messages",
-      "testimonios": "Testimonials"
+      "testimonios": "Testimonials",
+      "reportes": "Sales & reports"
     },
     "rolesTitle": "Roles",
     "newRole": "New role",
@@ -630,6 +631,98 @@
     "missing": "not captured",
     "failed": "could not be attached",
     "clientSheet": "Client data"
+  },
+  "salesReports": {
+    "title": "Sales & reports",
+    "subtitle": "Internal use — none of this is shown on the public site.",
+    "loadError": "Couldn't load the data: {{error}}",
+    "month": "Month",
+    "noSales": "No sales recorded in this period.",
+    "noAdvisor": "No advisor",
+    "registerSale": "Record sale",
+    "undo": "Undo sale",
+    "confirmUndo": "Undo the sale of \"{{title}}\"? The record is deleted and the property goes back to \"Available\".",
+    "viewChart": "View chart",
+    "viewTable": "View table",
+    "tabs": {
+      "summary": "Summary",
+      "advisors": "By advisor",
+      "profit": "Profit",
+      "sales": "Sales"
+    },
+    "filters": {
+      "year": "Year",
+      "month": "Month",
+      "allYear": "Whole year",
+      "type": "Type",
+      "allTypes": "All"
+    },
+    "table": {
+      "property": "Property",
+      "advisor": "Advisor",
+      "price": "Price",
+      "date": "Sale date"
+    },
+    "kpi": {
+      "sold": "Homes sold ({{period}})",
+      "volume": "Sales volume",
+      "officeProfit": "Office profit",
+      "profitCoverage": "{{done}} of {{total}} sales with profit entered",
+      "inventory": "Homes in inventory",
+      "inventoryAge": "average age {{days}} days"
+    },
+    "inventory": {
+      "chartTitle": "Inventory: homes added vs. sold per month",
+      "added": "Added to the system",
+      "sold": "Sold",
+      "noData": "No homes added or sold yet this year.",
+      "currentTitle": "Current inventory (unsold)",
+      "currentEmpty": "No homes in inventory.",
+      "daysInInventory": "Days in inventory",
+      "more": "and {{count}} more —"
+    },
+    "matrix": {
+      "title": "Homes sold by advisor and month — {{year}}",
+      "total": "Total"
+    },
+    "performance": {
+      "title": "Advisor performance — {{period}}",
+      "explain": "Team average: {{avg}} sales per advisor per month. \"vs. team\" compares each advisor against that average.",
+      "sales": "Sales",
+      "perMonth": "Sales per month (average)",
+      "vsTeam": "vs. team",
+      "avgDays": "Average days to sell",
+      "avgTicket": "Average price",
+      "commission": "Commission earned"
+    },
+    "profit": {
+      "netProfit": "Partnership net profit",
+      "commissions": "Advisor commissions",
+      "detailTitle": "Profit per sale — {{period}}",
+      "pendingNote": "{{count}} sale(s) in this period have no profit entered and aren't included in the totals. Enter it from their row.",
+      "captureLiquidation": "Enter profit",
+      "mismatch": "The sale's advisor differs from the one on this property's profit record.",
+      "disclaimer": "Profit uses the same calculation as each property's \"Profit\" screen; only sales that already have their profit entered are added up."
+    },
+    "pending": {
+      "banner": "{{count}} propert(ies) marked as sold still have no advisor or sale date.",
+      "review": "Review",
+      "title": "Sold, pending to record",
+      "explain": "These properties are marked \"Sold\" but who sold them and when is missing; until then they don't count in the reports."
+    },
+    "form": {
+      "title": "Record a sale",
+      "editTitle": "Correct sale",
+      "advisor": "Advisor who sold",
+      "date": "Sale date",
+      "required": "Choose the property, the advisor and the date.",
+      "futureDate": "The sale date can't be in the future.",
+      "saveError": "Couldn't save the sale.",
+      "hint": "Recording the sale sets the property to \"Sold\" on the site."
+    },
+    "list": {
+      "title": "Recorded sales — {{period}}"
+    }
   },
   "liquidacion": {
     "button": "Profit",

@@ -1,0 +1,324 @@
+/* Ventas y reportes (uso interno). Los colores de series salen de la paleta
+   categórica validada de la skill de dataviz (slots 1 y 2: azul / naranja,
+   cada modo elegido por separado, no invertido). Superficies y texto siguen
+   los tokens del sitio para que el tema claro/oscuro funcione igual que en
+   el resto del panel. */
+
+.sales-reports {
+  --sr-series-1: #2a78d6;
+  --sr-series-2: #eb6834;
+  --sr-grid: var(--color-border);
+}
+
+[data-theme="dark"] .sales-reports {
+  --sr-series-1: #3987e5;
+  --sr-series-2: #d95926;
+}
+
+.sr-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.sr-filters .form-field {
+  min-width: 150px;
+  flex: 0 1 200px;
+}
+
+.sr-tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+}
+
+.sr-tab {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 0.7rem 1.1rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sr-tab:hover {
+  color: var(--color-text);
+}
+
+.sr-tab--active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.sr-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-alt);
+  font-size: 0.9rem;
+}
+
+.sr-panel {
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.sr-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.sr-panel__header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.sr-form__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+}
+
+.sr-muted {
+  color: var(--color-text-muted);
+}
+
+.sr-warn {
+  color: var(--color-warning);
+  cursor: help;
+}
+
+.sr-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Matriz asesor × mes ─────────────────── */
+
+.sr-matrix th,
+.sr-matrix td {
+  padding-left: 0.45rem;
+  padding-right: 0.45rem;
+}
+
+.sr-matrix__cell {
+  background: color-mix(in srgb, var(--sr-series-1) calc(var(--v) * 38%), transparent);
+  font-weight: 600;
+}
+
+.sr-matrix tfoot td {
+  border-top: 2px solid var(--color-border);
+}
+
+/* ── Comparación contra el equipo ────────── */
+
+.sr-vs {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sr-vs--up {
+  color: var(--color-success);
+}
+
+.sr-vs--down {
+  color: var(--color-danger);
+}
+
+.sr-hbar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 150px;
+}
+
+.sr-hbar__track {
+  flex: 1;
+  height: 12px;
+}
+
+.sr-hbar__fill {
+  height: 100%;
+  min-width: 2px;
+  background: var(--sr-series-1);
+  border-radius: 0 4px 4px 0;
+}
+
+.sr-hbar span {
+  font-variant-numeric: tabular-nums;
+  min-width: 2.2rem;
+}
+
+/* ── Gráfica: subidas vs. vendidas por mes ─ */
+
+.sr-legend {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.sr-legend span,
+.sr-tip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sr-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.sr-swatch--1 {
+  background: var(--sr-series-1);
+}
+
+.sr-swatch--2 {
+  background: var(--sr-series-2);
+}
+
+.sr-chart {
+  padding-left: 2rem;
+}
+
+.sr-chart__plot {
+  position: relative;
+  height: 220px;
+}
+
+.sr-chart__grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--sr-grid);
+}
+
+.sr-chart__grid span {
+  position: absolute;
+  left: -2rem;
+  top: -0.6rem;
+  width: 1.6rem;
+  text-align: right;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-chart__cols {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.sr-chart__col {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}
+
+.sr-chart__col:hover,
+.sr-chart__col:focus-visible {
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
+}
+
+.sr-bar {
+  width: 100%;
+  max-width: 24px;
+  border-radius: 4px 4px 0 0;
+}
+
+.sr-bar--1 {
+  background: var(--sr-series-1);
+}
+
+.sr-bar--2 {
+  background: var(--sr-series-2);
+}
+
+.sr-chart__months {
+  display: flex;
+  margin-top: 0.4rem;
+}
+
+.sr-chart__months span {
+  flex: 1;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+}
+
+.sr-tip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.sr-tip strong {
+  text-transform: capitalize;
+}
+
+.sr-tip--left {
+  left: 0;
+  transform: none;
+}
+
+.sr-tip--right {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+@media (max-width: 640px) {
+  .sr-chart {
+    padding-left: 1.6rem;
+  }
+
+  .sr-chart__plot {
+    height: 180px;
+  }
+
+  .sr-chart__months span {
+    font-size: 0.6rem;
+    letter-spacing: -0.03em;
+  }
+}

@@ -57,7 +57,16 @@ export const ADVISORS = [
   },
 ];
 
-export const PROPERTIES = [
+function daysAgoIso(days) {
+  return new Date(Date.now() - days * 86400000).toISOString();
+}
+
+// Cada casa sembrada lleva una fecha de alta escalonada (relativa a hoy) para
+// que el seguimiento de inventario de "Ventas y reportes" tenga algo que
+// mostrar en modo demo; en Supabase esa fecha es el created_at real.
+const SEED_PROPERTY_AGE_DAYS = [200, 170, 140, 110, 85, 60, 40, 20, 8];
+
+const PROPERTIES_RAW = [
   {
     id: "prop-1",
     code: "ACL-1001",
@@ -281,6 +290,23 @@ export const PROPERTIES = [
   },
 ];
 
+export const PROPERTIES = PROPERTIES_RAW.map((p, i) => ({
+  ...p,
+  created_at: daysAgoIso(SEED_PROPERTY_AGE_DAYS[i] ?? 30),
+}));
+
+// La única casa sembrada como "vendida" (prop-6) ya trae su venta registrada.
+export const VENTAS_SEED = [
+  {
+    id: "venta-1",
+    property_id: "prop-6",
+    advisor_id: "advisor-1",
+    fecha_venta: daysAgoIso(12).slice(0, 10),
+    usuario_registro: "admin@aclpropiedades.com",
+    created_at: daysAgoIso(12),
+  },
+];
+
 export const AMENITIES_SEED = [
   { id: "amenity-1", key: "alberca", label: "Alberca", active: true },
   { id: "amenity-2", key: "seguridad_24h", label: "Seguridad 24h", active: true },
@@ -302,7 +328,7 @@ export const ADMIN_ROLES_SEED = [
     id: "role-admin",
     slug: "admin",
     name: "Administrador",
-    sections: ["propiedades", "naves_industriales", "asesores", "zonas", "clientes", "remodelaciones", "materiales", "credito_infonavit", "liquidaciones", "documentos_legales", "roles", "agenda"],
+    sections: ["propiedades", "naves_industriales", "asesores", "zonas", "clientes", "remodelaciones", "materiales", "credito_infonavit", "liquidaciones", "documentos_legales", "roles", "agenda", "reportes"],
   },
   { id: "role-asesores", slug: "asesores", name: "Asesores", sections: ["propiedades", "naves_industriales", "clientes", "agenda"] },
   { id: "role-remodelaciones", slug: "remodelaciones", name: "Remodelaciones", sections: ["remodelaciones", "propiedades", "naves_industriales"] },

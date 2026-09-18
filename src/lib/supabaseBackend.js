@@ -923,6 +923,59 @@ export const supabaseBackend = {
     return data;
   },
 
+  // Todas las liquidaciones a la vez, para el reporte de ganancias. Mismo RLS
+  // que getLiquidacionByProperty: quien no tenga el apartado 'liquidaciones'
+  // recibe 0 filas, no un error.
+  async getLiquidaciones() {
+    const { data, error } = await supabase.from("liquidaciones").select("*");
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Cambia solo el estatus (el trigger log_property_changes lo deja en el
+  // Historial) sin reenviar el payload completo de updateProperty, que además
+  // reescribe asesores y medios.
+  async setPropertyStatus(id, status) {
+    const { data, error } = await supabase
+      .from("properties")
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  // Ventas registradas (quién vendió y cuándo), una por propiedad. RLS: solo
+  // roles con el apartado 'reportes' (ver schema.sql). Registrar una venta
+  // también deja la propiedad en "vendida"; deshacerla la regresa a
+  // "disponible", para que el estatus público y el reporte no se contradigan.
+  async getVentas() {
+    const { data, error } = await supabase.from("ventas").select("*").order("fecha_venta", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async saveVenta(propertyId, { advisor_id, fecha_venta }) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = {
+      property_id: propertyId,
+      advisor_id: advisor_id || null,
+      fecha_venta,
+      usuario_registro: sessionData?.session?.user?.email || null,
+    };
+    const { data, error } = await supabase.from("ventas").upsert(row, { onConflict: "property_id" }).select().single();
+    if (error) throw error;
+    await this.setPropertyStatus(propertyId, "vendida");
+    return data;
+  },
+
+  async deleteVenta(id, propertyId) {
+    const { error } = await supabase.from("ventas").delete().eq("id", id);
+    if (error) throw error;
+    await this.setPropertyStatus(propertyId, "disponible");
+  },
+
   async getRoles() {
     const { data, error } = await supabase.from("admin_roles").select("*").order("name");
     if (error) throw error;

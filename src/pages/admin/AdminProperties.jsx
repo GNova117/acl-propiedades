@@ -165,6 +165,11 @@ export default function AdminProperties({
                           {t("liquidacion.button")}
                         </Link>
                       )}
+                      {hasSection("reportes") && property.status !== "vendida" && (
+                        <Link to={`/admin/reportes?vender=${property.id}`} className="btn btn-outline btn-sm">
+                          {t("salesReports.registerSale")}
+                        </Link>
+                      )}
                       <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(property.id)}>
                         {t("common.delete")}
                       </button>
