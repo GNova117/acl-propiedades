@@ -1,10 +1,13 @@
 // Reference seed data mirrored in supabase/seed.sql, used by the local
 // (no-Supabase) demo backend so the site is fully browsable out of the box.
 
+// price_per_m2 = construcción; land_price_per_m2 = terreno (valuación interna,
+// /admin/valuacion). Los de terreno son valores ilustrativos solo del demo: en
+// producción cada zona arranca en 0 hasta que se captura en /admin/zonas.
 export const ZONES = [
-  { id: "zone-torreon", name: "Torreón", price_per_m2: 7000 },
-  { id: "zone-gomez-palacio", name: "Gómez Palacio", price_per_m2: 5500 },
-  { id: "zone-lerdo", name: "Lerdo", price_per_m2: 4000 },
+  { id: "zone-torreon", name: "Torreón", price_per_m2: 7000, land_price_per_m2: 2800 },
+  { id: "zone-gomez-palacio", name: "Gómez Palacio", price_per_m2: 5500, land_price_per_m2: 2000 },
+  { id: "zone-lerdo", name: "Lerdo", price_per_m2: 4000, land_price_per_m2: 1300 },
 ];
 
 export const TYPE_FACTORS = {
@@ -328,7 +331,7 @@ export const ADMIN_ROLES_SEED = [
     id: "role-admin",
     slug: "admin",
     name: "Administrador",
-    sections: ["propiedades", "naves_industriales", "asesores", "zonas", "clientes", "remodelaciones", "materiales", "credito_infonavit", "liquidaciones", "documentos_legales", "roles", "agenda", "reportes", "bitacora"],
+    sections: ["propiedades", "naves_industriales", "asesores", "zonas", "clientes", "remodelaciones", "materiales", "credito_infonavit", "liquidaciones", "documentos_legales", "roles", "agenda", "reportes", "bitacora", "valuacion"],
   },
   { id: "role-asesores", slug: "asesores", name: "Asesores", sections: ["propiedades", "naves_industriales", "clientes", "agenda"] },
   { id: "role-remodelaciones", slug: "remodelaciones", name: "Remodelaciones", sections: ["remodelaciones", "propiedades", "naves_industriales"] },

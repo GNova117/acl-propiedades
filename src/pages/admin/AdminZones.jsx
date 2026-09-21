@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN, propertyTypeLabel } from "../../lib/format";
+import { applyPropertyTypeLabels } from "../../lib/propertyTypeLabels";
+import InlineRename from "../../components/InlineRename";
 import "./admin.css";
 
 export default function AdminZones() {
@@ -15,6 +17,7 @@ export default function AdminZones() {
   const [savedId, setSavedId] = useState(null);
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
+  const [newLandPrice, setNewLandPrice] = useState("");
   const [adding, setAdding] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [newTypeLabel, setNewTypeLabel] = useState("");
@@ -32,8 +35,11 @@ export default function AdminZones() {
         setZones(zoneData);
         setProperties(propertyData);
         setPropertyTypes(typeData);
+        applyPropertyTypeLabels(typeData);
         setAmenities(amenityData);
-        setDrafts(Object.fromEntries(zoneData.map((z) => [z.id, z.price_per_m2])));
+        setDrafts(
+          Object.fromEntries(zoneData.map((z) => [z.id, { built: z.price_per_m2, land: z.land_price_per_m2 ?? 0 }]))
+        );
       }
     );
   };
@@ -47,13 +53,38 @@ export default function AdminZones() {
   const handleSave = async (zone) => {
     setSavingId(zone.id);
     try {
-      await db.updateZonePrice(zone.id, drafts[zone.id]);
+      const draft = drafts[zone.id];
+      // El precio de terreno solo viaja si cambió: así guardar la construcción
+      // no falla en una base a la que aún no se le agregó esa columna.
+      const landChanged = Number(draft.land) !== Number(zone.land_price_per_m2 ?? 0);
+      await db.updateZonePrice(zone.id, draft.built, landChanged ? draft.land : undefined);
       setSavedId(zone.id);
       setTimeout(() => setSavedId(null), 1500);
       load();
+    } catch (err) {
+      window.alert(err.message || "Error al guardar la zona");
     } finally {
       setSavingId(null);
     }
+  };
+
+  // Las propiedades guardan el nombre de la zona como texto: renombrarla las
+  // renombra también (ver db.renameZone), así que se avisa antes si hay alguna.
+  const handleRenameZone = async (zone, name) => {
+    const inUse = propertyCountByZone(zone.name);
+    if (inUse > 0 && !window.confirm(t("zones.renameConfirm", { count: inUse, name }))) return;
+    await db.renameZone(zone.id, name);
+    load();
+  };
+
+  const handleRenameType = async (type, label) => {
+    await db.renamePropertyType(type.id, label);
+    load();
+  };
+
+  const handleRenameAmenity = async (amenity, label) => {
+    await db.renameAmenity(amenity.id, label);
+    load();
   };
 
   const handleAdd = async (e) => {
@@ -61,9 +92,10 @@ export default function AdminZones() {
     if (!newName.trim()) return;
     setAdding(true);
     try {
-      await db.addZone({ name: newName, price_per_m2: newPrice });
+      await db.addZone({ name: newName, price_per_m2: newPrice, land_price_per_m2: newLandPrice });
       setNewName("");
       setNewPrice("");
+      setNewLandPrice("");
       load();
     } catch (err) {
       window.alert(err.message || "Error al agregar la zona");
@@ -179,9 +211,21 @@ export default function AdminZones() {
             <label htmlFor="zone-new-name">{t("zones.name")}</label>
             <input id="zone-new-name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Matamoros" />
           </div>
+        </div>
+        <div className="form-row">
           <div className="form-field">
-            <label htmlFor="zone-new-price">{t("calculator.pricePerM2")}</label>
+            <label htmlFor="zone-new-price">{t("zones.builtPricePerM2")}</label>
             <input id="zone-new-price" type="number" min="0" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} />
+          </div>
+          <div className="form-field">
+            <label htmlFor="zone-new-land-price">{t("zones.landPricePerM2")}</label>
+            <input
+              id="zone-new-land-price"
+              type="number"
+              min="0"
+              value={newLandPrice}
+              onChange={(e) => setNewLandPrice(e.target.value)}
+            />
           </div>
         </div>
         <div className="admin-form__actions">
@@ -197,16 +241,31 @@ export default function AdminZones() {
           const inUse = propertyCountByZone(zone.name);
           return (
             <div key={zone.id} className="card admin-zone-card">
-              <h3>{zone.name}</h3>
-              <p className="form-hint">{t("calculator.pricePerM2")}: {formatMXN(zone.price_per_m2)}</p>
+              <InlineRename value={zone.name} label={t("zones.name")} onSave={(name) => handleRenameZone(zone, name)} />
+              <p className="form-hint">{t("zones.builtPricePerM2")}: {formatMXN(zone.price_per_m2)}</p>
+              <p className="form-hint">{t("zones.landPricePerM2")}: {formatMXN(zone.land_price_per_m2 ?? 0)}</p>
               <p className="form-hint">{t(inUse === 1 ? "zones.inUse_one" : "zones.inUse_other", { count: inUse })}</p>
-              <div className="admin-zone-card__row">
+              <div className="form-field">
+                <label htmlFor={`zone-built-${zone.id}`}>{t("zones.builtPricePerM2")}</label>
                 <input
+                  id={`zone-built-${zone.id}`}
                   type="number"
                   min="0"
-                  value={drafts[zone.id] ?? ""}
-                  onChange={(e) => setDrafts((prev) => ({ ...prev, [zone.id]: e.target.value }))}
+                  value={drafts[zone.id]?.built ?? ""}
+                  onChange={(e) => setDrafts((prev) => ({ ...prev, [zone.id]: { ...prev[zone.id], built: e.target.value } }))}
                 />
+              </div>
+              <div className="form-field">
+                <label htmlFor={`zone-land-${zone.id}`}>{t("zones.landPricePerM2")}</label>
+                <input
+                  id={`zone-land-${zone.id}`}
+                  type="number"
+                  min="0"
+                  value={drafts[zone.id]?.land ?? ""}
+                  onChange={(e) => setDrafts((prev) => ({ ...prev, [zone.id]: { ...prev[zone.id], land: e.target.value } }))}
+                />
+              </div>
+              <div className="admin-zone-card__row">
                 <button type="button" className="btn btn-primary btn-sm" onClick={() => handleSave(zone)} disabled={savingId === zone.id}>
                   {savedId === zone.id ? "✓" : t("common.save")}
                 </button>
@@ -251,7 +310,12 @@ export default function AdminZones() {
           return (
             <div key={type.id} className="card admin-zone-card">
               {type.image_url && <img src={type.image_url} alt="" className="admin-zone-card__thumb" />}
-              <h3>{propertyTypeLabel(t, type.key)}</h3>
+              <InlineRename
+                value={propertyTypeLabel(t, type.key)}
+                editValue={type.label}
+                label={t("propertyTypesModule.name")}
+                onSave={(label) => handleRenameType(type, label)}
+              />
               <p className="form-hint">{t(inUse === 1 ? "propertyTypesModule.inUse_one" : "propertyTypesModule.inUse_other", { count: inUse })}</p>
 
               <label className="btn btn-outline btn-sm" style={{ marginBottom: "0.6rem", display: "inline-block" }}>
@@ -312,7 +376,7 @@ export default function AdminZones() {
           const inUse = propertyCountByAmenity(amenity.key);
           return (
             <div key={amenity.id} className="card admin-zone-card">
-              <h3>{amenity.label}</h3>
+              <InlineRename value={amenity.label} label={t("properties.amenities")} onSave={(label) => handleRenameAmenity(amenity, label)} />
               <p className="form-hint">{t(inUse === 1 ? "propertyTypesModule.inUse_one" : "propertyTypesModule.inUse_other", { count: inUse })}</p>
               <button
                 type="button"

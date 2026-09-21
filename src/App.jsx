@@ -15,6 +15,8 @@ import Compare from "./pages/Compare";
 import Privacy from "./pages/Privacy";
 import Rights from "./pages/Rights";
 import NotFound from "./pages/NotFound";
+import { db } from "./lib/dataStore";
+import { applyPropertyTypeLabels } from "./lib/propertyTypeLabels";
 import RequireSection from "./components/RequireSection";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -49,6 +51,7 @@ const AdminRemodelProgress = lazy(() => import("./pages/admin/AdminRemodelProgre
 const AdminMaterialsCatalog = lazy(() => import("./pages/admin/AdminMaterialsCatalog"));
 const AdminMaterialCatalogForm = lazy(() => import("./pages/admin/AdminMaterialCatalogForm"));
 const AdminInfonavitSimulator = lazy(() => import("./pages/admin/AdminInfonavitSimulator"));
+const AdminValuation = lazy(() => import("./pages/admin/AdminValuation"));
 const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
 const AdminLegalDocs = lazy(() => import("./pages/admin/AdminLegalDocs"));
 const AdminAgenda = lazy(() => import("./pages/admin/AdminAgenda"));
@@ -94,6 +97,13 @@ function PublicLayout({ children }) {
 export default function App() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
+
+  // Nombres de tipos de propiedad editables desde /admin/zonas: se inyectan en
+  // las traducciones para que se vean en todo el sitio (ver propertyTypeLabels.js).
+  useEffect(() => {
+    db.getPropertyTypes().then(applyPropertyTypeLabels).catch(() => {});
+  }, []);
+
   return (
     <Suspense fallback={<div className="empty-state">{t("common.loading")}</div>}>
     {!pathname.startsWith("/admin") && <SeasonalParticles />}
@@ -228,6 +238,7 @@ export default function App() {
         <Route path="materiales/nuevo" element={<RequireSection section="materiales"><AdminMaterialCatalogForm /></RequireSection>} />
         <Route path="materiales/:id" element={<RequireSection section="materiales"><AdminMaterialCatalogForm /></RequireSection>} />
         <Route path="credito-infonavit" element={<RequireSection section="credito_infonavit"><AdminInfonavitSimulator /></RequireSection>} />
+        <Route path="valuacion" element={<RequireSection section="valuacion"><AdminValuation /></RequireSection>} />
         <Route path="documentos-legales" element={<RequireSection section="documentos_legales"><AdminLegalDocs /></RequireSection>} />
         <Route path="roles" element={<RequireSection section="roles"><AdminRoles /></RequireSection>} />
         <Route path="agenda" element={<RequireSection section="agenda"><AdminAgenda /></RequireSection>} />

@@ -365,6 +365,10 @@ export const supabaseBackend = {
 
   async addZone(data) {
     const payload = { name: data.name.trim(), price_per_m2: Number(data.price_per_m2) || 0 };
+    // Solo se manda si trae valor: así agregar una zona sigue funcionando en
+    // una base a la que aún no se le corrió la columna `land_price_per_m2`.
+    const landPrice = Number(data.land_price_per_m2) || 0;
+    if (landPrice > 0) payload.land_price_per_m2 = landPrice;
     const { data: inserted, error } = await supabase.from("zones").insert(payload).select().single();
     if (error) throw error;
     return inserted;
@@ -373,6 +377,35 @@ export const supabaseBackend = {
   async deleteZone(id) {
     const { error } = await supabase.from("zones").delete().eq("id", id);
     if (error) throw error;
+  },
+
+  // `properties.zone` guarda el NOMBRE de la zona como texto libre (no es FK),
+  // así que renombrar tiene que arrastrar a las propiedades que la usan o
+  // quedarían con una zona que ya no existe en filtros ni selectores. Son dos
+  // peticiones (no hay transacción desde el cliente): primero la zona —si el
+  // nombre ya existe, falla ahí y no se tocó nada— y luego las propiedades; si
+  // esas fallan, se regresa el nombre anterior.
+  async renameZone(id, name) {
+    const newName = name.trim();
+    const { data: current, error: findError } = await supabase.from("zones").select("name").eq("id", id).single();
+    if (findError) throw findError;
+    if (current.name === newName) return current;
+    const { data: renamed, error } = await supabase
+      .from("zones")
+      .update({ name: newName, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) {
+      if (error.code === "23505") throw new Error("Ya existe una zona con ese nombre");
+      throw error;
+    }
+    const { error: propertiesError } = await supabase.from("properties").update({ zone: newName }).eq("zone", current.name);
+    if (propertiesError) {
+      await supabase.from("zones").update({ name: current.name }).eq("id", id);
+      throw propertiesError;
+    }
+    return renamed;
   },
 
   async getPropertyTypes() {
@@ -394,6 +427,14 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  // Solo cambia el texto a mostrar: `key` (lo que guarda properties.type y usan
+  // filtros/rutas) no se toca, así que no hay nada que arrastrar.
+  async renamePropertyType(id, label) {
+    const { data, error } = await supabase.from("property_types").update({ label: label.trim() }).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
   async getAmenities() {
     const { data, error } = await supabase.from("amenities_catalog").select("*").order("label");
     if (error) throw error;
@@ -411,6 +452,13 @@ export const supabaseBackend = {
   async deleteAmenity(id) {
     const { error } = await supabase.from("amenities_catalog").delete().eq("id", id);
     if (error) throw error;
+  },
+
+  // Igual que los tipos: `key` es lo que guarda cada propiedad y no cambia.
+  async renameAmenity(id, label) {
+    const { data, error } = await supabase.from("amenities_catalog").update({ label: label.trim() }).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
   },
 
   async getTestimonials() {
@@ -471,10 +519,15 @@ export const supabaseBackend = {
     return data;
   },
 
-  async updateZonePrice(id, price_per_m2) {
+  // `land_price_per_m2` es opcional a propósito: si es undefined no entra al
+  // UPDATE, así guardar solo el precio de construcción no depende de que la
+  // columna de terreno ya exista en la base (ver schema.sql, "Valuación").
+  async updateZonePrice(id, price_per_m2, land_price_per_m2) {
+    const patch = { price_per_m2: Number(price_per_m2), updated_at: new Date().toISOString() };
+    if (land_price_per_m2 !== undefined) patch.land_price_per_m2 = Number(land_price_per_m2) || 0;
     const { data, error } = await supabase
       .from("zones")
-      .update({ price_per_m2: Number(price_per_m2), updated_at: new Date().toISOString() })
+      .update(patch)
       .eq("id", id)
       .select()
       .single();
@@ -1097,9 +1150,15 @@ export const supabaseBackend = {
   },
 
   async updateRole(id, { name, sections }) {
-    const payload = { name: name.trim(), sections: sections || [] };
+    // El slug se recalcula con el nombre: si quedara el viejo, crear después un
+    // rol con el nombre original chocaría con el slug único de este.
+    const trimmed = name.trim();
+    const payload = { slug: slugify(trimmed), name: trimmed, sections: sections || [] };
     const { data, error } = await supabase.from("admin_roles").update(payload).eq("id", id).select().single();
-    if (error) throw error;
+    if (error) {
+      if (error.code === "23505") throw new Error("Ya existe un rol con ese nombre");
+      throw error;
+    }
     return data;
   },
 

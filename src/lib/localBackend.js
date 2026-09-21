@@ -408,7 +408,12 @@ export const localBackend = {
     if (zones.some((z) => z.name.toLowerCase() === name.toLowerCase())) {
       throw new Error("Ya existe una zona con ese nombre");
     }
-    const record = { id: uid("zone"), name, price_per_m2: Number(data.price_per_m2) || 0 };
+    const record = {
+      id: uid("zone"),
+      name,
+      price_per_m2: Number(data.price_per_m2) || 0,
+      land_price_per_m2: Number(data.land_price_per_m2) || 0,
+    };
     zones.push(record);
     writeStore(KEYS.zones, zones);
     return record;
@@ -419,11 +424,31 @@ export const localBackend = {
     writeStore(KEYS.zones, zones.filter((z) => z.id !== id));
   },
 
-  async updateZonePrice(id, price_per_m2) {
+  // Igual que en supabaseBackend: properties.zone guarda el nombre como texto,
+  // así que las propiedades de la zona se renombran junto con ella.
+  async renameZone(id, name) {
+    const zones = readStore(KEYS.zones, ZONES);
+    const idx = zones.findIndex((z) => z.id === id);
+    if (idx === -1) throw new Error("Zona no encontrada");
+    const newName = name.trim();
+    if (zones.some((z) => z.id !== id && z.name.toLowerCase() === newName.toLowerCase())) {
+      throw new Error("Ya existe una zona con ese nombre");
+    }
+    const oldName = zones[idx].name;
+    zones[idx] = { ...zones[idx], name: newName };
+    const properties = readStore(KEYS.properties, PROPERTIES).map((p) => (p.zone === oldName ? { ...p, zone: newName } : p));
+    writeStore(KEYS.zones, zones);
+    writeStore(KEYS.properties, properties);
+    return zones[idx];
+  },
+
+  // `land_price_per_m2` es opcional: undefined = no tocar (ver supabaseBackend).
+  async updateZonePrice(id, price_per_m2, land_price_per_m2) {
     const zones = readStore(KEYS.zones, ZONES);
     const idx = zones.findIndex((z) => z.id === id);
     if (idx === -1) throw new Error("Zona no encontrada");
     zones[idx] = { ...zones[idx], price_per_m2: Number(price_per_m2) };
+    if (land_price_per_m2 !== undefined) zones[idx].land_price_per_m2 = Number(land_price_per_m2) || 0;
     writeStore(KEYS.zones, zones);
     return zones[idx];
   },
@@ -450,6 +475,15 @@ export const localBackend = {
     writeStore(KEYS.propertyTypes, types.filter((t) => t.id !== id));
   },
 
+  async renamePropertyType(id, label) {
+    const types = readStore(KEYS.propertyTypes, PROPERTY_TYPES_SEED);
+    const idx = types.findIndex((t) => t.id === id);
+    if (idx === -1) throw new Error("Tipo de propiedad no encontrado");
+    types[idx] = { ...types[idx], label: label.trim() };
+    writeStore(KEYS.propertyTypes, types);
+    return types[idx];
+  },
+
   async getAmenities() {
     return readStore(KEYS.amenities, AMENITIES_SEED);
   },
@@ -465,6 +499,15 @@ export const localBackend = {
     amenities.push(record);
     writeStore(KEYS.amenities, amenities);
     return record;
+  },
+
+  async renameAmenity(id, label) {
+    const amenities = readStore(KEYS.amenities, AMENITIES_SEED);
+    const idx = amenities.findIndex((a) => a.id === id);
+    if (idx === -1) throw new Error("Amenidad no encontrada");
+    amenities[idx] = { ...amenities[idx], label: label.trim() };
+    writeStore(KEYS.amenities, amenities);
+    return amenities[idx];
   },
 
   async deleteAmenity(id) {
@@ -1145,7 +1188,10 @@ export const localBackend = {
     const roles = readStore(KEYS.adminRoles, ADMIN_ROLES_SEED);
     const idx = roles.findIndex((r) => r.id === id);
     if (idx === -1) throw new Error("Rol no encontrado");
-    roles[idx] = { ...roles[idx], name: name.trim(), sections: sections || [] };
+    const trimmed = name.trim();
+    const slug = slugify(trimmed);
+    if (roles.some((r) => r.id !== id && r.slug === slug)) throw new Error("Ya existe un rol con ese nombre");
+    roles[idx] = { ...roles[idx], slug, name: trimmed, sections: sections || [] };
     writeStore(KEYS.adminRoles, roles);
     return roles[idx];
   },

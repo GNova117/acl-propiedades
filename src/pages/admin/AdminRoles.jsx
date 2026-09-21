@@ -13,6 +13,10 @@ export default function AdminRoles() {
   const [newRoleSections, setNewRoleSections] = useState([]);
   const [addingRole, setAddingRole] = useState(false);
   const [deletingRoleId, setDeletingRoleId] = useState(null);
+  const [editingRoleId, setEditingRoleId] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [editSections, setEditSections] = useState([]);
+  const [savingRole, setSavingRole] = useState(false);
   const [newAccessEmail, setNewAccessEmail] = useState("");
   const [newAccessRoleId, setNewAccessRoleId] = useState("");
   const [newAccessAdvisorId, setNewAccessAdvisorId] = useState("");
@@ -47,6 +51,31 @@ export default function AdminRoles() {
       window.alert(err.message || "Error al crear el rol");
     } finally {
       setAddingRole(false);
+    }
+  };
+
+  const startEditRole = (role) => {
+    setEditingRoleId(role.id);
+    setEditName(role.name);
+    setEditSections(role.sections || []);
+  };
+
+  const toggleEditSection = (key) => {
+    setEditSections((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
+  };
+
+  const handleSaveRole = async (e) => {
+    e.preventDefault();
+    if (!editName.trim()) return;
+    setSavingRole(true);
+    try {
+      await db.updateRole(editingRoleId, { name: editName, sections: editSections });
+      setEditingRoleId(null);
+      load();
+    } catch (err) {
+      window.alert(err.message || "Error al guardar el rol");
+    } finally {
+      setSavingRole(false);
     }
   };
 
@@ -152,6 +181,37 @@ export default function AdminRoles() {
         {roles.map((role) => {
           const locked = role.slug === ADMIN_ROLE_SLUG;
           const inUse = inUseCount(role.id);
+          if (editingRoleId === role.id) {
+            return (
+              <form key={role.id} className="card admin-zone-card admin-form" style={{ gridColumn: "1 / -1" }} onSubmit={handleSaveRole}>
+                <div className="form-field">
+                  <label htmlFor={`role-edit-name-${role.id}`}>{t("accessControl.roleName")}</label>
+                  <input id={`role-edit-name-${role.id}`} value={editName} onChange={(e) => setEditName(e.target.value)} autoFocus />
+                </div>
+                <div className="form-field">
+                  <label>{t("accessControl.roleSections")}</label>
+                  <div className="access-control__checkbox-grid">
+                    {SECTION_KEYS.map((key) => (
+                      <label key={key} className="access-control__checkbox">
+                        <input type="checkbox" checked={editSections.includes(key)} onChange={() => toggleEditSection(key)} />
+                        {t(`accessControl.sections.${key}`)}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                {inUse > 0 && <p className="form-hint">{t("accessControl.editAffects", { count: inUse })}</p>}
+                <div className="admin-form__actions">
+                  <button type="submit" className="btn btn-primary btn-sm" disabled={savingRole || !editName.trim()}>
+                    {savingRole ? <span className="spinner" /> : null}
+                    {t("common.save")}
+                  </button>
+                  <button type="button" className="btn btn-outline btn-sm" onClick={() => setEditingRoleId(null)} disabled={savingRole}>
+                    {t("common.cancel")}
+                  </button>
+                </div>
+              </form>
+            );
+          }
           return (
             <div key={role.id} className="card admin-zone-card">
               <h3>{role.name}</h3>
@@ -161,15 +221,20 @@ export default function AdminRoles() {
               {locked ? (
                 <p className="form-hint">{t("accessControl.adminRoleLocked")}</p>
               ) : (
-                <button
-                  type="button"
-                  className="btn btn-danger btn-sm"
-                  onClick={() => handleDeleteRole(role)}
-                  disabled={inUse > 0 || deletingRoleId === role.id}
-                  title={inUse > 0 ? t("accessControl.roleInUse") : undefined}
-                >
-                  {t("common.delete")}
-                </button>
+                <div className="admin-zone-card__row">
+                  <button type="button" className="btn btn-outline btn-sm" onClick={() => startEditRole(role)}>
+                    {t("common.edit")}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleDeleteRole(role)}
+                    disabled={inUse > 0 || deletingRoleId === role.id}
+                    title={inUse > 0 ? t("accessControl.roleInUse") : undefined}
+                  >
+                    {t("common.delete")}
+                  </button>
+                </div>
               )}
             </div>
           );

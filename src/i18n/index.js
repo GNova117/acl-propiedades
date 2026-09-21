@@ -15,6 +15,10 @@ i18n
     fallbackLng: "es",
     supportedLngs: ["es", "en"],
     interpolation: { escapeValue: false },
+    // Re-renderiza los componentes cuando se agregan traducciones en caliente:
+    // los nombres de tipos de propiedad editables se inyectan así (ver
+    // src/lib/propertyTypeLabels.js).
+    react: { bindI18nStore: "added" },
     detection: {
       order: ["localStorage"],
       caches: ["localStorage"],

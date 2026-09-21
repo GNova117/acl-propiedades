@@ -1,0 +1,157 @@
+.valuation-map {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.valuation-map__search {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.valuation-map__search input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.valuation-map__msg {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.valuation-map__msg--error {
+  color: var(--color-danger);
+}
+
+.valuation-map__results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.valuation-map__results li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+.valuation-map__results button {
+  display: block;
+  width: 100%;
+  padding: 0.55rem 0.8rem;
+  text-align: left;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.valuation-map__results button:hover,
+.valuation-map__results button:focus-visible {
+  background: var(--color-bg-alt);
+}
+
+.valuation-map__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.valuation-map__live {
+  font-size: 0.9rem;
+  margin-left: 0.25rem;
+}
+
+/* Punto de color en los botones de dibujo: es el mismo color de la figura. */
+.valuation-kind::before {
+  content: "";
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-right: 0.45rem;
+  border-radius: 2px;
+  vertical-align: -0.05rem;
+}
+
+.valuation-kind--land::before {
+  background: #1e8e5a;
+}
+
+.valuation-kind--built::before {
+  background: #1565c0;
+}
+
+/* Reserva dos líneas para la indicación: al pasar a modo dibujo el texto se
+   alarga y, sin esto, el mapa se recorría hacia abajo justo al empezar a hacer clic. */
+.valuation-map > .form-hint {
+  min-height: 2.9em;
+  margin: 0;
+}
+
+.valuation-map__canvas {
+  height: 540px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.valuation-map__canvas.is-drawing .leaflet-container,
+.valuation-map__canvas.is-drawing .leaflet-grab {
+  cursor: crosshair;
+}
+
+.valuation-map__attribution {
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+/* Asa de cada vértice (arrastrable). Cuadro blanco con borde de color. */
+.valuation-vertex {
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  border: 3px solid;
+  border-radius: 3px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  cursor: grab;
+}
+
+.valuation-vertex--land {
+  border-color: #1e8e5a;
+}
+
+.valuation-vertex--built {
+  border-color: #1565c0;
+}
+
+.leaflet-tooltip.valuation-tooltip {
+  padding: 2px 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #111;
+  background: rgba(255, 255, 255, 0.92);
+  border: 0;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.leaflet-tooltip.valuation-tooltip::before {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .valuation-map__canvas {
+    height: 420px;
+  }
+}
