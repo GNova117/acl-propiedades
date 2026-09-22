@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import * as construccionSync from "./construccion/sync";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify, numOrNull } from "./format";
@@ -1321,4 +1322,17 @@ export const supabaseBackend = {
     const { data } = supabase.auth.onAuthStateChange((_event, session) => callback(session));
     return () => data.subscription.unsubscribe();
   },
+
+  // Construcción: mediciones, plano 2D/3D, presupuesto y valuación — apartado
+  // nuevo e independiente de Remodelaciones (remodel_projects/materials_catalog),
+  // no comparte datos con ese módulo. La lógica de mapeo vive en
+  // lib/construccion/sync.ts (portada de app-construccion); aquí solo se
+  // delega, para que estas páginas también pasen por `db` como todo lo demás.
+  getConstruccionProyectos: (...args) => construccionSync.getConstruccionProyectos(...args),
+  getConstruccionProyecto: (...args) => construccionSync.getConstruccionProyecto(...args),
+  addConstruccionProyecto: (...args) => construccionSync.addConstruccionProyecto(...args),
+  pushConstruccionProyecto: (...args) => construccionSync.pushConstruccionProyecto(...args),
+  deleteConstruccionProyecto: (...args) => construccionSync.deleteConstruccionProyecto(...args),
+  getConstruccionCatalogo: (...args) => construccionSync.getConstruccionCatalogo(...args),
+  pushConstruccionCatalogo: (...args) => construccionSync.pushConstruccionCatalogo(...args),
 };

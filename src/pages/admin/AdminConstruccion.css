@@ -1,0 +1,492 @@
+/* Sección Construcción — editor de mediciones, plano 2D/3D, presupuesto.
+   Apartado nuevo e independiente de Remodelaciones. Las páginas de lista/crear
+   reutilizan .admin-header/.card/.admin-table/.form-field/.btn* de admin.css e
+   index.css; este archivo solo cubre lo genuinamente nuevo (canvas, 3D, tabs,
+   sidebar de habitaciones, paneles de presupuesto/resumen). */
+
+.construccion {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.construccion__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.construccion__title-input {
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  outline: none;
+  padding: 0.25rem 0;
+}
+
+.construccion__header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.construccion__error {
+  font-size: 0.8rem;
+  color: var(--color-danger);
+}
+
+.construccion__tabs {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.construccion__tab {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.construccion__tab:hover {
+  background: var(--color-bg-alt);
+}
+
+.construccion__tab--active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* ── Editor (pestaña "Editor") ─────────────────────────────────────────── */
+
+.construccion-editor {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.construccion-editor__sidebar {
+  width: 15rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--color-border);
+  padding: 0.75rem;
+}
+
+.construccion-editor__new-btn {
+  margin-bottom: 0.75rem;
+  width: 100%;
+}
+
+.construccion-editor__rooms {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.construccion-editor__room {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.construccion-editor__room:hover {
+  background: var(--color-bg-alt);
+}
+
+.construccion-editor__room--active,
+.construccion-editor__room--active:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.construccion-editor__room-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.construccion-editor__room-delete {
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.construccion-editor__room-delete:hover {
+  opacity: 1;
+}
+
+.construccion-editor__main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.construccion-editor__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.construccion-editor__topbar-left,
+.construccion-editor__topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.construccion-editor__hint-text {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.construccion-editor__confirm-btn {
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-success);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+}
+
+.construccion-editor__name-input {
+  border: none;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+  outline: none;
+  padding: 0.2rem 0;
+}
+
+.construccion-editor__name-input:focus {
+  border-bottom-color: var(--color-primary);
+}
+
+.construccion-editor__altura-field {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.construccion-editor__altura-input {
+  width: 4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: 0.25rem 0.4rem;
+  font-size: 0.85rem;
+}
+
+.construccion-editor__view-toggle {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  font-size: 0.8rem;
+}
+
+.construccion-editor__view-btn {
+  padding: 0.35rem 0.7rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.construccion-editor__view-btn--active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.construccion-editor__canvas {
+  flex: 1;
+  min-height: 0;
+}
+
+.construccion-editor__footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0.85rem 1rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.construccion-editor__metrics {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.construccion-editor__metrics strong {
+  color: var(--color-text);
+}
+
+.construccion-editor__aberturas {
+  flex: 1;
+  min-width: 16rem;
+}
+
+.construccion-editor__aberturas-hint {
+  margin: 0 0 0.4rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.construccion-editor__abertura-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.construccion-editor__abertura-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.construccion-editor__abertura-select {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: 0.25rem 0.4rem;
+  font-size: 0.8rem;
+}
+
+.construccion-editor__abertura-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--color-text-muted);
+}
+
+.construccion-editor__abertura-input {
+  width: 3.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: 0.25rem 0.4rem;
+  font-size: 0.8rem;
+}
+
+.construccion-editor__abertura-delete {
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.construccion-editor__abertura-delete:hover {
+  color: var(--color-danger);
+}
+
+/* ── Canvas 2D / 3D ─────────────────────────────────────────────────────── */
+
+.construccion-plan-svg {
+  height: 100%;
+  width: 100%;
+  cursor: crosshair;
+  background: #ffffff;
+}
+
+.construccion-3d-canvas {
+  height: 100%;
+  width: 100%;
+}
+
+.construccion-3d-empty {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-alt);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+/* ── Paneles (Presupuesto / Resumen) ───────────────────────────────────── */
+
+.construccion-panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.construccion-panel__narrow {
+  max-width: 42rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.construccion-panel__section {
+  margin-bottom: 2rem;
+}
+
+.construccion-panel__section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.construccion-panel__heading {
+  font-size: 1.05rem;
+  margin-bottom: 0.25rem;
+}
+
+.construccion-panel__subheading {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 0.4rem;
+}
+
+.construccion-panel__hint {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.construccion-panel__cell-input {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+.construccion-panel__link-danger {
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.construccion-panel__link-danger:hover {
+  color: var(--color-danger);
+}
+
+.construccion-panel__add-btn {
+  margin-top: 0.75rem;
+}
+
+.construccion-panel__total {
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.construccion-panel__room-budgets {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.construccion-panel__plain-table {
+  width: 100%;
+  font-size: 0.9rem;
+  border-collapse: collapse;
+}
+
+.construccion-panel__plain-table td {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.construccion-panel__col-right {
+  text-align: right;
+}
+
+.construccion-panel__muted {
+  color: var(--color-text-muted);
+}
+
+.construccion-panel__inline-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1.25rem;
+}
+
+.construccion-panel__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.construccion-panel__field select,
+.construccion-panel__field input {
+  font-weight: 400;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: 0.55rem 0.7rem;
+  font-size: 0.9rem;
+  min-width: 10rem;
+}
+
+.construccion-panel__stat {
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: var(--color-text);
+  margin: 0.25rem 0;
+}
+
+.construccion-panel__disclaimer {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}

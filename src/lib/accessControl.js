@@ -21,6 +21,7 @@ export const SECTION_KEYS = [
   "reportes",
   "bitacora",
   "valuacion",
+  "construccion",
 ];
 
 // El rol con este slug es el único con permiso para crear/editar/borrar roles

@@ -50,6 +50,9 @@ const AdminRemodelProjectForm = lazy(() => import("./pages/admin/AdminRemodelPro
 const AdminRemodelProgress = lazy(() => import("./pages/admin/AdminRemodelProgress"));
 const AdminMaterialsCatalog = lazy(() => import("./pages/admin/AdminMaterialsCatalog"));
 const AdminMaterialCatalogForm = lazy(() => import("./pages/admin/AdminMaterialCatalogForm"));
+const AdminConstruccionProjects = lazy(() => import("./pages/admin/AdminConstruccionProjects"));
+const AdminConstruccionForm = lazy(() => import("./pages/admin/AdminConstruccionForm"));
+const AdminConstruccionProject = lazy(() => import("./pages/admin/AdminConstruccionProject"));
 const AdminInfonavitSimulator = lazy(() => import("./pages/admin/AdminInfonavitSimulator"));
 const AdminValuation = lazy(() => import("./pages/admin/AdminValuation"));
 const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
@@ -237,6 +240,9 @@ export default function App() {
         <Route path="materiales" element={<RequireSection section="materiales"><AdminMaterialsCatalog /></RequireSection>} />
         <Route path="materiales/nuevo" element={<RequireSection section="materiales"><AdminMaterialCatalogForm /></RequireSection>} />
         <Route path="materiales/:id" element={<RequireSection section="materiales"><AdminMaterialCatalogForm /></RequireSection>} />
+        <Route path="construccion" element={<RequireSection section="construccion"><AdminConstruccionProjects /></RequireSection>} />
+        <Route path="construccion/nuevo" element={<RequireSection section="construccion"><AdminConstruccionForm /></RequireSection>} />
+        <Route path="construccion/:id" element={<RequireSection section="construccion"><AdminConstruccionProject /></RequireSection>} />
         <Route path="credito-infonavit" element={<RequireSection section="credito_infonavit"><AdminInfonavitSimulator /></RequireSection>} />
         <Route path="valuacion" element={<RequireSection section="valuacion"><AdminValuation /></RequireSection>} />
         <Route path="documentos-legales" element={<RequireSection section="documentos_legales"><AdminLegalDocs /></RequireSection>} />

@@ -1349,5 +1349,32 @@ export const localBackend = {
     return () => authListeners.delete(callback);
   },
 
+  // Construcción no tiene paridad en modo demo a propósito (geometría 2D/3D
+  // no vale la pena replicar sobre localStorage) — las páginas de ese
+  // apartado chequean useAuth().isDemoMode y nunca llegan a llamar esto; estos
+  // stubs solo existen para que `db` (unión de supabaseBackend/localBackend)
+  // tipe correctamente bajo TypeScript.
+  async getConstruccionProyectos() {
+    throw new Error("Construcción no está disponible en modo demo.");
+  },
+  async getConstruccionProyecto() {
+    throw new Error("Construcción no está disponible en modo demo.");
+  },
+  async addConstruccionProyecto() {
+    throw new Error("Construcción no está disponible en modo demo.");
+  },
+  async pushConstruccionProyecto() {
+    throw new Error("Construcción no está disponible en modo demo.");
+  },
+  async deleteConstruccionProyecto() {
+    throw new Error("Construcción no está disponible en modo demo.");
+  },
+  async getConstruccionCatalogo() {
+    throw new Error("Construcción no está disponible en modo demo.");
+  },
+  async pushConstruccionCatalogo() {
+    throw new Error("Construcción no está disponible en modo demo.");
+  },
+
   demoCredentials: DEMO_ADMIN,
 };
