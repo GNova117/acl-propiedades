@@ -176,6 +176,45 @@ export default function AdminVisitForm() {
         </div>
 
         <fieldset className="form-field">
+          <legend>{t("visits.form.followUp")}</legend>
+          <div className="visit-pills">
+            <label className="visit-pill">
+              <input
+                type="checkbox"
+                checked={form.potential_client}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setForm((prev) => ({ ...prev, potential_client: checked }));
+                  setErrors((prev) => ({ ...prev, prospect_phone: undefined }));
+                }}
+              />
+              {t("visits.form.potentialClient")}
+            </label>
+          </div>
+          <span className="form-hint">{t("visits.form.potentialClientHint")}</span>
+        </fieldset>
+
+        {form.potential_client && (
+          <>
+            <div className="form-field">
+              <label htmlFor="visit-phone">
+                {t("visits.form.prospectPhone")} ({t("visits.form.optional")})
+              </label>
+              <input id="visit-phone" type="tel" inputMode="tel" autoComplete="off" value={form.prospect_phone} onChange={setField("prospect_phone")} />
+              {errors.prospect_phone && <span className="form-error">{t("visits.form.phoneInvalid")}</span>}
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="visit-looking">
+                {t("visits.form.lookingFor")} ({t("visits.form.optional")})
+              </label>
+              <textarea id="visit-looking" rows={2} placeholder={t("visits.form.lookingForPlaceholder")} value={form.looking_for} onChange={setField("looking_for")} />
+              <span className="form-hint">{t("visits.form.followUpHint")}</span>
+            </div>
+          </>
+        )}
+
+        <fieldset className="form-field">
           <legend>{t("visits.form.interest")}</legend>
           <div className="visit-pills" role="radiogroup" aria-label={t("visits.form.interest")}>
             {VISIT_INTERESTS.map((key) => (

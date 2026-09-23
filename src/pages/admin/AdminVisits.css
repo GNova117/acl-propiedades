@@ -43,13 +43,18 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px; /* objetivo táctil cómodo */
+  max-width: 100%;
   padding: 0.45rem 1rem;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  /* 22px = media altura mínima: una etiqueta de una línea sigue siendo una
+     píldora, y una larga que se parte en varias líneas queda como rectángulo
+     redondeado en vez de un óvalo. */
+  border-radius: 22px;
   background: var(--color-surface);
   color: var(--color-text);
   font-size: 0.92rem;
   font-weight: 400;
+  line-height: 1.3;
   cursor: pointer;
   user-select: none;
   transition: background-color 0.12s ease, border-color 0.12s ease;

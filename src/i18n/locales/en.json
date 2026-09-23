@@ -823,6 +823,11 @@
     "confirmDelete": "Delete this visit? The seller's report is recalculated without it.",
     "empty": "No visits logged yet.",
     "noMatches": "No visit matches the filters.",
+    "potentialClient": "Potential client",
+    "lookingForPrefix": "Looking for",
+    "writeWhatsapp": "Message on WhatsApp",
+    "yes": "Yes",
+    "no": "No",
     "interest": {
       "muy_interesado": "Very interested",
       "interesado": "Interested",
@@ -848,7 +853,10 @@
     "filters": {
       "allProperties": "All properties",
       "allInterests": "All",
-      "allAdvisors": "All advisors"
+      "allAdvisors": "All advisors",
+      "followUp": "Follow-up",
+      "allVisits": "All visits",
+      "onlyPotential": "Potential clients only ({{count}})"
     },
     "form": {
       "newTitle": "Log a visit",
@@ -868,6 +876,14 @@
       "commentsHint": "Quick notes on what the client said. They show up in the seller's report without the prospect's name: don't write names or phone numbers here.",
       "internalNotes": "Internal notes",
       "internalNotesHint": "Only you and the office see them; they never reach the seller.",
+      "followUp": "Follow-up",
+      "potentialClient": "Potential client: wants us to find them another property",
+      "potentialClientHint": "Check it if the person found ACL through this house but wants us to look for another one.",
+      "prospectPhone": "Prospect's phone",
+      "phoneInvalid": "Enter a phone number with at least 10 digits.",
+      "lookingFor": "What they're looking for",
+      "lookingForPlaceholder": "E.g. 3-bedroom house in Torreón, up to $1.5 M",
+      "followUpHint": "Only you and the office see it; it never appears in the seller's report.",
       "optional": "optional",
       "saveError": "Could not save the visit.",
       "notFound": "That visit wasn't found (or it isn't yours)."

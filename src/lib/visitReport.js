@@ -47,6 +47,9 @@ export const emptyVisitForm = (overrides = {}) => ({
   reasons: [],
   comments: "",
   internal_notes: "",
+  potential_client: false,
+  prospect_phone: "",
+  looking_for: "",
   ...overrides,
 });
 
@@ -60,7 +63,25 @@ export function visitToForm(visit) {
     reasons: visit.reasons || [],
     comments: visit.comments || "",
     internal_notes: visit.internal_notes || "",
+    potential_client: Boolean(visit.potential_client),
+    prospect_phone: visit.prospect_phone || "",
+    looking_for: visit.looking_for || "",
   };
+}
+
+// Teléfono del prospecto: solo dígitos para validarlo y para armar el enlace de
+// WhatsApp. 10 dígitos es un número mexicano sin lada de país (se le antepone
+// 52); de 11 a 15 se toma tal cual (ya trae país, o es de otro país).
+export const phoneDigits = (value) => String(value ?? "").replace(/\D/g, "");
+
+export const isValidProspectPhone = (value) => {
+  const digits = phoneDigits(value);
+  return digits.length >= 10 && digits.length <= 15;
+};
+
+export function whatsappNumber(value) {
+  const digits = phoneDigits(value);
+  return digits.length === 10 ? `52${digits}` : digits;
 }
 
 // Una visita es un recorrido que YA ocurrió: se tolera un pequeño desfase del
@@ -78,6 +99,9 @@ export function validateVisitForm(form, { now = new Date() } = {}) {
   if (!when || Number.isNaN(when.getTime())) errors.visited_at = "required";
   else if (when.getTime() > now.getTime() + FUTURE_TOLERANCE_MS) errors.visited_at = "future";
   if (!VISIT_INTERESTS.includes(form.interest)) errors.interest = "required";
+  // El teléfono es opcional (el asesor puede tener ya el chat abierto), pero si
+  // se escribe debe ser utilizable; solo se revisa si se marcó posible cliente.
+  if (form.potential_client && form.prospect_phone.trim() && !isValidProspectPhone(form.prospect_phone)) errors.prospect_phone = "phone";
   return errors;
 }
 
@@ -91,6 +115,11 @@ export function toVisitFields(form) {
     reasons: uniqueReasons(form.reasons),
     comments: form.comments.trim() || null,
     internal_notes: form.internal_notes.trim() || null,
+    // Los datos de seguimiento solo tienen sentido con la casilla marcada: si se
+    // desmarca, no se guardan (la pantalla también los oculta).
+    potential_client: Boolean(form.potential_client),
+    prospect_phone: form.potential_client ? form.prospect_phone.trim() || null : null,
+    looking_for: form.potential_client ? form.looking_for.trim() || null : null,
   };
 }
 

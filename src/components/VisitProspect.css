@@ -1,0 +1,35 @@
+/* Prospecto en las tablas internas de visitas. .admin-table fuerza
+   white-space: nowrap en cada celda; aquí sí se necesita que "qué busca" se
+   parta en varias líneas, con un ancho acotado para no ensanchar la tabla. */
+.visit-prospect {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  min-width: 170px;
+  max-width: 280px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* La marca va en texto (no solo en color), igual que los demás estados. */
+.visit-lead {
+  display: inline-flex;
+  padding: 0.1rem 0.55rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: var(--color-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.visit-prospect__line {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.visit-prospect a.visit-prospect__line {
+  color: var(--color-primary);
+  text-decoration: underline;
+}

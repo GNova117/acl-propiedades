@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
 import VisitReportView from "../../components/VisitReportView";
+import VisitProspect from "../../components/VisitProspect";
 import { formatVisitDate, formatVisitDateTime, reasonLabel, reportUrl } from "../../lib/visitReport";
 import { visitPdfLabels } from "../../lib/visitReportLabels";
 import "../../components/VisitReportView.css";
@@ -233,7 +234,9 @@ export default function AdminPropertyVisits() {
                 visits.map((visit) => (
                   <tr key={visit.id}>
                     <td className="visits-table__when">{formatVisitDateTime(visit.visited_at, i18n.language)}</td>
-                    <td>{visit.prospect_name || "—"}</td>
+                    <td>
+                      <VisitProspect visit={visit} />
+                    </td>
                     <td>
                       <span className={`vr-badge vr-badge--${visit.interest}`}>{t(`visits.interest.${visit.interest}`)}</span>
                     </td>

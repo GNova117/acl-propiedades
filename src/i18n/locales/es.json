@@ -823,6 +823,11 @@
     "confirmDelete": "¿Eliminar esta visita? El informe del vendedor se recalcula sin ella.",
     "empty": "Aún no hay visitas registradas.",
     "noMatches": "Ninguna visita coincide con los filtros.",
+    "potentialClient": "Posible cliente",
+    "lookingForPrefix": "Busca",
+    "writeWhatsapp": "Escribir por WhatsApp",
+    "yes": "Sí",
+    "no": "No",
     "interest": {
       "muy_interesado": "Muy interesado",
       "interesado": "Interesado",
@@ -848,7 +853,10 @@
     "filters": {
       "allProperties": "Todas las propiedades",
       "allInterests": "Todos",
-      "allAdvisors": "Todos los asesores"
+      "allAdvisors": "Todos los asesores",
+      "followUp": "Seguimiento",
+      "allVisits": "Todas las visitas",
+      "onlyPotential": "Solo posibles clientes ({{count}})"
     },
     "form": {
       "newTitle": "Registrar visita",
@@ -868,6 +876,14 @@
       "commentsHint": "Notas rápidas sobre lo que dijo el cliente. Aparecen en el informe del vendedor sin el nombre del prospecto: no escribas nombres ni teléfonos aquí.",
       "internalNotes": "Notas internas",
       "internalNotesHint": "Solo tú y la oficina las ven; nunca llegan al vendedor.",
+      "followUp": "Seguimiento",
+      "potentialClient": "Posible cliente: quiere que le busquemos otra propiedad",
+      "potentialClientHint": "Márcalo si la persona conoció ACL por esta casa pero le interesa que le busquemos otra.",
+      "prospectPhone": "Teléfono del prospecto",
+      "phoneInvalid": "Escribe un teléfono de al menos 10 dígitos.",
+      "lookingFor": "Qué busca",
+      "lookingForPlaceholder": "Ej. casa de 3 recámaras en Torreón, hasta $1.5 M",
+      "followUpHint": "Solo lo ven tú y la oficina; nunca aparece en el informe del vendedor.",
       "optional": "opcional",
       "saveError": "No se pudo guardar la visita.",
       "notFound": "No se encontró esa visita (o no es tuya)."

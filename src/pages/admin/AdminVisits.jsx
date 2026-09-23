@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
+import VisitProspect from "../../components/VisitProspect";
 import { VISIT_INTERESTS, formatVisitDateTime, reasonLabel } from "../../lib/visitReport";
 import "../../components/VisitReportView.css";
 import "./admin.css";
@@ -26,6 +27,7 @@ export default function AdminVisits() {
   const [propertyFilter, setPropertyFilter] = useState("");
   const [advisorFilter, setAdvisorFilter] = useState("");
   const [interestFilter, setInterestFilter] = useState("");
+  const [followFilter, setFollowFilter] = useState("");
 
   const load = () => {
     setLoading(true);
@@ -42,6 +44,7 @@ export default function AdminVisits() {
 
   useEffect(load, []);
 
+  const potentialCount = useMemo(() => visits.filter((v) => v.potential_client).length, [visits]);
   const propertyById = useMemo(() => new Map(properties.map((p) => [p.id, p])), [properties]);
   const advisorName = (id) => advisors.find((a) => a.id === id)?.name || "—";
   const propertyLabel = (id) => {
@@ -55,9 +58,10 @@ export default function AdminVisits() {
         (v) =>
           (!propertyFilter || v.property_id === propertyFilter) &&
           (!advisorFilter || v.advisor_id === advisorFilter) &&
-          (!interestFilter || v.interest === interestFilter)
+          (!interestFilter || v.interest === interestFilter) &&
+          (!followFilter || v.potential_client)
       ),
-    [visits, propertyFilter, advisorFilter, interestFilter]
+    [visits, propertyFilter, advisorFilter, interestFilter, followFilter]
   );
 
   // Solo se ofrecen las propiedades que ya tienen visitas: filtrar por una sin
@@ -84,6 +88,9 @@ export default function AdminVisits() {
       { label: t("detail.code"), value: (v) => propertyById.get(v.property_id)?.code || "" },
       { label: t("visits.table.property"), value: (v) => propertyById.get(v.property_id)?.title || "" },
       { label: t("visits.table.prospect"), key: "prospect_name" },
+      { label: t("visits.potentialClient"), value: (v) => (v.potential_client ? t("visits.yes") : t("visits.no")) },
+      { label: t("visits.form.prospectPhone"), key: "prospect_phone" },
+      { label: t("visits.form.lookingFor"), key: "looking_for" },
       { label: t("visits.table.interest"), value: (v) => t(`visits.interest.${v.interest}`) },
       { label: t("visits.table.reasons"), value: (v) => (v.reasons || []).map((k) => reasonLabel(t, k)).join(", ") },
       { label: t("visits.table.advisor"), value: (v) => advisorName(v.advisor_id) },
@@ -131,6 +138,13 @@ export default function AdminVisits() {
             ))}
           </select>
         </div>
+        <div className="form-field">
+          <label htmlFor="visits-follow">{t("visits.filters.followUp")}</label>
+          <select id="visits-follow" value={followFilter} onChange={(e) => setFollowFilter(e.target.value)}>
+            <option value="">{t("visits.filters.allVisits")}</option>
+            <option value="potential">{t("visits.filters.onlyPotential", { count: potentialCount })}</option>
+          </select>
+        </div>
         {seesAll && (
           <div className="form-field">
             <label htmlFor="visits-advisor">{t("visits.table.advisor")}</label>
@@ -176,7 +190,9 @@ export default function AdminVisits() {
                   <td>
                     <Link to={`/admin/visitas/propiedad/${visit.property_id}`}>{propertyLabel(visit.property_id)}</Link>
                   </td>
-                  <td>{visit.prospect_name || "—"}</td>
+                  <td>
+                    <VisitProspect visit={visit} />
+                  </td>
                   <td>
                     <span className={`vr-badge vr-badge--${visit.interest}`}>{t(`visits.interest.${visit.interest}`)}</span>
                   </td>
