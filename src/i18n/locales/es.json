@@ -877,7 +877,7 @@
       "internalNotes": "Notas internas",
       "internalNotesHint": "Solo tú y la oficina las ven; nunca llegan al vendedor.",
       "followUp": "Seguimiento",
-      "potentialClient": "Posible cliente: quiere que le busquemos otra propiedad",
+      "potentialClient": "Posible cliente: Busca que le oferten propiedades diferentes a las del interés mostrado",
       "potentialClientHint": "Márcalo si la persona conoció ACL por esta casa pero le interesa que le busquemos otra.",
       "prospectPhone": "Teléfono del prospecto",
       "phoneInvalid": "Escribe un teléfono de al menos 10 dígitos.",
