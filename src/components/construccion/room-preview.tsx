@@ -3,7 +3,8 @@ import { Canvas } from "@react-three/fiber";
 import { Grid, OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { DoubleSide, Shape } from "three";
 import { wallSegmentsFromPolygon, wallFacadeRects, type Point } from "../../lib/construccion/geometry";
-import type { Habitacion } from "../../lib/construccion/types";
+import { objetoDef, zonaDe } from "../../lib/construccion/objetos";
+import type { Habitacion, Objeto } from "../../lib/construccion/types";
 
 const WALL_THICKNESS = 0.15;
 
@@ -29,7 +30,7 @@ function Walls({ habitacion }: { habitacion: Habitacion }) {
   );
 }
 
-function Floor({ points }: { points: Point[] }) {
+function Floor({ points, color }: { points: Point[]; color: string }) {
   const shape = useMemo(() => {
     const s = new Shape();
     s.moveTo(points[0].x, points[0].z);
@@ -42,37 +43,69 @@ function Floor({ points }: { points: Point[] }) {
   return (
     <mesh position={[0, 0.01, 0]} rotation={[Math.PI / 2, 0, 0]}>
       <shapeGeometry args={[shape]} />
-      <meshStandardMaterial color="#e4e4e7" side={DoubleSide} />
+      <meshStandardMaterial color={color} side={DoubleSide} />
     </mesh>
   );
 }
 
+function Muebles({ objetos }: { objetos: Objeto[] }) {
+  return (
+    <>
+      {objetos.map((o) => {
+        const def = objetoDef(o.tipo);
+        const alto = def?.altoM ?? 0.8;
+        const color = zonaDe(def?.categoria).color;
+        return (
+          <mesh key={o.id} position={[o.x, alto / 2 + 0.02, o.z]} rotation={[0, (-o.rotDeg * Math.PI) / 180, 0]}>
+            {def?.forma === "round" ? (
+              <cylinderGeometry args={[o.anchoM / 2, o.anchoM / 2, alto, 24]} />
+            ) : (
+              <boxGeometry args={[o.anchoM, alto, o.largoM]} />
+            )}
+            <meshStandardMaterial color={color} />
+          </mesh>
+        );
+      })}
+    </>
+  );
+}
+
 type Props = {
-  habitacion: Habitacion | null;
+  /** Una habitación (vista de cuarto) o todas las del proyecto (mapa completo). */
+  habitaciones: Habitacion[];
+  objetos: Objeto[];
 };
 
-export default function RoomPreview({ habitacion }: Props) {
-  if (!habitacion || habitacion.puntos.length < 3) {
+export default function RoomPreview({ habitaciones, objetos }: Props) {
+  const cerradas = habitaciones.filter((h) => h.puntos.length >= 3);
+  if (cerradas.length === 0) {
     return (
       <div className="construccion-3d-empty">Cierra una habitación en el plano 2D para ver su render 3D.</div>
     );
   }
 
-  const { puntos, alturaM } = habitacion;
-  const center = puntos.reduce(
-    (acc, p) => ({ x: acc.x + p.x / puntos.length, z: acc.z + p.z / puntos.length }),
-    { x: 0, z: 0 },
+  const todos = cerradas.flatMap((h) => h.puntos);
+  const center = todos.reduce((acc, p) => ({ x: acc.x + p.x / todos.length, z: acc.z + p.z / todos.length }), { x: 0, z: 0 });
+  const alturaM = Math.max(...cerradas.map((h) => h.alturaM));
+  const extent = Math.max(
+    ...todos.map((p) => Math.hypot(p.x - center.x, p.z - center.z)),
+    3,
   );
 
   return (
     <Canvas className="construccion-3d-canvas">
-      <PerspectiveCamera makeDefault position={[center.x + 5, alturaM + 3, center.z + 5]} fov={50} />
+      <PerspectiveCamera makeDefault position={[center.x + extent, alturaM + extent, center.z + extent]} fov={50} />
       <OrbitControls target={[center.x, alturaM / 2, center.z]} />
       <ambientLight intensity={1.5} />
       <directionalLight position={[center.x + 5, 8, center.z + 3]} intensity={Math.PI} />
-      <Walls habitacion={habitacion} />
-      <Floor points={puntos} />
-      <Grid infiniteGrid sectionColor="#a1a1aa" cellColor="#e4e4e7" fadeDistance={30} />
+      {cerradas.map((h) => (
+        <group key={h.id}>
+          <Walls habitacion={h} />
+          <Floor points={h.puntos} color={zonaDe(h.tipo).fill} />
+        </group>
+      ))}
+      <Muebles objetos={objetos} />
+      <Grid infiniteGrid sectionColor="#a1a1aa" cellColor="#e4e4e7" fadeDistance={40} />
     </Canvas>
   );
 }

@@ -109,3 +109,58 @@ export function projectPointOnSegment(
   const point = { x: seg.start.x + t * dx, z: seg.start.z + t * dz };
   return { t, point, distance: Math.hypot(p.x - point.x, p.z - point.z) };
 }
+
+export function pointInPolygon(p: Point, poly: Point[]): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i];
+    const b = poly[j];
+    if (a.z > p.z !== b.z > p.z && p.x < ((b.x - a.x) * (p.z - a.z)) / (b.z - a.z) + a.x) inside = !inside;
+  }
+  return inside;
+}
+
+export type Bounds = { minX: number; maxX: number; minZ: number; maxZ: number };
+
+export function polygonBounds(points: Point[]): Bounds {
+  return {
+    minX: Math.min(...points.map((p) => p.x)),
+    maxX: Math.max(...points.map((p) => p.x)),
+    minZ: Math.min(...points.map((p) => p.z)),
+    maxZ: Math.max(...points.map((p) => p.z)),
+  };
+}
+
+/**
+ * Ajuste ("imán") al soltar una habitación arrastrada: si un borde de su caja queda a menos de
+ * `tolerance` m de un borde de otra habitación (pegado o alineado), devuelve el desplazamiento
+ * extra que lo hace coincidir exactamente — así los cuartos quedan con la pared compartida.
+ */
+export function snapBoundsToNeighbors(moving: Bounds, others: Bounds[], tolerance: number): { dx: number; dz: number } {
+  let bestDx = 0;
+  let bestDxAbs = tolerance;
+  let bestDz = 0;
+  let bestDzAbs = tolerance;
+  for (const o of others) {
+    // Solo se pega en un eje si las cajas se traslapan (o casi se tocan) en el otro.
+    const overlapZ = moving.minZ < o.maxZ + tolerance && moving.maxZ > o.minZ - tolerance;
+    const overlapX = moving.minX < o.maxX + tolerance && moving.maxX > o.minX - tolerance;
+    if (overlapZ) {
+      for (const d of [o.maxX - moving.minX, o.minX - moving.maxX, o.minX - moving.minX, o.maxX - moving.maxX]) {
+        if (Math.abs(d) < bestDxAbs) {
+          bestDxAbs = Math.abs(d);
+          bestDx = d;
+        }
+      }
+    }
+    if (overlapX) {
+      for (const d of [o.maxZ - moving.minZ, o.minZ - moving.maxZ, o.minZ - moving.minZ, o.maxZ - moving.maxZ]) {
+        if (Math.abs(d) < bestDzAbs) {
+          bestDzAbs = Math.abs(d);
+          bestDz = d;
+        }
+      }
+    }
+  }
+  return { dx: bestDx, dz: bestDz };
+}

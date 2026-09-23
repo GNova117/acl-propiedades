@@ -14,9 +14,39 @@ export type Abertura = {
   altoDesdePisoM: number;
 };
 
+/** Zona/uso de una habitación — decide el color en el plano y qué objetos se sugieren primero. */
+export type TipoHabitacion =
+  | "sala"
+  | "cocina"
+  | "comedor"
+  | "recamara"
+  | "bano"
+  | "lavanderia"
+  | "estudio"
+  | "cochera"
+  | "exterior"
+  | "otro";
+
+/** Mueble/equipo colocado en el plano. Coordenadas absolutas (m), igual que los puntos de las habitaciones. */
+export type Objeto = {
+  id: string;
+  /** Clave del catálogo (`OBJETOS_CATALOGO`). */
+  tipo: string;
+  /** Habitación que lo contiene (se mueve junto con ella); null si está suelto o afuera. */
+  habitacionId: string | null;
+  /** Centro del objeto. */
+  x: number;
+  z: number;
+  anchoM: number;
+  largoM: number;
+  /** Giro en grados (0/90/180/270 desde los botones). */
+  rotDeg: number;
+};
+
 export type Habitacion = {
   id: string;
   nombre: string;
+  tipo?: TipoHabitacion;
   puntos: Point[];
   alturaM: number;
   aberturas: Abertura[];
@@ -26,6 +56,7 @@ export type Proyecto = {
   id: string;
   nombre: string;
   habitaciones: Habitacion[];
+  objetos: Objeto[];
 };
 
 export const ABERTURA_DEFAULTS: Record<TipoAbertura, { altoM: number; altoDesdePisoM: number }> = {

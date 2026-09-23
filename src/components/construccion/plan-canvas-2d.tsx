@@ -7,7 +7,10 @@ import {
   type Point,
   type WallSegment,
 } from "../../lib/construccion/geometry";
-import type { Habitacion } from "../../lib/construccion/types";
+import type { Habitacion, Objeto } from "../../lib/construccion/types";
+import { zonaDe } from "../../lib/construccion/objetos";
+import ObjetosLayer from "./plan-objetos";
+import { OBJ_GRID_M, svgPoint, type usePlanDrag } from "./plan-drag";
 
 const GRID_M = 0.25;
 const VIEW_W = 12;
@@ -60,10 +63,19 @@ type Props = {
   habitacion: Habitacion | null;
   onCanvasClick: (p: Point) => void;
   onWallClick?: (segmentIndex: number, offsetM: number) => void;
+  /** Muebles a dibujar (los de esta habitación). */
+  objetos?: Objeto[];
+  selectedObjetoId?: string | null;
+  /** Arrastre de objetos (viene de `usePlanDrag` en el editor). */
+  drag?: ReturnType<typeof usePlanDrag>;
+  /** Hay un objeto "armado" del catálogo: el siguiente clic lo coloca en vez de agregar una puerta. */
+  placing?: boolean;
+  onPlace?: (p: Point) => void;
+  onObjetoSelect?: (id: string | null) => void;
 };
 
 const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
-  { draftPoints, habitacion, onCanvasClick, onWallClick },
+  { draftPoints, habitacion, onCanvasClick, onWallClick, objetos = [], selectedObjetoId = null, drag, placing, onPlace, onObjetoSelect },
   ref,
 ) {
   const [cursor, setCursor] = useState<Point | null>(null);
@@ -73,6 +85,14 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
   const canClose = drawing && points.length >= 3;
 
   function handleClick(e: React.MouseEvent<SVGSVGElement>) {
+    if (drag?.consumeClick()) return;
+
+    if (habitacion && placing && onPlace) {
+      const raw = svgPoint(e.currentTarget, e.clientX, e.clientY);
+      onPlace({ x: snap(raw.x, OBJ_GRID_M), z: snap(raw.z, OBJ_GRID_M) });
+      return;
+    }
+
     const p = toPlanPoint(e.currentTarget, e.clientX, e.clientY);
 
     if (habitacion && onWallClick) {
@@ -89,6 +109,7 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
         }
       });
       if (best >= 0 && bestDist < CLICK_TOLERANCE_M) onWallClick(best, bestOffset);
+      else onObjetoSelect?.(null);
       return;
     }
 
@@ -109,11 +130,13 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
       onClick={handleClick}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setCursor(null)}
+      {...drag?.handlers}
+      style={placing ? { cursor: "copy" } : undefined}
     >
       <PlanGrid />
 
       {points.length >= 3 && (
-        <polygon points={points.map((p) => `${p.x},${p.z}`).join(" ")} fill="#eef2ff" stroke="none" />
+        <polygon points={points.map((p) => `${p.x},${p.z}`).join(" ")} fill={zonaDe(habitacion?.tipo).fill} stroke="none" />
       )}
 
       {segments.map((seg, i) => {
@@ -158,6 +181,21 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
           </g>
         );
       })}
+
+      {habitacion && (
+        <ObjetosLayer
+          objetos={objetos}
+          selectedId={selectedObjetoId}
+          onPointerDown={
+            drag && !placing
+              ? (e, o) => {
+                  onObjetoSelect?.(o.id);
+                  drag.startObjeto(e, o.id, { x: o.x, z: o.z });
+                }
+              : undefined
+          }
+        />
+      )}
 
       {points.map((p, i) => (
         <circle

@@ -2,7 +2,8 @@
 // nunca llaman a `supabase` directo, igual que cada otro dominio de este backend.
 import { supabase } from "../supabaseClient";
 import { wallSegmentsFromPolygon, type Point } from "./geometry";
-import type { Abertura, FuenteCantidad, Habitacion, MaterialCatalogItem, Proyecto, TipoAbertura } from "./types";
+import type { Abertura, FuenteCantidad, Habitacion, MaterialCatalogItem, Objeto, Proyecto, TipoAbertura, TipoHabitacion } from "./types";
+import { ZONAS } from "./objetos";
 
 const DEFAULT_ESPESOR_M = 0.15;
 
@@ -22,6 +23,47 @@ type AberturaRow = {
   alto: number;
   alto_desde_piso: number;
 };
+
+type ObjetoRow = {
+  id: string;
+  habitacion_id: string | null;
+  tipo: string;
+  x: number;
+  z: number;
+  ancho: number;
+  largo: number;
+  rot_deg: number;
+};
+
+/** La tabla construccion_objetos es posterior al resto: si el SQL aún no se corrió, se trabaja sin objetos. */
+function tablaObjetosFaltante(err: unknown): boolean {
+  const e = err as { code?: string; message?: string } | null;
+  return !!e && (e.code === "42P01" || e.code === "PGRST205" || /construccion_objetos/.test(e.message ?? ""));
+}
+
+const MSG_FALTA_TABLA_OBJETOS =
+  "Falta crear la tabla construccion_objetos en Supabase (corre el bloque de objetos de supabase/schema.sql) para guardar los muebles.";
+
+async function fetchObjetos(db: NonNullable<typeof supabase>, proyectoId: string): Promise<Objeto[]> {
+  const { data, error } = await db
+    .from("construccion_objetos")
+    .select("id, habitacion_id, tipo, x, z, ancho, largo, rot_deg")
+    .eq("proyecto_id", proyectoId);
+  if (error) {
+    if (tablaObjetosFaltante(error)) return [];
+    throw error;
+  }
+  return ((data ?? []) as ObjetoRow[]).map((o) => ({
+    id: o.id,
+    tipo: o.tipo,
+    habitacionId: o.habitacion_id,
+    x: Number(o.x),
+    z: Number(o.z),
+    anchoM: Number(o.ancho),
+    largoM: Number(o.largo),
+    rotDeg: Number(o.rot_deg),
+  }));
+}
 
 export type ProyectoResumen = { id: string; nombre: string; cliente: string | null; direccion: string | null; createdAt: string };
 
@@ -76,11 +118,13 @@ export async function getConstruccionProyecto(proyectoId: string): Promise<Proye
 
   const { data: habitacionesData, error: habError } = await db
     .from("construccion_habitaciones")
-    .select("id, nombre")
+    .select("id, nombre, tipo")
     .eq("proyecto_id", id);
   if (habError) throw habError;
-  const habitacionIds = ((habitacionesData ?? []) as { id: string; nombre: string }[]).map((h) => h.id);
-  if (habitacionIds.length === 0) return { id, nombre, habitaciones: [] };
+  const habitacionesRows = (habitacionesData ?? []) as { id: string; nombre: string; tipo: string | null }[];
+  const habitacionIds = habitacionesRows.map((h) => h.id);
+  const objetos = await fetchObjetos(db, id);
+  if (habitacionIds.length === 0) return { id, nombre, habitaciones: [], objetos };
 
   const { data: murosData, error: murosError } = await db
     .from("construccion_muros")
@@ -101,7 +145,7 @@ export async function getConstruccionProyecto(proyectoId: string): Promise<Proye
     aberturas = (aberturasData ?? []) as AberturaRow[];
   }
 
-  const habitaciones: Habitacion[] = ((habitacionesData ?? []) as { id: string; nombre: string }[]).map((h) => {
+  const habitaciones: Habitacion[] = habitacionesRows.map((h) => {
     const susMuros = muros.filter((m) => m.habitacion_id === h.id);
     const puntos = susMuros.map((m) => m.puntos[0]);
     const indexPorMuroId = new Map(susMuros.map((m, i) => [m.id, i]));
@@ -119,13 +163,14 @@ export async function getConstruccionProyecto(proyectoId: string): Promise<Proye
     return {
       id: h.id,
       nombre: h.nombre,
+      tipo: ZONAS.some((z) => z.id === h.tipo) ? (h.tipo as TipoHabitacion) : undefined,
       puntos,
       alturaM: susMuros[0]?.altura ?? 2.5,
       aberturas: susAberturas,
     };
   });
 
-  return { id, nombre, habitaciones };
+  return { id, nombre, habitaciones, objetos };
 }
 
 async function pushHabitacion(db: NonNullable<typeof supabase>, proyectoId: string, habitacion: Habitacion) {
@@ -133,6 +178,7 @@ async function pushHabitacion(db: NonNullable<typeof supabase>, proyectoId: stri
     id: habitacion.id,
     proyecto_id: proyectoId,
     nombre: habitacion.nombre,
+    tipo: habitacion.tipo ?? null,
   });
   if (habError) throw habError;
 
@@ -196,6 +242,31 @@ export async function pushConstruccionProyecto(proyecto: Proyecto): Promise<void
 
   for (const habitacion of proyecto.habitaciones) {
     await pushHabitacion(db, proyecto.id, habitacion);
+  }
+
+  // Los objetos van después de las habitaciones (habitacion_id las referencia, y se reinsertaron arriba).
+  const { error: delObjError } = await db.from("construccion_objetos").delete().eq("proyecto_id", proyecto.id);
+  if (delObjError) {
+    if (!tablaObjetosFaltante(delObjError)) throw delObjError;
+    if (proyecto.objetos.length > 0) throw new Error(MSG_FALTA_TABLA_OBJETOS);
+    return;
+  }
+  if (proyecto.objetos.length > 0) {
+    const ids = new Set(proyecto.habitaciones.map((h) => h.id));
+    const { error: insObjError } = await db.from("construccion_objetos").insert(
+      proyecto.objetos.map((o) => ({
+        id: o.id,
+        proyecto_id: proyecto.id,
+        habitacion_id: o.habitacionId && ids.has(o.habitacionId) ? o.habitacionId : null,
+        tipo: o.tipo,
+        x: o.x,
+        z: o.z,
+        ancho: o.anchoM,
+        largo: o.largoM,
+        rot_deg: o.rotDeg,
+      })),
+    );
+    if (insObjError) throw insObjError;
   }
 }
 
