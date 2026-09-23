@@ -433,7 +433,9 @@
       "testimonios": "Testimonials",
       "reportes": "Sales & reports",
       "bitacora": "Log & expenses",
-      "valuacion": "Valuation"
+      "valuacion": "Valuation",
+      "construccion": "Construction",
+      "visitas": "Visits"
     },
     "rolesTitle": "Roles",
     "newRole": "New role",
@@ -449,8 +451,8 @@
     "accessEmail": "Email",
     "accessRole": "Role",
     "accessAdvisor": "Linked advisor",
-    "accessAdvisorNone": "— (sees every agenda)",
-    "accessAdvisorHint": "Only applies to the Agenda section: link this email to their own advisor record so they only see and edit their own agenda. Leave empty so they see everyone's.",
+    "accessAdvisorNone": "— (sees every agenda and visit)",
+    "accessAdvisorHint": "Only applies to the Agenda and Visits sections: link this email to their own advisor record so they only see and edit their own appointments and visits. Leave empty so they see everyone's.",
     "addAccess": "Grant access",
     "removeAccess": "Remove access",
     "noAccess": "No emails have access assigned yet."
@@ -808,6 +810,137 @@
       "type": "Type",
       "detail": "Detail",
       "receipt": "Receipt"
+    }
+  },
+  "visits": {
+    "button": "Visits",
+    "allTitle": "Visits",
+    "myTitle": "My visits",
+    "propertyTitle": "Visit report",
+    "newVisit": "Log a visit",
+    "backToList": "Back to visits",
+    "loadError": "Could not load the visits: {{error}}",
+    "confirmDelete": "Delete this visit? The seller's report is recalculated without it.",
+    "empty": "No visits logged yet.",
+    "noMatches": "No visit matches the filters.",
+    "interest": {
+      "muy_interesado": "Very interested",
+      "interesado": "Interested",
+      "oferta_realizada": "Offer made",
+      "descartado": "Ruled out"
+    },
+    "reasons": {
+      "ubicacion": "Location / area",
+      "precio": "Price",
+      "espacios": "Size of the spaces",
+      "conservacion": "Condition / finishes",
+      "distribucion": "Layout of the property"
+    },
+    "table": {
+      "when": "Date and time",
+      "property": "Property",
+      "prospect": "Prospect",
+      "interest": "Interest",
+      "reasons": "Reasons",
+      "advisor": "Advisor",
+      "comment": "Comment"
+    },
+    "filters": {
+      "allProperties": "All properties",
+      "allInterests": "All",
+      "allAdvisors": "All advisors"
+    },
+    "form": {
+      "newTitle": "Log a visit",
+      "editTitle": "Edit visit",
+      "property": "Property visited",
+      "chooseProperty": "Choose a property",
+      "when": "Date and time of the visit",
+      "futureDate": "A visit can't be in the future.",
+      "advisor": "Advisor who gave the tour",
+      "chooseAdvisor": "Choose an advisor",
+      "prospect": "Prospect's name",
+      "prospectHint": "Only you and the office see it: it never appears in the seller's report.",
+      "interest": "Client's interest",
+      "reasons": "Reason for objection or rejection",
+      "reasonsHint": "Check every one that applies. They feed the seller's reasons chart.",
+      "comments": "Comments for the seller",
+      "commentsHint": "Quick notes on what the client said. They show up in the seller's report without the prospect's name: don't write names or phone numbers here.",
+      "internalNotes": "Internal notes",
+      "internalNotesHint": "Only you and the office see them; they never reach the seller.",
+      "optional": "optional",
+      "saveError": "Could not save the visit.",
+      "notFound": "That visit wasn't found (or it isn't yours)."
+    },
+    "share": {
+      "title": "Report for the seller",
+      "intro": "Share this private link with the seller: they'll see their report (counters, reasons and history) without logging in and without prospects' names. Read-only.",
+      "create": "Create link",
+      "linkLabel": "Report link",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyManual": "Couldn't copy automatically: the link is selected, copy it with Ctrl+C.",
+      "open": "Open",
+      "whatsapp": "Send via WhatsApp",
+      "whatsappMessage": "Hi, here is the visit report for your property \"{{title}}\": {{url}}",
+      "regenerate": "Generate new link",
+      "disable": "Turn link off",
+      "confirmRegenerate": "Generate a new link? The old one will stop working and the seller will need the new one.",
+      "confirmDisable": "Turn the link off? The seller won't be able to open their report until you create a new one.",
+      "createdOn": "Link created on {{date}}.",
+      "rotateHint": "Anyone with the link can see the report: share it only with the seller."
+    },
+    "preview": {
+      "title": "Preview: what the seller sees",
+      "hint": "It's the same report they get through the link and the PDF. It adds up the visits of all advisors and never shows prospects' names or internal notes."
+    },
+    "internal": {
+      "title": "Visit log (internal only)",
+      "hint": "Prospects' names and internal notes do appear here; the seller never sees them.",
+      "ownOnly": "You only see your own visits; the report above adds up every advisor's.",
+      "empty": "No visits logged for this property yet."
+    },
+    "property": {
+      "notFound": "Property not found."
+    },
+    "report": {
+      "summary": "Summary",
+      "daysOnMarket": "Days on the market",
+      "untilSale": "Until the sale",
+      "totalVisits": "Visits made",
+      "interested": "Interested",
+      "withOffer": "{{count}} with an offer",
+      "discarded": "Ruled out",
+      "reasonsTitle": "Why the purchase hasn't gone through",
+      "reasonsNote": "Percentage of all the reasons mentioned; one visit can mention more than one.",
+      "reasonsEmpty": "No reasons logged yet.",
+      "reasonTip": "mentioned in {{count}} of {{total}} visit(s)",
+      "viewChart": "View chart",
+      "viewTable": "View as table",
+      "reasonCol": "Reason",
+      "mentionsCol": "Mentions",
+      "logTitle": "Observations log",
+      "logNote": "Visitors' comments, most recent visit first. They don't include names.",
+      "logEmpty": "No visits logged yet.",
+      "showAll": "Show all {{count}} visits",
+      "showFewer": "Show fewer",
+      "downloadPdf": "Download PDF",
+      "pdfError": "Could not generate the PDF.",
+      "pdfTitle": "Visit report",
+      "zoneLabel": "Area",
+      "statusLabel": "Status",
+      "generatedOn": "Report generated on {{date}}",
+      "reasonsPrefix": "Reasons"
+    },
+    "public": {
+      "pageTitle": "Visit report",
+      "title": "Visit report",
+      "intro": "This is how the sale of your property is going: how many people have visited it, how they responded and what observations they left. Comments are anonymous.",
+      "updated": "Updated on {{date}}",
+      "invalidTitle": "This link isn't valid",
+      "invalidBody": "The link doesn't exist or has been turned off. Ask your ACL Propiedades advisor for a new one.",
+      "errorTitle": "We couldn't load the report",
+      "errorBody": "Check your connection and try again in a few minutes."
     }
   },
   "liquidacion": {

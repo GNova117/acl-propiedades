@@ -310,6 +310,57 @@ export const VENTAS_SEED = [
   },
 ];
 
+// Visitas de demostración, repartidas para que el informe tenga qué mostrar:
+// una casa con muchas visitas y varios motivos (prop-1), una ya vendida
+// (prop-6), una apartada con oferta (prop-3) y una sin ninguna (prop-9, para
+// ver el estado vacío). Los nombres y las notas internas son ficticios y sirven
+// también para comprobar que nunca salen en el informe del vendedor.
+const VISIT_ROWS = [
+  // [propiedad, asesor, hace N días, interés, motivos, comentario, prospecto, nota interna]
+  ["prop-1", "advisor-1", 150.4, "interesado", [], "Le gustó el jardín; quiere ver otra casa antes de decidir.", "Familia Ríos", null],
+  ["prop-1", "advisor-2", 120.2, "descartado", ["precio"], "Le pareció alto el precio para la zona.", "Manuel Ortega", null],
+  ["prop-1", "advisor-1", 95.6, "descartado", ["ubicacion"], "Queda lejos del trabajo de la pareja.", "Pareja Salas", null],
+  ["prop-1", "advisor-2", 70.3, "descartado", ["espacios", "distribucion"], "La cocina es pequeña y las recámaras quedan muy juntas.", "Patricia Nava", null],
+  ["prop-1", "advisor-1", 44.5, "muy_interesado", ["precio"], "Le encantó, pero busca un descuento.", "Roberto Cantú", "Presupuesto máx. $1.9 M con crédito Infonavit."],
+  ["prop-1", "advisor-1", 30.1, "oferta_realizada", ["precio"], "Ofreció 5 % menos del precio de lista.", "Roberto Cantú", "Su cuñado es contratista: pidió permiso para cotizar arreglos."],
+  ["prop-1", "advisor-2", 18.7, "descartado", ["conservacion"], "Le preocupan la pintura y los pisos; requeriría remodelar.", "Elena Duarte", null],
+  ["prop-1", "advisor-2", 6.4, "interesado", ["precio", "espacios"], "Le gustó, aunque la sala le parece chica para su familia.", "Familia Ibarra", null],
+  ["prop-2", "advisor-2", 130.5, "descartado", ["ubicacion"], "Prefiere una zona más cercana a escuelas.", "Mariana Lozano", null],
+  ["prop-2", "advisor-2", 90.3, "descartado", ["precio", "conservacion"], "Precio alto para el estado en que está la casa.", "Jesús Treviño", null],
+  ["prop-2", "advisor-2", 60.8, "interesado", [], "Buena distribución; pidió ver los papeles.", "Andrea Solís", null],
+  ["prop-2", "advisor-2", 25.2, "descartado", ["distribucion"], "No le convence que la cochera quede al fondo.", "Familia Ruiz", null],
+  ["prop-2", "advisor-2", 9.6, "muy_interesado", [], "Regresará con su esposa el fin de semana.", "Héctor Villarreal", null],
+  ["prop-3", "advisor-1", 100.4, "interesado", ["espacios"], "Le parece pequeña la recámara principal.", "Karla Mendoza", null],
+  ["prop-3", "advisor-1", 55.7, "descartado", ["precio"], "Fuera de su presupuesto.", "Óscar Peña", null],
+  ["prop-3", "advisor-1", 20.3, "oferta_realizada", [], "Oferta al precio de lista, en trámite de crédito.", "Familia Garza", "Ya apartó; falta avalúo."],
+  ["prop-4", "advisor-2", 40.6, "descartado", ["espacios", "ubicacion"], "Muy chico y con mucho ruido de la avenida.", "Diego Franco", null],
+  ["prop-4", "advisor-2", 12.2, "interesado", [], "Lo quiere para inversión; pidió el estimado de renta.", "Laura Benítez", null],
+  ["prop-5", "advisor-3", 50.5, "descartado", ["precio"], "Encontró algo similar más barato en la misma colonia.", "Ivan Cortés", null],
+  ["prop-5", "advisor-2", 28.4, "descartado", ["precio", "conservacion"], "Precio alto y detalles de humedad en el techo.", "Sofía Herrera", null],
+  ["prop-5", "advisor-3", 7.9, "interesado", [], "Le gustó la vista; compara con otra opción.", "Pablo Aguirre", null],
+  ["prop-6", "advisor-1", 40.3, "descartado", ["ubicacion"], "Prefería otra colonia.", "Nora Castillo", null],
+  ["prop-6", "advisor-1", 25.9, "muy_interesado", ["precio"], "Le encantó; negoció el precio.", "Hugo Barrera", null],
+  ["prop-6", "advisor-1", 16.5, "oferta_realizada", [], "Oferta aceptada.", "Hugo Barrera", "Cierre con crédito bancario."],
+  ["prop-7", "advisor-3", 22.4, "interesado", [], "Requiere andén de carga adicional; lo está evaluando.", "Logística del Norte", null],
+  ["prop-7", "advisor-3", 10.2, "descartado", ["distribucion", "ubicacion"], "Necesita más oficinas y un acceso más directo a la carretera.", "Manufacturas Ávila", null],
+  ["prop-8", "advisor-1", 5.3, "interesado", [], "Pidió planos y constancia de uso de suelo.", "Grupo Zamora", null],
+];
+
+export const VISITS_SEED = VISIT_ROWS.map(([property_id, advisor_id, ago, interest, reasons, comments, prospect_name, internal_notes], i) => ({
+  id: `visit-${i + 1}`,
+  property_id,
+  advisor_id,
+  visited_at: daysAgoIso(ago),
+  prospect_name,
+  interest,
+  reasons,
+  comments,
+  internal_notes,
+  created_by: "admin@aclpropiedades.com",
+  created_at: daysAgoIso(ago),
+  updated_at: daysAgoIso(ago),
+}));
+
 export const AMENITIES_SEED = [
   { id: "amenity-1", key: "alberca", label: "Alberca", active: true },
   { id: "amenity-2", key: "seguridad_24h", label: "Seguridad 24h", active: true },
@@ -331,9 +382,9 @@ export const ADMIN_ROLES_SEED = [
     id: "role-admin",
     slug: "admin",
     name: "Administrador",
-    sections: ["propiedades", "naves_industriales", "asesores", "zonas", "clientes", "remodelaciones", "materiales", "credito_infonavit", "liquidaciones", "documentos_legales", "roles", "agenda", "reportes", "bitacora", "valuacion"],
+    sections: ["propiedades", "naves_industriales", "asesores", "zonas", "clientes", "remodelaciones", "materiales", "credito_infonavit", "liquidaciones", "documentos_legales", "roles", "agenda", "reportes", "bitacora", "valuacion", "visitas"],
   },
-  { id: "role-asesores", slug: "asesores", name: "Asesores", sections: ["propiedades", "naves_industriales", "clientes", "agenda"] },
+  { id: "role-asesores", slug: "asesores", name: "Asesores", sections: ["propiedades", "naves_industriales", "clientes", "agenda", "visitas"] },
   { id: "role-remodelaciones", slug: "remodelaciones", name: "Remodelaciones", sections: ["remodelaciones", "propiedades", "naves_industriales"] },
 ];
 

@@ -1,0 +1,386 @@
+/* Informe de visitas para el vendedor. Lo comparten la vista previa del panel y
+   la página pública por enlace, así que NO depende de admin.css (la página
+   pública no lo carga): todo lo necesario vive aquí, con los tokens del sitio
+   para que el tema claro/oscuro funcione igual que en el resto.
+   El color de la gráfica es la ranura 1 de la paleta categórica validada de la
+   skill de dataviz (azul), cada modo elegido por separado y validado contra la
+   superficie real del sitio (#ffffff / #131f36). Una sola serie = un solo color;
+   el texto nunca lleva el color de la serie. */
+
+.visit-report {
+  --vr-series: #2a78d6;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+[data-theme="dark"] .visit-report {
+  --vr-series: #3987e5;
+}
+
+.vr-muted {
+  color: var(--color-text-muted);
+}
+
+.vr-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums; /* solo en columnas que deben alinear */
+}
+
+/* ── Encabezado de la propiedad ─────────────── */
+
+.vr-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.vr-head__img {
+  width: 96px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+  background: var(--color-bg-alt);
+}
+
+.vr-head__text {
+  min-width: 0;
+}
+
+.vr-head__text h2 {
+  margin: 0.1rem 0 0.4rem;
+  font-size: 1.35rem;
+  overflow-wrap: anywhere;
+}
+
+.vr-head__meta {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* ── Contadores (tiles) ─────────────────────── */
+
+.vr-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.vr-tile {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.vr-tile dt {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.vr-tile dd {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0;
+}
+
+/* La cifra grande va en la tipografía de cuerpo (no en la de encabezados) y con
+   cifras proporcionales: tabular-nums las abre de más a este tamaño. */
+.vr-tile__value {
+  font-family: var(--font-body);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-text);
+}
+
+.vr-tile__note {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* ── Tarjetas (gráfica e historial) ─────────── */
+
+.vr-card {
+  margin: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1.25rem;
+}
+
+.vr-card h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+}
+
+.vr-card > p,
+.vr-card__head p {
+  margin: 0 0 0.9rem;
+  font-size: 0.85rem;
+}
+
+.vr-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.vr-empty {
+  margin: 0.5rem 0 0;
+  color: var(--color-text-muted);
+}
+
+/* ── Gráfica de barras horizontales ─────────── */
+
+.vr-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.vr-bar {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 10rem) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: var(--radius-sm);
+  outline-offset: 3px;
+  cursor: default;
+}
+
+.vr-bar__label {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+/* Base común de todas las barras: una línea fina, recesiva. */
+.vr-bar__plot {
+  display: flex;
+  align-items: center;
+  height: 20px; /* la barra mide <= 24px: nunca llena el renglón */
+  border-left: 1px solid var(--color-border);
+}
+
+/* 4px redondeados solo en el extremo del dato; cuadrada donde nace (la base). */
+.vr-bar__fill {
+  display: block;
+  height: 16px;
+  min-width: 3px;
+  background: var(--vr-series);
+  border-radius: 0 4px 4px 0;
+  transition: filter 0.15s ease;
+}
+
+.vr-bar:hover .vr-bar__fill,
+.vr-bar:focus-visible .vr-bar__fill {
+  filter: brightness(1.12);
+}
+
+.vr-bar__value {
+  font-size: 0.9rem;
+  white-space: nowrap;
+  color: var(--color-text);
+}
+
+.vr-bar__tip {
+  display: none;
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 4px);
+  z-index: 5;
+  padding: 0.4rem 0.65rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  color: var(--color-text);
+  pointer-events: none;
+}
+
+.vr-bar:hover .vr-bar__tip,
+.vr-bar:focus-visible .vr-bar__tip {
+  display: block;
+}
+
+/* ── Tabla equivalente de la gráfica ────────── */
+
+.vr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.vr-table th,
+.vr-table td {
+  padding: 0.5rem 0.4rem;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.vr-table thead th {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.vr-table tbody th {
+  font-weight: 500;
+}
+
+.vr-table .vr-num {
+  text-align: right;
+}
+
+/* ── Historial de observaciones ─────────────── */
+
+.vr-log {
+  list-style: none;
+  margin: 0 0 0.9rem;
+  padding: 0;
+}
+
+.vr-entry {
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.vr-entry:first-child {
+  border-top: 0;
+  padding-top: 0.25rem;
+}
+
+.vr-entry__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.vr-entry__head time {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.vr-entry__comment {
+  margin: 0.45rem 0 0;
+  color: var(--color-text);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* Estado del interés: el significado va SIEMPRE en el texto; el color solo lo
+   refuerza (por eso el texto usa el token de texto, no el color del estado). */
+.vr-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text);
+  border: 1px solid var(--vr-badge, var(--color-border));
+  background: color-mix(in srgb, var(--vr-badge, var(--color-text-muted)) 16%, transparent);
+}
+
+.vr-badge--muy_interesado {
+  --vr-badge: var(--color-success);
+}
+
+.vr-badge--interesado {
+  --vr-badge: var(--color-primary);
+}
+
+.vr-badge--oferta_realizada {
+  --vr-badge: var(--color-warning);
+}
+
+.vr-badge--descartado {
+  --vr-badge: var(--color-text-muted);
+}
+
+.vr-chips {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.vr-chips li {
+  padding: 0.1rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  background: var(--color-bg-alt);
+}
+
+/* ── Pantallas angostas (el vendedor lo abre desde WhatsApp) ─── */
+
+@media (min-width: 720px) {
+  .vr-tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .vr-head__img {
+    width: 72px;
+    height: 56px;
+  }
+
+  .vr-bar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 0.25rem;
+  }
+
+  /* En el celular la etiqueta va arriba de la barra para que no se apriete. */
+  .vr-bar__label {
+    grid-column: 1 / -1;
+  }
+
+  .vr-card {
+    padding: 1rem;
+  }
+
+  /* En columna, el botón "Ver como tabla" queda debajo del título: se le da
+     aire antes de la primera barra (en escritorio ese aire lo da el párrafo). */
+  .vr-card__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .vr-card__head p {
+    margin-bottom: 0;
+  }
+}
+
+@media print {
+  .vr-noprint {
+    display: none !important;
+  }
+
+  .vr-bar__tip {
+    display: none !important;
+  }
+}

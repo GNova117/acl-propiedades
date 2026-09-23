@@ -1,0 +1,209 @@
+/* Visitas (uso interno): lista, formulario de captura y página por propiedad.
+   El informe en sí (contadores, gráfica, historial) vive en
+   components/VisitReportView.css y se comparte con la página pública. Aquí solo
+   va lo propio del panel. Los asesores capturan justo al salir de un recorrido,
+   normalmente desde el celular: las opciones son píldoras grandes y táctiles. */
+
+/* ── Formulario ─────────────────────────────── */
+
+.visit-form {
+  max-width: 760px;
+}
+
+/* Solo se quitan los márgenes laterales por defecto del fieldset: el margen
+   inferior lo pone .form-field, igual que en los demás campos del formulario. */
+.visit-form fieldset {
+  border: 0;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.visit-form legend {
+  padding: 0;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.visit-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* El <input> real queda dentro de la etiqueta (accesible con teclado y lector
+   de pantalla); solo se oculta visualmente. Todas las reglas llevan el prefijo
+   .visit-form a propósito: sin él, .form-field label / .form-field input (más
+   específicas que una sola clase) les pisarían el tamaño, el peso y el borde. */
+.visit-form .visit-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px; /* objetivo táctil cómodo */
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.92rem;
+  font-weight: 400;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.visit-form .visit-pill input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.visit-form .visit-pill:hover {
+  border-color: var(--color-primary);
+}
+
+.visit-form .visit-pill:has(input:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Seleccionada: el estado va en el texto con marca "✓" además del color. */
+.visit-form .visit-pill:has(input:checked) {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  font-weight: 600;
+}
+
+.visit-form .visit-pill:has(input:checked)::before {
+  content: "✓";
+  margin-right: 0.4rem;
+  color: var(--color-primary);
+}
+
+.visit-form__advisor-fixed {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+}
+
+/* ── Lista y tabla de visitas ───────────────── */
+
+.visits-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.visits-filters .form-field {
+  min-width: 170px;
+  flex: 0 1 220px;
+}
+
+.visits-table td {
+  vertical-align: top;
+}
+
+.visits-table__when {
+  white-space: nowrap;
+}
+
+/* .admin-table fuerza white-space: nowrap en cada celda; el comentario sí debe
+   partirse en varias líneas (y recortarse a 3). */
+.visits-table td.visits-table__comment {
+  min-width: 220px;
+  max-width: 340px;
+  white-space: normal;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.visits-table__comment > span {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.visits-table td.visits-table__reasons {
+  white-space: normal;
+  min-width: 150px;
+}
+
+.visits-table .vr-chips {
+  margin-top: 0;
+}
+
+/* ── Página por propiedad ───────────────────── */
+
+.visit-property {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.visit-share {
+  padding: 1.25rem 1.5rem;
+}
+
+.visit-share h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.15rem;
+}
+
+.visit-share__url {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.visit-share__url input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.visit-share__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.visit-section-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.15rem;
+}
+
+.visit-note {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 520px) {
+  .visit-share__url {
+    flex-direction: column;
+  }
+
+  .visit-share {
+    padding: 1rem;
+  }
+}

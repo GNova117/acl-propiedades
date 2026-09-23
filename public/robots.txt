@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /informe/
 
 Sitemap: https://acl-propiedades.vercel.app/sitemap.xml

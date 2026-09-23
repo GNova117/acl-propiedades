@@ -5,6 +5,7 @@ import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify, numOrNull } from "./format";
 import { CLIENT_EXPEDIENTE_KEYS } from "./clientExpedienteFields";
 import { compressImageFile, compressImageFiles } from "./imageCompression";
+import { generateReportToken, REPORT_TOKEN_PATTERN } from "./visitReport";
 
 // Los campos del expediente del cliente (NSS, contraseña del portal, número
 // de crédito y las 2 referencias) se guardan igual al crear y al editar — se
@@ -1134,6 +1135,95 @@ export const supabaseBackend = {
     const { error } = await supabase.from("property_budgets").upsert(row, { onConflict: "property_id" });
     if (error) throw error;
     return row.monto;
+  },
+
+  // Visitas de prospectos a una propiedad. RLS (ver schema.sql): cada asesor
+  // ve y edita solo las suyas; un correo con el apartado 'visitas' pero sin
+  // asesor vinculado ve todas — mismo patrón que agenda_citas.
+  async getVisits({ propertyId } = {}) {
+    let query = supabase.from("property_visits").select("*").order("visited_at", { ascending: false });
+    if (propertyId) query = query.eq("property_id", propertyId);
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getVisitById(id) {
+    const { data, error } = await supabase.from("property_visits").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async addVisit(fields) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = { ...fields, created_by: sessionData?.session?.user?.email || null };
+    const { data, error } = await supabase.from("property_visits").insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateVisit(id, fields) {
+    const { data, error } = await supabase
+      .from("property_visits")
+      .update({ ...fields, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteVisit(id) {
+    const { error } = await supabase.from("property_visits").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  // Informe de UNA propiedad, ya anonimizado: { property, sold_on, visits:
+  // [{ visited_at, interest, reasons, comments }] }. Es el mismo JSON que
+  // recibe el vendedor por el enlace, y suma las visitas de TODOS los
+  // asesores aunque la tabla de visitas solo le muestre al asesor las suyas
+  // (por eso sale de una función SQL y no de leer property_visits).
+  async getVisitReport(propertyId) {
+    const { data, error } = await supabase.rpc("visit_report", { p_property_id: propertyId });
+    if (error) throw error;
+    return data;
+  },
+
+  async getReportLink(propertyId) {
+    const { data, error } = await supabase.from("property_report_links").select("*").eq("property_id", propertyId).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  // Crea el enlace secreto de la propiedad o, si ya había uno, lo REGENERA: el
+  // token anterior deja de funcionar en el acto.
+  async saveReportLink(propertyId) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = {
+      property_id: propertyId,
+      token: generateReportToken(),
+      created_by: sessionData?.session?.user?.email || null,
+      created_at: new Date().toISOString(),
+    };
+    const { data, error } = await supabase.from("property_report_links").upsert(row, { onConflict: "property_id" }).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteReportLink(propertyId) {
+    const { error } = await supabase.from("property_report_links").delete().eq("property_id", propertyId);
+    if (error) throw error;
+  },
+
+  // Página pública /informe/<token>, SIN sesión: solo esta función es
+  // ejecutable por anon (las tablas siguen cerradas). null = enlace
+  // inexistente, regenerado o desactivado. Un token con formato inválido ni
+  // siquiera se manda a la base.
+  async getVisitReportByToken(token) {
+    if (!REPORT_TOKEN_PATTERN.test(token || "")) return null;
+    const { data, error } = await supabase.rpc("visit_report_by_token", { p_token: token });
+    if (error) throw error;
+    return data || null;
   },
 
   async getRoles() {

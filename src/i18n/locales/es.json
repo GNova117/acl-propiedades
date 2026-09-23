@@ -433,7 +433,9 @@
       "testimonios": "Testimonios",
       "reportes": "Ventas y reportes",
       "bitacora": "Bitácora y gastos",
-      "valuacion": "Valuación"
+      "valuacion": "Valuación",
+      "construccion": "Construcción",
+      "visitas": "Visitas"
     },
     "rolesTitle": "Roles",
     "newRole": "Nuevo rol",
@@ -449,8 +451,8 @@
     "accessEmail": "Correo",
     "accessRole": "Rol",
     "accessAdvisor": "Asesor vinculado",
-    "accessAdvisorNone": "— (ve todas las agendas)",
-    "accessAdvisorHint": "Solo aplica al apartado Agenda: vincula este correo con su propio asesor para que solo vea y edite su propia agenda. Déjalo vacío para que vea las de todos.",
+    "accessAdvisorNone": "— (ve todas las agendas y visitas)",
+    "accessAdvisorHint": "Solo aplica a los apartados Agenda y Visitas: vincula este correo con su propio asesor para que solo vea y edite sus propias citas y visitas. Déjalo vacío para que vea las de todos.",
     "addAccess": "Dar acceso",
     "removeAccess": "Quitar acceso",
     "noAccess": "Aún no hay correos con acceso asignado."
@@ -808,6 +810,137 @@
       "type": "Tipo",
       "detail": "Detalle",
       "receipt": "Comprobante"
+    }
+  },
+  "visits": {
+    "button": "Visitas",
+    "allTitle": "Visitas",
+    "myTitle": "Mis visitas",
+    "propertyTitle": "Informe de visitas",
+    "newVisit": "Registrar visita",
+    "backToList": "Volver a visitas",
+    "loadError": "No se pudieron cargar las visitas: {{error}}",
+    "confirmDelete": "¿Eliminar esta visita? El informe del vendedor se recalcula sin ella.",
+    "empty": "Aún no hay visitas registradas.",
+    "noMatches": "Ninguna visita coincide con los filtros.",
+    "interest": {
+      "muy_interesado": "Muy interesado",
+      "interesado": "Interesado",
+      "oferta_realizada": "Oferta realizada",
+      "descartado": "Descartado"
+    },
+    "reasons": {
+      "ubicacion": "Ubicación / zona",
+      "precio": "Precio",
+      "espacios": "Tamaño de los espacios",
+      "conservacion": "Estado de conservación / acabados",
+      "distribucion": "Distribución de la propiedad"
+    },
+    "table": {
+      "when": "Fecha y hora",
+      "property": "Propiedad",
+      "prospect": "Prospecto",
+      "interest": "Interés",
+      "reasons": "Motivos",
+      "advisor": "Asesor",
+      "comment": "Comentario"
+    },
+    "filters": {
+      "allProperties": "Todas las propiedades",
+      "allInterests": "Todos",
+      "allAdvisors": "Todos los asesores"
+    },
+    "form": {
+      "newTitle": "Registrar visita",
+      "editTitle": "Editar visita",
+      "property": "Propiedad visitada",
+      "chooseProperty": "Elige una propiedad",
+      "when": "Fecha y hora de la visita",
+      "futureDate": "La visita no puede ser en el futuro.",
+      "advisor": "Asesor que hizo el recorrido",
+      "chooseAdvisor": "Elige un asesor",
+      "prospect": "Nombre del prospecto",
+      "prospectHint": "Solo lo ves tú y la oficina: no aparece en el informe del vendedor.",
+      "interest": "Interés del cliente",
+      "reasons": "Motivo de objeción o rechazo",
+      "reasonsHint": "Marca todos los que apliquen. Alimentan la gráfica de motivos del vendedor.",
+      "comments": "Comentarios para el vendedor",
+      "commentsHint": "Notas rápidas sobre lo que dijo el cliente. Aparecen en el informe del vendedor sin el nombre del prospecto: no escribas nombres ni teléfonos aquí.",
+      "internalNotes": "Notas internas",
+      "internalNotesHint": "Solo tú y la oficina las ven; nunca llegan al vendedor.",
+      "optional": "opcional",
+      "saveError": "No se pudo guardar la visita.",
+      "notFound": "No se encontró esa visita (o no es tuya)."
+    },
+    "share": {
+      "title": "Informe para el vendedor",
+      "intro": "Comparte este enlace privado con el vendedor: verá su informe (contadores, motivos e historial) sin iniciar sesión y sin nombres de prospectos. Es solo de lectura.",
+      "create": "Crear enlace",
+      "linkLabel": "Enlace del informe",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "copyManual": "No se pudo copiar automáticamente: el enlace quedó seleccionado, cópialo con Ctrl+C.",
+      "open": "Abrir",
+      "whatsapp": "Enviar por WhatsApp",
+      "whatsappMessage": "Hola, este es el informe de visitas de tu propiedad «{{title}}»: {{url}}",
+      "regenerate": "Generar enlace nuevo",
+      "disable": "Desactivar enlace",
+      "confirmRegenerate": "¿Generar un enlace nuevo? El enlace anterior dejará de funcionar y el vendedor necesitará el nuevo.",
+      "confirmDisable": "¿Desactivar el enlace? El vendedor ya no podrá abrir su informe hasta que crees uno nuevo.",
+      "createdOn": "Enlace creado el {{date}}.",
+      "rotateHint": "Cualquiera que tenga el enlace puede ver el informe: compártelo solo con el vendedor."
+    },
+    "preview": {
+      "title": "Vista previa: lo que ve el vendedor",
+      "hint": "Es el mismo informe que recibe por el enlace y por el PDF. Suma las visitas de todos los asesores y no muestra nombres de prospectos ni notas internas."
+    },
+    "internal": {
+      "title": "Registro de visitas (solo interno)",
+      "hint": "Aquí sí aparecen los nombres de los prospectos y las notas internas; el vendedor nunca los ve.",
+      "ownOnly": "Ves solo tus propias visitas; el informe de arriba suma las de todos los asesores.",
+      "empty": "Todavía no hay visitas registradas para esta propiedad."
+    },
+    "property": {
+      "notFound": "No se encontró la propiedad."
+    },
+    "report": {
+      "summary": "Resumen",
+      "daysOnMarket": "Días en el mercado",
+      "untilSale": "Hasta la venta",
+      "totalVisits": "Visitas realizadas",
+      "interested": "Interesados",
+      "withOffer": "{{count}} con oferta",
+      "discarded": "Descartados",
+      "reasonsTitle": "Motivos por los que no se ha concretado la compra",
+      "reasonsNote": "Porcentaje sobre el total de motivos mencionados; una visita puede mencionar más de uno.",
+      "reasonsEmpty": "Todavía no hay motivos registrados.",
+      "reasonTip": "mencionado en {{count}} de {{total}} visita(s)",
+      "viewChart": "Ver gráfica",
+      "viewTable": "Ver como tabla",
+      "reasonCol": "Motivo",
+      "mentionsCol": "Menciones",
+      "logTitle": "Historial de observaciones",
+      "logNote": "Comentarios de los visitantes, de la visita más reciente a la más antigua. No incluyen nombres.",
+      "logEmpty": "Todavía no hay visitas registradas.",
+      "showAll": "Ver las {{count}} visitas",
+      "showFewer": "Ver menos",
+      "downloadPdf": "Descargar PDF",
+      "pdfError": "No se pudo generar el PDF.",
+      "pdfTitle": "Informe de visitas",
+      "zoneLabel": "Zona",
+      "statusLabel": "Estatus",
+      "generatedOn": "Informe generado el {{date}}",
+      "reasonsPrefix": "Motivos"
+    },
+    "public": {
+      "pageTitle": "Informe de visitas",
+      "title": "Informe de visitas",
+      "intro": "Así va la venta de tu propiedad: cuántas personas la han visitado, cómo respondieron y qué observaciones dejaron. Los comentarios son anónimos.",
+      "updated": "Actualizado el {{date}}",
+      "invalidTitle": "Este enlace no es válido",
+      "invalidBody": "El enlace no existe o ya fue desactivado. Pide a tu asesor de ACL Propiedades uno nuevo.",
+      "errorTitle": "No pudimos cargar el informe",
+      "errorBody": "Revisa tu conexión e inténtalo de nuevo en unos minutos."
     }
   },
   "liquidacion": {

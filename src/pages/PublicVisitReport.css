@@ -1,0 +1,98 @@
+/* Página pública del informe de visitas (/informe/:token): pensada para abrirse
+   desde WhatsApp en el celular, sin menú ni decoraciones del sitio. */
+
+.public-report {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.public-report__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.public-report__logo {
+  display: inline-flex;
+}
+
+.public-report__tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.public-report__main {
+  flex: 1;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+}
+
+.public-report__main h1 {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+}
+
+.public-report__intro {
+  margin: 0 0 1.25rem;
+}
+
+.public-report__status {
+  margin-top: 1.5rem;
+}
+
+.public-report__notice {
+  margin-top: 1.25rem;
+  padding: 1.5rem;
+}
+
+.public-report__notice h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.public-report__notice p {
+  margin: 0;
+}
+
+.public-report__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.25rem;
+}
+
+.public-report__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 1rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 520px) {
+  .public-report__actions .btn {
+    width: 100%;
+  }
+}
+
+@media print {
+  .public-report__bar,
+  .public-report__actions {
+    display: none;
+  }
+
+  .public-report {
+    background: #fff;
+  }
+}

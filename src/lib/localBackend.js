@@ -1,4 +1,5 @@
-import { ZONES, ADVISORS, PROPERTIES, VENTAS_SEED, PROPERTY_TYPES_SEED, AMENITIES_SEED, DEMO_ADMIN, ADMIN_ROLES_SEED, ADMIN_ACCESS_SEED } from "./seedData";
+import { ZONES, ADVISORS, PROPERTIES, VENTAS_SEED, VISITS_SEED, PROPERTY_TYPES_SEED, AMENITIES_SEED, DEMO_ADMIN, ADMIN_ROLES_SEED, ADMIN_ACCESS_SEED } from "./seedData";
+import { generateReportToken, REPORT_TOKEN_PATTERN } from "./visitReport";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify, numOrNull } from "./format";
@@ -28,6 +29,8 @@ const KEYS = {
   ventas: "acl_local_ventas",
   propertyLog: "acl_local_property_log",
   propertyBudgets: "acl_local_property_budgets",
+  visits: "acl_local_visits",
+  reportLinks: "acl_local_report_links",
   adminRoles: "acl_local_admin_roles",
   adminAccess: "acl_local_admin_access",
   agendaCitas: "acl_local_agenda_citas",
@@ -345,6 +348,8 @@ export const localBackend = {
     // presupuesto de la casa se van con ella.
     writeStore(KEYS.propertyLog, readStore(KEYS.propertyLog, []).filter((e) => e.property_id !== id));
     writeStore(KEYS.propertyBudgets, readStore(KEYS.propertyBudgets, []).filter((b) => b.property_id !== id));
+    writeStore(KEYS.visits, readStore(KEYS.visits, VISITS_SEED).filter((v) => v.property_id !== id));
+    writeStore(KEYS.reportLinks, readStore(KEYS.reportLinks, []).filter((l) => l.property_id !== id));
   },
 
   async getAdvisors() {
@@ -1165,6 +1170,101 @@ export const localBackend = {
     else items[idx] = record;
     writeStore(KEYS.propertyBudgets, items);
     return record.monto;
+  },
+
+  // Visitas de prospectos a una propiedad (modo demo: sin RLS, se ven todas —
+  // igual que la agenda, el modo demo resuelve advisorId a null).
+  async getVisits({ propertyId } = {}) {
+    return readStore(KEYS.visits, VISITS_SEED)
+      .filter((v) => !propertyId || v.property_id === propertyId)
+      .sort((a, b) => String(b.visited_at).localeCompare(String(a.visited_at)));
+  },
+
+  async getVisitById(id) {
+    return readStore(KEYS.visits, VISITS_SEED).find((v) => v.id === id) || null;
+  },
+
+  async addVisit(fields) {
+    const items = readStore(KEYS.visits, VISITS_SEED);
+    const now = new Date().toISOString();
+    const record = { id: uid("visit"), ...fields, created_by: DEMO_ADMIN.email, created_at: now, updated_at: now };
+    items.push(record);
+    writeStore(KEYS.visits, items);
+    return record;
+  },
+
+  async updateVisit(id, fields) {
+    const items = readStore(KEYS.visits, VISITS_SEED);
+    const idx = items.findIndex((v) => v.id === id);
+    if (idx === -1) throw new Error("Visita no encontrada");
+    items[idx] = { ...items[idx], ...fields, updated_at: new Date().toISOString() };
+    writeStore(KEYS.visits, items);
+    return items[idx];
+  },
+
+  async deleteVisit(id) {
+    writeStore(KEYS.visits, readStore(KEYS.visits, VISITS_SEED).filter((v) => v.id !== id));
+  },
+
+  // Replica en JS lo que en Supabase hace _visit_report_payload (schema.sql):
+  // una lista CERRADA de campos por visita — sin nombre del prospecto, sin
+  // asesor, sin notas internas. Lo usan tanto la vista previa del personal como
+  // la página pública por token.
+  _visitReportPayload(propertyId) {
+    const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === propertyId);
+    if (!property) return null;
+    const sale = property.status === "vendida" ? readStore(KEYS.ventas, VENTAS_SEED).find((v) => v.property_id === propertyId) : null;
+    return {
+      property: {
+        title: property.title,
+        code: property.code || null,
+        zone: property.zone,
+        status: property.status,
+        created_at: property.created_at || null,
+        main_image: property.main_image || null,
+      },
+      sold_on: sale?.fecha_venta || null,
+      visits: readStore(KEYS.visits, VISITS_SEED)
+        .filter((v) => v.property_id === propertyId)
+        .sort((a, b) => String(b.visited_at).localeCompare(String(a.visited_at)))
+        .map((v) => ({
+          visited_at: v.visited_at,
+          interest: v.interest,
+          reasons: v.reasons || [],
+          comments: v.comments?.trim() || null,
+        })),
+    };
+  },
+
+  async getVisitReport(propertyId) {
+    return this._visitReportPayload(propertyId);
+  },
+
+  async getReportLink(propertyId) {
+    return readStore(KEYS.reportLinks, []).find((l) => l.property_id === propertyId) || null;
+  },
+
+  // Crea el enlace o lo REGENERA (el token anterior deja de funcionar).
+  async saveReportLink(propertyId) {
+    const links = readStore(KEYS.reportLinks, []);
+    const record = { property_id: propertyId, token: generateReportToken(), created_by: DEMO_ADMIN.email, created_at: new Date().toISOString() };
+    const idx = links.findIndex((l) => l.property_id === propertyId);
+    if (idx === -1) links.push(record);
+    else links[idx] = record;
+    writeStore(KEYS.reportLinks, links);
+    return record;
+  },
+
+  async deleteReportLink(propertyId) {
+    writeStore(KEYS.reportLinks, readStore(KEYS.reportLinks, []).filter((l) => l.property_id !== propertyId));
+  },
+
+  // Igual que en Supabase: null si el token no existe, fue regenerado o se
+  // desactivó (y ni siquiera se busca si no tiene el formato de un token).
+  async getVisitReportByToken(token) {
+    if (!REPORT_TOKEN_PATTERN.test(token || "")) return null;
+    const link = readStore(KEYS.reportLinks, []).find((l) => l.token === token);
+    return link ? this._visitReportPayload(link.property_id) : null;
   },
 
   async getRoles() {

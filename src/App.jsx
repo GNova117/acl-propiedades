@@ -64,6 +64,12 @@ const AdminMessages = lazy(() => import("./pages/admin/AdminMessages"));
 const AdminTestimonials = lazy(() => import("./pages/admin/AdminTestimonials"));
 const AdminSalesReports = lazy(() => import("./pages/admin/AdminSalesReports"));
 const AdminPropertyBitacora = lazy(() => import("./pages/admin/AdminPropertyBitacora"));
+const AdminVisits = lazy(() => import("./pages/admin/AdminVisits"));
+const AdminVisitForm = lazy(() => import("./pages/admin/AdminVisitForm"));
+const AdminPropertyVisits = lazy(() => import("./pages/admin/AdminPropertyVisits"));
+// Informe que recibe el vendedor por enlace privado. Es público (sin login) pero
+// no es una página del sitio: ver la ruta /informe/:token más abajo.
+const PublicVisitReport = lazy(() => import("./pages/PublicVisitReport"));
 
 const SPECIAL_SECTION_KEYS = Object.keys(SPECIAL_SECTION_TYPES);
 
@@ -109,7 +115,7 @@ export default function App() {
 
   return (
     <Suspense fallback={<div className="empty-state">{t("common.loading")}</div>}>
-    {!pathname.startsWith("/admin") && <SeasonalParticles />}
+    {!pathname.startsWith("/admin") && !pathname.startsWith("/informe/") && <SeasonalParticles />}
     <Routes>
       <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
       <Route path="/propiedades" element={<PublicLayout><Properties excludeTypes={SPECIAL_SECTION_KEYS} /></PublicLayout>} />
@@ -137,6 +143,10 @@ export default function App() {
       <Route path="/comparar" element={<PublicLayout><Compare /></PublicLayout>} />
       <Route path="/aviso-de-privacidad" element={<PublicLayout><Privacy /></PublicLayout>} />
       <Route path="/carta-de-derechos" element={<PublicLayout><Rights /></PublicLayout>} />
+      {/* Sin PublicLayout a propósito: ese layout manda cada ruta a Google
+          Analytics y el token del enlace (que es lo que da acceso) no debe
+          llegar ahí; tampoco necesita el menú ni las decoraciones del sitio. */}
+      <Route path="/informe/:token" element={<ErrorBoundary><PublicVisitReport /></ErrorBoundary>} />
 
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route
@@ -254,6 +264,10 @@ export default function App() {
         <Route path="mensajes" element={<RequireSection section="mensajes"><AdminMessages /></RequireSection>} />
         <Route path="testimonios" element={<RequireSection section="testimonios"><AdminTestimonials /></RequireSection>} />
         <Route path="reportes" element={<RequireSection section="reportes"><AdminSalesReports /></RequireSection>} />
+        <Route path="visitas" element={<RequireSection section="visitas"><AdminVisits /></RequireSection>} />
+        <Route path="visitas/nueva" element={<RequireSection section="visitas"><AdminVisitForm /></RequireSection>} />
+        <Route path="visitas/propiedad/:propertyId" element={<RequireSection section="visitas"><AdminPropertyVisits /></RequireSection>} />
+        <Route path="visitas/:id" element={<RequireSection section="visitas"><AdminVisitForm /></RequireSection>} />
       </Route>
 
       <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />
