@@ -435,7 +435,8 @@
       "bitacora": "Bitácora y gastos",
       "valuacion": "Valuación",
       "construccion": "Construcción",
-      "visitas": "Visitas"
+      "visitas": "Visitas",
+      "secretaria": "Secretaría"
     },
     "rolesTitle": "Roles",
     "newRole": "Nuevo rol",

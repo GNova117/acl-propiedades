@@ -62,6 +62,7 @@ export default function AdminLayout() {
           {hasSection("documentos_legales") && <NavLink to="/admin/documentos-legales">{t("accessControl.sections.documentos_legales")}</NavLink>}
           {hasSection("agenda") && <NavLink to="/admin/agenda">{t("accessControl.sections.agenda")}</NavLink>}
           {hasSection("visitas") && <NavLink to="/admin/visitas">{t("accessControl.sections.visitas")}</NavLink>}
+          {hasSection("secretaria") && <NavLink to="/admin/secretaria">{t("accessControl.sections.secretaria")}</NavLink>}
           {hasSection("reportes") && <NavLink to="/admin/reportes">{t("accessControl.sections.reportes")}</NavLink>}
           {hasSection("roles") && <NavLink to="/admin/roles">{t("accessControl.sections.roles")}</NavLink>}
         </nav>

@@ -107,6 +107,8 @@ const PROPERTY_SORTERS = {
   area_desc: [["area_m2", false]],
 };
 
+const SECRETARIA_TABLES = { keys: "secretaria_llaves", docs: "secretaria_documentos" };
+
 export const supabaseBackend = {
   mode: "supabase",
 
@@ -1175,6 +1177,33 @@ export const supabaseBackend = {
 
   async deleteVisit(id) {
     const { error } = await supabase.from("property_visits").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  // Bitácoras de Secretaría (llaves y documentos). RLS: solo quien tenga el
+  // apartado 'secretaria' (ver schema.sql).
+  async getSecretariaLog(kind) {
+    const { data, error } = await supabase.from(SECRETARIA_TABLES[kind]).select("*").order("logged_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addSecretariaLog(kind, fields) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = { ...fields, created_by: sessionData?.session?.user?.email || null };
+    const { data, error } = await supabase.from(SECRETARIA_TABLES[kind]).insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateSecretariaLog(kind, id, fields) {
+    const { data, error } = await supabase.from(SECRETARIA_TABLES[kind]).update(fields).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteSecretariaLog(kind, id) {
+    const { error } = await supabase.from(SECRETARIA_TABLES[kind]).delete().eq("id", id);
     if (error) throw error;
   },
 

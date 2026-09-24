@@ -30,6 +30,8 @@ const KEYS = {
   propertyLog: "acl_local_property_log",
   propertyBudgets: "acl_local_property_budgets",
   visits: "acl_local_visits",
+  keyLog: "acl_local_key_log",
+  docLog: "acl_local_doc_log",
   reportLinks: "acl_local_report_links",
   adminRoles: "acl_local_admin_roles",
   adminAccess: "acl_local_admin_access",
@@ -1204,6 +1206,37 @@ export const localBackend = {
 
   async deleteVisit(id) {
     writeStore(KEYS.visits, readStore(KEYS.visits, VISITS_SEED).filter((v) => v.id !== id));
+  },
+
+  // Bitácoras de Secretaría: control de llaves y entradas/salidas de
+  // documentos (modo demo: localStorage, sin RLS).
+  async getSecretariaLog(kind) {
+    return readStore(kind === "keys" ? KEYS.keyLog : KEYS.docLog, [])
+      .sort((a, b) => String(b.logged_at).localeCompare(String(a.logged_at)));
+  },
+
+  async addSecretariaLog(kind, fields) {
+    const key = kind === "keys" ? KEYS.keyLog : KEYS.docLog;
+    const items = readStore(key, []);
+    const record = { id: uid(kind), ...fields, created_by: DEMO_ADMIN.email, created_at: new Date().toISOString() };
+    items.push(record);
+    writeStore(key, items);
+    return record;
+  },
+
+  async updateSecretariaLog(kind, id, fields) {
+    const key = kind === "keys" ? KEYS.keyLog : KEYS.docLog;
+    const items = readStore(key, []);
+    const idx = items.findIndex((r) => r.id === id);
+    if (idx === -1) throw new Error("Registro no encontrado");
+    items[idx] = { ...items[idx], ...fields };
+    writeStore(key, items);
+    return items[idx];
+  },
+
+  async deleteSecretariaLog(kind, id) {
+    const key = kind === "keys" ? KEYS.keyLog : KEYS.docLog;
+    writeStore(key, readStore(key, []).filter((r) => r.id !== id));
   },
 
   // Replica en JS lo que en Supabase hace _visit_report_payload (schema.sql):

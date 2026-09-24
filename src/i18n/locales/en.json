@@ -435,7 +435,8 @@
       "bitacora": "Log & expenses",
       "valuacion": "Valuation",
       "construccion": "Construction",
-      "visitas": "Visits"
+      "visitas": "Visits",
+      "secretaria": "Front desk"
     },
     "rolesTitle": "Roles",
     "newRole": "New role",

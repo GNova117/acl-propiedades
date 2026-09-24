@@ -64,6 +64,7 @@ const AdminMessages = lazy(() => import("./pages/admin/AdminMessages"));
 const AdminTestimonials = lazy(() => import("./pages/admin/AdminTestimonials"));
 const AdminSalesReports = lazy(() => import("./pages/admin/AdminSalesReports"));
 const AdminPropertyBitacora = lazy(() => import("./pages/admin/AdminPropertyBitacora"));
+const AdminSecretaria = lazy(() => import("./pages/admin/AdminSecretaria"));
 const AdminVisits = lazy(() => import("./pages/admin/AdminVisits"));
 const AdminVisitForm = lazy(() => import("./pages/admin/AdminVisitForm"));
 const AdminPropertyVisits = lazy(() => import("./pages/admin/AdminPropertyVisits"));
@@ -264,6 +265,7 @@ export default function App() {
         <Route path="mensajes" element={<RequireSection section="mensajes"><AdminMessages /></RequireSection>} />
         <Route path="testimonios" element={<RequireSection section="testimonios"><AdminTestimonials /></RequireSection>} />
         <Route path="reportes" element={<RequireSection section="reportes"><AdminSalesReports /></RequireSection>} />
+        <Route path="secretaria" element={<RequireSection section="secretaria"><AdminSecretaria /></RequireSection>} />
         <Route path="visitas" element={<RequireSection section="visitas"><AdminVisits /></RequireSection>} />
         <Route path="visitas/nueva" element={<RequireSection section="visitas"><AdminVisitForm /></RequireSection>} />
         <Route path="visitas/propiedad/:propertyId" element={<RequireSection section="visitas"><AdminPropertyVisits /></RequireSection>} />
