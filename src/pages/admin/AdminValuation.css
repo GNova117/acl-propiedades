@@ -197,3 +197,50 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.valuation-result__actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.valuation-history {
+  margin-top: 1.5rem;
+}
+
+.valuation-history__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.valuation-history__item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.valuation-history__info {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.valuation-history__range {
+  font-weight: 600;
+}
+
+.valuation-history__actions {
+  display: flex;
+  gap: 0.4rem;
+}

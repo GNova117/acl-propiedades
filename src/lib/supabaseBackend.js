@@ -1180,6 +1180,26 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  // Historial de Estimación de valor. RLS: apartado 'valuacion' (ver schema.sql).
+  async getValuationEstimates() {
+    const { data, error } = await supabase.from("valuation_estimates").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addValuationEstimate(fields) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = { ...fields, created_by: sessionData?.session?.user?.email || null };
+    const { data, error } = await supabase.from("valuation_estimates").insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteValuationEstimate(id) {
+    const { error } = await supabase.from("valuation_estimates").delete().eq("id", id);
+    if (error) throw error;
+  },
+
   // Bitácoras de Secretaría (llaves y documentos). RLS: solo quien tenga el
   // apartado 'secretaria' (ver schema.sql).
   async getSecretariaLog(kind) {

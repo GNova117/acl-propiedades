@@ -42,12 +42,20 @@ export default function AdminValuation() {
   const [fromMap, setFromMap] = useState({ land: false, built: false });
   const [spreadPct, setSpreadPct] = useState(String(DEFAULT_SPREAD_PCT));
   const [downloading, setDownloading] = useState(false);
+  const [reference, setReference] = useState("");
+  const [history, setHistory] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [savedId, setSavedId] = useState(null);
 
   useEffect(() => {
     db.getZones().then((data) => {
       setZones(data);
       if (data.length > 0) setZoneId(data[0].id);
     });
+  }, []);
+
+  useEffect(() => {
+    db.getValuationEstimates().then(setHistory).catch(() => setHistory([]));
   }, []);
 
   const zone = zones.find((z) => z.id === zoneId);
@@ -83,6 +91,10 @@ export default function AdminValuation() {
     setFromMap((prev) => ({ ...prev, [kind]: false }));
   };
 
+  useEffect(() => {
+    setSavedId(null);
+  }, [areas, zoneId, spreadPct, shapes, reference]);
+
   const result = useMemo(
     () => estimateValue({ landArea: areas.land, builtArea: areas.built, landRate, builtRate, spreadPct }),
     [areas, landRate, builtRate, spreadPct]
@@ -96,22 +108,82 @@ export default function AdminValuation() {
     builtArea > 0 && builtRate === 0 ? t("valuation.builtRate").toLowerCase() : null,
   ].filter(Boolean);
 
-  const handleDownload = async () => {
+  const pdfLabels = () =>
+    Object.fromEntries(
+      ["title", "date", "zone", "reference", "range", "center", "breakdown", "landRate", "builtRate", "map", "mapAttribution", "disclaimer"].map(
+        (k) => [k, t(`valuation.pdf.${k}`)]
+      )
+    );
+
+  const runPdf = async (data) => {
     setDownloading(true);
     try {
-      const labels = Object.fromEntries(
-        ["title", "date", "zone", "range", "center", "breakdown", "landRate", "builtRate", "map", "mapAttribution", "disclaimer"].map(
-          (k) => [k, t(`valuation.pdf.${k}`)]
-        )
-      );
-      await downloadValuationPdf(
-        { zoneName: zone?.name, landArea, builtArea, landRate, builtRate, spreadPct, result, shapes },
-        labels
-      );
+      await downloadValuationPdf(data, pdfLabels());
     } catch (err) {
       window.alert(err.message || t("valuation.pdf.error"));
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handleDownload = () =>
+    runPdf({ zoneName: zone?.name, reference: reference.trim(), landArea, builtArea, landRate, builtRate, spreadPct, result, shapes });
+
+  // Una fila del historial guarda todo lo necesario para rehacer el PDF tal
+  // cual se calculó, con los precios de ese día.
+  const rowToPdfData = (row) => ({
+    zoneName: row.zone_name,
+    reference: row.reference,
+    date: row.created_at,
+    landArea: Number(row.land_area),
+    builtArea: Number(row.built_area),
+    landRate: Number(row.land_rate),
+    builtRate: Number(row.built_rate),
+    spreadPct: Number(row.spread_pct),
+    result: {
+      low: Number(row.low),
+      high: Number(row.high),
+      center: Number(row.center),
+      landValue: Number(row.land_value),
+      builtValue: Number(row.built_value),
+    },
+    shapes: row.shapes || [],
+  });
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const row = await db.addValuationEstimate({
+        reference: reference.trim() || null,
+        zone_name: zone?.name || null,
+        land_area: landArea,
+        built_area: builtArea,
+        land_rate: landRate,
+        built_rate: builtRate,
+        spread_pct: Number(spreadPct) || 0,
+        land_value: result.landValue,
+        built_value: result.builtValue,
+        low: result.low,
+        high: result.high,
+        center: result.center,
+        shapes,
+      });
+      setHistory((prev) => [row, ...prev]);
+      setSavedId(row.id);
+    } catch (err) {
+      window.alert(err.message || t("valuation.history.saveError"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (row) => {
+    if (!window.confirm(t("valuation.history.confirmDelete"))) return;
+    try {
+      await db.deleteValuationEstimate(row.id);
+      setHistory((prev) => prev.filter((r) => r.id !== row.id));
+    } catch (err) {
+      window.alert(err.message || t("valuation.history.deleteError"));
     }
   };
 
@@ -217,6 +289,18 @@ export default function AdminValuation() {
             </div>
 
             <div className="form-field">
+              <label htmlFor="val-reference">{t("valuation.history.reference")}</label>
+              <input
+                id="val-reference"
+                type="text"
+                maxLength={120}
+                value={reference}
+                placeholder={t("valuation.history.referencePlaceholder")}
+                onChange={(e) => setReference(e.target.value)}
+              />
+            </div>
+
+            <div className="form-field">
               <label htmlFor="val-spread">{t("valuation.spread")}</label>
               <input
                 id="val-spread"
@@ -272,14 +356,53 @@ export default function AdminValuation() {
               <p className="form-hint">{t("valuation.emptyResult")}</p>
             )}
             {hasArea && zone && (
-              <button type="button" className="btn btn-primary btn-sm" onClick={handleDownload} disabled={downloading}>
-                {downloading ? <span className="spinner" /> : null}
-                {t("valuation.pdf.download")}
-              </button>
+              <div className="valuation-result__actions">
+                <button type="button" className="btn btn-primary btn-sm" onClick={handleSave} disabled={saving || Boolean(savedId)}>
+                  {saving ? <span className="spinner" /> : null}
+                  {savedId ? t("valuation.history.saved") : t("valuation.history.save")}
+                </button>
+                <button type="button" className="btn btn-outline btn-sm" onClick={handleDownload} disabled={downloading}>
+                  {downloading ? <span className="spinner" /> : null}
+                  {t("valuation.pdf.download")}
+                </button>
+              </div>
             )}
             <p className="valuation-result__disclaimer">{t("valuation.disclaimer")}</p>
           </div>
         </div>
+      </div>
+
+      <div className="card valuation-card valuation-history">
+        <h2 className="valuation-card__title">{t("valuation.history.title")}</h2>
+        {history.length === 0 ? (
+          <p className="form-hint">{t("valuation.history.empty")}</p>
+        ) : (
+          <ul className="valuation-history__list">
+            {history.map((row) => (
+              <li key={row.id} className="valuation-history__item">
+                <div className="valuation-history__info">
+                  <strong>{row.reference || t("valuation.history.noReference")}</strong>
+                  <span className="form-hint">
+                    {new Date(row.created_at).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" })}
+                    {row.zone_name ? ` · ${row.zone_name}` : ""}
+                    {row.created_by ? ` · ${row.created_by}` : ""}
+                  </span>
+                </div>
+                <span className="valuation-history__range">
+                  {formatMXN(row.low)} – {formatMXN(row.high)}
+                </span>
+                <div className="valuation-history__actions">
+                  <button type="button" className="btn btn-outline btn-sm" disabled={downloading} onClick={() => runPdf(rowToPdfData(row))}>
+                    {t("valuation.pdf.download")}
+                  </button>
+                  <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(row)}>
+                    {t("valuation.remove")}
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

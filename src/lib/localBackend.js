@@ -32,6 +32,7 @@ const KEYS = {
   visits: "acl_local_visits",
   keyLog: "acl_local_key_log",
   docLog: "acl_local_doc_log",
+  valuations: "acl_local_valuation_estimates",
   reportLinks: "acl_local_report_links",
   adminRoles: "acl_local_admin_roles",
   adminAccess: "acl_local_admin_access",
@@ -1206,6 +1207,23 @@ export const localBackend = {
 
   async deleteVisit(id) {
     writeStore(KEYS.visits, readStore(KEYS.visits, VISITS_SEED).filter((v) => v.id !== id));
+  },
+
+  // Historial de Estimación de valor (modo demo: localStorage).
+  async getValuationEstimates() {
+    return readStore(KEYS.valuations, []).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  },
+
+  async addValuationEstimate(fields) {
+    const items = readStore(KEYS.valuations, []);
+    const record = { id: uid("valuation"), ...fields, created_by: DEMO_ADMIN.email, created_at: new Date().toISOString() };
+    items.push(record);
+    writeStore(KEYS.valuations, items);
+    return record;
+  },
+
+  async deleteValuationEstimate(id) {
+    writeStore(KEYS.valuations, readStore(KEYS.valuations, []).filter((r) => r.id !== id));
   },
 
   // Bitácoras de Secretaría: control de llaves y entradas/salidas de

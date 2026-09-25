@@ -164,11 +164,16 @@ export async function buildValuationPdf(data, labels, { template } = {}) {
   page.drawLine({ start: { x: MARGIN_LEFT, y: y - 3 }, end: { x: MARGIN_LEFT + tw, y: y - 3 }, thickness: 1, color: black });
   y -= 24;
 
-  text(`${labels.date}: ${new Date().toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })}`, { color: gray });
+  text(`${labels.date}: ${new Date(data.date || Date.now()).toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })}`, { color: gray });
   y -= 15;
   if (data.zoneName) {
     text(`${labels.zone}: `, { font: bold });
     text(data.zoneName, { x: MARGIN_LEFT + bold.widthOfTextAtSize(`${sanitize(labels.zone)}: `, 10) });
+    y -= 15;
+  }
+  if (data.reference) {
+    text(`${labels.reference}: `, { font: bold });
+    text(data.reference, { x: MARGIN_LEFT + bold.widthOfTextAtSize(`${sanitize(labels.reference)}: `, 10) });
     y -= 15;
   }
   y -= 8;
