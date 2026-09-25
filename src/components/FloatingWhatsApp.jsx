@@ -1,11 +1,8 @@
 import { useTranslation } from "react-i18next";
 import WhatsAppIcon from "./icons/WhatsAppIcon";
+import { OFFICE_WHATSAPP } from "../lib/office";
 import "./FloatingWhatsApp.css";
 
-// Mismo número de WhatsApp que ya se usa en el footer para contacto público
-// (871 324 3271 — distinto del número dedicado de WhatsApp Business que
-// manda los avisos automáticos de Agenda/mensajes de contacto).
-const OFFICE_WHATSAPP = "528713243271";
 const DEFAULT_MESSAGE = "Hola, quiero más información.";
 
 export default function FloatingWhatsApp() {

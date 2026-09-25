@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { downloadLegalDocPdf } from "../../lib/legalDocsPdf";
+import ContractGenerator from "../../components/ContractGenerator";
 import "./admin.css";
 
 // Descarga el Aviso de Privacidad / Carta de Derechos sobre la hoja
@@ -48,6 +49,8 @@ export default function AdminLegalDocs() {
           </button>
         </div>
       </div>
+
+      <ContractGenerator />
     </div>
   );
 }

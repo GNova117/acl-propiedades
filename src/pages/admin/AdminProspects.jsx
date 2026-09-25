@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
@@ -22,6 +22,7 @@ function whatsappLink(phone) {
 
 export default function AdminProspects() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { advisorId, hasSection } = useAuth();
   const seesAll = advisorId == null;
   const canImport = hasSection("visitas");
@@ -109,6 +110,42 @@ export default function AdminProspects() {
       setProspects((prev) => prev.filter((p) => p.id !== prospect.id));
     } catch (err) {
       window.alert(err.message || t("prospects.deleteError"));
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  // Convierte al prospecto en cliente (comprador por omisión; el tipo se puede
+  // cambiar en la ficha, a la que se llega enseguida para completar el resto de
+  // los datos). Si ya hay un cliente con el mismo teléfono o correo se ofrece
+  // vincularlo en vez de duplicarlo.
+  const handleConvert = async (prospect) => {
+    setBusyId(prospect.id);
+    try {
+      const digits = whatsappDigits(prospect.phone);
+      const email = String(prospect.email || "").trim().toLowerCase();
+      const existing = (await db.getClients()).find(
+        (c) => (digits.length >= 10 && whatsappDigits(c.phone).endsWith(digits.slice(-10))) || (email && String(c.email || "").toLowerCase() === email)
+      );
+      let clientId;
+      if (existing) {
+        if (!window.confirm(t("prospects.convertExisting", { name: existing.name }))) return;
+        clientId = existing.id;
+      } else {
+        const created = await db.addClient({
+          name: prospect.name,
+          type: "comprador",
+          email: prospect.email || null,
+          phone: prospect.phone || null,
+          notes: [prospect.looking_for && `Busca: ${prospect.looking_for}`, prospect.notes].filter(Boolean).join("\n") || null,
+          active: true,
+        });
+        clientId = created.id;
+      }
+      await db.updateProspect(prospect.id, { client_id: clientId });
+      navigate(`/admin/clientes/${clientId}`);
+    } catch (err) {
+      window.alert(err.message || t("prospects.convertError"));
     } finally {
       setBusyId(null);
     }
@@ -252,6 +289,17 @@ export default function AdminProspects() {
                         <button type="button" className="btn btn-outline btn-sm" onClick={() => logContact(p)} disabled={busyId === p.id}>
                           {t("prospects.logContact")}
                         </button>
+                        {p.client_id ? (
+                          <Link to={`/admin/clientes/${p.client_id}`} className="btn btn-outline btn-sm">
+                            {t("prospects.viewClient")}
+                          </Link>
+                        ) : (
+                          hasSection("clientes") && (
+                            <button type="button" className="btn btn-outline btn-sm" onClick={() => handleConvert(p)} disabled={busyId === p.id}>
+                              {t("prospects.convert")}
+                            </button>
+                          )
+                        )}
                         <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(p)} disabled={busyId === p.id}>
                           {t("common.delete")}
                         </button>

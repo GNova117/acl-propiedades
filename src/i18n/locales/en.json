@@ -242,6 +242,10 @@
     "privacyLinkLabel": "Privacy Notice"
   },
   "messages": {
+    "makeProspect": "Make prospect",
+    "isProspect": "Already a prospect",
+    "viaWhatsapp": "From WhatsApp",
+    "makeProspectError": "Could not make a prospect",
     "title": "Contact messages",
     "subtitle": "Messages sent from the public site's contact form.",
     "date": "Date",
@@ -294,6 +298,8 @@
     "remove": "Remove from favorites"
   },
   "contactRequest": {
+    "whatsapp": "Message us on WhatsApp",
+    "whatsappSuccess": "Done! We opened WhatsApp so you can message us; an advisor will assist you very soon.",
     "title": "Interested in this property?",
     "subtitle": "Leave your name and phone number and an advisor will call or message you on WhatsApp.",
     "phonePlaceholder": "e.g. 871 123 4567",
@@ -1022,6 +1028,10 @@
     "reminderLink": "Go to Roles & access"
   },
   "prospects": {
+    "convert": "Convert to client",
+    "viewClient": "View client",
+    "convertExisting": "A client \"{{name}}\" already has that phone or email. Link it instead of creating a new one?",
+    "convertError": "Could not convert to client",
     "title": "Prospects",
     "subtitle": "Follow up on every interested person, from first contact until they buy or drop out.",
     "new": "New prospect",
@@ -1034,6 +1044,7 @@
       "perdido": "Lost"
     },
     "sources": {
+      "whatsapp": "WhatsApp",
       "manual": "Manual entry",
       "visita": "Visit",
       "recomendacion": "Referral",
@@ -1115,6 +1126,46 @@
       "visits": "Visits",
       "keys": "Keys",
       "docs": "Documents (Front desk)"
+    }
+  },
+  "contracts": {
+    "title": "Documents with client data",
+    "subtitle": "Pick the client and the property and the PDF is generated on the letterhead with their details filled in.",
+    "disclaimer": "These are generic templates. Ask your lawyer to review the text before using them with clients.",
+    "docType": "Document",
+    "client": "Client",
+    "owner": "Owner",
+    "property": "Property",
+    "advisor": "Advisor signing for ACL",
+    "noAdvisor": "— No advisor —",
+    "choose": "— Choose —",
+    "required": "Required",
+    "error": "Could not generate the document",
+    "types": {
+      "recibo_apartado": "Deposit receipt",
+      "autorizacion_venta": "Sale authorization",
+      "carta_oferta": "Purchase offer letter"
+    },
+    "fields": {
+      "monto": "Amount (MXN)",
+      "forma_pago": "Payment method",
+      "fecha_limite": "Deadline to formalize",
+      "reembolso": "If not formalized",
+      "notas": "Remarks (optional)",
+      "precio": "List price (MXN)",
+      "comision_pct": "Commission (%)",
+      "vigencia_meses": "Term (months)",
+      "fecha_inicio": "Start date",
+      "exclusiva": "Exclusive",
+      "fecha_vigencia": "Offer valid until"
+    },
+    "options": {
+      "efectivo": "Cash",
+      "transferencia": "Bank transfer",
+      "cheque": "Check",
+      "tarjeta": "Card",
+      "no_reembolsable": "Deposit is non-refundable",
+      "reembolsable": "Deposit is refunded"
     }
   },
   "valuation": {

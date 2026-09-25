@@ -242,6 +242,10 @@
     "privacyLinkLabel": "Aviso de Privacidad"
   },
   "messages": {
+    "makeProspect": "Pasar a prospecto",
+    "isProspect": "Ya es prospecto",
+    "viaWhatsapp": "Desde WhatsApp",
+    "makeProspectError": "No se pudo pasar a prospecto",
     "title": "Mensajes de contacto",
     "subtitle": "Mensajes enviados desde el formulario de contacto del sitio público.",
     "date": "Fecha",
@@ -294,6 +298,8 @@
     "remove": "Quitar de favoritos"
   },
   "contactRequest": {
+    "whatsapp": "Escribir por WhatsApp",
+    "whatsappSuccess": "¡Listo! Abrimos WhatsApp para que nos escribas; un asesor te atenderá muy pronto.",
     "title": "¿Te interesa esta propiedad?",
     "subtitle": "Déjanos tu nombre y tu teléfono y un asesor te llama o te escribe por WhatsApp.",
     "phonePlaceholder": "Ej. 871 123 4567",
@@ -1022,6 +1028,10 @@
     "reminderLink": "Ir a Roles y accesos"
   },
   "prospects": {
+    "convert": "Convertir en cliente",
+    "viewClient": "Ver cliente",
+    "convertExisting": "Ya existe el cliente \"{{name}}\" con ese teléfono o correo. ¿Vincularlo en vez de crear uno nuevo?",
+    "convertError": "No se pudo convertir en cliente",
     "title": "Prospectos",
     "subtitle": "Da seguimiento a cada persona interesada, desde que llega hasta que compra o se descarta.",
     "new": "Nuevo prospecto",
@@ -1034,6 +1044,7 @@
       "perdido": "Perdido"
     },
     "sources": {
+      "whatsapp": "WhatsApp",
       "manual": "Captura manual",
       "visita": "Visita",
       "recomendacion": "Recomendación",
@@ -1115,6 +1126,46 @@
       "visits": "Visitas",
       "keys": "Llaves",
       "docs": "Documentos (Secretaría)"
+    }
+  },
+  "contracts": {
+    "title": "Documentos con datos del cliente",
+    "subtitle": "Elige el cliente y la propiedad y el PDF sale sobre la hoja membretada con sus datos ya puestos.",
+    "disclaimer": "Son modelos genéricos. Pide a tu abogado que revise el texto antes de usarlos con clientes.",
+    "docType": "Documento",
+    "client": "Cliente",
+    "owner": "Propietario",
+    "property": "Propiedad",
+    "advisor": "Asesor que firma por ACL",
+    "noAdvisor": "— Sin asesor —",
+    "choose": "— Elegir —",
+    "required": "Obligatorio",
+    "error": "No se pudo generar el documento",
+    "types": {
+      "recibo_apartado": "Recibo de apartado",
+      "autorizacion_venta": "Autorización de venta",
+      "carta_oferta": "Carta oferta de compra"
+    },
+    "fields": {
+      "monto": "Monto (MXN)",
+      "forma_pago": "Forma de pago",
+      "fecha_limite": "Fecha límite para formalizar",
+      "reembolso": "Si no se formaliza",
+      "notas": "Observaciones (opcional)",
+      "precio": "Precio de lista (MXN)",
+      "comision_pct": "Comisión (%)",
+      "vigencia_meses": "Vigencia (meses)",
+      "fecha_inicio": "Fecha de inicio",
+      "exclusiva": "Con exclusiva",
+      "fecha_vigencia": "Vigencia de la oferta hasta"
+    },
+    "options": {
+      "efectivo": "Efectivo",
+      "transferencia": "Transferencia",
+      "cheque": "Cheque",
+      "tarjeta": "Tarjeta",
+      "no_reembolsable": "El apartado no se reembolsa",
+      "reembolsable": "El apartado se devuelve"
     }
   },
   "valuation": {

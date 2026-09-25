@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { whatsappDigits } from "../../lib/format";
+import { messageToProspectFields } from "../../lib/prospects";
 import { useAuth } from "../../context/AuthContext";
 import "./admin.css";
 
@@ -40,6 +41,8 @@ export default function AdminMessages() {
   const [expandedId, setExpandedId] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [prospects, setProspects] = useState([]);
+  const [promotingId, setPromotingId] = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -57,6 +60,25 @@ export default function AdminMessages() {
   };
 
   useEffect(load, []);
+
+  // Mensajes que ya son prospecto (para no ofrecer el botón dos veces).
+  useEffect(() => {
+    if (hasSection("prospectos")) db.getProspects().then(setProspects).catch(() => setProspects([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const promotedIds = useMemo(() => new Set(prospects.map((p) => p.message_id).filter(Boolean)), [prospects]);
+
+  const handleMakeProspect = async (message) => {
+    setPromotingId(message.id);
+    try {
+      const created = await db.addProspect(messageToProspectFields(message, propertyById.get(message.property_id)));
+      setProspects((prev) => [created, ...prev]);
+    } catch (err) {
+      window.alert(err.message || t("messages.makeProspectError"));
+    } finally {
+      setPromotingId(null);
+    }
+  };
 
   const propertyById = useMemo(() => new Map(properties.map((p) => [p.id, p])), [properties]);
 
@@ -168,7 +190,10 @@ export default function AdminMessages() {
                 return (
                   <tr key={message.id}>
                     <td>{new Date(message.created_at).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}</td>
-                    <td>{message.name}</td>
+                    <td>
+                      {message.name}
+                      {message.channel === "whatsapp" && <span className="form-hint" style={{ display: "block", margin: 0 }}>{t("messages.viaWhatsapp")}</span>}
+                    </td>
                     <td>{message.phone || "—"}</td>
                     <td>{message.email || "—"}</td>
                     <td style={{ whiteSpace: "normal", maxWidth: 280 }}>
@@ -224,6 +249,16 @@ export default function AdminMessages() {
                           {t("detail.email")}
                         </a>
                       )}
+                      {hasSection("prospectos") &&
+                        (promotedIds.has(message.id) ? (
+                          <Link to="/admin/prospectos" className="btn btn-outline btn-sm">
+                            {t("messages.isProspect")}
+                          </Link>
+                        ) : (
+                          <button type="button" className="btn btn-outline btn-sm" onClick={() => handleMakeProspect(message)} disabled={promotingId === message.id}>
+                            {t("messages.makeProspect")}
+                          </button>
+                        ))}
                       {hasSection("clientes") && (
                         <Link to="/admin/clientes/nuevo" state={{ prefill: clientPrefill(message) }} className="btn btn-outline btn-sm">
                           {t("messages.createClient")}

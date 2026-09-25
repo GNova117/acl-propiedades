@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
+import { OFFICE_WHATSAPP } from "../lib/office";
 import "./ContactRequestCard.css";
 
 // Reemplaza a las tarjetas de asesor (nombre + teléfono + correo + botones
@@ -22,10 +23,23 @@ const RATE_LIMIT_MS = 60_000;
 // se cuentan dígitos: la gente escribe 871-123-4567, (871) 123 4567, etc.
 const MIN_PHONE_DIGITS = 10;
 
+const propertyLabel = (property) => (property.code ? `${property.title.trim()} (${property.code})` : property.title.trim());
+const propertyLink = (property) => (typeof window !== "undefined" ? `${window.location.origin}/propiedades/${property.id}` : "");
+
 function buildRequestMessage(property) {
-  const label = property.code ? `${property.title.trim()} (${property.code})` : property.title.trim();
-  const link = typeof window !== "undefined" ? `\n${window.location.origin}/propiedades/${property.id}` : "";
-  return `Solicitud de contacto — ${label}.\nPide que le llamen o le escriban por WhatsApp.${link}`;
+  return `Solicitud de contacto — ${propertyLabel(property)}.\nPide que le llamen o le escriban por WhatsApp.\n${propertyLink(property)}`;
+}
+
+// Lo que queda registrado en Mensajes cuando la persona pulsa el botón de
+// WhatsApp de la ficha (canal "whatsapp"): así el asesor sabe de qué propiedad
+// viene aunque el chat llegue después, y se puede pasar a Prospectos.
+function buildWhatsappLogMessage(property) {
+  return `Contacto por WhatsApp — ${propertyLabel(property)}.\nAbrió el chat de WhatsApp desde la ficha de la propiedad.\n${propertyLink(property)}`;
+}
+
+function buildWhatsappUrl(property, name) {
+  const text = `Hola, soy ${name.trim()}. Me interesa ${propertyLabel(property)}.\n${propertyLink(property)}`;
+  return `https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(text)}`;
 }
 
 export default function ContactRequestCard({ property }) {
@@ -33,6 +47,7 @@ export default function ContactRequestCard({ property }) {
   const [form, setForm] = useState({ name: "", phone: "", empresa: "" });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
+  const [via, setVia] = useState("form"); // "form" | "whatsapp": cómo se mandó, para el mensaje de éxito
 
   const handleChange = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
@@ -74,8 +89,10 @@ export default function ContactRequestCard({ property }) {
         // propiedad y su asesor, y el trigger de Supabase le manda el
         // aviso por WhatsApp al asesor asignado, no solo a la oficina.
         property_id: property.id,
+        channel: "solicitud",
       });
       window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
+      setVia("form");
       setStatus("success");
       setForm({ name: "", phone: "", empresa: "" });
     } catch {
@@ -83,11 +100,45 @@ export default function ContactRequestCard({ property }) {
     }
   };
 
+  // Botón de WhatsApp: pide los mismos datos (nombre y teléfono) para poder
+  // registrarlo como contacto, abre el chat con la oficina con el mensaje ya
+  // armado y guarda el interés en Mensajes. El chat se abre primero y directo
+  // desde el clic (si no, el navegador lo bloquea como ventana emergente); si
+  // el registro falla, el chat ya se abrió y no se le muestra error a la persona.
+  const handleWhatsapp = async () => {
+    if (!validate()) return;
+    if (form.empresa.trim()) return; // campo trampa: bot, no se hace nada
+    window.open(buildWhatsappUrl(property, form.name), "_blank", "noopener,noreferrer");
+
+    const lastSubmit = Number(window.localStorage.getItem(RATE_LIMIT_KEY) || 0);
+    if (Date.now() - lastSubmit < RATE_LIMIT_MS) {
+      setVia("whatsapp");
+      setStatus("success");
+      return;
+    }
+    try {
+      await db.submitContactMessage({
+        name: form.name.trim(),
+        email: "",
+        phone: form.phone.trim(),
+        message: buildWhatsappLogMessage(property),
+        property_id: property.id,
+        channel: "whatsapp",
+      });
+      window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
+    } catch {
+      /* el chat ya se abrió */
+    }
+    setVia("whatsapp");
+    setStatus("success");
+    setForm({ name: "", phone: "", empresa: "" });
+  };
+
   if (status === "success") {
     return (
       <div className="card contact-request-card">
         <h2 className="contact-request-card__title">{t("contactRequest.title")}</h2>
-        <p className="form-hint" style={{ color: "var(--color-success)" }}>{t("contactRequest.success")}</p>
+        <p className="form-hint" style={{ color: "var(--color-success)" }}>{t(via === "whatsapp" ? "contactRequest.whatsappSuccess" : "contactRequest.success")}</p>
       </div>
     );
   }
@@ -143,6 +194,9 @@ export default function ContactRequestCard({ property }) {
         <button type="submit" className="btn btn-primary btn-block" disabled={status === "sending"}>
           {status === "sending" ? <span className="spinner" /> : null}
           {status === "sending" ? t("contact.sending") : t("contactRequest.submit")}
+        </button>
+        <button type="button" className="btn btn-outline btn-block" style={{ marginTop: "0.6rem" }} onClick={handleWhatsapp} disabled={status === "sending"}>
+          {t("contactRequest.whatsapp")}
         </button>
 
         <p className="form-hint" style={{ marginTop: "0.75rem", marginBottom: 0 }}>

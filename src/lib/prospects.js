@@ -3,7 +3,7 @@
 
 export const PROSPECT_STAGES = ["nuevo", "contactado", "interesado", "negociacion", "cerrado", "perdido"];
 export const OPEN_STAGES = ["nuevo", "contactado", "interesado", "negociacion"];
-export const PROSPECT_SOURCES = ["manual", "visita", "recomendacion", "redes", "sitio", "otro"];
+export const PROSPECT_SOURCES = ["manual", "visita", "whatsapp", "sitio", "recomendacion", "redes", "otro"];
 
 export const isOpenStage = (stage) => OPEN_STAGES.includes(stage);
 
@@ -53,6 +53,28 @@ export function visitToProspectFields(visit) {
     looking_for: visit.looking_for || null,
     notes: visit.internal_notes || null,
     last_contact_at: visit.visited_at || null,
+    next_followup_at: null,
+    lost_reason: null,
+  };
+}
+
+// Prospecto nuevo a partir de un mensaje del sitio (formulario, solicitud de
+// contacto o botón de WhatsApp de una propiedad). El asesor sale de la propiedad
+// solo si tiene exactamente uno asignado.
+export function messageToProspectFields(message, property) {
+  const advisors = property?.advisors || [];
+  return {
+    name: (message.name || "").trim() || "Sin nombre",
+    phone: message.phone || null,
+    email: message.email || null,
+    source: message.channel === "whatsapp" ? "whatsapp" : "sitio",
+    stage: "nuevo",
+    advisor_id: advisors.length === 1 ? advisors[0].id : null,
+    property_id: message.property_id || null,
+    message_id: message.id,
+    looking_for: null,
+    notes: message.message || null,
+    last_contact_at: null,
     next_followup_at: null,
     lost_reason: null,
   };
