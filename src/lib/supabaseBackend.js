@@ -1180,6 +1180,53 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  // Prospectos por etapas. RLS: apartado 'prospectos'; un asesor con login
+  // vinculado ve solo los suyos (ver schema.sql).
+  async getProspects() {
+    const { data, error } = await supabase.from("prospectos").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getProspectById(id) {
+    const { data, error } = await supabase.from("prospectos").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async addProspect(fields) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = { ...fields, created_by: sessionData?.session?.user?.email || null };
+    const { data, error } = await supabase.from("prospectos").insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async addProspects(rows) {
+    if (rows.length === 0) return [];
+    const { data: sessionData } = await supabase.auth.getSession();
+    const email = sessionData?.session?.user?.email || null;
+    const { data, error } = await supabase.from("prospectos").insert(rows.map((r) => ({ ...r, created_by: email }))).select();
+    if (error) throw error;
+    return data || [];
+  },
+
+  async updateProspect(id, fields) {
+    const { data, error } = await supabase
+      .from("prospectos")
+      .update({ ...fields, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteProspect(id) {
+    const { error } = await supabase.from("prospectos").delete().eq("id", id);
+    if (error) throw error;
+  },
+
   // Historial de Estimación de valor. RLS: apartado 'valuacion' (ver schema.sql).
   async getValuationEstimates() {
     const { data, error } = await supabase.from("valuation_estimates").select("*").order("created_at", { ascending: false });

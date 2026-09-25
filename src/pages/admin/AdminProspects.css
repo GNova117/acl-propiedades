@@ -1,0 +1,146 @@
+.prospect-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.prospect-filters input[type="search"] {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.prospect-filters__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+/* Una columna por etapa; en pantalla ancha se desplazan de lado, en celular
+   se apilan una debajo de otra. */
+.prospect-board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(250px, 1fr);
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.75rem;
+  align-items: start;
+}
+
+.prospect-col {
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 10px);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.prospect-col__title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.prospect-col__count {
+  min-width: 1.4rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.75rem;
+  text-align: center;
+  line-height: 1.4rem;
+}
+
+.prospect-col--cerrado .prospect-col__count {
+  background: #1e8e5a;
+}
+
+.prospect-col--perdido .prospect-col__count {
+  background: #7a8598;
+}
+
+.prospect-col__empty {
+  margin: 0;
+}
+
+.prospect-card {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.prospect-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.prospect-card__name {
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.prospect-card__line {
+  margin: 0;
+  font-size: 0.88rem;
+  word-break: break-word;
+}
+
+.prospect-card__meta {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #6b7688);
+}
+
+.prospect-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+
+.prospect-card__actions select {
+  flex: 1 1 100%;
+}
+
+.prospect-chip {
+  align-self: flex-start;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.prospect-chip--overdue {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #fff;
+}
+
+.prospect-chip--today {
+  background: #f0a500;
+  border-color: #f0a500;
+  color: #1a1a1a;
+}
+
+@media (max-width: 860px) {
+  .prospect-board {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    overflow-x: visible;
+  }
+}

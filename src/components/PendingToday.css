@@ -1,0 +1,62 @@
+.pending-today {
+  margin-bottom: 1.5rem;
+}
+
+.pending-today__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+}
+
+.pending-today__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 0.9rem;
+}
+
+.pending-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 1rem 1.1rem;
+  border-left: 4px solid var(--color-primary);
+  color: inherit;
+  text-decoration: none;
+}
+
+.pending-item:hover {
+  border-color: var(--color-primary-dark, var(--color-primary));
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.pending-item--warn {
+  border-left-color: var(--color-danger);
+}
+
+.pending-item--info {
+  border-left-color: #7a8598;
+}
+
+.pending-item__count {
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.pending-item__label {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.pending-item__note {
+  font-size: 0.8rem;
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.pending-item__line {
+  font-size: 0.82rem;
+  color: var(--color-text-muted, #6b7688);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

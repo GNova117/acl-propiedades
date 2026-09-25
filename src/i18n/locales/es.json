@@ -444,7 +444,8 @@
       "valuacion": "Estimación de valor",
       "construccion": "Construcción",
       "visitas": "Visitas",
-      "secretaria": "Secretaría"
+      "secretaria": "Secretaría",
+      "prospectos": "Prospectos"
     },
     "rolesTitle": "Roles",
     "newRole": "Nuevo rol",
@@ -1019,6 +1020,102 @@
     "reminderTitle": "Toca respaldar.",
     "reminderText": "Hace más de {{days}} días que no descargas un respaldo de los datos.",
     "reminderLink": "Ir a Roles y accesos"
+  },
+  "prospects": {
+    "title": "Prospectos",
+    "subtitle": "Da seguimiento a cada persona interesada, desde que llega hasta que compra o se descarta.",
+    "new": "Nuevo prospecto",
+    "stages": {
+      "nuevo": "Nuevo",
+      "contactado": "Contactado",
+      "interesado": "Interesado",
+      "negociacion": "En negociación",
+      "cerrado": "Cerrado",
+      "perdido": "Perdido"
+    },
+    "sources": {
+      "manual": "Captura manual",
+      "visita": "Visita",
+      "recomendacion": "Recomendación",
+      "redes": "Redes sociales",
+      "sitio": "Sitio web",
+      "otro": "Otro"
+    },
+    "emptyColumn": "Sin prospectos",
+    "noContact": "Sin contacto aún",
+    "contactToday": "Último contacto: hoy",
+    "contactAgo_one": "Último contacto: hace {{count}} día",
+    "contactAgo_other": "Último contacto: hace {{count}} días",
+    "followOverdue": "Seguimiento vencido",
+    "followToday": "Seguimiento hoy",
+    "followOn": "Seguimiento: {{date}}",
+    "logContact": "Registrar contacto",
+    "confirmDelete": "¿Eliminar a {{name}} de los prospectos?",
+    "saveError": "No se pudo guardar el prospecto",
+    "deleteError": "No se pudo eliminar el prospecto",
+    "importError": "No se pudieron importar las visitas",
+    "import": "Importar {{count}} desde visitas",
+    "searchPlaceholder": "Buscar por nombre, teléfono o propiedad",
+    "allAdvisors": "Todos los asesores",
+    "overdueOnly": "Solo seguimientos vencidos",
+    "notFound": "No se encontró el prospecto.",
+    "form": {
+      "newTitle": "Nuevo prospecto",
+      "editTitle": "Editar prospecto",
+      "name": "Nombre",
+      "phone": "Teléfono / WhatsApp",
+      "email": "Correo",
+      "stage": "Etapa",
+      "source": "Origen",
+      "advisor": "Asesor responsable",
+      "noAdvisor": "— Sin asignar —",
+      "nextFollowup": "Próximo seguimiento",
+      "property": "Propiedad de interés",
+      "noProperty": "— Ninguna —",
+      "lookingFor": "Qué busca",
+      "lookingForPlaceholder": "Ej. casa de 3 recámaras en Torreón, hasta $1.8 M",
+      "lostReason": "Motivo por el que se perdió",
+      "notes": "Notas internas",
+      "errors": {
+        "name": "Escribe el nombre.",
+        "contact": "Captura al menos un teléfono o un correo.",
+        "email": "El correo no es válido."
+      }
+    }
+  },
+  "pending": {
+    "title": "Pendientes de hoy",
+    "allClear": "Todo al día: no hay pendientes.",
+    "andMore": "y {{count}} más",
+    "keysLate_one": "{{count}} con 2 días o más fuera",
+    "keysLate_other": "{{count}} con 2 días o más fuera",
+    "daysOut_one": "{{count}} día",
+    "daysOut_other": "{{count}} días",
+    "items": {
+      "messages": "Mensajes sin contestar",
+      "agenda": "Citas de hoy",
+      "visits": "Visitas de hoy",
+      "keys": "Llaves sin regresar",
+      "followups": "Seguimientos de prospectos",
+      "newProspects": "Prospectos nuevos sin contactar",
+      "stale": "Propiedades sin visitas en 15 días"
+    }
+  },
+  "search": {
+    "placeholder": "Buscar cliente, propiedad, teléfono…  ( / )",
+    "loading": "Buscando…",
+    "noResults": "Sin resultados para \"{{query}}\".",
+    "more": "{{count}} más",
+    "groups": {
+      "properties": "Propiedades",
+      "clients": "Clientes",
+      "prospects": "Prospectos",
+      "valuations": "Estimaciones de valor",
+      "messages": "Mensajes",
+      "visits": "Visitas",
+      "keys": "Llaves",
+      "docs": "Documentos (Secretaría)"
+    }
   },
   "valuation": {
     "title": "Estimación de valor",

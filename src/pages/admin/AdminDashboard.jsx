@@ -5,6 +5,7 @@ import { db } from "../../lib/dataStore";
 import { formatMXN, propertyTypeLabel } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
 import { isBackupStale } from "../../lib/backup";
+import PendingToday from "../../components/PendingToday";
 import "./admin.css";
 
 export default function AdminDashboard() {
@@ -91,6 +92,8 @@ export default function AdminDashboard() {
           <Link to="/admin/roles">{t("backup.reminderLink")}</Link>
         </div>
       )}
+
+      <PendingToday />
 
       <div className="admin-stats">
         {hasSection("propiedades") && (

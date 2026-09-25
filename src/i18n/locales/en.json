@@ -444,7 +444,8 @@
       "valuacion": "Value estimate",
       "construccion": "Construction",
       "visitas": "Visits",
-      "secretaria": "Front desk"
+      "secretaria": "Front desk",
+      "prospectos": "Prospects"
     },
     "rolesTitle": "Roles",
     "newRole": "New role",
@@ -1019,6 +1020,102 @@
     "reminderTitle": "Time to back up.",
     "reminderText": "You haven't downloaded a data backup in over {{days}} days.",
     "reminderLink": "Go to Roles & access"
+  },
+  "prospects": {
+    "title": "Prospects",
+    "subtitle": "Follow up on every interested person, from first contact until they buy or drop out.",
+    "new": "New prospect",
+    "stages": {
+      "nuevo": "New",
+      "contactado": "Contacted",
+      "interesado": "Interested",
+      "negociacion": "Negotiating",
+      "cerrado": "Closed",
+      "perdido": "Lost"
+    },
+    "sources": {
+      "manual": "Manual entry",
+      "visita": "Visit",
+      "recomendacion": "Referral",
+      "redes": "Social media",
+      "sitio": "Website",
+      "otro": "Other"
+    },
+    "emptyColumn": "No prospects",
+    "noContact": "Not contacted yet",
+    "contactToday": "Last contact: today",
+    "contactAgo_one": "Last contact: {{count}} day ago",
+    "contactAgo_other": "Last contact: {{count}} days ago",
+    "followOverdue": "Follow-up overdue",
+    "followToday": "Follow-up today",
+    "followOn": "Follow-up: {{date}}",
+    "logContact": "Log contact",
+    "confirmDelete": "Remove {{name}} from prospects?",
+    "saveError": "Could not save the prospect",
+    "deleteError": "Could not delete the prospect",
+    "importError": "Could not import the visits",
+    "import": "Import {{count}} from visits",
+    "searchPlaceholder": "Search by name, phone or property",
+    "allAdvisors": "All advisors",
+    "overdueOnly": "Overdue follow-ups only",
+    "notFound": "Prospect not found.",
+    "form": {
+      "newTitle": "New prospect",
+      "editTitle": "Edit prospect",
+      "name": "Name",
+      "phone": "Phone / WhatsApp",
+      "email": "Email",
+      "stage": "Stage",
+      "source": "Source",
+      "advisor": "Advisor in charge",
+      "noAdvisor": "— Unassigned —",
+      "nextFollowup": "Next follow-up",
+      "property": "Property of interest",
+      "noProperty": "— None —",
+      "lookingFor": "What they are looking for",
+      "lookingForPlaceholder": "E.g. 3-bedroom house in Torreón, up to $1.8 M",
+      "lostReason": "Reason it was lost",
+      "notes": "Internal notes",
+      "errors": {
+        "name": "Enter the name.",
+        "contact": "Enter at least a phone or an email.",
+        "email": "The email is not valid."
+      }
+    }
+  },
+  "pending": {
+    "title": "To do today",
+    "allClear": "All caught up: nothing pending.",
+    "andMore": "and {{count}} more",
+    "keysLate_one": "{{count}} out for 2 days or more",
+    "keysLate_other": "{{count}} out for 2 days or more",
+    "daysOut_one": "{{count}} day",
+    "daysOut_other": "{{count}} days",
+    "items": {
+      "messages": "Unanswered messages",
+      "agenda": "Today's appointments",
+      "visits": "Today's visits",
+      "keys": "Keys not returned",
+      "followups": "Prospect follow-ups",
+      "newProspects": "New prospects not contacted",
+      "stale": "Properties with no visits in 15 days"
+    }
+  },
+  "search": {
+    "placeholder": "Search client, property, phone…  ( / )",
+    "loading": "Searching…",
+    "noResults": "No results for \"{{query}}\".",
+    "more": "{{count}} more",
+    "groups": {
+      "properties": "Properties",
+      "clients": "Clients",
+      "prospects": "Prospects",
+      "valuations": "Value estimates",
+      "messages": "Messages",
+      "visits": "Visits",
+      "keys": "Keys",
+      "docs": "Documents (Front desk)"
+    }
   },
   "valuation": {
     "title": "Value estimate",

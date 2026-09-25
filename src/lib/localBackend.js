@@ -33,6 +33,7 @@ const KEYS = {
   keyLog: "acl_local_key_log",
   docLog: "acl_local_doc_log",
   valuations: "acl_local_valuation_estimates",
+  prospects: "acl_local_prospectos",
   reportLinks: "acl_local_report_links",
   adminRoles: "acl_local_admin_roles",
   adminAccess: "acl_local_admin_access",
@@ -1207,6 +1208,45 @@ export const localBackend = {
 
   async deleteVisit(id) {
     writeStore(KEYS.visits, readStore(KEYS.visits, VISITS_SEED).filter((v) => v.id !== id));
+  },
+
+  // Prospectos por etapas (modo demo: localStorage, sin RLS).
+  async getProspects() {
+    return readStore(KEYS.prospects, []).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  },
+
+  async getProspectById(id) {
+    return readStore(KEYS.prospects, []).find((p) => p.id === id) || null;
+  },
+
+  async addProspect(fields) {
+    const items = readStore(KEYS.prospects, []);
+    const now = new Date().toISOString();
+    const record = { id: uid("prospect"), ...fields, created_by: DEMO_ADMIN.email, created_at: now, updated_at: now };
+    items.push(record);
+    writeStore(KEYS.prospects, items);
+    return record;
+  },
+
+  async addProspects(rows) {
+    const items = readStore(KEYS.prospects, []);
+    const now = new Date().toISOString();
+    const records = rows.map((r) => ({ id: uid("prospect"), ...r, created_by: DEMO_ADMIN.email, created_at: now, updated_at: now }));
+    writeStore(KEYS.prospects, [...items, ...records]);
+    return records;
+  },
+
+  async updateProspect(id, fields) {
+    const items = readStore(KEYS.prospects, []);
+    const idx = items.findIndex((p) => p.id === id);
+    if (idx === -1) throw new Error("Prospecto no encontrado");
+    items[idx] = { ...items[idx], ...fields, updated_at: new Date().toISOString() };
+    writeStore(KEYS.prospects, items);
+    return items[idx];
+  },
+
+  async deleteProspect(id) {
+    writeStore(KEYS.prospects, readStore(KEYS.prospects, []).filter((p) => p.id !== id));
   },
 
   // Historial de Estimación de valor (modo demo: localStorage).
