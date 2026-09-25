@@ -1123,6 +1123,7 @@
     "daysOut_one": "{{count}} day",
     "daysOut_other": "{{count}} days",
     "items": {
+      "signatures": "Unfinished signatures (3 days or more)",
       "messages": "Unanswered messages",
       "agenda": "Today's appointments",
       "visits": "Today's visits",
@@ -1375,6 +1376,9 @@
       "whatsappNote": "The WhatsApp message carries only the link, never the code."
     },
     "admin": {
+        "waiting_one": "Unsigned for {{count}} day",
+        "waiting_other": "Unsigned for {{count}} days",
+        "remind": "Remind on WhatsApp",
       "title": "Contract signatures",
       "subtitle": "Upload a contract as a PDF, give the client a link and a code, and they sign it from their phone. Here you see who has signed and add their fingerprint.",
       "legalNote": "The signature is recorded with date, time, IP and the PDF's SHA-256 fingerprint. It is a simple electronic signature: ask your lawyer which contracts it is enough for.",
@@ -1458,6 +1462,49 @@
       "unavailable_cancelado": "Request cancelled",
       "unavailableText": "Contact your ACL Propiedades advisor to get a new one."
     }
+  },
+  "funnel": {
+    "title": "Funnel statistics",
+    "subtitle": "How your prospects move from one stage to the next, how long they take to close and why they are lost.",
+    "period": "Period",
+    "periods": {
+      "0": "All time",
+      "30": "Last 30 days",
+      "90": "Last 90 days",
+      "365": "Last year"
+    },
+    "periodHint": "Counts the prospects created in that period.",
+    "allAdvisors": "All advisors",
+    "advisor": "Advisor",
+    "loadError": "Could not load the statistics",
+    "empty": "There are no prospects in this period yet.",
+    "kpi": {
+      "total": "Prospects",
+      "active": "In progress",
+      "closed": "Closed",
+      "lost": "Lost",
+      "rate": "Close rate",
+      "days": "Days to close",
+      "daysHint": "average · median {{median}}",
+      "noDays": "No dated closings"
+    },
+    "funnelTitle": "Funnel",
+    "funnelHint": "How many reached each stage. A prospect that reached “Closed” also counts in the earlier ones.",
+    "toNext": "{{pct}} % of the previous stage reached this one",
+    "byNextHint": "of those that reached the previous stage",
+    "bySourceTitle": "By source",
+    "byAdvisorTitle": "By advisor",
+    "colName": "Source",
+    "colTotal": "Prospects",
+    "colClosed": "Closed",
+    "colRate": "Rate",
+    "colDays": "Days to close",
+    "noAdvisor": "Unassigned",
+    "lostTitle": "Why they are lost",
+    "lostEmpty": "No lost prospects in this period.",
+    "noReason": "No reason recorded",
+    "lostTip": "Write the reason when you mark a prospect as lost so it shows up here.",
+    "historyNote": "Prospects created before September 25, 2026 only have their current stage: their closing times may be approximate."
   },
   "valuation": {
     "title": "Value estimate",

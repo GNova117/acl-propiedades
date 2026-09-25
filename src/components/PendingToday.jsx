@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/dataStore";
 import { daysSince, followUpState, todayISO } from "../lib/prospects";
+import { effectiveStatus, signingAgeDays } from "../lib/signing";
 import "./PendingToday.css";
 
 const KEY_LATE_DAYS = 2; // una llave con 2 días o más fuera se marca como atrasada
@@ -17,7 +18,7 @@ export default function PendingToday() {
   const { t } = useTranslation();
   const { hasSection, advisorId } = useAuth();
   const [items, setItems] = useState(null);
-  const sectionsKey = ["mensajes", "agenda", "visitas", "secretaria", "prospectos", "propiedades"].map((s) => hasSection(s)).join();
+  const sectionsKey = ["mensajes", "agenda", "visitas", "secretaria", "prospectos", "propiedades", "documentos_legales"].map((s) => hasSection(s)).join();
 
   useEffect(() => {
     let cancelled = false;
@@ -31,7 +32,8 @@ export default function PendingToday() {
       settle("secretaria", () => db.getSecretariaLog("keys")),
       settle("prospectos", () => db.getProspects()),
       settle("propiedades", () => db.getProperties({})),
-    ]).then(([messages, citas, visits, keys, prospects, properties]) => {
+      settle("documentos_legales", () => db.getSigningRequests()),
+    ]).then(([messages, citas, visits, keys, prospects, properties, signings]) => {
       if (cancelled) return;
       const list = [];
 
@@ -62,6 +64,20 @@ export default function PendingToday() {
             tone: late.length ? "warn" : "info",
             note: late.length ? t("pending.keysLate", { count: late.length }) : null,
             lines: shown.map((k) => `${k.key_label} · ${k.receiver_name} (${t("pending.daysOut", { count: daysSince(k.logged_at) ?? 0 })})`),
+          });
+        }
+      }
+
+      if (signings) {
+        // Contratos enviados a firmar que llevan 3 días o más sin firmarse.
+        const waiting = signings.filter((s) => effectiveStatus(s) === "pendiente" && signingAgeDays(s) >= 3).sort((a, b) => signingAgeDays(b) - signingAgeDays(a));
+        if (waiting.length) {
+          list.push({
+            key: "signatures",
+            count: waiting.length,
+            to: "/admin/firmas",
+            tone: "warn",
+            lines: waiting.slice(0, MAX_LINES).map((s) => `${s.signer_name} — ${t("pending.daysOut", { count: signingAgeDays(s) })}`),
           });
         }
       }
@@ -103,7 +119,7 @@ export default function PendingToday() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sectionsKey]);
 
-  if (items === null || (items.length === 0 && sectionsKey === "false,false,false,false,false,false")) return null;
+  if (items === null || (items.length === 0 && sectionsKey === "false,false,false,false,false,false,false")) return null;
 
   return (
     <section className="pending-today" aria-label={t("pending.title")}>

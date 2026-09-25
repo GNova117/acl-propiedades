@@ -26,7 +26,7 @@ const TABLES = [
   "property_changes", "property_visits", "property_report_links", "agenda_citas", "agenda_expedientes",
   "agenda_resumenes_enviados", "construccion_proyectos", "construccion_habitaciones", "construccion_muros",
   "construccion_aberturas", "construccion_catalogo_materiales", "construccion_objetos", "secretaria_llaves",
-  "secretaria_documentos", "valuation_estimates", "prospectos", "signing_requests", "audit_log", "admin_roles", "admin_access",
+  "secretaria_documentos", "valuation_estimates", "prospectos", "prospecto_etapas", "signing_requests", "audit_log", "admin_roles", "admin_access",
 ];
 
 const PAGE = 1000;

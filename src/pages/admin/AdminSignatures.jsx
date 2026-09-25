@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
 import SigningCredentials from "../../components/SigningCredentials";
-import { SIGNING_MAX_PDF_BYTES, effectiveStatus, fileToBase64, imageFileToFingerprintPng, signingLink } from "../../lib/signing";
+import { SIGNING_MAX_PDF_BYTES, effectiveStatus, fileToBase64, imageFileToFingerprintPng, signingAgeDays, signingLink, signingReminderText } from "../../lib/signing";
+import { whatsappDigits } from "../../lib/format";
 import { buildSignedPdf, downloadSignedPdf } from "../../lib/signedPdf";
 import "./admin.css";
 
@@ -129,6 +130,13 @@ export default function AdminSignatures() {
       await db.deleteSigningRequest(r.id);
       load();
     }, t("signing.admin.actionError"));
+  };
+
+  // Recordatorio por WhatsApp al cliente (solo el enlace, nunca el código).
+  const remind = (r) => {
+    let digits = whatsappDigits(clientById[r.client_id]?.phone);
+    if (digits.length === 10) digits = `52${digits}`;
+    window.open(`https://wa.me/${digits}?text=${encodeURIComponent(signingReminderText(r))}`, "_blank", "noopener,noreferrer");
   };
 
   const download = (r) =>
@@ -327,6 +335,11 @@ export default function AdminSignatures() {
                     <td>{clientById[r.client_id]?.name || "—"}</td>
                     <td>
                       <span className={`badge ${STATUS_CLASS[status] || ""}`}>{t(`signing.status.${status}`)}</span>
+                      {status === "pendiente" && signingAgeDays(r) >= 3 && (
+                        <span className="form-error" style={{ display: "block", margin: 0, fontSize: "0.78rem" }}>
+                          {t("signing.admin.waiting", { count: signingAgeDays(r) })}
+                        </span>
+                      )}
                       {r.fingerprint_at && <span className="form-hint" style={{ display: "block", margin: 0 }}>{t("signing.admin.withFingerprint")}</span>}
                     </td>
                     <td className="form-hint" style={{ whiteSpace: "normal" }}>
@@ -365,6 +378,11 @@ export default function AdminSignatures() {
                           {status !== "expirado" && (
                             <button type="button" className="btn btn-outline btn-sm" onClick={() => navigator.clipboard?.writeText(signingLink(r.token))}>
                               {t("signing.credentials.copyLink")}
+                            </button>
+                          )}
+                          {status === "pendiente" && (
+                            <button type="button" className={`btn btn-sm ${signingAgeDays(r) >= 3 ? "btn-primary" : "btn-outline"}`} onClick={() => remind(r)}>
+                              {t("signing.admin.remind")}
                             </button>
                           )}
                           <button type="button" className="btn btn-outline btn-sm" onClick={() => regenerate(r)} disabled={busyId === r.id}>

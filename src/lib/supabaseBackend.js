@@ -1266,6 +1266,18 @@ export const supabaseBackend = {
     return data || [];
   },
 
+  // Historial de etapas de los prospectos (lo llena un trigger; ver schema.sql).
+  async getProspectStageHistory() {
+    const rows = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await supabase.from("prospecto_etapas").select("prospecto_id, stage, at").order("at", { ascending: true }).range(from, from + 999);
+      if (error) throw error;
+      rows.push(...(data || []));
+      if (!data || data.length < 1000) break;
+    }
+    return rows;
+  },
+
   async getProspectById(id) {
     const { data, error } = await supabase.from("prospectos").select("*").eq("id", id).maybeSingle();
     if (error) throw error;

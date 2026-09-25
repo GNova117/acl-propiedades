@@ -31,6 +31,7 @@ const NAV = [
     items: [
       { section: "clientes", to: "/admin/clientes", labelKey: "admin.clients" },
       { section: "prospectos", to: "/admin/prospectos", labelKey: "accessControl.sections.prospectos" },
+      { section: "prospectos", to: "/admin/estadisticas", labelKey: "funnel.title" },
       { section: "mensajes", to: "/admin/mensajes", labelKey: "admin.messages", badge: true },
       { section: "testimonios", to: "/admin/testimonios", labelKey: "admin.testimonials" },
       { section: "visitas", to: "/admin/visitas", labelKey: "accessControl.sections.visitas" },

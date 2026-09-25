@@ -47,6 +47,15 @@ export function signingWhatsappText(request) {
   return `Hola ${request.signer_name}, te comparto el documento "${request.title}" de ACL Propiedades para que lo revises y lo firmes desde tu celular:\n${signingLink(request.token)}\n\nEl código para abrirlo te lo doy por separado.`;
 }
 
+// Recordatorio para el cliente que aún no firma. Lleva el enlace pero no el
+// código: si lo perdió, el asesor genera uno nuevo.
+export function signingReminderText(request) {
+  return `Hola ${request.signer_name}, te recuerdo que tienes pendiente firmar el documento "${request.title}" de ACL Propiedades:\n${signingLink(request.token)}\n\nSi ya no tienes el código, avísame y te doy uno nuevo.`;
+}
+
+// Días completos desde que se creó la solicitud.
+export const signingAgeDays = (request) => Math.floor((Date.now() - new Date(request.created_at).getTime()) / 86400000);
+
 // Convierte una imagen de huella (lo que exporta el software del lector, una
 // captura o una foto) a PNG de hasta 500 px de ancho, para que pese poco.
 export async function imageFileToFingerprintPng(file) {

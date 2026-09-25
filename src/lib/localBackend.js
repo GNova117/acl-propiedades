@@ -35,6 +35,7 @@ const KEYS = {
   valuations: "acl_local_valuation_estimates",
   prospects: "acl_local_prospectos",
   signing: "acl_local_signing_requests",
+  prospectStages: "acl_local_prospect_stages",
   reportLinks: "acl_local_report_links",
   adminRoles: "acl_local_admin_roles",
   adminAccess: "acl_local_admin_access",
@@ -1341,12 +1342,30 @@ export const localBackend = {
     return readStore(KEYS.prospects, []).find((p) => p.id === id) || null;
   },
 
+  // Historial de etapas (modo demo): lo que en Supabase hace un trigger.
+  _logProspectStage(prospectId, stage, at = new Date().toISOString()) {
+    const stages = readStore(KEYS.prospectStages, []);
+    stages.push({ prospecto_id: prospectId, stage, at });
+    writeStore(KEYS.prospectStages, stages);
+  },
+
+  // Los prospectos anteriores al historial reciben una fila con su etapa actual.
+  async getProspectStageHistory() {
+    const stages = readStore(KEYS.prospectStages, []);
+    const seen = new Set(stages.map((s) => s.prospecto_id));
+    const backfill = readStore(KEYS.prospects, [])
+      .filter((p) => !seen.has(p.id))
+      .map((p) => ({ prospecto_id: p.id, stage: p.stage, at: p.stage === "nuevo" ? p.created_at : p.updated_at }));
+    return [...stages, ...backfill].sort((a, b) => String(a.at).localeCompare(String(b.at)));
+  },
+
   async addProspect(fields) {
     const items = readStore(KEYS.prospects, []);
     const now = new Date().toISOString();
     const record = { id: uid("prospect"), ...fields, created_by: DEMO_ADMIN.email, created_at: now, updated_at: now };
     items.push(record);
     writeStore(KEYS.prospects, items);
+    this._logProspectStage(record.id, record.stage, now);
     return record;
   },
 
@@ -1355,6 +1374,7 @@ export const localBackend = {
     const now = new Date().toISOString();
     const records = rows.map((r) => ({ id: uid("prospect"), ...r, created_by: DEMO_ADMIN.email, created_at: now, updated_at: now }));
     writeStore(KEYS.prospects, [...items, ...records]);
+    records.forEach((r) => this._logProspectStage(r.id, r.stage, now));
     return records;
   },
 
@@ -1362,13 +1382,16 @@ export const localBackend = {
     const items = readStore(KEYS.prospects, []);
     const idx = items.findIndex((p) => p.id === id);
     if (idx === -1) throw new Error("Prospecto no encontrado");
+    const previousStage = items[idx].stage;
     items[idx] = { ...items[idx], ...fields, updated_at: new Date().toISOString() };
     writeStore(KEYS.prospects, items);
+    if (fields.stage && fields.stage !== previousStage) this._logProspectStage(id, fields.stage);
     return items[idx];
   },
 
   async deleteProspect(id) {
     writeStore(KEYS.prospects, readStore(KEYS.prospects, []).filter((p) => p.id !== id));
+    writeStore(KEYS.prospectStages, readStore(KEYS.prospectStages, []).filter((s) => s.prospecto_id !== id));
   },
 
   // Historial de Estimación de valor (modo demo: localStorage).

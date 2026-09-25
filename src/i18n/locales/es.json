@@ -1123,6 +1123,7 @@
     "daysOut_one": "{{count}} día",
     "daysOut_other": "{{count}} días",
     "items": {
+      "signatures": "Firmas sin completar (3 días o más)",
       "messages": "Mensajes sin contestar",
       "agenda": "Citas de hoy",
       "visits": "Visitas de hoy",
@@ -1375,6 +1376,9 @@
       "whatsappNote": "El mensaje de WhatsApp lleva solo el enlace, nunca el código."
     },
     "admin": {
+        "waiting_one": "Sin firmar hace {{count}} día",
+        "waiting_other": "Sin firmar hace {{count}} días",
+        "remind": "Recordar por WhatsApp",
       "title": "Firmas de contratos",
       "subtitle": "Sube un contrato en PDF, dale al cliente un enlace y un código, y él lo firma desde su celular. Aquí ves quién ya firmó y agregas su huella.",
       "legalNote": "La firma queda registrada con fecha, hora, IP y la huella SHA-256 del PDF. Es una firma electrónica simple: consulta a tu abogado para qué contratos es suficiente.",
@@ -1458,6 +1462,49 @@
       "unavailable_cancelado": "Solicitud cancelada",
       "unavailableText": "Comunícate con tu asesor de ACL Propiedades para que te genere uno nuevo."
     }
+  },
+  "funnel": {
+    "title": "Estadísticas del embudo",
+    "subtitle": "Cómo avanzan tus prospectos de una etapa a la siguiente, cuánto tardan en cerrar y por qué se pierden.",
+    "period": "Periodo",
+    "periods": {
+      "0": "Todo",
+      "30": "Últimos 30 días",
+      "90": "Últimos 90 días",
+      "365": "Último año"
+    },
+    "periodHint": "Cuenta los prospectos creados en ese periodo.",
+    "allAdvisors": "Todos los asesores",
+    "advisor": "Asesor",
+    "loadError": "No se pudieron cargar las estadísticas",
+    "empty": "Aún no hay prospectos en este periodo.",
+    "kpi": {
+      "total": "Prospectos",
+      "active": "En seguimiento",
+      "closed": "Cerrados",
+      "lost": "Perdidos",
+      "rate": "Tasa de cierre",
+      "days": "Días a cerrar",
+      "daysHint": "promedio · mediana {{median}}",
+      "noDays": "Sin cierres con fecha"
+    },
+    "funnelTitle": "Embudo",
+    "funnelHint": "Cuántos llegaron a cada etapa. Un prospecto que llegó a «Cerrado» también cuenta en las anteriores.",
+    "toNext": "{{pct}} % de los de la etapa anterior llegó aquí",
+    "byNextHint": "de los que llegaron a la etapa anterior",
+    "bySourceTitle": "Por origen",
+    "byAdvisorTitle": "Por asesor",
+    "colName": "Origen",
+    "colTotal": "Prospectos",
+    "colClosed": "Cerrados",
+    "colRate": "Tasa",
+    "colDays": "Días a cerrar",
+    "noAdvisor": "Sin asignar",
+    "lostTitle": "Por qué se pierden",
+    "lostEmpty": "No hay prospectos perdidos en este periodo.",
+    "noReason": "Sin motivo registrado",
+    "lostTip": "Anota el motivo al marcar un prospecto como perdido para que aparezca aquí.",
+    "historyNote": "Los prospectos anteriores al 25 de septiembre de 2026 solo tienen su etapa actual: sus tiempos de cierre pueden ser aproximados."
   },
   "valuation": {
     "title": "Estimación de valor",

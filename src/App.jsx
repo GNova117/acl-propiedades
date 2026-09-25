@@ -79,6 +79,7 @@ const AdminPropertyVisits = lazy(() => import("./pages/admin/AdminPropertyVisits
 const PublicVisitReport = lazy(() => import("./pages/PublicVisitReport"));
 const PublicSign = lazy(() => import("./pages/PublicSign"));
 const AdminSignatures = lazy(() => import("./pages/admin/AdminSignatures"));
+const AdminFunnel = lazy(() => import("./pages/admin/AdminFunnel"));
 
 const SPECIAL_SECTION_KEYS = Object.keys(SPECIAL_SECTION_TYPES);
 
@@ -280,6 +281,7 @@ export default function App() {
         <Route path="testimonios" element={<RequireSection section="testimonios"><AdminTestimonials /></RequireSection>} />
         <Route path="reportes" element={<RequireSection section="reportes"><AdminSalesReports /></RequireSection>} />
         <Route path="secretaria" element={<RequireSection section="secretaria"><AdminSecretaria /></RequireSection>} />
+        <Route path="estadisticas" element={<RequireSection section="prospectos"><AdminFunnel /></RequireSection>} />
         <Route path="prospectos" element={<RequireSection section="prospectos"><AdminProspects /></RequireSection>} />
         <Route path="prospectos/nuevo" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />
         <Route path="prospectos/:id" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />
