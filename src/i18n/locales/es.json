@@ -357,6 +357,13 @@
     "password": "Contraseña",
     "login": "Iniciar sesión",
     "loginError": "Correo o contraseña incorrectos.",
+    "groups": {
+      "propiedades": "Propiedades",
+      "clientes": "Clientes",
+      "herramientas": "Herramientas",
+      "obra": "Obra",
+      "oficina": "Oficina"
+    },
     "logout": "Cerrar sesión",
     "dashboard": "Panel principal",
     "totalProperties": "Total de propiedades",

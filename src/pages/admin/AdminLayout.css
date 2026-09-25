@@ -26,6 +26,8 @@
   flex-direction: column;
   gap: 0.25rem;
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .admin-layout__sidebar nav a {
@@ -103,6 +105,55 @@
   flex: 1;
 }
 
+.admin-layout__group-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: #c9d3e2;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-layout__group-toggle > span:first-child {
+  flex: 1;
+}
+
+.admin-layout__group-toggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.admin-layout__chevron {
+  transition: transform 0.15s ease;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.admin-layout__chevron.is-open {
+  transform: rotate(90deg);
+}
+
+.admin-layout__group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0.1rem 0 0.4rem 0.9rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.admin-layout__group-items a {
+  padding: 0.55rem 0.8rem;
+  font-size: 0.88rem;
+}
+
 @media (max-width: 860px) {
   .admin-layout {
     grid-template-columns: 1fr;
@@ -119,5 +170,10 @@
   .admin-layout__sidebar nav {
     flex-direction: row;
     flex-wrap: wrap;
+    overflow-y: visible;
+  }
+
+  .admin-layout__group {
+    width: 100%;
   }
 }

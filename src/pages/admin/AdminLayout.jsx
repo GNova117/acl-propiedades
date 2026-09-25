@@ -9,12 +9,110 @@ import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
 import "./AdminLayout.css";
 
+// Menú por carpetas. Cada item se muestra solo si el rol tiene ese apartado;
+// una carpeta sin ningún item visible no se dibuja. Los apartados sueltos
+// (sin carpeta) van como { section, to, label } directo en la lista.
+const NAV = [
+  { section: null, to: "/admin", end: true, labelKey: "admin.dashboard" },
+  {
+    key: "propiedades",
+    labelKey: "admin.groups.propiedades",
+    items: [
+      { section: "propiedades", to: "/admin/propiedades", labelKey: "admin.properties" },
+      { section: "naves_industriales", to: "/admin/naves-industriales", labelKey: "admin.industrialWarehouses" },
+      { section: "zonas", to: "/admin/zonas", labelKey: "admin.zones" },
+      { section: "asesores", to: "/admin/asesores", labelKey: "admin.advisors" },
+    ],
+  },
+  {
+    key: "clientes",
+    labelKey: "admin.groups.clientes",
+    items: [
+      { section: "clientes", to: "/admin/clientes", labelKey: "admin.clients" },
+      { section: "mensajes", to: "/admin/mensajes", labelKey: "admin.messages", badge: true },
+      { section: "testimonios", to: "/admin/testimonios", labelKey: "admin.testimonials" },
+      { section: "visitas", to: "/admin/visitas", labelKey: "accessControl.sections.visitas" },
+    ],
+  },
+  {
+    key: "herramientas",
+    labelKey: "admin.groups.herramientas",
+    items: [
+      { section: "valuacion", to: "/admin/valuacion", labelKey: "accessControl.sections.valuacion" },
+      { section: "credito_infonavit", to: "/admin/credito-infonavit", labelKey: "admin.infonavitSimulator" },
+      { section: "documentos_legales", to: "/admin/documentos-legales", labelKey: "accessControl.sections.documentos_legales" },
+    ],
+  },
+  {
+    key: "obra",
+    labelKey: "admin.groups.obra",
+    items: [
+      { section: "remodelaciones", to: "/admin/remodelaciones", labelKey: "admin.remodelProjects" },
+      { section: "materiales", to: "/admin/materiales", labelKey: "materialsCatalog.title" },
+      { section: "construccion", to: "/admin/construccion", label: "Construcción" },
+    ],
+  },
+  {
+    key: "oficina",
+    labelKey: "admin.groups.oficina",
+    items: [
+      { section: "agenda", to: "/admin/agenda", labelKey: "accessControl.sections.agenda" },
+      { section: "secretaria", to: "/admin/secretaria", labelKey: "accessControl.sections.secretaria" },
+      { section: "reportes", to: "/admin/reportes", labelKey: "accessControl.sections.reportes" },
+    ],
+  },
+  { section: "roles", to: "/admin/roles", labelKey: "accessControl.sections.roles" },
+];
+
+const OPEN_KEY = "acl_admin_nav_open";
+const readOpen = () => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(OPEN_KEY));
+    return Array.isArray(raw) ? raw : [];
+  } catch {
+    return [];
+  }
+};
+const isInside = (pathname, to) => pathname === to || pathname.startsWith(`${to}/`);
+
 export default function AdminLayout() {
   const { t } = useTranslation();
   const { logout, hasSection } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [newMessagesCount, setNewMessagesCount] = useState(0);
+  const [openGroups, setOpenGroups] = useState(readOpen);
+
+  const visibleNav = NAV.map((entry) =>
+    entry.items ? { ...entry, items: entry.items.filter((item) => hasSection(item.section)) } : entry
+  ).filter((entry) => (entry.items ? entry.items.length > 0 : entry.section === null || hasSection(entry.section)));
+
+  // La carpeta de la página actual siempre se abre, aunque el usuario la
+  // hubiera cerrado antes (así nunca se "pierde" dónde está).
+  useEffect(() => {
+    const current = visibleNav.find((g) => g.items?.some((item) => isInside(pathname, item.to)));
+    if (current) setOpenGroups((prev) => (prev.includes(current.key) ? prev : [...prev, current.key]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  const toggleGroup = (key) => {
+    setOpenGroups((prev) => {
+      const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
+      try {
+        localStorage.setItem(OPEN_KEY, JSON.stringify(next));
+      } catch {
+        /* sin almacenamiento: el menú funciona igual */
+      }
+      return next;
+    });
+  };
+
+  const renderLink = (item) => (
+    <NavLink key={item.to} to={item.to} end={item.end}>
+      {item.label || t(item.labelKey)}
+      {item.badge && newMessagesCount > 0 && <span className="admin-layout__nav-badge">{newMessagesCount}</span>}
+    </NavLink>
+  );
 
   // Se vuelve a consultar en cada cambio de ruta (no solo al montar) para
   // que el aviso no se quede desactualizado si alguien pasa un rato largo
@@ -41,30 +139,26 @@ export default function AdminLayout() {
           <Logo variant="white" size="sm" />
         </NavLink>
         <nav>
-          <NavLink to="/admin" end>{t("admin.dashboard")}</NavLink>
-          {hasSection("propiedades") && <NavLink to="/admin/propiedades">{t("admin.properties")}</NavLink>}
-          {hasSection("naves_industriales") && <NavLink to="/admin/naves-industriales">{t("admin.industrialWarehouses")}</NavLink>}
-          {hasSection("asesores") && <NavLink to="/admin/asesores">{t("admin.advisors")}</NavLink>}
-          {hasSection("zonas") && <NavLink to="/admin/zonas">{t("admin.zones")}</NavLink>}
-          {hasSection("clientes") && <NavLink to="/admin/clientes">{t("admin.clients")}</NavLink>}
-          {hasSection("mensajes") && (
-            <NavLink to="/admin/mensajes">
-              {t("admin.messages")}
-              {newMessagesCount > 0 && <span className="admin-layout__nav-badge">{newMessagesCount}</span>}
-            </NavLink>
-          )}
-          {hasSection("testimonios") && <NavLink to="/admin/testimonios">{t("admin.testimonials")}</NavLink>}
-          {hasSection("remodelaciones") && <NavLink to="/admin/remodelaciones">{t("admin.remodelProjects")}</NavLink>}
-          {hasSection("materiales") && <NavLink to="/admin/materiales">{t("materialsCatalog.title")}</NavLink>}
-          {hasSection("construccion") && <NavLink to="/admin/construccion">Construcción</NavLink>}
-          {hasSection("credito_infonavit") && <NavLink to="/admin/credito-infonavit">{t("admin.infonavitSimulator")}</NavLink>}
-          {hasSection("valuacion") && <NavLink to="/admin/valuacion">{t("accessControl.sections.valuacion")}</NavLink>}
-          {hasSection("documentos_legales") && <NavLink to="/admin/documentos-legales">{t("accessControl.sections.documentos_legales")}</NavLink>}
-          {hasSection("agenda") && <NavLink to="/admin/agenda">{t("accessControl.sections.agenda")}</NavLink>}
-          {hasSection("visitas") && <NavLink to="/admin/visitas">{t("accessControl.sections.visitas")}</NavLink>}
-          {hasSection("secretaria") && <NavLink to="/admin/secretaria">{t("accessControl.sections.secretaria")}</NavLink>}
-          {hasSection("reportes") && <NavLink to="/admin/reportes">{t("accessControl.sections.reportes")}</NavLink>}
-          {hasSection("roles") && <NavLink to="/admin/roles">{t("accessControl.sections.roles")}</NavLink>}
+          {visibleNav.map((entry) => {
+            if (!entry.items) return renderLink(entry);
+            const open = openGroups.includes(entry.key);
+            const hasBadge = !open && newMessagesCount > 0 && entry.items.some((i) => i.badge);
+            return (
+              <div key={entry.key} className="admin-layout__group">
+                <button
+                  type="button"
+                  className="admin-layout__group-toggle"
+                  aria-expanded={open}
+                  onClick={() => toggleGroup(entry.key)}
+                >
+                  <span>{t(entry.labelKey)}</span>
+                  {hasBadge && <span className="admin-layout__nav-badge">{newMessagesCount}</span>}
+                  <span className={`admin-layout__chevron${open ? " is-open" : ""}`} aria-hidden="true">›</span>
+                </button>
+                {open && <div className="admin-layout__group-items">{entry.items.map(renderLink)}</div>}
+              </div>
+            );
+          })}
         </nav>
         <button type="button" className="admin-layout__logout" onClick={handleLogout}>
           {t("admin.logout")}

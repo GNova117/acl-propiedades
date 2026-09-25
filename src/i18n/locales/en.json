@@ -357,6 +357,13 @@
     "password": "Password",
     "login": "Sign in",
     "loginError": "Incorrect email or password.",
+    "groups": {
+      "propiedades": "Properties",
+      "clientes": "Clients",
+      "herramientas": "Tools",
+      "obra": "Works",
+      "oficina": "Office"
+    },
     "logout": "Sign out",
     "dashboard": "Dashboard",
     "totalProperties": "Total properties",
