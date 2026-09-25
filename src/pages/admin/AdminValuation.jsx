@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ValuationMap from "../../components/ValuationMap";
 import { useAuth } from "../../context/AuthContext";
@@ -35,6 +35,7 @@ export default function AdminValuation() {
   const { t } = useTranslation();
   const { hasSection } = useAuth();
   const [zones, setZones] = useState([]);
+  const prefill = useLocation().state?.prefill; // viene de Mensajes ("Estimar valor")
   const [zoneId, setZoneId] = useState("");
   const [shapes, setShapes] = useState([]);
   // Las superficies siempre son editables a mano; el mapa las rellena cuando se
@@ -55,7 +56,9 @@ export default function AdminValuation() {
   useEffect(() => {
     db.getZones().then((data) => {
       setZones(data);
-      if (data.length > 0) setZoneId(data[0].id);
+      const wanted = prefill?.zoneName && data.find((z) => z.name === prefill.zoneName);
+      if (wanted) setZoneId(wanted.id);
+      else if (data.length > 0) setZoneId(data[0].id);
     });
   }, []);
 
@@ -66,6 +69,14 @@ export default function AdminValuation() {
 
   useEffect(() => {
     db.getValuationEstimates().then(setHistory).catch(() => setHistory([]));
+  }, []);
+
+  useEffect(() => {
+    if (!prefill) return;
+    if (prefill.reference) setReference(prefill.reference);
+    if (prefill.landArea) setAreas((prev) => ({ ...prev, land: String(prefill.landArea) }));
+    if (prefill.builtArea) setAreas((prev) => ({ ...prev, built: String(prefill.builtArea) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const zone = zones.find((z) => z.id === zoneId);

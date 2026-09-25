@@ -1,0 +1,39 @@
+.signature-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.signature-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 10, 20, 0.6);
+}
+
+.signature-modal__box {
+  position: relative;
+  width: min(680px, 100%);
+  padding: 1.25rem;
+}
+
+.signature-modal__canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 640 / 260;
+  background: #fff;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md, 10px);
+  touch-action: none; /* que el dedo dibuje en vez de mover la página */
+  cursor: crosshair;
+}
+
+.signature-modal__actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.9rem;
+}

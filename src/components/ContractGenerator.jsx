@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/dataStore";
 import { CONTRACT_DOC_TYPES, CONTRACT_FIELDS, buildContractContent, defaultContractValues, validateContractValues } from "../lib/contractDocs";
-import { downloadContractPdf } from "../lib/contractPdf";
+import { buildContractPdf, downloadContractPdf } from "../lib/contractPdf";
+import SignatureModal from "./SignatureModal";
 
 // Generador de documentos con datos del cliente y de la propiedad (recibo de
 // apartado, autorización de venta, carta oferta). Vive en Documentos legales.
@@ -20,6 +22,9 @@ export default function ContractGenerator() {
   const [values, setValues] = useState(() => defaultContractValues(CONTRACT_DOC_TYPES[0], null));
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
+  const [sigs, setSigs] = useState({}); // { client: { image, signedAt }, office: {...} }
+  const [signing, setSigning] = useState(null); // "client" | "office" mientras el cuadro de firma está abierto
+  const [savedTo, setSavedTo] = useState(null); // id del cliente al que se guardó el PDF firmado
 
   useEffect(() => {
     db.getClients().then(setClients).catch(() => setClients([]));
@@ -48,19 +53,45 @@ export default function ContractGenerator() {
 
   const setValue = (key, v) => setValues((prev) => ({ ...prev, [key]: v }));
 
-  const handleDownload = async () => {
+  // Valida y arma el contenido con las firmas que ya se hayan puesto.
+  const prepareContent = () => {
     const found = validateContractValues(type, values);
     if (!client) found.client = true;
     if (!property) found.property = true;
     setErrors(found);
-    if (Object.keys(found).length > 0) return;
+    if (Object.keys(found).length > 0) return null;
+    const advisor = advisors.find((a) => a.id === signerId);
+    const content = buildContractContent(type, { client, property, advisor, values });
+    content.signatures = content.signatures.map((s) => ({ ...s, image: sigs[s.role]?.image, signedAt: sigs[s.role]?.signedAt }));
+    return content;
+  };
+
+  const handleDownload = async () => {
+    const content = prepareContent();
+    if (!content) return;
     setBusy(true);
     try {
-      const advisor = advisors.find((a) => a.id === signerId);
-      const content = buildContractContent(type, { client, property, advisor, values });
       await downloadContractPdf(content);
     } catch (err) {
       window.alert(err.message || t("contracts.error"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Guarda el PDF (con las firmas) en el expediente del cliente, como
+  // documento de tipo "contrato".
+  const handleSave = async () => {
+    const content = prepareContent();
+    if (!content) return;
+    setBusy(true);
+    try {
+      const bytes = await buildContractPdf(content);
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      await db.addClientDocument({ client_id: client.id, doc_type: "contrato", blob, quality_metrics: {} });
+      setSavedTo(client.id);
+    } catch (err) {
+      window.alert(err.message || t("contracts.saveError"));
     } finally {
       setBusy(false);
     }
@@ -182,10 +213,60 @@ export default function ContractGenerator() {
       </div>
       {CONTRACT_FIELDS[type].filter((f) => f.type === "textarea").map(fieldControl)}
 
-      <button type="button" className="btn btn-primary" onClick={handleDownload} disabled={busy}>
-        {busy ? <span className="spinner" /> : null}
-        {t("legalDocs.download")}
-      </button>
+      <fieldset className="form-field" style={{ border: "1px solid var(--color-border)", borderRadius: "var(--radius-md, 10px)", padding: "0.9rem" }}>
+        <legend style={{ padding: "0 0.4rem", fontWeight: 600 }}>{t("contracts.signaturesTitle")}</legend>
+        <p className="form-hint" style={{ marginTop: 0 }}>{t("contracts.signaturesHint")}</p>
+        {["client", "office"].map((role) => (
+          <div key={role} style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+            <span style={{ minWidth: 150 }}>{t(`contracts.signer_${role}`)}</span>
+            {sigs[role] ? (
+              <img src={sigs[role].image} alt="" style={{ height: 40, background: "#fff", border: "1px solid var(--color-border)", borderRadius: 4, padding: 2 }} />
+            ) : (
+              <span className="form-hint">{t("contracts.unsigned")}</span>
+            )}
+            <button type="button" className="btn btn-outline btn-sm" onClick={() => setSigning(role)}>
+              {sigs[role] ? t("contracts.resign") : t("contracts.sign")}
+            </button>
+            {sigs[role] && (
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() => setSigs((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => k !== role)))}
+              >
+                {t("contracts.removeSignature")}
+              </button>
+            )}
+          </div>
+        ))}
+        <p className="form-hint" style={{ marginBottom: 0 }}>{t("contracts.signatureNote")}</p>
+      </fieldset>
+
+      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+        <button type="button" className="btn btn-primary" onClick={handleDownload} disabled={busy}>
+          {busy ? <span className="spinner" /> : null}
+          {t("legalDocs.download")}
+        </button>
+        <button type="button" className="btn btn-outline" onClick={handleSave} disabled={busy}>
+          {t("contracts.saveToFile")}
+        </button>
+      </div>
+      {savedTo && (
+        <p className="form-hint" style={{ color: "var(--color-success)", marginTop: "0.75rem" }}>
+          {t("contracts.saved")} <Link to={`/admin/clientes/${savedTo}/documentos`}>{t("contracts.openFile")}</Link>
+        </p>
+      )}
+
+      {signing && (
+        <SignatureModal
+          title={t(`contracts.signer_${signing}`)}
+          onCancel={() => setSigning(null)}
+          onAccept={(sig) => {
+            setSigs((prev) => ({ ...prev, [signing]: sig }));
+            setSigning(null);
+            setSavedTo(null);
+          }}
+        />
+      )}
     </div>
   );
 }

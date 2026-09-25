@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { to: "/propiedades", key: "nav.properties" },
   { to: "/naves-industriales", key: "nav.industrial", typeKey: "nave_industrial" },
   { to: "/terrenos", key: "nav.land", typeKey: "terreno" },
+  { to: "/vende-tu-casa", key: "nav.sellHome" },
   { to: "/nosotros", key: "nav.about" },
   { to: "/contacto", key: "nav.contact" },
 ];

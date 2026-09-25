@@ -3,7 +3,7 @@
 
 export const PROSPECT_STAGES = ["nuevo", "contactado", "interesado", "negociacion", "cerrado", "perdido"];
 export const OPEN_STAGES = ["nuevo", "contactado", "interesado", "negociacion"];
-export const PROSPECT_SOURCES = ["manual", "visita", "whatsapp", "sitio", "recomendacion", "redes", "otro"];
+export const PROSPECT_SOURCES = ["manual", "visita", "whatsapp", "simulador", "estimacion", "sitio", "recomendacion", "redes", "otro"];
 
 export const isOpenStage = (stage) => OPEN_STAGES.includes(stage);
 
@@ -67,7 +67,7 @@ export function messageToProspectFields(message, property) {
     name: (message.name || "").trim() || "Sin nombre",
     phone: message.phone || null,
     email: message.email || null,
-    source: message.channel === "whatsapp" ? "whatsapp" : "sitio",
+    source: ["whatsapp", "simulador", "estimacion"].includes(message.channel) ? message.channel : "sitio",
     stage: "nuevo",
     advisor_id: advisors.length === 1 ? advisors[0].id : null,
     property_id: message.property_id || null,

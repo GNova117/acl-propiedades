@@ -23,6 +23,13 @@ function clientPrefill(message) {
   };
 }
 
+// Datos de una solicitud de estimación del sitio (details) para abrir la
+// Estimación de valor ya llenada.
+function valuationPrefill(message) {
+  const d = message.details || {};
+  return { reference: message.name, zoneName: d.zona || "", landArea: d.terreno_m2 || "", builtArea: d.construccion_m2 || "" };
+}
+
 function visitPrefill(message) {
   return {
     titulo: `Cita con ${message.name}`,
@@ -192,7 +199,7 @@ export default function AdminMessages() {
                     <td>{new Date(message.created_at).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}</td>
                     <td>
                       {message.name}
-                      {message.channel === "whatsapp" && <span className="form-hint" style={{ display: "block", margin: 0 }}>{t("messages.viaWhatsapp")}</span>}
+                      {["whatsapp", "simulador", "estimacion"].includes(message.channel) && <span className="form-hint" style={{ display: "block", margin: 0 }}>{t(`messages.via_${message.channel}`)}</span>}
                     </td>
                     <td>{message.phone || "—"}</td>
                     <td>{message.email || "—"}</td>
@@ -248,6 +255,11 @@ export default function AdminMessages() {
                         <a href={`mailto:${message.email}`} className="btn btn-outline btn-sm">
                           {t("detail.email")}
                         </a>
+                      )}
+                      {message.channel === "estimacion" && hasSection("valuacion") && (
+                        <Link to="/admin/valuacion" state={{ prefill: valuationPrefill(message) }} className="btn btn-primary btn-sm">
+                          {t("messages.estimate")}
+                        </Link>
                       )}
                       {hasSection("prospectos") &&
                         (promotedIds.has(message.id) ? (

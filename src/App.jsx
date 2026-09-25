@@ -8,6 +8,8 @@ import Home from "./pages/Home";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
 import Calculator from "./pages/Calculator";
+import CreditSimulator from "./pages/CreditSimulator";
+import SellYourHome from "./pages/SellYourHome";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Favorites from "./pages/Favorites";
@@ -66,6 +68,8 @@ const AdminSalesReports = lazy(() => import("./pages/admin/AdminSalesReports"));
 const AdminPropertyBitacora = lazy(() => import("./pages/admin/AdminPropertyBitacora"));
 const AdminSecretaria = lazy(() => import("./pages/admin/AdminSecretaria"));
 const AdminProspects = lazy(() => import("./pages/admin/AdminProspects"));
+const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
+const AdminClientHistory = lazy(() => import("./pages/admin/AdminClientHistory"));
 const AdminProspectForm = lazy(() => import("./pages/admin/AdminProspectForm"));
 const AdminVisits = lazy(() => import("./pages/admin/AdminVisits"));
 const AdminVisitForm = lazy(() => import("./pages/admin/AdminVisitForm"));
@@ -140,6 +144,8 @@ export default function App() {
         }
       />
       <Route path="/calculadora" element={<PublicLayout><Calculator /></PublicLayout>} />
+      <Route path="/simulador-credito" element={<PublicLayout><CreditSimulator /></PublicLayout>} />
+      <Route path="/vende-tu-casa" element={<PublicLayout><SellYourHome /></PublicLayout>} />
       <Route path="/nosotros" element={<PublicLayout><About /></PublicLayout>} />
       <Route path="/contacto" element={<PublicLayout><Contact /></PublicLayout>} />
       <Route path="/favoritos" element={<PublicLayout><Favorites /></PublicLayout>} />
@@ -244,6 +250,7 @@ export default function App() {
         <Route path="clientes/nuevo" element={<RequireSection section="clientes"><AdminClientForm /></RequireSection>} />
         <Route path="clientes/:id" element={<RequireSection section="clientes"><AdminClientForm /></RequireSection>} />
         <Route path="clientes/:id/documentos" element={<RequireSection section="clientes"><AdminClientDocuments /></RequireSection>} />
+        <Route path="clientes/:id/historial" element={<RequireSection section="clientes"><AdminClientHistory /></RequireSection>} />
         <Route path="clientes/:id/perfilamiento" element={<RequireSection section="clientes"><AdminClientProfiling /></RequireSection>} />
         <Route path="clientes/:id/conjunto" element={<RequireSection section="clientes"><AdminClientJoint /></RequireSection>} />
         <Route path="remodelaciones" element={<RequireSection section="remodelaciones"><AdminRemodelProjects /></RequireSection>} />
@@ -259,6 +266,7 @@ export default function App() {
         <Route path="credito-infonavit" element={<RequireSection section="credito_infonavit"><AdminInfonavitSimulator /></RequireSection>} />
         <Route path="valuacion" element={<RequireSection section="valuacion"><AdminValuation /></RequireSection>} />
         <Route path="documentos-legales" element={<RequireSection section="documentos_legales"><AdminLegalDocs /></RequireSection>} />
+        <Route path="actividad" element={<RequireSection section="roles"><AdminActivity /></RequireSection>} />
         <Route path="roles" element={<RequireSection section="roles"><AdminRoles /></RequireSection>} />
         <Route path="agenda" element={<RequireSection section="agenda"><AdminAgenda /></RequireSection>} />
         <Route path="agenda/nueva" element={<RequireSection section="agenda"><AdminAgendaForm /></RequireSection>} />

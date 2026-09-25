@@ -1210,6 +1210,11 @@ export const localBackend = {
     writeStore(KEYS.visits, readStore(KEYS.visits, VISITS_SEED).filter((v) => v.id !== id));
   },
 
+  // Registro de actividad: en modo demo no hay base ni triggers, así que no hay registro.
+  async getAuditLog() {
+    return [];
+  },
+
   // Prospectos por etapas (modo demo: localStorage, sin RLS).
   async getProspects() {
     return readStore(KEYS.prospects, []).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));

@@ -169,7 +169,7 @@ export function buildContractContent(type, { client, property, advisor, values }
         "Si la operación no se concreta por causas atribuibles al propietario o por falta de documentación del inmueble, el monto del apartado será devuelto íntegramente al Cliente.",
         "El Cliente manifiesta haber visitado el inmueble y conocer sus condiciones.",
       ],
-      signatures: [{ ...signOffice, label: "Recibió: ACL Propiedades" }, { label: "Conforme: el Cliente", name: client.name }],
+      signatures: [{ ...signOffice, role: "office", label: "Recibió: ACL Propiedades" }, { role: "client", label: "Conforme: el Cliente", name: client.name }],
     };
   }
 
@@ -199,7 +199,7 @@ export function buildContractContent(type, { client, property, advisor, values }
         "El Propietario declara ser titular del inmueble o contar con facultades para venderlo, y que este se encuentra libre de gravámenes y adeudos, salvo los que manifieste por escrito a la Inmobiliaria. Se obliga a proporcionar la documentación necesaria para la operación.",
         "El precio de lista podrá modificarse únicamente por acuerdo escrito entre las partes.",
       ],
-      signatures: [{ label: "El Propietario", name: client.name }, signOffice],
+      signatures: [{ role: "client", label: "El Propietario", name: client.name }, { ...signOffice, role: "office" }],
     };
   }
 
@@ -226,6 +226,6 @@ export function buildContractContent(type, { client, property, advisor, values }
       `La oferta tendrá vigencia hasta el ${longDate(values.fecha_vigencia)}; después de esa fecha quedará sin efecto, salvo prórroga por escrito.`,
       "Los gastos de escrituración e impuestos se pagarán conforme a la ley y a lo que las partes convengan en el contrato.",
     ],
-    signatures: [{ label: "El Oferente", name: client.name }, { ...signOffice, label: "Recibió: ACL Propiedades" }],
+    signatures: [{ role: "client", label: "El Oferente", name: client.name }, { ...signOffice, role: "office", label: "Recibió: ACL Propiedades" }],
   };
 }

@@ -6,6 +6,7 @@ import { formatMXN, formatArea, propertyTypeLabel } from "../../lib/format";
 import { downloadFichaTecnicaPdf } from "../../lib/propertyFichaPdf";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
+import SocialPostModal from "../../components/SocialPostModal";
 import "./admin.css";
 
 // `fixedType`: apartado de un solo tipo (Naves Industriales) — la lista solo
@@ -25,6 +26,7 @@ export default function AdminProperties({
   const [remodelProjects, setRemodelProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyFichaId, setBusyFichaId] = useState(null);
+  const [socialProperty, setSocialProperty] = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -155,6 +157,9 @@ export default function AdminProperties({
                         {busyFichaId === property.id ? <span className="spinner" /> : null}
                         {t("admin.technicalSheet")}
                       </button>
+                      <button type="button" className="btn btn-outline btn-sm" onClick={() => setSocialProperty(property)}>
+                        {t("socialPost.button")}
+                      </button>
                       {remodelProject && hasSection("remodelaciones") && (
                         <Link to={`/admin/remodelaciones/${remodelProject.id}`} className="btn btn-outline btn-sm">
                           {t("remodelCalculator.button")}
@@ -191,6 +196,8 @@ export default function AdminProperties({
           </tbody>
         </table>
       </div>
+
+      {socialProperty && <SocialPostModal property={socialProperty} onClose={() => setSocialProperty(null)} />}
     </div>
   );
 }

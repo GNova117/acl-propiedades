@@ -121,13 +121,24 @@ export async function buildContractPdf(content, { template } = {}) {
     y -= LINE_HEIGHT * 0.3;
   }
 
-  // Firmas lado a lado
-  await ensureSpace(LINE_HEIGHT * 6);
-  y -= LINE_HEIGHT * 2.5;
+  // Firmas lado a lado. Si la persona firmó en pantalla (sig.image, un PNG),
+  // la firma se dibuja sobre la línea y debajo queda la fecha y hora en que se firmó.
+  const signatures = (content.signatures || []).slice(0, 2);
+  const hasImages = signatures.some((s) => s.image);
+  await ensureSpace(LINE_HEIGHT * (hasImages ? 8 : 6));
+  y -= LINE_HEIGHT * (hasImages ? 3.6 : 2.5);
   const gap = 40;
   const half = (CONTENT_WIDTH - gap) / 2;
-  (content.signatures || []).slice(0, 2).forEach((sig, i) => {
+  for (let i = 0; i < signatures.length; i++) {
+    const sig = signatures[i];
     const x = MARGIN_LEFT + i * (half + gap);
+    if (sig.image) {
+      const png = await doc.embedPng(sig.image);
+      const scale = Math.min(half / png.width, 46 / png.height);
+      const w = png.width * scale;
+      const h = png.height * scale;
+      page.drawImage(png, { x: x + (half - w) / 2, y: y + 3, width: w, height: h });
+    }
     page.drawLine({ start: { x, y }, end: { x: x + half, y }, thickness: 1, color: black });
     let ly = y - 14;
     for (const line of wrap(sig.label, bold, SIZE_BODY, half)) {
@@ -138,7 +149,11 @@ export async function buildContractPdf(content, { template } = {}) {
       page.drawText(line, { x, y: ly, size: SIZE_BODY, font: regular, color: black });
       ly -= 12;
     }
-  });
+    if (sig.image && sig.signedAt) {
+      const stamp = `Firmado en pantalla: ${new Date(sig.signedAt).toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" })}`;
+      page.drawText(sanitize(stamp), { x, y: ly - 2, size: 7, font: regular, color: gray });
+    }
+  }
 
   return doc.save();
 }

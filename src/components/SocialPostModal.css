@@ -1,0 +1,118 @@
+.social-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.social-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 10, 20, 0.6);
+}
+
+.social-modal__box {
+  position: relative;
+  width: min(980px, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  padding: 1.25rem;
+}
+
+.social-modal__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.social-modal__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.social-modal__preview {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 5;
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-md, 10px);
+  overflow: hidden;
+}
+
+.social-modal__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.social-modal__preview .spinner {
+  position: absolute;
+  z-index: 1;
+}
+
+.social-modal__thumbs {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.6rem 0 0.2rem;
+}
+
+.social-modal__thumbs button {
+  flex: 0 0 56px;
+  height: 56px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  background: none;
+}
+
+.social-modal__thumbs button.is-active {
+  border-color: var(--color-primary);
+}
+
+.social-modal__thumbs img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.social-modal__side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.social-modal__side textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.social-modal__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+@media (max-width: 760px) {
+  .social-modal__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .social-modal__preview {
+    max-width: 280px;
+    margin: 0 auto;
+  }
+}

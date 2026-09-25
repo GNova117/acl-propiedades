@@ -1180,6 +1180,19 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  // Registro de actividad (quién creó/editó/borró qué). Solo lo ve el rol con el
+  // apartado 'roles'; lo escriben triggers de la base (ver schema.sql).
+  async getAuditLog({ table, actor, from, to, limit = 100, offset = 0 } = {}) {
+    let query = supabase.from("audit_log").select("*").order("at", { ascending: false }).range(offset, offset + limit - 1);
+    if (table) query = query.eq("table_name", table);
+    if (actor) query = query.ilike("actor", `%${actor.replace(/[%_]/g, "")}%`);
+    if (from) query = query.gte("at", `${from}T00:00:00`);
+    if (to) query = query.lte("at", `${to}T23:59:59`);
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  },
+
   // Prospectos por etapas. RLS: apartado 'prospectos'; un asesor con login
   // vinculado ve solo los suyos (ver schema.sql).
   async getProspects() {

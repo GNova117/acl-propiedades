@@ -151,6 +151,9 @@ export default function AdminClients() {
                     <Link to={`/admin/clientes/${client.id}`} className="btn btn-outline btn-sm">
                       {t("common.edit")}
                     </Link>
+                    <Link to={`/admin/clientes/${client.id}/historial`} className="btn btn-outline btn-sm">
+                      {t("clientHistory.button")}
+                    </Link>
                     <Link to={`/admin/clientes/${client.id}/perfilamiento`} className="btn btn-outline btn-sm">
                       {t("profiling.title")}
                     </Link>
