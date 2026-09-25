@@ -82,6 +82,23 @@ export default function AdminLayout() {
   const { pathname } = useLocation();
   const [newMessagesCount, setNewMessagesCount] = useState(0);
   const [openGroups, setOpenGroups] = useState(readOpen);
+  // En pantallas chicas el menú es un cajón que se abre con el botón ☰.
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onKey = (e) => e.key === "Escape" && setMenuOpen(false);
+    document.addEventListener("keydown", onKey);
+    document.body.classList.add("admin-menu-open");
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.classList.remove("admin-menu-open");
+    };
+  }, [menuOpen]);
 
   const visibleNav = NAV.map((entry) =>
     entry.items ? { ...entry, items: entry.items.filter((item) => hasSection(item.section)) } : entry
@@ -134,7 +151,7 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-layout">
-      <aside className="admin-layout__sidebar">
+      <aside id="admin-sidebar" className={`admin-layout__sidebar${menuOpen ? " is-open" : ""}`}>
         <NavLink to="/" className="admin-layout__logo">
           <Logo variant="white" size="sm" />
         </NavLink>
@@ -165,9 +182,21 @@ export default function AdminLayout() {
         </button>
       </aside>
 
+      {menuOpen && <div className="admin-layout__backdrop" onClick={() => setMenuOpen(false)} aria-hidden="true" />}
+
       <div className="admin-layout__main">
         <header className="admin-layout__topbar">
-          <span />
+          <button
+            type="button"
+            className="admin-layout__menu-btn"
+            aria-label={t("admin.menu")}
+            aria-expanded={menuOpen}
+            aria-controls="admin-sidebar"
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            <span aria-hidden="true" />
+          </button>
+          <span className="admin-layout__topbar-spacer" />
           <div className="admin-layout__topbar-actions">
             <ThemeToggle />
             <LanguageToggle />

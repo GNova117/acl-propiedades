@@ -154,26 +154,103 @@
   font-size: 0.88rem;
 }
 
+.admin-layout__menu-btn,
+.admin-layout__backdrop {
+  display: none;
+}
+
+.admin-layout__topbar-spacer {
+  flex: 1;
+}
+
 @media (max-width: 860px) {
   .admin-layout {
     grid-template-columns: 1fr;
   }
 
+  /* El menú pasa a ser un cajón lateral que se desliza sobre el contenido. */
   .admin-layout__sidebar {
-    position: static;
-    height: auto;
-    flex-direction: row;
-    flex-wrap: wrap;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1001;
+    width: min(84vw, 320px);
+    height: 100vh;
+    height: 100dvh;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-102%);
+    transition: transform 0.22s ease;
+    box-shadow: none;
+    overflow: hidden;
+  }
+
+  .admin-layout__sidebar.is-open {
+    transform: translateX(0);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .admin-layout__backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(5, 10, 20, 0.55);
+  }
+
+  body.admin-menu-open {
+    overflow: hidden;
+  }
+
+  /* Barra superior fija con el botón ☰ (área táctil de 44 px). */
+  .admin-layout__topbar {
+    position: sticky;
+    top: 0;
+    z-index: 900;
+    height: 56px;
+    padding: 0 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .admin-layout__menu-btn {
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    cursor: pointer;
   }
 
-  .admin-layout__sidebar nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    overflow-y: visible;
+  .admin-layout__menu-btn span,
+  .admin-layout__menu-btn span::before,
+  .admin-layout__menu-btn span::after {
+    display: block;
+    width: 20px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--color-text, currentColor);
+    content: "";
+    position: relative;
   }
 
-  .admin-layout__group {
-    width: 100%;
+  .admin-layout__menu-btn span::before {
+    position: absolute;
+    top: -6px;
+  }
+
+  .admin-layout__menu-btn span::after {
+    position: absolute;
+    top: 6px;
+  }
+
+  .admin-layout__sidebar nav a,
+  .admin-layout__group-toggle {
+    min-height: 44px;
+  }
+
+  .admin-layout__content {
+    padding: 1rem;
   }
 }
