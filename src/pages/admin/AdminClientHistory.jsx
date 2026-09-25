@@ -25,6 +25,7 @@ const KIND_CLASS = {
   valuation: "kind-valuation",
   agenda: "kind-agenda",
   document: "kind-document",
+  signing: "kind-signing",
 };
 
 export default function AdminClientHistory() {
@@ -51,7 +52,7 @@ export default function AdminClientHistory() {
       }
       setClient(found);
 
-      const [properties, docs, valuations, prospects, messages, visits, citas] = await Promise.all([
+      const [properties, docs, valuations, prospects, messages, visits, citas, signings] = await Promise.all([
         db.getProperties({}).catch(() => []),
         guarded("clientes", () => db.getClientDocuments(id)),
         guarded("valuacion", () => db.getValuationEstimates()),
@@ -59,6 +60,7 @@ export default function AdminClientHistory() {
         guarded("mensajes", () => db.getContactMessages()),
         guarded("visitas", () => db.getVisits()),
         guarded("agenda", () => db.getAgendaCitas()),
+        guarded("documentos_legales", () => db.getSigningRequests()),
       ]);
       if (cancelled) return;
 
@@ -125,6 +127,17 @@ export default function AdminClientHistory() {
           title: t("clientHistory.events.agenda", { title: c.titulo }),
           detail: "",
           to: `/admin/agenda/${c.id}`,
+        });
+      }
+
+      for (const s of signings.filter((s) => s.client_id === id)) {
+        list.push({
+          id: `s-${s.id}`,
+          at: s.signed_at || s.created_at,
+          kind: "signing",
+          title: t(s.status === "firmado" ? "clientHistory.events.signed" : "clientHistory.events.signingSent", { title: s.title }),
+          detail: s.status === "firmado" ? "" : t(`signing.status.${s.status}`),
+          to: "/admin/firmas",
         });
       }
 

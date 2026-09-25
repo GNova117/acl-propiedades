@@ -34,6 +34,7 @@ const KEYS = {
   docLog: "acl_local_doc_log",
   valuations: "acl_local_valuation_estimates",
   prospects: "acl_local_prospectos",
+  signing: "acl_local_signing_requests",
   reportLinks: "acl_local_report_links",
   adminRoles: "acl_local_admin_roles",
   adminAccess: "acl_local_admin_access",
@@ -1208,6 +1209,122 @@ export const localBackend = {
 
   async deleteVisit(id) {
     writeStore(KEYS.visits, readStore(KEYS.visits, VISITS_SEED).filter((v) => v.id !== id));
+  },
+
+  // Firma de contratos (modo demo): mismas reglas que las funciones de la base
+  // (código, 5 intentos, vigencia, una sola firma), pero en localStorage.
+  async getSigningRequests() {
+    return readStore(KEYS.signing, [])
+      .map(({ document_b64, signature_b64, fingerprint_b64, code, ...rest }) => rest)
+      .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  },
+
+  async getSigningRequestFull(id) {
+    return readStore(KEYS.signing, []).find((r) => r.id === id) || null;
+  },
+
+  async createSigningRequest({ clientId, propertyId, title, signerName, documentB64, expiresDays = 7 }) {
+    const { base64ToBytes, sha256Hex } = await import("./signing");
+    const bytes = base64ToBytes(documentB64);
+    if (String.fromCharCode(...bytes.subarray(0, 4)) !== "%PDF") throw new Error("not_a_pdf");
+    const hex = (n) => Array.from(crypto.getRandomValues(new Uint8Array(n)), (b) => b.toString(16).padStart(2, "0")).join("");
+    const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, "0");
+    const record = {
+      id: uid("sign"),
+      token: hex(32),
+      client_id: clientId || null,
+      property_id: propertyId || null,
+      title: title.trim(),
+      signer_name: signerName.trim(),
+      document_b64: documentB64,
+      doc_sha256: await sha256Hex(bytes),
+      code,
+      failed_attempts: 0,
+      status: "pendiente",
+      expires_at: new Date(Date.now() + Math.max(1, Math.min(expiresDays, 60)) * 86400000).toISOString(),
+      created_by: DEMO_ADMIN.email,
+      created_at: new Date().toISOString(),
+    };
+    writeStore(KEYS.signing, [...readStore(KEYS.signing, []), record]);
+    return { id: record.id, token: record.token, code, expires_at: record.expires_at };
+  },
+
+  async regenerateSigningCode(id) {
+    const items = readStore(KEYS.signing, []);
+    const idx = items.findIndex((r) => r.id === id);
+    if (idx === -1) throw new Error("not_found");
+    if (items[idx].status !== "pendiente") throw new Error("not_pending");
+    const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, "0");
+    items[idx] = { ...items[idx], code, failed_attempts: 0 };
+    writeStore(KEYS.signing, items);
+    return { code };
+  },
+
+  async updateSigningRequest(id, fields) {
+    const items = readStore(KEYS.signing, []);
+    const idx = items.findIndex((r) => r.id === id);
+    if (idx === -1) throw new Error("not_found");
+    items[idx] = { ...items[idx], ...fields };
+    writeStore(KEYS.signing, items);
+  },
+
+  async deleteSigningRequest(id) {
+    writeStore(KEYS.signing, readStore(KEYS.signing, []).filter((r) => r.id !== id));
+  },
+
+  async signingInfo(token) {
+    const r = readStore(KEYS.signing, []).find((x) => x.token === token);
+    if (!r) return null;
+    let status = r.status;
+    if (status === "pendiente" && new Date(r.expires_at) < new Date()) status = "expirado";
+    else if (status === "pendiente" && r.failed_attempts >= 5) status = "bloqueado";
+    return { title: r.title, status };
+  },
+
+  // Devuelve null si todo está bien o el error (mismos textos que la base).
+  _signingCheck(items, token, code) {
+    const idx = items.findIndex((x) => x.token === token);
+    if (idx === -1) return { idx, error: "not_found" };
+    const r = items[idx];
+    if (r.status !== "pendiente") return { idx, error: "not_pending" };
+    if (new Date(r.expires_at) < new Date()) return { idx, error: "expired" };
+    if (r.failed_attempts >= 5) return { idx, error: "locked" };
+    if (r.code !== code) {
+      items[idx] = { ...r, failed_attempts: r.failed_attempts + 1 };
+      return { idx, error: "invalid_code" };
+    }
+    return { idx, error: null };
+  },
+
+  async signingOpen(token, code) {
+    const items = readStore(KEYS.signing, []);
+    const { idx, error } = this._signingCheck(items, token, code);
+    writeStore(KEYS.signing, items);
+    if (error) return { error };
+    const r = items[idx];
+    return { title: r.title, signer_name: r.signer_name, document_b64: r.document_b64, doc_sha256: r.doc_sha256 };
+  },
+
+  async signingSubmit(token, code, signedName, signatureB64) {
+    const items = readStore(KEYS.signing, []);
+    const { idx, error } = this._signingCheck(items, token, code);
+    if (error) {
+      writeStore(KEYS.signing, items);
+      return { error };
+    }
+    if (!String(signedName || "").trim()) return { error: "name_required" };
+    if (!signatureB64 || signatureB64.length > 600000 || !signatureB64.startsWith("iVBOR")) return { error: "bad_signature" };
+    items[idx] = {
+      ...items[idx],
+      status: "firmado",
+      signed_at: new Date().toISOString(),
+      signed_name: signedName.trim(),
+      signature_b64: signatureB64,
+      signer_ip: "demo",
+      signer_agent: navigator.userAgent.slice(0, 300),
+    };
+    writeStore(KEYS.signing, items);
+    return { signed_at: items[idx].signed_at, ip: "demo" };
   },
 
   // Registro de actividad: en modo demo no hay base ni triggers, así que no hay registro.

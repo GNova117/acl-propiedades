@@ -77,6 +77,8 @@ const AdminPropertyVisits = lazy(() => import("./pages/admin/AdminPropertyVisits
 // Informe que recibe el vendedor por enlace privado. Es público (sin login) pero
 // no es una página del sitio: ver la ruta /informe/:token más abajo.
 const PublicVisitReport = lazy(() => import("./pages/PublicVisitReport"));
+const PublicSign = lazy(() => import("./pages/PublicSign"));
+const AdminSignatures = lazy(() => import("./pages/admin/AdminSignatures"));
 
 const SPECIAL_SECTION_KEYS = Object.keys(SPECIAL_SECTION_TYPES);
 
@@ -156,6 +158,7 @@ export default function App() {
           Analytics y el token del enlace (que es lo que da acceso) no debe
           llegar ahí; tampoco necesita el menú ni las decoraciones del sitio. */}
       <Route path="/informe/:token" element={<ErrorBoundary><PublicVisitReport /></ErrorBoundary>} />
+      <Route path="/firmar/:token" element={<ErrorBoundary><PublicSign /></ErrorBoundary>} />
 
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route
@@ -265,6 +268,7 @@ export default function App() {
         <Route path="construccion/:id" element={<RequireSection section="construccion"><AdminConstruccionProject /></RequireSection>} />
         <Route path="credito-infonavit" element={<RequireSection section="credito_infonavit"><AdminInfonavitSimulator /></RequireSection>} />
         <Route path="valuacion" element={<RequireSection section="valuacion"><AdminValuation /></RequireSection>} />
+        <Route path="firmas" element={<RequireSection section="documentos_legales"><AdminSignatures /></RequireSection>} />
         <Route path="documentos-legales" element={<RequireSection section="documentos_legales"><AdminLegalDocs /></RequireSection>} />
         <Route path="actividad" element={<RequireSection section="roles"><AdminActivity /></RequireSection>} />
         <Route path="roles" element={<RequireSection section="roles"><AdminRoles /></RequireSection>} />

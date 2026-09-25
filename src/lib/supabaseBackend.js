@@ -1180,6 +1180,71 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  // Firma de contratos desde el sitio (ver schema.sql). El personal usa la tabla
+  // (RLS: apartado documentos_legales) y las funciones signing_create /
+  // signing_regenerate_code; el público solo llega por signing_info / open / submit.
+  async getSigningRequests() {
+    const cols =
+      "id,token,client_id,property_id,title,signer_name,doc_sha256,failed_attempts,status,expires_at,created_by,created_at,signed_at,signed_name,signer_ip,fingerprint_at,fingerprint_by,sealed_at";
+    const { data, error } = await supabase.from("signing_requests").select(cols).order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Con el PDF, la firma y la huella (pesado): solo al abrir o descargar uno.
+  async getSigningRequestFull(id) {
+    const { data, error } = await supabase.from("signing_requests").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async createSigningRequest({ clientId, propertyId, title, signerName, documentB64, expiresDays = 7 }) {
+    const { data, error } = await supabase.rpc("signing_create", {
+      p_client_id: clientId || null,
+      p_property_id: propertyId || null,
+      p_title: title,
+      p_signer_name: signerName,
+      p_document_b64: documentB64,
+      p_expires_days: expiresDays,
+    });
+    if (error) throw error;
+    return data; // { id, token, code, expires_at }
+  },
+
+  async regenerateSigningCode(id) {
+    const { data, error } = await supabase.rpc("signing_regenerate_code", { p_id: id });
+    if (error) throw error;
+    return data; // { code }
+  },
+
+  async updateSigningRequest(id, fields) {
+    const { error } = await supabase.from("signing_requests").update(fields).eq("id", id);
+    if (error) throw error;
+  },
+
+  async deleteSigningRequest(id) {
+    const { error } = await supabase.from("signing_requests").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  async signingInfo(token) {
+    const { data, error } = await supabase.rpc("signing_info", { p_token: token });
+    if (error) throw error;
+    return data; // null | { title, status }
+  },
+
+  async signingOpen(token, code) {
+    const { data, error } = await supabase.rpc("signing_open", { p_token: token, p_code: code });
+    if (error) throw error;
+    return data; // { error } | { title, signer_name, document_b64, doc_sha256 }
+  },
+
+  async signingSubmit(token, code, signedName, signatureB64) {
+    const { data, error } = await supabase.rpc("signing_submit", { p_token: token, p_code: code, p_signed_name: signedName, p_signature_b64: signatureB64 });
+    if (error) throw error;
+    return data; // { error } | { signed_at, ip }
+  },
+
   // Registro de actividad (quién creó/editó/borró qué). Solo lo ve el rol con el
   // apartado 'roles'; lo escriben triggers de la base (ver schema.sql).
   async getAuditLog({ table, actor, from, to, limit = 100, offset = 0 } = {}) {

@@ -6,6 +6,8 @@ import { db } from "../lib/dataStore";
 import { CONTRACT_DOC_TYPES, CONTRACT_FIELDS, buildContractContent, defaultContractValues, validateContractValues } from "../lib/contractDocs";
 import { buildContractPdf, downloadContractPdf } from "../lib/contractPdf";
 import SignatureModal from "./SignatureModal";
+import SigningCredentials from "./SigningCredentials";
+import { bytesToBase64 } from "../lib/signing";
 
 // Generador de documentos con datos del cliente y de la propiedad (recibo de
 // apartado, autorización de venta, carta oferta). Vive en Documentos legales.
@@ -24,6 +26,7 @@ export default function ContractGenerator() {
   const [busy, setBusy] = useState(false);
   const [sigs, setSigs] = useState({}); // { client: { image, signedAt }, office: {...} }
   const [signing, setSigning] = useState(null); // "client" | "office" mientras el cuadro de firma está abierto
+  const [credentials, setCredentials] = useState(null); // enlace y código de la solicitud de firma creada
   const [savedTo, setSavedTo] = useState(null); // id del cliente al que se guardó el PDF firmado
 
   useEffect(() => {
@@ -74,6 +77,33 @@ export default function ContractGenerator() {
       await downloadContractPdf(content);
     } catch (err) {
       window.alert(err.message || t("contracts.error"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Crea una solicitud de firma para que el cliente firme desde el enlace. El
+  // PDF va sin la firma del cliente (la pone él); si la oficina ya firmó aquí,
+  // esa firma sí viaja.
+  const handleSendToSign = async () => {
+    const content = prepareContent();
+    if (!content) return;
+    content.signatures = content.signatures.map((s) => (s.role === "client" ? { ...s, image: undefined, signedAt: undefined } : s));
+    setBusy(true);
+    try {
+      const bytes = await buildContractPdf(content);
+      const title = `${t(`contracts.types.${type}`)} — ${property.title}`;
+      const created = await db.createSigningRequest({
+        clientId: client.id,
+        propertyId: property.id,
+        title,
+        signerName: client.name,
+        documentB64: bytesToBase64(bytes),
+        expiresDays: 7,
+      });
+      setCredentials({ request: { ...created, title, signer_name: client.name }, phone: client.phone });
+    } catch (err) {
+      window.alert(err.message || t("contracts.sendError"));
     } finally {
       setBusy(false);
     }
@@ -249,7 +279,15 @@ export default function ContractGenerator() {
         <button type="button" className="btn btn-outline" onClick={handleSave} disabled={busy}>
           {t("contracts.saveToFile")}
         </button>
+        <button type="button" className="btn btn-outline" onClick={handleSendToSign} disabled={busy}>
+          {t("contracts.sendToSign")}
+        </button>
       </div>
+      {credentials && (
+        <div style={{ marginTop: "1rem" }}>
+          <SigningCredentials request={credentials.request} phone={credentials.phone} onClose={() => setCredentials(null)} />
+        </div>
+      )}
       {savedTo && (
         <p className="form-hint" style={{ color: "var(--color-success)", marginTop: "0.75rem" }}>
           {t("contracts.saved")} <Link to={`/admin/clientes/${savedTo}/documentos`}>{t("contracts.openFile")}</Link>
