@@ -1004,6 +1004,22 @@
     "totalCapacity": "Total available for purchase",
     "monthlyPayment": "Estimated monthly payroll deduction"
   },
+  "backup": {
+    "title": "Data backup",
+    "hint": "Download a file with all the panel data (properties, clients, visits, settlements, etc.) in case something goes wrong in Supabase.",
+    "last": "Last backup",
+    "never": "You haven't downloaded any backup from this browser yet.",
+    "stale": "more than {{days}} days ago, you should download a new one",
+    "download": "Download backup",
+    "running": "Generating backup…",
+    "done": "Backup downloaded: {{rows}} records from {{tables}} tables ({{mb}} MB).",
+    "partial": "Could not read: {{tables}}.",
+    "error": "Could not generate the backup",
+    "warning": "It contains confidential client information (tax IDs, CURP, portal passwords). Keep it somewhere safe and do not share it. It does not include photos or scanned documents, only the data.",
+    "reminderTitle": "Time to back up.",
+    "reminderText": "You haven't downloaded a data backup in over {{days}} days.",
+    "reminderLink": "Go to Roles & access"
+  },
   "valuation": {
     "title": "Value estimate",
     "subtitle": "Measure the land and the building on the map (or type the m² by hand) and get a value range from the zone's price per m².",
@@ -1035,6 +1051,11 @@
     "levelsHint": "How many floors the traced building has (the area is multiplied).",
     "remove": "Remove",
     "history": {
+      "client": "Client (optional)",
+      "property": "Property (optional)",
+      "none": "— None —",
+      "whatsapp": "WhatsApp",
+      "clientTitle": "Value estimates",
       "title": "Estimate history",
       "empty": "No saved estimates yet.",
       "reference": "Reference (client or address)",

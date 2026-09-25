@@ -1004,6 +1004,22 @@
     "totalCapacity": "Total disponible para compra",
     "monthlyPayment": "Cuota / retención mensual estimada"
   },
+  "backup": {
+    "title": "Respaldo de datos",
+    "hint": "Descarga un archivo con todos los datos del panel (propiedades, clientes, visitas, liquidaciones, etc.) por si algo falla en Supabase.",
+    "last": "Último respaldo",
+    "never": "Aún no has descargado ningún respaldo desde este navegador.",
+    "stale": "han pasado más de {{days}} días, conviene descargar uno nuevo",
+    "download": "Descargar respaldo",
+    "running": "Generando respaldo…",
+    "done": "Respaldo descargado: {{rows}} registros de {{tables}} tablas ({{mb}} MB).",
+    "partial": "No se pudieron leer: {{tables}}.",
+    "error": "No se pudo generar el respaldo",
+    "warning": "Incluye información confidencial de clientes (RFC, CURP, contraseñas de portales). Guárdalo en un lugar seguro y no lo compartas. No incluye las fotos ni los documentos escaneados, solo los datos.",
+    "reminderTitle": "Toca respaldar.",
+    "reminderText": "Hace más de {{days}} días que no descargas un respaldo de los datos.",
+    "reminderLink": "Ir a Roles y accesos"
+  },
   "valuation": {
     "title": "Estimación de valor",
     "subtitle": "Mide el terreno y la construcción sobre el mapa (o captura los m² a mano) y obtén un rango de valor con los precios por m² de la zona.",
@@ -1035,6 +1051,11 @@
     "levelsHint": "Cuántos pisos tiene la construcción trazada (la superficie se multiplica).",
     "remove": "Quitar",
     "history": {
+      "client": "Cliente (opcional)",
+      "property": "Propiedad (opcional)",
+      "none": "— Ninguno —",
+      "whatsapp": "WhatsApp",
+      "clientTitle": "Estimaciones de valor",
       "title": "Historial de estimaciones",
       "empty": "Aún no hay estimaciones guardadas.",
       "reference": "Referencia (cliente o dirección)",

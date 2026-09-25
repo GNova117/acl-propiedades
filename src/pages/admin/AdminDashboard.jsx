@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN, propertyTypeLabel } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
+import { isBackupStale } from "../../lib/backup";
 import "./admin.css";
 
 export default function AdminDashboard() {
@@ -82,6 +83,14 @@ export default function AdminDashboard() {
       <div className="admin-header">
         <h1>{t("admin.dashboard")}</h1>
       </div>
+
+      {hasSection("roles") && isBackupStale() && (
+        <div className="card" style={{ padding: "1rem 1.25rem", marginBottom: "1.25rem" }}>
+          <strong>{t("backup.reminderTitle")}</strong>{" "}
+          <span className="form-hint">{t("backup.reminderText", { days: 7 })}</span>{" "}
+          <Link to="/admin/roles">{t("backup.reminderLink")}</Link>
+        </div>
+      )}
 
       <div className="admin-stats">
         {hasSection("propiedades") && (

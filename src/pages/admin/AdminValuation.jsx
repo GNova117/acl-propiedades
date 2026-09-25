@@ -8,6 +8,7 @@ import { formatArea, formatMXN } from "../../lib/format";
 import { polygonAreaM2 } from "../../lib/geoArea";
 import { MAX_SPREAD_PCT, estimateValue } from "../../lib/valuation";
 import { downloadValuationPdf } from "../../lib/valuationPdf";
+import { valuationPdfLabels, valuationRowToPdfData, valuationWhatsappUrl } from "../../lib/valuationShare";
 import "./AdminValuation.css";
 import "./admin.css";
 
@@ -46,12 +47,21 @@ export default function AdminValuation() {
   const [history, setHistory] = useState([]);
   const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useState(null);
+  const [clients, setClients] = useState([]);
+  const [properties, setProperties] = useState([]);
+  const [clientId, setClientId] = useState("");
+  const [propertyId, setPropertyId] = useState("");
 
   useEffect(() => {
     db.getZones().then((data) => {
       setZones(data);
       if (data.length > 0) setZoneId(data[0].id);
     });
+  }, []);
+
+  useEffect(() => {
+    db.getClients().then(setClients).catch(() => setClients([]));
+    db.getProperties().then(setProperties).catch(() => setProperties([]));
   }, []);
 
   useEffect(() => {
@@ -93,7 +103,7 @@ export default function AdminValuation() {
 
   useEffect(() => {
     setSavedId(null);
-  }, [areas, zoneId, spreadPct, shapes, reference]);
+  }, [areas, zoneId, spreadPct, shapes, reference, clientId, propertyId]);
 
   const result = useMemo(
     () => estimateValue({ landArea: areas.land, builtArea: areas.built, landRate, builtRate, spreadPct }),
@@ -108,17 +118,10 @@ export default function AdminValuation() {
     builtArea > 0 && builtRate === 0 ? t("valuation.builtRate").toLowerCase() : null,
   ].filter(Boolean);
 
-  const pdfLabels = () =>
-    Object.fromEntries(
-      ["title", "date", "zone", "reference", "range", "center", "breakdown", "landRate", "builtRate", "map", "mapAttribution", "disclaimer"].map(
-        (k) => [k, t(`valuation.pdf.${k}`)]
-      )
-    );
-
   const runPdf = async (data) => {
     setDownloading(true);
     try {
-      await downloadValuationPdf(data, pdfLabels());
+      await downloadValuationPdf(data, valuationPdfLabels(t));
     } catch (err) {
       window.alert(err.message || t("valuation.pdf.error"));
     } finally {
@@ -126,35 +129,41 @@ export default function AdminValuation() {
     }
   };
 
-  const handleDownload = () =>
-    runPdf({ zoneName: zone?.name, reference: reference.trim(), landArea, builtArea, landRate, builtRate, spreadPct, result, shapes });
+  const client = clients.find((c) => c.id === clientId);
+  const clientById = useMemo(() => Object.fromEntries(clients.map((c) => [c.id, c])), [clients]);
+  const propertyById = useMemo(() => Object.fromEntries(properties.map((p) => [p.id, p])), [properties]);
 
-  // Una fila del historial guarda todo lo necesario para rehacer el PDF tal
-  // cual se calculó, con los precios de ese día.
-  const rowToPdfData = (row) => ({
-    zoneName: row.zone_name,
-    reference: row.reference,
-    date: row.created_at,
-    landArea: Number(row.land_area),
-    builtArea: Number(row.built_area),
-    landRate: Number(row.land_rate),
-    builtRate: Number(row.built_rate),
-    spreadPct: Number(row.spread_pct),
-    result: {
-      low: Number(row.low),
-      high: Number(row.high),
-      center: Number(row.center),
-      landValue: Number(row.land_value),
-      builtValue: Number(row.built_value),
-    },
-    shapes: row.shapes || [],
-  });
+  const liveData = {
+    zoneName: zone?.name,
+    reference: reference.trim() || client?.name || "",
+    landArea,
+    builtArea,
+    landRate,
+    builtRate,
+    spreadPct,
+    result,
+    shapes,
+  };
+  const handleDownload = () => runPdf(liveData);
+
+  const openWhatsapp = (data, phone) =>
+    window.open(valuationWhatsappUrl(data, phone, valuationPdfLabels(t)), "_blank", "noopener,noreferrer");
+
+  // Al elegir una propiedad se preselecciona su zona (si existe como zona).
+  const handlePropertyChange = (id) => {
+    setPropertyId(id);
+    const property = properties.find((p) => p.id === id);
+    const match = property && zones.find((z) => z.name === property.zone);
+    if (match) setZoneId(match.id);
+  };
 
   const handleSave = async () => {
     setSaving(true);
     try {
       const row = await db.addValuationEstimate({
         reference: reference.trim() || null,
+        client_id: clientId || null,
+        property_id: propertyId || null,
         zone_name: zone?.name || null,
         land_area: landArea,
         built_area: builtArea,
@@ -288,6 +297,31 @@ export default function AdminValuation() {
               {areaField("built", "val-built", t("valuation.builtArea"))}
             </div>
 
+            <div className="form-row">
+              <div className="form-field">
+                <label htmlFor="val-client">{t("valuation.history.client")}</label>
+                <select id="val-client" value={clientId} onChange={(e) => setClientId(e.target.value)}>
+                  <option value="">{t("valuation.history.none")}</option>
+                  {clients.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-field">
+                <label htmlFor="val-property">{t("valuation.history.property")}</label>
+                <select id="val-property" value={propertyId} onChange={(e) => handlePropertyChange(e.target.value)}>
+                  <option value="">{t("valuation.history.none")}</option>
+                  {properties.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div className="form-field">
               <label htmlFor="val-reference">{t("valuation.history.reference")}</label>
               <input
@@ -365,6 +399,9 @@ export default function AdminValuation() {
                   {downloading ? <span className="spinner" /> : null}
                   {t("valuation.pdf.download")}
                 </button>
+                <button type="button" className="btn btn-outline btn-sm" onClick={() => openWhatsapp(liveData, client?.phone)}>
+                  {t("valuation.history.whatsapp")}
+                </button>
               </div>
             )}
             <p className="valuation-result__disclaimer">{t("valuation.disclaimer")}</p>
@@ -381,10 +418,12 @@ export default function AdminValuation() {
             {history.map((row) => (
               <li key={row.id} className="valuation-history__item">
                 <div className="valuation-history__info">
-                  <strong>{row.reference || t("valuation.history.noReference")}</strong>
+                  <strong>{clientById[row.client_id]?.name || row.reference || t("valuation.history.noReference")}</strong>
                   <span className="form-hint">
                     {new Date(row.created_at).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" })}
                     {row.zone_name ? ` · ${row.zone_name}` : ""}
+                    {propertyById[row.property_id] ? ` · ${propertyById[row.property_id].title}` : ""}
+                    {clientById[row.client_id] && row.reference ? ` · ${row.reference}` : ""}
                     {row.created_by ? ` · ${row.created_by}` : ""}
                   </span>
                 </div>
@@ -392,8 +431,15 @@ export default function AdminValuation() {
                   {formatMXN(row.low)} – {formatMXN(row.high)}
                 </span>
                 <div className="valuation-history__actions">
-                  <button type="button" className="btn btn-outline btn-sm" disabled={downloading} onClick={() => runPdf(rowToPdfData(row))}>
+                  <button type="button" className="btn btn-outline btn-sm" disabled={downloading} onClick={() => runPdf(valuationRowToPdfData(row))}>
                     {t("valuation.pdf.download")}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    onClick={() => openWhatsapp(valuationRowToPdfData(row), clientById[row.client_id]?.phone)}
+                  >
+                    {t("valuation.history.whatsapp")}
                   </button>
                   <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(row)}>
                     {t("valuation.remove")}

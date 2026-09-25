@@ -2096,3 +2096,12 @@ alter table valuation_estimates enable row level security;
 drop policy if exists "Rol con apartado valuacion maneja valuation_estimates" on valuation_estimates;
 create policy "Rol con apartado valuacion maneja valuation_estimates" on valuation_estimates for all
   using (has_admin_section('valuacion')) with check (has_admin_section('valuacion'));
+
+-- ─────────────────────────────────────────────
+-- Estimación de valor · ligada a cliente y propiedad (2026-09-25).
+-- Si el cliente o la propiedad se borra, la estimación se conserva (queda
+-- solo con su referencia). (bloque re-ejecutable)
+-- ─────────────────────────────────────────────
+alter table valuation_estimates add column if not exists client_id uuid references clients(id) on delete set null;
+alter table valuation_estimates add column if not exists property_id uuid references properties(id) on delete set null;
+create index if not exists idx_valuation_estimates_client on valuation_estimates(client_id);

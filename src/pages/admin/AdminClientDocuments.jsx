@@ -7,6 +7,7 @@ import { downloadClientDocumentAsPdf } from "../../lib/clientDocPdf";
 import DocumentCapture from "../../components/DocumentCapture";
 import DocumentPreviewModal from "../../components/DocumentPreviewModal";
 import ExpedienteAvaluoModal from "../../components/ExpedienteAvaluoModal";
+import ClientValuations from "../../components/ClientValuations";
 import "./admin.css";
 
 // Tope de Supabase Storage para el bucket client-documents: arriba de esto
@@ -164,6 +165,8 @@ export default function AdminClientDocuments() {
           </select>
         </div>
       </div>
+
+      <ClientValuations clientId={id} />
 
       <div className="admin-doc-grid">
         {docTypesForClientType(client?.type).map((docType) => {

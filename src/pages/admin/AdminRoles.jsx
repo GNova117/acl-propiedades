@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
+import BackupCard from "../../components/BackupCard";
 import { SECTION_KEYS, ADMIN_ROLE_SLUG } from "../../lib/accessControl";
 import "./admin.css";
 
@@ -151,6 +152,8 @@ export default function AdminRoles() {
       <div className="admin-header">
         <h1>{t("accessControl.rolesTitle")}</h1>
       </div>
+
+      <BackupCard />
 
       <form className="card admin-form" onSubmit={handleAddRole} style={{ maxWidth: 560, marginBottom: "1.5rem" }}>
         <h2 className="profiling-section-title">{t("accessControl.newRole")}</h2>
