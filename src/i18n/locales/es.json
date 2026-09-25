@@ -433,7 +433,7 @@
       "testimonios": "Testimonios",
       "reportes": "Ventas y reportes",
       "bitacora": "Bitácora y gastos",
-      "valuacion": "Valuación",
+      "valuacion": "Estimación de valor",
       "construccion": "Construcción",
       "visitas": "Visitas",
       "secretaria": "Secretaría"
@@ -997,7 +997,7 @@
     "monthlyPayment": "Cuota / retención mensual estimada"
   },
   "valuation": {
-    "title": "Valuación por zona",
+    "title": "Estimación de valor",
     "subtitle": "Mide el terreno y la construcción sobre el mapa (o captura los m² a mano) y obtén un rango de valor con los precios por m² de la zona.",
     "zone": "Zona",
     "noZones": "Aún no hay zonas. Crea una en Zonas y precios para poder valuar.",
@@ -1026,6 +1026,21 @@
     "levels": "Niveles",
     "levelsHint": "Cuántos pisos tiene la construcción trazada (la superficie se multiplica).",
     "remove": "Quitar",
+    "pdf": {
+      "download": "Descargar PDF",
+      "error": "No se pudo generar el PDF",
+      "title": "Estimación de valor",
+      "date": "Fecha",
+      "zone": "Zona",
+      "range": "Rango estimado",
+      "center": "Valor central",
+      "breakdown": "Desglose",
+      "landRate": "Terreno",
+      "builtRate": "Construcción",
+      "map": "Ubicación y superficies medidas",
+      "mapAttribution": "Imagen satelital: Esri, Maxar, Earthstar Geographics.",
+      "disclaimer": "Estimación referencial basada en el tabulador de precios por zona y en medidas trazadas sobre imagen satelital. No sustituye un avalúo formal."
+    },
     "map": {
       "searchPlaceholder": "Buscar dirección (ej. Av. Hidalgo 123, Torreón)",
       "search": "Buscar",

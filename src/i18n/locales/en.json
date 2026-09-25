@@ -433,7 +433,7 @@
       "testimonios": "Testimonials",
       "reportes": "Sales & reports",
       "bitacora": "Log & expenses",
-      "valuacion": "Valuation",
+      "valuacion": "Value estimate",
       "construccion": "Construction",
       "visitas": "Visits",
       "secretaria": "Front desk"
@@ -997,7 +997,7 @@
     "monthlyPayment": "Estimated monthly payroll deduction"
   },
   "valuation": {
-    "title": "Valuation by zone",
+    "title": "Value estimate",
     "subtitle": "Measure the land and the building on the map (or type the m² by hand) and get a value range from the zone's price per m².",
     "zone": "Zone",
     "noZones": "There are no zones yet. Create one under Zones & prices to start valuing.",
@@ -1026,6 +1026,21 @@
     "levels": "Floors",
     "levelsHint": "How many floors the traced building has (the area is multiplied).",
     "remove": "Remove",
+    "pdf": {
+      "download": "Download PDF",
+      "error": "Could not generate the PDF",
+      "title": "Value estimate",
+      "date": "Date",
+      "zone": "Zone",
+      "range": "Estimated range",
+      "center": "Midpoint value",
+      "breakdown": "Breakdown",
+      "landRate": "Land",
+      "builtRate": "Construction",
+      "map": "Location and measured areas",
+      "mapAttribution": "Satellite imagery: Esri, Maxar, Earthstar Geographics.",
+      "disclaimer": "Reference estimate based on the zone price list and on areas traced over satellite imagery. It does not replace a formal appraisal."
+    },
     "map": {
       "searchPlaceholder": "Search an address (e.g. Av. Hidalgo 123, Torreón)",
       "search": "Search",

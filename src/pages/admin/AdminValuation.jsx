@@ -7,6 +7,7 @@ import { db } from "../../lib/dataStore";
 import { formatArea, formatMXN } from "../../lib/format";
 import { polygonAreaM2 } from "../../lib/geoArea";
 import { MAX_SPREAD_PCT, estimateValue } from "../../lib/valuation";
+import { downloadValuationPdf } from "../../lib/valuationPdf";
 import "./AdminValuation.css";
 import "./admin.css";
 
@@ -40,6 +41,7 @@ export default function AdminValuation() {
   const [areas, setAreas] = useState({ land: "", built: "" });
   const [fromMap, setFromMap] = useState({ land: false, built: false });
   const [spreadPct, setSpreadPct] = useState(String(DEFAULT_SPREAD_PCT));
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     db.getZones().then((data) => {
@@ -93,6 +95,25 @@ export default function AdminValuation() {
     landArea > 0 && landRate === 0 ? t("valuation.landRate").toLowerCase() : null,
     builtArea > 0 && builtRate === 0 ? t("valuation.builtRate").toLowerCase() : null,
   ].filter(Boolean);
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const labels = Object.fromEntries(
+        ["title", "date", "zone", "range", "center", "breakdown", "landRate", "builtRate", "map", "mapAttribution", "disclaimer"].map(
+          (k) => [k, t(`valuation.pdf.${k}`)]
+        )
+      );
+      await downloadValuationPdf(
+        { zoneName: zone?.name, landArea, builtArea, landRate, builtRate, spreadPct, result, shapes },
+        labels
+      );
+    } catch (err) {
+      window.alert(err.message || t("valuation.pdf.error"));
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const areaField = (kind, id, label) => (
     <div className="form-field">
@@ -249,6 +270,12 @@ export default function AdminValuation() {
               </>
             ) : (
               <p className="form-hint">{t("valuation.emptyResult")}</p>
+            )}
+            {hasArea && zone && (
+              <button type="button" className="btn btn-primary btn-sm" onClick={handleDownload} disabled={downloading}>
+                {downloading ? <span className="spinner" /> : null}
+                {t("valuation.pdf.download")}
+              </button>
             )}
             <p className="valuation-result__disclaimer">{t("valuation.disclaimer")}</p>
           </div>
