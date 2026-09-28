@@ -107,6 +107,9 @@ export default function CreditSimulator() {
                 {t("creditSim.seeProperties")}
               </Link>
             )}
+            <Link to="/comparar-creditos" className="btn btn-outline btn-sm">
+              {t("creditSim.compare")}
+            </Link>
             <p className="form-hint" style={{ marginBottom: 0 }}>
               {t("creditSim.disclaimer", { uma: formatMXN(UMA_2026.mensual) })}
             </p>

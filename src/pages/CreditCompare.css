@@ -1,0 +1,100 @@
+.credit-compare {
+  max-width: 1040px;
+}
+
+.credit-compare__property {
+  margin: 0 0 1rem;
+}
+
+.credit-compare__advanced {
+  margin-top: 0.5rem;
+}
+
+.credit-compare__advanced summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.4rem 0;
+}
+
+.credit-compare__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0 0.75rem;
+  align-items: stretch;
+}
+
+.credit-option {
+  padding: 1.25rem;
+  border-top: 4px solid var(--color-primary);
+}
+
+.credit-option--banco {
+  border-top-color: #f0a500;
+}
+
+.credit-option--contado {
+  border-top-color: #1e8e5a;
+}
+
+.credit-option.is-disabled {
+  opacity: 0.75;
+  border-top-color: var(--color-border);
+}
+
+.credit-option h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.15rem;
+}
+
+.credit-option__rows {
+  margin: 0.75rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.credit-option__rows > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.92rem;
+}
+
+.credit-option__rows dt {
+  color: var(--color-text-muted, #6b7688);
+}
+
+.credit-option__rows dd {
+  margin: 0;
+  font-weight: 700;
+  text-align: right;
+}
+
+.credit-option__rows > div.is-best dd {
+  color: #1e8e5a;
+}
+
+.credit-option__badge {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #1e8e5a;
+}
+
+.credit-compare__note {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e8e5a;
+}
+
+.credit-compare__note--warn {
+  color: #b7791f;
+}

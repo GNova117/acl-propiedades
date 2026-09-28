@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/dataStore";
 import { daysSince, followUpState, todayISO } from "../lib/prospects";
 import { effectiveStatus, signingAgeDays } from "../lib/signing";
+import { postsaleDue } from "../lib/postsale";
 import "./PendingToday.css";
 
 const KEY_LATE_DAYS = 2; // una llave con 2 días o más fuera se marca como atrasada
@@ -33,7 +34,8 @@ export default function PendingToday() {
       settle("prospectos", () => db.getProspects()),
       settle("propiedades", () => db.getProperties({})),
       settle("documentos_legales", () => db.getSigningRequests()),
-    ]).then(([messages, citas, visits, keys, prospects, properties, signings]) => {
+      settle("prospectos", () => db.getProspectStageHistory()),
+    ]).then(([messages, citas, visits, keys, prospects, properties, signings, stageHistory]) => {
       if (cancelled) return;
       const list = [];
 
@@ -88,6 +90,16 @@ export default function PendingToday() {
         const due = [...overdue, ...dueToday];
         if (due.length) {
           list.push({ key: "followups", count: due.length, to: "/admin/prospectos", tone: overdue.length ? "warn" : "info", lines: due.slice(0, MAX_LINES).map((p) => p.name) });
+        }
+        // Posventa: cerrados hace 30 días o 6 meses a los que aún no se les escribe.
+        const postsale = prospects.map((p) => ({ p, due: postsaleDue(p, stageHistory || []) })).filter((x) => x.due).sort((a, b) => b.due.since - a.due.since);
+        if (postsale.length) {
+          list.push({
+            key: "postsale",
+            count: postsale.length,
+            to: "/admin/prospectos",
+            lines: postsale.slice(0, MAX_LINES).map(({ p, due }) => `${p.name} — ${t("pending.daysOut", { count: due.since })}`),
+          });
         }
         const untouched = prospects.filter((p) => p.stage === "nuevo" && !p.last_contact_at);
         if (untouched.length) list.push({ key: "newProspects", count: untouched.length, to: "/admin/prospectos", lines: untouched.slice(0, MAX_LINES).map((p) => p.name) });

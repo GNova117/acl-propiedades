@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
+import { whatsappDigits } from "../../lib/format";
 import "./admin.css";
 
 // advisorId es null tanto en modo demo como para cualquier correo sin
@@ -39,6 +40,17 @@ export default function AdminAgenda() {
   };
 
   const advisorName = (id) => advisors.find((a) => a.id === id)?.name || "—";
+  // Recordatorio manual por WhatsApp al cliente (funciona sin esperar el aviso automático).
+  const remind = (cita) => {
+    const client = clients.find((c) => c.id === cita.client_id);
+    let digits = whatsappDigits(client?.phone);
+    if (digits.length === 10) digits = `52${digits}`;
+    const date = new Date(`${cita.fecha}T00:00:00`).toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
+    const when = cita.hora ? `${date} a las ${cita.hora.slice(0, 5)}` : date;
+    const text = t("agenda.reminderText", { name: (client?.name || "").split(/\s+/)[0], title: cita.titulo, when, advisor: advisorName(cita.advisor_id) });
+    window.open(`https://wa.me/${digits}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+  };
+
   const clientName = (id) => (id ? clients.find((c) => c.id === id)?.name : null) || t("agenda.noClient");
 
   const visibleCitas = useMemo(() => {
@@ -106,6 +118,11 @@ export default function AdminAgenda() {
                     <Link to={`/admin/agenda/${cita.id}/expedientes`} className="btn btn-outline btn-sm">
                       {t("agenda.expedientes")}
                     </Link>
+                    {clients.find((c) => c.id === cita.client_id)?.phone && (
+                      <button type="button" className="btn btn-outline btn-sm" onClick={() => remind(cita)}>
+                        {t("agenda.remindClient")}
+                      </button>
+                    )}
                     <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(cita.id)}>
                       {t("common.delete")}
                     </button>

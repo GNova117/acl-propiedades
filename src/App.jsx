@@ -10,6 +10,7 @@ import PropertyDetail from "./pages/PropertyDetail";
 import Calculator from "./pages/Calculator";
 import CreditSimulator from "./pages/CreditSimulator";
 import SellYourHome from "./pages/SellYourHome";
+import CreditCompare from "./pages/CreditCompare";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Favorites from "./pages/Favorites";
@@ -80,6 +81,7 @@ const PublicVisitReport = lazy(() => import("./pages/PublicVisitReport"));
 const PublicSign = lazy(() => import("./pages/PublicSign"));
 const AdminSignatures = lazy(() => import("./pages/admin/AdminSignatures"));
 const AdminFunnel = lazy(() => import("./pages/admin/AdminFunnel"));
+const AdminMonthlyReport = lazy(() => import("./pages/admin/AdminMonthlyReport"));
 
 const SPECIAL_SECTION_KEYS = Object.keys(SPECIAL_SECTION_TYPES);
 
@@ -149,6 +151,7 @@ export default function App() {
       <Route path="/calculadora" element={<PublicLayout><Calculator /></PublicLayout>} />
       <Route path="/simulador-credito" element={<PublicLayout><CreditSimulator /></PublicLayout>} />
       <Route path="/vende-tu-casa" element={<PublicLayout><SellYourHome /></PublicLayout>} />
+      <Route path="/comparar-creditos" element={<PublicLayout><CreditCompare /></PublicLayout>} />
       <Route path="/nosotros" element={<PublicLayout><About /></PublicLayout>} />
       <Route path="/contacto" element={<PublicLayout><Contact /></PublicLayout>} />
       <Route path="/favoritos" element={<PublicLayout><Favorites /></PublicLayout>} />
@@ -279,6 +282,7 @@ export default function App() {
         <Route path="agenda/:id/expedientes" element={<RequireSection section="agenda"><AdminAgendaExpedientes /></RequireSection>} />
         <Route path="mensajes" element={<RequireSection section="mensajes"><AdminMessages /></RequireSection>} />
         <Route path="testimonios" element={<RequireSection section="testimonios"><AdminTestimonials /></RequireSection>} />
+        <Route path="reporte-mensual" element={<RequireSection section="reportes"><AdminMonthlyReport /></RequireSection>} />
         <Route path="reportes" element={<RequireSection section="reportes"><AdminSalesReports /></RequireSection>} />
         <Route path="secretaria" element={<RequireSection section="secretaria"><AdminSecretaria /></RequireSection>} />
         <Route path="estadisticas" element={<RequireSection section="prospectos"><AdminFunnel /></RequireSection>} />

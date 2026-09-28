@@ -144,3 +144,11 @@
     overflow-x: visible;
   }
 }
+
+.prospect-postsale {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.2rem;
+}

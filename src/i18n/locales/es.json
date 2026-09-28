@@ -1,5 +1,6 @@
 {
   "nav": {
+    "compareCredits": "Comparar créditos",
     "sellHome": "Vende tu casa",
     "creditSim": "Simulador de crédito",
     "home": "Inicio",
@@ -114,6 +115,11 @@
     "viewResults": "Ver resultados"
   },
   "detail": {
+    "compareCredits": {
+      "title": "¿Cómo la pagarías?",
+      "text": "Compara Infonavit, crédito bancario y contado para esta casa: cuánto necesitas al inicio y cuánto pagarías al mes.",
+      "cta": "Comparar opciones de crédito"
+    },
     "back": "Volver a propiedades",
     "description": "Descripción",
     "features": "Características",
@@ -244,6 +250,7 @@
     "privacyLinkLabel": "Aviso de Privacidad"
   },
   "messages": {
+    "via_comparador": "Desde el comparador de créditos",
     "via_whatsapp": "Desde WhatsApp",
     "via_simulador": "Desde el simulador de crédito",
     "via_estimacion": "Solicitud de estimación",
@@ -1046,6 +1053,12 @@
     "reminderLink": "Ir a Roles y accesos"
   },
   "prospects": {
+    "postsale": {
+      "step30": "Posventa: 1 mes (hace {{days}} d)",
+      "step180": "Posventa: 6 meses (hace {{days}} d)",
+      "write": "Escribir por WhatsApp",
+      "done": "Hecho"
+    },
     "convert": "Convertir en cliente",
     "viewClient": "Ver cliente",
     "convertExisting": "Ya existe el cliente \"{{name}}\" con ese teléfono o correo. ¿Vincularlo en vez de crear uno nuevo?",
@@ -1062,6 +1075,7 @@
       "perdido": "Perdido"
     },
     "sources": {
+      "comparador": "Comparador de créditos",
       "simulador": "Simulador de crédito",
       "estimacion": "Estimación (vende tu casa)",
       "whatsapp": "WhatsApp",
@@ -1123,6 +1137,7 @@
     "daysOut_one": "{{count}} día",
     "daysOut_other": "{{count}} días",
     "items": {
+      "postsale": "Posventa por hacer",
       "signatures": "Firmas sin completar (3 días o más)",
       "messages": "Mensajes sin contestar",
       "agenda": "Citas de hoy",
@@ -1280,6 +1295,7 @@
       "document": "Documento"
     },
     "events": {
+        "message_comparador": "Usó el comparador de créditos",
         "signed": "Firmó: {{title}}",
         "signingSent": "Enviado a firma: {{title}}",
       "client": "Cliente registrado",
@@ -1303,6 +1319,8 @@
     "accept": "Usar esta firma"
   },
   "creditSim": {
+    "compare": "Comparar con banco y contado",
+    "ssvShort": "Ahorro SSV (opcional)",
     "seoTitle": "Simulador de crédito Infonavit",
     "title": "Simulador de crédito Infonavit",
     "subtitle": "Calcula en segundos cuánto crédito podrías obtener, tu pago mensual y cuánto podrías gastar en una casa.",
@@ -1506,6 +1524,100 @@
     "lostTip": "Anota el motivo al marcar un prospecto como perdido para que aparezca aquí.",
     "historyNote": "Los prospectos anteriores al 25 de septiembre de 2026 solo tienen su etapa actual: sus tiempos de cierre pueden ser aproximados."
   },
+  "creditCompare": {
+    "seoTitle": "Comparador de créditos: Infonavit, banco o contado",
+    "title": "Compara cómo comprar tu casa",
+    "subtitle": "Mira lado a lado cuánto necesitas al inicio, cuánto pagarías al mes y cuánto te cuesta en total con Infonavit, con un banco o de contado.",
+    "forProperty": "Para la propiedad:",
+    "price": "Precio de la casa",
+    "advanced": "Condiciones del banco y gastos",
+    "advancedHint": "Cada banco ofrece condiciones distintas: cámbialas por las que te dieron. Los gastos de escrituración, impuestos y avalúo se estiman con el mismo porcentaje en las tres opciones.",
+    "bankRate": "Tasa anual del banco (%)",
+    "bankDown": "Enganche (% del precio)",
+    "bankYears": "Plazo (años)",
+    "closing": "Gastos de escrituración (%)",
+    "years_one": "{{count}} año",
+    "years_other": "{{count}} años",
+    "options": {
+      "infonavit": "Infonavit",
+      "banco": "Crédito bancario",
+      "contado": "De contado"
+    },
+    "optionsHint": {
+      "infonavit": "Con tu salario, tu edad y tu ahorro en la Subcuenta de Vivienda.",
+      "banco": "Con enganche y una tasa de referencia que puedes cambiar.",
+      "contado": "Pagas todo de una vez, sin intereses."
+    },
+    "infonavitUnavailable": "Captura tu salario y tu edad para calcular tu crédito Infonavit.",
+    "coversAll": "Tu crédito y tu ahorro cubren toda la casa.",
+    "needsDown": "Te faltarían {{amount}} de enganche.",
+    "upfront": "Necesitas al inicio",
+    "ssvUsed": "De tu ahorro (SSV)",
+    "financed": "Crédito",
+    "payment": "Pago mensual",
+    "perMonth": "al mes",
+    "noPayment": "Sin pagos mensuales",
+    "term": "Plazo",
+    "interest": "Intereses totales",
+    "minIncome": "Ingreso mensual recomendado",
+    "totalCost": "Costo total",
+    "best": {
+      "totalCost": "Menor costo total",
+      "payment": "Menor pago mensual",
+      "upfront": "Menos dinero al inicio"
+    },
+    "disclaimer": "Son estimaciones informativas. El costo total suma lo que pones al inicio (con gastos de escrituración de {{closing}} %), tu ahorro SSV y todas las mensualidades. El ingreso recomendado supone que la cuota no pase del 35 % (banco) o del 30 % (Infonavit) de tu ingreso. Las condiciones reales las confirman el banco e Infonavit.",
+    "leadTitle": "¿Quieres que te ayudemos a elegir?",
+    "leadSubtitle": "Déjanos tu nombre y tu teléfono y un asesor te contacta para revisar tus opciones, sin costo ni compromiso."
+  },
+  "monthly": {
+    "title": "Reporte mensual",
+    "subtitle": "Qué pasó en el mes y cómo se compara con el anterior: ventas, visitas, prospectos, estimaciones, firmas y mensajes.",
+    "month": "Mes",
+    "download": "Descargar PDF",
+    "loadError": "No se pudo cargar el reporte",
+    "pdfError": "No se pudo generar el PDF",
+    "kpiTitle": "Indicadores del mes",
+    "colConcept": "Concepto",
+    "colThis": "Este mes",
+    "colPrev": "Mes anterior",
+    "colChange": "Cambio",
+    "scopeNote": "Incluye solo lo que tu rol puede ver. No incluye utilidades (son de los socios, en Liquidaciones).",
+    "salesTitle": "Ventas del mes",
+    "prospectsBySource": "Prospectos nuevos por origen",
+    "visitsByInterest": "Visitas por interés",
+    "messagesByChannel": "Mensajes por canal",
+    "estimatesByZone": "Estimaciones por zona",
+    "metrics": {
+      "salesCount": "Propiedades vendidas",
+      "salesValue": "Valor vendido",
+      "propertiesAdded": "Propiedades nuevas",
+      "visits": "Visitas realizadas",
+      "visitsInterested": "Visitas con interés",
+      "visitsOffers": "Ofertas en visitas",
+      "prospectsCreated": "Prospectos nuevos",
+      "prospectsClosed": "Prospectos cerrados",
+      "prospectsLost": "Prospectos perdidos",
+      "estimates": "Estimaciones de valor",
+      "signaturesSent": "Contratos enviados a firma",
+      "signaturesSigned": "Contratos firmados",
+      "messages": "Mensajes recibidos",
+      "clientsAdded": "Clientes nuevos"
+    },
+    "channels": {
+      "formulario": "Formulario de contacto",
+      "solicitud": "Pidió que lo contactaran",
+      "whatsapp": "WhatsApp",
+      "simulador": "Simulador de crédito",
+      "estimacion": "Vende tu casa",
+      "comparador": "Comparador de créditos"
+    },
+    "pdf": {
+      "title": "Reporte mensual",
+      "generated": "Generado el {{date}}",
+      "note": "Incluye solo la información a la que tiene acceso quien genera el reporte. No incluye utilidades ni datos de liquidaciones. Las cifras salen de los registros del panel al momento de generarlo."
+    }
+  },
   "valuation": {
     "title": "Estimación de valor",
     "subtitle": "Mide el terreno y la construcción sobre el mapa (o captura los m² a mano) y obtén un rango de valor con los precios por m² de la zona.",
@@ -1693,6 +1805,8 @@
     "cancelAdd": "Cancelar"
   },
   "agenda": {
+    "remindClient": "Recordar al cliente",
+    "reminderText": "Hola {{name}}, te recuerdo tu cita \"{{title}}\" el {{when}}. Te atiende {{advisor}} de ACL Propiedades. ¡Te esperamos!",
     "myAgenda": "Mi agenda",
     "allAgendas": "Agenda de asesores",
     "advisorFilter": "Filtrar por asesor",

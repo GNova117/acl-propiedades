@@ -435,6 +435,14 @@ export default function PropertyDetail() {
                 justo antes de las preguntas frecuentes, no en la barra
                 lateral. El asesor asignado se sigue viendo en el panel y en
                 la ficha técnica en PDF. */}
+            <div className="card" style={{ padding: "1.1rem 1.25rem", marginBottom: "1.25rem" }}>
+              <strong>{t("detail.compareCredits.title")}</strong>
+              <p className="form-hint" style={{ margin: "0.25rem 0 0.75rem" }}>{t("detail.compareCredits.text")}</p>
+              <Link to={`/comparar-creditos?propiedad=${property.id}`} className="btn btn-outline btn-sm">
+                {t("detail.compareCredits.cta")}
+              </Link>
+            </div>
+
             <ContactRequestCard property={property} />
 
             {(() => {

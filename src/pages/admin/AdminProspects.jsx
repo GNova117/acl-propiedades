@@ -5,6 +5,7 @@ import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
 import { whatsappDigits } from "../../lib/format";
 import { PROSPECT_STAGES, daysSince, followUpState, visitToProspectFields } from "../../lib/prospects";
+import { POSTSALE_STEPS, postsaleDue, postsaleMessage } from "../../lib/postsale";
 import "./admin.css";
 import "./AdminProspects.css";
 
@@ -31,6 +32,7 @@ export default function AdminProspects() {
   const [advisors, setAdvisors] = useState([]);
   const [properties, setProperties] = useState([]);
   const [visits, setVisits] = useState([]);
+  const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [busyId, setBusyId] = useState(null);
@@ -46,8 +48,10 @@ export default function AdminProspects() {
       db.getAdvisors(),
       db.getProperties({}),
       canImport ? db.getVisits().catch(() => []) : Promise.resolve([]),
+      db.getProspectStageHistory().catch(() => []),
     ])
-      .then(([prospectData, advisorData, propertyData, visitData]) => {
+      .then(([prospectData, advisorData, propertyData, visitData, historyData]) => {
+        setHistory(historyData);
         setProspects(prospectData);
         setAdvisors(advisorData);
         setProperties(propertyData);
@@ -91,6 +95,9 @@ export default function AdminProspects() {
       setBusyId(null);
     }
   };
+
+  // Posventa: marca el paso (30 días / 6 meses) como atendido.
+  const markPostsaleDone = (prospect, step) => patch(prospect, { [step.column]: new Date().toISOString() });
 
   const changeStage = (prospect, stage) => patch(prospect, { stage, ...(stage === "perdido" ? {} : { lost_reason: null }) });
 
@@ -273,6 +280,25 @@ export default function AdminProspects() {
                         {seesAll && advisorName(p.advisor_id) ? ` · ${advisorName(p.advisor_id)}` : ""}
                       </p>
                       {followChip(p)}
+                      {(() => {
+                        const due = stage === "cerrado" ? postsaleDue(p, history) : null;
+                        if (!due) return null;
+                        const step = POSTSALE_STEPS.find((s) => s.key === due.key);
+                        const wa = whatsappLink(p.phone);
+                        return (
+                          <div className="prospect-postsale">
+                            <span className="prospect-chip prospect-chip--today">{t(`prospects.postsale.step${due.key}`, { days: due.since })}</span>
+                            {wa && (
+                              <a className="btn btn-outline btn-sm" target="_blank" rel="noopener noreferrer" href={`${wa}?text=${encodeURIComponent(postsaleMessage(p, due.key, propertyTitle(p.property_id)))}`}>
+                                {t("prospects.postsale.write")}
+                              </a>
+                            )}
+                            <button type="button" className="btn btn-outline btn-sm" onClick={() => markPostsaleDone(p, step)} disabled={busyId === p.id}>
+                              {t("prospects.postsale.done")}
+                            </button>
+                          </div>
+                        );
+                      })()}
                       <div className="prospect-card__actions">
                         <select
                           value={p.stage}

@@ -1,0 +1,40 @@
+.monthly-card {
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.monthly-card h2 {
+  margin: 0 0 0.7rem;
+  font-size: 1.05rem;
+}
+
+.monthly-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.monthly-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.monthly-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.92rem;
+}
+
+@media (max-width: 600px) {
+  .monthly-grid {
+    grid-template-columns: 1fr;
+  }
+}

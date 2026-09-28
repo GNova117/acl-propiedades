@@ -1,5 +1,6 @@
 {
   "nav": {
+    "compareCredits": "Compare credits",
     "sellHome": "Sell your home",
     "creditSim": "Credit simulator",
     "home": "Home",
@@ -114,6 +115,11 @@
     "viewResults": "View results"
   },
   "detail": {
+    "compareCredits": {
+      "title": "How would you pay for it?",
+      "text": "Compare Infonavit, a bank loan and cash for this home: how much you need upfront and what you would pay each month.",
+      "cta": "Compare credit options"
+    },
     "back": "Back to properties",
     "description": "Description",
     "features": "Features",
@@ -244,6 +250,7 @@
     "privacyLinkLabel": "Privacy Notice"
   },
   "messages": {
+    "via_comparador": "From the credit comparison",
     "via_whatsapp": "From WhatsApp",
     "via_simulador": "From the credit simulator",
     "via_estimacion": "Value estimate request",
@@ -1046,6 +1053,12 @@
     "reminderLink": "Go to Roles & access"
   },
   "prospects": {
+    "postsale": {
+      "step30": "After-sale: 1 month ({{days}} d ago)",
+      "step180": "After-sale: 6 months ({{days}} d ago)",
+      "write": "Message on WhatsApp",
+      "done": "Done"
+    },
     "convert": "Convert to client",
     "viewClient": "View client",
     "convertExisting": "A client \"{{name}}\" already has that phone or email. Link it instead of creating a new one?",
@@ -1062,6 +1075,7 @@
       "perdido": "Lost"
     },
     "sources": {
+      "comparador": "Credit comparison",
       "simulador": "Credit simulator",
       "estimacion": "Estimate (sell your home)",
       "whatsapp": "WhatsApp",
@@ -1123,6 +1137,7 @@
     "daysOut_one": "{{count}} day",
     "daysOut_other": "{{count}} days",
     "items": {
+      "postsale": "After-sale follow-ups",
       "signatures": "Unfinished signatures (3 days or more)",
       "messages": "Unanswered messages",
       "agenda": "Today's appointments",
@@ -1280,6 +1295,7 @@
       "document": "Document"
     },
     "events": {
+        "message_comparador": "Used the credit comparison",
         "signed": "Signed: {{title}}",
         "signingSent": "Sent to sign: {{title}}",
       "client": "Client registered",
@@ -1303,6 +1319,8 @@
     "accept": "Use this signature"
   },
   "creditSim": {
+    "compare": "Compare with bank and cash",
+    "ssvShort": "SSV savings (optional)",
     "seoTitle": "Infonavit credit simulator",
     "title": "Infonavit credit simulator",
     "subtitle": "In seconds, see how much credit you could get, your monthly payment and how much you could spend on a home.",
@@ -1506,6 +1524,100 @@
     "lostTip": "Write the reason when you mark a prospect as lost so it shows up here.",
     "historyNote": "Prospects created before September 25, 2026 only have their current stage: their closing times may be approximate."
   },
+  "creditCompare": {
+    "seoTitle": "Credit comparison: Infonavit, bank or cash",
+    "title": "Compare how to buy your home",
+    "subtitle": "See side by side how much you need upfront, what you would pay each month and the total cost with Infonavit, a bank or cash.",
+    "forProperty": "For the property:",
+    "price": "Home price",
+    "advanced": "Bank terms and costs",
+    "advancedHint": "Every bank offers different terms: change them to the ones you were given. Closing costs, taxes and appraisal are estimated with the same percentage for all three options.",
+    "bankRate": "Bank annual rate (%)",
+    "bankDown": "Down payment (% of price)",
+    "bankYears": "Term (years)",
+    "closing": "Closing costs (%)",
+    "years_one": "{{count}} year",
+    "years_other": "{{count}} years",
+    "options": {
+      "infonavit": "Infonavit",
+      "banco": "Bank loan",
+      "contado": "Cash"
+    },
+    "optionsHint": {
+      "infonavit": "Based on your salary, age and Housing Subaccount savings.",
+      "banco": "With a down payment and a reference rate you can change.",
+      "contado": "You pay everything at once, no interest."
+    },
+    "infonavitUnavailable": "Enter your salary and age to calculate your Infonavit credit.",
+    "coversAll": "Your credit and savings cover the whole home.",
+    "needsDown": "You would need {{amount}} as a down payment.",
+    "upfront": "You need upfront",
+    "ssvUsed": "From your savings (SSV)",
+    "financed": "Credit",
+    "payment": "Monthly payment",
+    "perMonth": "per month",
+    "noPayment": "No monthly payments",
+    "term": "Term",
+    "interest": "Total interest",
+    "minIncome": "Recommended monthly income",
+    "totalCost": "Total cost",
+    "best": {
+      "totalCost": "Lowest total cost",
+      "payment": "Lowest monthly payment",
+      "upfront": "Least money upfront"
+    },
+    "disclaimer": "These are informational estimates. The total cost adds what you pay upfront (with closing costs of {{closing}} %), your SSV savings and all monthly payments. The recommended income assumes the payment does not exceed 35 % (bank) or 30 % (Infonavit) of your income. The real terms are confirmed by the bank and Infonavit.",
+    "leadTitle": "Want us to help you choose?",
+    "leadSubtitle": "Leave your name and phone and an advisor will contact you to review your options, at no cost and with no commitment."
+  },
+  "monthly": {
+    "title": "Monthly report",
+    "subtitle": "What happened in the month and how it compares with the previous one: sales, visits, prospects, estimates, signatures and messages.",
+    "month": "Month",
+    "download": "Download PDF",
+    "loadError": "Could not load the report",
+    "pdfError": "Could not generate the PDF",
+    "kpiTitle": "Month indicators",
+    "colConcept": "Item",
+    "colThis": "This month",
+    "colPrev": "Previous month",
+    "colChange": "Change",
+    "scopeNote": "It only includes what your role can see. It does not include profits (they belong to the partners, in Settlements).",
+    "salesTitle": "Sales of the month",
+    "prospectsBySource": "New prospects by source",
+    "visitsByInterest": "Visits by interest",
+    "messagesByChannel": "Messages by channel",
+    "estimatesByZone": "Estimates by zone",
+    "metrics": {
+      "salesCount": "Properties sold",
+      "salesValue": "Value sold",
+      "propertiesAdded": "New properties",
+      "visits": "Visits made",
+      "visitsInterested": "Visits with interest",
+      "visitsOffers": "Offers during visits",
+      "prospectsCreated": "New prospects",
+      "prospectsClosed": "Prospects closed",
+      "prospectsLost": "Prospects lost",
+      "estimates": "Value estimates",
+      "signaturesSent": "Contracts sent to sign",
+      "signaturesSigned": "Contracts signed",
+      "messages": "Messages received",
+      "clientsAdded": "New clients"
+    },
+    "channels": {
+      "formulario": "Contact form",
+      "solicitud": "Asked to be contacted",
+      "whatsapp": "WhatsApp",
+      "simulador": "Credit simulator",
+      "estimacion": "Sell your home",
+      "comparador": "Credit comparison"
+    },
+    "pdf": {
+      "title": "Monthly report",
+      "generated": "Generated on {{date}}",
+      "note": "It only includes the information the person generating the report has access to. It does not include profits or settlement data. The figures come from the panel's records at the time it is generated."
+    }
+  },
   "valuation": {
     "title": "Value estimate",
     "subtitle": "Measure the land and the building on the map (or type the m² by hand) and get a value range from the zone's price per m².",
@@ -1693,6 +1805,8 @@
     "cancelAdd": "Cancel"
   },
   "agenda": {
+    "remindClient": "Remind client",
+    "reminderText": "Hi {{name}}, a reminder of your appointment \"{{title}}\" on {{when}}. {{advisor}} from ACL Propiedades will assist you. See you there!",
     "myAgenda": "My agenda",
     "allAgendas": "Advisor agendas",
     "advisorFilter": "Filter by advisor",
