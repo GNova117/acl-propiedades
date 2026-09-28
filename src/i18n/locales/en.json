@@ -250,6 +250,7 @@
     "privacyLinkLabel": "Privacy Notice"
   },
   "messages": {
+    "via_alerta": "Asked for WhatsApp alerts",
     "via_comparador": "From the credit comparison",
     "via_whatsapp": "From WhatsApp",
     "via_simulador": "From the credit simulator",
@@ -1075,6 +1076,7 @@
       "perdido": "Lost"
     },
     "sources": {
+      "alerta": "Property alert",
       "comparador": "Credit comparison",
       "simulador": "Credit simulator",
       "estimacion": "Estimate (sell your home)",
@@ -1295,6 +1297,7 @@
       "document": "Document"
     },
     "events": {
+        "message_alerta": "Asked for property alerts",
         "message_comparador": "Used the credit comparison",
         "signed": "Signed: {{title}}",
         "signingSent": "Sent to sign: {{title}}",
@@ -1605,6 +1608,7 @@
       "clientsAdded": "New clients"
     },
     "channels": {
+      "alerta": "Property alerts",
       "formulario": "Contact form",
       "solicitud": "Asked to be contacted",
       "whatsapp": "WhatsApp",
@@ -1617,6 +1621,89 @@
       "generated": "Generated on {{date}}",
       "note": "It only includes the information the person generating the report has access to. It does not include profits or settlement data. The figures come from the panel's records at the time it is generated."
     }
+  },
+  "alerts": {
+    "whatsapp": "WhatsApp",
+    "anyProperty": "Any property",
+    "currentPrice": "Current price",
+    "todayMatches_one": "Today there is {{count}} property with these filters.",
+    "todayMatches_other": "Today there are {{count}} properties with these filters.",
+    "consent": "By subscribing you agree to receive these notices on WhatsApp; you can unsubscribe anytime from the link in each message. Your data is handled under our",
+    "duplicate": "You already had this alert active. We will message you on WhatsApp as soon as there is news.",
+    "search": {
+      "title": "Let me know when there are properties like these",
+      "subtitle": "Save this search and we will send you a WhatsApp when a new matching property is published.",
+      "submit": "I want to get alerts",
+      "success": "Done! We will message you on WhatsApp when a property matching your search is published."
+    },
+    "price": {
+      "title": "Tell me if the price drops",
+      "subtitle": "Leave your WhatsApp and we will let you know if this property's price drops.",
+      "submit": "Tell me if it drops",
+      "success": "Done! We will message you on WhatsApp if this property's price drops."
+    },
+    "criteria": {
+      "type": "Type",
+      "operation": "Operation",
+      "tipoNave": "Warehouse type",
+      "zone": "Zone",
+      "price": "Price",
+      "area": "Area",
+      "bedrooms": "Bedrooms",
+      "bathrooms": "Bathrooms",
+      "parking": "Parking",
+      "amenities": "Amenities"
+    },
+    "errors": {
+      "badPhone": "Check the WhatsApp number: it must have 10 digits.",
+      "name": "Enter your name.",
+      "limit": "You already have 5 active alerts with this number. Unsubscribe from one to add another.",
+      "unavailable": "This property is no longer available.",
+      "wait": "Wait a few seconds before trying again.",
+      "generic": "Your alert could not be saved. Try again in a moment."
+    },
+    "unsubscribe": {
+      "title": "Stop receiving alerts",
+      "text": "If you confirm, we will no longer send you this alert on WhatsApp.",
+      "button": "Stop receiving this alert",
+      "doneTitle": "Done, you will no longer receive this alert",
+      "doneText": "We cancelled the alert. If you change your mind, you can ask for a new one anytime from the property list.",
+      "browse": "See properties",
+      "notFoundTitle": "Invalid link",
+      "notFoundText": "This link does not match any active alert. You may have already unsubscribed."
+    },
+    "admin": {
+      "title": "Client alerts",
+      "subtitle": "People who asked on the site to be notified on WhatsApp about new properties or price drops.",
+      "loadError": "Could not load the alerts",
+      "actionError": "Could not complete the action",
+      "filterKind": "Type",
+      "all": "All",
+      "kind_search": "New properties",
+      "kind_price": "Price drop",
+      "colPerson": "Person",
+      "colType": "Type",
+      "colDetail": "What they want",
+      "colDates": "Dates",
+      "created": "Created",
+      "lastNotified": "Last alert",
+      "active": "Active",
+      "off": "Off",
+      "turnOff": "Turn off",
+      "turnOn": "Turn on",
+      "makeProspect": "Make prospect",
+      "prospectExists": "There is already a prospect with that phone ({{name}}). Create another anyway?",
+      "prospectNote": "Asked for WhatsApp alerts from the site ({{kind}}).",
+      "prospectCreated": "Prospect created.",
+      "priceThen": "When subscribed",
+      "priceNow": "Now",
+      "confirmDelete": "Delete this alert?",
+      "empty": "There are no alerts yet."
+    }
+  },
+  "installApp": {
+    "button": "Install app",
+    "iosHint": "On iPhone or iPad: tap the browser's Share button and choose “Add to Home Screen”."
   },
   "valuation": {
     "title": "Value estimate",

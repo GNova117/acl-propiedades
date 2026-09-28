@@ -36,6 +36,7 @@ const KEYS = {
   prospects: "acl_local_prospectos",
   signing: "acl_local_signing_requests",
   prospectStages: "acl_local_prospect_stages",
+  alerts: "acl_local_property_alerts",
   reportLinks: "acl_local_report_links",
   adminRoles: "acl_local_admin_roles",
   adminAccess: "acl_local_admin_access",
@@ -1340,6 +1341,68 @@ export const localBackend = {
 
   async getProspectById(id) {
     return readStore(KEYS.prospects, []).find((p) => p.id === id) || null;
+  },
+
+  // Alertas de propiedades (modo demo): mismas reglas que alert_subscribe en la base.
+  async subscribeAlert({ kind, name, phone, criteria, propertyId }) {
+    if (!["search", "price"].includes(kind)) return { error: "bad_kind" };
+    if (!String(name || "").trim() || String(name).length > 80) return { error: "name_required" };
+    const digits = String(phone || "").replace(/\D/g, "");
+    let normalized;
+    if (digits.length === 10) normalized = `52${digits}`;
+    else if (digits.length === 12 && digits.startsWith("52")) normalized = digits;
+    else if (digits.length === 13 && digits.startsWith("521")) normalized = `52${digits.slice(3)}`;
+    else return { error: "bad_phone" };
+    const crit = criteria && typeof criteria === "object" && !Array.isArray(criteria) ? criteria : null;
+    if (!crit || JSON.stringify(crit).length > 1500) return { error: "bad_criteria" };
+
+    let property = null;
+    if (kind === "price") {
+      property = await this.getPropertyById(propertyId);
+      if (!property || property.active === false || property.status !== "disponible") return { error: "property_unavailable" };
+    }
+    const items = readStore(KEYS.alerts, []);
+    const same = (a) => a.active && a.phone === normalized && a.kind === kind && (kind === "price" ? a.property_id === propertyId : JSON.stringify(a.criteria) === JSON.stringify(crit));
+    if (items.some(same)) return { ok: true, duplicate: true };
+    if (items.filter((a) => a.active && a.phone === normalized).length >= 5) return { error: "limit" };
+    items.push({
+      id: uid("alert"),
+      kind,
+      name: String(name).trim(),
+      phone: normalized,
+      criteria: kind === "price" ? {} : crit,
+      property_id: kind === "price" ? propertyId : null,
+      price_at_subscribe: kind === "price" ? Number(property.price) : null,
+      active: true,
+      unsubscribe_token: Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join(""),
+      created_at: new Date().toISOString(),
+      last_notified_at: null,
+    });
+    writeStore(KEYS.alerts, items);
+    return { ok: true };
+  },
+
+  async unsubscribeAlert(token) {
+    const items = readStore(KEYS.alerts, []);
+    const idx = items.findIndex((a) => a.unsubscribe_token === token);
+    if (idx === -1) return { error: "not_found" };
+    items[idx] = { ...items[idx], active: false };
+    writeStore(KEYS.alerts, items);
+    return { ok: true };
+  },
+
+  async getAlerts() {
+    return readStore(KEYS.alerts, [])
+      .map(({ unsubscribe_token, ...rest }) => rest)
+      .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  },
+
+  async setAlertActive(id, active) {
+    writeStore(KEYS.alerts, readStore(KEYS.alerts, []).map((a) => (a.id === id ? { ...a, active } : a)));
+  },
+
+  async deleteAlert(id) {
+    writeStore(KEYS.alerts, readStore(KEYS.alerts, []).filter((a) => a.id !== id));
   },
 
   // Historial de etapas (modo demo): lo que en Supabase hace un trigger.

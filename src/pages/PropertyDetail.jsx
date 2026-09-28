@@ -10,6 +10,7 @@ import ShareButton from "../components/ShareButton";
 import FavoriteButton from "../components/FavoriteButton";
 import CompareButton from "../components/CompareButton";
 import ScheduleVisitCard from "../components/ScheduleVisitCard";
+import AlertSignupCard from "../components/AlertSignupCard";
 import { db } from "../lib/dataStore";
 import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./PropertyDetail.css";
@@ -442,6 +443,8 @@ export default function PropertyDetail() {
                 {t("detail.compareCredits.cta")}
               </Link>
             </div>
+
+            {property.status === "disponible" && <AlertSignupCard mode="price" property={property} />}
 
             <ContactRequestCard property={property} />
 

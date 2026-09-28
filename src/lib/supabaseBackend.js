@@ -1266,6 +1266,43 @@ export const supabaseBackend = {
     return data || [];
   },
 
+  // Alertas de propiedades por WhatsApp (ver schema.sql). El público solo usa
+  // alert_subscribe / alert_unsubscribe; el personal ve la tabla (RLS: 'prospectos').
+  async subscribeAlert({ kind, name, phone, criteria, propertyId }) {
+    const { data, error } = await supabase.rpc("alert_subscribe", {
+      p_kind: kind,
+      p_name: name,
+      p_phone: phone,
+      p_criteria: criteria || {},
+      p_property_id: propertyId || null,
+    });
+    if (error) throw error;
+    return data; // { ok, duplicate? } | { error }
+  },
+
+  async unsubscribeAlert(token) {
+    const { data, error } = await supabase.rpc("alert_unsubscribe", { p_token: token });
+    if (error) throw error;
+    return data; // { ok } | { error }
+  },
+
+  async getAlerts() {
+    const cols = "id,kind,name,phone,criteria,property_id,price_at_subscribe,active,created_at,last_notified_at";
+    const { data, error } = await supabase.from("property_alerts").select(cols).order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async setAlertActive(id, active) {
+    const { error } = await supabase.from("property_alerts").update({ active }).eq("id", id);
+    if (error) throw error;
+  },
+
+  async deleteAlert(id) {
+    const { error } = await supabase.from("property_alerts").delete().eq("id", id);
+    if (error) throw error;
+  },
+
   // Historial de etapas de los prospectos (lo llena un trigger; ver schema.sql).
   async getProspectStageHistory() {
     const rows = [];

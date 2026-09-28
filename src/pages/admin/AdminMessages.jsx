@@ -199,7 +199,7 @@ export default function AdminMessages() {
                     <td>{new Date(message.created_at).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}</td>
                     <td>
                       {message.name}
-                      {["whatsapp", "simulador", "estimacion", "comparador"].includes(message.channel) && <span className="form-hint" style={{ display: "block", margin: 0 }}>{t(`messages.via_${message.channel}`)}</span>}
+                      {["whatsapp", "simulador", "estimacion", "comparador", "alerta"].includes(message.channel) && <span className="form-hint" style={{ display: "block", margin: 0 }}>{t(`messages.via_${message.channel}`)}</span>}
                     </td>
                     <td>{message.phone || "—"}</td>
                     <td>{message.email || "—"}</td>

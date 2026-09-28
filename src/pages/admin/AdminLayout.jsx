@@ -6,6 +6,7 @@ import ThemeToggle from "../../components/ThemeToggle";
 import LanguageToggle from "../../components/LanguageToggle";
 import ErrorBoundary from "../../components/ErrorBoundary";
 import AdminGlobalSearch from "../../components/AdminGlobalSearch";
+import InstallAppButton from "../../components/InstallAppButton";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
 import "./AdminLayout.css";
@@ -32,6 +33,7 @@ const NAV = [
       { section: "clientes", to: "/admin/clientes", labelKey: "admin.clients" },
       { section: "prospectos", to: "/admin/prospectos", labelKey: "accessControl.sections.prospectos" },
       { section: "prospectos", to: "/admin/estadisticas", labelKey: "funnel.title" },
+      { section: "prospectos", to: "/admin/alertas", labelKey: "alerts.admin.title" },
       { section: "mensajes", to: "/admin/mensajes", labelKey: "admin.messages", badge: true },
       { section: "testimonios", to: "/admin/testimonios", labelKey: "admin.testimonials" },
       { section: "visitas", to: "/admin/visitas", labelKey: "accessControl.sections.visitas" },
@@ -204,6 +206,7 @@ export default function AdminLayout() {
           </button>
           <AdminGlobalSearch />
           <div className="admin-layout__topbar-actions">
+            <InstallAppButton />
             <ThemeToggle />
             <LanguageToggle />
           </div>

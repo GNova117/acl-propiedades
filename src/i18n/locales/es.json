@@ -250,6 +250,7 @@
     "privacyLinkLabel": "Aviso de Privacidad"
   },
   "messages": {
+    "via_alerta": "Pidió avisos por WhatsApp",
     "via_comparador": "Desde el comparador de créditos",
     "via_whatsapp": "Desde WhatsApp",
     "via_simulador": "Desde el simulador de crédito",
@@ -1075,6 +1076,7 @@
       "perdido": "Perdido"
     },
     "sources": {
+      "alerta": "Alerta de propiedades",
       "comparador": "Comparador de créditos",
       "simulador": "Simulador de crédito",
       "estimacion": "Estimación (vende tu casa)",
@@ -1295,6 +1297,7 @@
       "document": "Documento"
     },
     "events": {
+        "message_alerta": "Pidió avisos de propiedades",
         "message_comparador": "Usó el comparador de créditos",
         "signed": "Firmó: {{title}}",
         "signingSent": "Enviado a firma: {{title}}",
@@ -1605,6 +1608,7 @@
       "clientsAdded": "Clientes nuevos"
     },
     "channels": {
+      "alerta": "Alertas de propiedades",
       "formulario": "Formulario de contacto",
       "solicitud": "Pidió que lo contactaran",
       "whatsapp": "WhatsApp",
@@ -1617,6 +1621,89 @@
       "generated": "Generado el {{date}}",
       "note": "Incluye solo la información a la que tiene acceso quien genera el reporte. No incluye utilidades ni datos de liquidaciones. Las cifras salen de los registros del panel al momento de generarlo."
     }
+  },
+  "alerts": {
+    "whatsapp": "WhatsApp",
+    "anyProperty": "Cualquier propiedad",
+    "currentPrice": "Precio actual",
+    "todayMatches_one": "Hoy hay {{count}} propiedad con estos filtros.",
+    "todayMatches_other": "Hoy hay {{count}} propiedades con estos filtros.",
+    "consent": "Al suscribirte aceptas recibir estos avisos por WhatsApp; puedes darte de baja cuando quieras desde el enlace de cada mensaje. Tus datos se tratan conforme a nuestro",
+    "duplicate": "Ya tenías este aviso activo. Te escribiremos por WhatsApp en cuanto haya novedades.",
+    "search": {
+      "title": "Avísame cuando haya propiedades como estas",
+      "subtitle": "Guarda esta búsqueda y te mandamos un WhatsApp cuando se publique una propiedad nueva que coincida.",
+      "submit": "Quiero recibir avisos",
+      "success": "¡Listo! Te escribiremos por WhatsApp cuando se publique una propiedad que coincida con tu búsqueda."
+    },
+    "price": {
+      "title": "Avísame si baja de precio",
+      "subtitle": "Déjanos tu WhatsApp y te avisamos si esta propiedad baja de precio.",
+      "submit": "Avísame si baja",
+      "success": "¡Listo! Te escribiremos por WhatsApp si esta propiedad baja de precio."
+    },
+    "criteria": {
+      "type": "Tipo",
+      "operation": "Operación",
+      "tipoNave": "Tipo de nave",
+      "zone": "Zona",
+      "price": "Precio",
+      "area": "Superficie",
+      "bedrooms": "Recámaras",
+      "bathrooms": "Baños",
+      "parking": "Estacionamiento",
+      "amenities": "Amenidades"
+    },
+    "errors": {
+      "badPhone": "Revisa el número de WhatsApp: debe tener 10 dígitos.",
+      "name": "Escribe tu nombre.",
+      "limit": "Ya tienes 5 avisos activos con este número. Date de baja de alguno para agregar otro.",
+      "unavailable": "Esta propiedad ya no está disponible.",
+      "wait": "Espera unos segundos antes de intentarlo de nuevo.",
+      "generic": "No se pudo guardar tu aviso. Inténtalo de nuevo en un momento."
+    },
+    "unsubscribe": {
+      "title": "Dejar de recibir avisos",
+      "text": "Si confirmas, ya no te mandaremos este aviso por WhatsApp.",
+      "button": "Dejar de recibir este aviso",
+      "doneTitle": "Listo, ya no recibirás este aviso",
+      "doneText": "Cancelamos el aviso. Si cambias de opinión, puedes pedir uno nuevo cuando quieras desde el listado de propiedades.",
+      "browse": "Ver propiedades",
+      "notFoundTitle": "Enlace no válido",
+      "notFoundText": "Este enlace no corresponde a ningún aviso activo. Puede que ya te hayas dado de baja."
+    },
+    "admin": {
+      "title": "Alertas de clientes",
+      "subtitle": "Personas que pidieron en el sitio que les avisemos por WhatsApp de propiedades nuevas o de bajas de precio.",
+      "loadError": "No se pudieron cargar las alertas",
+      "actionError": "No se pudo completar la acción",
+      "filterKind": "Tipo",
+      "all": "Todas",
+      "kind_search": "Propiedades nuevas",
+      "kind_price": "Baja de precio",
+      "colPerson": "Persona",
+      "colType": "Tipo",
+      "colDetail": "Qué busca",
+      "colDates": "Fechas",
+      "created": "Creada",
+      "lastNotified": "Último aviso",
+      "active": "Activa",
+      "off": "Apagada",
+      "turnOff": "Apagar",
+      "turnOn": "Encender",
+      "makeProspect": "Pasar a prospecto",
+      "prospectExists": "Ya hay un prospecto con ese teléfono ({{name}}). ¿Crear otro de todos modos?",
+      "prospectNote": "Pidió avisos por WhatsApp desde el sitio ({{kind}}).",
+      "prospectCreated": "Prospecto creado.",
+      "priceThen": "Al suscribirse",
+      "priceNow": "Ahora",
+      "confirmDelete": "¿Eliminar esta alerta?",
+      "empty": "Aún no hay alertas."
+    }
+  },
+  "installApp": {
+    "button": "Instalar app",
+    "iosHint": "En iPhone o iPad: toca el botón Compartir del navegador y elige «Añadir a pantalla de inicio»."
   },
   "valuation": {
     "title": "Estimación de valor",

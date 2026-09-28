@@ -11,6 +11,7 @@ import Calculator from "./pages/Calculator";
 import CreditSimulator from "./pages/CreditSimulator";
 import SellYourHome from "./pages/SellYourHome";
 import CreditCompare from "./pages/CreditCompare";
+import AlertUnsubscribe from "./pages/AlertUnsubscribe";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Favorites from "./pages/Favorites";
@@ -82,6 +83,7 @@ const PublicSign = lazy(() => import("./pages/PublicSign"));
 const AdminSignatures = lazy(() => import("./pages/admin/AdminSignatures"));
 const AdminFunnel = lazy(() => import("./pages/admin/AdminFunnel"));
 const AdminMonthlyReport = lazy(() => import("./pages/admin/AdminMonthlyReport"));
+const AdminAlerts = lazy(() => import("./pages/admin/AdminAlerts"));
 
 const SPECIAL_SECTION_KEYS = Object.keys(SPECIAL_SECTION_TYPES);
 
@@ -152,6 +154,7 @@ export default function App() {
       <Route path="/simulador-credito" element={<PublicLayout><CreditSimulator /></PublicLayout>} />
       <Route path="/vende-tu-casa" element={<PublicLayout><SellYourHome /></PublicLayout>} />
       <Route path="/comparar-creditos" element={<PublicLayout><CreditCompare /></PublicLayout>} />
+      <Route path="/alertas/baja/:token" element={<PublicLayout><AlertUnsubscribe /></PublicLayout>} />
       <Route path="/nosotros" element={<PublicLayout><About /></PublicLayout>} />
       <Route path="/contacto" element={<PublicLayout><Contact /></PublicLayout>} />
       <Route path="/favoritos" element={<PublicLayout><Favorites /></PublicLayout>} />
@@ -286,6 +289,7 @@ export default function App() {
         <Route path="reportes" element={<RequireSection section="reportes"><AdminSalesReports /></RequireSection>} />
         <Route path="secretaria" element={<RequireSection section="secretaria"><AdminSecretaria /></RequireSection>} />
         <Route path="estadisticas" element={<RequireSection section="prospectos"><AdminFunnel /></RequireSection>} />
+        <Route path="alertas" element={<RequireSection section="prospectos"><AdminAlerts /></RequireSection>} />
         <Route path="prospectos" element={<RequireSection section="prospectos"><AdminProspects /></RequireSection>} />
         <Route path="prospectos/nuevo" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />
         <Route path="prospectos/:id" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />

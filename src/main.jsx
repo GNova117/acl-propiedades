@@ -24,6 +24,15 @@ window.addEventListener("vite:preloadError", () => {
 });
 window.setTimeout(() => sessionStorage.removeItem("acl_reload_once"), 3000);
 
+// App instalable del panel: el service worker (public/sw.js) solo da la pantalla
+// de "sin conexión" y guarda los archivos con hash; las páginas y los datos
+// siempre vienen de la red. Solo en producción (en desarrollo estorbaría).
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
+
 function Root() {
   const [showLoader, setShowLoader] = useState(true);
 

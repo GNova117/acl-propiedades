@@ -5,6 +5,8 @@ import Seo from "../components/Seo";
 import PropertyFilters from "../components/PropertyFilters";
 import PropertyCard from "../components/PropertyCard";
 import Reveal from "../components/Reveal";
+import AlertSignupCard from "../components/AlertSignupCard";
+import { filtersToCriteria } from "../lib/alertMatch";
 import { db } from "../lib/dataStore";
 import "./Properties.css";
 
@@ -146,6 +148,9 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
     key === "sortBy" ? false : Array.isArray(filters[key]) ? filters[key].length > 0 : Boolean(filters[key])
   );
 
+  // Criterios de la alerta de búsqueda = los filtros que la persona tiene puestos.
+  const alertCriteria = useMemo(() => filtersToCriteria(filters, { fixedType }), [filters, fixedType]);
+
   const queryFilters = useMemo(
     () => ({
       activeOnly: true,
@@ -264,6 +269,14 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
                   </Reveal>
                 ))}
               </div>
+            )}
+            {!loading && (
+              <AlertSignupCard
+                mode="search"
+                criteria={alertCriteria}
+                matchCount={properties.length}
+                key={JSON.stringify(alertCriteria)}
+              />
             )}
           </div>
         </div>
