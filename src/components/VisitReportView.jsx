@@ -136,7 +136,7 @@ function VisitLog({ report }) {
 // y la página pública por enlace (/informe/:token) — es el MISMO componente
 // sobre el MISMO JSON anonimizado, así lo que el asesor previsualiza es lo que
 // recibe el vendedor.
-export default function VisitReportView({ payload, now }) {
+export default function VisitReportView({ payload, now, periodLabel }) {
   const { t } = useTranslation();
   const report = useMemo(() => buildVisitReport(payload, { now }), [payload, now]);
   const property = payload?.property || {};
@@ -148,6 +148,7 @@ export default function VisitReportView({ payload, now }) {
         <div className="vr-head__text">
           <p className="vr-head__meta">{[property.code, property.zone].filter(Boolean).join(" · ")}</p>
           <h2>{property.title}</h2>
+          {periodLabel && <p className="vr-head__period">{periodLabel}</p>}
           {property.status && <span className={`badge ${STATUS_BADGE[property.status] || ""}`}>{t(`propertyStatus.${property.status}`)}</span>}
         </div>
       </header>

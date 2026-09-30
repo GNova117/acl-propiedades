@@ -4,11 +4,11 @@
 // dos y visitReportPdf.js no tiene que saber nada de i18n.
 import { formatVisitDate, formatVisitDateTime, reasonLabel } from "./visitReport";
 
-export function visitPdfLabels(t, language, payload, now = new Date()) {
+export function visitPdfLabels(t, language, payload, now = new Date(), periodLabel = "") {
   const property = payload?.property || {};
   const withOffer = (payload?.visits || []).filter((v) => v.interest === "oferta_realizada").length;
   return {
-    title: t("visits.report.pdfTitle"),
+    title: periodLabel ? `${t("visits.report.pdfTitle")} — ${periodLabel}` : t("visits.report.pdfTitle"),
     propertyLine: [property.code, property.title].filter(Boolean).join(" · "),
     zoneStatusLine: [
       property.zone && `${t("visits.report.zoneLabel")}: ${property.zone}`,

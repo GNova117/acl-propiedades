@@ -843,6 +843,31 @@
     }
   },
   "visits": {
+    "monthly": {
+      "button": "Monthly reports",
+      "title": "Monthly reports for owners",
+      "subtitle": "What happened at each property during the month: visits, interested visitors and why they did not like it. Open one to download the PDF or share the link.",
+      "month": "Month",
+      "period": "Period",
+      "allTime": "Full history",
+      "topReason": "Top reason",
+      "sent": "Sent",
+      "yesSent": "Sent",
+      "notSent": "To send",
+      "openReport": "View report",
+      "empty": "No properties with activity that month.",
+      "pending": "{{count}} of {{total}} reports still to send. The sent mark is saved in this browser only.",
+      "linkNote": "This view and the PDF show that month only. The private link for the owner shows the full history."
+    },
+    "byAdvisor": {
+      "title": "Advisor follow-up",
+      "unassigned": "No advisor",
+      "clients": "Clients served",
+      "properties": "Properties shown",
+      "offers": "With offer",
+      "clientsNote": "Clients served = distinct people (the same name counts once; a visit with no name counts on its own).",
+      "reasonsTitle": "Most common reasons for not selling"
+    },
     "button": "Visits",
     "allTitle": "Visits",
     "myTitle": "My visits",
@@ -1147,7 +1172,8 @@
       "keys": "Keys not returned",
       "followups": "Prospect follow-ups",
       "newProspects": "New prospects not contacted",
-      "stale": "Properties with no visits in 15 days"
+      "stale": "Properties with no visits in 15 days",
+      "monthlyReports": "Monthly owner reports to send"
     }
   },
   "search": {

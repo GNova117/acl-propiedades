@@ -5,6 +5,7 @@ import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
 import VisitProspect from "../../components/VisitProspect";
+import VisitsByAdvisor from "../../components/VisitsByAdvisor";
 import { VISIT_INTERESTS, formatVisitDateTime, reasonLabel } from "../../lib/visitReport";
 import "../../components/VisitReportView.css";
 import "./admin.css";
@@ -107,6 +108,9 @@ export default function AdminVisits() {
           <button type="button" className="btn btn-outline" onClick={handleExport} disabled={visible.length === 0}>
             {t("common.exportCsv")}
           </button>
+          <Link to="/admin/visitas/informes" className="btn btn-outline">
+            {t("visits.monthly.button")}
+          </Link>
           <Link to="/admin/visitas/nueva" className="btn btn-primary">
             {t("visits.newVisit")}
           </Link>
@@ -114,6 +118,8 @@ export default function AdminVisits() {
       </div>
 
       {loadError && <p className="form-error">{t("visits.loadError", { error: loadError })}</p>}
+
+      {seesAll && visits.length > 0 && <VisitsByAdvisor visits={visits} advisors={advisors} />}
 
       <div className="visits-filters">
         <div className="form-field">

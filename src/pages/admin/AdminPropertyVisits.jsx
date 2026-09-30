@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
@@ -7,6 +7,7 @@ import VisitReportView from "../../components/VisitReportView";
 import VisitProspect from "../../components/VisitProspect";
 import { formatVisitDate, formatVisitDateTime, reasonLabel, reportUrl } from "../../lib/visitReport";
 import { visitPdfLabels } from "../../lib/visitReportLabels";
+import { monthLabel, monthOptions, monthPayload, parseMonthValue } from "../../lib/visitMonthly";
 import "../../components/VisitReportView.css";
 import "./admin.css";
 import "./AdminVisits.css";
@@ -25,6 +26,9 @@ export default function AdminPropertyVisits() {
   const { t, i18n } = useTranslation();
   const { advisorId } = useAuth();
   const seesAll = advisorId == null;
+  const [searchParams, setSearchParams] = useSearchParams();
+  // ?mes=2026-09 → informe solo de ese mes (el que se le manda al propietario); sin él, todo el historial.
+  const month = parseMonthValue(searchParams.get("mes")) ? searchParams.get("mes") : "";
 
   const [report, setReport] = useState(null);
   const [visits, setVisits] = useState([]);
@@ -58,6 +62,10 @@ export default function AdminPropertyVisits() {
   const advisorName = (id) => advisors.find((a) => a.id === id)?.name || "—";
   const url = link ? reportUrl(link.token) : "";
   const propertyTitle = report?.property?.title || "";
+  const shownReport = useMemo(() => (report && month ? monthPayload(report, month) : report), [report, month]);
+  const periodLabel = month ? monthLabel(month, i18n.language) : "";
+  const months = useMemo(() => monthOptions(12, now), [now]);
+  const setMonth = (value) => setSearchParams(value ? { mes: value } : {}, { replace: true });
   const back = `/admin/visitas/propiedad/${propertyId}`;
 
   const run = async (action) => {
@@ -118,7 +126,11 @@ export default function AdminPropertyVisits() {
     setPdfBusy(true);
     try {
       const { downloadVisitReportPdf } = await import("../../lib/visitReportPdf");
-      await downloadVisitReportPdf(report, visitPdfLabels(t, i18n.language, report, new Date()), `informe-visitas-${report.property.code || propertyTitle}`);
+      await downloadVisitReportPdf(
+        shownReport,
+        visitPdfLabels(t, i18n.language, shownReport, new Date(), periodLabel),
+        `informe-visitas-${report.property.code || propertyTitle}${month ? `-${month}` : ""}`
+      );
     } catch (err) {
       window.alert(err.message || t("visits.report.pdfError"));
     } finally {
@@ -204,7 +216,19 @@ export default function AdminPropertyVisits() {
       <section>
         <h2 className="visit-section-title">{t("visits.preview.title")}</h2>
         <p className="visit-note">{t("visits.preview.hint")}</p>
-        <VisitReportView payload={report} now={now} />
+        <div className="form-field" style={{ maxWidth: 280 }}>
+          <label htmlFor="visit-period">{t("visits.monthly.period")}</label>
+          <select id="visit-period" value={month} onChange={(e) => setMonth(e.target.value)}>
+            <option value="">{t("visits.monthly.allTime")}</option>
+            {months.map((value) => (
+              <option key={value} value={value}>
+                {monthLabel(value, i18n.language)}
+              </option>
+            ))}
+          </select>
+        </div>
+        {month && <p className="visit-note">{t("visits.monthly.linkNote")}</p>}
+        <VisitReportView payload={shownReport} now={now} periodLabel={periodLabel} />
       </section>
 
       <section>

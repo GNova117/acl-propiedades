@@ -843,6 +843,31 @@
     }
   },
   "visits": {
+    "monthly": {
+      "button": "Informes del mes",
+      "title": "Informes mensuales para propietarios",
+      "subtitle": "Lo que pasó en cada propiedad durante el mes: visitas, interesados y motivos por los que no les gustó. Ábrelo para descargar el PDF o compartir el enlace.",
+      "month": "Mes",
+      "period": "Periodo",
+      "allTime": "Todo el historial",
+      "topReason": "Motivo más repetido",
+      "sent": "Enviado",
+      "yesSent": "Enviado",
+      "notSent": "Por enviar",
+      "openReport": "Ver informe",
+      "empty": "No hay propiedades con actividad ese mes.",
+      "pending": "{{count}} de {{total}} informes por enviar. La marca de enviado se guarda solo en este navegador.",
+      "linkNote": "Esta vista y el PDF muestran solo ese mes. El enlace privado para el propietario muestra el historial completo."
+    },
+    "byAdvisor": {
+      "title": "Seguimiento por asesor",
+      "unassigned": "Sin asesor",
+      "clients": "Clientes atendidos",
+      "properties": "Propiedades mostradas",
+      "offers": "Con oferta",
+      "clientsNote": "Clientes atendidos = personas distintas (mismo nombre cuenta una vez; una visita sin nombre cuenta por sí sola).",
+      "reasonsTitle": "Motivos más comunes por los que no se vende"
+    },
     "button": "Visitas",
     "allTitle": "Visitas",
     "myTitle": "Mis visitas",
@@ -1147,7 +1172,8 @@
       "keys": "Llaves sin regresar",
       "followups": "Seguimientos de prospectos",
       "newProspects": "Prospectos nuevos sin contactar",
-      "stale": "Propiedades sin visitas en 15 días"
+      "stale": "Propiedades sin visitas en 15 días",
+      "monthlyReports": "Informes del mes por enviar a propietarios"
     }
   },
   "search": {

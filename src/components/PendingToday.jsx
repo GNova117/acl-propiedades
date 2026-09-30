@@ -6,6 +6,7 @@ import { db } from "../lib/dataStore";
 import { daysSince, followUpState, todayISO } from "../lib/prospects";
 import { effectiveStatus, signingAgeDays } from "../lib/signing";
 import { postsaleDue } from "../lib/postsale";
+import { isReportSent, monthLabel, previousMonthValue, reportableProperties } from "../lib/visitMonthly";
 import "./PendingToday.css";
 
 const KEY_LATE_DAYS = 2; // una llave con 2 días o más fuera se marca como atrasada
@@ -16,7 +17,7 @@ const MAX_LINES = 3;
 // atención, mirando solo los apartados que el rol tiene. Todo se calcula con
 // datos que ya existen (mensajes, agenda, visitas, Secretaría, prospectos).
 export default function PendingToday() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { hasSection, advisorId } = useAuth();
   const [items, setItems] = useState(null);
   const sectionsKey = ["mensajes", "agenda", "visitas", "secretaria", "prospectos", "propiedades", "documentos_legales"].map((s) => hasSection(s)).join();
@@ -120,6 +121,24 @@ export default function PendingToday() {
           return !last || (daysSince(last) ?? 0) >= STALE_DAYS;
         });
         if (stale.length) list.push({ key: "stale", count: stale.length, to: "/admin/visitas", lines: stale.slice(0, MAX_LINES).map((p) => p.title) });
+      }
+
+      // Recordatorio mensual: los informes para los propietarios del mes que acaba
+      // de pasar. Solo para quien ve las visitas de todos (el informe junta las de
+      // todos los asesores) y mientras falte marcar alguno como enviado.
+      if (properties && visits && advisorId == null) {
+        const month = previousMonthValue();
+        const missing = reportableProperties(properties, visits, month).filter((p) => !isReportSent(month, p.id));
+        if (missing.length) {
+          list.push({
+            key: "monthlyReports",
+            count: missing.length,
+            to: `/admin/visitas/informes?mes=${month}`,
+            tone: "info",
+            note: monthLabel(month, i18n.language),
+            lines: missing.slice(0, MAX_LINES).map((p) => p.title),
+          });
+        }
       }
 
       setItems(list);
