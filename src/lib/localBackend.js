@@ -30,6 +30,7 @@ const KEYS = {
   propertyLog: "acl_local_property_log",
   propertyBudgets: "acl_local_property_budgets",
   visits: "acl_local_visits",
+  inspections: "acl_local_inspections",
   expenseConcepts: "acl_local_expense_concepts",
   expenseReports: "acl_local_expense_reports",
   keyLog: "acl_local_key_log",
@@ -1266,6 +1267,58 @@ export const localBackend = {
 
   async deleteVisit(id) {
     writeStore(KEYS.visits, readStore(KEYS.visits, VISITS_SEED).filter((v) => v.id !== id));
+  },
+
+  // Cotejo de inspección previo a avalúo (modo demo: localStorage). Cada foto
+  // del checklist se guarda como data: URL directamente en `file_path` — a
+  // diferencia de property_log no hace falta `signed_url` aparte, el data:
+  // URL ya es usable como src de <img> tal cual.
+  async getInspections() {
+    return readStore(KEYS.inspections, []).sort((a, b) => String(b.visited_at).localeCompare(String(a.visited_at)));
+  },
+
+  async getInspectionById(id) {
+    return readStore(KEYS.inspections, []).find((i) => i.id === id) || null;
+  },
+
+  async _prepareLocalChecklist(checklist) {
+    const result = [];
+    for (const entry of checklist) {
+      if (entry.file) {
+        const prepared = await compressImageFile(entry.file);
+        const [dataUrl] = await filesToDataUrls([prepared]);
+        result.push({ category: entry.category, key: entry.key, estado: entry.estado, file_path: dataUrl });
+      } else if (entry.removed) {
+        result.push({ category: entry.category, key: entry.key, estado: entry.estado, file_path: null });
+      } else {
+        result.push({ category: entry.category, key: entry.key, estado: entry.estado, file_path: entry.file_path || null });
+      }
+    }
+    return result;
+  },
+
+  async addInspection({ id, checklist, ...fields }) {
+    const items = readStore(KEYS.inspections, []);
+    const preparedChecklist = await this._prepareLocalChecklist(checklist);
+    const now = new Date().toISOString();
+    const record = { id, ...fields, checklist: preparedChecklist, created_by: DEMO_ADMIN.email, created_at: now, updated_at: now };
+    items.push(record);
+    writeStoreOrThrowFriendly(KEYS.inspections, items, FILE_QUOTA_MESSAGE);
+    return record;
+  },
+
+  async updateInspection(id, { checklist, ...fields }) {
+    const items = readStore(KEYS.inspections, []);
+    const idx = items.findIndex((i) => i.id === id);
+    if (idx === -1) throw new Error("Inspección no encontrada");
+    const preparedChecklist = await this._prepareLocalChecklist(checklist);
+    items[idx] = { ...items[idx], ...fields, checklist: preparedChecklist, updated_at: new Date().toISOString() };
+    writeStoreOrThrowFriendly(KEYS.inspections, items, FILE_QUOTA_MESSAGE);
+    return items[idx];
+  },
+
+  async deleteInspection(id) {
+    writeStore(KEYS.inspections, readStore(KEYS.inspections, []).filter((i) => i.id !== id));
   },
 
   // Firma de contratos (modo demo): mismas reglas que las funciones de la base

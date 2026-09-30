@@ -462,6 +462,7 @@
       "reportes": "Ventas y reportes",
       "bitacora": "Bitácora y gastos",
       "valuacion": "Estimación de valor",
+      "inspecciones": "Inspección",
       "construccion": "Construcción",
       "visitas": "Visitas",
       "gastos": "Desglose de gastos",
@@ -1088,6 +1089,108 @@
       "invalidBody": "El enlace no existe o ya fue desactivado. Pide a tu asesor de ACL Propiedades uno nuevo.",
       "errorTitle": "No pudimos cargar el informe",
       "errorBody": "Revisa tu conexión e inténtalo de nuevo en unos minutos."
+    }
+  },
+  "inspections": {
+    "title": "Inspección",
+    "button": "Inspección",
+    "newInspection": "Nueva inspección",
+    "backToList": "Volver a inspecciones",
+    "loadError": "No se pudieron cargar las inspecciones: {{error}}",
+    "confirmDelete": "¿Eliminar este cotejo de inspección?",
+    "empty": "Aún no hay inspecciones registradas.",
+    "noMatches": "Ninguna inspección coincide con el filtro.",
+    "table": {
+      "folio": "Folio",
+      "address": "Dirección",
+      "property": "Propiedad",
+      "inspector": "Inspector",
+      "when": "Fecha",
+      "status": "Estatus"
+    },
+    "filters": {
+      "allStatuses": "Todos los estatus"
+    },
+    "status": {
+      "green": "Verde — Apta para avalúo",
+      "greenNote": "Cumple el 100% de los puntos críticos.",
+      "yellow": "Amarillo — Apta con observaciones",
+      "yellowNote": "Falla en puntos no estructurales. Revisa los detalles por corregir.",
+      "red": "Rojo — No apta",
+      "redNote": "Falla en un punto crítico. No se recomienda continuar al avalúo hasta reinspeccionar."
+    },
+    "categories": {
+      "estructura": "Estructura",
+      "servicios": "Servicios",
+      "habitabilidad": "Habitabilidad",
+      "exteriores": "Exteriores"
+    },
+    "estado": {
+      "si": "Sí",
+      "no": "No",
+      "na": "N/A"
+    },
+    "checklist": {
+      "removePhoto": "Quitar foto",
+      "addPhoto": "📷 Foto",
+      "estructura": {
+        "grietas": "Sin grietas en diagonal o hundimientos",
+        "aplanados": "Techos y muros aplanados e impermeabilizados",
+        "uso_habitacional": "Uso 100% habitacional (sin comercios)"
+      },
+      "servicios": {
+        "agua": "Agua potable funcional (llaves en baño y cocina)",
+        "drenaje": "Drenaje funcional (desagüe en regadera, lavabo, WC)",
+        "electrica": "Instalación eléctrica (contactos, apagadores, centro de carga)",
+        "gas": "Tomas de gas fuera de áreas cerradas"
+      },
+      "habitabilidad": {
+        "espacios_minimos": "Espacios mínimos (1 recámara, estancia, cocina, 1 baño)",
+        "ventanas": "Ventanas con cristales/protecciones en áreas comunes",
+        "ventilacion_banos": "Ventilación/respiradero funcional en baños"
+      },
+      "exteriores": {
+        "acceso_vial": "Acceso vial o servidumbre de paso",
+        "banqueta": "Banqueta / guarnición frente al inmueble",
+        "puerta_cerradura": "Puerta principal con cerradura"
+      }
+    },
+    "form": {
+      "newTitle": "Nueva inspección",
+      "editTitle": "Editar inspección",
+      "notFound": "No se encontró esa inspección.",
+      "folio": "Folio",
+      "when": "Fecha y hora de la visita",
+      "property": "Vincular a una propiedad",
+      "noProperty": "Sin vincular",
+      "address": "Dirección",
+      "inspector": "Inspector",
+      "checklistTitle": "Lista de cotejo",
+      "checklistIncomplete": "Responde Sí/No (o N/A donde aplica) en todos los criterios antes de guardar.",
+      "correctionsTitle": "Detalles por corregir",
+      "observations": "Observaciones",
+      "signature": "Firma",
+      "signAction": "Firmar",
+      "signAgain": "Firmar de nuevo",
+      "noSignatureYet": "Aún no se ha firmado.",
+      "saveAndPdf": "Guardar y generar PDF",
+      "saveError": "No se pudo guardar la inspección.",
+      "pdfError": "No se pudo generar el PDF."
+    },
+    "pdf": {
+      "title": "Cotejo de inspección — Folio {{folio}}",
+      "addressLine": "Dirección: {{address}}",
+      "inspectorLine": "Inspector: {{inspector}}",
+      "dateLine": "Fecha de la visita: {{date}}",
+      "generatedLine": "Generado el {{date}}",
+      "checklistTitle": "Lista de cotejo",
+      "correctionsTitle": "Detalles por corregir",
+      "correctionsEmpty": "Sin observaciones: todos los criterios cumplen.",
+      "observationsTitle": "Observaciones",
+      "observationsEmpty": "Sin observaciones adicionales.",
+      "signatureTitle": "Firma",
+      "signedByLine": "Firmado por {{name}} — {{date}}",
+      "noSignature": "Sin firmar."
     }
   },
   "liquidacion": {

@@ -1,0 +1,124 @@
+.inspection-checklist__category {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.inspection-checklist__category legend {
+  font-weight: 600;
+  padding: 0 0.4rem;
+}
+
+.inspection-checklist__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.3rem;
+  border-radius: 8px;
+}
+
+.inspection-checklist__row + .inspection-checklist__row {
+  border-top: 1px solid var(--color-border);
+}
+
+.inspection-checklist__row.is-unanswered {
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+}
+
+.inspection-checklist__criterio {
+  font-size: 0.92rem;
+}
+
+.inspection-checklist__pills {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.ic-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0.3rem 0.75rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  user-select: none;
+}
+
+.ic-pill input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.ic-pill--si.is-active {
+  border-color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 16%, transparent);
+  font-weight: 600;
+}
+
+.ic-pill--no.is-active {
+  border-color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 16%, transparent);
+  font-weight: 600;
+}
+
+.ic-pill--na.is-active {
+  border-color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 16%, transparent);
+  font-weight: 600;
+}
+
+.inspection-checklist__photo {
+  display: flex;
+  align-items: center;
+}
+
+.ic-photo {
+  position: relative;
+  width: 52px;
+  height: 52px;
+}
+
+.ic-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.ic-photo__remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-danger);
+  color: #fff;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ic-photo__add {
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .inspection-checklist__row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}

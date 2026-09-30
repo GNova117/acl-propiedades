@@ -1,0 +1,94 @@
+.inspections-filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  max-width: 320px;
+}
+
+.inspection-badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.inspection-badge--green {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 16%, transparent);
+}
+
+.inspection-badge--yellow {
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 16%, transparent);
+}
+
+.inspection-badge--red {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 16%, transparent);
+}
+
+.inspection-form__section {
+  margin: 1.5rem 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.inspection-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin: 0.75rem 0;
+  border: 1.5px solid var(--color-border);
+}
+
+.inspection-status--green {
+  border-color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+  color: var(--color-success);
+}
+
+.inspection-status--yellow {
+  border-color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  color: var(--color-warning);
+}
+
+.inspection-status--red {
+  border-color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  color: var(--color-danger);
+}
+
+.inspection-status span {
+  font-weight: 400;
+  color: var(--color-text, inherit);
+}
+
+.inspection-corrections {
+  border: 1px dashed var(--color-warning);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.inspection-corrections h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+}
+
+.inspection-corrections ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.inspection-form__signature {
+  max-width: 260px;
+  max-height: 110px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.4rem;
+  background: #fff;
+  align-self: flex-start;
+}

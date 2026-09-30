@@ -59,6 +59,8 @@ const AdminConstruccionForm = lazy(() => import("./pages/admin/AdminConstruccion
 const AdminConstruccionProject = lazy(() => import("./pages/admin/AdminConstruccionProject"));
 const AdminInfonavitSimulator = lazy(() => import("./pages/admin/AdminInfonavitSimulator"));
 const AdminValuation = lazy(() => import("./pages/admin/AdminValuation"));
+const AdminInspections = lazy(() => import("./pages/admin/AdminInspections"));
+const AdminInspectionForm = lazy(() => import("./pages/admin/AdminInspectionForm"));
 const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
 const AdminLegalDocs = lazy(() => import("./pages/admin/AdminLegalDocs"));
 const AdminAgenda = lazy(() => import("./pages/admin/AdminAgenda"));
@@ -278,6 +280,9 @@ export default function App() {
         <Route path="construccion/:id" element={<RequireSection section="construccion"><AdminConstruccionProject /></RequireSection>} />
         <Route path="credito-infonavit" element={<RequireSection section="credito_infonavit"><AdminInfonavitSimulator /></RequireSection>} />
         <Route path="valuacion" element={<RequireSection section="valuacion"><AdminValuation /></RequireSection>} />
+        <Route path="inspecciones" element={<RequireSection section="inspecciones"><AdminInspections /></RequireSection>} />
+        <Route path="inspecciones/nueva" element={<RequireSection section="inspecciones"><AdminInspectionForm /></RequireSection>} />
+        <Route path="inspecciones/:id" element={<RequireSection section="inspecciones"><AdminInspectionForm /></RequireSection>} />
         <Route path="firmas" element={<RequireSection section="documentos_legales"><AdminSignatures /></RequireSection>} />
         <Route path="documentos-legales" element={<RequireSection section="documentos_legales"><AdminLegalDocs /></RequireSection>} />
         <Route path="actividad" element={<RequireSection section="roles"><AdminActivity /></RequireSection>} />

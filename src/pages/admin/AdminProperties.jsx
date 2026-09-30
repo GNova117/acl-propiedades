@@ -180,6 +180,11 @@ export default function AdminProperties({
                           {t("visits.button")}
                         </Link>
                       )}
+                      {hasSection("inspecciones") && (
+                        <Link to={`/admin/inspecciones/nueva?propiedad=${property.id}`} className="btn btn-outline btn-sm">
+                          {t("inspections.button")}
+                        </Link>
+                      )}
                       {hasSection("reportes") && property.status !== "vendida" && (
                         <Link to={`/admin/reportes?vender=${property.id}`} className="btn btn-outline btn-sm">
                           {t("salesReports.registerSale")}

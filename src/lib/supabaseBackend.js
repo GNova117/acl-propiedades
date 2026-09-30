@@ -109,6 +109,53 @@ const PROPERTY_SORTERS = {
 
 const SECRETARIA_TABLES = { keys: "secretaria_llaves", docs: "secretaria_documentos" };
 
+// Firma con URL de 1h (igual que property_log: el formulario puede quedarse
+// abierto un rato capturando varios criterios) las filas del checklist que
+// traen foto. Las que no tienen file_path se devuelven tal cual.
+async function signInspectionChecklist(checklist) {
+  const withFile = (checklist || []).filter((e) => e.file_path);
+  if (withFile.length === 0) return checklist || [];
+  const { data: signed } = await supabase.storage.from("inspection-photos").createSignedUrls(withFile.map((e) => e.file_path), 3600);
+  const urlByPath = new Map(withFile.map((e, i) => [e.file_path, signed?.[i]?.signedUrl || null]));
+  return (checklist || []).map((e) => (e.file_path ? { ...e, signed_url: urlByPath.get(e.file_path) } : e));
+}
+
+// Sube la foto nueva de cada fila que traiga `file` (reemplazando la
+// anterior si ya había una) y borra del bucket las fotos reemplazadas o
+// quitadas explícitamente (`removed`). Si una subida falla a la mitad, se
+// deshacen las que sí alcanzaron a subir en esta misma llamada — igual que
+// discardUploads con las imágenes/videos de una propiedad.
+async function uploadInspectionChecklistPhotos(inspectionId, checklist) {
+  const uploaded = [];
+  const toRemove = [];
+  const result = [];
+  try {
+    for (const entry of checklist) {
+      if (entry.file) {
+        const prepared = await compressImageFile(entry.file);
+        const path = `${inspectionId}/${entry.category}-${entry.key}-${Date.now()}.jpg`;
+        const { error } = await supabase.storage
+          .from("inspection-photos")
+          .upload(path, prepared, { contentType: prepared.type || "image/jpeg", upsert: false });
+        if (error) throw error;
+        uploaded.push(path);
+        if (entry.file_path) toRemove.push(entry.file_path);
+        result.push({ category: entry.category, key: entry.key, estado: entry.estado, file_path: path });
+      } else if (entry.removed && entry.file_path) {
+        toRemove.push(entry.file_path);
+        result.push({ category: entry.category, key: entry.key, estado: entry.estado, file_path: null });
+      } else {
+        result.push({ category: entry.category, key: entry.key, estado: entry.estado, file_path: entry.file_path || null });
+      }
+    }
+  } catch (err) {
+    if (uploaded.length) await supabase.storage.from("inspection-photos").remove(uploaded);
+    throw err;
+  }
+  if (toRemove.length) await supabase.storage.from("inspection-photos").remove(toRemove);
+  return result;
+}
+
 export const supabaseBackend = {
   mode: "supabase",
 
@@ -1177,6 +1224,53 @@ export const supabaseBackend = {
 
   async deleteVisit(id) {
     const { error } = await supabase.from("property_visits").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  // Cotejo de inspección previo a avalúo. El checklist completo vive en una
+  // sola columna jsonb (property_inspections.checklist); cada fila trae a lo
+  // más una foto, subida a inspection-photos bajo `${inspectionId}/...`. Se
+  // firma (createSignedUrls) solo al leer un registro puntual — la lista no
+  // necesita ver las fotos, así que ahí no se paga ese costo.
+  async getInspections() {
+    const { data, error } = await supabase.from("property_inspections").select("*").order("visited_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getInspectionById(id) {
+    const { data, error } = await supabase.from("property_inspections").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    return { ...data, checklist: await signInspectionChecklist(data.checklist) };
+  },
+
+  async addInspection({ id, checklist, ...fields }) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const preparedChecklist = await uploadInspectionChecklistPhotos(id, checklist);
+    const row = { id, ...fields, checklist: preparedChecklist, created_by: sessionData?.session?.user?.email || null };
+    const { data, error } = await supabase.from("property_inspections").insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateInspection(id, { checklist, ...fields }) {
+    const preparedChecklist = await uploadInspectionChecklistPhotos(id, checklist);
+    const { data, error } = await supabase
+      .from("property_inspections")
+      .update({ ...fields, checklist: preparedChecklist, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteInspection(id) {
+    const { data: existing } = await supabase.from("property_inspections").select("checklist").eq("id", id).maybeSingle();
+    const paths = (existing?.checklist || []).filter((e) => e.file_path).map((e) => e.file_path);
+    if (paths.length) await supabase.storage.from("inspection-photos").remove(paths);
+    const { error } = await supabase.from("property_inspections").delete().eq("id", id);
     if (error) throw error;
   },
 

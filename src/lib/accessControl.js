@@ -21,6 +21,7 @@ export const SECTION_KEYS = [
   "reportes",
   "bitacora",
   "valuacion",
+  "inspecciones",
   "construccion",
   "visitas",
   "gastos",

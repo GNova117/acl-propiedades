@@ -462,6 +462,7 @@
       "reportes": "Sales & reports",
       "bitacora": "Log & expenses",
       "valuacion": "Value estimate",
+      "inspecciones": "Inspection",
       "construccion": "Construction",
       "visitas": "Visits",
       "gastos": "Expense breakdown",
@@ -1088,6 +1089,108 @@
       "invalidBody": "The link doesn't exist or has been turned off. Ask your ACL Propiedades advisor for a new one.",
       "errorTitle": "We couldn't load the report",
       "errorBody": "Check your connection and try again in a few minutes."
+    }
+  },
+  "inspections": {
+    "title": "Inspection",
+    "button": "Inspection",
+    "newInspection": "New inspection",
+    "backToList": "Back to inspections",
+    "loadError": "Couldn't load inspections: {{error}}",
+    "confirmDelete": "Delete this inspection checklist?",
+    "empty": "No inspections recorded yet.",
+    "noMatches": "No inspection matches the filter.",
+    "table": {
+      "folio": "Folio",
+      "address": "Address",
+      "property": "Property",
+      "inspector": "Inspector",
+      "when": "Date",
+      "status": "Status"
+    },
+    "filters": {
+      "allStatuses": "All statuses"
+    },
+    "status": {
+      "green": "Green — Ready for appraisal",
+      "greenNote": "Meets 100% of the critical points.",
+      "yellow": "Yellow — Ready with observations",
+      "yellowNote": "Fails on non-structural points. Check the items to correct.",
+      "red": "Red — Not ready",
+      "redNote": "Fails a critical point. Not recommended to proceed to appraisal until re-inspected."
+    },
+    "categories": {
+      "estructura": "Structure",
+      "servicios": "Utilities",
+      "habitabilidad": "Habitability",
+      "exteriores": "Exterior"
+    },
+    "estado": {
+      "si": "Yes",
+      "no": "No",
+      "na": "N/A"
+    },
+    "checklist": {
+      "removePhoto": "Remove photo",
+      "addPhoto": "📷 Photo",
+      "estructura": {
+        "grietas": "No diagonal cracks or sinking",
+        "aplanados": "Plastered and waterproofed ceilings and walls",
+        "uso_habitacional": "100% residential use (no businesses)"
+      },
+      "servicios": {
+        "agua": "Working potable water (bathroom and kitchen taps)",
+        "drenaje": "Working drainage (shower, sink, toilet)",
+        "electrica": "Electrical installation (outlets, switches, breaker panel)",
+        "gas": "Gas outlets outside enclosed areas"
+      },
+      "habitabilidad": {
+        "espacios_minimos": "Minimum spaces (1 bedroom, living room, kitchen, 1 bathroom)",
+        "ventanas": "Windows with glass/guards in common areas",
+        "ventilacion_banos": "Working bathroom ventilation"
+      },
+      "exteriores": {
+        "acceso_vial": "Road access or right of way",
+        "banqueta": "Sidewalk / curb in front of the property",
+        "puerta_cerradura": "Front door with lock"
+      }
+    },
+    "form": {
+      "newTitle": "New inspection",
+      "editTitle": "Edit inspection",
+      "notFound": "That inspection wasn't found.",
+      "folio": "Folio",
+      "when": "Visit date and time",
+      "property": "Link to a property",
+      "noProperty": "Not linked",
+      "address": "Address",
+      "inspector": "Inspector",
+      "checklistTitle": "Checklist",
+      "checklistIncomplete": "Answer Yes/No (or N/A where it applies) for every criterion before saving.",
+      "correctionsTitle": "Items to correct",
+      "observations": "Observations",
+      "signature": "Signature",
+      "signAction": "Sign",
+      "signAgain": "Sign again",
+      "noSignatureYet": "Not signed yet.",
+      "saveAndPdf": "Save and generate PDF",
+      "saveError": "Couldn't save the inspection.",
+      "pdfError": "Couldn't generate the PDF."
+    },
+    "pdf": {
+      "title": "Inspection checklist — Folio {{folio}}",
+      "addressLine": "Address: {{address}}",
+      "inspectorLine": "Inspector: {{inspector}}",
+      "dateLine": "Visit date: {{date}}",
+      "generatedLine": "Generated on {{date}}",
+      "checklistTitle": "Checklist",
+      "correctionsTitle": "Items to correct",
+      "correctionsEmpty": "No observations: every criterion passes.",
+      "observationsTitle": "Observations",
+      "observationsEmpty": "No additional observations.",
+      "signatureTitle": "Signature",
+      "signedByLine": "Signed by {{name}} — {{date}}",
+      "noSignature": "Not signed."
     }
   },
   "liquidacion": {
