@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN } from "../../lib/format";
-import { MUNICIPALITIES, PROFILES, TEMPLATE_CONCEPTS, computeBreakdown, rateText, toConceptFields, toReportItems, validateConcept } from "../../lib/expenseBreakdown";
+import { MUNICIPALITIES, PROFILES, TEMPLATE_CONCEPTS, computeBreakdown, creditRefund, rateText, toConceptFields, toReportItems, validateConcept } from "../../lib/expenseBreakdown";
 import "./admin.css";
 
 const emptyForm = (municipality, profile) => ({ municipality, profile, name: "", kind: "fixed", base: "price", value: "", sort_order: 0 });
@@ -54,6 +54,25 @@ export default function AdminExpenses() {
     [concepts, municipality, profile, price, credit]
   );
 
+  // Solo aplica al comprador con crédito: lo que sobra del crédito después de
+  // pagar la casa, menos los gastos de la operación, es lo que se le devuelve.
+  const refund = useMemo(
+    () => (profile === "comprador" && Number(credit) > 0 ? creditRefund({ price: Number(price) || 0, credit: Number(credit) || 0, totalExpenses: breakdown.total }) : null),
+    [profile, price, credit, breakdown.total]
+  );
+
+  const refundSummaryLines = () =>
+    !refund
+      ? []
+      : [
+          { label: t("expenses.refund.surplus"), value: formatMXN(refund.surplus) },
+          refund.refund > 0
+            ? { label: t("expenses.refund.refund"), value: formatMXN(refund.refund) }
+            : refund.shortfall > 0
+              ? { label: t("expenses.refund.shortfall"), value: formatMXN(refund.shortfall) }
+              : null,
+        ].filter(Boolean);
+
   const submit = async (event) => {
     event.preventDefault();
     const errors = validateConcept(form);
@@ -97,6 +116,7 @@ export default function AdminExpenses() {
       houseName.trim() ? t("expenses.copyHeaderHouse", { house: houseName.trim(), profile: t(`expenses.${profile}`), municipality }) : t("expenses.copyHeader", { profile: t(`expenses.${profile}`), municipality }),
       ...breakdown.rows.map((r) => `• ${r.name}: ${formatMXN(r.amount)}`),
       `${t("expenses.total")}: ${formatMXN(breakdown.total)}`,
+      ...refundSummaryLines().map((l) => `${l.label}: ${l.value}`),
       t("expenses.copyNote"),
     ];
     try {
@@ -129,6 +149,7 @@ export default function AdminExpenses() {
           colAmount: t("expenses.amount"),
           totalLabel: t("expenses.total"),
           total: formatMXN(breakdown.total),
+          summaryLines: refundSummaryLines(),
           note: t("expenses.copyNote"),
           empty: t("expenses.empty"),
           rows: breakdown.rows.map((r) => ({ name: r.name, rate: rateText(r, t), amount: formatMXN(r.amount) })),
@@ -274,6 +295,30 @@ export default function AdminExpenses() {
           )}
         </table>
       </div>
+
+      {refund && (
+        <div className="card" style={{ padding: "1rem", marginBottom: "0.5rem" }}>
+          <p style={{ margin: "0 0 0.35rem" }}>
+            {t("expenses.refund.surplus")}: <strong>{formatMXN(refund.surplus)}</strong>
+          </p>
+          {refund.refund > 0 ? (
+            <p style={{ margin: 0 }}>
+              {t("expenses.refund.refund")}: <strong>{formatMXN(refund.refund)}</strong>
+            </p>
+          ) : refund.shortfall > 0 ? (
+            <p style={{ margin: 0 }}>
+              {t("expenses.refund.shortfall")}: <strong>{formatMXN(refund.shortfall)}</strong>
+            </p>
+          ) : (
+            <p className="form-hint" style={{ margin: 0 }}>
+              {t("expenses.refund.exact")}
+            </p>
+          )}
+          <p className="form-hint" style={{ margin: "0.35rem 0 0" }}>
+            {t("expenses.refund.hint")}
+          </p>
+        </div>
+      )}
       <p className="form-hint">{t("expenses.note")}</p>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1.25rem" }}>

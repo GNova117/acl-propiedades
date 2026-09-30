@@ -67,6 +67,20 @@ export function toReportItems(rows) {
   return rows.map((r, i) => ({ name: r.name, kind: r.kind, base: r.base, rate_value: Number(r.value) || 0, amount: r.amount, sort_order: i }));
 }
 
+// Devolución al comprador: cuando el crédito autorizado es mayor al precio de
+// venta, lo que sobra después de pagar la casa (`surplus`) primero cubre los
+// gastos de la operación; lo que quede después de eso se le regresa al
+// comprador (`refund`). Si los gastos son más grandes que el sobrante, no hay
+// nada que devolver: esa diferencia (`shortfall`) la cubre el comprador de su
+// bolsillo, además del crédito. Solo tiene sentido para comprador con crédito
+// (si no hay crédito o el crédito no alcanza ni para la casa, todo sale en 0).
+export function creditRefund({ price = 0, credit = 0, totalExpenses = 0 } = {}) {
+  const surplus = money(Math.max((Number(credit) || 0) - (Number(price) || 0), 0));
+  const refund = money(Math.max(surplus - (Number(totalExpenses) || 0), 0));
+  const shortfall = money(Math.max((Number(totalExpenses) || 0) - surplus, 0));
+  return { surplus, refund, shortfall };
+}
+
 export function validateConcept(form) {
   const errors = {};
   if (!form.name?.trim()) errors.name = "required";

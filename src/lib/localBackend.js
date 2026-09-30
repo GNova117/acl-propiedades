@@ -1235,6 +1235,15 @@ export const localBackend = {
     writeStore(KEYS.expenseReports, readStore(KEYS.expenseReports, []).filter((r) => r.id !== id));
   },
 
+  async updateExpenseReport(id, fields) {
+    const items = readStore(KEYS.expenseReports, []);
+    const idx = items.findIndex((r) => r.id === id);
+    if (idx === -1) throw new Error("Registro no encontrado");
+    items[idx] = { ...items[idx], ...fields, updated_at: new Date().toISOString() };
+    writeStore(KEYS.expenseReports, items);
+    return items[idx];
+  },
+
   // Visitas de prospectos a una propiedad (modo demo: sin RLS, se ven todas —
   // igual que la agenda, el modo demo resuelve advisorId a null).
   async getVisits({ propertyId } = {}) {

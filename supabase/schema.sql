@@ -3079,3 +3079,12 @@ create policy "Rol con apartado inspecciones borra fotos" on storage.objects
 update admin_roles
 set sections = array_append(sections, 'inspecciones')
 where slug = 'admin' and not ('inspecciones' = any(sections));
+
+-- ─────────────────────────────────────────────
+-- Editar un registro del historial de gastos (2026-09-30)
+-- Antes solo se podía guardar o borrar; ahora también se puede corregir un
+-- monto o el precio/crédito final de una casa ya guardada.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+alter table expense_reports add column if not exists updated_at timestamptz not null default now();

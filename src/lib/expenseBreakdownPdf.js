@@ -142,7 +142,16 @@ export async function buildExpenseBreakdownPdf(data, { template } = {}) {
   page.drawLine({ start: { x: MARGIN_LEFT, y: y + 12 }, end: { x: PAGE_WIDTH - MARGIN_RIGHT, y: y + 12 }, thickness: 1, color: black });
   page.drawText(sanitize(data.totalLabel), { x: MARGIN_LEFT, y, size: 11, font: bold, color: black });
   right(data.total, bold, 11, COL_AMOUNT_RIGHT, y);
-  y -= LINE_HEIGHT * 2;
+  y -= LINE_HEIGHT * 1.6;
+
+  // ── Devolución del crédito (opcional: solo cuando el crédito sobra) ──
+  for (const line of data.summaryLines || []) {
+    await ensureSpace(LINE_HEIGHT);
+    page.drawText(sanitize(line.label), { x: MARGIN_LEFT, y, size: SIZE_BODY, font: regular, color: black });
+    right(line.value, bold, SIZE_BODY, COL_AMOUNT_RIGHT, y);
+    y -= LINE_HEIGHT;
+  }
+  y -= LINE_HEIGHT * 0.4;
   await paragraph(data.note, { size: SIZE_SMALL, color: gray });
 
   return doc.save();

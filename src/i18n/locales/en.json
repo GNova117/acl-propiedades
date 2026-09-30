@@ -846,8 +846,19 @@
   },
   "expenses": {
     "creditAmount": "Loan amount",
+    "refund": {
+      "surplus": "Credit surplus",
+      "refund": "Refund to the buyer",
+      "shortfall": "Amount the buyer still owes",
+      "exact": "The credit covers exactly the house and the costs: no refund and nothing owed.",
+      "hint": "The approved credit, minus the price of the house, is the surplus; the costs on this list are subtracted from that surplus. If it's enough, what's left is returned to the buyer; if not, the buyer covers the difference."
+    },
     "houseRequired": "Enter the house name before saving the history.",
     "history": {
+      "editTitle": "Edit history record",
+      "editHint": "The items are the ones saved that day. Only the amount of each one, the price, the credit and the house name can be changed.",
+      "recalculate": "Recalculate with these figures",
+      "recalculateHint": "Recomputes the percentage items with the price/credit above and the rate that was saved. Fixed-amount items do not change.",
       "save": "Save history",
       "saveHint": "Saves an exact copy of this breakdown for this house. If a rate changes later, this record stays as it was.",
       "saved": "Saved to this house's history.",

@@ -1333,6 +1333,27 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  // Modifica un registro ya guardado (por ejemplo, ajustar un monto o el precio
+  // final una vez que se conoce). Reemplaza sus renglones por completo: es más
+  // simple que hacer un update fino y el resultado es el mismo, un registro con
+  // exactamente los renglones que se le pasan.
+  async updateExpenseReport(id, { items, ...fields }) {
+    const { data: report, error } = await supabase
+      .from("expense_reports")
+      .update({ ...fields, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    const { error: deleteError } = await supabase.from("expense_report_items").delete().eq("report_id", id);
+    if (deleteError) throw deleteError;
+    if (items?.length) {
+      const { error: itemsError } = await supabase.from("expense_report_items").insert(items.map((it) => ({ ...it, report_id: id })));
+      if (itemsError) throw itemsError;
+    }
+    return { ...report, items: items || [] };
+  },
+
   // Firma de contratos desde el sitio (ver schema.sql). El personal usa la tabla
   // (RLS: apartado documentos_legales) y las funciones signing_create /
   // signing_regenerate_code; el público solo llega por signing_info / open / submit.

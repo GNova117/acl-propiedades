@@ -846,8 +846,19 @@
   },
   "expenses": {
     "creditAmount": "Monto del crédito",
+    "refund": {
+      "surplus": "Sobrante del crédito",
+      "refund": "Devolución al comprador",
+      "shortfall": "Falta cubrir por el comprador",
+      "exact": "El crédito cubre exactamente la casa y los gastos: no hay devolución ni faltante.",
+      "hint": "El crédito autorizado, menos el precio de la casa, es el sobrante; a ese sobrante se le restan los gastos de esta lista. Si alcanza, lo que queda se le regresa al comprador; si no alcanza, la diferencia la cubre el comprador."
+    },
     "houseRequired": "Escribe el nombre de la casa antes de guardar el historial.",
     "history": {
+      "editTitle": "Editar registro del historial",
+      "editHint": "Los rubros son los que se guardaron ese día. Solo se puede cambiar el monto de cada uno, el precio, el crédito y el nombre de la casa.",
+      "recalculate": "Recalcular con estas cifras",
+      "recalculateHint": "Vuelve a calcular los rubros de porcentaje con el precio/crédito de arriba y la tarifa que se guardó. Los de monto fijo no cambian.",
       "save": "Guardar historial",
       "saveHint": "Guarda una copia exacta de este desglose para esta casa. Si después cambia una tarifa, este registro no cambia.",
       "saved": "Guardado en el historial de esta casa.",
