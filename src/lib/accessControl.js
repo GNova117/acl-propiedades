@@ -23,6 +23,7 @@ export const SECTION_KEYS = [
   "valuacion",
   "construccion",
   "visitas",
+  "gastos",
   "secretaria",
   "prospectos",
 ];

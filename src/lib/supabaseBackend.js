@@ -1180,6 +1180,33 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  // Rubros del desglose de gastos por municipio y perfil (expense_concepts).
+  async getExpenseConcepts() {
+    const { data, error } = await supabase.from("expense_concepts").select("*").order("sort_order").order("name");
+    if (error) throw error;
+    return data || [];
+  },
+
+  async saveExpenseConcept(fields, id = null) {
+    const query = id
+      ? supabase.from("expense_concepts").update({ ...fields, updated_at: new Date().toISOString() }).eq("id", id)
+      : supabase.from("expense_concepts").insert(fields);
+    const { data, error } = await query.select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async addExpenseConcepts(rows) {
+    const { data, error } = await supabase.from("expense_concepts").insert(rows).select();
+    if (error) throw error;
+    return data || [];
+  },
+
+  async deleteExpenseConcept(id) {
+    const { error } = await supabase.from("expense_concepts").delete().eq("id", id);
+    if (error) throw error;
+  },
+
   // Firma de contratos desde el sitio (ver schema.sql). El personal usa la tabla
   // (RLS: apartado documentos_legales) y las funciones signing_create /
   // signing_regenerate_code; el público solo llega por signing_info / open / submit.

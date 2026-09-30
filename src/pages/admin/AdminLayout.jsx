@@ -43,6 +43,7 @@ const NAV = [
     key: "herramientas",
     labelKey: "admin.groups.herramientas",
     items: [
+      { section: "gastos", to: "/admin/gastos", labelKey: "accessControl.sections.gastos" },
       { section: "valuacion", to: "/admin/valuacion", labelKey: "accessControl.sections.valuacion" },
       { section: "credito_infonavit", to: "/admin/credito-infonavit", labelKey: "admin.infonavitSimulator" },
       { section: "documentos_legales", to: "/admin/documentos-legales", labelKey: "accessControl.sections.documentos_legales" },

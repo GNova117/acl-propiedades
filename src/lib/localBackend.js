@@ -30,6 +30,7 @@ const KEYS = {
   propertyLog: "acl_local_property_log",
   propertyBudgets: "acl_local_property_budgets",
   visits: "acl_local_visits",
+  expenseConcepts: "acl_local_expense_concepts",
   keyLog: "acl_local_key_log",
   docLog: "acl_local_doc_log",
   valuations: "acl_local_valuation_estimates",
@@ -1177,6 +1178,39 @@ export const localBackend = {
     else items[idx] = record;
     writeStore(KEYS.propertyBudgets, items);
     return record.monto;
+  },
+
+  // Rubros del desglose de gastos (modo demo: localStorage).
+  async getExpenseConcepts() {
+    return readStore(KEYS.expenseConcepts, []).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.name.localeCompare(b.name, "es"));
+  },
+
+  async saveExpenseConcept(fields, id = null) {
+    const items = readStore(KEYS.expenseConcepts, []);
+    const now = new Date().toISOString();
+    if (!id) {
+      const record = { id: uid("gasto"), ...fields, created_at: now, updated_at: now };
+      items.push(record);
+      writeStore(KEYS.expenseConcepts, items);
+      return record;
+    }
+    const idx = items.findIndex((c) => c.id === id);
+    if (idx === -1) throw new Error("Rubro no encontrado");
+    items[idx] = { ...items[idx], ...fields, updated_at: now };
+    writeStore(KEYS.expenseConcepts, items);
+    return items[idx];
+  },
+
+  async addExpenseConcepts(rows) {
+    const items = readStore(KEYS.expenseConcepts, []);
+    const now = new Date().toISOString();
+    const added = rows.map((r) => ({ id: uid("gasto"), ...r, created_at: now, updated_at: now }));
+    writeStore(KEYS.expenseConcepts, [...items, ...added]);
+    return added;
+  },
+
+  async deleteExpenseConcept(id) {
+    writeStore(KEYS.expenseConcepts, readStore(KEYS.expenseConcepts, []).filter((c) => c.id !== id));
   },
 
   // Visitas de prospectos a una propiedad (modo demo: sin RLS, se ven todas —
