@@ -844,6 +844,13 @@
     }
   },
   "expenses": {
+    "creditAmount": "Monto del crédito",
+    "pdf": {
+      "title": "Desglose de gastos",
+      "generated": "Generado el {{date}}",
+      "download": "Descargar PDF",
+      "error": "No se pudo generar el PDF."
+    },
     "title": "Desglose de gastos",
     "subtitle": "Gastos de la operación por municipio, para el comprador o el vendedor. Solo uso interno: no incluye el margen de utilidad.",
     "municipality": "Municipio",
@@ -881,6 +888,10 @@
     "copy": "Copiar para WhatsApp",
     "copied": "Copiado",
     "copyHeader": "Gastos estimados — {{profile}} — {{municipality}}",
+    "house": "Casa / propiedad",
+    "housePlaceholder": "Escribe o elige una propiedad",
+    "lockedHint": "Este rubro ya es parte de la lista permanente de este municipio: el nombre y el tipo no cambian, solo el monto (cuando la tarifa se actualice).",
+    "copyHeaderHouse": "Gastos estimados — {{house}} — {{profile}} — {{municipality}}",
     "copyNote": "Estimación informativa; los montos finales los confirma el notario.",
     "note": "Son estimaciones con las tarifas capturadas en Rubros y montos. Confirma los montos finales con el notario."
   },

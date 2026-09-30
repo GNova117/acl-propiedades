@@ -20,9 +20,12 @@ export default function AdminExpenses() {
   const [profile, setProfile] = useState(PROFILES[0]);
   const [price, setPrice] = useState("");
   const [credit, setCredit] = useState("");
+  const [houseName, setHouseName] = useState(""); // solo para el encabezado del PDF/copiado: no se guarda
+  const [properties, setProperties] = useState([]);
   const [form, setForm] = useState(null); // { id?, ...campos } mientras se agrega o edita
   const [formError, setFormError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
 
   const load = () =>
     db
@@ -36,7 +39,12 @@ export default function AdminExpenses() {
 
   useEffect(() => {
     load();
+    db.getProperties({})
+      .then(setProperties)
+      .catch(() => {});
   }, []);
+
+  const propertyLabel = (p) => [p.code, p.title].filter(Boolean).join(" · ");
 
   const breakdown = useMemo(
     () => computeBreakdown(concepts, { municipality, profile, price: Number(price) || 0, credit: Number(credit) || 0 }),
@@ -85,7 +93,7 @@ export default function AdminExpenses() {
 
   const copyText = async () => {
     const lines = [
-      t("expenses.copyHeader", { profile: t(`expenses.${profile}`), municipality }),
+      houseName.trim() ? t("expenses.copyHeaderHouse", { house: houseName.trim(), profile: t(`expenses.${profile}`), municipality }) : t("expenses.copyHeader", { profile: t(`expenses.${profile}`), municipality }),
       ...breakdown.rows.map((r) => `• ${r.name}: ${formatMXN(r.amount)}`),
       `${t("expenses.total")}: ${formatMXN(breakdown.total)}`,
       t("expenses.copyNote"),
@@ -96,6 +104,40 @@ export default function AdminExpenses() {
       setTimeout(() => setCopied(false), 2000);
     } catch {
       window.alert(lines.join("\n"));
+    }
+  };
+
+  const downloadPdf = async () => {
+    setPdfBusy(true);
+    try {
+      const { downloadExpenseBreakdownPdf } = await import("../../lib/expenseBreakdownPdf");
+      const priceValue = Number(price) || 0;
+      const creditValue = Number(credit) || 0;
+      await downloadExpenseBreakdownPdf(
+        {
+          title: t("expenses.pdf.title"),
+          profileLine: `${t(`expenses.${profile}`)} · ${municipality}`,
+          detailLines: [
+            houseName.trim() && `${t("expenses.house")}: ${houseName.trim()}`,
+            priceValue > 0 && `${t("expenses.price")}: ${formatMXN(priceValue)}`,
+            profile === "comprador" && creditValue > 0 && `${t("expenses.creditAmount")}: ${formatMXN(creditValue)}`,
+          ].filter(Boolean),
+          generatedLine: t("expenses.pdf.generated", { date: new Date().toLocaleDateString("es-MX", { dateStyle: "long" }) }),
+          colConcept: t("expenses.concept"),
+          colRate: t("expenses.rate"),
+          colAmount: t("expenses.amount"),
+          totalLabel: t("expenses.total"),
+          total: formatMXN(breakdown.total),
+          note: t("expenses.copyNote"),
+          empty: t("expenses.empty"),
+          rows: breakdown.rows.map((r) => ({ name: r.name, rate: rateText(r), amount: formatMXN(r.amount) })),
+        },
+        `desglose-gastos-${profile}-${municipality}`
+      );
+    } catch (err) {
+      window.alert(err.message || t("expenses.pdf.error"));
+    } finally {
+      setPdfBusy(false);
     }
   };
 
@@ -143,6 +185,15 @@ export default function AdminExpenses() {
             <input id="ex-credit" type="number" min="0" inputMode="decimal" value={credit} onChange={(e) => setCredit(e.target.value)} />
           </div>
         )}
+        <div className="form-field">
+          <label htmlFor="ex-house">{t("expenses.house")}</label>
+          <input id="ex-house" type="text" list="ex-house-options" value={houseName} onChange={(e) => setHouseName(e.target.value)} placeholder={t("expenses.housePlaceholder")} />
+          <datalist id="ex-house-options">
+            {properties.map((p) => (
+              <option key={p.id} value={propertyLabel(p)} />
+            ))}
+          </datalist>
+        </div>
       </div>
 
       <div className="card admin-table-wrapper" style={{ marginBottom: "0.5rem" }}>
@@ -201,6 +252,10 @@ export default function AdminExpenses() {
         <button type="button" className="btn btn-outline" onClick={copyText} disabled={breakdown.rows.length === 0}>
           {copied ? `✓ ${t("expenses.copied")}` : t("expenses.copy")}
         </button>
+        <button type="button" className="btn btn-outline" onClick={downloadPdf} disabled={breakdown.rows.length === 0 || pdfBusy}>
+          {pdfBusy ? <span className="spinner" /> : null}
+          {t("expenses.pdf.download")}
+        </button>
         <button type="button" className="btn btn-outline" onClick={loadTemplate} title={t("expenses.templateHint")}>
           {t("expenses.loadTemplate", { municipality })}
         </button>
@@ -208,25 +263,30 @@ export default function AdminExpenses() {
 
       {form && (
         <form className="card" style={{ padding: "1rem", display: "grid", gap: "0.75rem", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }} onSubmit={submit}>
+          {form.id && (
+            <p className="form-hint" style={{ gridColumn: "1 / -1", marginTop: 0 }}>
+              {t("expenses.lockedHint")}
+            </p>
+          )}
           <div className="form-field">
             <label htmlFor="ex-name">{t("expenses.name")}</label>
-            <input id="ex-name" type="text" value={form.name} onChange={set("name")} />
+            <input id="ex-name" type="text" value={form.name} onChange={set("name")} readOnly={Boolean(form.id)} tabIndex={form.id ? -1 : 0} />
           </div>
           <div className="form-field">
             <label htmlFor="ex-kind">{t("expenses.kind")}</label>
-            <select id="ex-kind" value={form.kind} onChange={set("kind")}>
+            <select id="ex-kind" value={form.kind} onChange={set("kind")} disabled={Boolean(form.id)}>
               <option value="fixed">{t("expenses.fixed")}</option>
               <option value="percent">{t("expenses.percent")}</option>
             </select>
           </div>
           <div className="form-field">
             <label htmlFor="ex-value">{t("expenses.value")}</label>
-            <input id="ex-value" type="number" min="0" step="any" inputMode="decimal" value={form.value} onChange={set("value")} />
+            <input id="ex-value" type="number" min="0" step="any" inputMode="decimal" value={form.value} onChange={set("value")} autoFocus={Boolean(form.id)} />
           </div>
           {form.kind === "percent" && (
             <div className="form-field">
               <label htmlFor="ex-base">{t("expenses.base")}</label>
-              <select id="ex-base" value={form.base} onChange={set("base")}>
+              <select id="ex-base" value={form.base} onChange={set("base")} disabled={Boolean(form.id)}>
                 <option value="price">{t("expenses.basePrice")}</option>
                 <option value="credit">{t("expenses.baseCredit")}</option>
               </select>

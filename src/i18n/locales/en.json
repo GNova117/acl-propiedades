@@ -844,6 +844,13 @@
     }
   },
   "expenses": {
+    "creditAmount": "Loan amount",
+    "pdf": {
+      "title": "Expense breakdown",
+      "generated": "Generated on {{date}}",
+      "download": "Download PDF",
+      "error": "Could not generate the PDF."
+    },
     "title": "Expense breakdown",
     "subtitle": "Transaction costs by municipality, for the buyer or the seller. Internal use only: it does not include the office profit margin.",
     "municipality": "Municipality",
@@ -881,6 +888,10 @@
     "copy": "Copy for WhatsApp",
     "copied": "Copied",
     "copyHeader": "Estimated costs — {{profile}} — {{municipality}}",
+    "house": "House / property",
+    "housePlaceholder": "Type or pick a property",
+    "lockedHint": "This item is already part of that municipality's permanent list: the name and type do not change, only the amount (when the rate is updated).",
+    "copyHeaderHouse": "Estimated costs — {{house}} — {{profile}} — {{municipality}}",
     "copyNote": "Informational estimate; final amounts are confirmed by the notary.",
     "note": "Estimates using the rates entered under Items and amounts. Confirm final amounts with the notary."
   },
