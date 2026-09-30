@@ -1207,6 +1207,38 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  // Historial exacto de gastos por casa (expense_reports/expense_report_items).
+  // Cada registro es una copia congelada: si después cambia la tarifa de un
+  // rubro en expense_concepts, este registro no se toca.
+  async getExpenseReports({ propertyId, houseName } = {}) {
+    let query = supabase.from("expense_reports").select("*, items:expense_report_items(*)").order("created_at", { ascending: false });
+    if (propertyId) query = query.eq("property_id", propertyId);
+    if (houseName) query = query.ilike("house_name", houseName);
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data || []).map((r) => ({ ...r, items: (r.items || []).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)) }));
+  },
+
+  async saveExpenseReport({ items, ...fields }) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const { data: report, error } = await supabase
+      .from("expense_reports")
+      .insert({ ...fields, created_by: sessionData?.session?.user?.email || null })
+      .select()
+      .single();
+    if (error) throw error;
+    if (items?.length) {
+      const { error: itemsError } = await supabase.from("expense_report_items").insert(items.map((it) => ({ ...it, report_id: report.id })));
+      if (itemsError) throw itemsError;
+    }
+    return { ...report, items: items || [] };
+  },
+
+  async deleteExpenseReport(id) {
+    const { error } = await supabase.from("expense_reports").delete().eq("id", id);
+    if (error) throw error;
+  },
+
   // Firma de contratos desde el sitio (ver schema.sql). El personal usa la tabla
   // (RLS: apartado documentos_legales) y las funciones signing_create /
   // signing_regenerate_code; el público solo llega por signing_info / open / submit.

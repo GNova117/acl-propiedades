@@ -49,6 +49,24 @@ export function computeBreakdown(concepts, { municipality, profile, price, credi
   return { rows, total: money(rows.reduce((sum, r) => sum + r.amount, 0)) };
 }
 
+// Tarifa de un rubro en texto legible. Funciona igual sobre un rubro del
+// catálogo (`value`) y sobre un renglón ya guardado en el historial
+// (`rate_value`): así la pantalla del calculador y la del historial muestran
+// la tarifa con el mismo texto sin duplicar la función.
+export function rateText(row, t) {
+  const value = Number(row.rate_value ?? row.value) || 0;
+  if (row.kind !== "percent") return t("expenses.fixed");
+  return `${value} % ${row.base === "credit" ? t("expenses.baseCredit") : t("expenses.basePrice")}`;
+}
+
+// Renglones de un desglose ya calculado, en la forma que se guarda en el
+// historial: una copia de cada rubro (nombre, tipo, tarifa) y su monto exacto
+// en ese momento. Guardarlos así, y no solo el total, es lo que permite que un
+// registro viejo no cambie si después se actualiza la tarifa del rubro.
+export function toReportItems(rows) {
+  return rows.map((r, i) => ({ name: r.name, kind: r.kind, base: r.base, rate_value: Number(r.value) || 0, amount: r.amount, sort_order: i }));
+}
+
 export function validateConcept(form) {
   const errors = {};
   if (!form.name?.trim()) errors.name = "required";

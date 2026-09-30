@@ -31,6 +31,7 @@ const KEYS = {
   propertyBudgets: "acl_local_property_budgets",
   visits: "acl_local_visits",
   expenseConcepts: "acl_local_expense_concepts",
+  expenseReports: "acl_local_expense_reports",
   keyLog: "acl_local_key_log",
   docLog: "acl_local_doc_log",
   valuations: "acl_local_valuation_estimates",
@@ -1211,6 +1212,26 @@ export const localBackend = {
 
   async deleteExpenseConcept(id) {
     writeStore(KEYS.expenseConcepts, readStore(KEYS.expenseConcepts, []).filter((c) => c.id !== id));
+  },
+
+  // Historial exacto de gastos por casa (modo demo: los renglones se guardan
+  // anidados en el mismo registro, sin normalizar en dos tablas).
+  async getExpenseReports({ propertyId, houseName } = {}) {
+    return readStore(KEYS.expenseReports, [])
+      .filter((r) => (!propertyId || r.property_id === propertyId) && (!houseName || r.house_name.toLowerCase() === houseName.toLowerCase()))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  },
+
+  async saveExpenseReport(fields) {
+    const items = readStore(KEYS.expenseReports, []);
+    const record = { id: uid("historial"), created_by: DEMO_ADMIN.email, created_at: new Date().toISOString(), ...fields };
+    items.push(record);
+    writeStore(KEYS.expenseReports, items);
+    return record;
+  },
+
+  async deleteExpenseReport(id) {
+    writeStore(KEYS.expenseReports, readStore(KEYS.expenseReports, []).filter((r) => r.id !== id));
   },
 
   // Visitas de prospectos a una propiedad (modo demo: sin RLS, se ven todas —

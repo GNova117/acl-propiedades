@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN } from "../../lib/format";
-import { MUNICIPALITIES, PROFILES, TEMPLATE_CONCEPTS, computeBreakdown, toConceptFields, validateConcept } from "../../lib/expenseBreakdown";
+import { MUNICIPALITIES, PROFILES, TEMPLATE_CONCEPTS, computeBreakdown, rateText, toConceptFields, toReportItems, validateConcept } from "../../lib/expenseBreakdown";
 import "./admin.css";
 
 const emptyForm = (municipality, profile) => ({ municipality, profile, name: "", kind: "fixed", base: "price", value: "", sort_order: 0 });
@@ -26,6 +27,8 @@ export default function AdminExpenses() {
   const [formError, setFormError] = useState("");
   const [copied, setCopied] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [savingReport, setSavingReport] = useState(false);
+  const [saveMessage, setSaveMessage] = useState(null); // { text, error }
 
   const load = () =>
     db
@@ -50,8 +53,6 @@ export default function AdminExpenses() {
     () => computeBreakdown(concepts, { municipality, profile, price: Number(price) || 0, credit: Number(credit) || 0 }),
     [concepts, municipality, profile, price, credit]
   );
-
-  const rateText = (c) => (c.kind === "percent" ? `${Number(c.value)} % ${c.base === "credit" ? t("expenses.baseCredit") : t("expenses.basePrice")}` : t("expenses.fixed"));
 
   const submit = async (event) => {
     event.preventDefault();
@@ -130,7 +131,7 @@ export default function AdminExpenses() {
           total: formatMXN(breakdown.total),
           note: t("expenses.copyNote"),
           empty: t("expenses.empty"),
-          rows: breakdown.rows.map((r) => ({ name: r.name, rate: rateText(r), amount: formatMXN(r.amount) })),
+          rows: breakdown.rows.map((r) => ({ name: r.name, rate: rateText(r, t), amount: formatMXN(r.amount) })),
         },
         `desglose-gastos-${profile}-${municipality}`
       );
@@ -138,6 +139,36 @@ export default function AdminExpenses() {
       window.alert(err.message || t("expenses.pdf.error"));
     } finally {
       setPdfBusy(false);
+    }
+  };
+
+  // Congela el desglose de ESTA casa tal como está ahora mismo (rubros con su
+  // tarifa y monto exactos). Si más adelante cambia la tarifa de un rubro en el
+  // catálogo, este registro se queda como está: es la copia de lo que se le
+  // mostró a esa casa ese día.
+  const saveReport = async () => {
+    const house = houseName.trim();
+    if (!house) return setSaveMessage({ text: t("expenses.houseRequired"), error: true });
+    if (breakdown.rows.length === 0) return;
+    setSavingReport(true);
+    setSaveMessage(null);
+    try {
+      const matched = properties.find((p) => propertyLabel(p) === house);
+      await db.saveExpenseReport({
+        property_id: matched?.id || null,
+        house_name: house,
+        municipality,
+        profile,
+        price: Number(price) || null,
+        credit: Number(credit) || null,
+        total: breakdown.total,
+        items: toReportItems(breakdown.rows),
+      });
+      setSaveMessage({ text: t("expenses.history.saved"), error: false });
+    } catch (err) {
+      setSaveMessage({ text: t("expenses.saveError", { error: err.message || "Error" }), error: true });
+    } finally {
+      setSavingReport(false);
     }
   };
 
@@ -219,7 +250,7 @@ export default function AdminExpenses() {
               breakdown.rows.map((r) => (
                 <tr key={r.id}>
                   <td>{r.name}</td>
-                  <td>{rateText(r)}</td>
+                  <td>{rateText(r, t)}</td>
                   <td>{formatMXN(r.amount)}</td>
                   <td className="admin-table__actions">
                     <button type="button" className="btn btn-outline btn-sm" onClick={() => setForm({ ...r, value: String(r.value) })}>
@@ -259,7 +290,16 @@ export default function AdminExpenses() {
         <button type="button" className="btn btn-outline" onClick={loadTemplate} title={t("expenses.templateHint")}>
           {t("expenses.loadTemplate", { municipality })}
         </button>
+        <button type="button" className="btn btn-outline" onClick={saveReport} disabled={breakdown.rows.length === 0 || savingReport} title={t("expenses.history.saveHint")}>
+          {savingReport ? <span className="spinner" /> : null}
+          {t("expenses.history.save")}
+        </button>
+        <Link to="/admin/gastos/historial" className="btn btn-outline">
+          {t("expenses.history.view")}
+        </Link>
       </div>
+
+      {saveMessage && <p className={saveMessage.error ? "form-error" : "form-hint"}>{saveMessage.text}</p>}
 
       {form && (
         <form className="card" style={{ padding: "1rem", display: "grid", gap: "0.75rem", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }} onSubmit={submit}>
