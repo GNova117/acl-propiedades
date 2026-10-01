@@ -7,8 +7,11 @@ import { describeCriteria } from "../lib/alertMatch";
 import { isValidPhone } from "../lib/lead";
 import "./AlertSignupCard.css";
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const ERRORS = {
   bad_phone: "alerts.errors.badPhone",
+  bad_email: "alerts.errors.badEmail",
   name_required: "alerts.errors.name",
   limit: "alerts.errors.limit",
   property_unavailable: "alerts.errors.unavailable",
@@ -21,7 +24,8 @@ const ERRORS = {
 // consentimiento a la vista; cada aviso lleva su enlace para darse de baja.
 export default function AlertSignupCard({ mode, criteria, property, matchCount }) {
   const { t } = useTranslation();
-  const [form, setForm] = useState({ name: "", phone: "", empresa: "" });
+  const [form, setForm] = useState({ name: "", phone: "", email: "", empresa: "" });
+  const [contactMethod, setContactMethod] = useState("whatsapp");
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle"); // idle | sending | success | duplicate | error
   const [errorKey, setErrorKey] = useState("");
@@ -42,8 +46,13 @@ export default function AlertSignupCard({ mode, criteria, property, matchCount }
     e.preventDefault();
     const next = {};
     if (!form.name.trim()) next.name = t("contact.required");
-    if (!form.phone.trim()) next.phone = t("contact.required");
-    else if (!isValidPhone(form.phone)) next.phone = t("contactRequest.invalidPhone");
+    if (contactMethod === "whatsapp") {
+      if (!form.phone.trim()) next.phone = t("contact.required");
+      else if (!isValidPhone(form.phone)) next.phone = t("contactRequest.invalidPhone");
+    } else {
+      if (!form.email.trim()) next.email = t("contact.required");
+      else if (!EMAIL_RE.test(form.email)) next.email = t("contact.invalidEmail");
+    }
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
@@ -68,7 +77,9 @@ export default function AlertSignupCard({ mode, criteria, property, matchCount }
       const result = await db.subscribeAlert({
         kind: mode,
         name: form.name.trim(),
-        phone: form.phone.trim(),
+        phone: contactMethod === "whatsapp" ? form.phone.trim() : "",
+        contactMethod,
+        email: contactMethod === "email" ? form.email.trim() : "",
         criteria: mode === "search" ? criteria : {},
         propertyId: mode === "price" ? property.id : null,
       });
@@ -86,8 +97,8 @@ export default function AlertSignupCard({ mode, criteria, property, matchCount }
       // Aviso interno: llega a Mensajes (y de ahí a Prospectos) para que el equipo sepa que hay un interesado.
       db.submitContactMessage({
         name: form.name.trim(),
-        email: "",
-        phone: form.phone.trim(),
+        email: contactMethod === "email" ? form.email.trim() : "",
+        phone: contactMethod === "whatsapp" ? form.phone.trim() : "",
         message: `${mode === "price" ? "Pidió aviso de baja de precio" : "Pidió avisos de propiedades nuevas"} — ${summary()}`,
         property_id: mode === "price" ? property.id : null,
         channel: "alerta",
@@ -98,12 +109,14 @@ export default function AlertSignupCard({ mode, criteria, property, matchCount }
     }
   };
 
+  const channel = t(contactMethod === "email" ? "alerts.channelEmail" : "alerts.channelWhatsapp");
+
   if (status === "success" || status === "duplicate") {
     return (
       <div className="card alert-signup">
         <h2 className="alert-signup__title">{t(`alerts.${mode}.title`)}</h2>
         <p className="form-hint" style={{ color: "var(--color-success)", marginBottom: 0 }}>
-          {t(status === "duplicate" ? "alerts.duplicate" : `alerts.${mode}.success`)}
+          {t(status === "duplicate" ? "alerts.duplicate" : `alerts.${mode}.success`, { channel })}
         </p>
       </div>
     );
@@ -141,12 +154,27 @@ export default function AlertSignupCard({ mode, criteria, property, matchCount }
           <label htmlFor={`alert-${mode}-empresa`}>Empresa</label>
           <input id={`alert-${mode}-empresa`} name="empresa" value={form.empresa} onChange={change} tabIndex={-1} autoComplete="off" />
         </div>
-        <div className="form-row">
-          <div className="form-field">
-            <label htmlFor={`alert-${mode}-name`}>{t("contact.name")}</label>
-            <input id={`alert-${mode}-name`} name="name" autoComplete="name" value={form.name} onChange={change} aria-invalid={Boolean(errors.name)} />
-            {errors.name && <span className="form-error">{errors.name}</span>}
+        <div className="form-field">
+          <label htmlFor={`alert-${mode}-name`}>{t("contact.name")}</label>
+          <input id={`alert-${mode}-name`} name="name" autoComplete="name" value={form.name} onChange={change} aria-invalid={Boolean(errors.name)} />
+          {errors.name && <span className="form-error">{errors.name}</span>}
+        </div>
+
+        <div className="form-field">
+          <label>{t("alerts.contactMethod")}</label>
+          <div className="alert-signup__method">
+            <label>
+              <input type="radio" name={`alert-${mode}-method`} checked={contactMethod === "whatsapp"} onChange={() => setContactMethod("whatsapp")} />
+              {t("alerts.whatsapp")}
+            </label>
+            <label>
+              <input type="radio" name={`alert-${mode}-method`} checked={contactMethod === "email"} onChange={() => setContactMethod("email")} />
+              {t("alerts.email")}
+            </label>
           </div>
+        </div>
+
+        {contactMethod === "whatsapp" ? (
           <div className="form-field">
             <label htmlFor={`alert-${mode}-phone`}>{t("alerts.whatsapp")}</label>
             <input
@@ -162,14 +190,28 @@ export default function AlertSignupCard({ mode, criteria, property, matchCount }
             />
             {errors.phone && <span className="form-error">{errors.phone}</span>}
           </div>
-        </div>
+        ) : (
+          <div className="form-field">
+            <label htmlFor={`alert-${mode}-email`}>{t("alerts.email")}</label>
+            <input
+              id={`alert-${mode}-email`}
+              name="email"
+              type="email"
+              autoComplete="email"
+              value={form.email}
+              onChange={change}
+              aria-invalid={Boolean(errors.email)}
+            />
+            {errors.email && <span className="form-error">{errors.email}</span>}
+          </div>
+        )}
         {status === "error" && <p className="form-error">{t(errorKey || "alerts.errors.generic")}</p>}
         <button type="submit" className="btn btn-primary btn-block" disabled={status === "sending"}>
           {status === "sending" ? <span className="spinner" /> : null}
           {t(`alerts.${mode}.submit`)}
         </button>
         <p className="form-hint" style={{ marginTop: "0.75rem", marginBottom: 0 }}>
-          {t("alerts.consent")} <Link to="/aviso-de-privacidad">{t("contact.privacyLinkLabel")}</Link>.
+          {t("alerts.consent", { channel })} <Link to="/aviso-de-privacidad">{t("contact.privacyLinkLabel")}</Link>.
         </p>
       </form>
     </div>

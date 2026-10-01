@@ -18,6 +18,8 @@ import Favorites from "./pages/Favorites";
 import Compare from "./pages/Compare";
 import Privacy from "./pages/Privacy";
 import Rights from "./pages/Rights";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import NotFound from "./pages/NotFound";
 import { db } from "./lib/dataStore";
 import { applyPropertyTypeLabels } from "./lib/propertyTypeLabels";
@@ -89,6 +91,8 @@ const AdminSignatures = lazy(() => import("./pages/admin/AdminSignatures"));
 const AdminFunnel = lazy(() => import("./pages/admin/AdminFunnel"));
 const AdminMonthlyReport = lazy(() => import("./pages/admin/AdminMonthlyReport"));
 const AdminAlerts = lazy(() => import("./pages/admin/AdminAlerts"));
+const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
+const AdminBlogForm = lazy(() => import("./pages/admin/AdminBlogForm"));
 
 const SPECIAL_SECTION_KEYS = Object.keys(SPECIAL_SECTION_TYPES);
 
@@ -166,6 +170,8 @@ export default function App() {
       <Route path="/comparar" element={<PublicLayout><Compare /></PublicLayout>} />
       <Route path="/aviso-de-privacidad" element={<PublicLayout><Privacy /></PublicLayout>} />
       <Route path="/carta-de-derechos" element={<PublicLayout><Rights /></PublicLayout>} />
+      <Route path="/blog" element={<PublicLayout><Blog /></PublicLayout>} />
+      <Route path="/blog/:slug" element={<PublicLayout><BlogPost /></PublicLayout>} />
       {/* Sin PublicLayout a propósito: ese layout manda cada ruta a Google
           Analytics y el token del enlace (que es lo que da acceso) no debe
           llegar ahí; tampoco necesita el menú ni las decoraciones del sitio. */}
@@ -298,6 +304,9 @@ export default function App() {
         <Route path="secretaria" element={<RequireSection section="secretaria"><AdminSecretaria /></RequireSection>} />
         <Route path="estadisticas" element={<RequireSection section="prospectos"><AdminFunnel /></RequireSection>} />
         <Route path="alertas" element={<RequireSection section="prospectos"><AdminAlerts /></RequireSection>} />
+        <Route path="blog" element={<RequireSection section="blog"><AdminBlog /></RequireSection>} />
+        <Route path="blog/nuevo" element={<RequireSection section="blog"><AdminBlogForm /></RequireSection>} />
+        <Route path="blog/:id" element={<RequireSection section="blog"><AdminBlogForm /></RequireSection>} />
         <Route path="prospectos" element={<RequireSection section="prospectos"><AdminProspects /></RequireSection>} />
         <Route path="prospectos/nuevo" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />
         <Route path="prospectos/:id" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />

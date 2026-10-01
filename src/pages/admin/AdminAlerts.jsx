@@ -83,8 +83,8 @@ export default function AdminAlerts() {
       const summary = a.kind === "price" ? propertyById[a.property_id]?.title || "" : detail(a);
       await db.addProspect({
         name: a.name,
-        phone: a.phone,
-        email: null,
+        phone: a.phone || null,
+        email: a.email || null,
         source: "alerta",
         stage: "nuevo",
         advisor_id: null,
@@ -148,9 +148,13 @@ export default function AdminAlerts() {
                   <td>
                     <strong>{a.name}</strong>
                     <span className="form-hint" style={{ display: "block", margin: 0 }}>
-                      <a href={`https://wa.me/${a.phone}`} target="_blank" rel="noopener noreferrer">
-                        {a.phone.replace(/^52/, "")}
-                      </a>
+                      {a.contact_method === "email" ? (
+                        <a href={`mailto:${a.email}`}>{a.email}</a>
+                      ) : (
+                        <a href={`https://wa.me/${a.phone}`} target="_blank" rel="noopener noreferrer">
+                          {(a.phone || "").replace(/^52/, "")}
+                        </a>
+                      )}
                     </span>
                   </td>
                   <td>{t(`alerts.admin.kind_${a.kind}`)}</td>

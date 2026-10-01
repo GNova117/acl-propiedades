@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import SplitHero from "../components/SplitHero";
@@ -8,6 +9,7 @@ import Reveal from "../components/Reveal";
 import Stars from "../components/Stars";
 import { db } from "../lib/dataStore";
 import "./Home.css";
+import "./Blog.css";
 
 // Las tarjetas de categoría del inicio son contenido curado (imagen + copy
 // propios en CategoryCard.jsx/i18n), no la lista completa de tipos — se
@@ -16,12 +18,14 @@ import "./Home.css";
 const HOME_CATEGORY_TYPES = ["casa", "departamento", "nave_industrial", "terreno"];
 
 const MAX_HOME_TESTIMONIALS = 6;
+const MAX_HOME_BLOG_POSTS = 3;
 
 export default function Home() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [counts, setCounts] = useState(null);
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
+  const [blogPosts, setBlogPosts] = useState([]);
 
   useEffect(() => {
     let active = true;
@@ -39,6 +43,11 @@ export default function Home() {
     db.getTestimonials()
       .then((data) => {
         if (active) setTestimonials(data.filter((tst) => tst.active).slice(0, MAX_HOME_TESTIMONIALS));
+      })
+      .catch(() => {});
+    db.getBlogPosts({ publishedOnly: true })
+      .then((data) => {
+        if (active) setBlogPosts(data.slice(0, MAX_HOME_BLOG_POSTS));
       })
       .catch(() => {});
     return () => {
@@ -120,6 +129,40 @@ export default function Home() {
                   </div>
                 </Reveal>
               ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {blogPosts.length > 0 && (
+        <section className="section">
+          <div className="container">
+            <Reveal className="section-heading">
+              <span className="section-heading__eyebrow">{t("blog.homeEyebrow")}</span>
+              <h2>{t("blog.homeTitle")}</h2>
+            </Reveal>
+            <div className="blog-grid">
+              {blogPosts.map((post, index) => (
+                <Reveal key={post.id} delay={(index % 6) * 70}>
+                  <Link to={`/blog/${post.slug}`} className="card blog-card">
+                    {post.cover_image ? (
+                      <img src={post.cover_image} alt="" className="blog-card__image" />
+                    ) : (
+                      <div className="blog-card__image blog-card__image--placeholder" />
+                    )}
+                    <div className="blog-card__body">
+                      <p className="blog-card__date">
+                        {new Date(post.published_at).toLocaleDateString(i18n.language === "en" ? "en-US" : "es-MX", { dateStyle: "long" })}
+                      </p>
+                      <h3 className="blog-card__title">{post.title}</h3>
+                      {post.excerpt && <p className="blog-card__excerpt">{post.excerpt}</p>}
+                    </div>
+                  </Link>
+                </Reveal>
+              ))}
+            </div>
+            <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
+              <Link to="/blog" className="btn btn-outline">{t("blog.viewAll")}</Link>
             </div>
           </div>
         </section>

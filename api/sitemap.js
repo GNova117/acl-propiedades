@@ -8,7 +8,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 const SITE_URL = "https://acl-propiedades.vercel.app";
-const STATIC_PATHS = ["/", "/propiedades", "/naves-industriales", "/terrenos", "/calculadora", "/nosotros", "/contacto"];
+const STATIC_PATHS = ["/", "/propiedades", "/naves-industriales", "/terrenos", "/calculadora", "/nosotros", "/contacto", "/blog"];
 
 export default async function handler(req, res) {
   const urls = STATIC_PATHS.map((path) => ({ loc: `${SITE_URL}${path}` }));
@@ -21,6 +21,10 @@ export default async function handler(req, res) {
       const { data } = await supabase.from("properties").select("id, updated_at").eq("active", true);
       for (const row of data || []) {
         urls.push({ loc: `${SITE_URL}/propiedades/${row.id}`, lastmod: row.updated_at ? row.updated_at.slice(0, 10) : undefined });
+      }
+      const { data: posts } = await supabase.from("blog_posts").select("slug, updated_at").eq("published", true);
+      for (const row of posts || []) {
+        urls.push({ loc: `${SITE_URL}/blog/${row.slug}`, lastmod: row.updated_at ? row.updated_at.slice(0, 10) : undefined });
       }
     } catch {
       // Si Supabase falla, el sitemap igual sirve las páginas estáticas

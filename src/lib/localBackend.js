@@ -50,7 +50,38 @@ const KEYS = {
   messages: "acl_local_messages",
   testimonials: "acl_local_testimonials",
   propertyChanges: "acl_local_property_changes",
+  blogPosts: "acl_local_blog_posts",
 };
+
+// Un par de artículos de muestra para que /blog no se vea vacío en modo
+// demo — en Supabase blog_posts arranca sin filas, el staff lo llena desde
+// /admin/blog.
+const BLOG_POSTS_SEED = [
+  {
+    id: "blog-demo-1",
+    title: "Guía para comprar casa por primera vez en La Comarca Lagunera",
+    slug: "guia-comprar-casa-primera-vez-comarca-lagunera",
+    excerpt: "Los pasos, documentos y errores comunes a la hora de comprar tu primera casa en Torreón, Gómez Palacio o Lerdo.",
+    body: "Comprar tu primera casa puede parecer complicado, pero con la guía correcta el proceso es mucho más sencillo...\n\n1. Define tu presupuesto real, incluyendo gastos notariales y de escrituración.\n2. Revisa tu historial crediticio si piensas usar un crédito INFONAVIT o bancario.\n3. Visita varias propiedades antes de decidir.\n4. Pide siempre el estado legal del inmueble (libre de gravamen).\n\nEn ACL Propiedades te acompañamos en cada paso.",
+    cover_image: null,
+    published: true,
+    published_at: "2026-09-15T12:00:00.000Z",
+    created_at: "2026-09-15T12:00:00.000Z",
+    updated_at: "2026-09-15T12:00:00.000Z",
+  },
+  {
+    id: "blog-demo-2",
+    title: "¿Vale la pena invertir en una nave industrial en Torreón?",
+    slug: "vale-la-pena-invertir-nave-industrial-torreon",
+    excerpt: "La Comarca Lagunera se ha vuelto un polo logístico importante. Qué revisar antes de invertir en una nave industrial.",
+    body: "La ubicación estratégica de Torreón y Gómez Palacio, junto con el crecimiento del sector logístico, ha hecho que las naves industriales sean una de las inversiones más buscadas en la región...\n\nAlgunos puntos clave: acceso a carreteras principales, altura libre, capacidad eléctrica y zonificación industrial vigente.",
+    cover_image: null,
+    published: true,
+    published_at: "2026-09-22T12:00:00.000Z",
+    created_at: "2026-09-22T12:00:00.000Z",
+    updated_at: "2026-09-22T12:00:00.000Z",
+  },
+];
 
 function readStore(key, fallback) {
   try {
@@ -578,6 +609,75 @@ export const localBackend = {
   async deleteTestimonial(id) {
     const testimonials = readStore(KEYS.testimonials, []);
     writeStore(KEYS.testimonials, testimonials.filter((t) => t.id !== id));
+  },
+
+  async getBlogPosts({ publishedOnly = false } = {}) {
+    const posts = readStore(KEYS.blogPosts, BLOG_POSTS_SEED);
+    const filtered = publishedOnly ? posts.filter((p) => p.published) : posts;
+    return filtered.slice().sort((a, b) => {
+      const da = publishedOnly ? a.published_at : a.created_at;
+      const db_ = publishedOnly ? b.published_at : b.created_at;
+      return new Date(db_) - new Date(da);
+    });
+  },
+
+  async getBlogPostBySlug(slug) {
+    const posts = readStore(KEYS.blogPosts, BLOG_POSTS_SEED);
+    return posts.find((p) => p.slug === slug && p.published) || null;
+  },
+
+  async addBlogPost(data) {
+    const posts = readStore(KEYS.blogPosts, BLOG_POSTS_SEED);
+    let slug = slugify(data.title);
+    if (posts.some((p) => p.slug === slug)) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+    const now = new Date().toISOString();
+    const record = {
+      id: uid("blog"),
+      title: data.title.trim(),
+      slug,
+      excerpt: data.excerpt?.trim() || null,
+      body: data.body.trim(),
+      cover_image: data.coverFile ? await fileToDataUrl(data.coverFile) : null,
+      published: Boolean(data.published),
+      published_at: data.published ? now : null,
+      created_at: now,
+      updated_at: now,
+    };
+    posts.push(record);
+    writeStore(KEYS.blogPosts, posts);
+    return record;
+  },
+
+  async updateBlogPost(id, data, existing) {
+    const posts = readStore(KEYS.blogPosts, BLOG_POSTS_SEED);
+    const idx = posts.findIndex((p) => p.id === id);
+    if (idx === -1) throw new Error("Artículo no encontrado");
+    const current = posts[idx];
+    posts[idx] = {
+      ...current,
+      title: data.title.trim(),
+      excerpt: data.excerpt?.trim() || null,
+      body: data.body.trim(),
+      published: Boolean(data.published),
+      published_at: data.published ? current.published_at || (existing?.published_at ?? new Date().toISOString()) : current.published_at,
+      cover_image: data.coverFile ? await fileToDataUrl(data.coverFile) : data.removeCover ? null : current.cover_image,
+      updated_at: new Date().toISOString(),
+    };
+    writeStore(KEYS.blogPosts, posts);
+    return posts[idx];
+  },
+
+  async deleteBlogPost(id) {
+    const posts = readStore(KEYS.blogPosts, BLOG_POSTS_SEED);
+    writeStore(KEYS.blogPosts, posts.filter((p) => p.id !== id));
+  },
+
+  // Modo demo no tiene backend de correo real (eso solo existe con Supabase
+  // + la Edge Function enviar-correo) — simula el envío para que el botón se
+  // pueda probar sin tronar.
+  async sendEmail({ to }) {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    return { ok: true, demo: true, to };
   },
 
   async togglePropertyTypeActive(id, active) {
@@ -1461,15 +1561,23 @@ export const localBackend = {
   },
 
   // Alertas de propiedades (modo demo): mismas reglas que alert_subscribe en la base.
-  async subscribeAlert({ kind, name, phone, criteria, propertyId }) {
+  async subscribeAlert({ kind, name, phone, contactMethod, email, criteria, propertyId }) {
     if (!["search", "price"].includes(kind)) return { error: "bad_kind" };
+    const method = contactMethod === "email" ? "email" : "whatsapp";
     if (!String(name || "").trim() || String(name).length > 80) return { error: "name_required" };
-    const digits = String(phone || "").replace(/\D/g, "");
-    let normalized;
-    if (digits.length === 10) normalized = `52${digits}`;
-    else if (digits.length === 12 && digits.startsWith("52")) normalized = digits;
-    else if (digits.length === 13 && digits.startsWith("521")) normalized = `52${digits.slice(3)}`;
-    else return { error: "bad_phone" };
+
+    let normalized = null;
+    let normalizedEmail = null;
+    if (method === "whatsapp") {
+      const digits = String(phone || "").replace(/\D/g, "");
+      if (digits.length === 10) normalized = `52${digits}`;
+      else if (digits.length === 12 && digits.startsWith("52")) normalized = digits;
+      else if (digits.length === 13 && digits.startsWith("521")) normalized = `52${digits.slice(3)}`;
+      else return { error: "bad_phone" };
+    } else {
+      normalizedEmail = String(email || "").trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail) || normalizedEmail.length > 180) return { error: "bad_email" };
+    }
     const crit = criteria && typeof criteria === "object" && !Array.isArray(criteria) ? criteria : null;
     if (!crit || JSON.stringify(crit).length > 1500) return { error: "bad_criteria" };
 
@@ -1479,14 +1587,17 @@ export const localBackend = {
       if (!property || property.active === false || property.status !== "disponible") return { error: "property_unavailable" };
     }
     const items = readStore(KEYS.alerts, []);
-    const same = (a) => a.active && a.phone === normalized && a.kind === kind && (kind === "price" ? a.property_id === propertyId : JSON.stringify(a.criteria) === JSON.stringify(crit));
+    const sameContact = (a) => (method === "whatsapp" ? a.phone === normalized : a.email === normalizedEmail);
+    const same = (a) => a.active && a.contact_method === method && sameContact(a) && a.kind === kind && (kind === "price" ? a.property_id === propertyId : JSON.stringify(a.criteria) === JSON.stringify(crit));
     if (items.some(same)) return { ok: true, duplicate: true };
-    if (items.filter((a) => a.active && a.phone === normalized).length >= 5) return { error: "limit" };
+    if (items.filter((a) => a.active && a.contact_method === method && sameContact(a)).length >= 5) return { error: "limit" };
     items.push({
       id: uid("alert"),
       kind,
       name: String(name).trim(),
       phone: normalized,
+      email: normalizedEmail,
+      contact_method: method,
       criteria: kind === "price" ? {} : crit,
       property_id: kind === "price" ? propertyId : null,
       price_at_subscribe: kind === "price" ? Number(property.price) : null,

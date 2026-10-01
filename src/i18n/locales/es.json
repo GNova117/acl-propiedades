@@ -2,6 +2,7 @@
   "nav": {
     "compareCredits": "Comparar créditos",
     "sellHome": "Vende tu casa",
+    "blog": "Blog",
     "creditSim": "Simulador de crédito",
     "home": "Inicio",
     "properties": "Propiedades",
@@ -289,6 +290,39 @@
     "homeEyebrow": "Confianza",
     "homeTitle": "Lo que dicen nuestros clientes"
   },
+  "blog": {
+    "eyebrow": "Blog",
+    "title": "Blog de ACL Propiedades",
+    "subtitle": "Guías y consejos sobre compra, venta y renta de propiedades en La Comarca Lagunera.",
+    "seoDescription": "Artículos y guías sobre compra, venta, crédito y naves industriales en Torreón, Gómez Palacio y Lerdo.",
+    "empty": "Aún no hay artículos publicados.",
+    "notFound": "No encontramos este artículo.",
+    "back": "Volver al blog",
+    "viewAll": "Ver todos los artículos",
+    "homeEyebrow": "Blog",
+    "homeTitle": "Últimos artículos",
+    "admin": {
+      "title": "Blog",
+      "subtitle": "Artículos públicos del sitio — solo se ven en /blog los que están marcados como Publicado.",
+      "new": "Nuevo artículo",
+      "edit": "Editar artículo",
+      "empty": "Aún no hay artículos.",
+      "published": "Publicado",
+      "draft": "Borrador",
+      "publishedOn": "Publicado el {{date}}",
+      "notPublishedYet": "Sin publicar",
+      "fields": {
+        "title": "Título",
+        "excerpt": "Resumen (opcional)",
+        "excerptHint": "Se muestra en la lista del blog y en el inicio. Si se deja vacío, la tarjeta no muestra resumen.",
+        "body": "Contenido",
+        "cover": "Imagen de portada",
+        "removeCover": "Quitar imagen",
+        "published": "Publicado",
+        "publishedHint": "Mientras no esté marcado, el artículo es un borrador: solo lo ve el staff, nunca aparece en /blog."
+      }
+    }
+  },
   "propertyHistory": {
     "title": "Historial de cambios",
     "field": "Campo",
@@ -444,7 +478,8 @@
     "editIndustrialWarehouse": "Editar nave industrial",
     "industrialSpecsHint": "Datos técnicos específicos de naves industriales. Opcionales — se muestran en la ficha pública si se capturan.",
     "messages": "Mensajes",
-    "testimonials": "Testimonios"
+    "testimonials": "Testimonios",
+    "blog": "Blog"
   },
   "accessControl": {
     "restricted": "No tienes acceso a este apartado.",
@@ -471,7 +506,8 @@
       "visitas": "Visitas",
       "gastos": "Desglose de gastos",
       "secretaria": "Secretaría",
-      "prospectos": "Prospectos"
+      "prospectos": "Prospectos",
+      "blog": "Blog"
     },
     "rolesTitle": "Roles",
     "newRole": "Nuevo rol",
@@ -888,7 +924,13 @@
       "title": "Desglose de gastos",
       "generated": "Generado el {{date}}",
       "download": "Descargar PDF",
-      "error": "No se pudo generar el PDF."
+      "error": "No se pudo generar el PDF.",
+      "emailPlaceholder": "Correo del cliente",
+      "emailSend": "Enviar por correo",
+      "emailSent": "Enviado",
+      "emailError": "No se pudo enviar el correo. Inténtalo de nuevo.",
+      "emailSubject": "Desglose de gastos — ACL Propiedades",
+      "emailBody": "Hola, te compartimos el desglose de gastos en el PDF adjunto."
     },
     "title": "Desglose de gastos",
     "subtitle": "Gastos de la operación por municipio, para el comprador o el vendedor. Solo uso interno: no incluye el margen de utilidad.",
@@ -1051,7 +1093,13 @@
       "confirmRegenerate": "¿Generar un enlace nuevo? El enlace anterior dejará de funcionar y el vendedor necesitará el nuevo.",
       "confirmDisable": "¿Desactivar el enlace? El vendedor ya no podrá abrir su informe hasta que crees uno nuevo.",
       "createdOn": "Enlace creado el {{date}}.",
-      "rotateHint": "Cualquiera que tenga el enlace puede ver el informe: compártelo solo con el vendedor."
+      "rotateHint": "Cualquiera que tenga el enlace puede ver el informe: compártelo solo con el vendedor.",
+      "emailLabel": "Correo del vendedor",
+      "emailSend": "Enviar por correo",
+      "emailSent": "Enviado",
+      "emailError": "No se pudo enviar el correo. Inténtalo de nuevo.",
+      "emailSubject": "Informe de visitas — {{title}}",
+      "emailBody": "Hola, este es el informe de visitas de tu propiedad «{{title}}»:"
     },
     "preview": {
       "title": "Vista previa: lo que ve el vendedor",
@@ -1844,23 +1892,27 @@
   },
   "alerts": {
     "whatsapp": "WhatsApp",
+    "email": "Correo electrónico",
+    "contactMethod": "¿Cómo quieres recibir el aviso?",
+    "channelWhatsapp": "WhatsApp",
+    "channelEmail": "correo",
     "anyProperty": "Cualquier propiedad",
     "currentPrice": "Precio actual",
     "todayMatches_one": "Hoy hay {{count}} propiedad con estos filtros.",
     "todayMatches_other": "Hoy hay {{count}} propiedades con estos filtros.",
-    "consent": "Al suscribirte aceptas recibir estos avisos por WhatsApp; puedes darte de baja cuando quieras desde el enlace de cada mensaje. Tus datos se tratan conforme a nuestro",
-    "duplicate": "Ya tenías este aviso activo. Te escribiremos por WhatsApp en cuanto haya novedades.",
+    "consent": "Al suscribirte aceptas recibir estos avisos por {{channel}}; puedes darte de baja cuando quieras desde el enlace de cada mensaje. Tus datos se tratan conforme a nuestro",
+    "duplicate": "Ya tenías este aviso activo. Te escribiremos por {{channel}} en cuanto haya novedades.",
     "search": {
       "title": "Avísame cuando haya propiedades como estas",
-      "subtitle": "Guarda esta búsqueda y te mandamos un WhatsApp cuando se publique una propiedad nueva que coincida.",
+      "subtitle": "Guarda esta búsqueda y te mandamos un aviso cuando se publique una propiedad nueva que coincida.",
       "submit": "Quiero recibir avisos",
-      "success": "¡Listo! Te escribiremos por WhatsApp cuando se publique una propiedad que coincida con tu búsqueda."
+      "success": "¡Listo! Te escribiremos por {{channel}} cuando se publique una propiedad que coincida con tu búsqueda."
     },
     "price": {
       "title": "Avísame si baja de precio",
-      "subtitle": "Déjanos tu WhatsApp y te avisamos si esta propiedad baja de precio.",
+      "subtitle": "Déjanos tus datos y te avisamos si esta propiedad baja de precio.",
       "submit": "Avísame si baja",
-      "success": "¡Listo! Te escribiremos por WhatsApp si esta propiedad baja de precio."
+      "success": "¡Listo! Te escribiremos por {{channel}} si esta propiedad baja de precio."
     },
     "criteria": {
       "type": "Tipo",
@@ -1876,8 +1928,9 @@
     },
     "errors": {
       "badPhone": "Revisa el número de WhatsApp: debe tener 10 dígitos.",
+      "badEmail": "Revisa tu correo electrónico.",
       "name": "Escribe tu nombre.",
-      "limit": "Ya tienes 5 avisos activos con este número. Date de baja de alguno para agregar otro.",
+      "limit": "Ya tienes 5 avisos activos con este dato de contacto. Date de baja de alguno para agregar otro.",
       "unavailable": "Esta propiedad ya no está disponible.",
       "wait": "Espera unos segundos antes de intentarlo de nuevo.",
       "generic": "No se pudo guardar tu aviso. Inténtalo de nuevo en un momento."

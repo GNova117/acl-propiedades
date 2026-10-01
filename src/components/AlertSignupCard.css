@@ -23,3 +23,16 @@
   font-size: 0.8rem;
   background: var(--color-bg-alt);
 }
+
+.alert-signup__method {
+  display: flex;
+  gap: 1.25rem;
+  font-weight: 400;
+}
+
+.alert-signup__method label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 400;
+}

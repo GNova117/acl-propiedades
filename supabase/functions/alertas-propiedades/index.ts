@@ -21,7 +21,9 @@ export type Alert = {
   id: string;
   kind: "search" | "price";
   name: string;
-  phone: string;
+  phone: string | null;
+  email: string | null;
+  contact_method: "whatsapp" | "email";
   criteria: Record<string, unknown> | null;
   property_id: string | null;
   price_at_subscribe: number | null;
@@ -192,6 +194,34 @@ export function buildPayload(n: Notification, siteUrl = DEFAULT_SITE_URL) {
   };
 }
 
+// A diferencia de WhatsApp (plantilla fija, aprobada por Meta de antemano),
+// un correo no necesita aprobación — el texto va directo aquí.
+export function buildEmailContent(n: Notification, siteUrl = DEFAULT_SITE_URL): { subject: string; html: string } {
+  const first = n.alert.name.trim().split(/\s+/)[0] || n.alert.name;
+  const unsubUrl = `${siteUrl}/alertas/baja/${n.alert.unsubscribe_token}`;
+  const subject = n.kind === "price" ? "Bajó de precio una propiedad que te interesó" : "Hay novedades en tu búsqueda de propiedades";
+  const html = `
+    <p>Hola ${first},</p>
+    <p>Te escribimos de ACL Propiedades porque ${n.aviso}</p>
+    <p><a href="${n.link}">Ver en el sitio</a></p>
+    <p style="color:#888;font-size:12px;margin-top:2rem;">Si ya no quieres recibir estos avisos, <a href="${unsubUrl}">date de baja aquí</a>.</p>
+  `.trim();
+  return { subject, html };
+}
+
+async function sendEmail(to: string, subject: string, html: string) {
+  const apiKey = Deno.env.get("RESEND_API_KEY")!;
+  const from = Deno.env.get("RESEND_FROM") || "ACL Propiedades <avisos@aclpropiedades.com>";
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ from, to, subject, html }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Resend: ${JSON.stringify(body)}`);
+  return body;
+}
+
 async function handler(req: Request): Promise<Response> {
   const cronSecret = Deno.env.get("CRON_SECRET");
   if (!cronSecret || req.headers.get("x-cron-secret") !== cronSecret) {
@@ -230,22 +260,23 @@ async function handler(req: Request): Promise<Response> {
       continue;
     }
     try {
-      const res = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${phoneNumberId}/messages`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${whatsappToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify(buildPayload(n, siteUrl)),
-      });
-      const body = await res.json();
-      if (res.ok) {
-        await supabase.from("property_alerts").update({ last_notified_at: new Date().toISOString() }).eq("id", n.alert.id);
-        results[n.alert.id] = "enviado";
+      if (n.alert.contact_method === "email") {
+        const { subject, html } = buildEmailContent(n, siteUrl);
+        await sendEmail(n.alert.email!, subject, html);
       } else {
-        await supabase.from("property_alert_deliveries").delete().eq("alert_id", n.alert.id).in("property_id", n.propertyIds).eq("kind", n.kind);
-        results[n.alert.id] = `error WhatsApp: ${JSON.stringify(body)}`;
+        const res = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${phoneNumberId}/messages`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${whatsappToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify(buildPayload(n, siteUrl)),
+        });
+        const body = await res.json();
+        if (!res.ok) throw new Error(`WhatsApp: ${JSON.stringify(body)}`);
       }
+      await supabase.from("property_alerts").update({ last_notified_at: new Date().toISOString() }).eq("id", n.alert.id);
+      results[n.alert.id] = "enviado";
     } catch (err) {
       await supabase.from("property_alert_deliveries").delete().eq("alert_id", n.alert.id).in("property_id", n.propertyIds).eq("kind", n.kind);
-      results[n.alert.id] = `error de red: ${err instanceof Error ? err.message : String(err)}`;
+      results[n.alert.id] = `error: ${err instanceof Error ? err.message : String(err)}`;
     }
   }
 

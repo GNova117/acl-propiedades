@@ -553,6 +553,76 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  async getBlogPosts({ publishedOnly = false } = {}) {
+    let query = supabase.from("blog_posts").select("*");
+    query = publishedOnly ? query.eq("published", true).order("published_at", { ascending: false }) : query.order("created_at", { ascending: false });
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getBlogPostBySlug(slug) {
+    const { data, error } = await supabase.from("blog_posts").select("*").eq("slug", slug).eq("published", true).maybeSingle();
+    if (error) throw error;
+    return data || null;
+  },
+
+  async addBlogPost(data) {
+    const payload = {
+      title: data.title.trim(),
+      slug: slugify(data.title),
+      excerpt: data.excerpt?.trim() || null,
+      body: data.body.trim(),
+      published: Boolean(data.published),
+      published_at: data.published ? new Date().toISOString() : null,
+    };
+    if (data.coverFile) {
+      const [url] = await uploadFiles("blog-images", [data.coverFile], []);
+      payload.cover_image = url;
+    }
+    let { data: inserted, error } = await supabase.from("blog_posts").insert(payload).select().single();
+    if (error?.code === "23505") {
+      payload.slug = `${payload.slug}-${Math.random().toString(36).slice(2, 6)}`;
+      ({ data: inserted, error } = await supabase.from("blog_posts").insert(payload).select().single());
+    }
+    if (error) throw error;
+    return inserted;
+  },
+
+  async updateBlogPost(id, data, existing) {
+    const payload = {
+      title: data.title.trim(),
+      excerpt: data.excerpt?.trim() || null,
+      body: data.body.trim(),
+      published: Boolean(data.published),
+      updated_at: new Date().toISOString(),
+    };
+    if (data.published && !existing?.published_at) payload.published_at = new Date().toISOString();
+    if (data.coverFile) {
+      const [url] = await uploadFiles("blog-images", [data.coverFile], []);
+      payload.cover_image = url;
+    } else if (data.removeCover) {
+      payload.cover_image = null;
+    }
+    const { data: updated, error } = await supabase.from("blog_posts").update(payload).eq("id", id).select().single();
+    if (error) throw error;
+    return updated;
+  },
+
+  async deleteBlogPost(id) {
+    const { error } = await supabase.from("blog_posts").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  // Envío puntual de un correo (botón "Enviar por correo" en Visitas/Gastos),
+  // vía la Edge Function enviar-correo (Resend). `attachment` es opcional:
+  // { filename, contentBase64 }.
+  async sendEmail({ to, subject, html, attachment }) {
+    const { data, error } = await supabase.functions.invoke("enviar-correo", { body: { to, subject, html, attachment } });
+    if (error) throw error;
+    return data;
+  },
+
   async togglePropertyTypeActive(id, active) {
     const { data, error } = await supabase.from("property_types").update({ active }).eq("id", id).select().single();
     if (error) throw error;
@@ -1442,13 +1512,15 @@ export const supabaseBackend = {
 
   // Alertas de propiedades por WhatsApp (ver schema.sql). El público solo usa
   // alert_subscribe / alert_unsubscribe; el personal ve la tabla (RLS: 'prospectos').
-  async subscribeAlert({ kind, name, phone, criteria, propertyId }) {
+  async subscribeAlert({ kind, name, phone, contactMethod, email, criteria, propertyId }) {
     const { data, error } = await supabase.rpc("alert_subscribe", {
       p_kind: kind,
       p_name: name,
-      p_phone: phone,
+      p_phone: phone || null,
       p_criteria: criteria || {},
       p_property_id: propertyId || null,
+      p_contact_method: contactMethod || "whatsapp",
+      p_email: email || null,
     });
     if (error) throw error;
     return data; // { ok, duplicate? } | { error }
@@ -1461,7 +1533,7 @@ export const supabaseBackend = {
   },
 
   async getAlerts() {
-    const cols = "id,kind,name,phone,criteria,property_id,price_at_subscribe,active,created_at,last_notified_at";
+    const cols = "id,kind,name,phone,email,contact_method,criteria,property_id,price_at_subscribe,active,created_at,last_notified_at";
     const { data, error } = await supabase.from("property_alerts").select(cols).order("created_at", { ascending: false });
     if (error) throw error;
     return data || [];

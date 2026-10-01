@@ -39,6 +39,8 @@ export default function AdminPropertyVisits() {
   const [busy, setBusy] = useState(false);
   const [copyState, setCopyState] = useState("");
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [emailTo, setEmailTo] = useState("");
+  const [emailStatus, setEmailStatus] = useState("idle"); // idle | sending | sent | error
   const urlInput = useRef(null);
   // Fijo por carga: los días en el mercado no cambian mientras la página está abierta.
   const now = useMemo(() => new Date(), []);
@@ -122,6 +124,22 @@ export default function AdminPropertyVisits() {
 
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(t("visits.share.whatsappMessage", { title: propertyTitle, url }))}`;
 
+  const sendByEmail = async () => {
+    if (!emailTo.trim()) return;
+    setEmailStatus("sending");
+    try {
+      await db.sendEmail({
+        to: emailTo.trim(),
+        subject: t("visits.share.emailSubject", { title: propertyTitle }),
+        html: `<p>${t("visits.share.emailBody", { title: propertyTitle })}</p><p><a href="${url}">${url}</a></p>`,
+      });
+      setEmailStatus("sent");
+    } catch (err) {
+      window.alert(err.message || t("visits.share.emailError"));
+      setEmailStatus("error");
+    }
+  };
+
   const handleDownloadPdf = async () => {
     setPdfBusy(true);
     try {
@@ -204,6 +222,25 @@ export default function AdminPropertyVisits() {
             <p className="visit-note" style={{ marginTop: "0.75rem", marginBottom: 0 }}>
               {t("visits.share.createdOn", { date: formatVisitDate(link.created_at, i18n.language) })} {t("visits.share.rotateHint")}
             </p>
+            <div className="visit-share__email" style={{ marginTop: "0.9rem", display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "flex-end" }}>
+              <div className="form-field" style={{ marginBottom: 0, flex: "1 1 220px" }}>
+                <label htmlFor="visit-email-to">{t("visits.share.emailLabel")}</label>
+                <input
+                  id="visit-email-to"
+                  type="email"
+                  value={emailTo}
+                  onChange={(e) => {
+                    setEmailTo(e.target.value);
+                    setEmailStatus("idle");
+                  }}
+                  placeholder="propietario@correo.com"
+                />
+              </div>
+              <button type="button" className="btn btn-outline btn-sm" onClick={sendByEmail} disabled={!emailTo.trim() || emailStatus === "sending"}>
+                {emailStatus === "sending" ? <span className="spinner" /> : null}
+                {emailStatus === "sent" ? `✓ ${t("visits.share.emailSent")}` : t("visits.share.emailSend")}
+              </button>
+            </div>
           </>
         ) : (
           <button type="button" className="btn btn-primary" onClick={createLink} disabled={busy}>

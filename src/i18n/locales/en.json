@@ -2,6 +2,7 @@
   "nav": {
     "compareCredits": "Compare credits",
     "sellHome": "Sell your home",
+    "blog": "Blog",
     "creditSim": "Credit simulator",
     "home": "Home",
     "properties": "Properties",
@@ -289,6 +290,39 @@
     "homeEyebrow": "Trust",
     "homeTitle": "What our clients say"
   },
+  "blog": {
+    "eyebrow": "Blog",
+    "title": "ACL Propiedades Blog",
+    "subtitle": "Guides and tips on buying, selling and renting property in La Comarca Lagunera.",
+    "seoDescription": "Articles and guides on buying, selling, credit and industrial warehouses in Torreón, Gómez Palacio and Lerdo.",
+    "empty": "No articles published yet.",
+    "notFound": "We couldn't find this article.",
+    "back": "Back to blog",
+    "viewAll": "View all articles",
+    "homeEyebrow": "Blog",
+    "homeTitle": "Latest articles",
+    "admin": {
+      "title": "Blog",
+      "subtitle": "Public site articles — only the ones marked Published show on /blog.",
+      "new": "New article",
+      "edit": "Edit article",
+      "empty": "No articles yet.",
+      "published": "Published",
+      "draft": "Draft",
+      "publishedOn": "Published on {{date}}",
+      "notPublishedYet": "Not published",
+      "fields": {
+        "title": "Title",
+        "excerpt": "Excerpt (optional)",
+        "excerptHint": "Shown in the blog list and on the homepage. If left blank, the card shows no excerpt.",
+        "body": "Content",
+        "cover": "Cover image",
+        "removeCover": "Remove image",
+        "published": "Published",
+        "publishedHint": "While unchecked, the article is a draft: only staff can see it, it never appears on /blog."
+      }
+    }
+  },
   "propertyHistory": {
     "title": "Change history",
     "field": "Field",
@@ -444,7 +478,8 @@
     "editIndustrialWarehouse": "Edit industrial warehouse",
     "industrialSpecsHint": "Technical data specific to industrial warehouses. Optional — shown on the public page when filled in.",
     "messages": "Messages",
-    "testimonials": "Testimonials"
+    "testimonials": "Testimonials",
+    "blog": "Blog"
   },
   "accessControl": {
     "restricted": "You don't have access to this section.",
@@ -471,7 +506,8 @@
       "visitas": "Visits",
       "gastos": "Expense breakdown",
       "secretaria": "Front desk",
-      "prospectos": "Prospects"
+      "prospectos": "Prospects",
+      "blog": "Blog"
     },
     "rolesTitle": "Roles",
     "newRole": "New role",
@@ -888,7 +924,13 @@
       "title": "Expense breakdown",
       "generated": "Generated on {{date}}",
       "download": "Download PDF",
-      "error": "Could not generate the PDF."
+      "error": "Could not generate the PDF.",
+      "emailPlaceholder": "Client's email",
+      "emailSend": "Send by email",
+      "emailSent": "Sent",
+      "emailError": "Could not send the email. Please try again.",
+      "emailSubject": "Expense breakdown — ACL Propiedades",
+      "emailBody": "Hi, here's the expense breakdown in the attached PDF."
     },
     "title": "Expense breakdown",
     "subtitle": "Transaction costs by municipality, for the buyer or the seller. Internal use only: it does not include the office profit margin.",
@@ -1051,7 +1093,13 @@
       "confirmRegenerate": "Generate a new link? The old one will stop working and the seller will need the new one.",
       "confirmDisable": "Turn the link off? The seller won't be able to open their report until you create a new one.",
       "createdOn": "Link created on {{date}}.",
-      "rotateHint": "Anyone with the link can see the report: share it only with the seller."
+      "rotateHint": "Anyone with the link can see the report: share it only with the seller.",
+      "emailLabel": "Seller's email",
+      "emailSend": "Send by email",
+      "emailSent": "Sent",
+      "emailError": "Could not send the email. Please try again.",
+      "emailSubject": "Visit report — {{title}}",
+      "emailBody": "Hi, here is the visit report for your property \"{{title}}\":"
     },
     "preview": {
       "title": "Preview: what the seller sees",
@@ -1844,23 +1892,27 @@
   },
   "alerts": {
     "whatsapp": "WhatsApp",
+    "email": "Email",
+    "contactMethod": "How do you want to get the alert?",
+    "channelWhatsapp": "WhatsApp",
+    "channelEmail": "email",
     "anyProperty": "Any property",
     "currentPrice": "Current price",
     "todayMatches_one": "Today there is {{count}} property with these filters.",
     "todayMatches_other": "Today there are {{count}} properties with these filters.",
-    "consent": "By subscribing you agree to receive these notices on WhatsApp; you can unsubscribe anytime from the link in each message. Your data is handled under our",
-    "duplicate": "You already had this alert active. We will message you on WhatsApp as soon as there is news.",
+    "consent": "By subscribing you agree to receive these notices by {{channel}}; you can unsubscribe anytime from the link in each message. Your data is handled under our",
+    "duplicate": "You already had this alert active. We will message you by {{channel}} as soon as there is news.",
     "search": {
       "title": "Let me know when there are properties like these",
-      "subtitle": "Save this search and we will send you a WhatsApp when a new matching property is published.",
+      "subtitle": "Save this search and we will send you an alert when a new matching property is published.",
       "submit": "I want to get alerts",
-      "success": "Done! We will message you on WhatsApp when a property matching your search is published."
+      "success": "Done! We will message you by {{channel}} when a property matching your search is published."
     },
     "price": {
       "title": "Tell me if the price drops",
-      "subtitle": "Leave your WhatsApp and we will let you know if this property's price drops.",
+      "subtitle": "Leave your details and we will let you know if this property's price drops.",
       "submit": "Tell me if it drops",
-      "success": "Done! We will message you on WhatsApp if this property's price drops."
+      "success": "Done! We will message you by {{channel}} if this property's price drops."
     },
     "criteria": {
       "type": "Type",
@@ -1876,8 +1928,9 @@
     },
     "errors": {
       "badPhone": "Check the WhatsApp number: it must have 10 digits.",
+      "badEmail": "Check your email address.",
       "name": "Enter your name.",
-      "limit": "You already have 5 active alerts with this number. Unsubscribe from one to add another.",
+      "limit": "You already have 5 active alerts with this contact info. Unsubscribe from one to add another.",
       "unavailable": "This property is no longer available.",
       "wait": "Wait a few seconds before trying again.",
       "generic": "Your alert could not be saved. Try again in a moment."

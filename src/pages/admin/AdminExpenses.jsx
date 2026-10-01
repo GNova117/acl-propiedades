@@ -29,6 +29,8 @@ export default function AdminExpenses() {
   const [pdfBusy, setPdfBusy] = useState(false);
   const [savingReport, setSavingReport] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null); // { text, error }
+  const [emailTo, setEmailTo] = useState("");
+  const [emailStatus, setEmailStatus] = useState("idle"); // idle | sending | sent | error
 
   const load = () =>
     db
@@ -128,38 +130,69 @@ export default function AdminExpenses() {
     }
   };
 
+  const buildPdfData = () => {
+    const priceValue = Number(price) || 0;
+    const creditValue = Number(credit) || 0;
+    return {
+      title: t("expenses.pdf.title"),
+      profileLine: `${t(`expenses.${profile}`)} · ${municipality}`,
+      detailLines: [
+        houseName.trim() && `${t("expenses.house")}: ${houseName.trim()}`,
+        priceValue > 0 && `${t("expenses.price")}: ${formatMXN(priceValue)}`,
+        profile === "comprador" && creditValue > 0 && `${t("expenses.creditAmount")}: ${formatMXN(creditValue)}`,
+      ].filter(Boolean),
+      generatedLine: t("expenses.pdf.generated", { date: new Date().toLocaleDateString("es-MX", { dateStyle: "long" }) }),
+      colConcept: t("expenses.concept"),
+      colRate: t("expenses.rate"),
+      colAmount: t("expenses.amount"),
+      totalLabel: t("expenses.total"),
+      total: formatMXN(breakdown.total),
+      summaryLines: refundSummaryLines(),
+      note: t("expenses.copyNote"),
+      empty: t("expenses.empty"),
+      rows: breakdown.rows.map((r) => ({ name: r.name, rate: rateText(r, t), amount: formatMXN(r.amount) })),
+    };
+  };
+
   const downloadPdf = async () => {
     setPdfBusy(true);
     try {
       const { downloadExpenseBreakdownPdf } = await import("../../lib/expenseBreakdownPdf");
-      const priceValue = Number(price) || 0;
-      const creditValue = Number(credit) || 0;
-      await downloadExpenseBreakdownPdf(
-        {
-          title: t("expenses.pdf.title"),
-          profileLine: `${t(`expenses.${profile}`)} · ${municipality}`,
-          detailLines: [
-            houseName.trim() && `${t("expenses.house")}: ${houseName.trim()}`,
-            priceValue > 0 && `${t("expenses.price")}: ${formatMXN(priceValue)}`,
-            profile === "comprador" && creditValue > 0 && `${t("expenses.creditAmount")}: ${formatMXN(creditValue)}`,
-          ].filter(Boolean),
-          generatedLine: t("expenses.pdf.generated", { date: new Date().toLocaleDateString("es-MX", { dateStyle: "long" }) }),
-          colConcept: t("expenses.concept"),
-          colRate: t("expenses.rate"),
-          colAmount: t("expenses.amount"),
-          totalLabel: t("expenses.total"),
-          total: formatMXN(breakdown.total),
-          summaryLines: refundSummaryLines(),
-          note: t("expenses.copyNote"),
-          empty: t("expenses.empty"),
-          rows: breakdown.rows.map((r) => ({ name: r.name, rate: rateText(r, t), amount: formatMXN(r.amount) })),
-        },
-        `desglose-gastos-${profile}-${municipality}`
-      );
+      await downloadExpenseBreakdownPdf(buildPdfData(), `desglose-gastos-${profile}-${municipality}`);
     } catch (err) {
       window.alert(err.message || t("expenses.pdf.error"));
     } finally {
       setPdfBusy(false);
+    }
+  };
+
+  // Uint8Array -> base64, por bloques (btoa truena con arreglos grandes si se
+  // les hace spread de un jalón en String.fromCharCode).
+  const bytesToBase64 = (bytes) => {
+    let binary = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    }
+    return btoa(binary);
+  };
+
+  const sendPdfByEmail = async () => {
+    if (!emailTo.trim()) return;
+    setEmailStatus("sending");
+    try {
+      const { buildExpenseBreakdownPdf } = await import("../../lib/expenseBreakdownPdf");
+      const bytes = await buildExpenseBreakdownPdf(buildPdfData());
+      await db.sendEmail({
+        to: emailTo.trim(),
+        subject: t("expenses.pdf.emailSubject"),
+        html: `<p>${t("expenses.pdf.emailBody")}</p>`,
+        attachment: { filename: `desglose-gastos-${profile}-${municipality}.pdf`, contentBase64: bytesToBase64(bytes) },
+      });
+      setEmailStatus("sent");
+    } catch (err) {
+      window.alert(err.message || t("expenses.pdf.emailError"));
+      setEmailStatus("error");
     }
   };
 
@@ -331,6 +364,20 @@ export default function AdminExpenses() {
         <button type="button" className="btn btn-outline" onClick={downloadPdf} disabled={breakdown.rows.length === 0 || pdfBusy}>
           {pdfBusy ? <span className="spinner" /> : null}
           {t("expenses.pdf.download")}
+        </button>
+        <input
+          type="email"
+          value={emailTo}
+          onChange={(e) => {
+            setEmailTo(e.target.value);
+            setEmailStatus("idle");
+          }}
+          placeholder={t("expenses.pdf.emailPlaceholder")}
+          style={{ maxWidth: 220 }}
+        />
+        <button type="button" className="btn btn-outline" onClick={sendPdfByEmail} disabled={breakdown.rows.length === 0 || !emailTo.trim() || emailStatus === "sending"}>
+          {emailStatus === "sending" ? <span className="spinner" /> : null}
+          {emailStatus === "sent" ? `✓ ${t("expenses.pdf.emailSent")}` : t("expenses.pdf.emailSend")}
         </button>
         <button type="button" className="btn btn-outline" onClick={loadTemplate} title={t("expenses.templateHint")}>
           {t("expenses.loadTemplate", { municipality })}
