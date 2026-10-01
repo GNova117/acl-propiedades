@@ -19,6 +19,8 @@ export default function AdminDashboard() {
   const [messages, setMessages] = useState([]);
   const [citas, setCitas] = useState([]);
   const [analytics, setAnalytics] = useState({ loading: true, data: null });
+  const [myVentas, setMyVentas] = useState([]);
+  const [ventaProperties, setVentaProperties] = useState([]);
 
   const sectionsKey = sections.join(",");
   const seesAllAgendas = advisorId == null;
@@ -35,6 +37,32 @@ export default function AdminDashboard() {
     if (hasSection("agenda")) db.getAgendaCitas().then(setCitas);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sectionsKey]);
+
+  // "Mis ventas": solo para un login vinculado a un asesor (advisorId), sin
+  // pedir ningún apartado — ver las propias ventas no debería depender de
+  // 'reportes' (cifras de todo el equipo) ni de 'liquidaciones' (margen de
+  // la oficina). RLS en Supabase ya filtra a solo-las-propias para este
+  // tipo de login (ver schema.sql, política "Asesor ve sus propias
+  // ventas"); en modo demo (sin RLS real) se filtra aquí mismo con el
+  // mismo criterio para que el comportamiento sea idéntico. `properties`
+  // se trae aparte de la del bloque de arriba (gateada por 'propiedades')
+  // porque un asesor puede no tener ese apartado y aun así necesitar los
+  // títulos/precios de sus propias casas vendidas.
+  useEffect(() => {
+    if (advisorId == null) {
+      setMyVentas([]);
+      return;
+    }
+    Promise.all([db.getVentas(), db.getProperties({})])
+      .then(([ventas, props]) => {
+        setMyVentas(ventas.filter((v) => v.advisor_id === advisorId));
+        setVentaProperties(props);
+      })
+      .catch(() => {
+        setMyVentas([]);
+        setVentaProperties([]);
+      });
+  }, [advisorId]);
 
   // No hay sección propia para esto (es tráfico agregado del sitio, no
   // dato de cliente ni financiero) — se muestra a cualquiera que llegue
@@ -75,6 +103,20 @@ export default function AdminDashboard() {
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
       .slice(0, 5);
   }, [properties]);
+
+  const ventaProperty = (id) => ventaProperties.find((p) => p.id === id);
+
+  const myVentasStats = useMemo(() => {
+    const year = new Date().getFullYear();
+    const thisYear = myVentas.filter((v) => v.fecha_venta?.slice(0, 4) === String(year));
+    const volume = thisYear.reduce((sum, v) => sum + (ventaProperty(v.property_id)?.price || 0), 0);
+    const recent = myVentas
+      .slice()
+      .sort((a, b) => (b.fecha_venta || "").localeCompare(a.fecha_venta || ""))
+      .slice(0, 5);
+    return { count: thisYear.length, volume, recent, year };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myVentas, ventaProperties]);
 
   const advisorName = (id) => advisors.find((a) => a.id === id)?.name || "—";
   const clientName = (id) => (id ? clients.find((c) => c.id === id)?.name : null) || t("agenda.noClient");
@@ -135,8 +177,41 @@ export default function AdminDashboard() {
           ))}
       </div>
 
-      {(hasSection("agenda") || hasSection("propiedades") || analytics.data) && (
+      {(hasSection("agenda") || hasSection("propiedades") || analytics.data || advisorId != null) && (
         <div className="admin-dashboard-panels">
+          {advisorId != null && (
+            <div className="card admin-dashboard-panel">
+              <div className="admin-dashboard-panel__header">
+                <h2>{t("admin.myVentasTitle")}</h2>
+              </div>
+              <div className="admin-dashboard-panel__analytics-totals">
+                <div>
+                  <span className="admin-stat-card__value">{myVentasStats.count}</span>
+                  <span className="admin-stat-card__label">{t("admin.myVentasCount", { year: myVentasStats.year })}</span>
+                </div>
+                <div>
+                  <span className="admin-stat-card__value">{formatMXN(myVentasStats.volume)}</span>
+                  <span className="admin-stat-card__label">{t("admin.myVentasVolume")}</span>
+                </div>
+              </div>
+              {myVentasStats.recent.length === 0 ? (
+                <p className="form-hint">{t("admin.myVentasEmpty")}</p>
+              ) : (
+                <div className="admin-dashboard-panel__list">
+                  {myVentasStats.recent.map((v) => {
+                    const property = ventaProperty(v.property_id);
+                    return (
+                      <div key={v.id} className="admin-dashboard-panel__row">
+                        <span>{property?.title || "—"}</span>
+                        <span className="admin-dashboard-panel__row-meta">{property ? formatMXN(property.price) : "—"}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
           {analytics.data && (
             <div className="card admin-dashboard-panel">
               <div className="admin-dashboard-panel__header">
