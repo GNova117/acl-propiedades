@@ -2007,6 +2007,7 @@
     "kindBuilt": "Construcción",
     "levels": "Niveles",
     "levelsHint": "Cuántos pisos tiene la construcción trazada (la superficie se multiplica).",
+    "useInConstruccion": "Usar en Construcción",
     "remove": "Quitar",
     "history": {
       "client": "Cliente (opcional)",

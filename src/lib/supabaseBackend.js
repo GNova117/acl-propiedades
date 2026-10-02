@@ -1940,4 +1940,8 @@ export const supabaseBackend = {
   updateConstruccionFotoNota: (...args) => construccionSync.updateConstruccionFotoNota(...args),
   deleteConstruccionFoto: (...args) => construccionSync.deleteConstruccionFoto(...args),
   deleteConstruccionFotosDeHabitacion: (...args) => construccionSync.deleteConstruccionFotosDeHabitacion(...args),
+  getConstruccionFondos: (...args) => construccionSync.getConstruccionFondos(...args),
+  upsertConstruccionFondo: (...args) => construccionSync.upsertConstruccionFondo(...args),
+  updateConstruccionFondo: (...args) => construccionSync.updateConstruccionFondo(...args),
+  deleteConstruccionFondo: (...args) => construccionSync.deleteConstruccionFondo(...args),
 };

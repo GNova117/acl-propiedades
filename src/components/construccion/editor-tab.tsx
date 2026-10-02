@@ -29,6 +29,7 @@ import { db } from "../../lib/dataStore";
 import {
   ABERTURA_DEFAULTS,
   type Abertura,
+  type FondoNivel,
   type Habitacion,
   type Objeto,
   type Proyecto,
@@ -55,12 +56,15 @@ const GIROS = [
 ];
 
 /** Caja que encierra habitaciones y objetos (para ajustar la vista y para exportar). */
-function contentBoxOf(habs: Habitacion[], objs: Objeto[]): Bounds | null {
+function contentBoxOf(habs: Habitacion[], objs: Objeto[], fondo?: FondoNivel | null): Bounds | null {
   const boxes = habs.filter((h) => h.puntos.length > 0).map((h) => polygonBounds(h.puntos));
   for (const o of objs) {
     const r = Math.max(o.anchoM, o.largoM) / 2;
     boxes.push({ minX: o.x - r, maxX: o.x + r, minZ: o.z - r, maxZ: o.z + r });
   }
+  // El fondo entra al ajuste de vista (para que se vea completo al cambiar de nivel/modo), pero no
+  // a la exportación — exportPlanAsPng/Pdf siguen recortando solo a cuartos y muebles.
+  if (fondo) boxes.push({ minX: fondo.xM, maxX: fondo.xM + fondo.widthM, minZ: fondo.zM, maxZ: fondo.zM + fondo.heightM });
   return unionBounds(boxes);
 }
 
@@ -105,6 +109,28 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   const svgRef = useRef<SVGSVGElement>(null);
   const medidaRef = useRef<HTMLInputElement>(null);
 
+  // Fondo (plano/croquis para calcar) — no vive en `proyecto` (igual que las fotos): tiene su
+  // propia tabla sin cascada hacia nivel_id, para no perderse con cada guardado del plano.
+  const [fondos, setFondos] = useState<Record<string, FondoNivel>>({});
+  const [fondoMoving, setFondoMoving] = useState(false);
+  const [fondoLoading, setFondoLoading] = useState(false);
+  const [pendingFondoFile, setPendingFondoFile] = useState<File | null>(null);
+  const [pendingWidthM, setPendingWidthM] = useState("10");
+  const fondoPosRef = useRef<{ xM: number; zM: number } | null>(null);
+  const fondoOpacityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const nivelIdsKey = proyecto.niveles.map((n) => n.id).join(",");
+  useEffect(() => {
+    const ids = nivelIdsKey ? nivelIdsKey.split(",") : [];
+    if (ids.length === 0) {
+      setFondos({});
+      return;
+    }
+    db.getConstruccionFondos(ids)
+      .then(setFondos)
+      .catch(() => setFondos({}));
+  }, [nivelIdsKey]);
+
   const selected = proyecto.habitaciones.find((h) => h.id === selectedId) ?? null;
   const isMap = mode === "mapa";
   const drawing = !selected && !isMap;
@@ -117,7 +143,10 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
 
   const habitacionesVista = isMap ? nivelHabitaciones : selected ? [selected] : [];
   const objetosVista = isMap ? nivelObjetos : objetosDeSelected;
-  const contentBox = contentBoxOf(habitacionesVista, objetosVista);
+  // El fondo solo se ve (y se ajusta la vista a él) en "Plano completo" — en un cuarto solo
+  // estorbaría al calcar justo esa habitación.
+  const fondo = isMap ? fondos[selectedNivelId] ?? null : null;
+  const contentBox = contentBoxOf(habitacionesVista, objetosVista, fondo);
   // La vista se ajusta sola solo al cambiar de cuarto, de nivel o de modo; mientras se edita no se mueve.
   const vp = usePlanViewport({ box: contentBox, resetKey: `${selectedNivelId}|${isMap ? "mapa" : (selected?.id ?? "nueva")}` });
   const roomStats = selected ? estadisticasHabitacion(selected, proyecto.objetos) : null;
@@ -216,6 +245,20 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
           return { ...h, puntos, aberturas: clampOpeningsToWalls(puntos, h.aberturas) };
         }),
       })),
+    // El fondo se mueve libre (sin imán ni límite): debe poder calzar exacto con el plano real.
+    onFondoMove: (dx, dz) =>
+      setFondos((prev) => {
+        const f = prev[selectedNivelId];
+        if (!f) return prev;
+        const next = { ...f, xM: f.xM + dx, zM: f.zM + dz };
+        fondoPosRef.current = { xM: next.xM, zM: next.zM };
+        return { ...prev, [selectedNivelId]: next };
+      }),
+    onFondoDrop: () => {
+      const pos = fondoPosRef.current;
+      fondoPosRef.current = null;
+      if (pos) db.updateConstruccionFondo(selectedNivelId, pos).catch(() => {});
+    },
   });
 
   // Si el nivel seleccionado se borró (o el proyecto cambió de otra fuente), cae al primero que exista.
@@ -317,8 +360,75 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   function deleteNivel() {
     if (proyecto.niveles.length <= 1) return;
     if (!window.confirm(`¿Eliminar "${currentNivel?.nombre}" y todo lo que contiene? No se puede deshacer.`)) return;
-    setProyecto((p) => quitarNivel(p, selectedNivelId));
+    const nivelIdABorrar = selectedNivelId;
+    setProyecto((p) => quitarNivel(p, nivelIdABorrar));
     // La selección se corrige sola en el efecto de abajo si el nivel actual desapareció.
+    // construccion_fondos tampoco cascada por nivel_id (ver nota en sync.ts) — se limpia aquí.
+    if (fondos[nivelIdABorrar]) {
+      db.deleteConstruccionFondo(nivelIdABorrar).catch(() => {});
+      setFondos((prev) => {
+        const next = { ...prev };
+        delete next[nivelIdABorrar];
+        return next;
+      });
+    }
+  }
+
+  function handleFondoFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) setPendingFondoFile(file);
+  }
+
+  async function confirmFondoUpload() {
+    if (!pendingFondoFile) return;
+    const widthM = Number(pendingWidthM);
+    if (!(widthM > 0)) return;
+    setFondoLoading(true);
+    try {
+      const result = await db.upsertConstruccionFondo({ proyectoId: proyecto.id, nivelId: selectedNivelId, file: pendingFondoFile, widthM });
+      setFondos((prev) => ({ ...prev, [selectedNivelId]: result }));
+      setPendingFondoFile(null);
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : String(err));
+    } finally {
+      setFondoLoading(false);
+    }
+  }
+
+  async function commitFondoWidth(newWidthM: number) {
+    if (!fondo || !(newWidthM > 0) || newWidthM === fondo.widthM) return;
+    const heightM = fondo.heightM * (newWidthM / fondo.widthM);
+    setFondos((prev) => ({ ...prev, [selectedNivelId]: { ...fondo, widthM: newWidthM, heightM } }));
+    try {
+      await db.updateConstruccionFondo(selectedNivelId, { widthM: newWidthM, heightM });
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  function handleOpacidadChange(opacidad: number) {
+    if (!fondo) return;
+    setFondos((prev) => ({ ...prev, [selectedNivelId]: { ...fondo, opacidad } }));
+    if (fondoOpacityTimer.current) clearTimeout(fondoOpacityTimer.current);
+    fondoOpacityTimer.current = setTimeout(() => {
+      db.updateConstruccionFondo(selectedNivelId, { opacidad }).catch(() => {});
+    }, 400);
+  }
+
+  async function handleFondoRemove() {
+    if (!window.confirm("¿Quitar el plano de fondo de este nivel?")) return;
+    try {
+      await db.deleteConstruccionFondo(selectedNivelId);
+      setFondos((prev) => {
+        const next = { ...prev };
+        delete next[selectedNivelId];
+        return next;
+      });
+      setFondoMoving(false);
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : String(err));
+    }
   }
 
   function startNewRoom() {
@@ -457,6 +567,82 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
             Plano completo
           </button>
         </div>
+
+        {isMap && (
+          <div className="construccion-fondo">
+            {!fondo ? (
+              <label className="btn btn-outline btn-sm construccion-fondo__upload" style={{ cursor: "pointer" }}>
+                <input type="file" accept="image/*" hidden onChange={handleFondoFileSelect} />
+                Subir plano de fondo
+              </label>
+            ) : (
+              <>
+                <div className="construccion-fondo__row">
+                  <label className="construccion-fondo__field">
+                    Ancho real (m)
+                    <input
+                      key={`${fondo.nivelId}-${fondo.widthM}`}
+                      type="number"
+                      min="0.1"
+                      step="0.1"
+                      defaultValue={fondo.widthM}
+                      onBlur={(e) => commitFondoWidth(Number(e.target.value) || fondo.widthM)}
+                    />
+                  </label>
+                  <label className="construccion-fondo__field">
+                    Opacidad
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="1"
+                      step="0.05"
+                      value={fondo.opacidad}
+                      onChange={(e) => handleOpacidadChange(Number(e.target.value))}
+                    />
+                  </label>
+                </div>
+                <div className="construccion-fondo__row">
+                  <button
+                    type="button"
+                    className={`btn btn-sm ${fondoMoving ? "btn-primary" : "btn-outline"}`}
+                    onClick={() => setFondoMoving((m) => !m)}
+                  >
+                    {fondoMoving ? "Dejar de mover" : "Mover"}
+                  </button>
+                  <button type="button" className="construccion-editor__abertura-delete" onClick={handleFondoRemove}>
+                    quitar fondo
+                  </button>
+                </div>
+              </>
+            )}
+
+            {pendingFondoFile && (
+              <div className="construccion-fondo__pending">
+                <label className="construccion-fondo__field">
+                  ¿Cuántos metros mide de ancho esta imagen completa?
+                  <input
+                    type="number"
+                    min="0.1"
+                    step="0.1"
+                    value={pendingWidthM}
+                    onChange={(e) => setPendingWidthM(e.target.value)}
+                    autoFocus
+                  />
+                </label>
+                <div className="construccion-fondo__row">
+                  <button type="button" className="btn btn-primary btn-sm" onClick={confirmFondoUpload} disabled={fondoLoading || !(Number(pendingWidthM) > 0)}>
+                    {fondoLoading ? <span className="spinner" /> : null}
+                    Calcar aquí
+                  </button>
+                  <button type="button" className="btn btn-outline btn-sm" onClick={() => setPendingFondoFile(null)} disabled={fondoLoading}>
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <button onClick={startNewRoom} className="btn btn-primary construccion-editor__new-btn">
           + Nueva habitación
         </button>
@@ -670,6 +856,8 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               onPlace={handlePlace}
               onSelectRoom={setSelectedId}
               onSelectObjeto={setSelectedObjetoId}
+              fondo={fondo}
+              fondoDraggable={fondoMoving}
             />
           ) : (
             <PlanCanvas2D

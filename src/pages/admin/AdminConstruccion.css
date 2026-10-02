@@ -857,3 +857,54 @@
   display: inline-flex;
   align-items: center;
 }
+
+/* ── Fondo (plano/croquis para calcar) ─────────────────────────────────── */
+
+.construccion-fondo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+}
+
+.construccion-fondo__upload {
+  align-self: flex-start;
+}
+
+.construccion-fondo__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.construccion-fondo__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.construccion-fondo__field input[type="number"] {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+  width: 6rem;
+}
+
+.construccion-fondo__pending {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--color-border);
+}

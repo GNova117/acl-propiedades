@@ -18,7 +18,8 @@ export function svgPoint(svg: SVGSVGElement, clientX: number, clientY: number): 
 type Drag =
   | { kind: "objeto"; id: string; offX: number; offZ: number }
   | { kind: "vertice"; id: string; index: number }
-  | { kind: "habitacion"; id: string; startX: number; startZ: number; appliedX: number; appliedZ: number };
+  | { kind: "habitacion"; id: string; startX: number; startZ: number; appliedX: number; appliedZ: number }
+  | { kind: "fondo"; startX: number; startZ: number; appliedX: number; appliedZ: number };
 
 type Callbacks = {
   onObjetoMove: (id: string, center: Point) => void;
@@ -27,6 +28,9 @@ type Callbacks = {
   onHabitacionMove?: (id: string, dx: number, dz: number) => void;
   onHabitacionDrop?: (id: string) => void;
   onObjetoDrop?: (id: string) => void;
+  /** Arrastrar la imagen de fondo (plano calcado) — sin imán: debe poder quedar exacta. */
+  onFondoMove?: (dx: number, dz: number) => void;
+  onFondoDrop?: () => void;
 };
 
 /**
@@ -64,6 +68,15 @@ export function usePlanDrag(cb: Callbacks) {
     dragRef.current = { kind: "habitacion", id, startX: p.x, startZ: p.z, appliedX: 0, appliedZ: 0 };
   }
 
+  function startFondo(e: ReactPointerEvent<SVGElement>) {
+    const svg = e.currentTarget.ownerSVGElement;
+    if (!svg) return;
+    e.stopPropagation();
+    interacted.current = true;
+    const p = svgPoint(svg, e.clientX, e.clientY);
+    dragRef.current = { kind: "fondo", startX: p.x, startZ: p.z, appliedX: 0, appliedZ: 0 };
+  }
+
   function onPointerMove(e: ReactPointerEvent<SVGSVGElement>) {
     const d = dragRef.current;
     if (!d) return;
@@ -72,7 +85,7 @@ export function usePlanDrag(cb: Callbacks) {
       cbRef.current.onObjetoMove(d.id, { x: snap(p.x - d.offX, OBJ_GRID_M), z: snap(p.z - d.offZ, OBJ_GRID_M) });
     } else if (d.kind === "vertice") {
       cbRef.current.onVerticeMove?.(d.id, d.index, { x: snap(p.x, VERTEX_GRID_M), z: snap(p.z, VERTEX_GRID_M) });
-    } else {
+    } else if (d.kind === "habitacion") {
       const dx = snap(p.x - d.startX, ROOM_GRID_M);
       const dz = snap(p.z - d.startZ, ROOM_GRID_M);
       if (dx !== d.appliedX || dz !== d.appliedZ) {
@@ -80,6 +93,12 @@ export function usePlanDrag(cb: Callbacks) {
         d.appliedX = dx;
         d.appliedZ = dz;
       }
+    } else {
+      const dx = p.x - d.startX;
+      const dz = p.z - d.startZ;
+      cbRef.current.onFondoMove?.(dx - d.appliedX, dz - d.appliedZ);
+      d.appliedX = dx;
+      d.appliedZ = dz;
     }
   }
 
@@ -88,6 +107,7 @@ export function usePlanDrag(cb: Callbacks) {
     dragRef.current = null;
     if (d?.kind === "habitacion") cbRef.current.onHabitacionDrop?.(d.id);
     if (d?.kind === "objeto") cbRef.current.onObjetoDrop?.(d.id);
+    if (d?.kind === "fondo") cbRef.current.onFondoDrop?.();
     // El `click` llega justo después del pointerup: se limpia hasta después de él.
     if (interacted.current) setTimeout(() => (interacted.current = false), 0);
   }
@@ -98,5 +118,5 @@ export function usePlanDrag(cb: Callbacks) {
     return true;
   }
 
-  return { startObjeto, startVertice, startHabitacion, consumeClick, handlers: { onPointerMove, onPointerUp: end, onPointerLeave: end } };
+  return { startObjeto, startVertice, startHabitacion, startFondo, consumeClick, handlers: { onPointerMove, onPointerUp: end, onPointerLeave: end } };
 }

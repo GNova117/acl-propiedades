@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { polygonArea, snap, wallSegmentsFromPolygon, type Point } from "../../lib/construccion/geometry";
 import { zonaDe } from "../../lib/construccion/objetos";
-import type { Habitacion, Objeto } from "../../lib/construccion/types";
+import type { FondoNivel, Habitacion, Objeto } from "../../lib/construccion/types";
 import ObjetosLayer from "./plan-objetos";
 import PlanGrid from "./plan-grid";
 import { OBJ_GRID_M, svgPoint, type usePlanDrag } from "./plan-drag";
@@ -20,10 +20,14 @@ type Props = {
   onPlace: (p: Point) => void;
   onSelectRoom: (id: string | null) => void;
   onSelectObjeto: (id: string | null) => void;
+  /** Plano/croquis de fondo para calcar encima — null si este nivel no tiene uno. */
+  fondo?: FondoNivel | null;
+  /** true mientras el botón "Mover" del fondo está activo: el fondo se puede arrastrar. */
+  fondoDraggable?: boolean;
 };
 
 const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
-  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto },
+  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto, fondo, fondoDraggable },
   ref,
 ) {
   function handleClick(e: React.MouseEvent<SVGSVGElement>) {
@@ -57,6 +61,20 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
       onPointerCancel={vp.handlers.onPointerCancel}
       onPointerLeave={() => drag.handlers.onPointerLeave()}
     >
+      {fondo?.signedUrl && (
+        <image
+          href={fondo.signedUrl}
+          x={fondo.xM}
+          y={fondo.zM}
+          width={fondo.widthM}
+          height={fondo.heightM}
+          opacity={fondo.opacidad}
+          preserveAspectRatio="none"
+          style={fondoDraggable ? { cursor: "move" } : undefined}
+          onPointerDown={fondoDraggable ? (e) => drag.startFondo(e) : undefined}
+        />
+      )}
+
       <PlanGrid visible={vp.visible} />
 
       {habitaciones.map((hab) => {

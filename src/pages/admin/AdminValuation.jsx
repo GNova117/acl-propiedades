@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import MarketComparables from "../../components/MarketComparables";
 import ValuationMap from "../../components/ValuationMap";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
 import { formatArea, formatMXN } from "../../lib/format";
-import { polygonAreaM2 } from "../../lib/geoArea";
+import { polygonAreaM2, polygonToLocalMeters } from "../../lib/geoArea";
 import { MAX_SPREAD_PCT, estimateValue } from "../../lib/valuation";
 import { downloadValuationPdf } from "../../lib/valuationPdf";
 import { valuationPdfLabels, valuationRowToPdfData, valuationWhatsappUrl } from "../../lib/valuationShare";
@@ -35,6 +35,8 @@ const shapesSignature = (shapes, kind) =>
 export default function AdminValuation() {
   const { t } = useTranslation();
   const { hasSection } = useAuth();
+  const navigate = useNavigate();
+  const [sendingToConstruccion, setSendingToConstruccion] = useState(null);
   const [zones, setZones] = useState([]);
   const prefill = useLocation().state?.prefill; // viene de Mensajes ("Estimar valor")
   const [zoneId, setZoneId] = useState("");
@@ -173,6 +175,48 @@ export default function AdminValuation() {
     if (match) setZoneId(match.id);
   };
 
+  // Punto de partida de un proyecto de Construcción: la figura ya la midió el
+  // asesor aquí (sobre satelital), así que no tiene caso volver a trazarla a
+  // mano en el editor — se manda como un solo cuarto ya cerrado.
+  const handleUseInConstruccion = async (shape) => {
+    setSendingToConstruccion(shape.id);
+    try {
+      const puntos = polygonToLocalMeters(shape.points);
+      const kindLabel = t(shape.kind === "land" ? "valuation.kindLand" : "valuation.kindBuilt");
+      const nombre = reference.trim() || client?.name || propertyById[propertyId]?.title || `${kindLabel} desde Valuación`;
+      const id = await db.addConstruccionProyecto({
+        nombre,
+        cliente: client?.name || "",
+        direccion: propertyById[propertyId]?.address || "",
+      });
+      const nivelId = crypto.randomUUID();
+      await db.pushConstruccionProyecto({
+        id,
+        nombre,
+        cliente: client?.name || null,
+        direccion: propertyById[propertyId]?.address || null,
+        niveles: [{ id: nivelId, nombre: "Planta baja" }],
+        habitaciones: [
+          {
+            id: crypto.randomUUID(),
+            nivelId,
+            nombre: shape.kind === "built" ? "Contorno de Valuación" : "Terreno (Valuación)",
+            tipo: shape.kind === "land" ? "exterior" : undefined,
+            puntos,
+            alturaM: 2.5,
+            aberturas: [],
+          },
+        ],
+        objetos: [],
+      });
+      navigate(`/admin/construccion/${id}`);
+    } catch (err) {
+      window.alert(err.message || "No se pudo crear el proyecto de Construcción.");
+    } finally {
+      setSendingToConstruccion(null);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -262,6 +306,18 @@ export default function AdminValuation() {
                             onChange={(e) => setLevels(shape.id, e.target.value)}
                           />
                         </label>
+                      )}
+                      {hasSection("construccion") && (
+                        <button
+                          type="button"
+                          className="btn btn-outline btn-sm"
+                          disabled={sendingToConstruccion === shape.id}
+                          onClick={() => handleUseInConstruccion(shape)}
+                          title="Crea un proyecto nuevo de Construcción con este contorno como primer cuarto"
+                        >
+                          {sendingToConstruccion === shape.id ? <span className="spinner" /> : null}
+                          {t("valuation.useInConstruccion")}
+                        </button>
                       )}
                       <button type="button" className="btn btn-danger btn-sm" onClick={() => applyShapes(shapes.filter((s) => s.id !== shape.id))}>
                         {t("valuation.remove")}

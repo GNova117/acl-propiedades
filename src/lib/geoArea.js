@@ -16,3 +16,22 @@ export function polygonAreaM2(points) {
   }
   return Math.abs((sum * EARTH_RADIUS_M * EARTH_RADIUS_M) / 2);
 }
+
+// Proyección local (tangente en el centroide) de un contorno [lat,lng] a
+// metros planos {x, z} — para mandar una figura ya medida en Valuación como
+// punto de partida de un proyecto de Construcción. A la escala de un lote el
+// error de no usar la fórmula esférica es insignificante (mismo motivo que en
+// polygonAreaM2, pero ahí sí hace falta la precisión porque es el número que
+// se muestra). x = este, z = sur (mismo criterio de "z crece hacia abajo" que
+// el resto del módulo de Construcción).
+export function polygonToLocalMeters(points) {
+  if (!Array.isArray(points) || points.length === 0) return [];
+  const lat0 = points.reduce((s, [lat]) => s + lat, 0) / points.length;
+  const lng0 = points.reduce((s, [, lng]) => s + lng, 0) / points.length;
+  const cosLat0 = Math.cos(toRad(lat0));
+  const round2 = (v) => Math.round(v * 100) / 100;
+  return points.map(([lat, lng]) => ({
+    x: round2(toRad(lng - lng0) * EARTH_RADIUS_M * cosLat0),
+    z: round2(toRad(lat0 - lat) * EARTH_RADIUS_M),
+  }));
+}

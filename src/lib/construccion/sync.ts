@@ -3,7 +3,7 @@
 import { supabase } from "../supabaseClient";
 import { compressImageFile } from "../imageCompression";
 import { wallSegmentsFromPolygon, type Point } from "./geometry";
-import type { Abertura, FotoHabitacion, FuenteCantidad, Habitacion, MaterialCatalogItem, Nivel, Objeto, Proyecto, TipoAbertura, TipoHabitacion } from "./types";
+import type { Abertura, FondoNivel, FotoHabitacion, FuenteCantidad, Habitacion, MaterialCatalogItem, Nivel, Objeto, Proyecto, TipoAbertura, TipoHabitacion } from "./types";
 import { ZONAS } from "./objetos";
 import { normalizarNiveles } from "./niveles";
 
@@ -124,11 +124,17 @@ export async function addConstruccionProyecto(input: { nombre: string; cliente?:
 
 export async function deleteConstruccionProyecto(id: string): Promise<void> {
   const db = requireSupabase();
-  // Las filas de construccion_fotos se van en cascada (proyecto_id), pero sus
-  // archivos en Storage no — se borran a mano antes, o quedan huérfanos.
+  // Las filas de construccion_fotos/construccion_fondos se van en cascada
+  // (proyecto_id), pero sus archivos en Storage no — se borran a mano antes,
+  // o quedan huérfanos.
   const { data: fotos } = await db.from("construccion_fotos").select("file_path").eq("proyecto_id", id);
-  const paths = ((fotos ?? []) as { file_path: string }[]).map((f) => f.file_path);
-  if (paths.length > 0) await db.storage.from("construccion-fotos").remove(paths);
+  const fotoPaths = ((fotos ?? []) as { file_path: string }[]).map((f) => f.file_path);
+  if (fotoPaths.length > 0) await db.storage.from("construccion-fotos").remove(fotoPaths);
+
+  const { data: fondos } = await db.from("construccion_fondos").select("file_path").eq("proyecto_id", id);
+  const fondoPaths = ((fondos ?? []) as { file_path: string }[]).map((f) => f.file_path);
+  if (fondoPaths.length > 0) await db.storage.from("construccion-fondos").remove(fondoPaths);
+
   const { error } = await db.from("construccion_proyectos").delete().eq("id", id);
   if (error) throw error;
 }
@@ -462,6 +468,136 @@ export async function deleteConstruccionFotosDeHabitacion(habitacionId: string):
     "id",
     rows.map((f) => f.id),
   );
+  if (error) throw error;
+}
+
+// ─────────────────────────────────────────────
+// Fondo por nivel (imagen para calcar en "Plano completo"). Mismo motivo que
+// las fotos para que nivel_id no lleve cascada — ver nota en schema.sql.
+// ─────────────────────────────────────────────
+
+type FondoRow = { nivel_id: string; file_path: string; x_m: number; z_m: number; width_m: number; height_m: number; opacidad: number };
+
+const BUCKET_FONDOS = "construccion-fondos";
+// A diferencia de las fotos (se ven un momento), el fondo queda visible toda
+// la sesión de calcado — 5 min se vencería a media edición. 6 h de margen.
+const FONDO_SIGNED_URL_TTL_S = 21_600;
+
+function tablaFondosFaltante(err: unknown): boolean {
+  const e = err as { code?: string; message?: string; statusCode?: string } | null;
+  if (!e) return false;
+  if (e.code === "42P01" || e.code === "PGRST205" || /construccion_fondos/.test(e.message ?? "")) return true;
+  return e.statusCode === "404" || /bucket not found/i.test(e.message ?? "");
+}
+
+const MSG_FALTA_TABLA_FONDOS =
+  "Falta crear la tabla construccion_fondos en Supabase (corre el bloque «Construcción · fondo por nivel» de supabase/schema.sql) para subir un plano de fondo.";
+
+function toFondoNivel(row: FondoRow, signedUrl: string | null): FondoNivel {
+  return {
+    nivelId: row.nivel_id,
+    filePath: row.file_path,
+    signedUrl,
+    xM: row.x_m,
+    zM: row.z_m,
+    widthM: row.width_m,
+    heightM: row.height_m,
+    opacidad: row.opacidad,
+  };
+}
+
+function imageSize(file: Blob): Promise<{ width: number; height: number }> {
+  return createImageBitmap(file).then((bmp) => {
+    const size = { width: bmp.width, height: bmp.height };
+    bmp.close?.();
+    return size;
+  });
+}
+
+/** Fondos de los niveles dados, por nivelId, con su URL firmada (5 min). */
+export async function getConstruccionFondos(nivelIds: string[]): Promise<Record<string, FondoNivel>> {
+  if (nivelIds.length === 0) return {};
+  const db = requireSupabase();
+  const { data, error } = await db.from("construccion_fondos").select("nivel_id, file_path, x_m, z_m, width_m, height_m, opacidad").in("nivel_id", nivelIds);
+  if (error) {
+    if (tablaFondosFaltante(error)) return {};
+    throw error;
+  }
+  const rows = (data ?? []) as FondoRow[];
+  if (rows.length === 0) return {};
+
+  const paths = rows.map((r) => r.file_path);
+  const { data: signed } = await db.storage.from(BUCKET_FONDOS).createSignedUrls(paths, FONDO_SIGNED_URL_TTL_S);
+  const urlByPath = new Map((signed ?? []).map((s, i) => [paths[i], s.signedUrl || null]));
+
+  const out: Record<string, FondoNivel> = {};
+  for (const r of rows) out[r.nivel_id] = toFondoNivel(r, urlByPath.get(r.file_path) ?? null);
+  return out;
+}
+
+/**
+ * Sube (o reemplaza) la imagen de fondo de un nivel. `widthM` es el ancho real
+ * que el asesor midió/estimó para la imagen completa; el alto sale solo de la
+ * proporción real de la imagen. Posición inicial: esquina superior izquierda
+ * en (0, 0) — se reacomoda arrastrándola en el plano.
+ */
+export async function upsertConstruccionFondo(input: { proyectoId: string; nivelId: string; file: File; widthM: number }): Promise<FondoNivel> {
+  const db = requireSupabase();
+  const comprimida = await compressImageFile(input.file);
+  const { width, height } = await imageSize(comprimida);
+  const heightM = input.widthM * (height / width);
+  const ext = (comprimida.name.split(".").pop() || "jpg").toLowerCase();
+  // Ruta fija por nivel (no por timestamp): un fondo nuevo reemplaza al anterior, no acumula archivos sueltos.
+  const path = `${input.proyectoId}/${input.nivelId}.${ext}`;
+
+  // compressImageFile no siempre reencoda a .jpg (si no logra reducir el tamaño deja el archivo
+  // original) — si la extensión cambió entre subidas, `upsert` no pisa la ruta vieja: queda huérfana
+  // si no se borra a mano.
+  const { data: previo } = await db.from("construccion_fondos").select("file_path").eq("nivel_id", input.nivelId).maybeSingle();
+  if (previo?.file_path && previo.file_path !== path) await db.storage.from(BUCKET_FONDOS).remove([previo.file_path]);
+
+  const { error: uploadError } = await db.storage
+    .from(BUCKET_FONDOS)
+    .upload(path, comprimida, { contentType: comprimida.type || "image/jpeg", upsert: true });
+  if (uploadError) {
+    if (tablaFondosFaltante(uploadError)) throw new Error(MSG_FALTA_TABLA_FONDOS);
+    throw uploadError;
+  }
+
+  const row = { proyecto_id: input.proyectoId, nivel_id: input.nivelId, file_path: path, x_m: 0, z_m: 0, width_m: input.widthM, height_m: heightM, opacidad: 0.5 };
+  const { data, error } = await db
+    .from("construccion_fondos")
+    .upsert(row, { onConflict: "nivel_id" })
+    .select("nivel_id, file_path, x_m, z_m, width_m, height_m, opacidad")
+    .single();
+  if (error) {
+    if (tablaFondosFaltante(error)) throw new Error(MSG_FALTA_TABLA_FONDOS);
+    throw error;
+  }
+  const { data: signed } = await db.storage.from(BUCKET_FONDOS).createSignedUrls([path], SIGNED_URL_TTL_S);
+  return toFondoNivel(data as FondoRow, signed?.[0]?.signedUrl || null);
+}
+
+export async function updateConstruccionFondo(
+  nivelId: string,
+  patch: Partial<{ xM: number; zM: number; widthM: number; heightM: number; opacidad: number }>,
+): Promise<void> {
+  const db = requireSupabase();
+  const payload: Partial<FondoRow> = {};
+  if (patch.xM !== undefined) payload.x_m = patch.xM;
+  if (patch.zM !== undefined) payload.z_m = patch.zM;
+  if (patch.widthM !== undefined) payload.width_m = patch.widthM;
+  if (patch.heightM !== undefined) payload.height_m = patch.heightM;
+  if (patch.opacidad !== undefined) payload.opacidad = patch.opacidad;
+  const { error } = await db.from("construccion_fondos").update(payload).eq("nivel_id", nivelId);
+  if (error) throw error;
+}
+
+export async function deleteConstruccionFondo(nivelId: string): Promise<void> {
+  const db = requireSupabase();
+  const { data: fondo } = await db.from("construccion_fondos").select("file_path").eq("nivel_id", nivelId).maybeSingle();
+  if (fondo?.file_path) await db.storage.from(BUCKET_FONDOS).remove([fondo.file_path]);
+  const { error } = await db.from("construccion_fondos").delete().eq("nivel_id", nivelId);
   if (error) throw error;
 }
 

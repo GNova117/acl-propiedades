@@ -73,6 +73,23 @@ export type Proyecto = {
   objetos: Objeto[];
 };
 
+/**
+ * Imagen de fondo de un nivel (plano escaneado, foto de un croquis…) para
+ * calcar encima. Se guarda aparte de `Nivel` (tabla propia, sin llave
+ * foránea con cascada hacia `nivel_id` — mismo motivo que FotoHabitacion:
+ * pushConstruccionProyecto borra y reinserta los niveles en cada guardado).
+ */
+export type FondoNivel = {
+  nivelId: string;
+  filePath: string;
+  signedUrl: string | null;
+  xM: number;
+  zM: number;
+  widthM: number;
+  heightM: number;
+  opacidad: number;
+};
+
 /** Foto de una habitación con su nota, para el reporte con membrete. */
 export type FotoHabitacion = {
   id: string;

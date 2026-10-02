@@ -2050,6 +2050,18 @@ export const localBackend = {
   async deleteConstruccionFotosDeHabitacion() {
     throw new Error("Construcción no está disponible en modo demo.");
   },
+  async getConstruccionFondos() {
+    throw new Error("Construcción no está disponible en modo demo.");
+  },
+  async upsertConstruccionFondo() {
+    throw new Error("Construcción no está disponible en modo demo.");
+  },
+  async updateConstruccionFondo() {
+    throw new Error("Construcción no está disponible en modo demo.");
+  },
+  async deleteConstruccionFondo() {
+    throw new Error("Construcción no está disponible en modo demo.");
+  },
 
   demoCredentials: DEMO_ADMIN,
 };
