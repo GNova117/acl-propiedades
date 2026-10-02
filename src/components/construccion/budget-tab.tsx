@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
-import { calcularPresupuesto, totalPresupuesto } from "../../lib/construccion/budget";
-import type { FuenteCantidad, MaterialCatalogItem, Proyecto } from "../../lib/construccion/types";
+import { calcularPresupuesto, presupuestoPorZona, totalPresupuesto } from "../../lib/construccion/budget";
+import { ZONAS } from "../../lib/construccion/objetos";
+import type { FuenteCantidad, MaterialCatalogItem, Proyecto, TipoHabitacion } from "../../lib/construccion/types";
 
 const FUENTE_LABEL: Record<FuenteCantidad, string> = {
   area_muro: "m² de muro",
@@ -34,6 +35,7 @@ export default function BudgetTab({ proyecto, catalogo, setCatalogo }: Props) {
     habitacion: h,
     lineas: calcularPresupuesto(h, catalogo),
   }));
+  const porZona = presupuestoPorZona(proyecto.habitaciones, catalogo);
   const granTotal = porHabitacion.reduce((sum, x) => sum + totalPresupuesto(x.lineas), 0);
   // Mismo cálculo de siempre — solo se muestra agrupado por nivel cuando hay más de uno, para que el
   // presupuesto de un edificio de varios pisos no sea una sola lista plana de cuartos.
@@ -56,6 +58,7 @@ export default function BudgetTab({ proyecto, catalogo, setCatalogo }: Props) {
                 <th>Se calcula por</th>
                 <th>Rendimiento</th>
                 <th>Precio unitario</th>
+                <th>Aplica a</th>
                 <th />
               </tr>
             </thead>
@@ -112,6 +115,32 @@ export default function BudgetTab({ proyecto, catalogo, setCatalogo }: Props) {
                     />
                   </td>
                   <td>
+                    <details className="construccion-usos">
+                      <summary>{m.usos?.length ? m.usos.map((u) => ZONAS.find((z) => z.id === u)?.nombre ?? u).join(", ") : "Todas las zonas"}</summary>
+                      <div className="construccion-usos__lista">
+                        {ZONAS.map((z) => (
+                          <label key={z.id}>
+                            <input
+                              type="checkbox"
+                              checked={m.usos?.includes(z.id) ?? false}
+                              onChange={(e) => {
+                                const actuales = m.usos ?? [];
+                                const usos: TipoHabitacion[] = e.target.checked ? [...actuales, z.id] : actuales.filter((u) => u !== z.id);
+                                updateItem(m.id, { usos });
+                              }}
+                            />
+                            {z.nombre}
+                          </label>
+                        ))}
+                        {m.usos?.length ? (
+                          <button type="button" className="construccion-panel__link-danger" onClick={() => updateItem(m.id, { usos: [] })}>
+                            quitar filtro (todas)
+                          </button>
+                        ) : null}
+                      </div>
+                    </details>
+                  </td>
+                  <td>
                     <button onClick={() => deleteItem(m.id)} className="construccion-panel__link-danger">
                       eliminar
                     </button>
@@ -125,6 +154,47 @@ export default function BudgetTab({ proyecto, catalogo, setCatalogo }: Props) {
           + Agregar material
         </button>
       </section>
+
+      {porZona.length > 1 && (
+        <section className="construccion-panel__section">
+          <h2 className="construccion-panel__heading">Presupuesto por tipo de zona</h2>
+          <div className="card admin-table-wrapper">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Zona</th>
+                  <th>m²</th>
+                  <th>Costo</th>
+                  <th>Costo por m²</th>
+                </tr>
+              </thead>
+              <tbody>
+                {porZona.map((z) => (
+                  <tr key={z.tipo}>
+                    <td>
+                      {z.nombre}
+                      {z.zonas > 1 ? ` (${z.zonas})` : ""}
+                    </td>
+                    <td>{z.areaM2.toFixed(2)}</td>
+                    <td>{peso(z.costo)}</td>
+                    <td>{z.areaM2 > 0 ? peso(z.costo / z.areaM2) : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colSpan={2}>
+                    <strong>Total</strong>
+                  </td>
+                  <td colSpan={2}>
+                    <strong>{peso(granTotal)}</strong>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </section>
+      )}
 
       <section>
         <div className="construccion-panel__section-header">

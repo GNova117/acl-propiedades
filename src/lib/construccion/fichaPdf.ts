@@ -4,7 +4,7 @@
 // Sustituye al exportFichaPdf plano (solo texto, sin membrete) que vivía en
 // export-plan.ts.
 import { polygonBounds, unionBounds, wallSegmentsFromPolygon, type Bounds } from "./geometry";
-import { calcularPresupuesto, totalPresupuesto } from "./budget";
+import { presupuestoPorZona, type ValorZona, calcularPresupuesto, totalPresupuesto } from "./budget";
 import { areasPorZona, estadisticasHabitacion, estadisticasProyecto } from "./stats";
 import type { FotoHabitacion, Habitacion, MaterialCatalogItem, Proyecto } from "./types";
 
@@ -112,6 +112,8 @@ export type FichaConstruccionMeta = {
   nivelAcabado: string;
   precioM2: number;
   valorEstimado: number;
+  /** Valor desglosado por tipo de zona (opcional). */
+  valorZonas?: ValorZona[];
   /** Mismo shape que devuelve getConstruccionFotos: habitacionId -> fotos (con signedUrl ya resuelta). */
   fotosPorHabitacion: Record<string, FotoHabitacion[]>;
 };
@@ -298,8 +300,17 @@ export async function buildFichaConstruccionPdf(meta: FichaConstruccionMeta, { t
   y -= LINE_HEIGHT * 0.5;
   await drawSubtitle("ESTIMACION DE VALOR Y PRESUPUESTO");
   await drawField("Nivel de acabados", `${meta.nivelAcabado} (${peso(meta.precioM2)}/m2)`);
+  if (meta.valorZonas && meta.valorZonas.length > 1) {
+    for (const z of meta.valorZonas) {
+      await drawRow(`${z.nombre}${z.zonas > 1 ? ` (${z.zonas})` : ""} - ${z.areaM2.toFixed(1)} m2 x ${peso(z.precioM2)}`, peso(z.valor));
+    }
+  }
   await drawRow("Valor estimado", peso(meta.valorEstimado), { boldLeft: true });
   const presupuestoTotal = proyecto.habitaciones.reduce((sum, h) => sum + totalPresupuesto(calcularPresupuesto(h, catalogo)), 0);
+  const costoZonas = presupuestoPorZona(proyecto.habitaciones, catalogo);
+  if (costoZonas.length > 1) {
+    for (const z of costoZonas) await drawRow(`Materiales: ${z.nombre}${z.zonas > 1 ? ` (${z.zonas})` : ""}`, peso(z.costo));
+  }
   await drawRow("Presupuesto de materiales", peso(presupuestoTotal), { boldLeft: true });
   await drawParagraph("Cifras de referencia para calibrar — desglose completo por material en el CSV exportable junto a este PDF.", { color: gray, size: 9 });
 

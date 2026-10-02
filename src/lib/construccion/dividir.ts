@@ -111,7 +111,7 @@ export function partirPoligono(puntos: Point[], a: Point, b: Point): [Point[], P
 }
 
 /** Lleva las puertas/ventanas de un cuarto a los muros equivalentes de las dos partes. */
-function repartirAberturas(aberturas: Abertura[], original: Point[], partes: Point[][]): Abertura[][] {
+export function repartirAberturas(aberturas: Abertura[], original: Point[], partes: Point[][]): Abertura[][] {
   const segsOriginal = wallSegmentsFromPolygon(original);
   const resultado: Abertura[][] = partes.map(() => []);
   for (const ab of aberturas) {

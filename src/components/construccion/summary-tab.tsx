@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { presupuestoPorZona, valorPorZona } from "../../lib/construccion/budget";
 import { db } from "../../lib/dataStore";
 import { NIVELES_ACABADO, calcularPresupuesto, totalPresupuesto } from "../../lib/construccion/budget";
 import { downloadFichaConstruccionPdf } from "../../lib/construccion/fichaPdf";
 import { downloadPresupuestoCsv } from "../../lib/construccion/exportCsv";
 import { describeSyncError } from "../../lib/construccion/sync";
 import { areasPorZona, estadisticasHabitacion, estadisticasProyecto } from "../../lib/construccion/stats";
-import type { FotoHabitacion, MaterialCatalogItem, Proyecto } from "../../lib/construccion/types";
+import type { FotoHabitacion, MaterialCatalogItem, Proyecto, TipoHabitacion } from "../../lib/construccion/types";
 
 const peso = (n: number) => `$${n.toLocaleString("es-MX", { maximumFractionDigits: 0 })}`;
 
@@ -18,6 +19,28 @@ export default function SummaryTab({ proyecto, catalogo }: Props) {
   const [nivelId, setNivelId] = useState(NIVELES_ACABADO[1].id);
   const [precioM2Override, setPrecioM2Override] = useState<number | null>(null);
   const [exportingPdf, setExportingPdf] = useState(false);
+  // Qué fracción del precio base vale cada uso de zona (solo se guarda en este navegador, por proyecto).
+  const clave = `construccion:factores-zona:${proyecto.id}`;
+  const [factores, setFactores] = useState<Partial<Record<TipoHabitacion, number>>>(() => {
+    try {
+      return JSON.parse(window.localStorage.getItem(clave) ?? "{}") as Partial<Record<TipoHabitacion, number>>;
+    } catch {
+      return {};
+    }
+  });
+  function guardarFactor(tipo: TipoHabitacion, factor: number | null) {
+    setFactores((f) => {
+      const next = { ...f };
+      if (factor === null) delete next[tipo];
+      else next[tipo] = factor;
+      try {
+        window.localStorage.setItem(clave, JSON.stringify(next));
+      } catch {
+        /* sin almacenamiento: el cambio vale solo mientras la pestaña esté abierta */
+      }
+      return next;
+    });
+  }
 
   const nivelAcabado = NIVELES_ACABADO.find((n) => n.id === nivelId) ?? NIVELES_ACABADO[1];
   const precioM2 = precioM2Override ?? nivelAcabado.precioM2;
@@ -27,7 +50,9 @@ export default function SummaryTab({ proyecto, catalogo }: Props) {
   // "Exterior") no vale lo mismo por m² que una recámara, así que no entra en este cálculo. Hasta
   // ahora esta pantalla sumaba todas las habitaciones por igual; con niveles ya es fácil separarlas.
   const areaTotalM2 = stats.construidaM2;
-  const valorEstimado = areaTotalM2 * precioM2;
+  const valorZonas = valorPorZona(proyecto.habitaciones, precioM2, factores);
+  const valorEstimado = valorZonas.reduce((sum, z) => sum + z.valor, 0);
+  const costoZonas = presupuestoPorZona(proyecto.habitaciones, catalogo);
   const presupuestoTotal = proyecto.habitaciones.reduce(
     (sum, h) => sum + totalPresupuesto(calcularPresupuesto(h, catalogo)),
     0,
@@ -44,6 +69,7 @@ export default function SummaryTab({ proyecto, catalogo }: Props) {
         nivelAcabado: nivelAcabado.nombre,
         precioM2,
         valorEstimado,
+        valorZonas,
         fotosPorHabitacion,
       });
     } catch (err) {
@@ -197,8 +223,53 @@ export default function SummaryTab({ proyecto, catalogo }: Props) {
               />
             </label>
           </div>
+          <table className="construccion-panel__plain-table">
+            <thead>
+              <tr>
+                <th>Zona</th>
+                <th className="construccion-panel__col-right">m²</th>
+                <th className="construccion-panel__col-right">% del precio</th>
+                <th className="construccion-panel__col-right">$/m²</th>
+                <th className="construccion-panel__col-right">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {valorZonas.map((z) => (
+                <tr key={z.tipo}>
+                  <td>
+                    {z.nombre}
+                    {z.zonas > 1 ? ` (${z.zonas})` : ""}
+                  </td>
+                  <td className="construccion-panel__col-right">{z.areaM2.toFixed(2)}</td>
+                  <td className="construccion-panel__col-right">
+                    <input
+                      key={`${z.tipo}-${z.factor}`}
+                      type="number"
+                      min={0}
+                      max={300}
+                      step={5}
+                      defaultValue={Math.round(z.factor * 100)}
+                      aria-label={`Porcentaje del precio para ${z.nombre}`}
+                      className="construccion-zonas__num"
+                      onBlur={(e) => {
+                        const v = Number(e.currentTarget.value);
+                        if (Number.isFinite(v) && v >= 0) guardarFactor(z.tipo, v / 100);
+                        else e.currentTarget.value = String(Math.round(z.factor * 100));
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") e.currentTarget.blur();
+                      }}
+                    />
+                    %
+                  </td>
+                  <td className="construccion-panel__col-right">{peso(z.precioM2)}</td>
+                  <td className="construccion-panel__col-right">{peso(z.valor)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
           <p className="construccion-panel__hint">
-            {areaTotalM2.toFixed(2)} m² construidos × {peso(precioM2)}/m²
+            Cada uso de zona vale una fracción del precio por m² (las áreas exteriores, 0% por defecto; cochera, bodega y pasillo, menos que una oficina). Ajusta los porcentajes a tu criterio.
           </p>
           <p className="construccion-panel__stat">{peso(valorEstimado)}</p>
           <p className="construccion-panel__disclaimer">
@@ -209,6 +280,22 @@ export default function SummaryTab({ proyecto, catalogo }: Props) {
         <section className="construccion-panel__section">
           <h2 className="construccion-panel__heading">Presupuesto de materiales</h2>
           <p className="construccion-panel__stat">{peso(presupuestoTotal)}</p>
+          {costoZonas.length > 1 && (
+            <table className="construccion-panel__plain-table">
+              <tbody>
+                {costoZonas.map((z) => (
+                  <tr key={z.tipo}>
+                    <td>
+                      {z.nombre}
+                      {z.zonas > 1 ? ` (${z.zonas})` : ""}
+                    </td>
+                    <td className="construccion-panel__col-right">{z.areaM2.toFixed(2)} m²</td>
+                    <td className="construccion-panel__col-right">{peso(z.costo)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
           <p className="construccion-panel__disclaimer">Suma de todas las habitaciones — desglose en la pestaña Presupuesto.</p>
         </section>
 

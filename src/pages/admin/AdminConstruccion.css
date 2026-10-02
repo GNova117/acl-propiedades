@@ -1022,3 +1022,36 @@
 .construccion-editor__sidebar > * {
   flex-shrink: 0;
 }
+
+.construccion-plantillas {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+.construccion-plantillas summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.construccion-plantillas__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.construccion-usos summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  max-width: 11rem;
+}
+.construccion-usos__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+}
+.construccion-usos__lista label {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}

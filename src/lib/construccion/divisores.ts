@@ -134,7 +134,7 @@ export function aplicarDivisor(habitaciones: Habitacion[], div: Divisor, d: numb
   return resultado;
 }
 
-function esRectangulo(h: Habitacion): { minX: number; maxX: number; minZ: number; maxZ: number } | null {
+export function esRectangulo(h: Habitacion): { minX: number; maxX: number; minZ: number; maxZ: number } | null {
   if (h.puntos.length !== 4) return null;
   const xs = h.puntos.map((p) => p.x);
   const zs = h.puntos.map((p) => p.z);

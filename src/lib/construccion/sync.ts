@@ -608,17 +608,28 @@ type CatalogoRow = {
   fuente: FuenteCantidad;
   factor: number;
   precio_unitario: number;
+  usos?: string[] | null;
+};
+
+// `usos` es una columna agregada después: si el bloque SQL todavía no se corrió, se trabaja sin ella.
+let catalogoTieneUsos = true;
+const columnaFaltante = (err: unknown) => {
+  const e = err as { code?: string; message?: string } | null;
+  return e?.code === "42703" || e?.code === "PGRST204" || /usos/.test(e?.message ?? "");
 };
 
 /** `null` si la tabla está vacía (todavía no se ha subido ningún catálogo). */
 export async function getConstruccionCatalogo(): Promise<MaterialCatalogItem[] | null> {
   const db = requireSupabase();
-  const { data, error } = await db
-    .from("construccion_catalogo_materiales")
-    .select("id, nombre, unidad, fuente, factor, precio_unitario")
-    .order("nombre", { ascending: true });
-  if (error) throw error;
-  const rows = (data ?? []) as CatalogoRow[];
+  const pedir = (columnas: string) => db.from("construccion_catalogo_materiales").select(columnas).order("nombre", { ascending: true });
+  let res = await pedir(catalogoTieneUsos ? "id, nombre, unidad, fuente, factor, precio_unitario, usos" : "id, nombre, unidad, fuente, factor, precio_unitario");
+  if (res.error && catalogoTieneUsos && columnaFaltante(res.error)) {
+    catalogoTieneUsos = false;
+    res = await pedir("id, nombre, unidad, fuente, factor, precio_unitario");
+  }
+  if (res.error) throw res.error;
+  const data = res.data as unknown;
+  const rows = ((data ?? []) as CatalogoRow[]);
   if (rows.length === 0) return null;
   return rows.map((m) => ({
     id: m.id,
@@ -627,6 +638,7 @@ export async function getConstruccionCatalogo(): Promise<MaterialCatalogItem[] |
     fuente: m.fuente,
     factor: m.factor,
     precioUnitario: m.precio_unitario,
+    usos: (m.usos ?? []).filter((u): u is TipoHabitacion => ZONAS.some((z) => z.id === u)),
   }));
 }
 
@@ -644,7 +656,7 @@ export async function pushConstruccionCatalogo(catalogo: MaterialCatalogItem[]):
   }
 
   if (catalogo.length > 0) {
-    const { error } = await db.from("construccion_catalogo_materiales").upsert(
+    const filas = (conUsos: boolean) =>
       catalogo.map((m) => ({
         id: m.id,
         nombre: m.nombre,
@@ -652,8 +664,13 @@ export async function pushConstruccionCatalogo(catalogo: MaterialCatalogItem[]):
         fuente: m.fuente,
         factor: m.factor,
         precio_unitario: m.precioUnitario,
-      })),
-    );
+        ...(conUsos ? { usos: m.usos ?? [] } : {}),
+      }));
+    let { error } = await db.from("construccion_catalogo_materiales").upsert(filas(catalogoTieneUsos));
+    if (error && catalogoTieneUsos && columnaFaltante(error)) {
+      catalogoTieneUsos = false;
+      ({ error } = await db.from("construccion_catalogo_materiales").upsert(filas(false)));
+    }
     if (error) throw error;
   }
 }

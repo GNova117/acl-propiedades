@@ -3469,3 +3469,10 @@ alter table construccion_sketch_usage enable row level security;
 drop policy if exists "Rol con apartado construccion usa sketch_usage" on construccion_sketch_usage;
 create policy "Rol con apartado construccion usa sketch_usage" on construccion_sketch_usage for all
   using (has_admin_section('construccion')) with check (has_admin_section('construccion'));
+
+-- ─────────────────────────────────────────────
+-- Construcción · materiales por tipo de zona (2026-10)
+-- `usos`: usos de zona a los que aplica un material (p. ej. {oficina,sala_juntas}); vacío o null = todas.
+-- Re-ejecutable. Si no se corre, el catálogo funciona igual (sin el filtro "Aplica a" guardado).
+-- ─────────────────────────────────────────────
+alter table construccion_catalogo_materiales add column if not exists usos text[] not null default '{}';

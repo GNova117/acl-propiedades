@@ -3,7 +3,8 @@ import { divisoresDe } from "../../lib/construccion/divisores";
 import { openPolylineSegments, polygonArea, snap, snapToAxes, wallSegmentsFromPolygon, type Point } from "../../lib/construccion/geometry";
 import { puntoDeCorte, puntoEnBorde } from "../../lib/construccion/dividir";
 import { zonaDe } from "../../lib/construccion/objetos";
-import type { FondoNivel, Habitacion, Objeto } from "../../lib/construccion/types";
+import { muroCercano } from "../../lib/construccion/aberturasMapa";
+import type { FondoNivel, Habitacion, Objeto, TipoAbertura } from "../../lib/construccion/types";
 import ObjetosLayer from "./plan-objetos";
 import PlanGrid from "./plan-grid";
 import { Cota } from "./plan-canvas-2d";
@@ -30,7 +31,16 @@ type Props = {
   /** true mientras el botón "Mover" del fondo está activo: el fondo se puede arrastrar. */
   fondoDraggable?: boolean;
   /** Herramienta activa: dibujar un contorno nuevo o dividir el cuarto seleccionado. */
-  tool?: "draw" | "split" | null;
+  tool?: "draw" | "split" | "opening" | "measure" | null;
+  /** Qué se pone con la herramienta "opening". */
+  openingTipo?: TipoAbertura;
+  onOpeningClick?: (p: Point) => void;
+  /** Puntos de la regla (0, 1 o 2) y su clic. */
+  medicion?: Point[];
+  onMeasureClick?: (p: Point) => void;
+  /** Abertura seleccionada (la que se edita en la barra de abajo) y cómo seleccionar otra. */
+  selectedAbertura?: { habId: string; id: string } | null;
+  onSelectAbertura?: (habId: string, id: string) => void;
   /** Puntos ya puestos del contorno que se está dibujando (herramienta "draw"). */
   draftPoints?: Point[];
   onDrawClick?: (p: Point) => void;
@@ -41,7 +51,7 @@ type Props = {
 };
 
 const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
-  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto, fondo, fondoDraggable, tool = null, draftPoints = [], onDrawClick, splitRoom = null, splitFrom = null, onSplitClick },
+  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto, fondo, fondoDraggable, tool = null, draftPoints = [], onDrawClick, splitRoom = null, splitFrom = null, onSplitClick, openingTipo = "puerta", onOpeningClick, medicion = [], onMeasureClick, selectedAbertura = null, onSelectAbertura },
   ref,
 ) {
   const [cursor, setCursor] = useState<Point | null>(null);
@@ -56,8 +66,34 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
     return snapToAxes(snapped, draftPoints, ALIGN_TOLERANCE_PX * vp.mpp);
   }
 
+  // La regla se pega a las esquinas de las zonas (a 14 px) y, si no, al imán de 5 cm.
+  function toMeasurePoint(svg: SVGSVGElement, clientX: number, clientY: number): Point {
+    const raw = svgPoint(svg, clientX, clientY);
+    const tol = 14 * vp.mpp;
+    let mejor: Point | null = null;
+    let mejorD = tol;
+    for (const h of habitaciones) {
+      for (const p of h.puntos) {
+        const d = Math.hypot(p.x - raw.x, p.z - raw.z);
+        if (d < mejorD) {
+          mejorD = d;
+          mejor = p;
+        }
+      }
+    }
+    return mejor ?? { x: snap(raw.x, VERTEX_GRID_M), z: snap(raw.z, VERTEX_GRID_M) };
+  }
+
   function handleClick(e: React.MouseEvent<SVGSVGElement>) {
     if (vp.consumeClick() || drag.consumeClick()) return;
+    if (tool === "opening" && onOpeningClick) {
+      onOpeningClick(svgPoint(e.currentTarget, e.clientX, e.clientY));
+      return;
+    }
+    if (tool === "measure" && onMeasureClick) {
+      onMeasureClick(toMeasurePoint(e.currentTarget, e.clientX, e.clientY));
+      return;
+    }
     if (tool === "draw" && onDrawClick) {
       onDrawClick(toDrawPoint(e.currentTarget, e.clientX, e.clientY));
       return;
@@ -85,7 +121,8 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
       onClick={handleClick}
       onMouseMove={(e) => {
         if (tool === "draw") setCursor(toDrawPoint(e.currentTarget, e.clientX, e.clientY));
-        else if (tool === "split") setCursor(svgPoint(e.currentTarget, e.clientX, e.clientY));
+        else if (tool === "split" || tool === "opening") setCursor(svgPoint(e.currentTarget, e.clientX, e.clientY));
+        else if (tool === "measure") setCursor(toMeasurePoint(e.currentTarget, e.clientX, e.clientY));
       }}
       onMouseLeave={() => setCursor(null)}
       onPointerDown={vp.handlers.onPointerDown}
@@ -156,16 +193,35 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
                   .map((ab) => {
                     const t0 = Math.max(0, (ab.offsetM - ab.anchoM / 2) / seg.length);
                     const t1 = Math.min(1, (ab.offsetM + ab.anchoM / 2) / seg.length);
+                    const x1 = seg.start.x + (seg.end.x - seg.start.x) * t0;
+                    const y1 = seg.start.z + (seg.end.z - seg.start.z) * t0;
+                    const x2 = seg.start.x + (seg.end.x - seg.start.x) * t1;
+                    const y2 = seg.start.z + (seg.end.z - seg.start.z) * t1;
+                    const esSel = selectedAbertura?.id === ab.id;
                     return (
-                      <line
-                        key={ab.id}
-                        x1={seg.start.x + (seg.end.x - seg.start.x) * t0}
-                        y1={seg.start.z + (seg.end.z - seg.start.z) * t0}
-                        x2={seg.start.x + (seg.end.x - seg.start.x) * t1}
-                        y2={seg.start.z + (seg.end.z - seg.start.z) * t1}
-                        stroke={ab.tipo === "puerta" ? "#b45309" : "#0369a1"}
-                        strokeWidth={WALL_THICKNESS_M * 0.9}
-                      />
+                      <g key={ab.id}>
+                        {esSel && <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#2563eb" strokeOpacity={0.4} strokeWidth={WALL_THICKNESS_M * 2.6} strokeLinecap="round" />}
+                        <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={ab.tipo === "puerta" ? "#b45309" : "#0369a1"} strokeWidth={WALL_THICKNESS_M * 0.9} />
+                        {!blocked && onSelectAbertura && (
+                          <line
+                            className="construccion-plan-ui"
+                            x1={x1}
+                            y1={y1}
+                            x2={x2}
+                            y2={y2}
+                            stroke="transparent"
+                            strokeWidth={12 * vp.mpp}
+                            pointerEvents="stroke"
+                            style={{ cursor: "pointer" }}
+                            onPointerDown={(e) => {
+                              e.stopPropagation();
+                              onSelectRoom(hab.id);
+                              onSelectObjeto(null);
+                              onSelectAbertura(hab.id, ab.id);
+                            }}
+                          />
+                        )}
+                      </g>
                     );
                   })}
               </g>
@@ -257,6 +313,40 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
           ))}
         </g>
       )}
+
+      {tool === "opening" && cursor && (() => {
+        const muro = muroCercano(habitaciones, cursor, Math.max(0.3, PICK_TOLERANCE_PX * vp.mpp));
+        if (!muro) return null;
+        return (
+          <g className="construccion-plan-ui" pointerEvents="none">
+            <circle cx={muro.point.x} cy={muro.point.z} r={7 * vp.mpp} fill={openingTipo === "puerta" ? "#b45309" : "#0369a1"} stroke="#ffffff" strokeWidth={2} vectorEffect="non-scaling-stroke" />
+          </g>
+        );
+      })()}
+
+      {tool === "measure" && (medicion.length > 0 || cursor) && (() => {
+        const a = medicion[0] ?? cursor;
+        const b = medicion.length >= 2 ? medicion[1] : medicion.length === 1 ? cursor : null;
+        const punto = (p: Point) => <circle cx={p.x} cy={p.z} r={5 * vp.mpp} fill="#7c3aed" stroke="#ffffff" strokeWidth={2} vectorEffect="non-scaling-stroke" />;
+        if (!a) return null;
+        if (!b || (b.x === a.x && b.z === a.z)) return <g className="construccion-plan-ui" pointerEvents="none">{punto(a)}</g>;
+        const d = Math.hypot(b.x - a.x, b.z - a.z);
+        return (
+          <g className="construccion-plan-ui" pointerEvents="none">
+            <line x1={a.x} y1={a.z} x2={b.x} y2={a.z} stroke="#c4b5fd" strokeWidth={1.5} strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
+            <line x1={b.x} y1={a.z} x2={b.x} y2={b.z} stroke="#c4b5fd" strokeWidth={1.5} strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
+            <line x1={a.x} y1={a.z} x2={b.x} y2={b.z} stroke="#7c3aed" strokeWidth={2.5} vectorEffect="non-scaling-stroke" />
+            {punto(a)}
+            {punto(b)}
+            <text x={(a.x + b.x) / 2} y={(a.z + b.z) / 2 - 10 * vp.mpp} fontSize={14 * vp.mpp} fontWeight={700} fill="#6d28d9" textAnchor="middle" stroke="#ffffff" strokeWidth={3 * vp.mpp} paintOrder="stroke">
+              {d.toFixed(2)} m
+            </text>
+            <text x={(a.x + b.x) / 2} y={(a.z + b.z) / 2 + 8 * vp.mpp} fontSize={11 * vp.mpp} fill="#6d28d9" textAnchor="middle" stroke="#ffffff" strokeWidth={3 * vp.mpp} paintOrder="stroke">
+              Δx {Math.abs(b.x - a.x).toFixed(2)} · Δz {Math.abs(b.z - a.z).toFixed(2)}
+            </text>
+          </g>
+        );
+      })()}
 
       {tool === "split" && splitRoom && (
         <g className="construccion-plan-ui" pointerEvents="none">

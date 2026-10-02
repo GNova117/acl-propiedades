@@ -4,6 +4,8 @@ import PlanMap2D from "./plan-map-2d";
 import ObjetosPalette from "./objetos-palette";
 import ZonasPanel from "./zonas-panel";
 import MurosTabla from "./muros-tabla";
+import { agregarAberturaEnMapa, actualizarAberturaEnMapa, quitarAberturaEnMapa } from "../../lib/construccion/aberturasMapa";
+import { PLANTILLAS, aplicarPlantilla } from "../../lib/construccion/plantillas";
 import { murosDeContorno, moverVerticesLigados, rectanguloPuntos, setGiroContorno, setLargoContorno } from "../../lib/construccion/contorno";
 import { aplicarDivisor, cambiarMedidaZona } from "../../lib/construccion/divisores";
 import { usePlanDrag } from "./plan-drag";
@@ -131,6 +133,16 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
 
   // Contorno y división en "Plano completo": se dibuja el área de la casa y luego se parte en cuartos.
   const [mapDrawing, setMapDrawing] = useState(false);
+  // Herramientas de "Plano completo" que se suman a dibujar/dividir: poner puertas o ventanas con un clic
+  // sobre cualquier muro, y una regla de dos clics para comprobar una distancia.
+  const [herramienta, setHerramientaState] = useState<"puerta" | "ventana" | "regla" | null>(null);
+  const [medicion, setMedicion] = useState<Point[]>([]);
+  const [herrMsg, setHerrMsg] = useState<string | null>(null);
+  const [selAbertura, setSelAbertura] = useState<{ habId: string; id: string } | null>(null);
+  const [plantillaId, setPlantillaId] = useState(PLANTILLAS[0].id);
+  const [plantillaN, setPlantillaN] = useState<Record<string, number>>({});
+  const [plantillaGirar, setPlantillaGirar] = useState(false);
+  const [plantillaMsg, setPlantillaMsg] = useState<string | null>(null);
   const [panelTab, setPanelTab] = useState<"zonas" | "muros">("zonas");
   const [rectAncho, setRectAncho] = useState("");
   const [rectLargo, setRectLargo] = useState("");
@@ -159,7 +171,18 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   const splitRoom = isMap && splitting && selected && selected.nivelId === selectedNivelId ? selected : null;
   // El primer clic del corte solo vale mientras siga seleccionado el mismo cuarto.
   const splitFrom = splitFromState && splitFromState.roomId === selectedId ? splitFromState.point : null;
-  const mapTool = isMap ? (mapDrawing ? "draw" : splitRoom ? "split" : null) : null;
+  const mapTool = isMap
+    ? mapDrawing
+      ? "draw"
+      : splitRoom
+        ? "split"
+        : herramienta === "regla"
+          ? "measure"
+          : herramienta
+            ? "opening"
+            : null
+    : null;
+  const abSel = selAbertura && isMap ? proyecto.habitaciones.find((h) => h.id === selAbertura.habId)?.aberturas.find((a) => a.id === selAbertura.id) ?? null : null;
   const selectedObjeto = proyecto.objetos.find((o) => o.id === selectedObjetoId) ?? null;
   const objetosDeSelected = selected ? proyecto.objetos.filter((o) => o.habitacionId === selected.id) : [];
   // "Plano completo" muestra un nivel a la vez (cada piso es su propio plano) — el edificio entero
@@ -232,6 +255,8 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   function pickObjeto(defId: string | null) {
     setPlacing(defId);
     if (defId) {
+      setHerramientaState(null);
+      setMedicion([]);
       setSelectedObjetoId(null);
       setView("2d");
     }
@@ -306,6 +331,9 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
         setPlacing(null);
         setSplitting(false);
         setSplitFromState(null);
+        setHerramientaState(null);
+        setMedicion([]);
+        setHerrMsg(null);
       }
       else if ((e.key === "Delete" || e.key === "Backspace") && selectedObjetoId) {
         e.preventDefault();
@@ -347,6 +375,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
 
   /** "Dibujar contorno" en Plano completo: se traza el área y después se divide en cuartos. */
   function startMapDrawing() {
+    setHerramienta(null);
     setSelectedId(null);
     setSelectedObjetoId(null);
     setPlacing(null);
@@ -363,7 +392,56 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
     setDraftPoints([]);
   }
 
+  function setHerramienta(h: "puerta" | "ventana" | "regla" | null) {
+    setHerramientaState(h);
+    setHerrMsg(null);
+    setMedicion([]);
+    if (h) {
+      setSplitting(false);
+      setSplitFromState(null);
+      setPlacing(null);
+      setView("2d");
+    }
+  }
+
+  function handleOpeningClick(p: Point) {
+    if (herramienta !== "puerta" && herramienta !== "ventana") return;
+    const res = agregarAberturaEnMapa(proyecto, selectedNivelId, p, herramienta, Math.max(0.3, 24 * vp.mpp));
+    if (!res) {
+      setHerrMsg("Haz clic sobre un muro.");
+      return;
+    }
+    setHerrMsg(null);
+    setProyecto(() => res.proyecto);
+    setSelAbertura(res.seleccion);
+    setSelectedId(res.seleccion.habId);
+  }
+
+  function handleMeasureClick(p: Point) {
+    setMedicion((m) => (m.length >= 2 ? [p] : [...m, p]));
+  }
+
+  function aplicarPlantillaASeleccion() {
+    const plantilla = PLANTILLAS.find((x) => x.id === plantillaId);
+    if (!plantilla || !selected) {
+      setPlantillaMsg("Elige primero la zona que quieres repartir.");
+      return;
+    }
+    const n = plantillaN[plantilla.id] ?? plantilla.param?.def ?? 0;
+    const res = aplicarPlantilla(proyecto, selected.id, plantilla, n, plantillaGirar);
+    if ("error" in res) {
+      setPlantillaMsg(res.error);
+      return;
+    }
+    setPlantillaMsg(null);
+    setProyecto(() => res.proyecto);
+    setSelectedId(res.ids[0]);
+    vp.fit();
+  }
+
   function toggleSplit() {
+    setHerramientaState(null);
+    setMedicion([]);
     setSplitMsg(null);
     setSplitFromState(null);
     setPlacing(null);
@@ -468,6 +546,8 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   }
 
   function selectNivel(id: string) {
+    setHerramientaState(null);
+    setMedicion([]);
     setMapDrawing(false);
     setSplitting(false);
     setSplitFromState(null);
@@ -757,6 +837,8 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
           <button
             onClick={() => {
               setMode("cuarto");
+              setHerramientaState(null);
+              setMedicion([]);
               setMapDrawing(false);
               setSplitting(false);
               setSplitFromState(null);
@@ -802,6 +884,74 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                 {splitRoom ? "Cancelar corte" : "Dividir cuarto"}
               </button>
             </div>
+            {!mapDrawing && (
+              <div className="construccion-areas__row">
+                {(["puerta", "ventana", "regla"] as const).map((h) => (
+                  <button
+                    key={h}
+                    type="button"
+                    className={`btn btn-sm ${herramienta === h ? "btn-primary" : "btn-outline"}`}
+                    onClick={() => setHerramienta(herramienta === h ? null : h)}
+                    title={h === "regla" ? "Mide la distancia entre dos puntos del plano (se pega a las esquinas)" : `Un clic sobre cualquier muro pone ${h === "puerta" ? "una puerta" : "una ventana"}; si el muro es compartido, queda de los dos lados`}
+                  >
+                    {h === "puerta" ? "Puerta" : h === "ventana" ? "Ventana" : "Regla"}
+                  </button>
+                ))}
+              </div>
+            )}
+            {herramienta === "regla" && (
+              <p className="construccion-panel__hint">
+                {medicion.length === 1 ? "Haz clic en el segundo punto." : medicion.length === 2 ? "Otro clic empieza una medición nueva. Esc termina." : "Haz clic en el primer punto (se pega a las esquinas). Esc termina."}
+              </p>
+            )}
+            {(herramienta === "puerta" || herramienta === "ventana") && (
+              <p className={herrMsg ? "construccion__error" : "construccion-panel__hint"}>
+                {herrMsg ?? `Haz clic sobre un muro para poner ${herramienta === "puerta" ? "una puerta" : "una ventana"}; toca una ya puesta para editarla. Esc termina.`}
+              </p>
+            )}
+            {!mapDrawing && (
+              <details className="construccion-plantillas">
+                <summary>Plantillas de distribución</summary>
+                {(() => {
+                  const plantilla = PLANTILLAS.find((x) => x.id === plantillaId) ?? PLANTILLAS[0];
+                  return (
+                    <div className="construccion-plantillas__body">
+                      <select value={plantilla.id} onChange={(e) => setPlantillaId(e.target.value)} className="construccion-editor__abertura-select" aria-label="Plantilla">
+                        {PLANTILLAS.map((x) => (
+                          <option key={x.id} value={x.id}>
+                            {x.nombre}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="construccion-panel__hint">{plantilla.descripcion}</p>
+                      {plantilla.param && (
+                        <label className="construccion-editor__abertura-label">
+                          {plantilla.param.etiqueta}
+                          <input
+                            type="number"
+                            min={plantilla.param.min}
+                            max={plantilla.param.max}
+                            step={1}
+                            value={plantillaN[plantilla.id] ?? plantilla.param.def}
+                            onChange={(e) => setPlantillaN((m) => ({ ...m, [plantilla.id]: Math.min(plantilla.param!.max, Math.max(plantilla.param!.min, Math.round(Number(e.target.value)) || plantilla.param!.def)) }))}
+                            className="construccion-editor__abertura-input"
+                          />
+                        </label>
+                      )}
+                      <label className="construccion-editor__checkbox">
+                        <input type="checkbox" checked={plantillaGirar} onChange={(e) => setPlantillaGirar(e.target.checked)} />
+                        Girar 90°
+                      </label>
+                      <button type="button" className="btn btn-outline btn-sm" onClick={aplicarPlantillaASeleccion} disabled={!selected}>
+                        {selected ? `Aplicar a «${selected.nombre}»` : "Elige una zona"}
+                      </button>
+                      {plantillaMsg && <p className="construccion__error">{plantillaMsg}</p>}
+                      <p className="construccion-panel__hint">Reemplaza la zona elegida (debe ser un rectángulo). Después ajustas arrastrando las divisorias.</p>
+                    </div>
+                  );
+                })()}
+              </details>
+            )}
             {!mapDrawing && (
               <form
                 className="construccion-areas__row construccion-areas__medida"
@@ -1197,6 +1347,15 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               splitRoom={splitRoom}
               splitFrom={splitFrom}
               onSplitClick={handleSplitClick}
+              openingTipo={herramienta === "ventana" ? "ventana" : "puerta"}
+              onOpeningClick={handleOpeningClick}
+              medicion={medicion}
+              onMeasureClick={handleMeasureClick}
+              selectedAbertura={selAbertura}
+              onSelectAbertura={(habId, id) => {
+                setSelAbertura({ habId, id });
+                setSelectedObjetoId(null);
+              }}
             />
           ) : (
             <PlanCanvas2D
@@ -1316,6 +1475,52 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                 </>
               )}
             </div>
+            {abSel && selAbertura && isMap && !selectedObjeto && (
+              <div className="construccion-editor__aberturas">
+                <p className="construccion-editor__aberturas-hint">
+                  {abSel.tipo === "puerta" ? "Puerta" : "Ventana"} seleccionada — los cambios se aplican también del otro lado si el muro es compartido
+                </p>
+                <div className="construccion-editor__abertura-row">
+                  <select
+                    value={abSel.tipo}
+                    onChange={(e) => {
+                      const tipo = e.target.value as TipoAbertura;
+                      setProyecto((pr) => actualizarAberturaEnMapa(pr, selAbertura.habId, selAbertura.id, { tipo, ...ABERTURA_DEFAULTS[tipo] }));
+                    }}
+                    className="construccion-editor__abertura-select"
+                  >
+                    <option value="puerta">Puerta</option>
+                    <option value="ventana">Ventana</option>
+                  </select>
+                  {([["anchoM", "ancho", 0.3], ["altoM", "alto", 0.3], ["altoDesdePisoM", "desde piso", 0]] as const).map(([campo, etiqueta, min]) => (
+                    <label key={campo} className="construccion-editor__abertura-label">
+                      {etiqueta}
+                      <input
+                        type="number"
+                        step={0.1}
+                        min={min}
+                        value={abSel[campo]}
+                        onChange={(e) => {
+                          const v = Number(e.target.value);
+                          if (Number.isFinite(v) && v >= min) setProyecto((pr) => actualizarAberturaEnMapa(pr, selAbertura.habId, selAbertura.id, { [campo]: v }));
+                        }}
+                        className="construccion-editor__abertura-input"
+                      />
+                      m
+                    </label>
+                  ))}
+                  <button
+                    onClick={() => {
+                      setProyecto((pr) => quitarAberturaEnMapa(pr, selAbertura.habId, selAbertura.id));
+                      setSelAbertura(null);
+                    }}
+                    className="construccion-editor__abertura-delete"
+                  >
+                    eliminar
+                  </button>
+                </div>
+              </div>
+            )}
             {selectedObjeto && (
               <div className="construccion-editor__aberturas">
                 <p className="construccion-editor__aberturas-hint">

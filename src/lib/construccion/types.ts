@@ -123,4 +123,6 @@ export type MaterialCatalogItem = {
   /** Cantidad de `unidad` requerida por cada unidad de `fuente` (m² o m). */
   factor: number;
   precioUnitario: number;
+  /** Usos de zona a los que aplica (p. ej. solo oficinas). Vacío o ausente = todas las zonas. */
+  usos?: TipoHabitacion[];
 };
