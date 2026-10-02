@@ -83,6 +83,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100vh;
 }
 
 .admin-layout__topbar {
@@ -103,6 +104,8 @@
 .admin-layout__content {
   padding: 1.75rem;
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .admin-layout__group-toggle {
