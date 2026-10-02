@@ -1,10 +1,11 @@
 import { forwardRef, useState } from "react";
-import { polygonArea, snap, snapToAxes, wallSegmentsFromPolygon, type Point } from "../../lib/construccion/geometry";
+import { openPolylineSegments, polygonArea, snap, snapToAxes, wallSegmentsFromPolygon, type Point } from "../../lib/construccion/geometry";
 import { puntoDeCorte, puntoEnBorde } from "../../lib/construccion/dividir";
 import { zonaDe } from "../../lib/construccion/objetos";
 import type { FondoNivel, Habitacion, Objeto } from "../../lib/construccion/types";
 import ObjetosLayer from "./plan-objetos";
 import PlanGrid from "./plan-grid";
+import { Cota } from "./plan-canvas-2d";
 import { OBJ_GRID_M, VERTEX_GRID_M, svgPoint, type usePlanDrag } from "./plan-drag";
 import type { PlanViewport } from "./use-plan-viewport";
 
@@ -192,6 +193,15 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
       />
       {tool === "draw" && (
         <g className="construccion-plan-ui" pointerEvents="none">
+          {draftPoints.length >= 3 && (
+            <polygon points={draftPoints.map((p) => `${p.x},${p.z}`).join(" ")} fill="#3b82f6" fillOpacity={0.12} stroke="none" />
+          )}
+          {openPolylineSegments(draftPoints).map((seg, i) => (
+            <Cota key={`c${i}`} segment={seg} mpp={vp.mpp} />
+          ))}
+          {cursor && draftPoints.length > 0 && Math.hypot(cursor.x - draftPoints[draftPoints.length - 1].x, cursor.z - draftPoints[draftPoints.length - 1].z) > 0.05 && (
+            <Cota segment={openPolylineSegments([draftPoints[draftPoints.length - 1], cursor])[0]} mpp={vp.mpp} />
+          )}
           {draftPoints.length >= 2 &&
             draftPoints.slice(1).map((p, i) => (
               <line key={i} x1={draftPoints[i].x} y1={draftPoints[i].z} x2={p.x} y2={p.z} stroke="#3f3f46" strokeWidth={WALL_THICKNESS_M} strokeLinecap="square" />

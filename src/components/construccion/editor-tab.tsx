@@ -904,6 +904,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               <span className="construccion-editor__hint-text">
                 Clic para poner puntos (se alinean solos) o teclea el largo de cada muro
                 {draftPoints.length > 0 ? ` · ${draftPoints.length} punto(s)` : ""}
+                {draftPoints.length >= 3 ? ` · ${polygonArea(draftPoints).toFixed(2)} m²` : ""}
               </span>
               <form
                 className="construccion-editor__measure"

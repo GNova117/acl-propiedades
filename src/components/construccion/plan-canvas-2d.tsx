@@ -21,7 +21,7 @@ const ALIGN_TOLERANCE_PX = 10;
 const LABEL_PX = 12;
 const HANDLE_PX = 7;
 
-function Cota({ segment, mpp }: { segment: WallSegment; mpp: number }) {
+export function Cota({ segment, mpp }: { segment: WallSegment; mpp: number }) {
   const nx = -Math.sin(segment.angle);
   const nz = Math.cos(segment.angle);
   const label = `${segment.length.toFixed(2)} m`;
@@ -265,6 +265,12 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
       {guides.map((g, i) => (
         <line key={`g${i}`} x1={g.x1} y1={g.z1} x2={g.x2} y2={g.z2} stroke="#16a34a" strokeWidth={1} strokeDasharray="4 4" vectorEffect="non-scaling-stroke" pointerEvents="none" />
       ))}
+
+      {drawing && cursor && points.length > 0 && Math.hypot(cursor.x - points[points.length - 1].x, cursor.z - points[points.length - 1].z) > 0.05 && (
+        <g pointerEvents="none">
+          <Cota segment={openPolylineSegments([points[points.length - 1], cursor])[0]} mpp={mpp} />
+        </g>
+      )}
 
       {drawing && cursor && points.length > 0 && (
         <line
