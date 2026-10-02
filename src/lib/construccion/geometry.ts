@@ -164,3 +164,118 @@ export function snapBoundsToNeighbors(moving: Bounds, others: Bounds[], toleranc
   }
   return { dx: bestDx, dz: bestDz };
 }
+
+// ─────────────────────────────────────────────
+// Medidas exactas: edición numérica de muros y vértices.
+// ─────────────────────────────────────────────
+
+const round4 = (v: number) => Math.round(v * 10_000) / 10_000;
+const roundPoint = (p: Point): Point => ({ x: round4(p.x), z: round4(p.z) });
+
+/**
+ * Cambia el largo del muro `i` (de `points[i]` a `points[i+1]`) a `newLength` m, moviéndolo hacia
+ * su extremo final. Si el muro siguiente forma un ángulo recto con él (lo normal en cuartos y en
+ * casas en "L"), se traslada ese muro completo en lugar de solo su vértice: así los ángulos rectos
+ * se conservan y el muro de enfrente se ajusta solo (un rectángulo sigue siendo rectángulo). Si no
+ * hay ángulo recto (o es un triángulo) solo se mueve el vértice final.
+ */
+export function setWallLength(points: Point[], i: number, newLength: number): Point[] {
+  const n = points.length;
+  if (n < 2 || !(newLength > 0) || i < 0 || i >= n) return points;
+  const a = points[i];
+  const j = (i + 1) % n;
+  const b = points[j];
+  const len = Math.hypot(b.x - a.x, b.z - a.z);
+  if (len < 1e-9) return points;
+
+  const ux = (b.x - a.x) / len;
+  const uz = (b.z - a.z) / len;
+  const dx = ux * (newLength - len);
+  const dz = uz * (newLength - len);
+
+  const k = (j + 1) % n;
+  const c = points[k];
+  const nextLen = Math.hypot(c.x - b.x, c.z - b.z);
+  const rightAngle = n >= 4 && nextLen > 1e-9 && Math.abs((ux * (c.x - b.x) + uz * (c.z - b.z)) / nextLen) < 0.02;
+
+  return points.map((p, idx) => (idx === j || (rightAngle && idx === k) ? roundPoint({ x: p.x + dx, z: p.z + dz }) : p));
+}
+
+export function moveVertex(points: Point[], i: number, to: Point): Point[] {
+  if (i < 0 || i >= points.length) return points;
+  return points.map((p, idx) => (idx === i ? roundPoint(to) : p));
+}
+
+/**
+ * "Dibujar por medidas": agrega un muro de `lengthM` m a una polilínea abierta, girando `turnDeg`
+ * grados respecto al muro anterior (+ = a la derecha en la pantalla, − = a la izquierda). El primer
+ * muro va hacia el este desde `start`. Es como se captura en campo con un láser o una cinta: largo,
+ * giro, largo, giro…
+ */
+export function appendByMeasure(points: Point[], lengthM: number, turnDeg: number, start: Point = { x: 1, z: 1 }): Point[] {
+  if (!(lengthM > 0)) return points;
+  if (points.length <= 1) {
+    const origin = points[0] ?? start;
+    return [origin, roundPoint({ x: origin.x + lengthM, z: origin.z })];
+  }
+  const a = points[points.length - 2];
+  const b = points[points.length - 1];
+  const heading = Math.atan2(b.z - a.z, b.x - a.x) + (turnDeg * Math.PI) / 180;
+  return [...points, roundPoint({ x: b.x + Math.cos(heading) * lengthM, z: b.z + Math.sin(heading) * lengthM })];
+}
+
+/** Distancia del último punto al primero: cuánto "falta" para cerrar la figura. */
+export function closingGap(points: Point[]): number {
+  if (points.length < 3) return 0;
+  const first = points[0];
+  const last = points[points.length - 1];
+  return Math.hypot(last.x - first.x, last.z - first.z);
+}
+
+/** Alinea `p` con los ejes (misma x o misma z) de los puntos de referencia que estén a menos de `tol` m. */
+export function snapToAxes(p: Point, refs: Point[], tol: number): Point {
+  let x = p.x;
+  let z = p.z;
+  let bestX = tol;
+  let bestZ = tol;
+  for (const r of refs) {
+    const dx = Math.abs(p.x - r.x);
+    if (dx < bestX) {
+      bestX = dx;
+      x = r.x;
+    }
+    const dz = Math.abs(p.z - r.z);
+    if (dz < bestZ) {
+      bestZ = dz;
+      z = r.z;
+    }
+  }
+  return { x, z };
+}
+
+/** Recorta las aberturas de una habitación para que sigan cabiendo en sus muros tras editar la geometría. */
+export function clampOpeningsToWalls<T extends { segmentIndex: number; offsetM: number; anchoM: number }>(
+  points: Point[],
+  openings: T[],
+): T[] {
+  const segs = wallSegmentsFromPolygon(points);
+  return openings.map((o) => {
+    const seg = segs[o.segmentIndex];
+    if (!seg) return o;
+    const ancho = Math.min(o.anchoM, Math.max(seg.length - 0.1, 0.1));
+    const half = ancho / 2;
+    const offsetM = Math.min(Math.max(o.offsetM, half), Math.max(seg.length - half, half));
+    return ancho === o.anchoM && offsetM === o.offsetM ? o : { ...o, anchoM: ancho, offsetM };
+  });
+}
+
+/** Caja que encierra varias cajas; null si no hay ninguna. */
+export function unionBounds(boxes: Bounds[]): Bounds | null {
+  if (boxes.length === 0) return null;
+  return {
+    minX: Math.min(...boxes.map((b) => b.minX)),
+    maxX: Math.max(...boxes.map((b) => b.maxX)),
+    minZ: Math.min(...boxes.map((b) => b.minZ)),
+    maxZ: Math.max(...boxes.map((b) => b.maxZ)),
+  };
+}

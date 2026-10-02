@@ -2,8 +2,9 @@
 // nunca llaman a `supabase` directo, igual que cada otro dominio de este backend.
 import { supabase } from "../supabaseClient";
 import { wallSegmentsFromPolygon, type Point } from "./geometry";
-import type { Abertura, FuenteCantidad, Habitacion, MaterialCatalogItem, Objeto, Proyecto, TipoAbertura, TipoHabitacion } from "./types";
+import type { Abertura, FuenteCantidad, Habitacion, MaterialCatalogItem, Nivel, Objeto, Proyecto, TipoAbertura, TipoHabitacion } from "./types";
 import { ZONAS } from "./objetos";
+import { normalizarNiveles } from "./niveles";
 
 const DEFAULT_ESPESOR_M = 0.15;
 
@@ -24,8 +25,11 @@ type AberturaRow = {
   alto_desde_piso: number;
 };
 
+type NivelRow = { id: string; nombre: string; orden: number };
+
 type ObjetoRow = {
   id: string;
+  nivel_id?: string | null;
   habitacion_id: string | null;
   tipo: string;
   x: number;
@@ -44,17 +48,37 @@ function tablaObjetosFaltante(err: unknown): boolean {
 const MSG_FALTA_TABLA_OBJETOS =
   "Falta crear la tabla construccion_objetos en Supabase (corre el bloque de objetos de supabase/schema.sql) para guardar los muebles.";
 
-async function fetchObjetos(db: NonNullable<typeof supabase>, proyectoId: string): Promise<Objeto[]> {
+function tablaNivelesFaltante(err: unknown): boolean {
+  const e = err as { code?: string; message?: string } | null;
+  return !!e && (e.code === "42P01" || e.code === "PGRST205" || /construccion_niveles/.test(e.message ?? ""));
+}
+
+const MSG_FALTA_TABLA_NIVELES =
+  "Falta crear la tabla construccion_niveles en Supabase (corre el bloque «Construcción · niveles» de supabase/schema.sql) para guardar más de un nivel.";
+
+/**
+ * ¿Ya existe la tabla de niveles (y con ella las columnas nivel_id)? El bloque SQL las crea juntas. Mientras
+ * no exista, todo funciona con un solo nivel implícito ("Planta baja"), igual que antes de esta función.
+ */
+async function nivelesDisponibles(db: NonNullable<typeof supabase>): Promise<boolean> {
+  const { error } = await db.from("construccion_niveles").select("id").limit(1);
+  if (!error) return true;
+  if (tablaNivelesFaltante(error)) return false;
+  throw error;
+}
+
+async function fetchObjetos(db: NonNullable<typeof supabase>, proyectoId: string, conNiveles: boolean): Promise<Objeto[]> {
   const { data, error } = await db
     .from("construccion_objetos")
-    .select("id, habitacion_id, tipo, x, z, ancho, largo, rot_deg")
+    .select(conNiveles ? "id, nivel_id, habitacion_id, tipo, x, z, ancho, largo, rot_deg" : "id, habitacion_id, tipo, x, z, ancho, largo, rot_deg")
     .eq("proyecto_id", proyectoId);
   if (error) {
     if (tablaObjetosFaltante(error)) return [];
     throw error;
   }
-  return ((data ?? []) as ObjetoRow[]).map((o) => ({
+  return ((data ?? []) as unknown as ObjetoRow[]).map((o) => ({
     id: o.id,
+    nivelId: o.nivel_id ?? "",
     tipo: o.tipo,
     habitacionId: o.habitacion_id,
     x: Number(o.x),
@@ -116,15 +140,28 @@ export async function getConstruccionProyecto(proyectoId: string): Promise<Proye
   if (!proyectoRow) return null;
   const { id, nombre } = proyectoRow as { id: string; nombre: string };
 
+  const conNiveles = await nivelesDisponibles(db);
+  let niveles: Nivel[] = [];
+  if (conNiveles) {
+    const { data: nivelesData, error: nivError } = await db
+      .from("construccion_niveles")
+      .select("id, nombre, orden")
+      .eq("proyecto_id", id)
+      .order("orden", { ascending: true });
+    if (nivError) throw nivError;
+    niveles = ((nivelesData ?? []) as NivelRow[]).map((n) => ({ id: n.id, nombre: n.nombre }));
+  }
+
   const { data: habitacionesData, error: habError } = await db
     .from("construccion_habitaciones")
-    .select("id, nombre, tipo")
+    .select(conNiveles ? "id, nombre, tipo, nivel_id" : "id, nombre, tipo")
     .eq("proyecto_id", id);
   if (habError) throw habError;
-  const habitacionesRows = (habitacionesData ?? []) as { id: string; nombre: string; tipo: string | null }[];
+  const habitacionesRows = (habitacionesData ?? []) as unknown as { id: string; nombre: string; tipo: string | null; nivel_id?: string | null }[];
   const habitacionIds = habitacionesRows.map((h) => h.id);
-  const objetos = await fetchObjetos(db, id);
-  if (habitacionIds.length === 0) return { id, nombre, habitaciones: [], objetos };
+  const objetos = await fetchObjetos(db, id, conNiveles);
+  // Un proyecto guardado antes de que existieran los niveles no trae ninguno: se le crea "Planta baja".
+  if (habitacionIds.length === 0) return normalizarNiveles({ id, nombre, niveles, habitaciones: [], objetos });
 
   const { data: murosData, error: murosError } = await db
     .from("construccion_muros")
@@ -162,6 +199,7 @@ export async function getConstruccionProyecto(proyectoId: string): Promise<Proye
       }));
     return {
       id: h.id,
+      nivelId: h.nivel_id ?? "",
       nombre: h.nombre,
       tipo: ZONAS.some((z) => z.id === h.tipo) ? (h.tipo as TipoHabitacion) : undefined,
       puntos,
@@ -170,15 +208,16 @@ export async function getConstruccionProyecto(proyectoId: string): Promise<Proye
     };
   });
 
-  return { id, nombre, habitaciones, objetos };
+  return normalizarNiveles({ id, nombre, niveles, habitaciones, objetos });
 }
 
-async function pushHabitacion(db: NonNullable<typeof supabase>, proyectoId: string, habitacion: Habitacion) {
+async function pushHabitacion(db: NonNullable<typeof supabase>, proyectoId: string, habitacion: Habitacion, conNiveles: boolean) {
   const { error: habError } = await db.from("construccion_habitaciones").insert({
     id: habitacion.id,
     proyecto_id: proyectoId,
     nombre: habitacion.nombre,
     tipo: habitacion.tipo ?? null,
+    ...(conNiveles ? { nivel_id: habitacion.nivelId } : {}),
   });
   if (habError) throw habError;
 
@@ -223,6 +262,10 @@ async function pushHabitacion(db: NonNullable<typeof supabase>, proyectoId: stri
 export async function pushConstruccionProyecto(proyecto: Proyecto): Promise<void> {
   const db = requireSupabase();
 
+  // Antes de borrar nada: sin la tabla de niveles solo se puede guardar el caso de un nivel (como antes).
+  const conNiveles = await nivelesDisponibles(db);
+  if (!conNiveles && proyecto.niveles.length > 1) throw new Error(MSG_FALTA_TABLA_NIVELES);
+
   const { error: updateError } = await db
     .from("construccion_proyectos")
     .update({ nombre: proyecto.nombre, updated_at: new Date().toISOString() })
@@ -240,8 +283,18 @@ export async function pushConstruccionProyecto(proyecto: Proyecto): Promise<void
     if (deleteError) throw deleteError;
   }
 
+  // Los niveles se reemplazan igual que las habitaciones, pero ANTES de reinsertarlas (nivel_id los referencia).
+  if (conNiveles) {
+    const { error: delNivError } = await db.from("construccion_niveles").delete().eq("proyecto_id", proyecto.id);
+    if (delNivError) throw delNivError;
+    const { error: insNivError } = await db.from("construccion_niveles").insert(
+      proyecto.niveles.map((n, i) => ({ id: n.id, proyecto_id: proyecto.id, nombre: n.nombre, orden: i })),
+    );
+    if (insNivError) throw insNivError;
+  }
+
   for (const habitacion of proyecto.habitaciones) {
-    await pushHabitacion(db, proyecto.id, habitacion);
+    await pushHabitacion(db, proyecto.id, habitacion, conNiveles);
   }
 
   // Los objetos van después de las habitaciones (habitacion_id las referencia, y se reinsertaron arriba).
@@ -257,6 +310,7 @@ export async function pushConstruccionProyecto(proyecto: Proyecto): Promise<void
       proyecto.objetos.map((o) => ({
         id: o.id,
         proyecto_id: proyecto.id,
+        ...(conNiveles ? { nivel_id: o.nivelId } : {}),
         habitacion_id: o.habitacionId && ids.has(o.habitacionId) ? o.habitacionId : null,
         tipo: o.tipo,
         x: o.x,

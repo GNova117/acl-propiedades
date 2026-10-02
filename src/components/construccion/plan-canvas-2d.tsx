@@ -3,6 +3,7 @@ import {
   openPolylineSegments,
   projectPointOnSegment,
   snap,
+  snapToAxes,
   wallSegmentsFromPolygon,
   type Point,
   type WallSegment,
@@ -10,53 +11,43 @@ import {
 import type { Habitacion, Objeto } from "../../lib/construccion/types";
 import { zonaDe } from "../../lib/construccion/objetos";
 import ObjetosLayer from "./plan-objetos";
-import { OBJ_GRID_M, svgPoint, type usePlanDrag } from "./plan-drag";
+import PlanGrid from "./plan-grid";
+import { OBJ_GRID_M, VERTEX_GRID_M, svgPoint, type usePlanDrag } from "./plan-drag";
+import type { PlanViewport } from "./use-plan-viewport";
 
-const GRID_M = 0.25;
-const VIEW_W = 12;
-const VIEW_H = 9;
-const FONT_M = 0.28;
 const WALL_THICKNESS_M = 0.15;
-const CLICK_TOLERANCE_M = 0.4;
+const CLICK_TOLERANCE_PX = 22;
+const ALIGN_TOLERANCE_PX = 10;
+const LABEL_PX = 12;
+const HANDLE_PX = 7;
 
-function toPlanPoint(svg: SVGSVGElement, clientX: number, clientY: number): Point {
-  const pt = svg.createSVGPoint();
-  pt.x = clientX;
-  pt.y = clientY;
-  const { x, y } = pt.matrixTransform(svg.getScreenCTM()!.inverse());
-  return { x: snap(x, GRID_M), z: snap(y, GRID_M) };
-}
-
-function PlanGrid() {
-  const lines = [];
-  for (let x = 0; x <= VIEW_W; x += 1) {
-    lines.push(<line key={`gx${x}`} x1={x} y1={0} x2={x} y2={VIEW_H} stroke="#f4f4f5" strokeWidth={0.015} />);
-  }
-  for (let z = 0; z <= VIEW_H; z += 1) {
-    lines.push(<line key={`gz${z}`} x1={0} y1={z} x2={VIEW_W} y2={z} stroke="#f4f4f5" strokeWidth={0.015} />);
-  }
-  return <g>{lines}</g>;
-}
-
-function Cota({ segment }: { segment: WallSegment }) {
+function Cota({ segment, mpp }: { segment: WallSegment; mpp: number }) {
   const nx = -Math.sin(segment.angle);
   const nz = Math.cos(segment.angle);
-  const offset = 0.22;
+  const label = `${segment.length.toFixed(2)} m`;
+  const fontSize = LABEL_PX * mpp;
+  // La etiqueta se separa del muro según su orientación: en un muro vertical hay que
+  // apartarla la mitad de su ancho de texto; en uno horizontal, la mitad de su alto.
+  const halfW = (fontSize * 0.55 * label.length) / 2;
+  const offset = WALL_THICKNESS_M / 2 + 0.06 + Math.abs(nx) * halfW + Math.abs(nz) * fontSize * 0.6;
   return (
     <text
+      className="construccion-cota"
       x={segment.center.x + nx * offset}
       y={segment.center.z + nz * offset}
-      fontSize={FONT_M}
+      fontSize={fontSize}
       fill="#52525b"
       textAnchor="middle"
       dominantBaseline="middle"
+      pointerEvents="none"
     >
-      {segment.length.toFixed(2)} m
+      {label}
     </text>
   );
 }
 
 type Props = {
+  vp: PlanViewport;
   /** Puntos ya colocados de la habitación que se está dibujando (aún sin cerrar). */
   draftPoints: Point[];
   /** Habitación ya cerrada que se está viendo/editando (aberturas). Mutuamente excluyente con draftPoints activo. */
@@ -66,16 +57,18 @@ type Props = {
   /** Muebles a dibujar (los de esta habitación). */
   objetos?: Objeto[];
   selectedObjetoId?: string | null;
-  /** Arrastre de objetos (viene de `usePlanDrag` en el editor). */
+  /** Arrastre de objetos y vértices (viene de `usePlanDrag` en el editor). */
   drag?: ReturnType<typeof usePlanDrag>;
   /** Hay un objeto "armado" del catálogo: el siguiente clic lo coloca en vez de agregar una puerta. */
   placing?: boolean;
   onPlace?: (p: Point) => void;
   onObjetoSelect?: (id: string | null) => void;
+  /** Muro resaltado (el que se está editando en el panel de medidas). */
+  highlightWall?: number | null;
 };
 
 const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
-  { draftPoints, habitacion, onCanvasClick, onWallClick, objetos = [], selectedObjetoId = null, drag, placing, onPlace, onObjetoSelect },
+  { vp, draftPoints, habitacion, onCanvasClick, onWallClick, objetos = [], selectedObjetoId = null, drag, placing, onPlace, onObjetoSelect, highlightWall = null },
   ref,
 ) {
   const [cursor, setCursor] = useState<Point | null>(null);
@@ -83,9 +76,18 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
   const points = habitacion ? habitacion.puntos : draftPoints;
   const segments = habitacion ? wallSegmentsFromPolygon(points) : openPolylineSegments(points);
   const canClose = drawing && points.length >= 3;
+  const mpp = vp.mpp;
+
+  // Al dibujar: imán de 5 cm y alineación con los puntos ya puestos (misma x o misma z) si
+  // el cursor queda a menos de ~10 px. Así un rectángulo sale recto sin pelear con el mouse.
+  function toDrawPoint(svg: SVGSVGElement, clientX: number, clientY: number): Point {
+    const raw = svgPoint(svg, clientX, clientY);
+    const snapped = { x: snap(raw.x, VERTEX_GRID_M), z: snap(raw.z, VERTEX_GRID_M) };
+    return snapToAxes(snapped, draftPoints, ALIGN_TOLERANCE_PX * mpp);
+  }
 
   function handleClick(e: React.MouseEvent<SVGSVGElement>) {
-    if (drag?.consumeClick()) return;
+    if (vp.consumeClick() || drag?.consumeClick()) return;
 
     if (habitacion && placing && onPlace) {
       const raw = svgPoint(e.currentTarget, e.clientX, e.clientY);
@@ -93,9 +95,8 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
       return;
     }
 
-    const p = toPlanPoint(e.currentTarget, e.clientX, e.clientY);
-
     if (habitacion && onWallClick) {
+      const p = svgPoint(e.currentTarget, e.clientX, e.clientY);
       const segs = wallSegmentsFromPolygon(habitacion.puntos);
       let best = -1;
       let bestDist = Infinity;
@@ -108,35 +109,69 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
           bestOffset = t * seg.length;
         }
       });
-      if (best >= 0 && bestDist < CLICK_TOLERANCE_M) onWallClick(best, bestOffset);
+      if (best >= 0 && bestDist < Math.max(0.15, CLICK_TOLERANCE_PX * mpp)) onWallClick(best, bestOffset);
       else onObjetoSelect?.(null);
       return;
     }
 
-    onCanvasClick(p);
+    onCanvasClick(toDrawPoint(e.currentTarget, e.clientX, e.clientY));
   }
 
   function handleMouseMove(e: React.MouseEvent<SVGSVGElement>) {
     if (!drawing) return;
-    setCursor(toPlanPoint(e.currentTarget, e.clientX, e.clientY));
+    setCursor(toDrawPoint(e.currentTarget, e.clientX, e.clientY));
   }
+
+  // Líneas guía punteadas cuando el cursor está alineado con un punto ya puesto.
+  const guides =
+    drawing && cursor
+      ? draftPoints.flatMap((r) => [
+          ...(cursor.x === r.x && cursor.z !== r.z ? [{ x1: r.x, z1: r.z, x2: cursor.x, z2: cursor.z }] : []),
+          ...(cursor.z === r.z && cursor.x !== r.x ? [{ x1: r.x, z1: r.z, x2: cursor.x, z2: cursor.z }] : []),
+        ])
+      : [];
 
   return (
     <svg
       ref={ref}
       xmlns="http://www.w3.org/2000/svg"
-      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+      viewBox={vp.viewBox}
       className="construccion-plan-svg"
       onClick={handleClick}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setCursor(null)}
-      {...drag?.handlers}
+      onPointerDown={vp.handlers.onPointerDown}
+      onPointerMove={(e) => {
+        vp.handlers.onPointerMove(e);
+        drag?.handlers.onPointerMove(e);
+      }}
+      onPointerUp={(e) => {
+        vp.handlers.onPointerUp(e);
+        drag?.handlers.onPointerUp();
+      }}
+      onPointerCancel={vp.handlers.onPointerCancel}
+      onPointerLeave={() => drag?.handlers.onPointerLeave()}
       style={placing ? { cursor: "copy" } : undefined}
     >
-      <PlanGrid />
+      <PlanGrid visible={vp.visible} />
 
       {points.length >= 3 && (
         <polygon points={points.map((p) => `${p.x},${p.z}`).join(" ")} fill={zonaDe(habitacion?.tipo).fill} stroke="none" />
+      )}
+
+      {highlightWall !== null && segments[highlightWall] && (
+        <line
+          className="construccion-plan-ui"
+          x1={segments[highlightWall].start.x}
+          y1={segments[highlightWall].start.z}
+          x2={segments[highlightWall].end.x}
+          y2={segments[highlightWall].end.z}
+          stroke="#2563eb"
+          strokeOpacity={0.35}
+          strokeWidth={WALL_THICKNESS_M * 2.4}
+          strokeLinecap="round"
+          pointerEvents="none"
+        />
       )}
 
       {segments.map((seg, i) => {
@@ -177,7 +212,7 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
                 />
               );
             })}
-            <Cota segment={seg} />
+            <Cota segment={seg} mpp={mpp} />
           </g>
         );
       })}
@@ -204,7 +239,31 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
           cy={p.z}
           r={i === 0 && canClose ? 0.14 : 0.07}
           fill={i === 0 && canClose ? "#16a34a" : "#3f3f46"}
+          pointerEvents="none"
         />
+      ))}
+
+      {/* Asas para arrastrar los vértices de la habitación (no salen en las exportaciones). */}
+      {habitacion &&
+        !placing &&
+        drag &&
+        points.map((p, i) => (
+          <circle
+            key={`h${i}`}
+            className="construccion-plan-ui construccion-vertex"
+            cx={p.x}
+            cy={p.z}
+            r={HANDLE_PX * mpp}
+            fill="#ffffff"
+            stroke="#2563eb"
+            strokeWidth={2}
+            vectorEffect="non-scaling-stroke"
+            onPointerDown={(e) => drag.startVertice(e, habitacion.id, i)}
+          />
+        ))}
+
+      {guides.map((g, i) => (
+        <line key={`g${i}`} x1={g.x1} y1={g.z1} x2={g.x2} y2={g.z2} stroke="#16a34a" strokeWidth={1} strokeDasharray="4 4" vectorEffect="non-scaling-stroke" pointerEvents="none" />
       ))}
 
       {drawing && cursor && points.length > 0 && (
@@ -217,6 +276,7 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
           strokeWidth={1.5}
           strokeDasharray="6 5"
           vectorEffect="non-scaling-stroke"
+          pointerEvents="none"
         />
       )}
     </svg>

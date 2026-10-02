@@ -102,17 +102,17 @@ export const KITS: Kit[] = [
   { id: "kit_estudio", nombre: "Estudio", categoria: "estudio", items: ["escritorio", "silla_oficina", "estante"] },
 ];
 
-export function nuevoObjeto(defId: string, x: number, z: number, habitacionId: string | null): Objeto | null {
+export function nuevoObjeto(defId: string, x: number, z: number, habitacionId: string | null, nivelId: string): Objeto | null {
   const def = objetoDef(defId);
   if (!def) return null;
-  return { id: crypto.randomUUID(), tipo: def.id, habitacionId, x, z, anchoM: def.anchoM, largoM: def.largoM, rotDeg: 0 };
+  return { id: crypto.randomUUID(), nivelId, tipo: def.id, habitacionId, x, z, anchoM: def.anchoM, largoM: def.largoM, rotDeg: 0 };
 }
 
 /**
  * Coloca un kit acomodado en filas dentro de la caja (minX..maxX, desde minZ), de izquierda a
  * derecha con salto de fila. Es un punto de partida: cada pieza se arrastra a su lugar después.
  */
-export function colocarKit(kit: Kit, area: { minX: number; maxX: number; minZ: number }, habitacionId: string | null): Objeto[] {
+export function colocarKit(kit: Kit, area: { minX: number; maxX: number; minZ: number }, habitacionId: string | null, nivelId: string): Objeto[] {
   const GAP = 0.1;
   const out: Objeto[] = [];
   let cursorX = area.minX + GAP;
@@ -128,6 +128,7 @@ export function colocarKit(kit: Kit, area: { minX: number; maxX: number; minZ: n
     }
     out.push({
       id: crypto.randomUUID(),
+      nivelId,
       tipo: def.id,
       habitacionId,
       x: cursorX + def.anchoM / 2,

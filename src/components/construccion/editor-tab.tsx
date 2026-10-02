@@ -1,15 +1,25 @@
-import { lazy, Suspense, useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import PlanCanvas2D from "./plan-canvas-2d";
 import PlanMap2D from "./plan-map-2d";
 import ObjetosPalette from "./objetos-palette";
+import WallLengthsPanel from "./wall-lengths-panel";
 import { usePlanDrag } from "./plan-drag";
+import { gridStep, usePlanViewport } from "./use-plan-viewport";
 import {
+  appendByMeasure,
+  clampOpeningsToWalls,
+  closingGap,
+  moveVertex,
   pointInPolygon,
   polygonArea,
   polygonBounds,
   polygonPerimeter,
+  setWallLength,
   snapBoundsToNeighbors,
+  snapToAxes,
+  unionBounds,
   wallSegmentsFromPolygon,
+  type Bounds,
   type Point,
 } from "../../lib/construccion/geometry";
 import { ZONAS, zonaDe, colocarKit, nuevoObjeto, objetoDef, type Kit } from "../../lib/construccion/objetos";
@@ -23,16 +33,43 @@ import {
   type TipoAbertura,
   type TipoHabitacion,
 } from "../../lib/construccion/types";
+import { crearNivel, duplicarNivel, elevacionesPorNivel, nombreNivelSugerido, quitarNivel } from "../../lib/construccion/niveles";
+import { estadisticasHabitacion } from "../../lib/construccion/stats";
 
-const CLOSE_TOLERANCE_M = 0.35;
+const CLOSE_TOLERANCE_PX = 14;
+const ALIGN_TOLERANCE_PX = 10;
 const DEFAULT_ALTURA_M = 2.5;
 const SNAP_ROOMS_M = 0.3;
+
+/** Giros disponibles al dibujar por medidas (+ = a la derecha en la pantalla). */
+const GIROS = [
+  { value: "90", label: "90° a la derecha" },
+  { value: "-90", label: "90° a la izquierda" },
+  { value: "45", label: "45° a la derecha" },
+  { value: "-45", label: "45° a la izquierda" },
+  { value: "135", label: "135° a la derecha" },
+  { value: "-135", label: "135° a la izquierda" },
+  { value: "0", label: "Seguir recto" },
+];
+
+/** Caja que encierra habitaciones y objetos (para ajustar la vista y para exportar). */
+function contentBoxOf(habs: Habitacion[], objs: Objeto[]): Bounds | null {
+  const boxes = habs.filter((h) => h.puntos.length > 0).map((h) => polygonBounds(h.puntos));
+  for (const o of objs) {
+    const r = Math.max(o.anchoM, o.largoM) / 2;
+    boxes.push({ minX: o.x - r, maxX: o.x + r, minZ: o.z - r, maxZ: o.z + r });
+  }
+  return unionBounds(boxes);
+}
+
+// Las sumas repetidas dejan ruido de punto flotante (6.4999999999999964): se redondea a 0.1 mm.
+const r4 = (v: number) => Math.round(v * 10_000) / 10_000;
 
 function trasladarHabitacion(p: Proyecto, id: string, dx: number, dz: number): Proyecto {
   return {
     ...p,
-    habitaciones: p.habitaciones.map((h) => (h.id === id ? { ...h, puntos: h.puntos.map((pt) => ({ x: pt.x + dx, z: pt.z + dz })) } : h)),
-    objetos: p.objetos.map((o) => (o.habitacionId === id ? { ...o, x: o.x + dx, z: o.z + dz } : o)),
+    habitaciones: p.habitaciones.map((h) => (h.id === id ? { ...h, puntos: h.puntos.map((pt) => ({ x: r4(pt.x + dx), z: r4(pt.z + dz) })) } : h)),
+    objetos: p.objetos.map((o) => (o.habitacionId === id ? { ...o, x: r4(o.x + dx), z: r4(o.z + dz) } : o)),
   };
 }
 
@@ -46,22 +83,47 @@ type Props = {
   setProyecto: Dispatch<SetStateAction<Proyecto>>;
   selectedId: string | null;
   setSelectedId: Dispatch<SetStateAction<string | null>>;
+  /** El proyecto siempre llega con al menos un nivel (se normaliza al cargarlo). */
+  selectedNivelId: string;
+  setSelectedNivelId: Dispatch<SetStateAction<string>>;
 };
 
-export default function EditorTab({ proyecto, setProyecto, selectedId, setSelectedId }: Props) {
+export default function EditorTab({ proyecto, setProyecto, selectedId, setSelectedId, selectedNivelId, setSelectedNivelId }: Props) {
+  const currentNivel = proyecto.niveles.find((n) => n.id === selectedNivelId) ?? proyecto.niveles[0];
+  const [edificioCompleto, setEdificioCompleto] = useState(false);
   const [draftPoints, setDraftPoints] = useState<Point[]>([]);
   const [view, setView] = useState<"2d" | "3d">("2d");
   const [mode, setMode] = useState<"cuarto" | "mapa">("cuarto");
   const [placing, setPlacing] = useState<string | null>(null);
   const [selectedObjetoId, setSelectedObjetoId] = useState<string | null>(null);
   const [categoria, setCategoria] = useState<TipoHabitacion>("sala");
+  const [medida, setMedida] = useState("");
+  const [giro, setGiro] = useState("90");
+  const [highlightWall, setHighlightWall] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const medidaRef = useRef<HTMLInputElement>(null);
 
   const selected = proyecto.habitaciones.find((h) => h.id === selectedId) ?? null;
   const isMap = mode === "mapa";
   const drawing = !selected && !isMap;
   const selectedObjeto = proyecto.objetos.find((o) => o.id === selectedObjetoId) ?? null;
   const objetosDeSelected = selected ? proyecto.objetos.filter((o) => o.habitacionId === selected.id) : [];
+  // "Plano completo" muestra un nivel a la vez (cada piso es su propio plano) — el edificio entero
+  // solo se ve apilado en la Vista 3D, con el interruptor de más abajo.
+  const nivelHabitaciones = proyecto.habitaciones.filter((h) => h.nivelId === selectedNivelId);
+  const nivelObjetos = proyecto.objetos.filter((o) => o.nivelId === selectedNivelId);
+
+  const habitacionesVista = isMap ? nivelHabitaciones : selected ? [selected] : [];
+  const objetosVista = isMap ? nivelObjetos : objetosDeSelected;
+  const contentBox = contentBoxOf(habitacionesVista, objetosVista);
+  // La vista se ajusta sola solo al cambiar de cuarto, de nivel o de modo; mientras se edita no se mueve.
+  const vp = usePlanViewport({ box: contentBox, resetKey: `${selectedNivelId}|${isMap ? "mapa" : (selected?.id ?? "nueva")}` });
+  const roomStats = selected ? estadisticasHabitacion(selected, proyecto.objetos) : null;
+  // Solo se calcula cuando de verdad hace falta (edificio con 2+ niveles, viendo el 3D completo).
+  const elevacionPorNivel = useMemo(
+    () => (edificioCompleto ? elevacionesPorNivel(proyecto) : undefined),
+    [edificioCompleto, proyecto],
+  );
 
   function updateSelected(fn: (h: Habitacion) => Habitacion) {
     setProyecto((p) => ({
@@ -70,8 +132,10 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
     }));
   }
 
+  // Solo busca entre los cuartos del nivel actual: un objeto nunca "cae" en un cuarto de otro piso
+  // aunque sus coordenadas x,z coincidan con las de abajo.
   function habitacionEn(p: Point): Habitacion | undefined {
-    return proyecto.habitaciones.find((h) => h.puntos.length >= 3 && pointInPolygon(p, h.puntos));
+    return nivelHabitaciones.find((h) => h.puntos.length >= 3 && pointInPolygon(p, h.puntos));
   }
 
   function updateObjeto(id: string, patch: Partial<Objeto>) {
@@ -91,7 +155,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
 
   function handlePlace(p: Point) {
     if (!placing) return;
-    const nuevo = nuevoObjeto(placing, p.x, p.z, habitacionEn(p)?.id ?? null);
+    const nuevo = nuevoObjeto(placing, p.x, p.z, habitacionEn(p)?.id ?? null, selectedNivelId);
     if (!nuevo) return;
     setProyecto((pr) => ({ ...pr, objetos: [...pr.objetos, nuevo] }));
     setSelectedObjetoId(nuevo.id);
@@ -102,7 +166,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
     const area = room
       ? polygonBounds(room.puntos)
       : { minX: 0.5, maxX: 6.5, minZ: 0.5, maxZ: 0.5 };
-    const items = colocarKit(kit, area, room?.id ?? null);
+    const items = colocarKit(kit, area, room?.id ?? null, selectedNivelId);
     setProyecto((p) => ({ ...p, objetos: [...p.objetos, ...items] }));
     setPlacing(null);
     setSelectedObjetoId(null);
@@ -122,28 +186,40 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
       setProyecto((pr) => {
         const o = pr.objetos.find((x) => x.id === id);
         if (!o) return pr;
-        const hab = pr.habitaciones.find((h) => h.puntos.length >= 3 && pointInPolygon({ x: o.x, z: o.z }, h.puntos));
+        // Un mueble solo puede caer en un cuarto de SU MISMO nivel — nunca "atraviesa" el piso.
+        const hab = pr.habitaciones.find((h) => h.nivelId === o.nivelId && h.puntos.length >= 3 && pointInPolygon({ x: o.x, z: o.z }, h.puntos));
         return { ...pr, objetos: pr.objetos.map((x) => (x.id === id ? { ...x, habitacionId: hab?.id ?? null } : x)) };
       }),
-    onHabitacionMove: (id, dx, dz) =>
-      setProyecto((pr) => {
-        const h = pr.habitaciones.find((x) => x.id === id);
-        if (!h) return pr;
-        // No se deja salir del lienzo (coordenadas negativas quedarían fuera de la vista).
-        const b = polygonBounds(h.puntos);
-        return trasladarHabitacion(pr, id, Math.max(dx, -b.minX), Math.max(dz, -b.minZ));
-      }),
+    // El lienzo ya no tiene límite: las habitaciones pueden quedar en cualquier coordenada.
+    onHabitacionMove: (id, dx, dz) => setProyecto((pr) => (pr.habitaciones.some((x) => x.id === id) ? trasladarHabitacion(pr, id, dx, dz) : pr)),
     onHabitacionDrop: (id) =>
       setProyecto((pr) => {
         const h = pr.habitaciones.find((x) => x.id === id);
         if (!h) return pr;
-        const otros = pr.habitaciones.filter((x) => x.id !== id && x.puntos.length >= 3).map((x) => polygonBounds(x.puntos));
+        // El imán solo pega con cuartos del MISMO nivel — dos pisos con huellas parecidas no deben
+        // engancharse entre sí solo por coincidir en x,z.
+        const otros = pr.habitaciones.filter((x) => x.id !== id && x.nivelId === h.nivelId && x.puntos.length >= 3).map((x) => polygonBounds(x.puntos));
         const { dx, dz } = snapBoundsToNeighbors(polygonBounds(h.puntos), otros, SNAP_ROOMS_M);
         if (dx === 0 && dz === 0) return pr;
-        const b = polygonBounds(h.puntos);
-        return trasladarHabitacion(pr, id, Math.max(dx, -b.minX), Math.max(dz, -b.minZ));
+        return trasladarHabitacion(pr, id, dx, dz);
       }),
+    // Arrastrar un vértice: imán de 5 cm (en el hook) + alineación con los demás vértices del cuarto.
+    onVerticeMove: (id, index, raw) =>
+      setProyecto((pr) => ({
+        ...pr,
+        habitaciones: pr.habitaciones.map((h) => {
+          if (h.id !== id) return h;
+          const p = snapToAxes(raw, h.puntos.filter((_, i) => i !== index), ALIGN_TOLERANCE_PX * vp.mpp);
+          const puntos = moveVertex(h.puntos, index, p);
+          return { ...h, puntos, aberturas: clampOpeningsToWalls(puntos, h.aberturas) };
+        }),
+      })),
   });
+
+  // Si el nivel seleccionado se borró (o el proyecto cambió de otra fuente), cae al primero que exista.
+  useEffect(() => {
+    if (!proyecto.niveles.some((nv) => nv.id === selectedNivelId)) setSelectedNivelId(proyecto.niveles[0]?.id ?? "");
+  }, [proyecto.niveles, selectedNivelId, setSelectedNivelId]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -164,7 +240,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   function handleCanvasClick(p: Point) {
     if (draftPoints.length >= 3) {
       const first = draftPoints[0];
-      if (Math.hypot(p.x - first.x, p.z - first.z) <= CLOSE_TOLERANCE_M) {
+      if (Math.hypot(p.x - first.x, p.z - first.z) <= Math.min(1, Math.max(0.15, CLOSE_TOLERANCE_PX * vp.mpp))) {
         closeDraftRoom();
         return;
       }
@@ -176,6 +252,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
     if (draftPoints.length < 3) return;
     const nueva: Habitacion = {
       id: crypto.randomUUID(),
+      nivelId: selectedNivelId,
       nombre: `Habitación ${proyecto.habitaciones.length + 1}`,
       puntos: draftPoints,
       alturaM: DEFAULT_ALTURA_M,
@@ -188,6 +265,58 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
 
   function undoLastPoint() {
     setDraftPoints((pts) => pts.slice(0, -1));
+  }
+
+  /** Dibujar por medidas: agrega un muro de `medida` m girando `giro`° respecto al anterior. */
+  function addMeasuredWall() {
+    const largo = Number(medida.replace(",", "."));
+    if (!(largo > 0)) return;
+    const pts = appendByMeasure(draftPoints, largo, Number(giro));
+    setDraftPoints(pts);
+    vp.ensureVisible(pts);
+    setMedida("");
+    medidaRef.current?.focus();
+  }
+
+  function commitWallLength(index: number, lengthM: number) {
+    if (!selected) return;
+    const puntos = setWallLength(selected.puntos, index, lengthM);
+    updateSelected((h) => ({ ...h, puntos, aberturas: clampOpeningsToWalls(puntos, h.aberturas) }));
+    vp.ensureVisible(puntos); // si el cuarto creció más allá de la vista, la vista se ensancha para que siga a la vista
+  }
+
+  function selectNivel(id: string) {
+    setSelectedNivelId(id);
+    setSelectedId(null);
+    setSelectedObjetoId(null);
+    setDraftPoints([]);
+    setPlacing(null);
+  }
+
+  function renameNivel(nombre: string) {
+    setProyecto((p) => ({ ...p, niveles: p.niveles.map((nv) => (nv.id === selectedNivelId ? { ...nv, nombre } : nv)) }));
+  }
+
+  /** Nivel nuevo y vacío, justo arriba del actual. */
+  function addNivel() {
+    const nuevo = crearNivel(nombreNivelSugerido(proyecto.niveles));
+    const idx = proyecto.niveles.findIndex((nv) => nv.id === selectedNivelId);
+    setProyecto((p) => ({ ...p, niveles: [...p.niveles.slice(0, idx + 1), nuevo, ...p.niveles.slice(idx + 1)] }));
+    selectNivel(nuevo.id);
+  }
+
+  /** Copia los cuartos (y sus muebles) del nivel actual en uno nuevo arriba — para pisos que repiten la planta de abajo. */
+  function duplicateNivel() {
+    const { proyecto: next, nivelNuevoId } = duplicarNivel(proyecto, selectedNivelId, { incluirObjetos: true });
+    setProyecto(next);
+    selectNivel(nivelNuevoId);
+  }
+
+  function deleteNivel() {
+    if (proyecto.niveles.length <= 1) return;
+    if (!window.confirm(`¿Eliminar "${currentNivel?.nombre}" y todo lo que contiene? No se puede deshacer.`)) return;
+    setProyecto((p) => quitarNivel(p, selectedNivelId));
+    // La selección se corrige sola en el efecto de abajo si el nivel actual desapareció.
   }
 
   function startNewRoom() {
@@ -242,32 +371,61 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   }
 
   const areaM2 = isMap
-    ? proyecto.habitaciones.reduce((sum, h) => sum + polygonArea(h.puntos), 0)
+    ? nivelHabitaciones.reduce((sum, h) => sum + polygonArea(h.puntos), 0)
     : selected
       ? polygonArea(selected.puntos)
       : 0;
   const perimetroM = isMap
-    ? proyecto.habitaciones.reduce((sum, h) => sum + polygonPerimeter(h.puntos), 0)
+    ? nivelHabitaciones.reduce((sum, h) => sum + polygonPerimeter(h.puntos), 0)
     : selected
       ? polygonPerimeter(selected.puntos)
       : 0;
-  const puedeExportar = isMap ? proyecto.habitaciones.length > 0 : !!selected;
+  const puedeExportar = isMap ? nivelHabitaciones.length > 0 : !!selected;
 
   async function handleExport(kind: "png" | "pdf") {
     if (!puedeExportar || !svgRef.current) return;
-    const nombre = isMap ? `${proyecto.nombre} - plano completo` : (selected as Habitacion).nombre;
+    const nombre = isMap ? `${proyecto.nombre} - ${currentNivel?.nombre ?? "plano"}` : (selected as Habitacion).nombre;
     const meta = { nombre, areaM2, perimetroM };
-    if (kind === "png") await exportPlanAsPng(svgRef.current, meta);
-    else await exportPlanAsPdf(svgRef.current, meta);
+    if (kind === "png") await exportPlanAsPng(svgRef.current, meta, contentBox);
+    else await exportPlanAsPdf(svgRef.current, meta, contentBox);
   }
 
   const placingDef = placing ? objetoDef(placing) : undefined;
-  const habitacionesVista = isMap ? proyecto.habitaciones : selected ? [selected] : [];
-  const objetosVista = isMap ? proyecto.objetos : objetosDeSelected;
 
   return (
     <div className="construccion-editor">
       <aside className="construccion-editor__sidebar">
+        <div className="construccion-niveles">
+          <label className="construccion-niveles__field">
+            Nivel
+            <select value={selectedNivelId} onChange={(e) => selectNivel(e.target.value)}>
+              {proyecto.niveles.map((nv) => (
+                <option key={nv.id} value={nv.id}>
+                  {nv.nombre}
+                </option>
+              ))}
+            </select>
+          </label>
+          <input
+            value={currentNivel?.nombre ?? ""}
+            onChange={(e) => renameNivel(e.target.value)}
+            className="construccion-niveles__name-input"
+            aria-label="Nombre del nivel"
+          />
+          <div className="construccion-niveles__actions">
+            <button type="button" onClick={addNivel} className="btn btn-outline btn-sm" title="Nivel vacío arriba de este">
+              + Nivel
+            </button>
+            <button type="button" onClick={duplicateNivel} className="btn btn-outline btn-sm" title="Copia los cuartos de este nivel en uno nuevo">
+              Duplicar
+            </button>
+            {proyecto.niveles.length > 1 && (
+              <button type="button" onClick={deleteNivel} className="construccion-editor__abertura-delete">
+                eliminar nivel
+              </button>
+            )}
+          </div>
+        </div>
         <div className="construccion-editor__view-toggle construccion-editor__mode-toggle">
           <button
             onClick={() => {
@@ -294,7 +452,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
           + Nueva habitación
         </button>
         <ul className="construccion-editor__rooms">
-          {proyecto.habitaciones.map((h) => (
+          {nivelHabitaciones.map((h) => (
             <li key={h.id}>
               <button
                 onClick={() => {
@@ -335,9 +493,47 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
           {drawing ? (
             <div className="construccion-editor__topbar-left">
               <span className="construccion-editor__hint-text">
-                Clic para agregar puntos del muro · clic cerca del primer punto (verde) para cerrar
+                Clic para poner puntos (se alinean solos) o teclea el largo de cada muro
                 {draftPoints.length > 0 ? ` · ${draftPoints.length} punto(s)` : ""}
               </span>
+              <form
+                className="construccion-editor__measure"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  addMeasuredWall();
+                }}
+              >
+                <label className="construccion-editor__abertura-label">
+                  Medir muro
+                  <input
+                    ref={medidaRef}
+                    type="number"
+                    inputMode="decimal"
+                    step={0.01}
+                    min={0.1}
+                    value={medida}
+                    onChange={(e) => setMedida(e.target.value)}
+                    placeholder="4.20"
+                    className="construccion-editor__abertura-input"
+                  />
+                  m
+                </label>
+                {draftPoints.length >= 2 && (
+                  <label className="construccion-editor__abertura-label">
+                    Giro
+                    <select value={giro} onChange={(e) => setGiro(e.target.value)} className="construccion-editor__abertura-select">
+                      {GIROS.map((g) => (
+                        <option key={g.value} value={g.value}>
+                          {g.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                <button type="submit" className="btn btn-outline btn-sm" disabled={!(Number(medida.replace(",", ".")) > 0)}>
+                  Agregar muro
+                </button>
+              </form>
               {draftPoints.length > 0 && (
                 <button onClick={undoLastPoint} className="btn btn-outline btn-sm">
                   Deshacer punto
@@ -346,6 +542,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               {draftPoints.length >= 3 && (
                 <button onClick={closeDraftRoom} className="construccion-editor__confirm-btn">
                   Cerrar habitación
+                  {closingGap(draftPoints) > 0.005 ? ` (último muro: ${closingGap(draftPoints).toFixed(2)} m)` : ""}
                 </button>
               )}
             </div>
@@ -410,6 +607,12 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                   Vista 3D
                 </button>
               </div>
+              {view === "3d" && proyecto.niveles.length > 1 && (
+                <label className="construccion-editor__checkbox">
+                  <input type="checkbox" checked={edificioCompleto} onChange={(e) => setEdificioCompleto(e.target.checked)} />
+                  Ver todo el edificio
+                </label>
+              )}
               {placingDef && (
                 <span className="construccion-editor__placing">
                   Colocando: <strong>{placingDef.nombre}</strong> — clic en el plano
@@ -433,16 +636,21 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
           )}
         </div>
 
-        <div className="construccion-editor__canvas">
+        <div className="construccion-editor__canvas construccion-plan-wrap" ref={vp.wrapRef}>
           {view === "3d" && !drawing ? (
             <Suspense fallback={<div className="construccion-3d-empty">Cargando visor 3D…</div>}>
-              <RoomPreview habitaciones={habitacionesVista} objetos={objetosVista} />
+              <RoomPreview
+                habitaciones={edificioCompleto ? proyecto.habitaciones : habitacionesVista}
+                objetos={edificioCompleto ? proyecto.objetos : objetosVista}
+                elevacionPorNivel={edificioCompleto ? elevacionPorNivel : undefined}
+              />
             </Suspense>
           ) : isMap ? (
             <PlanMap2D
               ref={svgRef}
-              habitaciones={proyecto.habitaciones}
-              objetos={proyecto.objetos}
+              vp={vp}
+              habitaciones={nivelHabitaciones}
+              objetos={nivelObjetos}
               selectedId={selectedId}
               selectedObjetoId={selectedObjetoId}
               drag={drag}
@@ -454,6 +662,8 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
           ) : (
             <PlanCanvas2D
               ref={svgRef}
+              vp={vp}
+              highlightWall={highlightWall}
               draftPoints={draftPoints}
               habitacion={selected}
               onCanvasClick={handleCanvasClick}
@@ -466,6 +676,20 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               onObjetoSelect={setSelectedObjetoId}
             />
           )}
+          {!(view === "3d" && !drawing) && (
+            <div className="construccion-zoom" role="group" aria-label="Zoom del plano" title="Rueda del mouse o pellizco para acercar · arrastra el fondo para mover">
+              <button type="button" onClick={vp.zoomOut} aria-label="Alejar">
+                −
+              </button>
+              <button type="button" onClick={vp.zoomIn} aria-label="Acercar">
+                +
+              </button>
+              <button type="button" onClick={vp.fit}>
+                Ajustar
+              </button>
+              <span className="construccion-zoom__scale">Cuadrícula {gridStep(vp.visible.maxX - vp.visible.minX)} m</span>
+            </div>
+          )}
         </div>
 
         {!drawing && (
@@ -476,7 +700,15 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               {isMap && (
                 <>
                   {" "}
-                  · {proyecto.habitaciones.length} habitación(es) · {proyecto.objetos.length} objeto(s)
+                  · {nivelHabitaciones.length} habitación(es) · {nivelObjetos.length} objeto(s)
+                </>
+              )}
+              {!isMap && roomStats && (
+                <>
+                  {" "}
+                  · Volumen: <strong>{roomStats.volumenM3.toFixed(2)} m³</strong> · Zócalo:{" "}
+                  <strong>{roomStats.zocaloM.toFixed(2)} m</strong> · Puertas: <strong>{roomStats.puertas}</strong> · Ventanas:{" "}
+                  <strong>{roomStats.ventanas}</strong>
                 </>
               )}
             </div>
@@ -526,6 +758,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                 </div>
               </div>
             )}
+            {selected && !isMap && <WallLengthsPanel habitacion={selected} onChange={commitWallLength} onHighlight={setHighlightWall} />}
             {selected && !isMap && (
               <div className="construccion-editor__aberturas">
                 <p className="construccion-editor__aberturas-hint">

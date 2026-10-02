@@ -35,6 +35,12 @@ export default function BudgetTab({ proyecto, catalogo, setCatalogo }: Props) {
     lineas: calcularPresupuesto(h, catalogo),
   }));
   const granTotal = porHabitacion.reduce((sum, x) => sum + totalPresupuesto(x.lineas), 0);
+  // Mismo cálculo de siempre — solo se muestra agrupado por nivel cuando hay más de uno, para que el
+  // presupuesto de un edificio de varios pisos no sea una sola lista plana de cuartos.
+  const porNivel = proyecto.niveles.map((nv) => ({
+    nivel: nv,
+    items: porHabitacion.filter((x) => x.habitacion.nivelId === nv.id),
+  }));
 
   return (
     <div className="construccion-panel">
@@ -131,42 +137,56 @@ export default function BudgetTab({ proyecto, catalogo, setCatalogo }: Props) {
           <p className="empty-state">Todavía no hay habitaciones — créalas en la pestaña Editor.</p>
         )}
         <div className="construccion-panel__room-budgets">
-          {porHabitacion.map(({ habitacion, lineas }) => (
-            <div key={habitacion.id}>
-              <h3 className="construccion-panel__subheading">{habitacion.nombre}</h3>
-              <div className="card admin-table-wrapper">
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>Material</th>
-                      <th>Cantidad</th>
-                      <th>Costo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {lineas.map((l) => (
-                      <tr key={l.material.id}>
-                        <td>{l.material.nombre}</td>
-                        <td>
-                          {l.cantidad.toFixed(2)} {l.material.unidad}
-                        </td>
-                        <td>{peso(l.costo)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colSpan={2}>
-                        <strong>Subtotal</strong>
-                      </td>
-                      <td>
-                        <strong>{peso(totalPresupuesto(lineas))}</strong>
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
+          {porNivel.map(({ nivel, items }) => (
+            items.length === 0 ? null : (
+              <div key={nivel.id} className="construccion-panel__subgroup">
+                {proyecto.niveles.length > 1 && (
+                  <div className="construccion-panel__section-header">
+                    <h3 className="construccion-panel__subheading">{nivel.nombre}</h3>
+                    <p className="construccion-panel__total">
+                      Subtotal: <strong>{peso(totalPresupuesto(items.flatMap((x) => x.lineas)))}</strong>
+                    </p>
+                  </div>
+                )}
+                {items.map(({ habitacion, lineas }) => (
+                  <div key={habitacion.id}>
+                    <h3 className="construccion-panel__subheading">{habitacion.nombre}</h3>
+                    <div className="card admin-table-wrapper">
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th>Material</th>
+                            <th>Cantidad</th>
+                            <th>Costo</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {lineas.map((l) => (
+                            <tr key={l.material.id}>
+                              <td>{l.material.nombre}</td>
+                              <td>
+                                {l.cantidad.toFixed(2)} {l.material.unidad}
+                              </td>
+                              <td>{peso(l.costo)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td colSpan={2}>
+                              <strong>Subtotal</strong>
+                            </td>
+                            <td>
+                              <strong>{peso(totalPresupuesto(lineas))}</strong>
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
+            )
           ))}
         </div>
       </section>

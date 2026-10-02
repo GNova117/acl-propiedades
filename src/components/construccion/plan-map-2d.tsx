@@ -3,31 +3,14 @@ import { polygonArea, snap, wallSegmentsFromPolygon, type Point } from "../../li
 import { zonaDe } from "../../lib/construccion/objetos";
 import type { Habitacion, Objeto } from "../../lib/construccion/types";
 import ObjetosLayer from "./plan-objetos";
+import PlanGrid from "./plan-grid";
 import { OBJ_GRID_M, svgPoint, type usePlanDrag } from "./plan-drag";
+import type { PlanViewport } from "./use-plan-viewport";
 
-const BASE_W = 12;
-const BASE_H = 9;
 const WALL_THICKNESS_M = 0.15;
 
-/** Tamaño del lienzo: crece en pasos (4:3) para que cuartos lejanos sigan cabiendo sin saltos al arrastrar. */
-export function mapViewSize(habitaciones: Habitacion[], objetos: Objeto[]): { w: number; h: number } {
-  let maxX = 0;
-  let maxZ = 0;
-  for (const h of habitaciones) {
-    for (const p of h.puntos) {
-      maxX = Math.max(maxX, p.x);
-      maxZ = Math.max(maxZ, p.z);
-    }
-  }
-  for (const o of objetos) {
-    maxX = Math.max(maxX, o.x + Math.max(o.anchoM, o.largoM) / 2);
-    maxZ = Math.max(maxZ, o.z + Math.max(o.anchoM, o.largoM) / 2);
-  }
-  const scale = Math.max(1, Math.ceil(((maxX + 2) / BASE_W) * 2) / 2, Math.ceil(((maxZ + 2) / BASE_H) * 2) / 2);
-  return { w: BASE_W * scale, h: BASE_H * scale };
-}
-
 type Props = {
+  vp: PlanViewport;
   habitaciones: Habitacion[];
   objetos: Objeto[];
   selectedId: string | null;
@@ -40,13 +23,11 @@ type Props = {
 };
 
 const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
-  { habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto },
+  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto },
   ref,
 ) {
-  const { w, h } = mapViewSize(habitaciones, objetos);
-
   function handleClick(e: React.MouseEvent<SVGSVGElement>) {
-    if (drag.consumeClick()) return;
+    if (vp.consumeClick() || drag.consumeClick()) return;
     if (placing) {
       const raw = svgPoint(e.currentTarget, e.clientX, e.clientY);
       onPlace({ x: snap(raw.x, OBJ_GRID_M), z: snap(raw.z, OBJ_GRID_M) });
@@ -56,21 +37,27 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
     onSelectObjeto(null);
   }
 
-  const grid = [];
-  for (let x = 0; x <= w; x += 1) grid.push(<line key={`gx${x}`} x1={x} y1={0} x2={x} y2={h} stroke="#f4f4f5" strokeWidth={0.015} />);
-  for (let z = 0; z <= h; z += 1) grid.push(<line key={`gz${z}`} x1={0} y1={z} x2={w} y2={z} stroke="#f4f4f5" strokeWidth={0.015} />);
-
   return (
     <svg
       ref={ref}
       xmlns="http://www.w3.org/2000/svg"
-      viewBox={`0 0 ${w} ${h}`}
+      viewBox={vp.viewBox}
       className="construccion-plan-svg construccion-plan-svg--map"
       style={placing ? { cursor: "copy" } : undefined}
       onClick={handleClick}
-      {...drag.handlers}
+      onPointerDown={vp.handlers.onPointerDown}
+      onPointerMove={(e) => {
+        vp.handlers.onPointerMove(e);
+        drag.handlers.onPointerMove(e);
+      }}
+      onPointerUp={(e) => {
+        vp.handlers.onPointerUp(e);
+        drag.handlers.onPointerUp();
+      }}
+      onPointerCancel={vp.handlers.onPointerCancel}
+      onPointerLeave={() => drag.handlers.onPointerLeave()}
     >
-      <g>{grid}</g>
+      <PlanGrid visible={vp.visible} />
 
       {habitaciones.map((hab) => {
         if (hab.puntos.length < 3) return null;

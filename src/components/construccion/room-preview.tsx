@@ -48,7 +48,7 @@ function Floor({ points, color }: { points: Point[]; color: string }) {
   );
 }
 
-function Muebles({ objetos }: { objetos: Objeto[] }) {
+function Muebles({ objetos, elevacionDe }: { objetos: Objeto[]; elevacionDe: (o: Objeto) => number }) {
   return (
     <>
       {objetos.map((o) => {
@@ -56,7 +56,7 @@ function Muebles({ objetos }: { objetos: Objeto[] }) {
         const alto = def?.altoM ?? 0.8;
         const color = zonaDe(def?.categoria).color;
         return (
-          <mesh key={o.id} position={[o.x, alto / 2 + 0.02, o.z]} rotation={[0, (-o.rotDeg * Math.PI) / 180, 0]}>
+          <mesh key={o.id} position={[o.x, elevacionDe(o) + alto / 2 + 0.02, o.z]} rotation={[0, (-o.rotDeg * Math.PI) / 180, 0]}>
             {def?.forma === "round" ? (
               <cylinderGeometry args={[o.anchoM / 2, o.anchoM / 2, alto, 24]} />
             ) : (
@@ -71,12 +71,18 @@ function Muebles({ objetos }: { objetos: Objeto[] }) {
 }
 
 type Props = {
-  /** Una habitación (vista de cuarto) o todas las del proyecto (mapa completo). */
+  /** Una habitación (vista de cuarto), las de un nivel (plano completo) o todas (edificio completo). */
   habitaciones: Habitacion[];
   objetos: Objeto[];
+  /**
+   * Altura (m) a la que empieza cada nivel — omitido en la vista de un solo nivel, donde todo va a 0.
+   * En "edificio completo" cada habitación/objeto se dibuja en el piso de su propio nivel (ver
+   * `elevacionesPorNivel` en niveles.ts), para que los pisos queden apilados de verdad y no encimados.
+   */
+  elevacionPorNivel?: Record<string, number>;
 };
 
-export default function RoomPreview({ habitaciones, objetos }: Props) {
+export default function RoomPreview({ habitaciones, objetos, elevacionPorNivel }: Props) {
   const cerradas = habitaciones.filter((h) => h.puntos.length >= 3);
   if (cerradas.length === 0) {
     return (
@@ -84,9 +90,18 @@ export default function RoomPreview({ habitaciones, objetos }: Props) {
     );
   }
 
+  const elevacion = (nivelId: string) => elevacionPorNivel?.[nivelId] ?? 0;
+  const habitacionPorId = new Map(cerradas.map((h) => [h.id, h]));
+  const elevacionDeObjeto = (o: Objeto) => {
+    const suHabitacion = o.habitacionId ? habitacionPorId.get(o.habitacionId) : undefined;
+    return elevacion(suHabitacion ? suHabitacion.nivelId : o.nivelId);
+  };
+
   const todos = cerradas.flatMap((h) => h.puntos);
   const center = todos.reduce((acc, p) => ({ x: acc.x + p.x / todos.length, z: acc.z + p.z / todos.length }), { x: 0, z: 0 });
-  const alturaM = Math.max(...cerradas.map((h) => h.alturaM));
+  // Alto real de la cámara: la azotea del nivel más alto, no solo la altura de un cuarto — así un
+  // edificio de 3 pisos no sale con la cámara metida dentro de la planta baja.
+  const alturaTotal = Math.max(...cerradas.map((h) => elevacion(h.nivelId) + h.alturaM), 3);
   const extent = Math.max(
     ...todos.map((p) => Math.hypot(p.x - center.x, p.z - center.z)),
     3,
@@ -94,17 +109,17 @@ export default function RoomPreview({ habitaciones, objetos }: Props) {
 
   return (
     <Canvas className="construccion-3d-canvas">
-      <PerspectiveCamera makeDefault position={[center.x + extent, alturaM + extent, center.z + extent]} fov={50} />
-      <OrbitControls target={[center.x, alturaM / 2, center.z]} />
+      <PerspectiveCamera makeDefault position={[center.x + extent, alturaTotal + extent, center.z + extent]} fov={50} />
+      <OrbitControls target={[center.x, alturaTotal / 2, center.z]} />
       <ambientLight intensity={1.5} />
-      <directionalLight position={[center.x + 5, 8, center.z + 3]} intensity={Math.PI} />
+      <directionalLight position={[center.x + 5, alturaTotal + 8, center.z + 3]} intensity={Math.PI} />
       {cerradas.map((h) => (
-        <group key={h.id}>
+        <group key={h.id} position={[0, elevacion(h.nivelId), 0]}>
           <Walls habitacion={h} />
           <Floor points={h.puntos} color={zonaDe(h.tipo).fill} />
         </group>
       ))}
-      <Muebles objetos={objetos} />
+      <Muebles objetos={objetos} elevacionDe={elevacionDeObjeto} />
       <Grid infiniteGrid sectionColor="#a1a1aa" cellColor="#e4e4e7" fadeDistance={40} />
     </Canvas>
   );

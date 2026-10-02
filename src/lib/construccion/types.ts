@@ -27,9 +27,17 @@ export type TipoHabitacion =
   | "exterior"
   | "otro";
 
+/** Un piso de la construcción (planta baja, planta alta…). El orden del arreglo `Proyecto.niveles` es de abajo hacia arriba. */
+export type Nivel = {
+  id: string;
+  nombre: string;
+};
+
 /** Mueble/equipo colocado en el plano. Coordenadas absolutas (m), igual que los puntos de las habitaciones. */
 export type Objeto = {
   id: string;
+  /** Nivel en el que está (un objeto suelto afuera también pertenece a un piso). */
+  nivelId: string;
   /** Clave del catálogo (`OBJETOS_CATALOGO`). */
   tipo: string;
   /** Habitación que lo contiene (se mueve junto con ella); null si está suelto o afuera. */
@@ -45,6 +53,8 @@ export type Objeto = {
 
 export type Habitacion = {
   id: string;
+  /** Nivel al que pertenece. */
+  nivelId: string;
   nombre: string;
   tipo?: TipoHabitacion;
   puntos: Point[];
@@ -55,6 +65,8 @@ export type Habitacion = {
 export type Proyecto = {
   id: string;
   nombre: string;
+  /** Siempre hay al menos uno; de abajo hacia arriba. */
+  niveles: Nivel[];
   habitaciones: Habitacion[];
   objetos: Objeto[];
 };

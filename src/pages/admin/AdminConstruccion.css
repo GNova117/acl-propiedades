@@ -75,6 +75,60 @@
   min-height: 0;
 }
 
+/* Selector de nivel (plantas/pisos). */
+.construccion-niveles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.construccion-niveles__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.construccion-niveles__field select {
+  padding: 0.35rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.construccion-niveles__name-input {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 600;
+}
+
+.construccion-niveles__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Interruptor "Ver todo el edificio" junto a Plano 2D / Vista 3D. */
+.construccion-editor__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
 .construccion-editor__sidebar {
   width: 15rem;
   flex-shrink: 0;
@@ -161,6 +215,15 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.construccion-editor__topbar-left {
+  flex-wrap: wrap;
+}
+
+.construccion__history {
+  display: flex;
+  gap: 0.35rem;
 }
 
 .construccion-editor__hint-text {
@@ -328,6 +391,90 @@
   width: 100%;
   cursor: crosshair;
   background: #ffffff;
+  /* Necesario para que el desplazamiento y el pellizco con el dedo los maneje el plano, no el navegador. */
+  touch-action: none;
+}
+
+/* El contenedor del plano: ancla de los controles de zoom y base de la medida del viewport. */
+.construccion-plan-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.construccion-zoom {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.4rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+.construccion-zoom button {
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.construccion-zoom button:hover {
+  border-color: var(--color-primary);
+}
+
+.construccion-zoom__scale {
+  padding: 0 0.35rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* Asas de los vértices de un cuarto (arrastrables). */
+.construccion-vertex {
+  cursor: grab;
+}
+
+.construccion-vertex:hover {
+  fill: #dbeafe;
+}
+
+/* Dibujar por medidas (barra superior) y panel de medidas de los muros (pie). */
+.construccion-editor__measure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.construccion-editor__measure .construccion-editor__abertura-input {
+  width: 4.5rem;
+}
+
+.construccion-walls {
+  flex: 1 1 100%;
+}
+
+.construccion-walls__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.construccion-walls__row .construccion-editor__abertura-input {
+  width: 4.5rem;
 }
 
 .construccion-3d-canvas {
@@ -387,6 +534,18 @@
   font-weight: 600;
   color: var(--color-text);
   margin-bottom: 0.4rem;
+}
+
+/* Agrupa las habitaciones/el presupuesto de un nivel (Resumen y Presupuesto, cuando hay 2+ niveles). */
+.construccion-panel__subgroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.construccion-panel__subgroup:last-child {
+  margin-bottom: 0;
 }
 
 .construccion-panel__hint {

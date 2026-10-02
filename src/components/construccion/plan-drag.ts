@@ -1,8 +1,11 @@
 import { useRef, type PointerEvent as ReactPointerEvent } from "react";
 import { snap, type Point } from "../../lib/construccion/geometry";
 
-export const ROOM_GRID_M = 0.25;
+// Imán fino (5 cm): la exactitud real se logra tecleando las medidas; el imán solo evita los
+// "casi" al arrastrar. (Antes los cuartos se dibujaban y movían con imán de 25 cm.)
+export const ROOM_GRID_M = 0.05;
 export const OBJ_GRID_M = 0.05;
+export const VERTEX_GRID_M = 0.05;
 
 export function svgPoint(svg: SVGSVGElement, clientX: number, clientY: number): Point {
   const pt = svg.createSVGPoint();
@@ -14,10 +17,13 @@ export function svgPoint(svg: SVGSVGElement, clientX: number, clientY: number): 
 
 type Drag =
   | { kind: "objeto"; id: string; offX: number; offZ: number }
+  | { kind: "vertice"; id: string; index: number }
   | { kind: "habitacion"; id: string; startX: number; startZ: number; appliedX: number; appliedZ: number };
 
 type Callbacks = {
   onObjetoMove: (id: string, center: Point) => void;
+  /** Vértice `index` de la habitación `id` arrastrado a `p` (ya con imán de 5 cm; la alineación a ejes la pone quien recibe). */
+  onVerticeMove?: (id: string, index: number, p: Point) => void;
   onHabitacionMove?: (id: string, dx: number, dz: number) => void;
   onHabitacionDrop?: (id: string) => void;
   onObjetoDrop?: (id: string) => void;
@@ -43,6 +49,12 @@ export function usePlanDrag(cb: Callbacks) {
     dragRef.current = { kind: "objeto", id, offX: p.x - center.x, offZ: p.z - center.z };
   }
 
+  function startVertice(e: ReactPointerEvent<SVGElement>, id: string, index: number) {
+    e.stopPropagation();
+    interacted.current = true;
+    dragRef.current = { kind: "vertice", id, index };
+  }
+
   function startHabitacion(e: ReactPointerEvent<SVGElement>, id: string) {
     const svg = e.currentTarget.ownerSVGElement;
     if (!svg) return;
@@ -58,6 +70,8 @@ export function usePlanDrag(cb: Callbacks) {
     const p = svgPoint(e.currentTarget, e.clientX, e.clientY);
     if (d.kind === "objeto") {
       cbRef.current.onObjetoMove(d.id, { x: snap(p.x - d.offX, OBJ_GRID_M), z: snap(p.z - d.offZ, OBJ_GRID_M) });
+    } else if (d.kind === "vertice") {
+      cbRef.current.onVerticeMove?.(d.id, d.index, { x: snap(p.x, VERTEX_GRID_M), z: snap(p.z, VERTEX_GRID_M) });
     } else {
       const dx = snap(p.x - d.startX, ROOM_GRID_M);
       const dz = snap(p.z - d.startZ, ROOM_GRID_M);
@@ -84,5 +98,5 @@ export function usePlanDrag(cb: Callbacks) {
     return true;
   }
 
-  return { startObjeto, startHabitacion, consumeClick, handlers: { onPointerMove, onPointerUp: end, onPointerLeave: end } };
+  return { startObjeto, startVertice, startHabitacion, consumeClick, handlers: { onPointerMove, onPointerUp: end, onPointerLeave: end } };
 }
