@@ -4,7 +4,7 @@ import { NIVELES_ACABADO, calcularPresupuesto, totalPresupuesto } from "../../li
 import { downloadFichaConstruccionPdf } from "../../lib/construccion/fichaPdf";
 import { downloadPresupuestoCsv } from "../../lib/construccion/exportCsv";
 import { describeSyncError } from "../../lib/construccion/sync";
-import { estadisticasHabitacion, estadisticasProyecto } from "../../lib/construccion/stats";
+import { areasPorZona, estadisticasHabitacion, estadisticasProyecto } from "../../lib/construccion/stats";
 import type { FotoHabitacion, MaterialCatalogItem, Proyecto } from "../../lib/construccion/types";
 
 const peso = (n: number) => `$${n.toLocaleString("es-MX", { maximumFractionDigits: 0 })}`;
@@ -110,6 +110,25 @@ export default function SummaryTab({ proyecto, catalogo }: Props) {
             </table>
           )}
         </section>
+
+        {areasPorZona(proyecto.habitaciones).length > 1 && (
+          <section className="construccion-panel__section">
+            <h2 className="construccion-panel__heading">Áreas por tipo de zona</h2>
+            <table className="construccion-panel__plain-table">
+              <tbody>
+                {areasPorZona(proyecto.habitaciones).map((z) => (
+                  <tr key={z.tipo}>
+                    <td>
+                      {z.nombre}
+                      {z.zonas > 1 ? ` (${z.zonas})` : ""}
+                    </td>
+                    <td className="construccion-panel__col-right">{z.areaM2.toFixed(2)} m²</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        )}
 
         <section className="construccion-panel__section">
           <h2 className="construccion-panel__heading">Habitaciones</h2>

@@ -3,6 +3,8 @@ import PlanCanvas2D from "./plan-canvas-2d";
 import PlanMap2D from "./plan-map-2d";
 import ObjetosPalette from "./objetos-palette";
 import WallLengthsPanel from "./wall-lengths-panel";
+import ZonasPanel from "./zonas-panel";
+import { aplicarDivisor, cambiarMedidaZona } from "../../lib/construccion/divisores";
 import { usePlanDrag } from "./plan-drag";
 import { gridStep, usePlanViewport } from "./use-plan-viewport";
 import {
@@ -265,6 +267,12 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
           return { ...h, puntos, aberturas: clampOpeningsToWalls(puntos, h.aberturas) };
         }),
       })),
+    // Arrastrar una divisoria compartida: los cuartos de ambos lados se reacomodan juntos.
+    onDivisorMove: (div, d) =>
+      setProyecto((pr) => {
+        const habitaciones = aplicarDivisor(pr.habitaciones, div, d);
+        return habitaciones ? { ...pr, habitaciones } : pr;
+      }),
     // El fondo se mueve libre (sin imán ni límite): debe poder calzar exacto con el plano real.
     onFondoMove: (dx, dz) =>
       setFondos((prev) => {
@@ -1169,6 +1177,25 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
             </div>
           )}
         </div>
+
+        {!drawing && isMap && (
+          <ZonasPanel
+            habitaciones={nivelHabitaciones}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            onRename={(id, nombre) => setProyecto((pr) => ({ ...pr, habitaciones: pr.habitaciones.map((h) => (h.id === id ? { ...h, nombre } : h)) }))}
+            onTipo={(id, tipo) => {
+              setProyecto((pr) => ({ ...pr, habitaciones: pr.habitaciones.map((h) => (h.id === id ? { ...h, tipo } : h)) }));
+              if (tipo !== "otro") setCategoria(tipo);
+            }}
+            onMedida={(id, eje, valor) => {
+              const habitaciones = cambiarMedidaZona(proyecto.habitaciones, id, eje, valor);
+              if (!habitaciones) return false;
+              setProyecto((pr) => ({ ...pr, habitaciones }));
+              return true;
+            }}
+          />
+        )}
 
         {!drawing && (
           <div className="construccion-editor__footer">

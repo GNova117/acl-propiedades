@@ -1,5 +1,6 @@
 import { areaAberturas, areaMurosBruta } from "./budget";
 import { polygonArea, polygonPerimeter } from "./geometry";
+import { zonaDe } from "./objetos";
 import type { Habitacion, Nivel, Objeto, Proyecto } from "./types";
 
 /** Una habitación "Exterior" (jardín, alberca, patio) no cuenta como superficie construida. */
@@ -88,4 +89,20 @@ export function estadisticasProyecto(p: Pick<Proyecto, "niveles" | "habitaciones
     exteriorM2: niveles.reduce((s, n) => s + n.exteriorM2, 0),
     volumenM3: niveles.reduce((s, n) => s + n.volumenM3, 0),
   };
+}
+
+export type AreaPorZona = { tipo: string; nombre: string; zonas: number; areaM2: number };
+
+/** Metros cuadrados agrupados por tipo de zona (oficinas, salas de juntas, baños…), de mayor a menor. */
+export function areasPorZona(habitaciones: Habitacion[]): AreaPorZona[] {
+  const mapa = new Map<string, AreaPorZona>();
+  for (const h of habitaciones) {
+    if (h.puntos.length < 3) continue;
+    const z = zonaDe(h.tipo);
+    const fila = mapa.get(z.id) ?? { tipo: z.id, nombre: z.nombre, zonas: 0, areaM2: 0 };
+    fila.zonas += 1;
+    fila.areaM2 += polygonArea(h.puntos);
+    mapa.set(z.id, fila);
+  }
+  return [...mapa.values()].sort((a, b) => b.areaM2 - a.areaM2);
 }

@@ -942,3 +942,53 @@
 .construccion-areas__medida .construccion-editor__abertura-input {
   width: 4.5rem;
 }
+
+.construccion-zonas {
+  border-top: 1px solid var(--color-border);
+  padding: 0.6rem 1rem;
+  max-height: 10rem;
+  overflow-y: auto;
+  font-size: 0.85rem;
+}
+.construccion-zonas__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.construccion-zonas__table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 0.15rem 0.4rem;
+}
+.construccion-zonas__table td {
+  padding: 0.15rem 0.4rem;
+}
+.construccion-zonas__table tbody tr {
+  cursor: pointer;
+}
+.construccion-zonas__row--active {
+  background: rgba(37, 99, 235, 0.1);
+}
+.construccion-zonas__table tfoot td {
+  font-weight: 600;
+  border-top: 1px solid var(--color-border);
+}
+.construccion-zonas__name {
+  width: 100%;
+  min-width: 7rem;
+  padding-left: 0.4rem;
+}
+.construccion-zonas__num {
+  width: 5rem;
+}
+.construccion-zonas__tipos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.construccion-zonas__chip {
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+}

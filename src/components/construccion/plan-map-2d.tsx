@@ -1,4 +1,5 @@
-import { forwardRef, useState } from "react";
+import { forwardRef, useMemo, useState } from "react";
+import { divisoresDe } from "../../lib/construccion/divisores";
 import { openPolylineSegments, polygonArea, snap, snapToAxes, wallSegmentsFromPolygon, type Point } from "../../lib/construccion/geometry";
 import { puntoDeCorte, puntoEnBorde } from "../../lib/construccion/dividir";
 import { zonaDe } from "../../lib/construccion/objetos";
@@ -46,6 +47,7 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
   const [cursor, setCursor] = useState<Point | null>(null);
   // Con una herramienta activa los cuartos y muebles no se agarran: cada clic es de la herramienta.
   const blocked = placing || tool !== null;
+  const divisores = useMemo(() => divisoresDe(habitaciones), [habitaciones]);
 
   // Igual que al dibujar un cuarto suelto: imán de 5 cm y alineación con los puntos ya puestos.
   function toDrawPoint(svg: SVGSVGElement, clientX: number, clientY: number): Point {
@@ -177,6 +179,38 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
           </g>
         );
       })}
+
+      {!blocked &&
+        divisores.map((dv, i) => {
+          const vertical = Math.abs(dv.n.x) > 0.5;
+          const mx = (dv.a.x + dv.b.x) / 2;
+          const mz = (dv.a.z + dv.b.z) / 2;
+          return (
+            <g key={`dv${i}`} className="construccion-plan-ui">
+              <line
+                x1={dv.a.x}
+                y1={dv.a.z}
+                x2={dv.b.x}
+                y2={dv.b.z}
+                stroke="transparent"
+                strokeWidth={14 * vp.mpp}
+                style={{ cursor: Math.abs(dv.n.x) < 1e-6 ? "row-resize" : Math.abs(dv.n.z) < 1e-6 ? "col-resize" : "move" }}
+                onPointerDown={(e) => drag.startDivisor(e, dv)}
+              />
+              <circle
+                cx={mx}
+                cy={mz}
+                r={6 * vp.mpp}
+                fill="#ffffff"
+                stroke="#2563eb"
+                strokeWidth={2}
+                vectorEffect="non-scaling-stroke"
+                style={{ cursor: vertical ? "col-resize" : "row-resize" }}
+                onPointerDown={(e) => drag.startDivisor(e, dv)}
+              />
+            </g>
+          );
+        })}
 
       <ObjetosLayer
         objetos={objetos}

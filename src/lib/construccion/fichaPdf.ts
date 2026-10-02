@@ -5,7 +5,7 @@
 // export-plan.ts.
 import { polygonBounds, unionBounds, wallSegmentsFromPolygon, type Bounds } from "./geometry";
 import { calcularPresupuesto, totalPresupuesto } from "./budget";
-import { estadisticasHabitacion, estadisticasProyecto } from "./stats";
+import { areasPorZona, estadisticasHabitacion, estadisticasProyecto } from "./stats";
 import type { FotoHabitacion, Habitacion, MaterialCatalogItem, Proyecto } from "./types";
 
 const TEMPLATE_URL = "/plantilla_acl.pdf";
@@ -285,6 +285,14 @@ export async function buildFichaConstruccionPdf(meta: FichaConstruccionMeta, { t
   y -= LINE_HEIGHT * 0.3;
   await drawRow("Area total construida", `${stats.construidaM2.toFixed(2)} m2`, { boldLeft: true });
   if (stats.exteriorM2 > 0) await drawParagraph(`+ ${stats.exteriorM2.toFixed(2)} m2 de areas exteriores (no cuentan como construidas)`, { color: gray, size: 9 });
+
+  // ── Áreas por tipo de zona (oficinas, salas de juntas…) — solo si hay más de un uso ──
+  const porZona = areasPorZona(proyecto.habitaciones);
+  if (porZona.length > 1) {
+    y -= LINE_HEIGHT * 0.5;
+    await drawSubtitle("AREAS POR TIPO DE ZONA");
+    for (const z of porZona) await drawRow(z.zonas > 1 ? `${z.nombre} (${z.zonas})` : z.nombre, `${z.areaM2.toFixed(2)} m2`);
+  }
 
   // ── Estimación de valor y presupuesto ──
   y -= LINE_HEIGHT * 0.5;

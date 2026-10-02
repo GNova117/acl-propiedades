@@ -1,5 +1,6 @@
 import { useRef, type PointerEvent as ReactPointerEvent } from "react";
 import { snap, type Point } from "../../lib/construccion/geometry";
+import type { Divisor } from "../../lib/construccion/divisores";
 
 // Imán fino (5 cm): la exactitud real se logra tecleando las medidas; el imán solo evita los
 // "casi" al arrastrar. (Antes los cuartos se dibujaban y movían con imán de 25 cm.)
@@ -19,6 +20,7 @@ type Drag =
   | { kind: "objeto"; id: string; offX: number; offZ: number }
   | { kind: "vertice"; id: string; index: number }
   | { kind: "habitacion"; id: string; startX: number; startZ: number; appliedX: number; appliedZ: number }
+  | { kind: "divisor"; div: Divisor; startX: number; startZ: number; applied: number }
   | { kind: "fondo"; startX: number; startZ: number; appliedX: number; appliedZ: number };
 
 type Callbacks = {
@@ -29,6 +31,8 @@ type Callbacks = {
   onHabitacionDrop?: (id: string) => void;
   onObjetoDrop?: (id: string) => void;
   /** Arrastrar la imagen de fondo (plano calcado) — sin imán: debe poder quedar exacta. */
+  /** Línea divisoria arrastrada `d` metros (con imán de 5 cm) a lo largo de su normal, medida desde donde estaba al agarrarla. */
+  onDivisorMove?: (div: Divisor, d: number) => void;
   onFondoMove?: (dx: number, dz: number) => void;
   onFondoDrop?: () => void;
 };
@@ -68,6 +72,15 @@ export function usePlanDrag(cb: Callbacks) {
     dragRef.current = { kind: "habitacion", id, startX: p.x, startZ: p.z, appliedX: 0, appliedZ: 0 };
   }
 
+  function startDivisor(e: ReactPointerEvent<SVGElement>, div: Divisor) {
+    const svg = e.currentTarget.ownerSVGElement;
+    if (!svg) return;
+    e.stopPropagation();
+    interacted.current = true;
+    const p = svgPoint(svg, e.clientX, e.clientY);
+    dragRef.current = { kind: "divisor", div, startX: p.x, startZ: p.z, applied: 0 };
+  }
+
   function startFondo(e: ReactPointerEvent<SVGElement>) {
     const svg = e.currentTarget.ownerSVGElement;
     if (!svg) return;
@@ -92,6 +105,12 @@ export function usePlanDrag(cb: Callbacks) {
         cbRef.current.onHabitacionMove?.(d.id, dx - d.appliedX, dz - d.appliedZ);
         d.appliedX = dx;
         d.appliedZ = dz;
+      }
+    } else if (d.kind === "divisor") {
+      const dist = snap((p.x - d.startX) * d.div.n.x + (p.z - d.startZ) * d.div.n.z, VERTEX_GRID_M);
+      if (dist !== d.applied) {
+        d.applied = dist;
+        cbRef.current.onDivisorMove?.(d.div, dist);
       }
     } else {
       const dx = p.x - d.startX;
@@ -118,5 +137,5 @@ export function usePlanDrag(cb: Callbacks) {
     return true;
   }
 
-  return { startObjeto, startVertice, startHabitacion, startFondo, consumeClick, handlers: { onPointerMove, onPointerUp: end, onPointerLeave: end } };
+  return { startObjeto, startVertice, startHabitacion, startFondo, startDivisor, consumeClick, handlers: { onPointerMove, onPointerUp: end, onPointerLeave: end } };
 }
