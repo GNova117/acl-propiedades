@@ -174,3 +174,36 @@ export function dividirHabitacion(
     },
   };
 }
+
+/**
+ * Corta el cuarto `id` con una línea paralela al muro `muroIndex`, a `distanciaM` metros de él hacia adentro
+ * ("de aquí a 3.5 m es la oficina"). null si la distancia no cabe dentro del cuarto.
+ */
+export function cortarPorMedida(
+  proyecto: Proyecto,
+  id: string,
+  muroIndex: number,
+  distanciaM: number,
+): { proyecto: Proyecto; nuevaId: string } | null {
+  const hab = proyecto.habitaciones.find((h) => h.id === id);
+  if (!hab || !(distanciaM > 0)) return null;
+  const seg = wallSegmentsFromPolygon(hab.puntos)[muroIndex];
+  if (!seg || seg.length === 0) return null;
+  const ux = (seg.end.x - seg.start.x) / seg.length;
+  const uz = (seg.end.z - seg.start.z) / seg.length;
+  // Normal que apunta hacia adentro del cuarto.
+  let nx = -uz;
+  let nz = ux;
+  const sonda = { x: seg.center.x + nx * 0.02, z: seg.center.z + nz * 0.02 };
+  if (!pointInPolygon(sonda, hab.puntos)) {
+    nx = -nx;
+    nz = -nz;
+  }
+  const p = { x: seg.center.x + nx * distanciaM, z: seg.center.z + nz * distanciaM };
+  if (!pointInPolygon(p, hab.puntos)) return null;
+  // La línea corre paralela al muro hasta tocar los muros de cada lado.
+  const a = puntoDeCorte(hab.puntos, p, { x: p.x + ux, z: p.z + uz });
+  const b = puntoDeCorte(hab.puntos, p, { x: p.x - ux, z: p.z - uz });
+  if (!a || !b) return null;
+  return dividirHabitacion(proyecto, id, a, b);
+}

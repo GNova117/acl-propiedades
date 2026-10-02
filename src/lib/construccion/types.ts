@@ -25,6 +25,11 @@ export type TipoHabitacion =
   | "estudio"
   | "cochera"
   | "exterior"
+  | "oficina"
+  | "sala_juntas"
+  | "recepcion"
+  | "bodega"
+  | "pasillo"
   | "otro";
 
 /** Un piso de la construcción (planta baja, planta alta…). El orden del arreglo `Proyecto.niveles` es de abajo hacia arriba. */

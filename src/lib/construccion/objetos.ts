@@ -21,6 +21,11 @@ export const ZONAS: { id: TipoHabitacion; nombre: string; color: string; fill: s
   { id: "estudio", nombre: "Estudio", color: "#4f46e5", fill: "#eef2ff" },
   { id: "cochera", nombre: "Cochera", color: "#57534e", fill: "#f5f5f4" },
   { id: "exterior", nombre: "Exterior", color: "#16a34a", fill: "#f0fdf4" },
+  { id: "oficina", nombre: "Oficina", color: "#0f766e", fill: "#f0fdfa" },
+  { id: "sala_juntas", nombre: "Sala de juntas", color: "#be185d", fill: "#fdf2f8" },
+  { id: "recepcion", nombre: "Recepción", color: "#c2410c", fill: "#fff7ed" },
+  { id: "bodega", nombre: "Bodega", color: "#92400e", fill: "#fffbeb" },
+  { id: "pasillo", nombre: "Pasillo", color: "#64748b", fill: "#f8fafc" },
   { id: "otro", nombre: "Otro", color: "#52525b", fill: "#eef2ff" },
 ];
 
@@ -70,6 +75,17 @@ export const OBJETOS_CATALOGO: ObjetoDef[] = [
   { id: "lavadero", nombre: "Lavadero", categoria: "lavanderia", anchoM: 0.8, largoM: 0.6, altoM: 0.9 },
   { id: "boiler", nombre: "Boiler", categoria: "lavanderia", anchoM: 0.5, largoM: 0.5, altoM: 1.4, forma: "round" },
   // Estudio
+  // Oficina / juntas / recepción / bodega
+  { id: "escritorio_of", nombre: "Escritorio", categoria: "oficina", anchoM: 1.5, largoM: 0.75, altoM: 0.75 },
+  { id: "silla_of", nombre: "Silla de oficina", categoria: "oficina", anchoM: 0.6, largoM: 0.6, altoM: 0.95, forma: "round" },
+  { id: "archivero", nombre: "Archivero", categoria: "oficina", anchoM: 0.5, largoM: 0.6, altoM: 1.3 },
+  { id: "librero_of", nombre: "Librero", categoria: "oficina", anchoM: 1.0, largoM: 0.35, altoM: 1.8 },
+  { id: "mesa_juntas", nombre: "Mesa de juntas (8)", categoria: "sala_juntas", anchoM: 3.0, largoM: 1.2, altoM: 0.75 },
+  { id: "silla_juntas", nombre: "Silla", categoria: "sala_juntas", anchoM: 0.55, largoM: 0.55, altoM: 0.9, forma: "round" },
+  { id: "pantalla", nombre: "Pantalla / TV", categoria: "sala_juntas", anchoM: 1.4, largoM: 0.15, altoM: 0.8 },
+  { id: "mostrador", nombre: "Mostrador", categoria: "recepcion", anchoM: 2.0, largoM: 0.7, altoM: 1.1 },
+  { id: "sillon_espera", nombre: "Sillón de espera", categoria: "recepcion", anchoM: 1.6, largoM: 0.8, altoM: 0.85 },
+  { id: "anaquel", nombre: "Anaquel", categoria: "bodega", anchoM: 1.2, largoM: 0.5, altoM: 2.0 },
   { id: "escritorio", nombre: "Escritorio", categoria: "estudio", anchoM: 1.4, largoM: 0.7, altoM: 0.75 },
   { id: "silla_oficina", nombre: "Silla de oficina", categoria: "estudio", anchoM: 0.6, largoM: 0.6, altoM: 0.95, forma: "round" },
   { id: "estante", nombre: "Estante", categoria: "estudio", anchoM: 1.2, largoM: 0.35, altoM: 1.9 },
@@ -93,6 +109,8 @@ export function objetoDef(id: string): ObjetoDef | undefined {
 export type Kit = { id: string; nombre: string; categoria: TipoHabitacion; items: string[] };
 
 export const KITS: Kit[] = [
+  { id: "kit_oficina", nombre: "Oficina individual", categoria: "oficina", items: ["escritorio_of", "silla_of", "archivero"] },
+  { id: "kit_juntas", nombre: "Sala de juntas de 8", categoria: "sala_juntas", items: ["mesa_juntas", "silla_juntas", "silla_juntas", "silla_juntas", "silla_juntas", "silla_juntas", "silla_juntas", "silla_juntas", "silla_juntas", "pantalla"] },
   { id: "kit_cocina", nombre: "Cocina completa", categoria: "cocina", items: ["refri", "estufa", "fregadero", "meson", "isla"] },
   { id: "kit_sala", nombre: "Sala básica", categoria: "sala", items: ["sofa3", "sofa2", "mesa_centro", "mueble_tv"] },
   { id: "kit_comedor", nombre: "Comedor de 4", categoria: "comedor", items: ["mesa4", "silla", "silla", "silla", "silla"] },

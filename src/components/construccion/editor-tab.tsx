@@ -22,7 +22,7 @@ import {
   type Bounds,
   type Point,
 } from "../../lib/construccion/geometry";
-import { dividirHabitacion, puntoEnBorde } from "../../lib/construccion/dividir";
+import { cortarPorMedida, dividirHabitacion, puntoEnBorde } from "../../lib/construccion/dividir";
 import { ZONAS, zonaDe, colocarKit, nuevoObjeto, objetoDef, type Kit } from "../../lib/construccion/objetos";
 import { exportPlanAsPdf, exportPlanAsPng } from "../../lib/construccion/export-plan";
 import { downloadDxf } from "../../lib/construccion/exportDxf";
@@ -101,7 +101,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   const [edificioCompleto, setEdificioCompleto] = useState(false);
   const [draftPoints, setDraftPoints] = useState<Point[]>([]);
   const [view, setView] = useState<"2d" | "3d">("2d");
-  const [mode, setMode] = useState<"cuarto" | "mapa">("cuarto");
+  const [mode, setMode] = useState<"cuarto" | "mapa">("mapa");
   const [placing, setPlacing] = useState<string | null>(null);
   const [selectedObjetoId, setSelectedObjetoId] = useState<string | null>(null);
   const [categoria, setCategoria] = useState<TipoHabitacion>("sala");
@@ -129,6 +129,8 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
 
   // Contorno y división en "Plano completo": se dibuja el área de la casa y luego se parte en cuartos.
   const [mapDrawing, setMapDrawing] = useState(false);
+  const [corteMuro, setCorteMuro] = useState("0");
+  const [corteDist, setCorteDist] = useState("");
   const [splitting, setSplitting] = useState(false);
   const [splitFromState, setSplitFromState] = useState<{ roomId: string; point: Point } | null>(null);
   const [splitMsg, setSplitMsg] = useState<string | null>(null);
@@ -376,8 +378,24 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
       return;
     }
     setProyecto(() => resultado.proyecto);
+    setSelectedId(resultado.nuevaId); // la parte nueva queda seleccionada para ponerle nombre y zona enseguida
     setSplitting(false);
     setSplitFromState(null);
+    setSplitMsg(null);
+  }
+
+  /** "Cortar a N m de un muro": parte el cuarto seleccionado con una línea paralela a ese muro. */
+  function handleCortePorMedida() {
+    if (!selected) return;
+    const dist = Number(corteDist.replace(",", "."));
+    const resultado = cortarPorMedida(proyecto, selected.id, Number(corteMuro), dist);
+    if (!resultado) {
+      setSplitMsg(`No se puede cortar a ${corteDist || "0"} m de ese muro: queda fuera del cuarto.`);
+      return;
+    }
+    setProyecto(() => resultado.proyecto);
+    setSelectedId(resultado.nuevaId);
+    setCorteDist("");
     setSplitMsg(null);
   }
 
@@ -750,6 +768,40 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                 {splitRoom ? "Cancelar corte" : "Dividir cuarto"}
               </button>
             </div>
+            {selected && !mapDrawing && selected.nivelId === selectedNivelId && (
+              <form
+                className="construccion-areas__row construccion-areas__medida"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleCortePorMedida();
+                }}
+              >
+                <span>Cortar a</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step={0.05}
+                  min={0.1}
+                  value={corteDist}
+                  onChange={(e) => setCorteDist(e.target.value)}
+                  placeholder="3.50"
+                  className="construccion-editor__abertura-input"
+                  aria-label="Distancia del corte en metros"
+                />
+                <span>m del</span>
+                <select value={corteMuro} onChange={(e) => setCorteMuro(e.target.value)} className="construccion-editor__abertura-select" aria-label="Muro de referencia">
+                  {wallSegmentsFromPolygon(selected.puntos).map((w, i) => (
+                    <option key={i} value={i}>
+                      muro {i + 1} ({w.length.toFixed(2)} m)
+                    </option>
+                  ))}
+                </select>
+                <button type="submit" className="btn btn-outline btn-sm" disabled={!(Number(corteDist.replace(",", ".")) > 0)}>
+                  Cortar
+                </button>
+              </form>
+            )}
+            {splitMsg && !splitRoom && <p className="construccion__error">{splitMsg}</p>}
             {mapDrawing && (
               <p className="construccion-panel__hint">Clic en cada esquina del área (o teclea el largo de cada muro arriba). Se cierra tocando el primer punto, en verde.</p>
             )}

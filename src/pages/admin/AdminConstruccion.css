@@ -932,3 +932,13 @@
 .construccion-areas .construccion__error {
   margin: 0;
 }
+
+.construccion-areas__medida {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+}
+.construccion-areas__medida .construccion-editor__abertura-input {
+  width: 4.5rem;
+}
