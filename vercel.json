@@ -16,7 +16,8 @@
     }
   ],
   "functions": {
-    "api/market-comps.js": { "maxDuration": 60 }
+    "api/market-comps.js": { "maxDuration": 60 },
+    "api/sketch-to-plan.js": { "maxDuration": 45 }
   },
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },

@@ -1648,6 +1648,29 @@ export const supabaseBackend = {
     return body;
   },
 
+  async requestSketchToPlan(params) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) {
+      const err = new Error("unauthorized");
+      err.code = "unauthorized";
+      throw err;
+    }
+    const res = await fetch("/api/sketch-to-plan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(params),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(body.message || body.error || `HTTP ${res.status}`);
+      err.code = res.status === 404 ? "no_function" : body.error || "upstream";
+      err.limit = body.limit;
+      throw err;
+    }
+    return body;
+  },
+
   async getMarketSnapshots(zoneName) {
     let query = supabase.from("market_snapshots").select("*").order("created_at", { ascending: false }).limit(30);
     if (zoneName) query = query.ilike("zone_name", String(zoneName).replace(/[%_]/g, " "));

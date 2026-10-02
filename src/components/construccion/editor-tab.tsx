@@ -26,6 +26,7 @@ import { ZONAS, zonaDe, colocarKit, nuevoObjeto, objetoDef, type Kit } from "../
 import { exportPlanAsPdf, exportPlanAsPng } from "../../lib/construccion/export-plan";
 import { downloadDxf } from "../../lib/construccion/exportDxf";
 import { db } from "../../lib/dataStore";
+import { compressImageFile } from "../../lib/imageCompression";
 import {
   ABERTURA_DEFAULTS,
   type Abertura,
@@ -118,6 +119,12 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   const [pendingWidthM, setPendingWidthM] = useState("10");
   const fondoPosRef = useRef<{ xM: number; zM: number } | null>(null);
   const fondoOpacityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Croquis a borrador con IA — ver server/sketchToPlan.js. No se guarda ningún estado aparte
+  // (a diferencia de fotos/fondo): el resultado se vuelve habitaciones normales de una vez.
+  const [sketchLoading, setSketchLoading] = useState(false);
+  const [sketchError, setSketchError] = useState<string | null>(null);
+  const [sketchCostUsd, setSketchCostUsd] = useState<number | null>(null);
 
   const nivelIdsKey = proyecto.niveles.map((n) => n.id).join(",");
   useEffect(() => {
@@ -440,6 +447,83 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
     setView("2d");
   }
 
+  function fileToBase64(file: File): Promise<{ base64: string; mediaType: string }> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(reader.error);
+      reader.onload = () => {
+        const dataUrl = String(reader.result);
+        const comma = dataUrl.indexOf(",");
+        resolve({ base64: dataUrl.slice(comma + 1), mediaType: dataUrl.slice(5, dataUrl.indexOf(";")) });
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /** Arma el polígono de un cuarto desde su secuencia de muros (igual que "Dibujar por medidas" a mano). */
+  function habitacionDesdeMuros(
+    sketch: { nombre: string; tipo: TipoHabitacion; muros: { largoM: number; giroDeg: number; confirmado: boolean }[] },
+    nivelId: string,
+    start: Point,
+  ): Habitacion {
+    let puntos: Point[] = [];
+    for (const m of sketch.muros) puntos = appendByMeasure(puntos, m.largoM, m.giroDeg, start);
+    const sinConfirmar = sketch.muros.some((m) => !m.confirmado);
+    return {
+      id: crypto.randomUUID(),
+      nivelId,
+      nombre: sinConfirmar ? `${sketch.nombre} (revisar medidas)` : sketch.nombre,
+      tipo: ZONAS.some((z) => z.id === sketch.tipo) ? sketch.tipo : undefined,
+      puntos,
+      alturaM: DEFAULT_ALTURA_M,
+      aberturas: [],
+    };
+  }
+
+  async function handleSketchFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setSketchError(null);
+    setSketchLoading(true);
+    try {
+      const comprimido = await compressImageFile(file);
+      const { base64, mediaType } = await fileToBase64(comprimido);
+      const res = await db.requestSketchToPlan({ imageBase64: base64, mediaType });
+      if (res.configured === false) {
+        setSketchError("La lectura de croquis con IA aún no está activada: falta la variable ANTHROPIC_API_KEY en Vercel.");
+        return;
+      }
+      const detectadas = (res.habitaciones ?? []) as { nombre: string; tipo: TipoHabitacion; muros: { largoM: number; giroDeg: number; confirmado: boolean }[] }[];
+      if (detectadas.length === 0) {
+        setSketchError("No se distinguió ningún cuarto en la imagen. Prueba con una foto más clara o de más cerca.");
+        return;
+      }
+      // Se acomodan en fila, a la derecha de lo que ya haya en el nivel, para no encimarse con nada —
+      // el asesor las arrastra después a su posición real (el imán ya ayuda a pegarlas entre sí).
+      const existentes = proyecto.habitaciones.filter((h) => h.nivelId === selectedNivelId && h.puntos.length >= 3).map((h) => polygonBounds(h.puntos));
+      let cursorX = existentes.length > 0 ? Math.max(...existentes.map((b) => b.maxX)) + 1 : 1;
+      const nuevas: Habitacion[] = [];
+      for (const sketch of detectadas) {
+        const hab = habitacionDesdeMuros(sketch, selectedNivelId, { x: cursorX, z: 1 });
+        nuevas.push(hab);
+        cursorX = polygonBounds(hab.puntos).maxX + 1;
+      }
+      setProyecto((p) => ({ ...p, habitaciones: [...p.habitaciones, ...nuevas] }));
+      setMode("mapa");
+      setSelectedId(nuevas[0].id);
+      if (res.usage?.costUsd > 0) setSketchCostUsd(res.usage.costUsd);
+    } catch (err) {
+      const code = (err as { code?: string; limit?: number })?.code;
+      if (code === "limit") setSketchError(`Ya se alcanzó el tope de consultas de hoy (${(err as { limit?: number }).limit ?? "?"} por día).`);
+      else if (code === "no_table") setSketchError("Falta crear la tabla construccion_sketch_usage en Supabase (corre el bloque «Construcción · croquis a borrador con IA» de supabase/schema.sql).");
+      else if (code === "no_function") setSketchError("La lectura de croquis no está disponible en este entorno (solo existe en el sitio publicado en Vercel).");
+      else setSketchError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSketchLoading(false);
+    }
+  }
+
   function deleteRoom(id: string) {
     if (!window.confirm("¿Eliminar esta habitación (y los objetos que tiene dentro)? No se puede deshacer.")) return;
     setProyecto((p) => ({
@@ -646,6 +730,15 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
         <button onClick={startNewRoom} className="btn btn-primary construccion-editor__new-btn">
           + Nueva habitación
         </button>
+        <label className="btn btn-outline construccion-editor__new-btn" style={{ cursor: sketchLoading ? "wait" : "pointer" }}>
+          <input type="file" accept="image/*" hidden disabled={sketchLoading} onChange={handleSketchFileSelect} />
+          {sketchLoading ? <span className="spinner" /> : null}
+          Calcar un croquis (IA)
+        </label>
+        {sketchError && <p className="construccion__error">{sketchError}</p>}
+        {sketchCostUsd !== null && !sketchError && (
+          <p className="construccion-panel__hint">Costo aprox. de la última lectura: ${sketchCostUsd.toFixed(2)} USD</p>
+        )}
         <ul className="construccion-editor__rooms">
           {nivelHabitaciones.map((h) => (
             <li key={h.id}>
