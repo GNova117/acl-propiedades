@@ -992,3 +992,33 @@
   border-radius: 999px;
   padding: 0.1rem 0.6rem;
 }
+
+.construccion-zonas__titulo {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+.construccion-zonas__tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+.construccion-zonas__tab {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: inherit;
+  border-radius: 999px;
+  padding: 0.1rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.construccion-zonas__tab--active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+/* La barra lateral hace scroll: sus bloques no deben encogerse (el selector de modo, con overflow oculto,
+   llegaba a medir 0 de alto y desaparecía cuando el contenido era más alto que la pantalla). */
+.construccion-editor__sidebar > * {
+  flex-shrink: 0;
+}

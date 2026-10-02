@@ -2,8 +2,9 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, type Dispatch, ty
 import PlanCanvas2D from "./plan-canvas-2d";
 import PlanMap2D from "./plan-map-2d";
 import ObjetosPalette from "./objetos-palette";
-import WallLengthsPanel from "./wall-lengths-panel";
 import ZonasPanel from "./zonas-panel";
+import MurosTabla from "./muros-tabla";
+import { murosDeContorno, moverVerticesLigados, rectanguloPuntos, setGiroContorno, setLargoContorno } from "../../lib/construccion/contorno";
 import { aplicarDivisor, cambiarMedidaZona } from "../../lib/construccion/divisores";
 import { usePlanDrag } from "./plan-drag";
 import { gridStep, usePlanViewport } from "./use-plan-viewport";
@@ -109,7 +110,6 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   const [categoria, setCategoria] = useState<TipoHabitacion>("sala");
   const [medida, setMedida] = useState("");
   const [giro, setGiro] = useState("90");
-  const [highlightWall, setHighlightWall] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const medidaRef = useRef<HTMLInputElement>(null);
 
@@ -131,6 +131,9 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
 
   // Contorno y división en "Plano completo": se dibuja el área de la casa y luego se parte en cuartos.
   const [mapDrawing, setMapDrawing] = useState(false);
+  const [panelTab, setPanelTab] = useState<"zonas" | "muros">("zonas");
+  const [rectAncho, setRectAncho] = useState("");
+  const [rectLargo, setRectLargo] = useState("");
   const [corteMuro, setCorteMuro] = useState("0");
   const [corteDist, setCorteDist] = useState("");
   const [splitting, setSplitting] = useState(false);
@@ -151,7 +154,8 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
 
   const selected = proyecto.habitaciones.find((h) => h.id === selectedId) ?? null;
   const isMap = mode === "mapa";
-  const drawing = (!selected && !isMap) || mapDrawing;
+  // Los cuartos solo se dibujan en "Plano completo" (contorno + divisiones); "Muebles y aberturas" no dibuja.
+  const drawing = mapDrawing;
   const splitRoom = isMap && splitting && selected && selected.nivelId === selectedNivelId ? selected : null;
   // El primer clic del corte solo vale mientras siga seleccionado el mismo cuarto.
   const splitFrom = splitFromState && splitFromState.roomId === selectedId ? splitFromState.point : null;
@@ -411,22 +415,56 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
     setDraftPoints((pts) => pts.slice(0, -1));
   }
 
+  /** Dónde empieza un contorno nuevo: a la derecha de lo que ya hay en el nivel (o en (1, 1) si está vacío). */
+  function puntoLibre(): Point {
+    const existentes = nivelHabitaciones.filter((h) => h.puntos.length >= 3).map((h) => polygonBounds(h.puntos));
+    if (existentes.length === 0) return { x: 1, z: 1 };
+    return { x: Math.round((Math.max(...existentes.map((b) => b.maxX)) + 1) * 100) / 100, z: Math.round(Math.min(...existentes.map((b) => b.minZ)) * 100) / 100 };
+  }
+
+  /** "Rectángulo rápido": una zona de ancho × largo de un clic, que luego se divide. */
+  function crearRectangulo() {
+    const ancho = Number(rectAncho.replace(",", "."));
+    const largo = Number(rectLargo.replace(",", "."));
+    if (!(ancho > 0.2) || !(largo > 0.2)) return;
+    const nueva: Habitacion = {
+      id: crypto.randomUUID(),
+      nivelId: selectedNivelId,
+      nombre: `Área ${proyecto.habitaciones.length + 1}`,
+      puntos: rectanguloPuntos(puntoLibre(), ancho, largo),
+      alturaM: DEFAULT_ALTURA_M,
+      aberturas: [],
+    };
+    setProyecto((p) => ({ ...p, habitaciones: [...p.habitaciones, nueva] }));
+    setSelectedId(nueva.id);
+    setRectAncho("");
+    setRectLargo("");
+    vp.ensureVisible(nueva.puntos);
+  }
+
+  /** Cambia el largo de un muro de la zona seleccionada; los cuartos pegados a esa esquina se mueven con ella. */
+  function cambiarLargoMuroZona(index: number, largoM: number): boolean {
+    if (!selected) return false;
+    const nuevos = setWallLength(selected.puntos, index, largoM);
+    if (nuevos === selected.puntos) return false;
+    setProyecto((pr) => {
+      const antes = pr.habitaciones;
+      const despues = moverVerticesLigados(antes, selected.id, nuevos);
+      return { ...pr, habitaciones: despues.map((h, i) => (h === antes[i] ? h : { ...h, aberturas: clampOpeningsToWalls(h.puntos, h.aberturas) })) };
+    });
+    vp.ensureVisible(nuevos);
+    return true;
+  }
+
   /** Dibujar por medidas: agrega un muro de `medida` m girando `giro`° respecto al anterior. */
   function addMeasuredWall() {
     const largo = Number(medida.replace(",", "."));
     if (!(largo > 0)) return;
-    const pts = appendByMeasure(draftPoints, largo, Number(giro));
+    const pts = appendByMeasure(draftPoints, largo, Number(giro), puntoLibre());
     setDraftPoints(pts);
     vp.ensureVisible(pts);
     setMedida("");
     medidaRef.current?.focus();
-  }
-
-  function commitWallLength(index: number, lengthM: number) {
-    if (!selected) return;
-    const puntos = setWallLength(selected.puntos, index, lengthM);
-    updateSelected((h) => ({ ...h, puntos, aberturas: clampOpeningsToWalls(puntos, h.aberturas) }));
-    vp.ensureVisible(puntos); // si el cuarto creció más allá de la vista, la vista se ensancha para que siga a la vista
   }
 
   function selectNivel(id: string) {
@@ -531,18 +569,6 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
     } catch (err) {
       window.alert(err instanceof Error ? err.message : String(err));
     }
-  }
-
-  function startNewRoom() {
-    setMapDrawing(false);
-    setSplitting(false);
-    setSplitFromState(null);
-    setSelectedId(null);
-    setDraftPoints([]);
-    setSelectedObjetoId(null);
-    setPlacing(null);
-    setMode("cuarto");
-    setView("2d");
   }
 
   function fileToBase64(file: File): Promise<{ base64: string; mediaType: string }> {
@@ -740,7 +766,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
             }}
             className={`construccion-editor__view-btn${!isMap ? " construccion-editor__view-btn--active" : ""}`}
           >
-            Un cuarto
+            Muebles y aberturas
           </button>
           <button
             onClick={() => {
@@ -776,6 +802,24 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                 {splitRoom ? "Cancelar corte" : "Dividir cuarto"}
               </button>
             </div>
+            {!mapDrawing && (
+              <form
+                className="construccion-areas__row construccion-areas__medida"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  crearRectangulo();
+                }}
+              >
+                <span>Rectángulo</span>
+                <input type="number" inputMode="decimal" step={0.05} min={0.3} value={rectAncho} onChange={(e) => setRectAncho(e.target.value)} placeholder="10" className="construccion-editor__abertura-input" aria-label="Ancho en metros" />
+                <span>×</span>
+                <input type="number" inputMode="decimal" step={0.05} min={0.3} value={rectLargo} onChange={(e) => setRectLargo(e.target.value)} placeholder="6" className="construccion-editor__abertura-input" aria-label="Largo en metros" />
+                <span>m</span>
+                <button type="submit" className="btn btn-outline btn-sm" disabled={!(Number(rectAncho.replace(",", ".")) > 0.2 && Number(rectLargo.replace(",", ".")) > 0.2)}>
+                  Crear
+                </button>
+              </form>
+            )}
             {selected && !mapDrawing && selected.nivelId === selectedNivelId && (
               <form
                 className="construccion-areas__row construccion-areas__medida"
@@ -908,17 +952,18 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
           </div>
         )}
 
-        <button onClick={startNewRoom} className="btn btn-primary construccion-editor__new-btn">
-          + Nueva habitación
-        </button>
-        <label className="btn btn-outline construccion-editor__new-btn" style={{ cursor: sketchLoading ? "wait" : "pointer" }}>
-          <input type="file" accept="image/*" hidden disabled={sketchLoading} onChange={handleSketchFileSelect} />
-          {sketchLoading ? <span className="spinner" /> : null}
-          Calcar un croquis (IA)
-        </label>
-        {sketchError && <p className="construccion__error">{sketchError}</p>}
-        {sketchCostUsd !== null && !sketchError && (
-          <p className="construccion-panel__hint">Costo aprox. de la última lectura: ${sketchCostUsd.toFixed(2)} USD</p>
+        {isMap && (
+          <>
+            <label className="btn btn-outline construccion-editor__new-btn" style={{ cursor: sketchLoading ? "wait" : "pointer" }}>
+              <input type="file" accept="image/*" hidden disabled={sketchLoading} onChange={handleSketchFileSelect} />
+              {sketchLoading ? <span className="spinner" /> : null}
+              Calcar un croquis (IA)
+            </label>
+            {sketchError && <p className="construccion__error">{sketchError}</p>}
+            {sketchCostUsd !== null && !sketchError && (
+              <p className="construccion-panel__hint">Costo aprox. de la última lectura: ${sketchCostUsd.toFixed(2)} USD</p>
+            )}
+          </>
         )}
         <ul className="construccion-editor__rooms">
           {nivelHabitaciones.map((h) => (
@@ -1016,7 +1061,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               )}
               {draftPoints.length >= 3 && (
                 <button onClick={closeDraftRoom} className="construccion-editor__confirm-btn">
-                  Cerrar habitación
+                  Cerrar área
                   {closingGap(draftPoints) > 0.005 ? ` (último muro: ${closingGap(draftPoints).toFixed(2)} m)` : ""}
                 </button>
               )}
@@ -1062,7 +1107,9 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                 </>
               ) : (
                 <span className="construccion-editor__hint-text">
-                  Arrastra las habitaciones para juntarlas — se pegan solas a las paredes vecinas. Arrastra también los objetos.
+                  {isMap
+                    ? "Arrastra una divisoria (asa azul) para repartir el área, o una zona para moverla. Los muebles se acomodan en «Muebles y aberturas»."
+                    : "Elige una zona de la lista."}
                 </span>
               )}
               <div className="construccion-editor__view-toggle">
@@ -1123,6 +1170,12 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                 elevacionPorNivel={edificioCompleto ? elevacionPorNivel : undefined}
               />
             </Suspense>
+          ) : !isMap && !selected ? (
+            <div className="construccion-3d-empty">
+              {nivelHabitaciones.length === 0
+                ? "Primero dibuja el área en «Plano completo» y divídela en zonas; aquí se amueblan y se les ponen puertas y ventanas."
+                : "Elige una zona de la lista para ponerle muebles, puertas y ventanas."}
+            </div>
           ) : isMap ? (
             <PlanMap2D
               ref={svgRef}
@@ -1149,7 +1202,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
             <PlanCanvas2D
               ref={svgRef}
               vp={vp}
-              highlightWall={highlightWall}
+              highlightWall={null}
               draftPoints={draftPoints}
               habitacion={selected}
               onCanvasClick={handleCanvasClick}
@@ -1178,7 +1231,53 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
           )}
         </div>
 
-        {!drawing && isMap && (
+        {drawing && isMap && (
+          <MurosTabla
+            titulo="Muros del contorno"
+            muros={murosDeContorno(draftPoints)}
+            onLargo={(i, v) => {
+              const pts = setLargoContorno(draftPoints, i, v);
+              setDraftPoints(pts);
+              vp.ensureVisible(pts);
+              return true;
+            }}
+            onGiro={(i, v) => {
+              const pts = setGiroContorno(draftPoints, i, v);
+              setDraftPoints(pts);
+              vp.ensureVisible(pts);
+              return true;
+            }}
+            cierreM={closingGap(draftPoints)}
+            hint={draftPoints.length === 0 ? "Teclea el largo del primer muro arriba (Medir muro) y Enter; cada muro nuevo aparece aquí y en el plano. Cambia cualquier largo o giro de la tabla y el plano se corrige." : "Edita el largo o el giro de cualquier muro; lo que sigue se mueve con él. «Cerrar área» cierra la figura."}
+          />
+        )}
+
+        {!drawing && isMap && nivelHabitaciones.length > 0 && (
+          <div className="construccion-zonas__tabs">
+            <button type="button" className={`construccion-zonas__tab${panelTab === "zonas" ? " construccion-zonas__tab--active" : ""}`} onClick={() => setPanelTab("zonas")}>
+              Zonas
+            </button>
+            <button
+              type="button"
+              className={`construccion-zonas__tab${panelTab === "muros" ? " construccion-zonas__tab--active" : ""}`}
+              onClick={() => setPanelTab("muros")}
+              disabled={!selected || selected.nivelId !== selectedNivelId}
+            >
+              Muros de la zona{selected ? ` «${selected.nombre}»` : ""}
+            </button>
+          </div>
+        )}
+
+        {!drawing && isMap && panelTab === "muros" && selected && selected.nivelId === selectedNivelId && (
+          <MurosTabla
+            titulo={`Medidas de los muros de «${selected.nombre}»`}
+            muros={wallSegmentsFromPolygon(selected.puntos).map((w) => ({ largoM: Math.round(w.length * 100) / 100, giroDeg: null }))}
+            onLargo={cambiarLargoMuroZona}
+            hint="Al cambiar un largo, las zonas pegadas a esa esquina se mueven con ella y los ángulos rectos se conservan."
+          />
+        )}
+
+        {!drawing && isMap && panelTab === "zonas" && (
           <ZonasPanel
             habitaciones={nivelHabitaciones}
             selectedId={selectedId}
@@ -1263,7 +1362,6 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                 </div>
               </div>
             )}
-            {selected && !isMap && <WallLengthsPanel habitacion={selected} onChange={commitWallLength} onHighlight={setHighlightWall} />}
             {selected && !isMap && (
               <div className="construccion-editor__aberturas">
                 <p className="construccion-editor__aberturas-hint">
