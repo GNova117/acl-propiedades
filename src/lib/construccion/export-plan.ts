@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts } from "pdf-lib";
 import type { Bounds } from "./geometry";
 
 const EXPORT_MARGIN_M = 0.6;
@@ -114,83 +114,5 @@ export async function exportPlanAsPdf(svg: SVGSVGElement, meta: PlanExportMeta, 
   URL.revokeObjectURL(url);
 }
 
-export type FichaMeta = {
-  proyectoNombre: string;
-  /** Una entrada por nivel con sus habitaciones (si el proyecto solo tiene un nivel, llega uno solo). */
-  niveles: { nombre: string; habitaciones: { nombre: string; areaM2: number; perimetroM: number; exterior: boolean }[] }[];
-  /** m² construidos (sin contar las habitaciones de zona "Exterior"). */
-  areaTotalM2: number;
-  exteriorM2: number;
-  nivelAcabado: string;
-  precioM2: number;
-  valorEstimado: number;
-  presupuestoTotal: number;
-};
-
-const peso = (n: number) => `$${n.toLocaleString("es-MX", { maximumFractionDigits: 0 })}`;
-
-export async function exportFichaPdf(meta: FichaMeta) {
-  const pdfDoc = await PDFDocument.create();
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const page = pdfDoc.addPage([612, 792]);
-  const left = 50;
-  const gray = rgb(0.45, 0.45, 0.45);
-  let y = 792 - 60;
-
-  page.drawText(meta.proyectoNombre || "Proyecto", { x: left, y, size: 22, font: bold });
-  y -= 22;
-  page.drawText("Ficha técnica y comercial", { x: left, y, size: 11, font, color: gray });
-  y -= 34;
-
-  page.drawText("Habitaciones", { x: left, y, size: 13, font: bold });
-  y -= 18;
-  const variosNiveles = meta.niveles.length > 1;
-  for (const nivel of meta.niveles) {
-    if (variosNiveles) {
-      page.drawText(nivel.nombre, { x: left, y, size: 10.5, font: bold });
-      y -= 15;
-    }
-    for (const h of nivel.habitaciones) {
-      const nombre = h.exterior ? `${h.nombre} (exterior)` : h.nombre;
-      page.drawText(nombre, { x: left + (variosNiveles ? 12 : 0), y, size: 10.5, font });
-      page.drawText(`${h.areaM2.toFixed(2)} m²`, { x: left + 260, y, size: 10.5, font });
-      page.drawText(`${h.perimetroM.toFixed(2)} m perímetro`, { x: left + 340, y, size: 10.5, font, color: gray });
-      y -= 15;
-    }
-  }
-  y -= 6;
-  page.drawText(`Área total construida: ${meta.areaTotalM2.toFixed(2)} m²`, { x: left, y, size: 12, font: bold });
-  y -= 16;
-  if (meta.exteriorM2 > 0) {
-    page.drawText(`+ ${meta.exteriorM2.toFixed(2)} m² de áreas exteriores (no cuentan como construidas)`, { x: left, y, size: 9.5, font, color: gray });
-    y -= 16;
-  }
-  y -= 18;
-
-  page.drawText("Estimación de valor de mercado", { x: left, y, size: 13, font: bold });
-  y -= 18;
-  page.drawText(`Nivel de acabados: ${meta.nivelAcabado} (${peso(meta.precioM2)}/m²)`, { x: left, y, size: 10.5, font });
-  y -= 18;
-  page.drawText(`Valor estimado: ${peso(meta.valorEstimado)}`, { x: left, y, size: 13, font: bold });
-  y -= 34;
-
-  page.drawText("Presupuesto de materiales", { x: left, y, size: 13, font: bold });
-  y -= 18;
-  page.drawText(`Total estimado: ${peso(meta.presupuestoTotal)}`, { x: left, y, size: 13, font: bold });
-  y -= 26;
-
-  page.drawText("Cifras de referencia para calibrar — ajusta precios y rendimientos en la pestaña Presupuesto.", {
-    x: left,
-    y,
-    size: 8.5,
-    font,
-    color: gray,
-  });
-
-  const bytes = await pdfDoc.save();
-  const blob = new Blob([bytes.slice().buffer as ArrayBuffer], { type: "application/pdf" });
-  const url = URL.createObjectURL(blob);
-  download(url, `${meta.proyectoNombre || "ficha"}.pdf`);
-  URL.revokeObjectURL(url);
-}
+// La ficha con membrete (plano, áreas, presupuesto y fotos) vive en
+// ./fichaPdf.ts — este archivo se quedó solo con las exportaciones del plano.

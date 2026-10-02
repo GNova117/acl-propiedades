@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { db } from "../../lib/dataStore";
 import { NIVELES_ACABADO, calcularPresupuesto, totalPresupuesto } from "../../lib/construccion/budget";
-import { exportFichaPdf } from "../../lib/construccion/export-plan";
+import { downloadFichaConstruccionPdf } from "../../lib/construccion/fichaPdf";
+import { downloadPresupuestoCsv } from "../../lib/construccion/exportCsv";
+import { describeSyncError } from "../../lib/construccion/sync";
 import { estadisticasHabitacion, estadisticasProyecto } from "../../lib/construccion/stats";
-import type { MaterialCatalogItem, Proyecto } from "../../lib/construccion/types";
+import type { FotoHabitacion, MaterialCatalogItem, Proyecto } from "../../lib/construccion/types";
 
 const peso = (n: number) => `$${n.toLocaleString("es-MX", { maximumFractionDigits: 0 })}`;
 
@@ -14,6 +17,7 @@ type Props = {
 export default function SummaryTab({ proyecto, catalogo }: Props) {
   const [nivelId, setNivelId] = useState(NIVELES_ACABADO[1].id);
   const [precioM2Override, setPrecioM2Override] = useState<number | null>(null);
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   const nivelAcabado = NIVELES_ACABADO.find((n) => n.id === nivelId) ?? NIVELES_ACABADO[1];
   const precioM2 = precioM2Override ?? nivelAcabado.precioM2;
@@ -29,25 +33,28 @@ export default function SummaryTab({ proyecto, catalogo }: Props) {
     0,
   );
 
-  async function handleExport() {
-    await exportFichaPdf({
-      proyectoNombre: proyecto.nombre,
-      niveles: stats.niveles.map((n) => ({
-        nombre: n.nivel.nombre,
-        habitaciones: proyecto.habitaciones
-          .filter((h) => h.nivelId === n.nivel.id)
-          .map((h) => {
-            const e = estadisticasHabitacion(h, proyecto.objetos);
-            return { nombre: h.nombre, areaM2: e.areaM2, perimetroM: e.perimetroM, exterior: h.tipo === "exterior" };
-          }),
-      })),
-      areaTotalM2,
-      exteriorM2: stats.exteriorM2,
-      nivelAcabado: nivelAcabado.nombre,
-      precioM2,
-      valorEstimado,
-      presupuestoTotal,
-    });
+  async function handleExportPdf() {
+    setExportingPdf(true);
+    try {
+      const habitacionIds = proyecto.habitaciones.map((h) => h.id);
+      const fotosPorHabitacion: Record<string, FotoHabitacion[]> = await db.getConstruccionFotos(habitacionIds);
+      await downloadFichaConstruccionPdf({
+        proyecto,
+        catalogo,
+        nivelAcabado: nivelAcabado.nombre,
+        precioM2,
+        valorEstimado,
+        fotosPorHabitacion,
+      });
+    } catch (err) {
+      window.alert(describeSyncError(err));
+    } finally {
+      setExportingPdf(false);
+    }
+  }
+
+  function handleExportCsv() {
+    downloadPresupuestoCsv(proyecto, catalogo);
   }
 
   return (
@@ -186,9 +193,15 @@ export default function SummaryTab({ proyecto, catalogo }: Props) {
           <p className="construccion-panel__disclaimer">Suma de todas las habitaciones — desglose en la pestaña Presupuesto.</p>
         </section>
 
-        <button onClick={handleExport} disabled={proyecto.habitaciones.length === 0} className="btn btn-primary">
-          Exportar ficha PDF
-        </button>
+        <div className="construccion-panel__inline-fields">
+          <button onClick={handleExportPdf} disabled={proyecto.habitaciones.length === 0 || exportingPdf} className="btn btn-primary">
+            {exportingPdf ? <span className="spinner" /> : null}
+            Exportar ficha PDF
+          </button>
+          <button onClick={handleExportCsv} disabled={proyecto.habitaciones.length === 0} className="btn btn-outline">
+            Exportar presupuesto CSV
+          </button>
+        </div>
       </div>
     </div>
   );

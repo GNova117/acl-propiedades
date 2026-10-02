@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import EditorTab from "./editor-tab";
 import BudgetTab from "./budget-tab";
+import FotosTab from "./fotos-tab";
 import SummaryTab from "./summary-tab";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
@@ -11,6 +12,7 @@ import type { MaterialCatalogItem, Proyecto } from "../../lib/construccion/types
 
 const TABS = [
   { id: "editor", label: "Editor" },
+  { id: "fotos", label: "Fotos" },
   { id: "presupuesto", label: "Presupuesto" },
   { id: "resumen", label: "Resumen y ficha" },
 ] as const;
@@ -235,6 +237,7 @@ export default function RoomEditor({ proyectoId }: Props) {
           setSelectedNivelId={setSelectedNivelId}
         />
       )}
+      {tab === "fotos" && <FotosTab proyecto={proyecto} />}
       {tab === "presupuesto" && <BudgetTab proyecto={proyecto} catalogo={catalogo} setCatalogo={setCatalogo} />}
       {tab === "resumen" && <SummaryTab proyecto={proyecto} catalogo={catalogo} />}
     </div>

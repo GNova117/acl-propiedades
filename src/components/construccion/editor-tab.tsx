@@ -24,6 +24,8 @@ import {
 } from "../../lib/construccion/geometry";
 import { ZONAS, zonaDe, colocarKit, nuevoObjeto, objetoDef, type Kit } from "../../lib/construccion/objetos";
 import { exportPlanAsPdf, exportPlanAsPng } from "../../lib/construccion/export-plan";
+import { downloadDxf } from "../../lib/construccion/exportDxf";
+import { db } from "../../lib/dataStore";
 import {
   ABERTURA_DEFAULTS,
   type Abertura,
@@ -336,6 +338,8 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
       objetos: p.objetos.filter((o) => o.habitacionId !== id),
     }));
     if (selectedId === id) setSelectedId(null);
+    // construccion_fotos no cascada por habitacion_id (ver nota en sync.ts) — se limpia aquí.
+    db.deleteConstruccionFotosDeHabitacion(id).catch(() => {});
   }
 
   function handleWallClick(segmentIndex: number, offsetM: number) {
@@ -382,9 +386,14 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
       : 0;
   const puedeExportar = isMap ? nivelHabitaciones.length > 0 : !!selected;
 
-  async function handleExport(kind: "png" | "pdf") {
-    if (!puedeExportar || !svgRef.current) return;
+  async function handleExport(kind: "png" | "pdf" | "dxf") {
+    if (!puedeExportar) return;
     const nombre = isMap ? `${proyecto.nombre} - ${currentNivel?.nombre ?? "plano"}` : (selected as Habitacion).nombre;
+    if (kind === "dxf") {
+      downloadDxf(habitacionesVista, nombre);
+      return;
+    }
+    if (!svgRef.current) return;
     const meta = { nombre, areaM2, perimetroM };
     if (kind === "png") await exportPlanAsPng(svgRef.current, meta, contentBox);
     else await exportPlanAsPdf(svgRef.current, meta, contentBox);
@@ -631,6 +640,9 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               </button>
               <button onClick={() => handleExport("pdf")} className="btn btn-outline btn-sm" disabled={view === "3d"}>
                 Exportar PDF
+              </button>
+              <button onClick={() => handleExport("dxf")} className="btn btn-outline btn-sm">
+                Exportar DXF
               </button>
             </div>
           )}

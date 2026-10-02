@@ -65,10 +65,24 @@ export type Habitacion = {
 export type Proyecto = {
   id: string;
   nombre: string;
+  cliente: string | null;
+  direccion: string | null;
   /** Siempre hay al menos uno; de abajo hacia arriba. */
   niveles: Nivel[];
   habitaciones: Habitacion[];
   objetos: Objeto[];
+};
+
+/** Foto de una habitación con su nota, para el reporte con membrete. */
+export type FotoHabitacion = {
+  id: string;
+  habitacionId: string;
+  filePath: string;
+  nota: string | null;
+  orden: number;
+  createdAt: string;
+  /** URL firmada (5 min) — null si todavía no se resuelve o si falló. */
+  signedUrl: string | null;
 };
 
 export const ABERTURA_DEFAULTS: Record<TipoAbertura, { altoM: number; altoDesdePisoM: number }> = {

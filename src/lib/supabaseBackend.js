@@ -1935,4 +1935,9 @@ export const supabaseBackend = {
   deleteConstruccionProyecto: (...args) => construccionSync.deleteConstruccionProyecto(...args),
   getConstruccionCatalogo: (...args) => construccionSync.getConstruccionCatalogo(...args),
   pushConstruccionCatalogo: (...args) => construccionSync.pushConstruccionCatalogo(...args),
+  getConstruccionFotos: (...args) => construccionSync.getConstruccionFotos(...args),
+  addConstruccionFoto: (...args) => construccionSync.addConstruccionFoto(...args),
+  updateConstruccionFotoNota: (...args) => construccionSync.updateConstruccionFotoNota(...args),
+  deleteConstruccionFoto: (...args) => construccionSync.deleteConstruccionFoto(...args),
+  deleteConstruccionFotosDeHabitacion: (...args) => construccionSync.deleteConstruccionFotosDeHabitacion(...args),
 };
