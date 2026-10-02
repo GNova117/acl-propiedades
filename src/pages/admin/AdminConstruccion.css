@@ -908,3 +908,27 @@
   padding-top: 0.5rem;
   border-top: 1px dashed var(--color-border);
 }
+
+/* ── Contorno y división de cuartos (Plano completo) ──────────────────── */
+
+.construccion-areas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+}
+
+.construccion-areas__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.construccion-areas .construccion-panel__hint,
+.construccion-areas .construccion__error {
+  margin: 0;
+}

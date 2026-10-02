@@ -1,13 +1,16 @@
-import { forwardRef } from "react";
-import { polygonArea, snap, wallSegmentsFromPolygon, type Point } from "../../lib/construccion/geometry";
+import { forwardRef, useState } from "react";
+import { polygonArea, snap, snapToAxes, wallSegmentsFromPolygon, type Point } from "../../lib/construccion/geometry";
+import { puntoDeCorte, puntoEnBorde } from "../../lib/construccion/dividir";
 import { zonaDe } from "../../lib/construccion/objetos";
 import type { FondoNivel, Habitacion, Objeto } from "../../lib/construccion/types";
 import ObjetosLayer from "./plan-objetos";
 import PlanGrid from "./plan-grid";
-import { OBJ_GRID_M, svgPoint, type usePlanDrag } from "./plan-drag";
+import { OBJ_GRID_M, VERTEX_GRID_M, svgPoint, type usePlanDrag } from "./plan-drag";
 import type { PlanViewport } from "./use-plan-viewport";
 
 const WALL_THICKNESS_M = 0.15;
+const ALIGN_TOLERANCE_PX = 10;
+const PICK_TOLERANCE_PX = 24;
 
 type Props = {
   vp: PlanViewport;
@@ -24,14 +27,42 @@ type Props = {
   fondo?: FondoNivel | null;
   /** true mientras el botón "Mover" del fondo está activo: el fondo se puede arrastrar. */
   fondoDraggable?: boolean;
+  /** Herramienta activa: dibujar un contorno nuevo o dividir el cuarto seleccionado. */
+  tool?: "draw" | "split" | null;
+  /** Puntos ya puestos del contorno que se está dibujando (herramienta "draw"). */
+  draftPoints?: Point[];
+  onDrawClick?: (p: Point) => void;
+  /** Cuarto que se está dividiendo y, si ya hizo el primer clic, el punto de su muro donde empieza el corte. */
+  splitRoom?: Habitacion | null;
+  splitFrom?: Point | null;
+  onSplitClick?: (p: Point) => void;
 };
 
 const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
-  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto, fondo, fondoDraggable },
+  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto, fondo, fondoDraggable, tool = null, draftPoints = [], onDrawClick, splitRoom = null, splitFrom = null, onSplitClick },
   ref,
 ) {
+  const [cursor, setCursor] = useState<Point | null>(null);
+  // Con una herramienta activa los cuartos y muebles no se agarran: cada clic es de la herramienta.
+  const blocked = placing || tool !== null;
+
+  // Igual que al dibujar un cuarto suelto: imán de 5 cm y alineación con los puntos ya puestos.
+  function toDrawPoint(svg: SVGSVGElement, clientX: number, clientY: number): Point {
+    const raw = svgPoint(svg, clientX, clientY);
+    const snapped = { x: snap(raw.x, VERTEX_GRID_M), z: snap(raw.z, VERTEX_GRID_M) };
+    return snapToAxes(snapped, draftPoints, ALIGN_TOLERANCE_PX * vp.mpp);
+  }
+
   function handleClick(e: React.MouseEvent<SVGSVGElement>) {
     if (vp.consumeClick() || drag.consumeClick()) return;
+    if (tool === "draw" && onDrawClick) {
+      onDrawClick(toDrawPoint(e.currentTarget, e.clientX, e.clientY));
+      return;
+    }
+    if (tool === "split" && onSplitClick) {
+      onSplitClick(svgPoint(e.currentTarget, e.clientX, e.clientY));
+      return;
+    }
     if (placing) {
       const raw = svgPoint(e.currentTarget, e.clientX, e.clientY);
       onPlace({ x: snap(raw.x, OBJ_GRID_M), z: snap(raw.z, OBJ_GRID_M) });
@@ -47,8 +78,13 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
       xmlns="http://www.w3.org/2000/svg"
       viewBox={vp.viewBox}
       className="construccion-plan-svg construccion-plan-svg--map"
-      style={placing ? { cursor: "copy" } : undefined}
+      style={placing ? { cursor: "copy" } : tool ? { cursor: "crosshair" } : undefined}
       onClick={handleClick}
+      onMouseMove={(e) => {
+        if (tool === "draw") setCursor(toDrawPoint(e.currentTarget, e.clientX, e.clientY));
+        else if (tool === "split") setCursor(svgPoint(e.currentTarget, e.clientX, e.clientY));
+      }}
+      onMouseLeave={() => setCursor(null)}
       onPointerDown={vp.handlers.onPointerDown}
       onPointerMove={(e) => {
         vp.handlers.onPointerMove(e);
@@ -90,9 +126,9 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
               points={hab.puntos.map((p) => `${p.x},${p.z}`).join(" ")}
               fill={zona.fill}
               stroke="none"
-              className={placing ? undefined : "construccion-room-hit"}
+              className={blocked ? undefined : "construccion-room-hit"}
               onPointerDown={
-                placing
+                blocked
                   ? undefined
                   : (e) => {
                       onSelectRoom(hab.id);
@@ -145,7 +181,7 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
         objetos={objetos}
         selectedId={selectedObjetoId}
         onPointerDown={
-          placing
+          blocked
             ? undefined
             : (e, o) => {
                 onSelectObjeto(o.id);
@@ -154,6 +190,63 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
               }
         }
       />
+      {tool === "draw" && (
+        <g className="construccion-plan-ui" pointerEvents="none">
+          {draftPoints.length >= 2 &&
+            draftPoints.slice(1).map((p, i) => (
+              <line key={i} x1={draftPoints[i].x} y1={draftPoints[i].z} x2={p.x} y2={p.z} stroke="#3f3f46" strokeWidth={WALL_THICKNESS_M} strokeLinecap="square" />
+            ))}
+          {draftPoints.length > 0 && cursor && (
+            <line
+              x1={draftPoints[draftPoints.length - 1].x}
+              y1={draftPoints[draftPoints.length - 1].z}
+              x2={cursor.x}
+              y2={cursor.z}
+              stroke="#94a3b8"
+              strokeWidth={1.5}
+              strokeDasharray="6 5"
+              vectorEffect="non-scaling-stroke"
+            />
+          )}
+          {draftPoints.map((p, i) => (
+            <circle key={i} cx={p.x} cy={p.z} r={i === 0 && draftPoints.length >= 3 ? 0.14 : 0.07} fill={i === 0 && draftPoints.length >= 3 ? "#16a34a" : "#3f3f46"} />
+          ))}
+        </g>
+      )}
+
+      {tool === "split" && splitRoom && (
+        <g className="construccion-plan-ui" pointerEvents="none">
+          {(() => {
+            const marcador = (p: Point, color: string) => <circle cx={p.x} cy={p.z} r={7 * vp.mpp} fill={color} stroke="#ffffff" strokeWidth={2} vectorEffect="non-scaling-stroke" />;
+            if (!splitFrom) {
+              const cerca = cursor ? puntoEnBorde(splitRoom.puntos, cursor, Math.max(0.3, PICK_TOLERANCE_PX * vp.mpp)) : null;
+              return cerca ? marcador(cerca, "#f59e0b") : null;
+            }
+            const fin = cursor ? puntoDeCorte(splitRoom.puntos, splitFrom, cursor) : null;
+            return (
+              <>
+                {fin && (
+                  <>
+                    <line x1={splitFrom.x} y1={splitFrom.z} x2={fin.x} y2={fin.z} stroke="#dc2626" strokeWidth={2.5} strokeDasharray="8 5" vectorEffect="non-scaling-stroke" />
+                    {marcador(fin, "#dc2626")}
+                    <text
+                      x={(splitFrom.x + fin.x) / 2}
+                      y={(splitFrom.z + fin.z) / 2 - 8 * vp.mpp}
+                      fontSize={12 * vp.mpp}
+                      fontWeight={600}
+                      fill="#b91c1c"
+                      textAnchor="middle"
+                    >
+                      {Math.hypot(fin.x - splitFrom.x, fin.z - splitFrom.z).toFixed(2)} m
+                    </text>
+                  </>
+                )}
+                {marcador(splitFrom, "#dc2626")}
+              </>
+            );
+          })()}
+        </g>
+      )}
     </svg>
   );
 });

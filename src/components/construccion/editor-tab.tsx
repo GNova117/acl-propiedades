@@ -22,6 +22,7 @@ import {
   type Bounds,
   type Point,
 } from "../../lib/construccion/geometry";
+import { dividirHabitacion, puntoEnBorde } from "../../lib/construccion/dividir";
 import { ZONAS, zonaDe, colocarKit, nuevoObjeto, objetoDef, type Kit } from "../../lib/construccion/objetos";
 import { exportPlanAsPdf, exportPlanAsPng } from "../../lib/construccion/export-plan";
 import { downloadDxf } from "../../lib/construccion/exportDxf";
@@ -126,6 +127,12 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   const [sketchError, setSketchError] = useState<string | null>(null);
   const [sketchCostUsd, setSketchCostUsd] = useState<number | null>(null);
 
+  // Contorno y división en "Plano completo": se dibuja el área de la casa y luego se parte en cuartos.
+  const [mapDrawing, setMapDrawing] = useState(false);
+  const [splitting, setSplitting] = useState(false);
+  const [splitFromState, setSplitFromState] = useState<{ roomId: string; point: Point } | null>(null);
+  const [splitMsg, setSplitMsg] = useState<string | null>(null);
+
   const nivelIdsKey = proyecto.niveles.map((n) => n.id).join(",");
   useEffect(() => {
     const ids = nivelIdsKey ? nivelIdsKey.split(",") : [];
@@ -140,7 +147,11 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
 
   const selected = proyecto.habitaciones.find((h) => h.id === selectedId) ?? null;
   const isMap = mode === "mapa";
-  const drawing = !selected && !isMap;
+  const drawing = (!selected && !isMap) || mapDrawing;
+  const splitRoom = isMap && splitting && selected && selected.nivelId === selectedNivelId ? selected : null;
+  // El primer clic del corte solo vale mientras siga seleccionado el mismo cuarto.
+  const splitFrom = splitFromState && splitFromState.roomId === selectedId ? splitFromState.point : null;
+  const mapTool = isMap ? (mapDrawing ? "draw" : splitRoom ? "split" : null) : null;
   const selectedObjeto = proyecto.objetos.find((o) => o.id === selectedObjetoId) ?? null;
   const objetosDeSelected = selected ? proyecto.objetos.filter((o) => o.habitacionId === selected.id) : [];
   // "Plano completo" muestra un nivel a la vez (cada piso es su propio plano) — el edificio entero
@@ -277,7 +288,11 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
     function onKey(e: KeyboardEvent) {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA")) return;
-      if (e.key === "Escape") setPlacing(null);
+      if (e.key === "Escape") {
+        setPlacing(null);
+        setSplitting(false);
+        setSplitFromState(null);
+      }
       else if ((e.key === "Delete" || e.key === "Backspace") && selectedObjetoId) {
         e.preventDefault();
         deleteObjeto(selectedObjetoId);
@@ -305,7 +320,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
     const nueva: Habitacion = {
       id: crypto.randomUUID(),
       nivelId: selectedNivelId,
-      nombre: `Habitación ${proyecto.habitaciones.length + 1}`,
+      nombre: mapDrawing ? `Área ${proyecto.habitaciones.length + 1}` : `Habitación ${proyecto.habitaciones.length + 1}`,
       puntos: draftPoints,
       alturaM: DEFAULT_ALTURA_M,
       aberturas: [],
@@ -313,6 +328,57 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
     setProyecto((p) => ({ ...p, habitaciones: [...p.habitaciones, nueva] }));
     setSelectedId(nueva.id);
     setDraftPoints([]);
+    setMapDrawing(false);
+  }
+
+  /** "Dibujar contorno" en Plano completo: se traza el área y después se divide en cuartos. */
+  function startMapDrawing() {
+    setSelectedId(null);
+    setSelectedObjetoId(null);
+    setPlacing(null);
+    setSplitting(false);
+    setSplitFromState(null);
+    setSplitMsg(null);
+    setDraftPoints([]);
+    setView("2d");
+    setMapDrawing(true);
+  }
+
+  function cancelMapDrawing() {
+    setMapDrawing(false);
+    setDraftPoints([]);
+  }
+
+  function toggleSplit() {
+    setSplitMsg(null);
+    setSplitFromState(null);
+    setPlacing(null);
+    setView("2d");
+    setSplitting((s) => !s);
+  }
+
+  /** Primer clic: un punto del muro del cuarto seleccionado. Segundo clic: hacia dónde cortar (el corte llega al muro de enfrente). */
+  function handleSplitClick(p: Point) {
+    if (!selected) return;
+    if (!splitFrom) {
+      const inicio = puntoEnBorde(selected.puntos, p, Math.max(0.3, 24 * vp.mpp));
+      if (!inicio) {
+        setSplitMsg("Haz el primer clic sobre un muro del cuarto seleccionado.");
+        return;
+      }
+      setSplitMsg(null);
+      setSplitFromState({ roomId: selected.id, point: inicio });
+      return;
+    }
+    const resultado = dividirHabitacion(proyecto, selected.id, splitFrom, p);
+    if (!resultado) {
+      setSplitMsg("Ese corte no cabe dentro del cuarto. Haz el segundo clic hacia el interior del cuarto.");
+      return;
+    }
+    setProyecto(() => resultado.proyecto);
+    setSplitting(false);
+    setSplitFromState(null);
+    setSplitMsg(null);
   }
 
   function undoLastPoint() {
@@ -338,6 +404,9 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   }
 
   function selectNivel(id: string) {
+    setMapDrawing(false);
+    setSplitting(false);
+    setSplitFromState(null);
     setSelectedNivelId(id);
     setSelectedId(null);
     setSelectedObjetoId(null);
@@ -439,6 +508,9 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   }
 
   function startNewRoom() {
+    setMapDrawing(false);
+    setSplitting(false);
+    setSplitFromState(null);
     setSelectedId(null);
     setDraftPoints([]);
     setSelectedObjetoId(null);
@@ -633,6 +705,10 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
           <button
             onClick={() => {
               setMode("cuarto");
+              setMapDrawing(false);
+              setSplitting(false);
+              setSplitFromState(null);
+              setDraftPoints([]);
               setPlacing(null);
               if (!selectedId && proyecto.habitaciones.length > 0) setSelectedId(proyecto.habitaciones[0].id);
             }}
@@ -643,6 +719,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
           <button
             onClick={() => {
               setMode("mapa");
+              setMapDrawing(false);
               setDraftPoints([]);
               setPlacing(null);
             }}
@@ -651,6 +728,50 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
             Plano completo
           </button>
         </div>
+
+        {isMap && (
+          <div className="construccion-areas">
+            <div className="construccion-areas__row">
+              <button
+                type="button"
+                className={`btn btn-sm ${mapDrawing ? "btn-primary" : "btn-outline"}`}
+                onClick={mapDrawing ? cancelMapDrawing : startMapDrawing}
+                title="Traza el área completa (por ejemplo la huella de la casa) para después dividirla en cuartos"
+              >
+                {mapDrawing ? "Cancelar contorno" : "Dibujar contorno"}
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm ${splitRoom ? "btn-primary" : "btn-outline"}`}
+                onClick={toggleSplit}
+                disabled={!selected || mapDrawing}
+                title="Parte el cuarto seleccionado en dos con una línea recta"
+              >
+                {splitRoom ? "Cancelar corte" : "Dividir cuarto"}
+              </button>
+            </div>
+            {mapDrawing && (
+              <p className="construccion-panel__hint">Clic en cada esquina del área (o teclea el largo de cada muro arriba). Se cierra tocando el primer punto, en verde.</p>
+            )}
+            {splitRoom && (
+              <p className={splitMsg ? "construccion__error" : "construccion-panel__hint"}>
+                {splitMsg ??
+                  (splitFrom
+                    ? "Ahora haz clic hacia dónde cortar: la línea llega sola hasta el muro de enfrente (Esc cancela)."
+                    : `Haz clic sobre un muro de «${splitRoom.nombre}» donde empieza el corte.`)}
+              </p>
+            )}
+            {!mapDrawing && !splitRoom && (
+              <p className="construccion-panel__hint">
+                {nivelHabitaciones.length === 0
+                  ? "Dibuja el contorno de la casa y luego divídelo en cuartos."
+                  : selected
+                    ? "«Dividir cuarto» parte el cuarto seleccionado en dos."
+                    : "Selecciona un cuarto de la lista para dividirlo."}
+              </p>
+            )}
+          </div>
+        )}
 
         {isMap && (
           <div className="construccion-fondo">
@@ -827,6 +948,11 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                   Deshacer punto
                 </button>
               )}
+              {mapDrawing && (
+                <button onClick={cancelMapDrawing} className="btn btn-outline btn-sm">
+                  Cancelar
+                </button>
+              )}
               {draftPoints.length >= 3 && (
                 <button onClick={closeDraftRoom} className="construccion-editor__confirm-btn">
                   Cerrar habitación
@@ -951,6 +1077,12 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               onSelectObjeto={setSelectedObjetoId}
               fondo={fondo}
               fondoDraggable={fondoMoving}
+              tool={mapTool}
+              draftPoints={draftPoints}
+              onDrawClick={handleCanvasClick}
+              splitRoom={splitRoom}
+              splitFrom={splitFrom}
+              onSplitClick={handleSplitClick}
             />
           ) : (
             <PlanCanvas2D
