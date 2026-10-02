@@ -1,5 +1,6 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { objetoDef, zonaDe } from "../../lib/construccion/objetos";
+import { geometriaEscalera } from "../../lib/construccion/escaleras";
 import type { Objeto } from "../../lib/construccion/types";
 
 type Props = {
@@ -26,7 +27,25 @@ export default function ObjetosLayer({ objetos, selectedId, onPointerDown }: Pro
             onPointerDown={onPointerDown ? (e) => onPointerDown(e, o) : undefined}
             className="construccion-objeto"
           >
-            {round ? (
+            {def?.tipoEspecial ? (
+              (() => {
+                const geo = geometriaEscalera(def.tipoEspecial, o.anchoM, o.largoM, def.altoM);
+                const trazo = selected ? "#dc2626" : zona.color;
+                return (
+                  <>
+                    <polygon points={geo.contorno.map((p) => `${p.x},${p.z}`).join(" ")} fill="#ffffff" fillOpacity={0.7} stroke={trazo} strokeWidth={selected ? 0.07 : 0.045} />
+                    {geo.peldanos.map(([a, b], i) => (
+                      <line key={i} x1={a.x} y1={a.z} x2={b.x} y2={b.z} stroke={zona.color} strokeWidth={0.02} />
+                    ))}
+                    <polyline points={geo.flecha.map((p) => `${p.x},${p.z}`).join(" ")} fill="none" stroke={zona.color} strokeWidth={0.04} strokeLinejoin="round" strokeLinecap="round" />
+                    {geo.poste && <circle r={geo.poste} fill={zona.color} />}
+                    <text transform={`rotate(${-o.rotDeg})`} fontSize={0.18} fontWeight={700} fill={zona.color} textAnchor="middle" dominantBaseline="middle" pointerEvents="none" y={def.tipoEspecial === "escalera_caracol" ? 0.35 : 0}>
+                      SUBE
+                    </text>
+                  </>
+                );
+              })()
+            ) : round ? (
               <ellipse
                 rx={o.anchoM / 2}
                 ry={o.largoM / 2}
@@ -48,7 +67,7 @@ export default function ObjetosLayer({ objetos, selectedId, onPointerDown }: Pro
                 strokeWidth={selected ? 0.07 : 0.035}
               />
             )}
-            {fits && (
+            {fits && !def?.tipoEspecial && (
               <text
                 transform={`rotate(${-o.rotDeg})`}
                 fontSize={0.2}

@@ -20,6 +20,7 @@ type Drag =
   | { kind: "objeto"; id: string; offX: number; offZ: number }
   | { kind: "vertice"; id: string; index: number }
   | { kind: "habitacion"; id: string; startX: number; startZ: number; appliedX: number; appliedZ: number }
+  | { kind: "abertura"; habId: string; id: string }
   | { kind: "divisor"; div: Divisor; startX: number; startZ: number; applied: number }
   | { kind: "fondo"; startX: number; startZ: number; appliedX: number; appliedZ: number };
 
@@ -33,6 +34,8 @@ type Callbacks = {
   /** Arrastrar la imagen de fondo (plano calcado) — sin imán: debe poder quedar exacta. */
   /** Línea divisoria arrastrada `d` metros (con imán de 5 cm) a lo largo de su normal, medida desde donde estaba al agarrarla. */
   onDivisorMove?: (div: Divisor, d: number) => void;
+  /** Puerta/ventana arrastrada: `p` es el puntero en el plano; quien recibe la pega al muro más cercano. */
+  onAberturaMove?: (habId: string, id: string, p: Point) => void;
   onFondoMove?: (dx: number, dz: number) => void;
   onFondoDrop?: () => void;
 };
@@ -81,6 +84,12 @@ export function usePlanDrag(cb: Callbacks) {
     dragRef.current = { kind: "divisor", div, startX: p.x, startZ: p.z, applied: 0 };
   }
 
+  function startAbertura(e: ReactPointerEvent<SVGElement>, habId: string, id: string) {
+    e.stopPropagation();
+    interacted.current = true;
+    dragRef.current = { kind: "abertura", habId, id };
+  }
+
   function startFondo(e: ReactPointerEvent<SVGElement>) {
     const svg = e.currentTarget.ownerSVGElement;
     if (!svg) return;
@@ -106,6 +115,8 @@ export function usePlanDrag(cb: Callbacks) {
         d.appliedX = dx;
         d.appliedZ = dz;
       }
+    } else if (d.kind === "abertura") {
+      cbRef.current.onAberturaMove?.(d.habId, d.id, p);
     } else if (d.kind === "divisor") {
       const dist = snap((p.x - d.startX) * d.div.n.x + (p.z - d.startZ) * d.div.n.z, VERTEX_GRID_M);
       if (dist !== d.applied) {
@@ -137,5 +148,5 @@ export function usePlanDrag(cb: Callbacks) {
     return true;
   }
 
-  return { startObjeto, startVertice, startHabitacion, startFondo, startDivisor, consumeClick, handlers: { onPointerMove, onPointerUp: end, onPointerLeave: end } };
+  return { startObjeto, startVertice, startHabitacion, startFondo, startDivisor, startAbertura, consumeClick, handlers: { onPointerMove, onPointerUp: end, onPointerLeave: end } };
 }

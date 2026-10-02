@@ -67,6 +67,16 @@ export const PLANTILLAS: Plantilla[] = [
     }),
   },
   {
+    id: "casa_patio",
+    nombre: "Casa con patio al frente",
+    descripcion: "Un patio en la franja de enfrente y, atrás, la casa con N recámaras (el patio no cuenta como superficie construida).",
+    param: { etiqueta: "Recámaras", min: 1, max: 5, def: 2 },
+    construir: (n) => ({
+      dir: "fila",
+      partes: [z("Patio", "patio", 0.22), { peso: 0.78, nodo: PLANTILLAS.find((p) => p.id === "casa_recamaras")!.construir(n) }],
+    }),
+  },
+  {
     id: "depto_1rec",
     nombre: "Departamento de 1 recámara",
     descripcion: "Sala-comedor y cocina de un lado; recámara y baño del otro.",

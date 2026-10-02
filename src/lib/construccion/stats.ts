@@ -4,7 +4,10 @@ import { zonaDe } from "./objetos";
 import type { Habitacion, Nivel, Objeto, Proyecto } from "./types";
 
 /** Una habitación "Exterior" (jardín, alberca, patio) no cuenta como superficie construida. */
-export const esAreaExterior = (h: Habitacion) => h.tipo === "exterior";
+const TIPOS_EXTERIORES = new Set(["exterior", "patio", "jardin", "azotea"]);
+export const esAreaExterior = (h: Habitacion) => TIPOS_EXTERIORES.has(h.tipo ?? "");
+/** Zonas al aire libre: sin muros altos en el render y sin contar como superficie construida. */
+export const esTipoExterior = (tipo: string | undefined) => TIPOS_EXTERIORES.has(tipo ?? "");
 
 export type EstadisticasHabitacion = {
   areaM2: number;

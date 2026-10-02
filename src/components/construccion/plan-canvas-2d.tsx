@@ -11,6 +11,8 @@ import {
 import type { Habitacion, Objeto } from "../../lib/construccion/types";
 import { zonaDe } from "../../lib/construccion/objetos";
 import ObjetosLayer from "./plan-objetos";
+import AberturaSvg, { ladoInterior } from "./plan-aberturas";
+import { esTipoExterior } from "../../lib/construccion/stats";
 import PlanGrid from "./plan-grid";
 import { OBJ_GRID_M, VERTEX_GRID_M, svgPoint, type usePlanDrag } from "./plan-drag";
 import type { PlanViewport } from "./use-plan-viewport";
@@ -183,33 +185,33 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
               y1={seg.start.z}
               x2={seg.end.x}
               y2={seg.end.z}
-              stroke="#3f3f46"
-              strokeWidth={WALL_THICKNESS_M}
-              strokeLinecap="square"
+              stroke={habitacion && esTipoExterior(habitacion.tipo) ? zonaDe(habitacion.tipo).color : "#3f3f46"}
+              strokeWidth={habitacion && esTipoExterior(habitacion.tipo) ? WALL_THICKNESS_M * 0.45 : WALL_THICKNESS_M}
+              strokeDasharray={habitacion && esTipoExterior(habitacion.tipo) ? "0.3 0.18" : undefined}
+              strokeLinecap={habitacion && esTipoExterior(habitacion.tipo) ? "butt" : "square"}
             />
             {openings.map((ab) => {
               const half = ab.anchoM / 2;
               const t0 = Math.max(0, (ab.offsetM - half) / seg.length);
               const t1 = Math.min(1, (ab.offsetM + half) / seg.length);
-              const p0 = {
-                x: seg.start.x + (seg.end.x - seg.start.x) * t0,
-                z: seg.start.z + (seg.end.z - seg.start.z) * t0,
-              };
-              const p1 = {
-                x: seg.start.x + (seg.end.x - seg.start.x) * t1,
-                z: seg.start.z + (seg.end.z - seg.start.z) * t1,
-              };
               return (
-                <line
-                  key={ab.id}
-                  x1={p0.x}
-                  y1={p0.z}
-                  x2={p1.x}
-                  y2={p1.z}
-                  stroke={ab.tipo === "puerta" ? "#b45309" : "#0369a1"}
-                  strokeWidth={WALL_THICKNESS_M * 0.9}
-                  strokeLinecap="butt"
-                />
+                <g key={ab.id}>
+                  <AberturaSvg seg={seg} ab={ab} relleno={zonaDe(habitacion?.tipo).fill} lado={habitacion ? ladoInterior(habitacion.puntos, seg) : 1} />
+                  {drag && !placing && (
+                    <line
+                      className="construccion-plan-ui"
+                      x1={seg.start.x + (seg.end.x - seg.start.x) * t0}
+                      y1={seg.start.z + (seg.end.z - seg.start.z) * t0}
+                      x2={seg.start.x + (seg.end.x - seg.start.x) * t1}
+                      y2={seg.start.z + (seg.end.z - seg.start.z) * t1}
+                      stroke="transparent"
+                      strokeWidth={14 * mpp}
+                      pointerEvents="stroke"
+                      style={{ cursor: "grab" }}
+                      onPointerDown={(e) => habitacion && drag.startAbertura(e, habitacion.id, ab.id)}
+                    />
+                  )}
+                </g>
               );
             })}
             <Cota segment={seg} mpp={mpp} />

@@ -4,7 +4,7 @@ import PlanMap2D from "./plan-map-2d";
 import ObjetosPalette from "./objetos-palette";
 import ZonasPanel from "./zonas-panel";
 import MurosTabla from "./muros-tabla";
-import { agregarAberturaEnMapa, actualizarAberturaEnMapa, quitarAberturaEnMapa } from "../../lib/construccion/aberturasMapa";
+import { agregarAberturaEnMapa, actualizarAberturaEnMapa, moverAberturaEnMapa, quitarAberturaEnMapa } from "../../lib/construccion/aberturasMapa";
 import { PLANTILLAS, aplicarPlantilla } from "../../lib/construccion/plantillas";
 import { murosDeContorno, moverVerticesLigados, rectanguloPuntos, setGiroContorno, setLargoContorno } from "../../lib/construccion/contorno";
 import { aplicarDivisor, cambiarMedidaZona } from "../../lib/construccion/divisores";
@@ -302,6 +302,14 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
         const habitaciones = aplicarDivisor(pr.habitaciones, div, d);
         return habitaciones ? { ...pr, habitaciones } : pr;
       }),
+    // Arrastrar una puerta/ventana ya puesta: se pega al muro más cercano (y su otro lado la sigue).
+    onAberturaMove: (habId, id, p) => {
+      const res = moverAberturaEnMapa(proyecto, habId, id, p, Math.max(0.6, 40 * vp.mpp), mode === "cuarto" ? habId : undefined);
+      if (!res) return;
+      setProyecto(() => res.proyecto);
+      setSelAbertura(res.seleccion);
+      if (mode === "mapa") setSelectedId(res.seleccion.habId);
+    },
     // El fondo se mueve libre (sin imán ni límite): debe poder calzar exacto con el plano real.
     onFondoMove: (dx, dz) =>
       setFondos((prev) => {

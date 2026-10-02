@@ -83,6 +83,10 @@ export function presupuestoPorZona(habitaciones: Habitacion[], catalogo: Materia
  */
 export const FACTOR_VALOR_ZONA: Partial<Record<TipoHabitacion, number>> = {
   exterior: 0,
+  patio: 0,
+  jardin: 0,
+  azotea: 0,
+  terraza: 0.5,
   cochera: 0.5,
   bodega: 0.6,
   pasillo: 0.8,

@@ -5,7 +5,7 @@ import { NIVELES_ACABADO, calcularPresupuesto, totalPresupuesto } from "../../li
 import { downloadFichaConstruccionPdf } from "../../lib/construccion/fichaPdf";
 import { downloadPresupuestoCsv } from "../../lib/construccion/exportCsv";
 import { describeSyncError } from "../../lib/construccion/sync";
-import { areasPorZona, estadisticasHabitacion, estadisticasProyecto } from "../../lib/construccion/stats";
+import { areasPorZona, esAreaExterior, estadisticasHabitacion, estadisticasProyecto } from "../../lib/construccion/stats";
 import type { FotoHabitacion, MaterialCatalogItem, Proyecto, TipoHabitacion } from "../../lib/construccion/types";
 
 const peso = (n: number) => `$${n.toLocaleString("es-MX", { maximumFractionDigits: 0 })}`;
@@ -175,7 +175,7 @@ export default function SummaryTab({ proyecto, catalogo }: Props) {
                           <tr key={h.id}>
                             <td>
                               {h.nombre}
-                              {h.tipo === "exterior" && <span className="construccion-panel__muted"> (exterior)</span>}
+                              {esAreaExterior(h) && <span className="construccion-panel__muted"> (exterior)</span>}
                             </td>
                             <td className="construccion-panel__col-right">{e.areaM2.toFixed(2)} m²</td>
                             <td className="construccion-panel__col-right construccion-panel__muted">{e.perimetroM.toFixed(2)} m perímetro</td>

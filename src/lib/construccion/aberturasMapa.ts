@@ -54,19 +54,10 @@ const dentroDelMuro = (length: number, ancho: number, offset: number) => {
   return { ancho: a, offset: Math.min(Math.max(offset, a / 2), Math.max(length - a / 2, a / 2)) };
 };
 
-/** Pone una puerta o ventana en el muro más cercano a `p` (y del otro lado, si ese muro es compartido). */
-export function agregarAberturaEnMapa(
-  proyecto: Proyecto,
-  nivelId: string,
-  p: Point,
-  tipo: TipoAbertura,
-  tol: number,
-): { proyecto: Proyecto; seleccion: { habId: string; id: string } } | null {
-  const habs = proyecto.habitaciones.filter((h) => h.nivelId === nivelId && h.puntos.length >= 3);
-  const muro = muroCercano(habs, p, tol);
-  if (!muro) return null;
-  const { ancho, offset } = dentroDelMuro(muro.length, ANCHO_DEFECTO_M[tipo], muro.offsetM);
-  const nueva: Abertura = { id: crypto.randomUUID(), segmentIndex: muro.segmentIndex, tipo, offsetM: offset, anchoM: ancho, ...ABERTURA_DEFAULTS[tipo] };
+/** Coloca `base` en `muro` de su zona y, si ese muro es compartido, el espejo del otro lado. */
+function colocar(proyecto: Proyecto, habs: Habitacion[], muro: MuroCercano, base: Abertura): { proyecto: Proyecto; seleccion: { habId: string; id: string } } {
+  const { ancho, offset } = dentroDelMuro(muro.length, base.anchoM, muro.offsetM);
+  const nueva: Abertura = { ...base, segmentIndex: muro.segmentIndex, offsetM: offset, anchoM: ancho };
   const centro = centroAbertura(muro.hab, nueva);
   const agregadas = new Map<string, Abertura>([[muro.hab.id, nueva]]);
   if (centro) {
@@ -76,7 +67,10 @@ export function agregarAberturaEnMapa(
         if (agregadas.has(otra.id) || seg.length < 0.05) return;
         const hit = projectPointOnSegment(centro, seg);
         if (hit.distance > 0.02) return;
-        const d = dentroDelMuro(seg.length, ancho, hit.t * seg.length);
+        // Solo hay "otro lado" si la abertura cabe entera en ese muro; si no, quedaría desfasada y huérfana.
+        const pos = hit.t * seg.length;
+        if (pos < ancho / 2 - 0.02 || pos > seg.length - ancho / 2 + 0.02) return;
+        const d = dentroDelMuro(seg.length, ancho, pos);
         agregadas.set(otra.id, { ...nueva, id: crypto.randomUUID(), segmentIndex: i, offsetM: d.offset, anchoM: d.ancho });
       });
     }
@@ -91,6 +85,45 @@ export function agregarAberturaEnMapa(
       }),
     },
   };
+}
+
+/** Pone una puerta o ventana en el muro más cercano a `p` (y del otro lado, si ese muro es compartido). */
+export function agregarAberturaEnMapa(
+  proyecto: Proyecto,
+  nivelId: string,
+  p: Point,
+  tipo: TipoAbertura,
+  tol: number,
+): { proyecto: Proyecto; seleccion: { habId: string; id: string } } | null {
+  const habs = proyecto.habitaciones.filter((h) => h.nivelId === nivelId && h.puntos.length >= 3);
+  const muro = muroCercano(habs, p, tol);
+  if (!muro) return null;
+  const base: Abertura = { id: crypto.randomUUID(), segmentIndex: 0, tipo, offsetM: 0, anchoM: ANCHO_DEFECTO_M[tipo], ...ABERTURA_DEFAULTS[tipo] };
+  return colocar(proyecto, habs, muro, base);
+}
+
+/**
+ * Arrastra una abertura ya puesta: se pega al muro más cercano al puntero (puede cambiar de muro o de zona)
+ * y, si el muro es compartido, el otro lado se mueve con ella. `soloHabId` limita los muros a los de esa zona
+ * (en la vista de un cuarto, donde las demás no se ven). null si el puntero queda lejos de todo muro.
+ */
+export function moverAberturaEnMapa(
+  proyecto: Proyecto,
+  habId: string,
+  abId: string,
+  p: Point,
+  tol: number,
+  soloHabId?: string,
+): { proyecto: Proyecto; seleccion: { habId: string; id: string } } | null {
+  // La abertura puede haber cambiado de zona durante el arrastre: se busca por su id.
+  const hab = proyecto.habitaciones.find((h) => h.aberturas.some((a) => a.id === abId)) ?? proyecto.habitaciones.find((h) => h.id === habId);
+  const ab = hab?.aberturas.find((a) => a.id === abId);
+  if (!hab || !ab) return null;
+  const sinEllas = quitarAberturaEnMapa(proyecto, hab.id, abId);
+  const habs = sinEllas.habitaciones.filter((h) => h.nivelId === hab.nivelId && h.puntos.length >= 3 && (!soloHabId || h.id === soloHabId));
+  const muro = muroCercano(habs, p, tol);
+  if (!muro) return null;
+  return colocar(sinEllas, sinEllas.habitaciones.filter((h) => h.nivelId === hab.nivelId && h.puntos.length >= 3), muro, ab);
 }
 
 /** Cambia una abertura y su espejo (el otro lado de la misma puerta). */

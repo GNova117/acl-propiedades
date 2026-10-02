@@ -9,6 +9,8 @@ export type ObjetoDef = {
   /** Alto para el render 3D. */
   altoM: number;
   forma?: "rect" | "round";
+  /** Geometría especial: las escaleras se dibujan con peldaños en el plano y en 3D. */
+  tipoEspecial?: "escalera_recta" | "escalera_L" | "escalera_caracol";
 };
 
 export const ZONAS: { id: TipoHabitacion; nombre: string; color: string; fill: string }[] = [
@@ -21,6 +23,11 @@ export const ZONAS: { id: TipoHabitacion; nombre: string; color: string; fill: s
   { id: "estudio", nombre: "Estudio", color: "#4f46e5", fill: "#eef2ff" },
   { id: "cochera", nombre: "Cochera", color: "#57534e", fill: "#f5f5f4" },
   { id: "exterior", nombre: "Exterior", color: "#16a34a", fill: "#f0fdf4" },
+  { id: "patio", nombre: "Patio", color: "#65a30d", fill: "#f7fee7" },
+  { id: "jardin", nombre: "Jardín", color: "#15803d", fill: "#ecfdf5" },
+  { id: "terraza", nombre: "Terraza", color: "#0e7490", fill: "#f0f9ff" },
+  { id: "azotea", nombre: "Azotea", color: "#78716c", fill: "#fafaf9" },
+  { id: "escalera", nombre: "Escalera", color: "#b45309", fill: "#fffbeb" },
   { id: "oficina", nombre: "Oficina", color: "#0f766e", fill: "#f0fdfa" },
   { id: "sala_juntas", nombre: "Sala de juntas", color: "#be185d", fill: "#fdf2f8" },
   { id: "recepcion", nombre: "Recepción", color: "#c2410c", fill: "#fff7ed" },
@@ -99,6 +106,22 @@ export const OBJETOS_CATALOGO: ObjetoDef[] = [
   { id: "mesa_jardin", nombre: "Mesa de jardín", categoria: "exterior", anchoM: 1.2, largoM: 1.2, altoM: 0.75, forma: "round" },
   { id: "arbol", nombre: "Árbol / planta", categoria: "exterior", anchoM: 1.2, largoM: 1.2, altoM: 2.2, forma: "round" },
   { id: "jardinera", nombre: "Jardinera", categoria: "exterior", anchoM: 1.5, largoM: 0.5, altoM: 0.5 },
+  // Escaleras: el alto es el desnivel que salvan (en una zona, el de su altura de muros).
+  { id: "escalera_recta", nombre: "Escalera recta", categoria: "escalera", anchoM: 1.0, largoM: 3.6, altoM: 2.5, tipoEspecial: "escalera_recta" },
+  { id: "escalera_L", nombre: "Escalera en L (con descanso)", categoria: "escalera", anchoM: 2.4, largoM: 2.4, altoM: 2.5, tipoEspecial: "escalera_L" },
+  { id: "escalera_caracol", nombre: "Escalera de caracol", categoria: "escalera", anchoM: 1.6, largoM: 1.6, altoM: 2.5, forma: "round", tipoEspecial: "escalera_caracol" },
+  // Patio / jardín / terraza
+  { id: "silla_ext", nombre: "Silla exterior", categoria: "patio", anchoM: 0.5, largoM: 0.5, altoM: 0.85, forma: "round" },
+  { id: "mesa_patio", nombre: "Mesa de patio", categoria: "patio", anchoM: 1.2, largoM: 1.2, altoM: 0.75, forma: "round" },
+  { id: "asador_p", nombre: "Asador", categoria: "patio", anchoM: 0.7, largoM: 0.5, altoM: 0.9 },
+  { id: "palapa", nombre: "Palapa / sombra", categoria: "patio", anchoM: 3.0, largoM: 3.0, altoM: 2.6 },
+  { id: "arbol_j", nombre: "Árbol", categoria: "jardin", anchoM: 2.0, largoM: 2.0, altoM: 3.5, forma: "round" },
+  { id: "arbusto", nombre: "Arbusto / planta", categoria: "jardin", anchoM: 0.8, largoM: 0.8, altoM: 0.9, forma: "round" },
+  { id: "jardinera_j", nombre: "Jardinera", categoria: "jardin", anchoM: 1.5, largoM: 0.5, altoM: 0.5 },
+  { id: "camastro", nombre: "Camastro", categoria: "terraza", anchoM: 0.7, largoM: 1.9, altoM: 0.4 },
+  { id: "mesa_terraza", nombre: "Mesa de terraza", categoria: "terraza", anchoM: 1.0, largoM: 1.0, altoM: 0.75, forma: "round" },
+  { id: "tinaco", nombre: "Tinaco", categoria: "azotea", anchoM: 1.2, largoM: 1.2, altoM: 1.6, forma: "round" },
+  { id: "calentador_solar", nombre: "Calentador solar", categoria: "azotea", anchoM: 1.5, largoM: 2.0, altoM: 0.5 },
 ];
 
 export function objetoDef(id: string): ObjetoDef | undefined {

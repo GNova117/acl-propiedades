@@ -5,7 +5,7 @@
 // export-plan.ts.
 import { polygonBounds, unionBounds, wallSegmentsFromPolygon, type Bounds } from "./geometry";
 import { presupuestoPorZona, type ValorZona, calcularPresupuesto, totalPresupuesto } from "./budget";
-import { areasPorZona, estadisticasHabitacion, estadisticasProyecto } from "./stats";
+import { areasPorZona, esAreaExterior, estadisticasHabitacion, estadisticasProyecto } from "./stats";
 import type { FotoHabitacion, Habitacion, MaterialCatalogItem, Proyecto } from "./types";
 
 const TEMPLATE_URL = "/plantilla_acl.pdf";
@@ -280,7 +280,7 @@ export async function buildFichaConstruccionPdf(meta: FichaConstruccionMeta, { t
     await drawPlano(habsDelNivel);
     for (const h of habsDelNivel) {
       const e = estadisticasHabitacion(h, proyecto.objetos);
-      const nombre = h.tipo === "exterior" ? `${h.nombre} (exterior)` : h.nombre;
+      const nombre = esAreaExterior(h) ? `${h.nombre} (exterior)` : h.nombre;
       await drawRow(nombre, `${e.areaM2.toFixed(2)} m2`);
     }
   }

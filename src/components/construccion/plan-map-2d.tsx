@@ -6,6 +6,8 @@ import { zonaDe } from "../../lib/construccion/objetos";
 import { muroCercano } from "../../lib/construccion/aberturasMapa";
 import type { FondoNivel, Habitacion, Objeto, TipoAbertura } from "../../lib/construccion/types";
 import ObjetosLayer from "./plan-objetos";
+import AberturaSvg, { aberturasRepetidas, ladoInterior } from "./plan-aberturas";
+import { esTipoExterior } from "../../lib/construccion/stats";
 import PlanGrid from "./plan-grid";
 import { Cota } from "./plan-canvas-2d";
 import { OBJ_GRID_M, VERTEX_GRID_M, svgPoint, type usePlanDrag } from "./plan-drag";
@@ -58,6 +60,7 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
   // Con una herramienta activa los cuartos y muebles no se agarran: cada clic es de la herramienta.
   const blocked = placing || tool !== null;
   const divisores = useMemo(() => divisoresDe(habitaciones), [habitaciones]);
+  const repetidas = useMemo(() => aberturasRepetidas(habitaciones), [habitaciones]);
 
   // Igual que al dibujar un cuarto suelto: imán de 5 cm y alineación con los puntos ya puestos.
   function toDrawPoint(svg: SVGSVGElement, clientX: number, clientY: number): Point {
@@ -184,43 +187,18 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
                   y1={seg.start.z}
                   x2={seg.end.x}
                   y2={seg.end.z}
-                  stroke={selected ? "#2563eb" : "#3f3f46"}
-                  strokeWidth={WALL_THICKNESS_M}
-                  strokeLinecap="square"
+                  stroke={selected ? "#2563eb" : esTipoExterior(hab.tipo) ? zona.color : "#3f3f46"}
+                  strokeWidth={esTipoExterior(hab.tipo) ? WALL_THICKNESS_M * 0.45 : WALL_THICKNESS_M}
+                  strokeDasharray={esTipoExterior(hab.tipo) ? "0.3 0.18" : undefined}
+                  strokeLinecap={esTipoExterior(hab.tipo) ? "butt" : "square"}
                 />
                 {hab.aberturas
                   .filter((a) => a.segmentIndex === i)
                   .map((ab) => {
-                    const t0 = Math.max(0, (ab.offsetM - ab.anchoM / 2) / seg.length);
-                    const t1 = Math.min(1, (ab.offsetM + ab.anchoM / 2) / seg.length);
-                    const x1 = seg.start.x + (seg.end.x - seg.start.x) * t0;
-                    const y1 = seg.start.z + (seg.end.z - seg.start.z) * t0;
-                    const x2 = seg.start.x + (seg.end.x - seg.start.x) * t1;
-                    const y2 = seg.start.z + (seg.end.z - seg.start.z) * t1;
                     const esSel = selectedAbertura?.id === ab.id;
                     return (
                       <g key={ab.id}>
-                        {esSel && <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#2563eb" strokeOpacity={0.4} strokeWidth={WALL_THICKNESS_M * 2.6} strokeLinecap="round" />}
-                        <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={ab.tipo === "puerta" ? "#b45309" : "#0369a1"} strokeWidth={WALL_THICKNESS_M * 0.9} />
-                        {!blocked && onSelectAbertura && (
-                          <line
-                            className="construccion-plan-ui"
-                            x1={x1}
-                            y1={y1}
-                            x2={x2}
-                            y2={y2}
-                            stroke="transparent"
-                            strokeWidth={12 * vp.mpp}
-                            pointerEvents="stroke"
-                            style={{ cursor: "pointer" }}
-                            onPointerDown={(e) => {
-                              e.stopPropagation();
-                              onSelectRoom(hab.id);
-                              onSelectObjeto(null);
-                              onSelectAbertura(hab.id, ab.id);
-                            }}
-                          />
-                        )}
+                        <AberturaSvg seg={seg} ab={ab} relleno={zona.fill} lado={ladoInterior(hab.puntos, seg)} dibujarHoja={!repetidas.has(ab.id)} selected={esSel} />
                       </g>
                     );
                   })}
@@ -267,6 +245,38 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
             </g>
           );
         })}
+
+      {!blocked && onSelectAbertura &&
+        habitaciones.flatMap((hab) =>
+          wallSegmentsFromPolygon(hab.puntos).flatMap((seg, i) =>
+            hab.aberturas
+              .filter((a) => a.segmentIndex === i)
+              .map((ab) => {
+                const t0 = Math.max(0, (ab.offsetM - ab.anchoM / 2) / seg.length);
+                const t1 = Math.min(1, (ab.offsetM + ab.anchoM / 2) / seg.length);
+                return (
+                  <line
+                    key={`hit${ab.id}`}
+                    className="construccion-plan-ui"
+                    x1={seg.start.x + (seg.end.x - seg.start.x) * t0}
+                    y1={seg.start.z + (seg.end.z - seg.start.z) * t0}
+                    x2={seg.start.x + (seg.end.x - seg.start.x) * t1}
+                    y2={seg.start.z + (seg.end.z - seg.start.z) * t1}
+                    stroke="transparent"
+                    strokeWidth={14 * vp.mpp}
+                    style={{ cursor: "grab" }}
+                    onPointerDown={(e) => {
+                      e.stopPropagation();
+                      onSelectRoom(hab.id);
+                      onSelectObjeto(null);
+                      onSelectAbertura(hab.id, ab.id);
+                      drag.startAbertura(e, hab.id, ab.id);
+                    }}
+                  />
+                );
+              }),
+          ),
+        )}
 
       <ObjetosLayer
         objetos={objetos}
