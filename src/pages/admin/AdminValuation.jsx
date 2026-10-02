@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import MarketComparables from "../../components/MarketComparables";
 import ValuationMap from "../../components/ValuationMap";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
@@ -124,6 +125,10 @@ export default function AdminValuation() {
   const landArea = Number(areas.land) || 0;
   const builtArea = Number(areas.built) || 0;
   const hasArea = landArea > 0 || builtArea > 0;
+  const tabulador = useMemo(
+    () => (hasArea && zone ? { center: result.center, low: result.low, high: result.high, landValue: result.landValue } : null),
+    [hasArea, zone, result]
+  );
   const missing = [
     landArea > 0 && landRate === 0 ? t("valuation.landRate").toLowerCase() : null,
     builtArea > 0 && builtRate === 0 ? t("valuation.builtRate").toLowerCase() : null,
@@ -419,6 +424,13 @@ export default function AdminValuation() {
           </div>
         </div>
       </div>
+
+      <MarketComparables
+        zoneName={zone?.name}
+        builtArea={builtArea}
+        landArea={landArea}
+        tabulador={tabulador}
+      />
 
       <div className="card valuation-card valuation-history">
         <h2 className="valuation-card__title">{t("valuation.history.title")}</h2>

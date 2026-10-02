@@ -1,0 +1,226 @@
+/* Gráficas del mercado en internet (uso interno). Colores de series: slots 1 y
+   2 de la paleta categórica validada de la skill de dataviz (azul = mercado,
+   naranja = tu propiedad), cada modo elegido por separado y comprobado con el
+   validador contra las superficies reales del sitio (claro #ffffff, oscuro
+   #131f36: todas las pruebas pasan). El texto usa los tokens del sitio, nunca
+   el color de la serie. */
+
+.market {
+  --mk-series-1: #2a78d6;
+  --mk-series-2: #eb6834;
+  --mk-surface: var(--color-surface);
+  --mk-grid: var(--color-border);
+}
+
+[data-theme="dark"] .market {
+  --mk-series-1: #3987e5;
+  --mk-series-2: #d95926;
+}
+
+.market-chart {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.market-chart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+/* ---------- leyenda ---------- */
+.market-chart__legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.market-chart__legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.market-chart__key {
+  display: inline-block;
+  flex: none;
+}
+
+.market-chart__key--dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--mk-series-1);
+}
+
+.market-chart__key--hollow {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--color-text-muted);
+}
+
+.market-chart__key--band {
+  width: 16px;
+  height: 10px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--mk-series-1) 14%, transparent);
+}
+
+.market-chart__key--line {
+  width: 16px;
+  height: 2px;
+  background: var(--mk-series-1);
+}
+
+.market-chart__key--subject {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--mk-series-2);
+}
+
+/* ---------- marcas ---------- */
+.market-chart__grid {
+  stroke: var(--mk-grid);
+  stroke-width: 1;
+}
+
+.market-chart__tick,
+.market-chart__row-label {
+  fill: var(--color-text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.market-chart__axis-title {
+  fill: var(--color-text-muted);
+  font-size: 11.5px;
+}
+
+.market-chart__band {
+  fill: color-mix(in srgb, var(--mk-series-1) 14%, transparent);
+}
+
+.market-chart__median {
+  stroke: var(--mk-series-1);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.market-chart__subject-line {
+  stroke: var(--mk-series-2);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.market-chart__stem {
+  stroke: var(--mk-grid);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* Etiquetas directas: texto en tinta (nunca del color de la serie) con un
+   halo del color de la superficie para que no se pierdan sobre las líneas. */
+.market-chart__label {
+  fill: var(--color-text);
+  font-size: 11.5px;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: var(--mk-surface);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.market-chart__dot {
+  fill: var(--mk-series-1);
+  stroke: var(--mk-surface);
+  stroke-width: 2;
+  transition: r 0.12s ease;
+}
+
+.market-chart__dot--subject {
+  fill: var(--mk-series-2);
+}
+
+.market-chart__whisker {
+  stroke: var(--mk-series-2);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* Anuncios que no entran al cálculo: círculo hueco gris. */
+.market-chart__point--excluded .market-chart__dot,
+.market-chart__point--outlier .market-chart__dot {
+  fill: var(--mk-surface);
+  stroke: var(--color-text-muted);
+  stroke-width: 2;
+}
+
+.market-chart__point--excluded .market-chart__row-label,
+.market-chart__point--outlier .market-chart__row-label {
+  opacity: 0.55;
+}
+
+/* El área de toque es más grande que el punto pintado. */
+.market-chart__hit {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.market-chart__point,
+.market-chart__subject {
+  outline: none;
+  cursor: default;
+}
+
+.market-chart__point:hover .market-chart__dot,
+.market-chart__point:focus-visible .market-chart__dot,
+.market-chart__subject:hover .market-chart__dot,
+.market-chart__subject:focus-visible .market-chart__dot {
+  r: 7;
+}
+
+.market-chart__point:focus-visible .market-chart__hit,
+.market-chart__subject:focus-visible .market-chart__hit {
+  stroke: var(--color-primary);
+  stroke-width: 2;
+}
+
+/* ---------- tooltip ---------- */
+.market-chart__tip {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-width: 17rem;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+  pointer-events: none;
+}
+
+.market-chart__tip strong {
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.market-chart__tip em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--color-text);
+}

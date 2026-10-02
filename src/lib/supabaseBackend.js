@@ -1620,6 +1620,47 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  // Mercado en internet. La consulta la hace la función de Vercel
+  // api/market-comps (la llave de Claude vive solo allá) y ella misma guarda la
+  // "foto" en market_snapshots; aquí solo se pide, se lista y se borra.
+  // Los errores llevan `code` para que la pantalla explique qué pasó.
+  async requestMarketComps(params) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) {
+      const err = new Error("unauthorized");
+      err.code = "unauthorized";
+      throw err;
+    }
+    const res = await fetch("/api/market-comps", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(params),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(body.message || body.error || `HTTP ${res.status}`);
+      // 404 = no hay función (p. ej. `vite dev` contra Supabase real).
+      err.code = res.status === 404 ? "no_function" : body.error || "upstream";
+      err.limit = body.limit;
+      throw err;
+    }
+    return body;
+  },
+
+  async getMarketSnapshots(zoneName) {
+    let query = supabase.from("market_snapshots").select("*").order("created_at", { ascending: false }).limit(30);
+    if (zoneName) query = query.ilike("zone_name", String(zoneName).replace(/[%_]/g, " "));
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  },
+
+  async deleteMarketSnapshot(id) {
+    const { error } = await supabase.from("market_snapshots").delete().eq("id", id);
+    if (error) throw error;
+  },
+
   // Bitácoras de Secretaría (llaves y documentos). RLS: solo quien tenga el
   // apartado 'secretaria' (ver schema.sql).
   async getSecretariaLog(kind) {

@@ -5,6 +5,7 @@ import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify, numOrNull } from "./format";
 import { CLIENT_EXPEDIENTE_KEYS } from "./clientExpedienteFields";
 import { compressImageFile, compressImageFiles } from "./imageCompression";
+import { buildDemoSnapshot } from "./marketDemo";
 
 function clientExpedientePayload(data) {
   return Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, data[key] || null]));
@@ -36,6 +37,7 @@ const KEYS = {
   keyLog: "acl_local_key_log",
   docLog: "acl_local_doc_log",
   valuations: "acl_local_valuation_estimates",
+  marketSnapshots: "acl_local_market_snapshots",
   prospects: "acl_local_prospectos",
   signing: "acl_local_signing_requests",
   prospectStages: "acl_local_prospect_stages",
@@ -1700,6 +1702,37 @@ export const localBackend = {
 
   async deleteValuationEstimate(id) {
     writeStore(KEYS.valuations, readStore(KEYS.valuations, []).filter((r) => r.id !== id));
+  },
+
+  // Mercado en internet (modo demo): no hay función de Vercel ni llave de
+  // Claude, así que se generan anuncios de EJEMPLO (src/lib/marketDemo.js),
+  // marcados como tales. Mismo contrato que supabaseBackend, incluida la
+  // caché de 24 h para que el flujo "reusar / actualizar" se pueda probar.
+  async requestMarketComps({ zone, municipality, propertyType, builtArea, force }) {
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    const items = readStore(KEYS.marketSnapshots, []);
+    const since = Date.now() - 24 * 60 * 60 * 1000;
+    const recent = items
+      .filter((s) => s.zone_name.toLowerCase() === zone.toLowerCase() && s.municipality === municipality && s.property_type === propertyType && new Date(s.created_at).getTime() >= since)
+      .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+    if (recent && !force) return { configured: true, cached: true, snapshot: recent };
+
+    const snapshot = { id: uid("market"), ...buildDemoSnapshot({ zone, municipality, propertyType, builtArea }), created_at: new Date().toISOString() };
+    items.push(snapshot);
+    writeStore(KEYS.marketSnapshots, items);
+    return { configured: true, cached: false, saved: true, snapshot };
+  },
+
+  async getMarketSnapshots(zoneName) {
+    const wanted = zoneName ? String(zoneName).toLowerCase() : null;
+    return readStore(KEYS.marketSnapshots, [])
+      .filter((s) => !wanted || s.zone_name.toLowerCase() === wanted)
+      .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
+      .slice(0, 30);
+  },
+
+  async deleteMarketSnapshot(id) {
+    writeStore(KEYS.marketSnapshots, readStore(KEYS.marketSnapshots, []).filter((s) => s.id !== id));
   },
 
   // Bitácoras de Secretaría: control de llaves y entradas/salidas de
