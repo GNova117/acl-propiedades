@@ -1605,7 +1605,19 @@
     "leadTitle": "Want us to help with your credit?",
     "leadSubtitle": "Leave your name and phone and an advisor will contact you to guide you, at no cost and with no commitment.",
     "leadSubmit": "I want guidance",
-    "leadSuccess": "Done! An advisor will contact you very soon."
+    "leadSuccess": "Done! An advisor will contact you very soon.",
+    "ssvCalc": {
+      "title": "Estimate your Housing Subaccount",
+      "subtitle": "If you don't know your balance, estimate it here: add each job with its daily salary and the years you worked there.",
+      "dailySalary": "Daily salary",
+      "yearsWorked": "Years worked",
+      "subtotal": "Estimated contribution",
+      "addJob": "+ Add job",
+      "removeJob": "Remove this job",
+      "estimatedTotal": "Estimated housing subaccount",
+      "useInSimulator": "Use this total in the simulator",
+      "disclaimer": "Simple estimate (daily salary × 30.4 = month × 12 = year × 5%, for the years worked at each job). It does not include interest or withdrawals; your real balance is confirmed in the Mi Cuenta Infonavit app."
+    }
   },
   "sellHome": {
     "seoTitle": "Sell your home or find out what it is worth",
