@@ -3,7 +3,10 @@
 // estimación de valor, presupuesto y las fotos con su nota por cuarto.
 // Sustituye al exportFichaPdf plano (solo texto, sin membrete) que vivía en
 // export-plan.ts.
-import { polygonBounds, unionBounds, wallSegmentsFromPolygon, type Bounds } from "./geometry";
+import { trazosDePlano, type ColorTrazo } from "./planoPdf";
+import { resumenInstalaciones, totalInstalaciones } from "./instalaciones";
+import { indicadoresTerreno } from "./stats";
+import { polygonBounds, unionBounds, type Bounds, type Point } from "./geometry";
 import { presupuestoPorZona, type ValorZona, calcularPresupuesto, totalPresupuesto } from "./budget";
 import { areasPorZona, esAreaExterior, estadisticasHabitacion, estadisticasProyecto } from "./stats";
 import type { FotoHabitacion, Habitacion, MaterialCatalogItem, Proyecto } from "./types";
@@ -25,7 +28,7 @@ const LINE_HEIGHT = 15;
 const IMAGE_GAP = 10;
 const IMAGE_ROW_MAX_HEIGHT = 170;
 const PLANO_MAX_HEIGHT = 230;
-const PLANO_MARGIN_M = 0.4;
+const PLANO_MARGIN_M = 0.5;
 
 const peso = (n: number) => `$${n.toLocaleString("es-MX", { maximumFractionDigits: 0 })}`;
 
@@ -119,7 +122,7 @@ export type FichaConstruccionMeta = {
 };
 
 export async function buildFichaConstruccionPdf(meta: FichaConstruccionMeta, { template }: { template?: ArrayBuffer } = {}) {
-  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
+  const { PDFDocument, StandardFonts, rgb, degrees } = await import("pdf-lib");
   const { proyecto, catalogo, fotosPorHabitacion } = meta;
 
   let templateBytes: ArrayBuffer;
@@ -199,10 +202,19 @@ export async function buildFichaConstruccionPdf(meta: FichaConstruccionMeta, { t
   // Plano esquemático: muros de cada habitación del nivel, a escala, con el
   // nombre al centro. Se dibuja con vectores directo del polígono guardado
   // (no una captura del editor), así que no hace falta tener la pantalla abierta.
-  const drawPlano = async (habitaciones: Habitacion[]) => {
+  const COLORES: Record<ColorTrazo, ReturnType<typeof rgb>> = {
+    negro: black,
+    gris: gray,
+    azul: rgb(0.01, 0.41, 0.63),
+    cafe: rgb(0.57, 0.25, 0.05),
+    blanco: rgb(1, 1, 1),
+  };
+
+  const drawPlano = async (habitaciones: Habitacion[], objetosDelNivel: Proyecto["objetos"]) => {
     const conPuntos = habitaciones.filter((h) => h.puntos.length >= 2);
     if (conPuntos.length === 0) return;
-    const bounds = unionBounds(conPuntos.map((h) => polygonBounds(h.puntos))) as Bounds;
+    const { trazos, puntos } = trazosDePlano(conPuntos, objetosDelNivel);
+    const bounds = unionBounds([...conPuntos.map((h) => polygonBounds(h.puntos)), polygonBounds(puntos as Point[])]) as Bounds;
     const boundsWidth = bounds.maxX - bounds.minX + PLANO_MARGIN_M * 2;
     const boundsHeight = bounds.maxZ - bounds.minZ + PLANO_MARGIN_M * 2;
     const scale = Math.min(CONTENT_WIDTH / boundsWidth, PLANO_MAX_HEIGHT / boundsHeight);
@@ -215,20 +227,33 @@ export async function buildFichaConstruccionPdf(meta: FichaConstruccionMeta, { t
     const px = (x: number) => offsetX + (x - bounds.minX + PLANO_MARGIN_M) * scale;
     const py = (z: number) => topY - (z - bounds.minZ + PLANO_MARGIN_M) * scale;
 
-    for (const h of conPuntos) {
-      for (const seg of wallSegmentsFromPolygon(h.puntos)) {
+    // Primero los muros, luego el hueco blanco de puertas y ventanas (tapa el muro), y encima todo lo demás.
+    const esMuro = (t: (typeof trazos)[number]) => t.tipo === "linea" && t.color === "negro";
+    const esHueco = (t: (typeof trazos)[number]) => t.tipo === "linea" && t.color === "blanco";
+    for (const t of [...trazos.filter(esMuro), ...trazos.filter(esHueco), ...trazos.filter((x) => !esMuro(x) && !esHueco(x))]) {
+      if (t.tipo === "linea") {
         page.drawLine({
-          start: { x: px(seg.start.x), y: py(seg.start.z) },
-          end: { x: px(seg.end.x), y: py(seg.end.z) },
-          thickness: 1.2,
-          color: black,
+          start: { x: px(t.a.x), y: py(t.a.z) },
+          end: { x: px(t.b.x), y: py(t.b.z) },
+          thickness: t.grosor,
+          color: COLORES[t.color],
+          ...(t.punteada ? { dashArray: [3, 2] } : {}),
+        });
+      } else {
+        const texto = sanitize(t.texto);
+        const ancho = regular.widthOfTextAtSize(texto, t.tam);
+        const fi = -t.angulo; // el eje z del plano baja; el y de la página sube
+        const dx = Math.cos(fi);
+        const dy = Math.sin(fi);
+        page.drawText(texto, {
+          x: px(t.p.x) - dx * (ancho / 2) + dy * (t.tam * 0.35),
+          y: py(t.p.z) - dy * (ancho / 2) - dx * (t.tam * 0.35),
+          size: t.tam,
+          font: regular,
+          color: COLORES[t.color],
+          rotate: degrees((fi * 180) / Math.PI),
         });
       }
-      const cx = h.puntos.reduce((s, p) => s + p.x, 0) / h.puntos.length;
-      const cz = h.puntos.reduce((s, p) => s + p.z, 0) / h.puntos.length;
-      const label = sanitize(h.nombre);
-      const labelWidth = regular.widthOfTextAtSize(label, 7);
-      page.drawText(label, { x: px(cx) - labelWidth / 2, y: py(cz), size: 7, font: regular, color: gray });
     }
 
     y -= drawHeight + IMAGE_GAP;
@@ -277,8 +302,8 @@ export async function buildFichaConstruccionPdf(meta: FichaConstruccionMeta, { t
       page.drawText(sanitize(nivel.nombre), { x: MARGIN_LEFT, y, size: SIZE_BODY, font: bold, color: black });
       y -= LINE_HEIGHT;
     }
-    await drawPlano(habsDelNivel);
-    for (const h of habsDelNivel) {
+    await drawPlano(habsDelNivel, proyecto.objetos.filter((o) => o.nivelId === nivel.id));
+    for (const h of habsDelNivel.filter((x) => x.tipo !== "terreno")) {
       const e = estadisticasHabitacion(h, proyecto.objetos);
       const nombre = esAreaExterior(h) ? `${h.nombre} (exterior)` : h.nombre;
       await drawRow(nombre, `${e.areaM2.toFixed(2)} m2`);
@@ -287,6 +312,18 @@ export async function buildFichaConstruccionPdf(meta: FichaConstruccionMeta, { t
   y -= LINE_HEIGHT * 0.3;
   await drawRow("Area total construida", `${stats.construidaM2.toFixed(2)} m2`, { boldLeft: true });
   if (stats.exteriorM2 > 0) await drawParagraph(`+ ${stats.exteriorM2.toFixed(2)} m2 de areas exteriores (no cuentan como construidas)`, { color: gray, size: 9 });
+
+  // ── Terreno y ocupación ──
+  const terreno = indicadoresTerreno(proyecto);
+  if (terreno) {
+    y -= LINE_HEIGHT * 0.5;
+    await drawSubtitle("TERRENO Y OCUPACION");
+    await drawRow("Terreno", `${terreno.terrenoM2.toFixed(2)} m2`);
+    await drawRow("Huella construida (planta baja)", `${terreno.huellaM2.toFixed(2)} m2`);
+    await drawRow("Area libre del terreno", `${terreno.libreM2.toFixed(2)} m2`);
+    await drawRow("Ocupacion del suelo (COS)", `${(terreno.cos * 100).toFixed(1)} %`, { boldLeft: true });
+    await drawRow("Utilizacion del suelo (CUS)", terreno.cus.toFixed(2), { boldLeft: true });
+  }
 
   // ── Áreas por tipo de zona (oficinas, salas de juntas…) — solo si hay más de un uso ──
   const porZona = areasPorZona(proyecto.habitaciones);
@@ -311,7 +348,13 @@ export async function buildFichaConstruccionPdf(meta: FichaConstruccionMeta, { t
   if (costoZonas.length > 1) {
     for (const z of costoZonas) await drawRow(`Materiales: ${z.nombre}${z.zonas > 1 ? ` (${z.zonas})` : ""}`, peso(z.costo));
   }
-  await drawRow("Presupuesto de materiales", peso(presupuestoTotal), { boldLeft: true });
+  await drawRow("Presupuesto de materiales y acabados", peso(presupuestoTotal), { boldLeft: true });
+  const instalaciones = resumenInstalaciones(proyecto.objetos);
+  if (instalaciones.length > 0) {
+    for (const f of instalaciones) await drawRow(`${f.nombre} x ${f.cantidad} (${peso(f.precio)} c/u)`, peso(f.subtotal));
+    await drawRow("Instalaciones", peso(totalInstalaciones(instalaciones)), { boldLeft: true });
+    await drawRow("Total con instalaciones", peso(presupuestoTotal + totalInstalaciones(instalaciones)), { boldLeft: true });
+  }
   await drawParagraph("Cifras de referencia para calibrar — desglose completo por material en el CSV exportable junto a este PDF.", { color: gray, size: 9 });
 
   // ── Fotografías por cuarto ──

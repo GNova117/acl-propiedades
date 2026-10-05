@@ -1,5 +1,5 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { objetoDef, zonaDe } from "../../lib/construccion/objetos";
+import { FAMILIAS_INSTALACION, objetoDef, zonaDe } from "../../lib/construccion/objetos";
 import { geometriaEscalera } from "../../lib/construccion/escaleras";
 import type { Objeto } from "../../lib/construccion/types";
 
@@ -29,7 +29,21 @@ export default function ObjetosLayer({ objetos, selectedId, rises, onPointerDown
             onPointerDown={onPointerDown ? (e) => onPointerDown(e, o) : undefined}
             className="construccion-objeto"
           >
-            {def?.tipoEspecial ? (
+            {def?.instalacion ? (
+              (() => {
+                const fam = FAMILIAS_INSTALACION[def.instalacion.familia];
+                const r = Math.max(0.09, Math.max(o.anchoM, o.largoM) / 2);
+                return (
+                  <>
+                    <circle r={Math.max(r, 0.15)} fill="transparent" />
+                    <circle r={r} fill="#ffffff" stroke={selected ? "#dc2626" : fam.color} strokeWidth={selected ? 0.05 : 0.03} />
+                    <text transform={`rotate(${-o.rotDeg})`} fontSize={def.instalacion.glifo.length > 1 ? r * 0.8 : r * 1.1} fontWeight={700} fill={fam.color} textAnchor="middle" dominantBaseline="central" pointerEvents="none">
+                      {def.instalacion.glifo}
+                    </text>
+                  </>
+                );
+              })()
+            ) : def?.tipoEspecial ? (
               (() => {
                 const geo = geometriaEscalera(def.tipoEspecial, o.anchoM, o.largoM, rises?.[o.id] ?? def.altoM);
                 const trazo = selected ? "#dc2626" : zona.color;
@@ -69,7 +83,7 @@ export default function ObjetosLayer({ objetos, selectedId, rises, onPointerDown
                 strokeWidth={selected ? 0.07 : 0.035}
               />
             )}
-            {fits && !def?.tipoEspecial && (
+            {fits && !def?.tipoEspecial && !def?.instalacion && (
               <text
                 transform={`rotate(${-o.rotDeg})`}
                 fontSize={0.2}

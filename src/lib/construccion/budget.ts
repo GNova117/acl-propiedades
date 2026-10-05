@@ -1,5 +1,6 @@
 import { polygonArea, polygonPerimeter, wallSegmentsFromPolygon } from "./geometry";
 import { zonaDe } from "./objetos";
+import { acabadoDe, leerPreciosAcabados, precioDeAcabado, type ParteAcabado } from "./acabados";
 import type { Habitacion, MaterialCatalogItem, TipoHabitacion } from "./types";
 
 /** m² de muro sin descontar aberturas. */
@@ -23,17 +24,44 @@ export type PresupuestoLinea = {
 };
 
 export function calcularPresupuesto(h: Habitacion, catalogo: MaterialCatalogItem[]): PresupuestoLinea[] {
+  if (h.tipo === "terreno") return []; // el lote no se construye
   const fuentes: Record<MaterialCatalogItem["fuente"], number> = {
     area_muro: areaMurosNeta(h),
     area_piso: polygonArea(h.puntos),
     perimetro: polygonPerimeter(h.puntos),
   };
   const uso: TipoHabitacion = h.tipo ?? "otro";
+  // Si la zona tiene acabado de piso o de muros, ese acabado ya incluye el piso / la pintura de partida.
+  const reemplazados = new Set<string>();
+  if (acabadoDe("piso", h.acabados?.piso)) reemplazados.add("piso");
+  if (acabadoDe("pared", h.acabados?.pared)) reemplazados.add("pintura");
   // Un material con "Aplica a" solo cuenta en las zonas de esos usos (p. ej. porcelanato solo en oficinas).
-  return catalogo.filter((m) => !m.usos?.length || m.usos.includes(uso)).map((material) => {
-    const cantidad = fuentes[material.fuente] * material.factor;
-    return { material, cantidad, costo: cantidad * material.precioUnitario };
-  });
+  const base = catalogo
+    .filter((m) => (!m.usos?.length || m.usos.includes(uso)) && !reemplazados.has(m.id))
+    .map((material) => {
+      const cantidad = fuentes[material.fuente] * material.factor;
+      return { material, cantidad, costo: cantidad * material.precioUnitario };
+    });
+  return [...base, ...lineasDeAcabados(h, fuentes)];
+}
+
+const ETIQUETA_PARTE: Record<ParteAcabado, string> = { piso: "Piso", pared: "Muros", techo: "Techo" };
+
+/** Líneas de presupuesto de los acabados elegidos para la zona (piso, muros, techo), con los precios vigentes. */
+function lineasDeAcabados(h: Habitacion, fuentes: Record<MaterialCatalogItem["fuente"], number>): PresupuestoLinea[] {
+  const precios = leerPreciosAcabados();
+  const out: PresupuestoLinea[] = [];
+  for (const parte of ["piso", "pared", "techo"] as const) {
+    const a = acabadoDe(parte, h.acabados?.[parte]);
+    if (!a) continue;
+    const precio = precioDeAcabado(parte, a, precios);
+    if (!(precio > 0)) continue;
+    const fuente: MaterialCatalogItem["fuente"] = parte === "pared" ? "area_muro" : "area_piso";
+    const material: MaterialCatalogItem = { id: `acabado-${parte}-${a.id}`, nombre: `${ETIQUETA_PARTE[parte]}: ${a.nombre}`, unidad: "m²", fuente, factor: a.factor ?? 1, precioUnitario: precio };
+    const cantidad = fuentes[fuente] * material.factor;
+    out.push({ material, cantidad, costo: cantidad * precio });
+  }
+  return out;
 }
 
 export function totalPresupuesto(lineas: PresupuestoLinea[]): number {
@@ -66,7 +94,7 @@ export type PresupuestoZona = { tipo: TipoHabitacion; nombre: string; zonas: num
 export function presupuestoPorZona(habitaciones: Habitacion[], catalogo: MaterialCatalogItem[]): PresupuestoZona[] {
   const mapa = new Map<TipoHabitacion, PresupuestoZona>();
   for (const h of habitaciones) {
-    if (h.puntos.length < 3) continue;
+    if (h.puntos.length < 3 || h.tipo === "terreno") continue;
     const z = zonaDe(h.tipo);
     const fila = mapa.get(z.id) ?? { tipo: z.id, nombre: z.nombre, zonas: 0, areaM2: 0, costo: 0 };
     fila.zonas += 1;
@@ -97,7 +125,7 @@ export type ValorZona = { tipo: TipoHabitacion; nombre: string; zonas: number; a
 export function valorPorZona(habitaciones: Habitacion[], precioBaseM2: number, factores: Partial<Record<TipoHabitacion, number>> = {}): ValorZona[] {
   const mapa = new Map<TipoHabitacion, ValorZona>();
   for (const h of habitaciones) {
-    if (h.puntos.length < 3) continue;
+    if (h.puntos.length < 3 || h.tipo === "terreno") continue;
     const z = zonaDe(h.tipo);
     const factor = factores[z.id] ?? FACTOR_VALOR_ZONA[z.id] ?? 1;
     const fila = mapa.get(z.id) ?? { tipo: z.id, nombre: z.nombre, zonas: 0, areaM2: 0, factor, precioM2: precioBaseM2 * factor, valor: 0 };

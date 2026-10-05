@@ -11,6 +11,21 @@ export type ObjetoDef = {
   forma?: "rect" | "round";
   /** Geometría especial: las escaleras se dibujan con peldaños en el plano y en 3D. */
   tipoEspecial?: "escalera_recta" | "escalera_L" | "escalera_caracol";
+  /** Instalaciones: dónde va montada. "pared" se pega al muro más cercano al colocarla. */
+  montaje?: "pared" | "techo" | "piso";
+  /** Altura (m) a la que va sobre el piso (en "techo", se ignora: va a la altura del cielo). */
+  montajeY?: number;
+  /** Si es una instalación: su familia, el símbolo del plano y su precio de referencia por pieza (MXN). */
+  instalacion?: { familia: "electrica" | "hidraulica" | "gas" | "datos" | "clima" | "seguridad"; glifo: string; precio: number };
+};
+
+export const FAMILIAS_INSTALACION: Record<string, { nombre: string; color: string }> = {
+  electrica: { nombre: "Eléctrica", color: "#d97706" },
+  hidraulica: { nombre: "Hidráulica", color: "#2563eb" },
+  gas: { nombre: "Gas", color: "#ea580c" },
+  datos: { nombre: "Datos / red", color: "#7c3aed" },
+  clima: { nombre: "Clima / ventilación", color: "#0891b2" },
+  seguridad: { nombre: "Seguridad", color: "#dc2626" },
 };
 
 export const ZONAS: { id: TipoHabitacion; nombre: string; color: string; fill: string }[] = [
@@ -28,6 +43,8 @@ export const ZONAS: { id: TipoHabitacion; nombre: string; color: string; fill: s
   { id: "terraza", nombre: "Terraza", color: "#0e7490", fill: "#f0f9ff" },
   { id: "azotea", nombre: "Azotea", color: "#78716c", fill: "#fafaf9" },
   { id: "escalera", nombre: "Escalera", color: "#b45309", fill: "#fffbeb" },
+  { id: "terreno", nombre: "Terreno (lote)", color: "#374151", fill: "#f9fafb" },
+  { id: "instalaciones", nombre: "Instalaciones", color: "#dc2626", fill: "#fef2f2" },
   { id: "oficina", nombre: "Oficina", color: "#0f766e", fill: "#f0fdfa" },
   { id: "sala_juntas", nombre: "Sala de juntas", color: "#be185d", fill: "#fdf2f8" },
   { id: "recepcion", nombre: "Recepción", color: "#c2410c", fill: "#fff7ed" },
@@ -110,6 +127,19 @@ export const OBJETOS_CATALOGO: ObjetoDef[] = [
   { id: "escalera_recta", nombre: "Escalera recta", categoria: "escalera", anchoM: 1.0, largoM: 3.6, altoM: 2.5, tipoEspecial: "escalera_recta" },
   { id: "escalera_L", nombre: "Escalera en L (con descanso)", categoria: "escalera", anchoM: 2.4, largoM: 2.4, altoM: 2.5, tipoEspecial: "escalera_L" },
   { id: "escalera_caracol", nombre: "Escalera de caracol", categoria: "escalera", anchoM: 1.6, largoM: 1.6, altoM: 2.5, forma: "round", tipoEspecial: "escalera_caracol" },
+  // Instalaciones: eléctricas, hidráulicas, gas, datos, clima y seguridad
+  { id: "contacto", nombre: "Contacto", categoria: "instalaciones", anchoM: 0.1, largoM: 0.08, altoM: 0.12, montaje: "pared", montajeY: 0.3, instalacion: { familia: "electrica", glifo: "C", precio: 380 } },
+  { id: "apagador", nombre: "Apagador", categoria: "instalaciones", anchoM: 0.08, largoM: 0.06, altoM: 0.12, montaje: "pared", montajeY: 1.2, instalacion: { familia: "electrica", glifo: "A", precio: 340 } },
+  { id: "luminaria", nombre: "Luminaria de techo", categoria: "instalaciones", anchoM: 0.3, largoM: 0.3, altoM: 0.06, forma: "round", montaje: "techo", instalacion: { familia: "electrica", glifo: "L", precio: 450 } },
+  { id: "spot", nombre: "Spot empotrado", categoria: "instalaciones", anchoM: 0.12, largoM: 0.12, altoM: 0.04, forma: "round", montaje: "techo", instalacion: { familia: "electrica", glifo: "S", precio: 280 } },
+  { id: "ventilador", nombre: "Ventilador de techo", categoria: "instalaciones", anchoM: 1.2, largoM: 1.2, altoM: 0.3, forma: "round", montaje: "techo", instalacion: { familia: "clima", glifo: "V", precio: 2600 } },
+  { id: "tablero", nombre: "Tablero eléctrico", categoria: "instalaciones", anchoM: 0.4, largoM: 0.12, altoM: 0.5, montaje: "pared", montajeY: 1.3, instalacion: { familia: "electrica", glifo: "T", precio: 4200 } },
+  { id: "salida_agua", nombre: "Salida de agua", categoria: "instalaciones", anchoM: 0.1, largoM: 0.08, altoM: 0.1, montaje: "pared", montajeY: 0.6, instalacion: { familia: "hidraulica", glifo: "H", precio: 650 } },
+  { id: "salida_gas", nombre: "Salida de gas", categoria: "instalaciones", anchoM: 0.1, largoM: 0.08, altoM: 0.1, montaje: "pared", montajeY: 0.5, instalacion: { familia: "gas", glifo: "G", precio: 800 } },
+  { id: "toma_datos", nombre: "Toma de datos / red", categoria: "instalaciones", anchoM: 0.1, largoM: 0.08, altoM: 0.12, montaje: "pared", montajeY: 0.3, instalacion: { familia: "datos", glifo: "D", precio: 520 } },
+  { id: "minisplit", nombre: "Minisplit", categoria: "instalaciones", anchoM: 0.9, largoM: 0.22, altoM: 0.3, montaje: "pared", montajeY: 2.1, instalacion: { familia: "clima", glifo: "AC", precio: 9500 } },
+  { id: "camara", nombre: "Cámara de seguridad", categoria: "instalaciones", anchoM: 0.15, largoM: 0.15, altoM: 0.15, forma: "round", montaje: "pared", montajeY: 2.3, instalacion: { familia: "seguridad", glifo: "CC", precio: 1900 } },
+  { id: "detector_humo", nombre: "Detector de humo", categoria: "instalaciones", anchoM: 0.12, largoM: 0.12, altoM: 0.04, forma: "round", montaje: "techo", instalacion: { familia: "seguridad", glifo: "DH", precio: 650 } },
   // Patio / jardín / terraza
   { id: "silla_ext", nombre: "Silla exterior", categoria: "patio", anchoM: 0.5, largoM: 0.5, altoM: 0.85, forma: "round" },
   { id: "mesa_patio", nombre: "Mesa de patio", categoria: "patio", anchoM: 1.2, largoM: 1.2, altoM: 0.75, forma: "round" },

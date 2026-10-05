@@ -3,6 +3,7 @@
 // donde haga falta, nada que amerite una dependencia.
 import { calcularPresupuesto, presupuestoPorZona, totalPresupuesto } from "./budget";
 import { zonaDe } from "./objetos";
+import { resumenInstalaciones, totalInstalaciones } from "./instalaciones";
 import type { MaterialCatalogItem, Proyecto } from "./types";
 
 const HEADERS = ["Nivel", "Habitación", "Tipo de zona", "Material", "Unidad", "Cantidad", "Precio unitario", "Costo"];
@@ -33,6 +34,14 @@ export function buildPresupuestoCsv(proyecto: Proyecto, catalogo: MaterialCatalo
   }
 
   rows.push(csvRow(["", "", "", "", "", "", "TOTAL", granTotal.toFixed(2)]));
+  // Instalaciones (contactos, luminarias, salidas…): cantidad y costo por pieza.
+  const instalaciones = resumenInstalaciones(proyecto.objetos);
+  if (instalaciones.length > 0) {
+    rows.push("");
+    rows.push(csvRow(["Instalaciones", "", "Familia", "Pieza", "Unidad", "Cantidad", "Precio unitario", "Costo"]));
+    for (const f of instalaciones) rows.push(csvRow(["", "", f.familiaNombre, f.nombre, "pza", f.cantidad, f.precio.toFixed(2), f.subtotal.toFixed(2)]));
+    rows.push(csvRow(["", "", "", "", "", "", "TOTAL INSTALACIONES", totalInstalaciones(instalaciones).toFixed(2)]));
+  }
   // Resumen por tipo de zona (oficinas, baños, bodega…), por si se quiere comparar el costo por uso.
   const porZona = presupuestoPorZona(proyecto.habitaciones, catalogo);
   if (porZona.length > 1) {

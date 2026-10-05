@@ -6,6 +6,8 @@ import ZonasPanel from "./zonas-panel";
 import MurosTabla from "./muros-tabla";
 import { agregarAberturaEnMapa, actualizarAberturaEnMapa, moverAberturaEnMapa, parcheDeEstilo, quitarAberturaEnMapa } from "../../lib/construccion/aberturasMapa";
 import { ESTILOS_PUERTA, ESTILOS_VENTANA, estiloDe, estilosDe } from "../../lib/construccion/estilosAbertura";
+import { puntoInterior } from "../../lib/construccion/geometry";
+import { pegarAPared } from "../../lib/construccion/instalaciones";
 import { conexionesEscaleras, problemaDeConexion } from "../../lib/construccion/conexiones";
 import { PLANTILLAS, aplicarPlantilla } from "../../lib/construccion/plantillas";
 import { murosDeContorno, moverVerticesLigados, rectanguloPuntos, setGiroContorno, setLargoContorno } from "../../lib/construccion/contorno";
@@ -138,6 +140,9 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   // sobre cualquier muro, y una regla de dos clics para comprobar una distancia.
   const [herramienta, setHerramientaState] = useState<"puerta" | "ventana" | "regla" | null>(null);
   const [medicion, setMedicion] = useState<Point[]>([]);
+  const [techos, setTechos] = useState(false);
+  const [caminando, setCaminando] = useState<{ x: number; z: number; nivelId: string } | null>(null);
+  const [mostrarMedidas, setMostrarMedidas] = useState(false);
   const [estiloPuerta, setEstiloPuerta] = useState<string>(ESTILOS_PUERTA[0].id);
   const [estiloVentana, setEstiloVentana] = useState<string>(ESTILOS_VENTANA[0].id);
   const [herrMsg, setHerrMsg] = useState<string | null>(null);
@@ -209,9 +214,11 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   const vp = usePlanViewport({ box: contentBox, resetKey: `${selectedNivelId}|${isMap ? "mapa" : (selected?.id ?? "nueva")}` });
   const roomStats = selected ? estadisticasHabitacion(selected, proyecto.objetos) : null;
   // Solo se calcula cuando de verdad hace falta (edificio con 2+ niveles, viendo el 3D completo).
+  // Caminando o con "ver todo el edificio" se ve el edificio completo, para poder subir las escaleras.
+  const edificio3D = edificioCompleto || !!caminando;
   const elevacionPorNivel = useMemo(
-    () => (edificioCompleto ? elevacionesPorNivel(proyecto) : undefined),
-    [edificioCompleto, proyecto],
+    () => (edificio3D ? elevacionesPorNivel(proyecto) : undefined),
+    [edificio3D, proyecto],
   );
 
   function updateSelected(fn: (h: Habitacion) => Habitacion) {
@@ -244,8 +251,18 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
 
   function handlePlace(p: Point) {
     if (!placing) return;
-    const nuevo = nuevoObjeto(placing, p.x, p.z, habitacionEn(p)?.id ?? null, selectedNivelId);
+    const def = objetoDef(placing);
+    let { x, z } = p;
+    let rotDeg = 0;
+    let habId = habitacionEn(p)?.id ?? null;
+    // Las instalaciones de pared (contactos, apagadores…) se pegan al muro más cercano, mirando hacia adentro.
+    if (def?.montaje === "pared") {
+      const pegado = pegarAPared(nivelHabitaciones, p, Math.max(0.8, 30 * vp.mpp));
+      if (pegado) ({ x, z, rotDeg, habId } = { x: pegado.x, z: pegado.z, rotDeg: pegado.rotDeg, habId: pegado.habId });
+    }
+    const nuevo = nuevoObjeto(placing, x, z, habId, selectedNivelId);
     if (!nuevo) return;
+    nuevo.rotDeg = rotDeg;
     setProyecto((pr) => ({ ...pr, objetos: [...pr.objetos, nuevo] }));
     setSelectedObjetoId(nuevo.id);
   }
@@ -272,7 +289,18 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   }
 
   const drag = usePlanDrag({
-    onObjetoMove: (id, c) => updateObjeto(id, { x: c.x, z: c.z }),
+    onObjetoMove: (id, c) => {
+      const o = proyecto.objetos.find((x) => x.id === id);
+      const def = o ? objetoDef(o.tipo) : undefined;
+      if (o && def?.montaje === "pared") {
+        const pegado = pegarAPared(proyecto.habitaciones.filter((h) => h.nivelId === o.nivelId), c, Math.max(1.0, 40 * vp.mpp));
+        if (pegado) {
+          updateObjeto(id, { x: pegado.x, z: pegado.z, rotDeg: pegado.rotDeg });
+          return;
+        }
+      }
+      updateObjeto(id, { x: c.x, z: c.z });
+    },
     onObjetoDrop: (id) =>
       setProyecto((pr) => {
         const o = pr.objetos.find((x) => x.id === id);
@@ -351,6 +379,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
         setHerramientaState(null);
         setMedicion([]);
         setHerrMsg(null);
+        setCaminando(null);
       }
       else if ((e.key === "Delete" || e.key === "Backspace") && selectedObjetoId) {
         e.preventDefault();
@@ -407,6 +436,18 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   function cancelMapDrawing() {
     setMapDrawing(false);
     setDraftPoints([]);
+  }
+
+  /** Empieza (o termina) el recorrido en primera persona, parado en la zona elegida (o en la primera del nivel). */
+  function alternarRecorrido() {
+    if (caminando) {
+      setCaminando(null);
+      return;
+    }
+    const base = (selected && selected.tipo !== "terreno" ? selected : null) ?? nivelHabitaciones.find((h) => h.puntos.length >= 3 && h.tipo !== "terreno");
+    if (!base) return;
+    const p = puntoInterior(base.puntos);
+    setCaminando({ x: p.x, z: p.z, nivelId: base.nivelId });
   }
 
   function setHerramienta(h: "puerta" | "ventana" | "regla" | null) {
@@ -563,6 +604,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   }
 
   function selectNivel(id: string) {
+    setCaminando(null);
     setHerramientaState(null);
     setMedicion([]);
     setMapDrawing(false);
@@ -790,13 +832,15 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
     updateSelected((h) => ({ ...h, aberturas: h.aberturas.filter((a) => a.id !== id) }));
   }
 
+  // El lote (terreno) no suma a lo construido.
+  const construidasNivel = nivelHabitaciones.filter((h) => h.tipo !== "terreno");
   const areaM2 = isMap
-    ? nivelHabitaciones.reduce((sum, h) => sum + polygonArea(h.puntos), 0)
+    ? construidasNivel.reduce((sum, h) => sum + polygonArea(h.puntos), 0)
     : selected
       ? polygonArea(selected.puntos)
       : 0;
   const perimetroM = isMap
-    ? nivelHabitaciones.reduce((sum, h) => sum + polygonPerimeter(h.puntos), 0)
+    ? construidasNivel.reduce((sum, h) => sum + polygonPerimeter(h.puntos), 0)
     : selected
       ? polygonPerimeter(selected.puntos)
       : 0;
@@ -915,6 +959,14 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                     {h === "puerta" ? "Puerta" : h === "ventana" ? "Ventana" : "Regla"}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  className={`btn btn-sm ${mostrarMedidas ? "btn-primary" : "btn-outline"}`}
+                  onClick={() => setMostrarMedidas((m) => !m)}
+                  title="Escribe la medida de cada muro sobre el plano (también sale en PNG y PDF)"
+                >
+                  Medidas
+                </button>
               </div>
             )}
             {herramienta === "regla" && (
@@ -1296,7 +1348,10 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               )}
               <div className="construccion-editor__view-toggle">
                 <button
-                  onClick={() => setView("2d")}
+                  onClick={() => {
+                    setView("2d");
+                    setCaminando(null);
+                  }}
                   className={`construccion-editor__view-btn${view === "2d" ? " construccion-editor__view-btn--active" : ""}`}
                 >
                   Plano 2D
@@ -1311,6 +1366,18 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                   Vista 3D
                 </button>
               </div>
+              {view === "3d" && (
+                <>
+                  <label className="construccion-editor__checkbox">
+                    <input type="checkbox" checked={techos} onChange={(e) => setTechos(e.target.checked)} />
+                    Ver techos
+                  </label>
+                  <button type="button" className={`btn btn-sm ${caminando ? "btn-primary" : "btn-outline"}`} onClick={alternarRecorrido}>
+                    {caminando ? "Salir del recorrido" : "Caminar"}
+                  </button>
+                  {caminando && <span className="construccion-editor__hint-text">WASD o flechas para moverte · arrastra para mirar · Shift corre · Esc sale</span>}
+                </>
+              )}
               {view === "3d" && proyecto.niveles.length > 1 && (
                 <label className="construccion-editor__checkbox">
                   <input type="checkbox" checked={edificioCompleto} onChange={(e) => setEdificioCompleto(e.target.checked)} />
@@ -1347,10 +1414,12 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
           {view === "3d" && !drawing ? (
             <Suspense fallback={<div className="construccion-3d-empty">Cargando visor 3D…</div>}>
               <RoomPreview
-                habitaciones={edificioCompleto ? proyecto.habitaciones : habitacionesVista}
-                objetos={edificioCompleto ? proyecto.objetos : objetosVista}
-                elevacionPorNivel={edificioCompleto ? elevacionPorNivel : undefined}
+                habitaciones={edificio3D ? proyecto.habitaciones : habitacionesVista}
+                objetos={edificio3D ? proyecto.objetos : objetosVista}
+                elevacionPorNivel={edificio3D ? elevacionPorNivel : undefined}
                 conexiones={conexiones}
+                techos={techos}
+                caminar={caminando}
               />
             </Suspense>
           ) : !isMap && !selected ? (
@@ -1385,6 +1454,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               medicion={medicion}
               onMeasureClick={handleMeasureClick}
               fantasmas={fantasmas}
+              mostrarMedidas={mostrarMedidas}
               rises={rises}
               selectedAbertura={selAbertura}
               onSelectAbertura={(habId, id) => {
@@ -1478,8 +1548,23 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
             selectedId={selectedId}
             onSelect={setSelectedId}
             onRename={(id, nombre) => setProyecto((pr) => ({ ...pr, habitaciones: pr.habitaciones.map((h) => (h.id === id ? { ...h, nombre } : h)) }))}
+            onAcabado={(id, parte, valor) =>
+              setProyecto((pr) => ({
+                ...pr,
+                habitaciones: pr.habitaciones.map((h) => {
+                  if (h.id !== id) return h;
+                  const acabados = { ...h.acabados };
+                  if (valor) acabados[parte] = valor;
+                  else delete acabados[parte];
+                  return { ...h, acabados: Object.keys(acabados).length ? acabados : undefined };
+                }),
+              }))
+            }
             onTipo={(id, tipo) => {
-              setProyecto((pr) => ({ ...pr, habitaciones: pr.habitaciones.map((h) => (h.id === id ? { ...h, tipo } : h)) }));
+              setProyecto((pr) => ({
+                ...pr,
+                habitaciones: pr.habitaciones.map((h) => (h.id === id ? { ...h, tipo, nombre: tipo === "terreno" && /^(Área|Habitación) \d+$/.test(h.nombre) ? "Terreno" : h.nombre } : h)),
+              }));
               if (tipo !== "otro") setCategoria(tipo);
             }}
             onMedida={(id, eje, valor) => {
@@ -1499,7 +1584,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               {isMap && (
                 <>
                   {" "}
-                  · {nivelHabitaciones.length} habitación(es) · {nivelObjetos.length} objeto(s)
+                  · {construidasNivel.length} habitación(es) · {nivelObjetos.length} objeto(s)
                 </>
               )}
               {!isMap && roomStats && (

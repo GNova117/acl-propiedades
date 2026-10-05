@@ -289,6 +289,10 @@ export const localBackend = {
     return record;
   },
 
+  async applyConstruccionToProperty() {
+    throw new Error("Aplicar datos a una propiedad requiere Supabase conectado (modo demo).");
+  },
+
   async updateProperty(id, data) {
     const properties = readStore(KEYS.properties, PROPERTIES);
     const idx = properties.findIndex((p) => p.id === id);

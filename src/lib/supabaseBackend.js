@@ -258,6 +258,18 @@ export const supabaseBackend = {
     return inserted;
   },
 
+  /**
+   * Pasa a la propiedad los datos que salen del plano de Construcción (m², recámaras, baños, cajones, altura
+   * libre, acabados, techumbre). Solo toca esos campos: no pisa fotos, videos ni nada más de la propiedad.
+   */
+  async applyConstruccionToProperty(id, patch) {
+    const permitidos = ["area_m2", "bedrooms", "bathrooms", "parking", "altura_libre", "acabados", "techumbre"];
+    const payload = Object.fromEntries(Object.entries(patch || {}).filter(([k, v]) => permitidos.includes(k) && v !== undefined));
+    if (Object.keys(payload).length === 0) return;
+    const { error } = await supabase.from("properties").update(payload).eq("id", id);
+    if (error) throw error;
+  },
+
   async updateProperty(id, data) {
     const uploaded = [];
     const { images, videos } = await collectMedia(data, uploaded);

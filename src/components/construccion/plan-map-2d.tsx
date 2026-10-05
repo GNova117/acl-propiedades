@@ -45,6 +45,8 @@ type Props = {
   /** Escaleras que vienen del nivel de abajo: se ven punteadas con su hueco en este piso. */
   /** Desnivel real de cada escalera conectada (id de objeto → m). */
   rises?: Record<string, number>;
+  /** Escribe la medida de cada muro sobre el plano (los muros compartidos, una sola vez). */
+  mostrarMedidas?: boolean;
   fantasmas?: { huella: Point[]; hueco: Point[]; etiqueta: string }[];
   onSelectAbertura?: (habId: string, id: string) => void;
   /** Puntos ya puestos del contorno que se está dibujando (herramienta "draw"). */
@@ -57,13 +59,32 @@ type Props = {
 };
 
 const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
-  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto, fondo, fondoDraggable, tool = null, draftPoints = [], onDrawClick, splitRoom = null, splitFrom = null, onSplitClick, openingTipo = "puerta", onOpeningClick, medicion = [], onMeasureClick, selectedAbertura = null, onSelectAbertura, fantasmas = [], rises },
+  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto, fondo, fondoDraggable, tool = null, draftPoints = [], onDrawClick, splitRoom = null, splitFrom = null, onSplitClick, openingTipo = "puerta", onOpeningClick, medicion = [], onMeasureClick, selectedAbertura = null, onSelectAbertura, fantasmas = [], rises, mostrarMedidas = false },
   ref,
 ) {
   const [cursor, setCursor] = useState<Point | null>(null);
   // Con una herramienta activa los cuartos y muebles no se agarran: cada clic es de la herramienta.
   const blocked = placing || tool !== null;
   const divisores = useMemo(() => divisoresDe(habitaciones), [habitaciones]);
+  // El lote va debajo de todo lo demás.
+  const ordenadas = useMemo(() => [...habitaciones.filter((h) => h.tipo === "terreno"), ...habitaciones.filter((h) => h.tipo !== "terreno")], [habitaciones]);
+  // Una medida por muro: si dos zonas comparten el mismo muro, se escribe una vez.
+  const murosUnicos = useMemo(() => {
+    if (!mostrarMedidas) return [];
+    const vistos = new Set<string>();
+    const redondo = (v: number) => Math.round(v * 50) / 50;
+    return habitaciones.flatMap((h) =>
+      wallSegmentsFromPolygon(h.puntos).filter((seg) => {
+        if (seg.length < 0.4) return false;
+        const a = `${redondo(seg.start.x)},${redondo(seg.start.z)}`;
+        const b = `${redondo(seg.end.x)},${redondo(seg.end.z)}`;
+        const k = a < b ? `${a}|${b}` : `${b}|${a}`;
+        if (vistos.has(k)) return false;
+        vistos.add(k);
+        return true;
+      }),
+    );
+  }, [habitaciones, mostrarMedidas]);
   const repetidas = useMemo(() => aberturasRepetidas(habitaciones), [habitaciones]);
 
   // Igual que al dibujar un cuarto suelto: imán de 5 cm y alineación con los puntos ya puestos.
@@ -160,7 +181,7 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
 
       <PlanGrid visible={vp.visible} />
 
-      {habitaciones.map((hab) => {
+      {ordenadas.map((hab) => {
         if (hab.puntos.length < 3) return null;
         const zona = zonaDe(hab.tipo);
         const selected = hab.id === selectedId;
@@ -191,10 +212,10 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
                   y1={seg.start.z}
                   x2={seg.end.x}
                   y2={seg.end.z}
-                  stroke={selected ? "#2563eb" : esTipoExterior(hab.tipo) ? zona.color : "#3f3f46"}
-                  strokeWidth={esTipoExterior(hab.tipo) ? WALL_THICKNESS_M * 0.45 : WALL_THICKNESS_M}
-                  strokeDasharray={esTipoExterior(hab.tipo) ? "0.3 0.18" : undefined}
-                  strokeLinecap={esTipoExterior(hab.tipo) ? "butt" : "square"}
+                  stroke={selected ? "#2563eb" : hab.tipo === "terreno" ? "#374151" : esTipoExterior(hab.tipo) ? zona.color : "#3f3f46"}
+                  strokeWidth={hab.tipo === "terreno" ? 0.09 : esTipoExterior(hab.tipo) ? WALL_THICKNESS_M * 0.45 : WALL_THICKNESS_M}
+                  strokeDasharray={hab.tipo === "terreno" ? "0.6 0.25" : esTipoExterior(hab.tipo) ? "0.3 0.18" : undefined}
+                  strokeLinecap={esTipoExterior(hab.tipo) || hab.tipo === "terreno" ? "butt" : "square"}
                 />
                 {hab.aberturas
                   .filter((a) => a.segmentIndex === i)
@@ -249,6 +270,12 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
             </g>
           );
         })}
+
+      {murosUnicos.map((seg, i) => (
+        <g key={`cota${i}`} pointerEvents="none">
+          <Cota segment={seg} mpp={vp.mpp} />
+        </g>
+      ))}
 
       {fantasmas.map((f, i) => {
         const cx = f.huella.reduce((s, p) => s + p.x, 0) / f.huella.length;

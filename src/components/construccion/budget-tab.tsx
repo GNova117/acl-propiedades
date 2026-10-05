@@ -1,4 +1,6 @@
-import type { Dispatch, SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
+import { acabadosEnUso, guardarPrecioAcabado, leerPreciosAcabados, precioDeAcabado } from "../../lib/construccion/acabados";
+import { guardarPrecioInstalacion, resumenInstalaciones, totalInstalaciones } from "../../lib/construccion/instalaciones";
 import { calcularPresupuesto, presupuestoPorZona, totalPresupuesto } from "../../lib/construccion/budget";
 import { ZONAS } from "../../lib/construccion/objetos";
 import type { FuenteCantidad, MaterialCatalogItem, Proyecto, TipoHabitacion } from "../../lib/construccion/types";
@@ -18,6 +20,8 @@ type Props = {
 };
 
 export default function BudgetTab({ proyecto, catalogo, setCatalogo }: Props) {
+  // Los precios de acabados e instalaciones viven en este navegador: este contador fuerza el repintado al cambiarlos.
+  const [, repintar] = useState(0);
   function updateItem(id: string, patch: Partial<MaterialCatalogItem>) {
     setCatalogo((c) => c.map((m) => (m.id === id ? { ...m, ...patch } : m)));
   }
@@ -31,11 +35,15 @@ export default function BudgetTab({ proyecto, catalogo, setCatalogo }: Props) {
     ]);
   }
 
-  const porHabitacion = proyecto.habitaciones.map((h) => ({
+  const porHabitacion = proyecto.habitaciones.filter((h) => h.tipo !== "terreno").map((h) => ({
     habitacion: h,
     lineas: calcularPresupuesto(h, catalogo),
   }));
   const porZona = presupuestoPorZona(proyecto.habitaciones, catalogo);
+  const enUso = acabadosEnUso(proyecto.habitaciones);
+  const precios = leerPreciosAcabados();
+  const instalaciones = resumenInstalaciones(proyecto.objetos);
+  const totalInst = totalInstalaciones(instalaciones);
   const granTotal = porHabitacion.reduce((sum, x) => sum + totalPresupuesto(x.lineas), 0);
   // Mismo cálculo de siempre — solo se muestra agrupado por nivel cuando hay más de uno, para que el
   // presupuesto de un edificio de varios pisos no sea una sola lista plana de cuartos.
@@ -154,6 +162,110 @@ export default function BudgetTab({ proyecto, catalogo, setCatalogo }: Props) {
           + Agregar material
         </button>
       </section>
+
+      {enUso.length > 0 && (
+        <section className="construccion-panel__section">
+          <h2 className="construccion-panel__heading">Acabados elegidos (precio por m²)</h2>
+          <p className="construccion-panel__hint">Se eligen por zona en la tabla del Editor. El precio incluye suministro y colocación; ajústalo a tu proveedor (se guarda en este navegador).</p>
+          <div className="card admin-table-wrapper">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Parte</th>
+                  <th>Acabado</th>
+                  <th>Precio por m²</th>
+                </tr>
+              </thead>
+              <tbody>
+                {enUso.map(({ parte, acabado }) => (
+                  <tr key={`${parte}-${acabado.id}`}>
+                    <td>{parte === "piso" ? "Piso" : parte === "pared" ? "Muros" : "Techo"}</td>
+                    <td>{acabado.nombre}</td>
+                    <td>
+                      <input
+                        key={precioDeAcabado(parte, acabado, precios)}
+                        type="number"
+                        min={0}
+                        step={10}
+                        defaultValue={precioDeAcabado(parte, acabado, precios)}
+                        className="construccion-panel__cell-input"
+                        style={{ width: "6rem" }}
+                        onBlur={(e) => {
+                          const v = Number(e.currentTarget.value);
+                          if (Number.isFinite(v) && v >= 0) {
+                            guardarPrecioAcabado(parte, acabado.id, v === acabado.precioM2 ? null : v);
+                            repintar((n) => n + 1);
+                          }
+                        }}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {instalaciones.length > 0 && (
+        <section className="construccion-panel__section">
+          <h2 className="construccion-panel__heading">Instalaciones</h2>
+          <div className="card admin-table-wrapper">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Pieza</th>
+                  <th>Familia</th>
+                  <th>Cantidad</th>
+                  <th>Precio por pieza</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {instalaciones.map((f) => (
+                  <tr key={f.id}>
+                    <td>{f.nombre}</td>
+                    <td>{f.familiaNombre}</td>
+                    <td>{f.cantidad}</td>
+                    <td>
+                      <input
+                        key={f.precio}
+                        type="number"
+                        min={0}
+                        step={10}
+                        defaultValue={f.precio}
+                        className="construccion-panel__cell-input"
+                        style={{ width: "6rem" }}
+                        onBlur={(e) => {
+                          const v = Number(e.currentTarget.value);
+                          if (Number.isFinite(v) && v >= 0) {
+                            guardarPrecioInstalacion(f.id, v);
+                            repintar((n) => n + 1);
+                          }
+                        }}
+                      />
+                    </td>
+                    <td>{peso(f.subtotal)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colSpan={4}>
+                    <strong>Total de instalaciones</strong>
+                  </td>
+                  <td>
+                    <strong>{peso(totalInst)}</strong>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <p className="construccion-panel__total" style={{ marginTop: "0.5rem" }}>
+            Materiales + acabados + instalaciones: <strong>{peso(granTotal + totalInst)}</strong>
+          </p>
+        </section>
+      )}
 
       {porZona.length > 1 && (
         <section className="construccion-panel__section">

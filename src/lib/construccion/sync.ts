@@ -30,6 +30,8 @@ type AberturaRow = {
 // `estilo` es una columna agregada después: si el bloque SQL todavía no se corrió, se trabaja sin ella
 // (las puertas y ventanas se guardan igual, solo que sin su estilo).
 let aberturasTienenEstilo = true;
+// Lo mismo con las columnas de acabados de la habitación (tipo_piso, tipo_pared, tipo_techo).
+let habitacionesTienenAcabados = true;
 const falloPorColumna = (err: unknown, columna: string) => {
   const e = err as { code?: string; message?: string } | null;
   return e?.code === "42703" || e?.code === "PGRST204" || new RegExp(columna).test(e?.message ?? "");
@@ -173,12 +175,18 @@ export async function getConstruccionProyecto(proyectoId: string): Promise<Proye
     niveles = ((nivelesData ?? []) as NivelRow[]).map((n) => ({ id: n.id, nombre: n.nombre }));
   }
 
-  const { data: habitacionesData, error: habError } = await db
-    .from("construccion_habitaciones")
-    .select(conNiveles ? "id, nombre, tipo, nivel_id" : "id, nombre, tipo")
-    .eq("proyecto_id", id);
-  if (habError) throw habError;
-  const habitacionesRows = (habitacionesData ?? []) as unknown as { id: string; nombre: string; tipo: string | null; nivel_id?: string | null }[];
+  const pedirHabitaciones = (acabados: boolean) =>
+    db
+      .from("construccion_habitaciones")
+      .select(`id, nombre, tipo${conNiveles ? ", nivel_id" : ""}${acabados ? ", tipo_piso, tipo_pared, tipo_techo" : ""}`)
+      .eq("proyecto_id", id);
+  let habRes = await pedirHabitaciones(habitacionesTienenAcabados);
+  if (habRes.error && habitacionesTienenAcabados && falloPorColumna(habRes.error, "tipo_")) {
+    habitacionesTienenAcabados = false;
+    habRes = await pedirHabitaciones(false);
+  }
+  if (habRes.error) throw habRes.error;
+  const habitacionesRows = (habRes.data ?? []) as unknown as { id: string; nombre: string; tipo: string | null; nivel_id?: string | null; tipo_piso?: string | null; tipo_pared?: string | null; tipo_techo?: string | null }[];
   const habitacionIds = habitacionesRows.map((h) => h.id);
   const objetos = await fetchObjetos(db, id, conNiveles);
   // Un proyecto guardado antes de que existieran los niveles no trae ninguno: se le crea "Planta baja".
@@ -229,6 +237,9 @@ export async function getConstruccionProyecto(proyectoId: string): Promise<Proye
       puntos,
       alturaM: susMuros[0]?.altura ?? 2.5,
       aberturas: susAberturas,
+      ...(h.tipo_piso || h.tipo_pared || h.tipo_techo
+        ? { acabados: { ...(h.tipo_piso ? { piso: h.tipo_piso } : {}), ...(h.tipo_pared ? { pared: h.tipo_pared } : {}), ...(h.tipo_techo ? { techo: h.tipo_techo } : {}) } }
+        : {}),
     };
   });
 
@@ -236,13 +247,19 @@ export async function getConstruccionProyecto(proyectoId: string): Promise<Proye
 }
 
 async function pushHabitacion(db: NonNullable<typeof supabase>, proyectoId: string, habitacion: Habitacion, conNiveles: boolean) {
-  const { error: habError } = await db.from("construccion_habitaciones").insert({
+  const filaHabitacion = (acabados: boolean) => ({
     id: habitacion.id,
     proyecto_id: proyectoId,
     nombre: habitacion.nombre,
     tipo: habitacion.tipo ?? null,
     ...(conNiveles ? { nivel_id: habitacion.nivelId } : {}),
+    ...(acabados ? { tipo_piso: habitacion.acabados?.piso ?? null, tipo_pared: habitacion.acabados?.pared ?? null, tipo_techo: habitacion.acabados?.techo ?? null } : {}),
   });
+  let { error: habError } = await db.from("construccion_habitaciones").insert(filaHabitacion(habitacionesTienenAcabados));
+  if (habError && habitacionesTienenAcabados && falloPorColumna(habError, "tipo_")) {
+    habitacionesTienenAcabados = false;
+    ({ error: habError } = await db.from("construccion_habitaciones").insert(filaHabitacion(false)));
+  }
   if (habError) throw habError;
 
   const segments = wallSegmentsFromPolygon(habitacion.puntos);

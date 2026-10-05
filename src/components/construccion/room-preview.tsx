@@ -4,6 +4,9 @@ import { Grid, OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { DoubleSide, Path, Shape } from "three";
 import { pointInPolygon, wallSegmentsFromPolygon, wallFacadeRects, type Point } from "../../lib/construccion/geometry";
 import { objetoDef, zonaDe } from "../../lib/construccion/objetos";
+import { acabadoDe } from "../../lib/construccion/acabados";
+import { Techo, planearTechos } from "./techos3d";
+import Caminante from "./recorrido3d";
 import { esTipoExterior } from "../../lib/construccion/stats";
 import { geometriaEscalera } from "../../lib/construccion/escaleras";
 import { espejoDe } from "../../lib/construccion/aberturasMapa";
@@ -23,12 +26,14 @@ const PISO_3D: Record<string, string> = {
   jardin: "#86efac",
   azotea: "#e7e5e4",
   terraza: "#bae6fd",
+  terreno: "#d1fae5",
 };
 
 function Walls({ habitacion, omitir }: { habitacion: Habitacion; omitir: Set<string> }) {
   const segments = wallSegmentsFromPolygon(habitacion.puntos);
   const bajo = esTipoExterior(habitacion.tipo);
   const alto = bajo ? Math.min(BORDILLO_M, habitacion.alturaM) : habitacion.alturaM;
+  const colorMuro = acabadoDe("pared", habitacion.acabados?.pared)?.color ?? "#d4d4d8";
   return (
     <>
       {segments.map((segment, i) => {
@@ -39,7 +44,7 @@ function Walls({ habitacion, omitir }: { habitacion: Habitacion; omitir: Set<str
             {rects.map((r, j) => (
               <mesh key={j} position={[(r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2, 0]}>
                 <boxGeometry args={[r.x1 - r.x0, r.y1 - r.y0, bajo ? 0.08 : WALL_THICKNESS]} />
-                <meshStandardMaterial color={bajo ? "#a8a29e" : "#d4d4d8"} />
+                <meshStandardMaterial color={bajo ? "#a8a29e" : colorMuro} />
               </mesh>
             ))}
             {openings.filter((a) => !omitir.has(a.id)).map((a) => (a.tipo === "puerta" ? <Puerta3D key={a.id} ab={a} /> : <Ventana3D key={a.id} ab={a} />))}
@@ -50,7 +55,7 @@ function Walls({ habitacion, omitir }: { habitacion: Habitacion; omitir: Set<str
   );
 }
 
-function Floor({ points, color, huecos = [] }: { points: Point[]; color: string; huecos?: Point[][] }) {
+function Floor({ points, color, huecos = [], y = 0.01 }: { points: Point[]; color: string; huecos?: Point[][]; y?: number }) {
   const llave = JSON.stringify(huecos);
   const shape = useMemo(() => {
     const s = new Shape();
@@ -70,7 +75,7 @@ function Floor({ points, color, huecos = [] }: { points: Point[]; color: string;
 
   // rotation.x = +90° mapea el plano local (x, y) del shape a (x, 0, z) del mundo, sin espejear.
   return (
-    <mesh position={[0, 0.01, 0]} rotation={[Math.PI / 2, 0, 0]}>
+    <mesh position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
       <shapeGeometry args={[shape]} />
       <meshStandardMaterial color={color} side={DoubleSide} />
     </mesh>
@@ -107,8 +112,10 @@ function Muebles({ objetos, elevacionDe, alturaDe }: { objetos: Objeto[]; elevac
         const color = zonaDe(def?.categoria).color;
         const Modelo = MODELOS_3D[o.tipo];
         if (Modelo) {
+          // Instalaciones: de pared van a su altura de montaje; las de techo cuelgan del cielo de su zona.
+          const yMontaje = def?.montaje === "techo" ? (alturaDe(o) ?? 2.5) - alto - 0.02 : def?.montaje === "pared" ? (def.montajeY ?? 0) - 0.02 : 0;
           return (
-            <group key={o.id} position={[o.x, elevacionDe(o) + 0.02, o.z]} rotation={[0, (-o.rotDeg * Math.PI) / 180, 0]}>
+            <group key={o.id} position={[o.x, elevacionDe(o) + 0.02 + yMontaje, o.z]} rotation={[0, (-o.rotDeg * Math.PI) / 180, 0]}>
               <Modelo w={o.anchoM} d={o.largoM} h={alto} c={color} />
             </group>
           );
@@ -145,9 +152,13 @@ type Props = {
   elevacionPorNivel?: Record<string, number>;
   /** Escaleras que unen niveles: fijan el desnivel que salvan y el hueco en el piso de arriba. */
   conexiones?: ConexionEscalera[];
+  /** Dibuja los techos (losa o de dos/cuatro aguas) para ver el edificio cerrado, por fuera. */
+  techos?: boolean;
+  /** Recorrido en primera persona: arranca en este punto del nivel indicado. */
+  caminar?: { x: number; z: number; nivelId: string } | null;
 };
 
-export default function RoomPreview({ habitaciones, objetos, elevacionPorNivel, conexiones = [] }: Props) {
+export default function RoomPreview({ habitaciones, objetos, elevacionPorNivel, conexiones = [], techos = false, caminar = null }: Props) {
   const cerradas = habitaciones.filter((h) => h.puntos.length >= 3);
   if (cerradas.length === 0) {
     return (
@@ -183,17 +194,36 @@ export default function RoomPreview({ habitaciones, objetos, elevacionPorNivel, 
     3,
   );
 
+  const techosPlaneados = techos ? planearTechos(cerradas, elevacion) : [];
+
   return (
     <Canvas className="construccion-3d-canvas">
-      <PerspectiveCamera makeDefault position={[center.x + extent, alturaTotal + extent, center.z + extent]} fov={50} />
-      <OrbitControls target={[center.x, alturaTotal / 2, center.z]} />
+      {caminar ? (
+        <>
+          <PerspectiveCamera makeDefault position={[caminar.x, elevacion(caminar.nivelId) + 1.6, caminar.z]} fov={72} near={0.05} />
+          <Caminante habitaciones={cerradas} objetos={objetos} conexiones={conexiones} elevacion={elevacion} inicio={caminar} />
+        </>
+      ) : (
+        <>
+          <PerspectiveCamera makeDefault position={[center.x + extent, alturaTotal + extent, center.z + extent]} fov={50} />
+          <OrbitControls target={[center.x, alturaTotal / 2, center.z]} />
+        </>
+      )}
       <ambientLight intensity={1.5} />
       <directionalLight position={[center.x + 5, alturaTotal + 8, center.z + 3]} intensity={Math.PI} />
       {cerradas.map((h) => (
         <group key={h.id} position={[0, elevacion(h.nivelId), 0]}>
-          <Walls habitacion={h} omitir={omitir} />
-          <Floor points={h.puntos} color={PISO_3D[h.tipo ?? ""] ?? zonaDe(h.tipo).fill} huecos={huecosDe(h)} />
+          {h.tipo !== "terreno" && <Walls habitacion={h} omitir={omitir} />}
+          <Floor
+            points={h.puntos}
+            color={acabadoDe("piso", h.acabados?.piso)?.color ?? PISO_3D[h.tipo ?? ""] ?? zonaDe(h.tipo).fill}
+            huecos={huecosDe(h)}
+            y={h.tipo === "terreno" ? -0.015 : 0.01}
+          />
         </group>
+      ))}
+      {techosPlaneados.map((t) => (
+        <Techo key={t.key} spec={t} />
       ))}
       <Muebles objetos={objetos} elevacionDe={elevacionDeObjeto} alturaDe={alturaDeObjeto} />
       <Grid infiniteGrid sectionColor="#a1a1aa" cellColor="#e4e4e7" fadeDistance={40} />

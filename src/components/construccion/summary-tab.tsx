@@ -5,7 +5,8 @@ import { NIVELES_ACABADO, calcularPresupuesto, totalPresupuesto } from "../../li
 import { downloadFichaConstruccionPdf } from "../../lib/construccion/fichaPdf";
 import { downloadPresupuestoCsv } from "../../lib/construccion/exportCsv";
 import { describeSyncError } from "../../lib/construccion/sync";
-import { areasPorZona, esAreaExterior, estadisticasHabitacion, estadisticasProyecto } from "../../lib/construccion/stats";
+import DatosPropiedad from "./datos-propiedad";
+import { areasPorZona, esAreaExterior, estadisticasHabitacion, estadisticasProyecto, indicadoresTerreno } from "../../lib/construccion/stats";
 import type { FotoHabitacion, MaterialCatalogItem, Proyecto, TipoHabitacion } from "../../lib/construccion/types";
 
 const peso = (n: number) => `$${n.toLocaleString("es-MX", { maximumFractionDigits: 0 })}`;
@@ -46,6 +47,7 @@ export default function SummaryTab({ proyecto, catalogo }: Props) {
   const precioM2 = precioM2Override ?? nivelAcabado.precioM2;
 
   const stats = estadisticasProyecto(proyecto);
+  const terreno = indicadoresTerreno(proyecto);
   // El valor de mercado se calcula sobre la superficie CONSTRUIDA — un jardín o una alberca (zona
   // "Exterior") no vale lo mismo por m² que una recámara, así que no entra en este cálculo. Hasta
   // ahora esta pantalla sumaba todas las habitaciones por igual; con niveles ya es fácil separarlas.
@@ -137,6 +139,23 @@ export default function SummaryTab({ proyecto, catalogo }: Props) {
           )}
         </section>
 
+        {terreno && (
+          <section className="construccion-panel__section">
+            <h2 className="construccion-panel__heading">Terreno y ocupación</h2>
+            <table className="construccion-panel__plain-table">
+              <tbody>
+                <tr><td>Terreno</td><td className="construccion-panel__col-right">{terreno.terrenoM2.toFixed(2)} m²</td></tr>
+                <tr><td>Huella construida (planta baja)</td><td className="construccion-panel__col-right">{terreno.huellaM2.toFixed(2)} m²</td></tr>
+                <tr><td>Área libre del terreno</td><td className="construccion-panel__col-right">{terreno.libreM2.toFixed(2)} m²</td></tr>
+                <tr><td>Total construido (todos los niveles)</td><td className="construccion-panel__col-right">{terreno.construidaM2.toFixed(2)} m²</td></tr>
+                <tr><td><strong>Ocupación del suelo (COS)</strong></td><td className="construccion-panel__col-right"><strong>{(terreno.cos * 100).toFixed(1)} %</strong></td></tr>
+                <tr><td><strong>Utilización del suelo (CUS)</strong></td><td className="construccion-panel__col-right"><strong>{terreno.cus.toFixed(2)}</strong></td></tr>
+              </tbody>
+            </table>
+            <p className="construccion-panel__hint">COS = huella ÷ terreno; CUS = total construido ÷ terreno. Compáralos con los límites de uso de suelo de la zona.</p>
+          </section>
+        )}
+
         {areasPorZona(proyecto.habitaciones).length > 1 && (
           <section className="construccion-panel__section">
             <h2 className="construccion-panel__heading">Áreas por tipo de zona</h2>
@@ -162,7 +181,7 @@ export default function SummaryTab({ proyecto, catalogo }: Props) {
             <p className="empty-state">Todavía no hay habitaciones — créalas en la pestaña Editor.</p>
           ) : (
             stats.niveles.map((n) => {
-              const habsDelNivel = proyecto.habitaciones.filter((h) => h.nivelId === n.nivel.id);
+              const habsDelNivel = proyecto.habitaciones.filter((h) => h.nivelId === n.nivel.id && h.tipo !== "terreno");
               if (habsDelNivel.length === 0) return null;
               return (
                 <div key={n.nivel.id} className="construccion-panel__subgroup">
@@ -298,6 +317,8 @@ export default function SummaryTab({ proyecto, catalogo }: Props) {
           )}
           <p className="construccion-panel__disclaimer">Suma de todas las habitaciones — desglose en la pestaña Presupuesto.</p>
         </section>
+
+        <DatosPropiedad proyecto={proyecto} />
 
         <div className="construccion-panel__inline-fields">
           <button onClick={handleExportPdf} disabled={proyecto.habitaciones.length === 0 || exportingPdf} className="btn btn-primary">

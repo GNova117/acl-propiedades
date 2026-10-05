@@ -53,7 +53,8 @@ function tramosCompartidos(a: Habitacion, b: Habitacion): Tramo[] {
 
 /** Todas las líneas divisorias de un conjunto de cuartos (los de un mismo nivel). */
 export function divisoresDe(habitaciones: Habitacion[]): Divisor[] {
-  const hs = habitaciones.filter((h) => h.puntos.length >= 3);
+  // El lote (terreno) no es una zona que se reparta: sus lindes no son divisorias.
+  const hs = habitaciones.filter((h) => h.puntos.length >= 3 && h.tipo !== "terreno");
   const tramos: Tramo[] = [];
   for (let i = 0; i < hs.length; i++) for (let j = i + 1; j < hs.length; j++) tramos.push(...tramosCompartidos(hs[i], hs[j]));
 

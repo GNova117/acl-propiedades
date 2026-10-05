@@ -279,3 +279,11 @@ export function unionBounds(boxes: Bounds[]): Bounds | null {
     maxZ: Math.max(...boxes.map((b) => b.maxZ)),
   };
 }
+
+/** Un punto que seguro cae dentro del polígono: su centroide, o el de su primer triángulo si es cóncavo. */
+export function puntoInterior(puntos: Point[]): Point {
+  const c = { x: puntos.reduce((s, p) => s + p.x, 0) / puntos.length, z: puntos.reduce((s, p) => s + p.z, 0) / puntos.length };
+  if (pointInPolygon(c, puntos)) return c;
+  const [a, b, d] = puntos;
+  return { x: (a.x + b.x + d.x) / 3, z: (a.z + b.z + d.z) / 3 };
+}

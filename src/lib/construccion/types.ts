@@ -27,6 +27,8 @@ export type TipoHabitacion =
   | "estudio"
   | "cochera"
   | "exterior"
+  | "terreno"
+  | "instalaciones"
   | "patio"
   | "jardin"
   | "terraza"
@@ -72,6 +74,8 @@ export type Habitacion = {
   puntos: Point[];
   alturaM: number;
   aberturas: Abertura[];
+  /** Piso, muros y techo de la zona (ids de `acabados.ts`). */
+  acabados?: { piso?: string; pared?: string; techo?: string };
 };
 
 export type Proyecto = {

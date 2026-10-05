@@ -460,7 +460,97 @@ const Mostrador: Modelo = (m) => (
   </>
 );
 
+// ── Instalaciones: se dibujan pegadas a la pared (el frente mira a +z, la pared queda en −z) o al techo ──
+const Placa = ({ w, h, d, color = "#fafafa", children }: M & { color?: string; children?: ReactNode }) => (
+  <>
+    <Bx pos={[0, 0, Math.max(d, 0.015) / 2]} size={[w, h, Math.max(d, 0.015)]} color={color} r={0.008} />
+    {children}
+  </>
+);
+const Contacto: Modelo = (m) => (
+  <Placa {...m}>
+    {[-1, 1].map((l) => (
+      <Bx key={l} pos={[l * m.w * 0.18, m.h * 0.3, Math.max(m.d, 0.015) + 0.001]} size={[0.012, m.h * 0.35, 0.01]} color={NEGRO} />
+    ))}
+  </Placa>
+);
+const Apagador: Modelo = (m) => (
+  <Placa {...m}>
+    <Bx pos={[0, m.h * 0.28, Math.max(m.d, 0.015) + 0.001]} size={[m.w * 0.35, m.h * 0.42, 0.014]} color="#e5e7eb" r={0.004} />
+  </Placa>
+);
+const Luminaria: Modelo = ({ w }) => (
+  <>
+    <Cy pos={[0, 0, 0]} r={w / 2} h={0.025} color="#fafafa" seg={28} />
+    <Sp pos={[0, 0, 0]} r={w * 0.4} sy={0.45} color="#fef9c3" opacity={0.9} />
+  </>
+);
+const Spot: Modelo = ({ w }) => (
+  <>
+    <Cy pos={[0, 0, 0]} r={w / 2} h={0.015} color="#e5e7eb" seg={20} />
+    <Cy pos={[0, -0.002, 0]} r={w * 0.32} h={0.01} color="#fef08a" seg={20} />
+  </>
+);
+const Ventilador: Modelo = ({ w, h }) => (
+  <>
+    <Cy pos={[0, h * 0.35, 0]} r={0.07} h={h * 0.65} color="#d4d4d8" metal seg={12} />
+    <Cy pos={[0, 0, 0]} r={0.1} h={h * 0.4} color="#e5e7eb" metal seg={20} />
+    {[0, 1, 2, 3].map((i) => (
+      <Bx key={i} pos={[Math.cos((i * Math.PI) / 2) * (w * 0.28), h * 0.1, Math.sin((i * Math.PI) / 2) * (w * 0.28)]} size={[w * 0.42, 0.012, 0.13]} color={MADERA} rot={[0, (-i * Math.PI) / 2, 0]} />
+    ))}
+  </>
+);
+const Tablero: Modelo = ({ w, h, d }) => (
+  <>
+    <Bx pos={[0, 0, d / 2]} size={[w, h, d]} color="#9ca3af" metal r={0.01} />
+    <Bx pos={[0, h * 0.05, d + 0.001]} size={[w - 0.04, h * 0.9, 0.012]} color="#d1d5db" r={0.005} />
+    <Bx pos={[w * 0.32, h * 0.45, d + 0.006]} size={[0.02, h * 0.15, 0.012]} color={NEGRO} />
+  </>
+);
+const SalidaToma = ({ w, h, d, color }: M & { color: string }) => (
+  <>
+    <Bx pos={[0, 0, d / 2]} size={[w, h, d]} color="#e5e7eb" r={0.01} />
+    <Cy pos={[0, h / 2, d + 0.01]} r={Math.min(w, h) * 0.3} h={0.04} color={color} metal rot={[Math.PI / 2, 0, 0]} centro />
+  </>
+);
+const TomaDatos: Modelo = (m) => (
+  <Placa {...m}>
+    <Bx pos={[0, m.h * 0.3, Math.max(m.d, 0.015) + 0.001]} size={[m.w * 0.5, m.h * 0.35, 0.014]} color="#2563eb" />
+  </Placa>
+);
+const Minisplit: Modelo = ({ w, h, d }) => (
+  <>
+    <Bx pos={[0, 0, d / 2]} size={[w, h, d]} color="#f5f5f4" r={0.04} />
+    <Bx pos={[0, h * 0.18, d - 0.01]} size={[w - 0.1, h * 0.12, 0.02]} color="#d4d4d8" r={0.01} />
+    <Bx pos={[w * 0.36, h * 0.62, d + 0.001]} size={[0.025, 0.012, 0.01]} color="#22c55e" />
+  </>
+);
+const Camara: Modelo = ({ w }) => (
+  <>
+    <Bx pos={[0, 0, w * 0.25]} size={[w * 0.5, w * 0.35, w * 0.5]} color="#e5e7eb" />
+    <Sp pos={[0, w * 0.3, w * 0.5]} r={w * 0.38} color="#27272a" />
+  </>
+);
+const DetectorHumo: Modelo = ({ w }) => (
+  <>
+    <Cy pos={[0, 0, 0]} r={w / 2} h={0.03} color="#fafafa" seg={20} />
+    <Cy pos={[0, -0.004, 0]} r={w * 0.15} h={0.01} color="#ef4444" seg={10} />
+  </>
+);
+
 export const MODELOS_3D: Record<string, Modelo> = {
+  contacto: Contacto,
+  apagador: Apagador,
+  luminaria: Luminaria,
+  spot: Spot,
+  ventilador: Ventilador,
+  tablero: Tablero,
+  salida_agua: (m) => <SalidaToma {...m} color="#3b82f6" />,
+  salida_gas: (m) => <SalidaToma {...m} color="#f97316" />,
+  toma_datos: TomaDatos,
+  minisplit: Minisplit,
+  camara: Camara,
+  detector_humo: DetectorHumo,
   sofa3: Sofa,
   sofa2: Sofa,
   sillon: Sofa,

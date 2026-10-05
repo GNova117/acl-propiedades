@@ -2,6 +2,7 @@ import { medidasRectangulo } from "../../lib/construccion/divisores";
 import { polygonArea } from "../../lib/construccion/geometry";
 import { ZONAS, zonaDe } from "../../lib/construccion/objetos";
 import { areasPorZona } from "../../lib/construccion/stats";
+import { catalogoDe, type ParteAcabado } from "../../lib/construccion/acabados";
 import type { Habitacion, TipoHabitacion } from "../../lib/construccion/types";
 
 type Props = {
@@ -10,6 +11,8 @@ type Props = {
   onSelect: (id: string) => void;
   onRename: (id: string, nombre: string) => void;
   onTipo: (id: string, tipo: TipoHabitacion) => void;
+  /** Elige (o quita, con "") el acabado de piso, muros o techo de una zona. */
+  onAcabado: (id: string, parte: ParteAcabado, valor: string) => void;
   /** Cambia el ancho/largo de un cuarto rectangular (mueve su lado derecho/inferior; null si no se pudo). */
   onMedida: (id: string, eje: "ancho" | "largo", valorM: number) => boolean;
 };
@@ -43,10 +46,10 @@ function MedidaInput({ valor, disabled, onCommit, label }: { valor: number | nul
   );
 }
 
-export default function ZonasPanel({ habitaciones, selectedId, onSelect, onRename, onTipo, onMedida }: Props) {
+export default function ZonasPanel({ habitaciones, selectedId, onSelect, onRename, onTipo, onAcabado, onMedida }: Props) {
   if (habitaciones.length === 0) return null;
   const porTipo = areasPorZona(habitaciones);
-  const total = habitaciones.reduce((s, h) => s + polygonArea(h.puntos), 0);
+  const total = habitaciones.filter((h) => h.tipo !== "terreno").reduce((s, h) => s + polygonArea(h.puntos), 0);
   return (
     <div className="construccion-zonas">
       <table className="construccion-zonas__table">
@@ -56,6 +59,9 @@ export default function ZonasPanel({ habitaciones, selectedId, onSelect, onRenam
             <th>Uso</th>
             <th>Ancho (m)</th>
             <th>Largo (m)</th>
+            <th>Piso</th>
+            <th>Muros</th>
+            <th>Techo</th>
             <th>m²</th>
           </tr>
         </thead>
@@ -88,6 +94,24 @@ export default function ZonasPanel({ habitaciones, selectedId, onSelect, onRenam
                 <td>
                   <MedidaInput valor={m?.largoM ?? null} disabled={!m} label="Largo" onCommit={(v) => onMedida(h.id, "largo", v)} />
                 </td>
+                {(["piso", "pared", "techo"] as const).map((parte) => (
+                  <td key={parte}>
+                    <select
+                      value={h.acabados?.[parte] ?? ""}
+                      onChange={(e) => onAcabado(h.id, parte, e.target.value)}
+                      aria-label={`Acabado de ${parte}`}
+                      className="construccion-zonas__acabado"
+                      disabled={h.tipo === "terreno"}
+                    >
+                      <option value="">—</option>
+                      {catalogoDe(parte).map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                ))}
                 <td>{polygonArea(h.puntos).toFixed(2)}</td>
               </tr>
             );
@@ -95,13 +119,13 @@ export default function ZonasPanel({ habitaciones, selectedId, onSelect, onRenam
         </tbody>
         <tfoot>
           <tr>
-            <td colSpan={4}>Total</td>
+            <td colSpan={7}>Total (sin terreno)</td>
             <td>{total.toFixed(2)}</td>
           </tr>
         </tfoot>
       </table>
       <div className="construccion-zonas__tipos">
-        {porTipo.map((t) => (
+        {porTipo.filter((t) => t.tipo !== "terreno").map((t) => (
           <span key={t.tipo} className="construccion-zonas__chip" style={{ borderColor: zonaDe(t.tipo as TipoHabitacion).color }}>
             {t.nombre}: <strong>{t.areaM2.toFixed(1)} m²</strong>
             {t.zonas > 1 ? ` (${t.zonas})` : ""}
