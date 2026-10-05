@@ -89,3 +89,54 @@
   border-top: 1px solid var(--color-border);
   font-size: 0.95rem;
 }
+
+.ssv-calc-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ssv-calc-table__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.ssv-calc-table__row--head {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.ssv-calc-table__row input {
+  width: 100%;
+}
+
+.ssv-calc-table__subtotal {
+  font-weight: 600;
+  text-align: right;
+}
+
+.infonavit-ssv-total {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-alt);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.infonavit-ssv-total span {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.infonavit-ssv-total strong {
+  font-size: 1.3rem;
+  color: var(--color-primary);
+}
