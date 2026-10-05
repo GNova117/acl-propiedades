@@ -41,6 +41,35 @@
   font-size: 0.92rem;
 }
 
+.ssv-calc-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ssv-calc-table__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.ssv-calc-table__row--head {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted, #6b7688);
+}
+
+.ssv-calc-table__row input {
+  width: 100%;
+}
+
+.ssv-calc-table__subtotal {
+  font-weight: 700;
+  text-align: right;
+}
+
 @media (max-width: 600px) {
   .public-form-card {
     padding: 1.1rem;
@@ -48,5 +77,10 @@
 
   .public-form-result__value {
     font-size: 1.8rem;
+  }
+
+  .ssv-calc-table__row {
+    grid-template-columns: 1fr 1fr auto auto;
+    font-size: 0.85rem;
   }
 }

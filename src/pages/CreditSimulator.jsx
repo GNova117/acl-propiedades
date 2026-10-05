@@ -3,11 +3,12 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import { formatMXN } from "../lib/format";
-import { UMA_2026, simularCreditoInfonavit } from "../lib/infonavitSimulator";
+import { UMA_2026, simularCreditoInfonavit, calcularSubcuentaViviendaPorEmpleos } from "../lib/infonavitSimulator";
 import { isValidPhone, sendLead } from "../lib/lead";
 import "./PublicForms.css";
 
 const EMPTY = { edad: 30, sexo: "hombre", salarioMensual: 12000, ssv: 0 };
+const EMPTY_EMPLEO = { salarioDiario: "", aniosTrabajados: "" };
 
 // Versión pública del simulador de crédito Infonavit. Al final invita a dejar
 // nombre y teléfono; llega a Mensajes (canal "simulador") con el resultado, y de
@@ -18,11 +19,21 @@ export default function CreditSimulator() {
   const [lead, setLead] = useState({ name: "", phone: "", empresa: "" });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
+  const [empleos, setEmpleos] = useState([EMPTY_EMPLEO]);
 
   const result = useMemo(() => simularCreditoInfonavit(form), [form]);
+  const subcuenta = useMemo(() => calcularSubcuentaViviendaPorEmpleos(empleos), [empleos]);
   const change = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
   const changeLead = (e) => setLead((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   const canBuy = result.capacidadTotal > 0;
+
+  const changeEmpleo = (index, field) => (e) => {
+    const value = e.target.value;
+    setEmpleos((prev) => prev.map((empleo, i) => (i === index ? { ...empleo, [field]: value } : empleo)));
+  };
+  const addEmpleo = () => setEmpleos((prev) => [...prev, EMPTY_EMPLEO]);
+  const removeEmpleo = (index) => setEmpleos((prev) => prev.filter((_, i) => i !== index));
+  const usarSubcuentaEstimada = () => setForm((prev) => ({ ...prev, ssv: Math.round(subcuenta.total) }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -84,7 +95,72 @@ export default function CreditSimulator() {
             <input id="cs-ssv" type="number" min="0" inputMode="numeric" value={form.ssv} onChange={change("ssv")} />
             <span className="form-hint">{t("creditSim.ssvHint")}</span>
           </div>
+        </div>
 
+        <div className="card public-form-card" style={{ marginTop: "1.5rem" }}>
+          <h2 style={{ marginTop: 0 }}>{t("creditSim.ssvCalc.title")}</h2>
+          <p className="form-hint">{t("creditSim.ssvCalc.subtitle")}</p>
+
+          <div className="ssv-calc-table">
+            <div className="ssv-calc-table__row ssv-calc-table__row--head">
+              <span>{t("creditSim.ssvCalc.dailySalary")}</span>
+              <span>{t("creditSim.ssvCalc.yearsWorked")}</span>
+              <span>{t("creditSim.ssvCalc.subtotal")}</span>
+              <span />
+            </div>
+            {empleos.map((empleo, index) => {
+              const fila = subcuenta.detalle[index];
+              return (
+                <div className="ssv-calc-table__row" key={index}>
+                  <input
+                    type="number"
+                    min="0"
+                    inputMode="decimal"
+                    aria-label={t("creditSim.ssvCalc.dailySalary")}
+                    value={empleo.salarioDiario}
+                    onChange={changeEmpleo(index, "salarioDiario")}
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    inputMode="decimal"
+                    aria-label={t("creditSim.ssvCalc.yearsWorked")}
+                    value={empleo.aniosTrabajados}
+                    onChange={changeEmpleo(index, "aniosTrabajados")}
+                  />
+                  <span className="ssv-calc-table__subtotal">{formatMXN(fila ? fila.total : 0)}</span>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    onClick={() => removeEmpleo(index)}
+                    disabled={empleos.length === 1}
+                    aria-label={t("creditSim.ssvCalc.removeJob")}
+                  >
+                    ✕
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          <button type="button" className="btn btn-outline btn-sm" onClick={addEmpleo} style={{ marginTop: "0.75rem" }}>
+            {t("creditSim.ssvCalc.addJob")}
+          </button>
+
+          <div className="public-form-result" style={{ marginTop: "1.5rem" }}>
+            <span className="public-form-result__label">{t("creditSim.ssvCalc.estimatedTotal")}</span>
+            <span className="public-form-result__value">{formatMXN(subcuenta.total)}</span>
+            <button type="button" className="btn btn-primary btn-sm" onClick={usarSubcuentaEstimada}>
+              {t("creditSim.ssvCalc.useInSimulator")}
+            </button>
+            <p className="form-hint" style={{ marginBottom: 0 }}>
+              {t("creditSim.ssvCalc.disclaimer")}
+            </p>
+          </div>
+        </div>
+
+        <div className="card public-form-card" style={{ marginTop: "1.5rem" }}>
           <div className="public-form-result">
             <span className="public-form-result__label">{t("infonavit.totalCapacity")}</span>
             <span className="public-form-result__value">{formatMXN(result.capacidadTotal)}</span>

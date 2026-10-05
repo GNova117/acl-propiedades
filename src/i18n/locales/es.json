@@ -1605,7 +1605,19 @@
     "leadTitle": "¿Quieres que te ayudemos con tu crédito?",
     "leadSubtitle": "Déjanos tu nombre y tu teléfono y un asesor te contacta para orientarte, sin costo ni compromiso.",
     "leadSubmit": "Quiero que me orienten",
-    "leadSuccess": "¡Listo! Un asesor te contactará muy pronto."
+    "leadSuccess": "¡Listo! Un asesor te contactará muy pronto.",
+    "ssvCalc": {
+      "title": "Calcula tu Subcuenta de Vivienda",
+      "subtitle": "Si no conoces tu saldo, estímalo aquí: agrega cada empleo con su salario diario y los años que trabajaste ahí.",
+      "dailySalary": "Salario diario",
+      "yearsWorked": "Años trabajados",
+      "subtotal": "Aportación estimada",
+      "addJob": "+ Agregar empleo",
+      "removeJob": "Quitar este empleo",
+      "estimatedTotal": "Subcuenta de vivienda estimada",
+      "useInSimulator": "Usar este total en el simulador",
+      "disclaimer": "Estimación simple (salario diario × 30.4 = mes × 12 = año × 5%, por los años trabajados en cada empleo). No incluye intereses ni retiros; tu saldo real lo confirma la app Mi Cuenta Infonavit."
+    }
   },
   "sellHome": {
     "seoTitle": "Vende tu casa o conoce cuánto vale",

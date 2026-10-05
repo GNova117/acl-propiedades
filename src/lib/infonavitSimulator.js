@@ -101,3 +101,30 @@ export function simularCreditoInfonavit({ edad, sexo, salarioMensual, ssv }) {
     gastosFinancierosOperacion: 0,
   };
 }
+
+// Factor de días por mes usado por Infonavit/IMSS para anualizar un salario
+// diario (365 / 12 ≈ 30.4).
+const DIAS_POR_MES = 30.4;
+
+// Tasa de aportación patronal a la Subcuenta de Vivienda: 5% del salario
+// anual (SBC), vigente por cada año trabajado en ese empleo.
+const TASA_APORTACION_VIVIENDA = 0.05;
+
+// Estima, por empleo, la aportación acumulada a la Subcuenta de Vivienda:
+// salario diario × 30.4 = mensual; × 12 = anual; × 5% = aportación anual;
+// × años trabajados = aportación acumulada en ese empleo. Es una
+// aproximación simple (no incluye intereses ni retiros) para cuando el
+// usuario no conoce su saldo real de Mi Cuenta Infonavit.
+export function calcularSubcuentaViviendaPorEmpleos(empleos) {
+  const detalle = (empleos || []).map((empleo) => {
+    const salarioDiario = num(empleo.salarioDiario);
+    const aniosTrabajados = num(empleo.aniosTrabajados);
+    const salarioMensual = salarioDiario * DIAS_POR_MES;
+    const salarioAnual = salarioMensual * 12;
+    const aportacionAnual = salarioAnual * TASA_APORTACION_VIVIENDA;
+    const total = aportacionAnual * aniosTrabajados;
+    return { salarioDiario, aniosTrabajados, salarioMensual, salarioAnual, aportacionAnual, total };
+  });
+  const total = detalle.reduce((acc, fila) => acc + fila.total, 0);
+  return { detalle, total };
+}

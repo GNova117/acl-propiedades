@@ -8,7 +8,6 @@ import Home from "./pages/Home";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
 import Calculator from "./pages/Calculator";
-import CreditSimulator from "./pages/CreditSimulator";
 import SellYourHome from "./pages/SellYourHome";
 import CreditCompare from "./pages/CreditCompare";
 import AlertUnsubscribe from "./pages/AlertUnsubscribe";
@@ -160,7 +159,6 @@ export default function App() {
         }
       />
       <Route path="/calculadora" element={<PublicLayout><Calculator /></PublicLayout>} />
-      <Route path="/simulador-credito" element={<PublicLayout><CreditSimulator /></PublicLayout>} />
       <Route path="/vende-tu-casa" element={<PublicLayout><SellYourHome /></PublicLayout>} />
       <Route path="/comparar-creditos" element={<PublicLayout><CreditCompare /></PublicLayout>} />
       <Route path="/alertas/baja/:token" element={<PublicLayout><AlertUnsubscribe /></PublicLayout>} />
