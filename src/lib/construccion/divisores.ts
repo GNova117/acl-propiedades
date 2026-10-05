@@ -1,7 +1,7 @@
 // Líneas divisorias: el muro que dos cuartos del mismo nivel comparten (típicamente un corte hecho con
 // "Dividir cuarto"). Moverla mueve a la vez los vértices de TODOS los cuartos que quedan sobre ella, así
 // las dos zonas se reacomodan juntas y la pared sigue siendo una sola.
-import { clampOpeningsToWalls, wallSegmentsFromPolygon, type Point } from "./geometry";
+import { clampOpeningsToWalls, polygonBounds, wallSegmentsFromPolygon, type Point } from "./geometry";
 import type { Habitacion } from "./types";
 
 const TOL = 2e-3;
@@ -153,6 +153,48 @@ export function medidasRectangulo(h: Habitacion): { anchoM: number; largoM: numb
   return r ? { anchoM: r4(r.maxX - r.minX), largoM: r4(r.maxZ - r.minZ) } : null;
 }
 
+export type Lado = "n" | "s" | "e" | "w";
+
+/**
+ * Mueve un lado de un cuarto rectangular `delta` metros (+ = hacia +x / +z). Si ese lado es una divisoria compartida
+ * los cuartos de enfrente se ajustan con él; si es un muro exterior, solo cambia este cuarto. null si no es
+ * rectangular o el resultado no es válido (cuarto invertido o casi sin área).
+ */
+export function moverLado(habitaciones: Habitacion[], id: string, lado: Lado, delta: number): Habitacion[] | null {
+  const hab = habitaciones.find((h) => h.id === id);
+  if (!hab) return null;
+  const rect = esRectangulo(hab);
+  if (!rect) return null;
+  if (Math.abs(delta) < 1e-6) return habitaciones;
+  const alX = lado === "e" || lado === "w";
+  const coord = lado === "w" ? rect.minX : lado === "e" ? rect.maxX : lado === "n" ? rect.minZ : rect.maxZ;
+  const indices = hab.puntos.map((p, i) => (Math.abs((alX ? p.x : p.z) - coord) < TOL ? i : -1)).filter((i) => i >= 0);
+  const n = alX ? { x: 1, z: 0 } : { x: 0, z: 1 };
+  const sobreLinea = (p: Point) => Math.abs((alX ? p.x : p.z) - coord) < TOL;
+  const along = (p: Point) => (alX ? p.z : p.x);
+  const tramo = indices.map((i) => along(hab.puntos[i]));
+  const t0 = Math.min(...tramo);
+  const t1 = Math.max(...tramo);
+
+  // Los cuartos pegados a ese lado se mueven con él: todo vértice que esté sobre la línea y dentro del tramo del lado.
+  // Un cuarto cuyo muro sobre esa línea se pasa más allá del tramo (queda más largo) no se toca: su muro seguiría ahí.
+  const miembros: Divisor["miembros"] = indices.map((i) => ({ habId: id, index: i, x0: hab.puntos[i].x, z0: hab.puntos[i].z }));
+  for (const otra of habitaciones) {
+    if (otra.id === id || otra.nivelId !== hab.nivelId || otra.tipo === "terreno" || otra.puntos.length < 3) continue;
+    const m = otra.puntos.length;
+    const seSale = otra.puntos.some((p, i) => {
+      const q = otra.puntos[(i + 1) % m];
+      return sobreLinea(p) && sobreLinea(q) && (Math.min(along(p), along(q)) < t0 - TOL || Math.max(along(p), along(q)) > t1 + TOL);
+    });
+    if (seSale) continue;
+    otra.puntos.forEach((p, i) => {
+      if (sobreLinea(p) && along(p) >= t0 - TOL && along(p) <= t1 + TOL) miembros.push({ habId: otra.id, index: i, x0: p.x, z0: p.z });
+    });
+  }
+  const div: Divisor = { a: hab.puntos[indices[0]], b: hab.puntos[indices[indices.length - 1]], n, miembros };
+  return aplicarDivisor(habitaciones, div, r4(delta));
+}
+
 /**
  * Cambia el ancho o el largo de un cuarto rectangular moviendo su lado derecho (ancho) o inferior (largo).
  * Si ese lado es una divisoria compartida, el cuarto vecino se ajusta con él; si es un muro exterior,
@@ -165,20 +207,61 @@ export function cambiarMedidaZona(habitaciones: Habitacion[], id: string, eje: "
   if (!rect) return null;
   const alX = eje === "ancho";
   const actual = alX ? rect.maxX - rect.minX : rect.maxZ - rect.minZ;
-  const delta = r4(nuevoM - actual);
-  if (Math.abs(delta) < 1e-6) return habitaciones;
-  const lado = alX ? rect.maxX : rect.maxZ;
-  const indices = hab.puntos.map((p, i) => ((alX ? p.x : p.z) === lado || Math.abs((alX ? p.x : p.z) - lado) < TOL ? i : -1)).filter((i) => i >= 0);
-  const n = alX ? { x: 1, z: 0 } : { x: 0, z: 1 };
-  const compartido = divisoresDe(habitaciones).find(
-    (dv) => Math.abs(dv.n.x - n.x) < 1e-6 && Math.abs(dv.n.z - n.z) < 1e-6 && indices.every((i) => dv.miembros.some((m) => m.habId === id && m.index === i)),
-  );
-  const div: Divisor =
-    compartido ?? {
-      a: hab.puntos[indices[0]],
-      b: hab.puntos[indices[indices.length - 1]],
-      n,
-      miembros: indices.map((i) => ({ habId: id, index: i, x0: hab.puntos[i].x, z0: hab.puntos[i].z })),
-    };
-  return aplicarDivisor(habitaciones, div, delta);
+  return moverLado(habitaciones, id, alX ? "e" : "s", r4(nuevoM - actual));
+}
+
+/** Asas para redimensionar un cuarto rectangular: los cuatro lados (en el centro) y las cuatro esquinas. */
+export type Asa = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
+
+export function asasDe(h: Habitacion): { asa: Asa; p: Point }[] {
+  const r = esRectangulo(h);
+  if (!r) return [];
+  const mx = (r.minX + r.maxX) / 2;
+  const mz = (r.minZ + r.maxZ) / 2;
+  return [
+    { asa: "nw", p: { x: r.minX, z: r.minZ } },
+    { asa: "n", p: { x: mx, z: r.minZ } },
+    { asa: "ne", p: { x: r.maxX, z: r.minZ } },
+    { asa: "e", p: { x: r.maxX, z: mz } },
+    { asa: "se", p: { x: r.maxX, z: r.maxZ } },
+    { asa: "s", p: { x: mx, z: r.maxZ } },
+    { asa: "sw", p: { x: r.minX, z: r.maxZ } },
+    { asa: "w", p: { x: r.minX, z: mz } },
+  ];
+}
+
+/** Lado más corto permitido al redimensionar (m). */
+const LADO_MINIMO_M = 0.3;
+
+/** Al soltar el mouse en `p`, el valor `v` va a la línea de la cuadrícula (de paso `paso`) más cercana. */
+const aCuadricula = (v: number, paso: number) => (paso > 0 ? r4(Math.round(v / paso) * paso) : r4(v));
+
+/**
+ * Arrastrar un asa de un cuarto rectangular: el lado (o los dos lados de una esquina) queda sobre la línea de la
+ * cuadrícula más cercana al puntero `p`. Los cuartos pegados a ese lado se ajustan con él. Devuelve las mismas
+ * habitaciones si no hay cambio y null si el movimiento no es válido (por ejemplo, dejaría un lado de menos de 30 cm).
+ */
+export function redimensionarZona(habitaciones: Habitacion[], id: string, asa: Asa, p: Point, paso: number): Habitacion[] | null {
+  let actual = habitaciones;
+  for (const lado of asa.split("") as Lado[]) {
+    const hab = actual.find((h) => h.id === id);
+    const r = hab && esRectangulo(hab);
+    if (!r) return null;
+    const objetivo = aCuadricula(lado === "w" || lado === "e" ? p.x : p.z, paso);
+    const hoy = lado === "w" ? r.minX : lado === "e" ? r.maxX : lado === "n" ? r.minZ : r.maxZ;
+    const cabe =
+      lado === "e" ? objetivo - r.minX >= LADO_MINIMO_M - 1e-6 : lado === "w" ? r.maxX - objetivo >= LADO_MINIMO_M - 1e-6 : lado === "s" ? objetivo - r.minZ >= LADO_MINIMO_M - 1e-6 : r.maxZ - objetivo >= LADO_MINIMO_M - 1e-6;
+    if (!cabe) continue; // ese lado no se mueve más allá del mínimo; los demás sí
+    const siguiente = moverLado(actual, id, lado, r4(objetivo - hoy));
+    if (!siguiente) return null;
+    actual = siguiente;
+  }
+  if (actual === habitaciones) return habitaciones;
+  // Ningún cuarto afectado (el propio o un vecino) puede quedar con un lado de menos de 20 cm.
+  for (let i = 0; i < actual.length; i++) {
+    if (actual[i] === habitaciones[i]) continue;
+    const b = polygonBounds(actual[i].puntos);
+    if (b.maxX - b.minX < 0.2 || b.maxZ - b.minZ < 0.2) return null;
+  }
+  return actual;
 }

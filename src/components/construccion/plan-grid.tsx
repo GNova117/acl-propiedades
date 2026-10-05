@@ -6,9 +6,12 @@ import { gridStep } from "./use-plan-viewport";
  * usan `non-scaling-stroke`: grosor de 1 px sin importar el zoom. Lleva la clase
  * `construccion-plan-grid` para quitarla al exportar.
  */
-export default function PlanGrid({ visible }: { visible: Bounds }) {
-  const step = gridStep(visible.maxX - visible.minX);
-  const major = step * 5;
+export default function PlanGrid({ visible, paso }: { visible: Bounds; paso?: number | null }) {
+  const ancho = visible.maxX - visible.minX;
+  const auto = gridStep(ancho);
+  // Con un imán fijo la cuadrícula lo muestra (si no resulta demasiado densa para verse).
+  const step = paso && ancho / paso <= 90 ? paso : auto;
+  const major = step >= 1 ? step * 5 : Math.abs(1 / step - Math.round(1 / step)) < 1e-6 ? 1 : step * 5;
   const lines = [];
   const x0 = Math.floor(visible.minX / step) * step;
   const z0 = Math.floor(visible.minZ / step) * step;

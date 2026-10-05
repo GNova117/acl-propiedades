@@ -1,6 +1,6 @@
 import { forwardRef, useMemo, useState } from "react";
-import { divisoresDe } from "../../lib/construccion/divisores";
-import { openPolylineSegments, polygonArea, snap, snapToAxes, wallSegmentsFromPolygon, type Point } from "../../lib/construccion/geometry";
+import { asasDe, divisoresDe, type Asa } from "../../lib/construccion/divisores";
+import { openPolylineSegments, polygonArea, polygonBounds, snap, snapToAxes, wallSegmentsFromPolygon, type Point } from "../../lib/construccion/geometry";
 import { puntoDeCorte, puntoEnBorde } from "../../lib/construccion/dividir";
 import { zonaDe } from "../../lib/construccion/objetos";
 import { muroCercano } from "../../lib/construccion/aberturasMapa";
@@ -14,6 +14,7 @@ import { OBJ_GRID_M, VERTEX_GRID_M, svgPoint, type usePlanDrag } from "./plan-dr
 import type { PlanViewport } from "./use-plan-viewport";
 
 const WALL_THICKNESS_M = 0.15;
+const CURSOR_ASA: Record<Asa, string> = { n: "ns-resize", s: "ns-resize", e: "ew-resize", w: "ew-resize", ne: "nesw-resize", sw: "nesw-resize", nw: "nwse-resize", se: "nwse-resize" };
 const ALIGN_TOLERANCE_PX = 10;
 const PICK_TOLERANCE_PX = 24;
 
@@ -47,6 +48,8 @@ type Props = {
   rises?: Record<string, number>;
   /** Escribe la medida de cada muro sobre el plano (los muros compartidos, una sola vez). */
   mostrarMedidas?: boolean;
+  /** Paso fijo del imán (se dibuja en la cuadrícula); null = el de la cuadrícula visible. */
+  pasoImán?: number | null;
   fantasmas?: { huella: Point[]; hueco: Point[]; etiqueta: string }[];
   onSelectAbertura?: (habId: string, id: string) => void;
   /** Puntos ya puestos del contorno que se está dibujando (herramienta "draw"). */
@@ -59,10 +62,11 @@ type Props = {
 };
 
 const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
-  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto, fondo, fondoDraggable, tool = null, draftPoints = [], onDrawClick, splitRoom = null, splitFrom = null, onSplitClick, openingTipo = "puerta", onOpeningClick, medicion = [], onMeasureClick, selectedAbertura = null, onSelectAbertura, fantasmas = [], rises, mostrarMedidas = false },
+  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto, fondo, fondoDraggable, tool = null, draftPoints = [], onDrawClick, splitRoom = null, splitFrom = null, onSplitClick, openingTipo = "puerta", onOpeningClick, medicion = [], onMeasureClick, selectedAbertura = null, onSelectAbertura, fantasmas = [], rises, mostrarMedidas = false, pasoImán = null },
   ref,
 ) {
   const [cursor, setCursor] = useState<Point | null>(null);
+  const selHab = habitaciones.find((h) => h.id === selectedId) ?? null;
   // Con una herramienta activa los cuartos y muebles no se agarran: cada clic es de la herramienta.
   const blocked = placing || tool !== null;
   const divisores = useMemo(() => divisoresDe(habitaciones), [habitaciones]);
@@ -179,7 +183,7 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
         />
       )}
 
-      <PlanGrid visible={vp.visible} />
+      <PlanGrid visible={vp.visible} paso={pasoImán} />
 
       {ordenadas.map((hab) => {
         if (hab.puntos.length < 3) return null;
@@ -437,6 +441,47 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
           })()}
         </g>
       )}
+      {!blocked && selHab && selHab.puntos.length >= 3 && (() => {
+        const asas = asasDe(selHab);
+        const lado = 9 * vp.mpp;
+        if (asas.length === 0) {
+          // Zona que no es un rectángulo: se mueve vértice por vértice.
+          return (
+            <g className="construccion-plan-ui">
+              {selHab.puntos.map((p, i) => (
+                <circle key={i} cx={p.x} cy={p.z} r={6 * vp.mpp} fill="#ffffff" stroke="#2563eb" strokeWidth={2} vectorEffect="non-scaling-stroke" style={{ cursor: "move" }} onPointerDown={(e) => drag.startVertice(e, selHab.id, i)} />
+              ))}
+            </g>
+          );
+        }
+        const b = polygonBounds(selHab.puntos);
+        const etiqueta = { fontSize: 12 * vp.mpp, fontWeight: 700, fill: "#1d4ed8", stroke: "#ffffff", strokeWidth: 3 * vp.mpp, paintOrder: "stroke" as const, pointerEvents: "none" as const };
+        return (
+          <g className="construccion-plan-ui">
+            <text x={(b.minX + b.maxX) / 2} y={b.minZ - 12 * vp.mpp} textAnchor="middle" {...etiqueta}>
+              {(b.maxX - b.minX).toFixed(2)} m
+            </text>
+            <text x={b.maxX + 12 * vp.mpp} y={(b.minZ + b.maxZ) / 2} textAnchor="start" dominantBaseline="central" {...etiqueta}>
+              {(b.maxZ - b.minZ).toFixed(2)} m
+            </text>
+            {asas.map((a) => (
+              <rect
+                key={a.asa}
+                x={a.p.x - lado / 2}
+                y={a.p.z - lado / 2}
+                width={lado}
+                height={lado}
+                fill="#ffffff"
+                stroke="#2563eb"
+                strokeWidth={2}
+                vectorEffect="non-scaling-stroke"
+                style={{ cursor: CURSOR_ASA[a.asa] }}
+                onPointerDown={(e) => drag.startLado(e, selHab.id, a.asa)}
+              />
+            ))}
+          </g>
+        );
+      })()}
     </svg>
   );
 });

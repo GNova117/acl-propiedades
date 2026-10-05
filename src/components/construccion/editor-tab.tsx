@@ -11,7 +11,7 @@ import { pegarAPared } from "../../lib/construccion/instalaciones";
 import { conexionesEscaleras, problemaDeConexion } from "../../lib/construccion/conexiones";
 import { PLANTILLAS, aplicarPlantilla } from "../../lib/construccion/plantillas";
 import { murosDeContorno, moverVerticesLigados, rectanguloPuntos, setGiroContorno, setLargoContorno } from "../../lib/construccion/contorno";
-import { aplicarDivisor, cambiarMedidaZona } from "../../lib/construccion/divisores";
+import { aplicarDivisor, cambiarMedidaZona, redimensionarZona } from "../../lib/construccion/divisores";
 import { usePlanDrag } from "./plan-drag";
 import { gridStep, usePlanViewport } from "./use-plan-viewport";
 import {
@@ -140,6 +140,9 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   // sobre cualquier muro, y una regla de dos clics para comprobar una distancia.
   const [herramienta, setHerramientaState] = useState<"puerta" | "ventana" | "regla" | null>(null);
   const [medicion, setMedicion] = useState<Point[]>([]);
+  // Imán de "Plano completo": "auto" = la cuadrícula que se ve; o un paso fijo en metros. Al mover cuartos, redimensionarlos
+  // o arrastrar divisorias, todo cae sobre líneas de esa cuadrícula (nada queda "a ojo").
+  const [iman, setIman] = useState<"auto" | number>("auto");
   const [techos, setTechos] = useState(false);
   const [caminando, setCaminando] = useState<{ x: number; z: number; nivelId: string } | null>(null);
   const [mostrarMedidas, setMostrarMedidas] = useState(false);
@@ -212,6 +215,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   const contentBox = contentBoxOf(habitacionesVista, objetosVista, fondo);
   // La vista se ajusta sola solo al cambiar de cuarto, de nivel o de modo; mientras se edita no se mueve.
   const vp = usePlanViewport({ box: contentBox, resetKey: `${selectedNivelId}|${isMap ? "mapa" : (selected?.id ?? "nueva")}` });
+  const pasoImán = iman === "auto" ? gridStep(vp.visible.maxX - vp.visible.minX) : iman;
   const roomStats = selected ? estadisticasHabitacion(selected, proyecto.objetos) : null;
   // Solo se calcula cuando de verdad hace falta (edificio con 2+ niveles, viendo el 3D completo).
   // Caminando o con "ver todo el edificio" se ve el edificio completo, para poder subir las escaleras.
@@ -289,6 +293,12 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   }
 
   const drag = usePlanDrag({
+    getStep: () => (mode === "mapa" ? pasoImán : undefined),
+    // Asa de redimensionar: el lado (o la esquina) cae en la línea de la cuadrícula más cercana al puntero.
+    onLadoMove: (id, asa, p) => {
+      const habs = redimensionarZona(proyecto.habitaciones, id, asa, p, pasoImán);
+      if (habs && habs !== proyecto.habitaciones) setProyecto((pr) => ({ ...pr, habitaciones: habs }));
+    },
     onObjetoMove: (id, c) => {
       const o = proyecto.objetos.find((x) => x.id === id);
       const def = o ? objetoDef(o.tipo) : undefined;
@@ -315,6 +325,15 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
       setProyecto((pr) => {
         const h = pr.habitaciones.find((x) => x.id === id);
         if (!h) return pr;
+        // En "Plano completo" el cuarto cae con su esquina sobre una línea de la cuadrícula.
+        if (mode === "mapa") {
+          const b = polygonBounds(h.puntos);
+          const ax = Math.round(b.minX / pasoImán) * pasoImán;
+          const az = Math.round(b.minZ / pasoImán) * pasoImán;
+          const dx = Math.round((ax - b.minX) * 1e4) / 1e4;
+          const dz = Math.round((az - b.minZ) * 1e4) / 1e4;
+          return dx === 0 && dz === 0 ? pr : trasladarHabitacion(pr, id, dx, dz);
+        }
         // El imán solo pega con cuartos del MISMO nivel — dos pisos con huellas parecidas no deben
         // engancharse entre sí solo por coincidir en x,z.
         const otros = pr.habitaciones.filter((x) => x.id !== id && x.nivelId === h.nivelId && x.puntos.length >= 3).map((x) => polygonBounds(x.puntos));
@@ -324,15 +343,16 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
       }),
     // Arrastrar un vértice: imán de 5 cm (en el hook) + alineación con los demás vértices del cuarto.
     onVerticeMove: (id, index, raw) =>
-      setProyecto((pr) => ({
-        ...pr,
-        habitaciones: pr.habitaciones.map((h) => {
-          if (h.id !== id) return h;
-          const p = snapToAxes(raw, h.puntos.filter((_, i) => i !== index), ALIGN_TOLERANCE_PX * vp.mpp);
-          const puntos = moveVertex(h.puntos, index, p);
-          return { ...h, puntos, aberturas: clampOpeningsToWalls(puntos, h.aberturas) };
-        }),
-      })),
+      setProyecto((pr) => {
+        const h = pr.habitaciones.find((x) => x.id === id);
+        if (!h) return pr;
+        // En el plano completo el vértice cae en la cuadrícula; en un cuarto suelto, se alinea con los demás vértices.
+        const p = mode === "mapa" ? raw : snapToAxes(raw, h.puntos.filter((_, i) => i !== index), ALIGN_TOLERANCE_PX * vp.mpp);
+        const puntos = moveVertex(h.puntos, index, p);
+        // Los vértices de otros cuartos que estaban en esa misma esquina se mueven con ella: el muro compartido no se desfasa.
+        const habitaciones = moverVerticesLigados(pr.habitaciones, id, puntos).map((x) => (x.puntos === h.puntos ? x : { ...x, aberturas: clampOpeningsToWalls(x.puntos, x.aberturas) }));
+        return { ...pr, habitaciones };
+      }),
     // Arrastrar una divisoria compartida: los cuartos de ambos lados se reacomodan juntos.
     onDivisorMove: (div, d) =>
       setProyecto((pr) => {
@@ -1455,6 +1475,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               onMeasureClick={handleMeasureClick}
               fantasmas={fantasmas}
               mostrarMedidas={mostrarMedidas}
+              pasoImán={iman === "auto" ? null : iman}
               rises={rises}
               selectedAbertura={selAbertura}
               onSelectAbertura={(habId, id) => {
@@ -1491,7 +1512,21 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               <button type="button" onClick={vp.fit}>
                 Ajustar
               </button>
-              <span className="construccion-zoom__scale">Cuadrícula {gridStep(vp.visible.maxX - vp.visible.minX)} m</span>
+              {isMap ? (
+                <label className="construccion-zoom__scale" title="Al mover cuartos, redimensionarlos o arrastrar divisorias, todo cae sobre líneas de esta cuadrícula">
+                  Imán{" "}
+                  <select value={String(iman)} onChange={(e) => setIman(e.target.value === "auto" ? "auto" : Number(e.target.value))} aria-label="Imán a la cuadrícula">
+                    <option value="auto">Cuadrícula ({gridStep(vp.visible.maxX - vp.visible.minX)} m)</option>
+                    <option value="1">1 m</option>
+                    <option value="0.5">50 cm</option>
+                    <option value="0.25">25 cm</option>
+                    <option value="0.1">10 cm</option>
+                    <option value="0.05">5 cm</option>
+                  </select>
+                </label>
+              ) : (
+                <span className="construccion-zoom__scale">Cuadrícula {gridStep(vp.visible.maxX - vp.visible.minX)} m</span>
+              )}
             </div>
           )}
         </div>
