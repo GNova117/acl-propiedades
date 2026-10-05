@@ -3476,3 +3476,10 @@ create policy "Rol con apartado construccion usa sketch_usage" on construccion_s
 -- Re-ejecutable. Si no se corre, el catálogo funciona igual (sin el filtro "Aplica a" guardado).
 -- ─────────────────────────────────────────────
 alter table construccion_catalogo_materiales add column if not exists usos text[] not null default '{}';
+
+-- ─────────────────────────────────────────────
+-- Construcción · estilos de puertas y ventanas (2026-10)
+-- `estilo`: variante de la abertura (doble, corrediza, cochera, fija, ventanal…). Null = estilo básico.
+-- Re-ejecutable. Si no se corre, las aberturas se guardan igual pero sin su estilo.
+-- ─────────────────────────────────────────────
+alter table construccion_aberturas add column if not exists estilo text;

@@ -4,7 +4,9 @@ import PlanMap2D from "./plan-map-2d";
 import ObjetosPalette from "./objetos-palette";
 import ZonasPanel from "./zonas-panel";
 import MurosTabla from "./muros-tabla";
-import { agregarAberturaEnMapa, actualizarAberturaEnMapa, moverAberturaEnMapa, quitarAberturaEnMapa } from "../../lib/construccion/aberturasMapa";
+import { agregarAberturaEnMapa, actualizarAberturaEnMapa, moverAberturaEnMapa, parcheDeEstilo, quitarAberturaEnMapa } from "../../lib/construccion/aberturasMapa";
+import { ESTILOS_PUERTA, ESTILOS_VENTANA, estiloDe, estilosDe } from "../../lib/construccion/estilosAbertura";
+import { conexionesEscaleras, problemaDeConexion } from "../../lib/construccion/conexiones";
 import { PLANTILLAS, aplicarPlantilla } from "../../lib/construccion/plantillas";
 import { murosDeContorno, moverVerticesLigados, rectanguloPuntos, setGiroContorno, setLargoContorno } from "../../lib/construccion/contorno";
 import { aplicarDivisor, cambiarMedidaZona } from "../../lib/construccion/divisores";
@@ -34,7 +36,6 @@ import { downloadDxf } from "../../lib/construccion/exportDxf";
 import { db } from "../../lib/dataStore";
 import { compressImageFile } from "../../lib/imageCompression";
 import {
-  ABERTURA_DEFAULTS,
   type Abertura,
   type FondoNivel,
   type Habitacion,
@@ -137,6 +138,8 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   // sobre cualquier muro, y una regla de dos clics para comprobar una distancia.
   const [herramienta, setHerramientaState] = useState<"puerta" | "ventana" | "regla" | null>(null);
   const [medicion, setMedicion] = useState<Point[]>([]);
+  const [estiloPuerta, setEstiloPuerta] = useState<string>(ESTILOS_PUERTA[0].id);
+  const [estiloVentana, setEstiloVentana] = useState<string>(ESTILOS_VENTANA[0].id);
   const [herrMsg, setHerrMsg] = useState<string | null>(null);
   const [selAbertura, setSelAbertura] = useState<{ habId: string; id: string } | null>(null);
   const [plantillaId, setPlantillaId] = useState(PLANTILLAS[0].id);
@@ -182,6 +185,12 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
             ? "opening"
             : null
     : null;
+  // Escaleras que unen un nivel con el siguiente (el hueco del piso de arriba y el desnivel que salvan).
+  const conexiones = useMemo(() => conexionesEscaleras(proyecto), [proyecto]);
+  const fantasmas = conexiones
+    .filter((c) => c.nivelDestinoId === selectedNivelId)
+    .map((c) => ({ huella: c.huella, hueco: c.hueco, etiqueta: `Escalera desde ${proyecto.niveles.find((n) => n.id === c.nivelOrigenId)?.nombre ?? "abajo"}` }));
+  const rises = Object.fromEntries(conexiones.map((c) => [c.objetoId, c.riseM]));
   const abSel = selAbertura && isMap ? proyecto.habitaciones.find((h) => h.id === selAbertura.habId)?.aberturas.find((a) => a.id === selAbertura.id) ?? null : null;
   const selectedObjeto = proyecto.objetos.find((o) => o.id === selectedObjetoId) ?? null;
   const objetosDeSelected = selected ? proyecto.objetos.filter((o) => o.habitacionId === selected.id) : [];
@@ -414,7 +423,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
 
   function handleOpeningClick(p: Point) {
     if (herramienta !== "puerta" && herramienta !== "ventana") return;
-    const res = agregarAberturaEnMapa(proyecto, selectedNivelId, p, herramienta, Math.max(0.3, 24 * vp.mpp));
+    const res = agregarAberturaEnMapa(proyecto, selectedNivelId, p, herramienta, Math.max(0.3, 24 * vp.mpp), herramienta === "puerta" ? estiloPuerta : estiloVentana);
     if (!res) {
       setHerrMsg("Haz clic sobre un muro.");
       return;
@@ -752,15 +761,16 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
     if (!selected) return;
     const seg = wallSegmentsFromPolygon(selected.puntos)[segmentIndex];
     if (!seg) return;
-    const ancho = Math.min(0.9, Math.max(0.4, seg.length - 0.2));
+    const medidas = parcheDeEstilo("puerta", estiloPuerta);
+    const ancho = Math.min(medidas.anchoM, Math.max(0.4, seg.length - 0.2));
     const offset = Math.min(Math.max(offsetM, ancho / 2), Math.max(seg.length - ancho / 2, ancho / 2));
     const nueva: Abertura = {
       id: crypto.randomUUID(),
       segmentIndex,
       tipo: "puerta",
       offsetM: offset,
+      ...medidas,
       anchoM: ancho,
-      ...ABERTURA_DEFAULTS.puerta,
     };
     updateSelected((h) => ({ ...h, aberturas: [...h.aberturas, nueva] }));
   }
@@ -773,7 +783,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   }
 
   function setAberturaTipo(id: string, tipo: TipoAbertura) {
-    updateAbertura(id, { tipo, ...ABERTURA_DEFAULTS[tipo] });
+    updateAbertura(id, { tipo, ...parcheDeEstilo(tipo) });
   }
 
   function deleteAbertura(id: string) {
@@ -911,6 +921,20 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               <p className="construccion-panel__hint">
                 {medicion.length === 1 ? "Haz clic en el segundo punto." : medicion.length === 2 ? "Otro clic empieza una medición nueva. Esc termina." : "Haz clic en el primer punto (se pega a las esquinas). Esc termina."}
               </p>
+            )}
+            {(herramienta === "puerta" || herramienta === "ventana") && (
+              <select
+                value={herramienta === "puerta" ? estiloPuerta : estiloVentana}
+                onChange={(e) => (herramienta === "puerta" ? setEstiloPuerta(e.target.value) : setEstiloVentana(e.target.value))}
+                className="construccion-editor__abertura-select"
+                aria-label={`Estilo de ${herramienta}`}
+              >
+                {estilosDe(herramienta).map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.nombre}
+                  </option>
+                ))}
+              </select>
             )}
             {(herramienta === "puerta" || herramienta === "ventana") && (
               <p className={herrMsg ? "construccion__error" : "construccion-panel__hint"}>
@@ -1326,6 +1350,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                 habitaciones={edificioCompleto ? proyecto.habitaciones : habitacionesVista}
                 objetos={edificioCompleto ? proyecto.objetos : objetosVista}
                 elevacionPorNivel={edificioCompleto ? elevacionPorNivel : undefined}
+                conexiones={conexiones}
               />
             </Suspense>
           ) : !isMap && !selected ? (
@@ -1359,6 +1384,8 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               onOpeningClick={handleOpeningClick}
               medicion={medicion}
               onMeasureClick={handleMeasureClick}
+              fantasmas={fantasmas}
+              rises={rises}
               selectedAbertura={selAbertura}
               onSelectAbertura={(habId, id) => {
                 setSelAbertura({ habId, id });
@@ -1370,6 +1397,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               ref={svgRef}
               vp={vp}
               highlightWall={null}
+              rises={rises}
               draftPoints={draftPoints}
               habitacion={selected}
               onCanvasClick={handleCanvasClick}
@@ -1493,12 +1521,24 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                     value={abSel.tipo}
                     onChange={(e) => {
                       const tipo = e.target.value as TipoAbertura;
-                      setProyecto((pr) => actualizarAberturaEnMapa(pr, selAbertura.habId, selAbertura.id, { tipo, ...ABERTURA_DEFAULTS[tipo] }));
+                      setProyecto((pr) => actualizarAberturaEnMapa(pr, selAbertura.habId, selAbertura.id, { tipo, ...parcheDeEstilo(tipo) }));
                     }}
                     className="construccion-editor__abertura-select"
                   >
                     <option value="puerta">Puerta</option>
                     <option value="ventana">Ventana</option>
+                  </select>
+                  <select
+                    value={estiloDe(abSel)}
+                    onChange={(e) => setProyecto((pr) => actualizarAberturaEnMapa(pr, selAbertura.habId, selAbertura.id, parcheDeEstilo(abSel.tipo, e.target.value)))}
+                    className="construccion-editor__abertura-select"
+                    aria-label="Estilo"
+                  >
+                    {estilosDe(abSel.tipo).map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.nombre}
+                      </option>
+                    ))}
                   </select>
                   {([["anchoM", "ancho", 0.3], ["altoM", "alto", 0.3], ["altoDesdePisoM", "desde piso", 0]] as const).map(([campo, etiqueta, min]) => (
                     <label key={campo} className="construccion-editor__abertura-label">
@@ -1535,6 +1575,20 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                   Objeto seleccionado: <strong>{objetoDef(selectedObjeto.tipo)?.nombre ?? selectedObjeto.tipo}</strong> — arrástralo
                   para moverlo (Supr para borrarlo)
                 </p>
+                {objetoDef(selectedObjeto.tipo)?.tipoEspecial && (() => {
+                  const con = conexiones.find((c) => c.objetoId === selectedObjeto.id);
+                  const origen = currentNivel?.nombre ?? "este nivel";
+                  if (!con) {
+                    return <p className="construccion-panel__hint">Esta escalera aún no lleva a ningún lado: crea un nivel arriba de «{origen}» (botón «+ Nivel») y quedará conectada, con su hueco en el piso de arriba.</p>;
+                  }
+                  const destino = proyecto.niveles.find((n) => n.id === con.nivelDestinoId)?.nombre ?? "el nivel de arriba";
+                  const problema = problemaDeConexion(con, proyecto);
+                  return (
+                    <p className={problema ? "construccion__error" : "construccion-panel__hint"}>
+                      Conecta «{origen}» con «{destino}» — salva {con.riseM.toFixed(2)} m.{problema ? ` ${problema}` : ` Se ve punteada con su hueco en «${destino}».`}
+                    </p>
+                  );
+                })()}
                 <div className="construccion-editor__abertura-row">
                   <label className="construccion-editor__abertura-label">
                     ancho
@@ -1578,7 +1632,14 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
             {selected && !isMap && (
               <div className="construccion-editor__aberturas">
                 <p className="construccion-editor__aberturas-hint">
-                  Aberturas — clic sobre un muro en el plano 2D para agregar una puerta
+                  Aberturas — clic sobre un muro en el plano 2D para agregar una puerta (arrástralas para moverlas) · Estilo de la nueva:{" "}
+                  <select value={estiloPuerta} onChange={(e) => setEstiloPuerta(e.target.value)} className="construccion-editor__abertura-select" aria-label="Estilo de puerta nueva">
+                    {ESTILOS_PUERTA.map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.nombre}
+                      </option>
+                    ))}
+                  </select>
                 </p>
                 <ul className="construccion-editor__abertura-list">
                   {selected.aberturas.map((a) => (
@@ -1590,6 +1651,18 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
                       >
                         <option value="puerta">Puerta</option>
                         <option value="ventana">Ventana</option>
+                      </select>
+                      <select
+                        value={estiloDe(a)}
+                        onChange={(e) => updateAbertura(a.id, parcheDeEstilo(a.tipo, e.target.value))}
+                        className="construccion-editor__abertura-select"
+                        aria-label="Estilo"
+                      >
+                        {estilosDe(a.tipo).map((e) => (
+                          <option key={e.id} value={e.id}>
+                            {e.nombre}
+                          </option>
+                        ))}
                       </select>
                       <label className="construccion-editor__abertura-label">
                         ancho

@@ -1,13 +1,17 @@
 import { useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Grid, OrbitControls, PerspectiveCamera } from "@react-three/drei";
-import { DoubleSide, Shape } from "three";
-import { wallSegmentsFromPolygon, wallFacadeRects, type Point } from "../../lib/construccion/geometry";
+import { DoubleSide, Path, Shape } from "three";
+import { pointInPolygon, wallSegmentsFromPolygon, wallFacadeRects, type Point } from "../../lib/construccion/geometry";
 import { objetoDef, zonaDe } from "../../lib/construccion/objetos";
 import { esTipoExterior } from "../../lib/construccion/stats";
 import { geometriaEscalera } from "../../lib/construccion/escaleras";
 import { espejoDe } from "../../lib/construccion/aberturasMapa";
-import type { Abertura, Habitacion, Objeto } from "../../lib/construccion/types";
+import { Puerta3D, Ventana3D } from "./aberturas3d";
+import { MODELOS_3D } from "./muebles3d";
+import { RoundedBox } from "@react-three/drei";
+import type { ConexionEscalera } from "../../lib/construccion/conexiones";
+import type { Habitacion, Objeto } from "../../lib/construccion/types";
 
 const WALL_THICKNESS = 0.15;
 /** Una zona al aire libre (patio, jardín…) solo lleva un bordillo, no muros. */
@@ -20,77 +24,6 @@ const PISO_3D: Record<string, string> = {
   azotea: "#e7e5e4",
   terraza: "#bae6fd",
 };
-
-/** Puerta de verdad: marco, hoja de madera y manija (ya no es solo un hueco en el muro). */
-function Puerta({ ab }: { ab: Abertura }) {
-  const j = 0.06; // grosor del marco
-  const depth = WALL_THICKNESS + 0.03;
-  const yBase = ab.altoDesdePisoM;
-  const hojaAncho = Math.max(0.1, ab.anchoM - 2 * j);
-  const hojaAlto = Math.max(0.1, ab.altoM - j);
-  return (
-    <group position={[ab.offsetM, 0, 0]}>
-      {[-1, 1].map((lado) => (
-        <mesh key={lado} position={[lado * (ab.anchoM / 2 - j / 2), yBase + ab.altoM / 2, 0]}>
-          <boxGeometry args={[j, ab.altoM, depth]} />
-          <meshStandardMaterial color="#5b3a1a" />
-        </mesh>
-      ))}
-      <mesh position={[0, yBase + ab.altoM - j / 2, 0]}>
-        <boxGeometry args={[ab.anchoM, j, depth]} />
-        <meshStandardMaterial color="#5b3a1a" />
-      </mesh>
-      <mesh position={[0, yBase + hojaAlto / 2, 0]}>
-        <boxGeometry args={[hojaAncho, hojaAlto, 0.045]} />
-        <meshStandardMaterial color="#b4793a" />
-      </mesh>
-      {[1, -1].map((cara) => (
-        <mesh key={cara} position={[hojaAncho / 2 - 0.1, yBase + Math.min(1.0, hojaAlto / 2), cara * 0.05]}>
-          <sphereGeometry args={[0.035, 12, 12]} />
-          <meshStandardMaterial color="#d4d4d8" metalness={0.8} roughness={0.3} />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
-/** Ventana de verdad: marco, vidrio translúcido, travesaños y repisa. */
-function Ventana({ ab }: { ab: Abertura }) {
-  const j = 0.05;
-  const depth = WALL_THICKNESS + 0.02;
-  const yBase = ab.altoDesdePisoM;
-  const vidrioAncho = Math.max(0.05, ab.anchoM - 2 * j);
-  const vidrioAlto = Math.max(0.05, ab.altoM - 2 * j);
-  const marco = "#e5e7eb";
-  return (
-    <group position={[ab.offsetM, 0, 0]}>
-      {[-1, 1].map((lado) => (
-        <mesh key={`v${lado}`} position={[lado * (ab.anchoM / 2 - j / 2), yBase + ab.altoM / 2, 0]}>
-          <boxGeometry args={[j, ab.altoM, depth]} />
-          <meshStandardMaterial color={marco} />
-        </mesh>
-      ))}
-      {[0, 1].map((arriba) => (
-        <mesh key={`h${arriba}`} position={[0, yBase + (arriba ? ab.altoM - j / 2 : j / 2), 0]}>
-          <boxGeometry args={[ab.anchoM, j, depth]} />
-          <meshStandardMaterial color={marco} />
-        </mesh>
-      ))}
-      <mesh position={[0, yBase + ab.altoM / 2, 0]}>
-        <boxGeometry args={[0.03, vidrioAlto, depth * 0.8]} />
-        <meshStandardMaterial color={marco} />
-      </mesh>
-      <mesh position={[0, yBase + ab.altoM / 2, 0]}>
-        <boxGeometry args={[vidrioAncho, vidrioAlto, 0.012]} />
-        <meshStandardMaterial color="#7dd3fc" transparent opacity={0.4} />
-      </mesh>
-      <mesh position={[0, yBase - 0.02, 0.04]}>
-        <boxGeometry args={[ab.anchoM + 0.12, 0.04, WALL_THICKNESS + 0.1]} />
-        <meshStandardMaterial color="#d4d4d8" />
-      </mesh>
-    </group>
-  );
-}
 
 function Walls({ habitacion, omitir }: { habitacion: Habitacion; omitir: Set<string> }) {
   const segments = wallSegmentsFromPolygon(habitacion.puntos);
@@ -109,7 +42,7 @@ function Walls({ habitacion, omitir }: { habitacion: Habitacion; omitir: Set<str
                 <meshStandardMaterial color={bajo ? "#a8a29e" : "#d4d4d8"} />
               </mesh>
             ))}
-            {openings.filter((a) => !omitir.has(a.id)).map((a) => (a.tipo === "puerta" ? <Puerta key={a.id} ab={a} /> : <Ventana key={a.id} ab={a} />))}
+            {openings.filter((a) => !omitir.has(a.id)).map((a) => (a.tipo === "puerta" ? <Puerta3D key={a.id} ab={a} /> : <Ventana3D key={a.id} ab={a} />))}
           </group>
         );
       })}
@@ -117,14 +50,23 @@ function Walls({ habitacion, omitir }: { habitacion: Habitacion; omitir: Set<str
   );
 }
 
-function Floor({ points, color }: { points: Point[]; color: string }) {
+function Floor({ points, color, huecos = [] }: { points: Point[]; color: string; huecos?: Point[][] }) {
+  const llave = JSON.stringify(huecos);
   const shape = useMemo(() => {
     const s = new Shape();
     s.moveTo(points[0].x, points[0].z);
     for (let i = 1; i < points.length; i++) s.lineTo(points[i].x, points[i].z);
     s.closePath();
+    // Huecos de escalera: el piso se corta donde sube la escalera del nivel de abajo.
+    for (const h of JSON.parse(llave) as Point[][]) {
+      const path = new Path();
+      path.moveTo(h[0].x, h[0].z);
+      for (let i = 1; i < h.length; i++) path.lineTo(h[i].x, h[i].z);
+      path.closePath();
+      s.holes.push(path);
+    }
     return s;
-  }, [points]);
+  }, [points, llave]);
 
   // rotation.x = +90° mapea el plano local (x, y) del shape a (x, 0, z) del mundo, sin espejear.
   return (
@@ -163,15 +105,28 @@ function Muebles({ objetos, elevacionDe, alturaDe }: { objetos: Objeto[]; elevac
         if (def?.tipoEspecial) return <Escalera key={o.id} o={o} tipo={def.tipoEspecial} alto={alturaDe(o) ?? def.altoM} elevacion={elevacionDe(o)} />;
         const alto = def?.altoM ?? 0.8;
         const color = zonaDe(def?.categoria).color;
+        const Modelo = MODELOS_3D[o.tipo];
+        if (Modelo) {
+          return (
+            <group key={o.id} position={[o.x, elevacionDe(o) + 0.02, o.z]} rotation={[0, (-o.rotDeg * Math.PI) / 180, 0]}>
+              <Modelo w={o.anchoM} d={o.largoM} h={alto} c={color} />
+            </group>
+          );
+        }
+        // Sin modelo propio: bloque con las aristas suavizadas (cilindro si es redondo).
         return (
-          <mesh key={o.id} position={[o.x, elevacionDe(o) + alto / 2 + 0.02, o.z]} rotation={[0, (-o.rotDeg * Math.PI) / 180, 0]}>
+          <group key={o.id} position={[o.x, elevacionDe(o) + 0.02, o.z]} rotation={[0, (-o.rotDeg * Math.PI) / 180, 0]}>
             {def?.forma === "round" ? (
-              <cylinderGeometry args={[o.anchoM / 2, o.anchoM / 2, alto, 24]} />
+              <mesh position={[0, alto / 2, 0]}>
+                <cylinderGeometry args={[o.anchoM / 2, o.anchoM / 2, alto, 24]} />
+                <meshStandardMaterial color={color} />
+              </mesh>
             ) : (
-              <boxGeometry args={[o.anchoM, alto, o.largoM]} />
+              <RoundedBox args={[o.anchoM, alto, o.largoM]} radius={Math.min(0.04, alto / 3, o.anchoM / 3, o.largoM / 3)} smoothness={3} position={[0, alto / 2, 0]}>
+                <meshStandardMaterial color={color} />
+              </RoundedBox>
             )}
-            <meshStandardMaterial color={color} />
-          </mesh>
+          </group>
         );
       })}
     </>
@@ -188,9 +143,11 @@ type Props = {
    * `elevacionesPorNivel` en niveles.ts), para que los pisos queden apilados de verdad y no encimados.
    */
   elevacionPorNivel?: Record<string, number>;
+  /** Escaleras que unen niveles: fijan el desnivel que salvan y el hueco en el piso de arriba. */
+  conexiones?: ConexionEscalera[];
 };
 
-export default function RoomPreview({ habitaciones, objetos, elevacionPorNivel }: Props) {
+export default function RoomPreview({ habitaciones, objetos, elevacionPorNivel, conexiones = [] }: Props) {
   const cerradas = habitaciones.filter((h) => h.puntos.length >= 3);
   if (cerradas.length === 0) {
     return (
@@ -205,7 +162,10 @@ export default function RoomPreview({ habitaciones, objetos, elevacionPorNivel }
     return elevacion(suHabitacion ? suHabitacion.nivelId : o.nivelId);
   };
 
-  const alturaDeObjeto = (o: Objeto) => (o.habitacionId ? habitacionPorId.get(o.habitacionId)?.alturaM : undefined);
+  // Una escalera que une dos niveles salva exactamente el desnivel entre sus pisos; si no, la altura de su zona.
+  const alturaDeObjeto = (o: Objeto) => conexiones.find((c) => c.objetoId === o.id)?.riseM ?? (o.habitacionId ? habitacionPorId.get(o.habitacionId)?.alturaM : undefined);
+  const huecosDe = (h: Habitacion) =>
+    conexiones.filter((c) => c.nivelDestinoId === h.nivelId && c.hueco.every((pt) => pointInPolygon(pt, h.puntos))).map((c) => c.hueco);
   // Una puerta compartida entre dos zonas existe una vez por lado: solo se dibuja una hoja.
   const omitir = new Set<string>();
   for (const h of cerradas) for (const a of h.aberturas) {
@@ -232,7 +192,7 @@ export default function RoomPreview({ habitaciones, objetos, elevacionPorNivel }
       {cerradas.map((h) => (
         <group key={h.id} position={[0, elevacion(h.nivelId), 0]}>
           <Walls habitacion={h} omitir={omitir} />
-          <Floor points={h.puntos} color={PISO_3D[h.tipo ?? ""] ?? zonaDe(h.tipo).fill} />
+          <Floor points={h.puntos} color={PISO_3D[h.tipo ?? ""] ?? zonaDe(h.tipo).fill} huecos={huecosDe(h)} />
         </group>
       ))}
       <Muebles objetos={objetos} elevacionDe={elevacionDeObjeto} alturaDe={alturaDeObjeto} />

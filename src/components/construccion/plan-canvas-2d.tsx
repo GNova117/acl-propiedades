@@ -67,10 +67,11 @@ type Props = {
   onObjetoSelect?: (id: string | null) => void;
   /** Muro resaltado (el que se está editando en el panel de medidas). */
   highlightWall?: number | null;
+  rises?: Record<string, number>;
 };
 
 const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
-  { vp, draftPoints, habitacion, onCanvasClick, onWallClick, objetos = [], selectedObjetoId = null, drag, placing, onPlace, onObjetoSelect, highlightWall = null },
+  { vp, draftPoints, habitacion, onCanvasClick, onWallClick, objetos = [], selectedObjetoId = null, drag, placing, onPlace, onObjetoSelect, highlightWall = null, rises },
   ref,
 ) {
   const [cursor, setCursor] = useState<Point | null>(null);
@@ -223,6 +224,7 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
         <ObjetosLayer
           objetos={objetos}
           selectedId={selectedObjetoId}
+          rises={rises}
           onPointerDown={
             drag && !placing
               ? (e, o) => {

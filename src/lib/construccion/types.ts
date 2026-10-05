@@ -12,6 +12,8 @@ export type Abertura = {
   altoM: number;
   /** Altura del borde inferior de la abertura sobre el piso (0 para puertas, ~1m típico en ventanas). */
   altoDesdePisoM: number;
+  /** Estilo de la puerta/ventana (doble, corrediza, cochera, fija…). Sin él vale el estilo básico. */
+  estilo?: string;
 };
 
 /** Zona/uso de una habitación — decide el color en el plano y qué objetos se sugieren primero. */

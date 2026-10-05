@@ -24,6 +24,15 @@ type AberturaRow = {
   ancho: number;
   alto: number;
   alto_desde_piso: number;
+  estilo?: string | null;
+};
+
+// `estilo` es una columna agregada después: si el bloque SQL todavía no se corrió, se trabaja sin ella
+// (las puertas y ventanas se guardan igual, solo que sin su estilo).
+let aberturasTienenEstilo = true;
+const falloPorColumna = (err: unknown, columna: string) => {
+  const e = err as { code?: string; message?: string } | null;
+  return e?.code === "42703" || e?.code === "PGRST204" || new RegExp(columna).test(e?.message ?? "");
 };
 
 type NivelRow = { id: string; nombre: string; orden: number };
@@ -186,12 +195,14 @@ export async function getConstruccionProyecto(proyectoId: string): Promise<Proye
 
   let aberturas: AberturaRow[] = [];
   if (muroIds.length > 0) {
-    const { data: aberturasData, error: abError } = await db
-      .from("construccion_aberturas")
-      .select("id, muro_id, tipo, offset_m, ancho, alto, alto_desde_piso")
-      .in("muro_id", muroIds);
-    if (abError) throw abError;
-    aberturas = (aberturasData ?? []) as AberturaRow[];
+    const pedirAberturas = (columnas: string) => db.from("construccion_aberturas").select(columnas).in("muro_id", muroIds);
+    let res = await pedirAberturas(aberturasTienenEstilo ? "id, muro_id, tipo, offset_m, ancho, alto, alto_desde_piso, estilo" : "id, muro_id, tipo, offset_m, ancho, alto, alto_desde_piso");
+    if (res.error && aberturasTienenEstilo && falloPorColumna(res.error, "estilo")) {
+      aberturasTienenEstilo = false;
+      res = await pedirAberturas("id, muro_id, tipo, offset_m, ancho, alto, alto_desde_piso");
+    }
+    if (res.error) throw res.error;
+    aberturas = (res.data ?? []) as unknown as AberturaRow[];
   }
 
   const habitaciones: Habitacion[] = habitacionesRows.map((h) => {
@@ -208,6 +219,7 @@ export async function getConstruccionProyecto(proyectoId: string): Promise<Proye
         anchoM: a.ancho,
         altoM: a.alto,
         altoDesdePisoM: a.alto_desde_piso,
+        ...(a.estilo ? { estilo: a.estilo } : {}),
       }));
     return {
       id: h.id,
@@ -259,9 +271,15 @@ async function pushHabitacion(db: NonNullable<typeof supabase>, proyectoId: stri
       ancho: a.anchoM,
       alto: a.altoM,
       alto_desde_piso: a.altoDesdePisoM,
+      estilo: a.estilo ?? null,
     }));
   if (aberturaRows.length > 0) {
-    const { error: abError } = await db.from("construccion_aberturas").insert(aberturaRows);
+    const sinEstilo = () => aberturaRows.map(({ estilo: _e, ...resto }) => (void _e, resto));
+    let { error: abError } = await db.from("construccion_aberturas").insert(aberturasTienenEstilo ? aberturaRows : sinEstilo());
+    if (abError && aberturasTienenEstilo && falloPorColumna(abError, "estilo")) {
+      aberturasTienenEstilo = false;
+      ({ error: abError } = await db.from("construccion_aberturas").insert(sinEstilo()));
+    }
     if (abError) throw abError;
   }
 }

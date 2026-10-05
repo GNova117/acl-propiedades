@@ -42,6 +42,10 @@ type Props = {
   onMeasureClick?: (p: Point) => void;
   /** Abertura seleccionada (la que se edita en la barra de abajo) y cómo seleccionar otra. */
   selectedAbertura?: { habId: string; id: string } | null;
+  /** Escaleras que vienen del nivel de abajo: se ven punteadas con su hueco en este piso. */
+  /** Desnivel real de cada escalera conectada (id de objeto → m). */
+  rises?: Record<string, number>;
+  fantasmas?: { huella: Point[]; hueco: Point[]; etiqueta: string }[];
   onSelectAbertura?: (habId: string, id: string) => void;
   /** Puntos ya puestos del contorno que se está dibujando (herramienta "draw"). */
   draftPoints?: Point[];
@@ -53,7 +57,7 @@ type Props = {
 };
 
 const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
-  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto, fondo, fondoDraggable, tool = null, draftPoints = [], onDrawClick, splitRoom = null, splitFrom = null, onSplitClick, openingTipo = "puerta", onOpeningClick, medicion = [], onMeasureClick, selectedAbertura = null, onSelectAbertura },
+  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto, fondo, fondoDraggable, tool = null, draftPoints = [], onDrawClick, splitRoom = null, splitFrom = null, onSplitClick, openingTipo = "puerta", onOpeningClick, medicion = [], onMeasureClick, selectedAbertura = null, onSelectAbertura, fantasmas = [], rises },
   ref,
 ) {
   const [cursor, setCursor] = useState<Point | null>(null);
@@ -246,6 +250,20 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
           );
         })}
 
+      {fantasmas.map((f, i) => {
+        const cx = f.huella.reduce((s, p) => s + p.x, 0) / f.huella.length;
+        const cz = f.huella.reduce((s, p) => s + p.z, 0) / f.huella.length;
+        return (
+          <g key={`fant${i}`} pointerEvents="none">
+            <polygon points={f.hueco.map((p) => `${p.x},${p.z}`).join(" ")} fill="#f59e0b" fillOpacity={0.2} />
+            <polygon points={f.huella.map((p) => `${p.x},${p.z}`).join(" ")} fill="none" stroke="#b45309" strokeWidth={0.05} strokeDasharray="0.2 0.12" />
+            <text x={cx} y={cz} fontSize={0.2} fontWeight={700} fill="#92400e" textAnchor="middle" dominantBaseline="middle" stroke="#ffffff" strokeWidth={0.05} paintOrder="stroke">
+              {f.etiqueta}
+            </text>
+          </g>
+        );
+      })}
+
       {!blocked && onSelectAbertura &&
         habitaciones.flatMap((hab) =>
           wallSegmentsFromPolygon(hab.puntos).flatMap((seg, i) =>
@@ -281,6 +299,7 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
       <ObjetosLayer
         objetos={objetos}
         selectedId={selectedObjetoId}
+        rises={rises}
         onPointerDown={
           blocked
             ? undefined

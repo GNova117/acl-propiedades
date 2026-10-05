@@ -6,11 +6,13 @@ import type { Objeto } from "../../lib/construccion/types";
 type Props = {
   objetos: Objeto[];
   selectedId: string | null;
+  /** Desnivel real de las escaleras que unen niveles (id de objeto → m); sin él vale la altura del catálogo. */
+  rises?: Record<string, number>;
   onPointerDown?: (e: ReactPointerEvent<SVGElement>, o: Objeto) => void;
 };
 
 /** Dibuja los muebles/equipos sobre el plano (rectángulo o círculo, con giro y etiqueta). */
-export default function ObjetosLayer({ objetos, selectedId, onPointerDown }: Props) {
+export default function ObjetosLayer({ objetos, selectedId, rises, onPointerDown }: Props) {
   return (
     <g>
       {objetos.map((o) => {
@@ -29,7 +31,7 @@ export default function ObjetosLayer({ objetos, selectedId, onPointerDown }: Pro
           >
             {def?.tipoEspecial ? (
               (() => {
-                const geo = geometriaEscalera(def.tipoEspecial, o.anchoM, o.largoM, def.altoM);
+                const geo = geometriaEscalera(def.tipoEspecial, o.anchoM, o.largoM, rises?.[o.id] ?? def.altoM);
                 const trazo = selected ? "#dc2626" : zona.color;
                 return (
                   <>

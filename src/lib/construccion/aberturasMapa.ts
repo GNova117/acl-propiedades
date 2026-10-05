@@ -2,10 +2,16 @@
 // Si el muro se comparte con otra zona, la abertura se pone también del otro lado (en la misma posición
 // absoluta), para que una puerta entre dos zonas sea puerta en las dos.
 import { clampOpeningsToWalls, projectPointOnSegment, wallSegmentsFromPolygon, type Point } from "./geometry";
-import { ABERTURA_DEFAULTS, type Abertura, type Habitacion, type Proyecto, type TipoAbertura } from "./types";
+import type { Abertura, Habitacion, Proyecto, TipoAbertura } from "./types";
+import { ESTILO_DEFECTO, medidasDeEstilo } from "./estilosAbertura";
 
 const MISMO_LUGAR_M = 0.06;
-export const ANCHO_DEFECTO_M: Record<TipoAbertura, number> = { puerta: 0.9, ventana: 1.2 };
+
+/** Campos que cambian al elegir un estilo: el estilo mismo y sus medidas de partida. */
+export function parcheDeEstilo(tipo: TipoAbertura, estilo?: string): Pick<Abertura, "estilo" | "anchoM" | "altoM" | "altoDesdePisoM"> {
+  const m = medidasDeEstilo(tipo, estilo ?? ESTILO_DEFECTO[tipo]);
+  return { estilo: m.id, anchoM: m.anchoM, altoM: m.altoM, altoDesdePisoM: m.altoDesdePisoM };
+}
 
 export type MuroCercano = { hab: Habitacion; segmentIndex: number; offsetM: number; length: number; point: Point };
 
@@ -94,11 +100,12 @@ export function agregarAberturaEnMapa(
   p: Point,
   tipo: TipoAbertura,
   tol: number,
+  estilo?: string,
 ): { proyecto: Proyecto; seleccion: { habId: string; id: string } } | null {
   const habs = proyecto.habitaciones.filter((h) => h.nivelId === nivelId && h.puntos.length >= 3);
   const muro = muroCercano(habs, p, tol);
   if (!muro) return null;
-  const base: Abertura = { id: crypto.randomUUID(), segmentIndex: 0, tipo, offsetM: 0, anchoM: ANCHO_DEFECTO_M[tipo], ...ABERTURA_DEFAULTS[tipo] };
+  const base: Abertura = { id: crypto.randomUUID(), segmentIndex: 0, tipo, offsetM: 0, ...parcheDeEstilo(tipo, estilo) };
   return colocar(proyecto, habs, muro, base);
 }
 
