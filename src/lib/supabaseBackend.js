@@ -817,6 +817,15 @@ export const supabaseBackend = {
     return { ...link, other_client: other };
   },
 
+  // Todos los vínculos, sin filtrar por cliente — para la pantalla de
+  // selección del PDF masivo (AdminClients.jsx), que necesita saber de una
+  // vez quién está vinculado con quién para marcar la pareja automático.
+  async getAllClientLinks() {
+    const { data, error } = await supabase.from("client_links").select("client_a_id, client_b_id");
+    if (error) throw error;
+    return data || [];
+  },
+
   async linkClients(clientAId, clientBId, label) {
     const { data, error } = await supabase
       .from("client_links")

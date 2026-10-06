@@ -835,6 +835,13 @@ export const localBackend = {
     return { ...link, other_client: other };
   },
 
+  // Todos los vínculos, sin filtrar por cliente — para la pantalla de
+  // selección del PDF masivo (AdminClients.jsx), que necesita saber de una
+  // vez quién está vinculado con quién para marcar la pareja automático.
+  async getAllClientLinks() {
+    return readStore(KEYS.clientLinks, []);
+  },
+
   async linkClients(clientAId, clientBId, label) {
     const links = readStore(KEYS.clientLinks, []);
     const record = { id: uid("link"), client_a_id: clientAId, client_b_id: clientBId, label: label || null, created_at: new Date().toISOString() };
