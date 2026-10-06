@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { CLIENT_TYPES } from "../../lib/format";
 import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteGroups, clientSheetData, clientSheetSections } from "../../lib/clientExpedienteFields";
-import { downloadPerfilamientoPdf } from "../../lib/perfilamientoPdf";
+import { downloadMultiPerfilamientoPdf } from "../../lib/perfilamientoPdf";
 import "./admin.css";
 
 // Mismos tipos que soporta el perfilamiento (ver FieldInput en
@@ -102,16 +102,25 @@ export default function AdminClientForm() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Ficha de una sola hoja con lo que ya está en pantalla (nombre, tipo,
-  // teléfono, correo, notas y los datos del expediente según el tipo —
-  // vendedor: domicilio/RFC/CURP/número de crédito; comprador: eso mismo
-  // más NSS, contraseña del portal, empresa y referencias). Reusa el mismo
-  // motor que el PDF de perfilamiento, solo que con las secciones del
-  // cliente en vez de las del perfilamiento.
+  // Ficha con lo que ya está en pantalla (nombre, tipo, teléfono, correo,
+  // notas y los datos del expediente según el tipo — vendedor:
+  // domicilio/RFC/CURP/número de crédito; comprador: eso mismo más NSS,
+  // contraseña del portal, empresa y referencias). Si el cliente tiene un
+  // vinculado (expediente conjunto, ej. crédito INFONAVIT conyugal), su
+  // ficha se agrega al mismo PDF — ya no hay que descargarlas por separado.
   const handleDownloadPdf = async () => {
     setDownloadingPdf(true);
     try {
-      await downloadPerfilamientoPdf(clientSheetData(form), clientSheetSections(form), { title: "DATOS DEL CLIENTE" }, form.name, "Cliente");
+      const entries = [{ data: clientSheetData(form), sections: clientSheetSections(form), options: { title: "DATOS DEL CLIENTE" }, nombre: form.name }];
+      if (link?.other_client) {
+        entries.push({
+          data: clientSheetData(link.other_client),
+          sections: clientSheetSections(link.other_client),
+          options: { title: "DATOS DEL CLIENTE" },
+          nombre: link.other_client.name,
+        });
+      }
+      await downloadMultiPerfilamientoPdf(entries, "Cliente");
     } catch (err) {
       window.alert(err.message || "Error al generar el PDF");
     } finally {

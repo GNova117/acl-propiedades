@@ -225,3 +225,30 @@ export async function downloadPerfilamientoPdf(data, sections, options, fileNomb
   link.remove();
   URL.revokeObjectURL(url);
 }
+
+// Varias fichas en un solo PDF, una tras otra sobre el mismo membretado —
+// para el expediente conjunto (p. ej. una pareja vinculada por un crédito
+// INFONAVIT): cada quien ya tiene su propia ficha armada con
+// buildPerfilamientoPdf, aquí solo se copian las páginas de todas en un
+// único archivo. `entries` es [{ data, sections, options, nombre }].
+export async function downloadMultiPerfilamientoPdf(entries, filePrefix) {
+  const { PDFDocument } = await import("pdf-lib");
+  const merged = await PDFDocument.create();
+  for (const entry of entries) {
+    const bytes = await buildPerfilamientoPdf(entry.data, entry.sections, entry.options);
+    const source = await PDFDocument.load(bytes);
+    const pages = await merged.copyPages(source, source.getPageIndices());
+    pages.forEach((page) => merged.addPage(page));
+  }
+  const bytes = await merged.save();
+  const blob = new Blob([bytes], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  const nombres = entries.map((entry) => entry.nombre).join("_");
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = perfilamientoFileName(nombres, filePrefix);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
