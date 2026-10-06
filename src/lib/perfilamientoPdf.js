@@ -93,7 +93,13 @@ export async function buildPerfilamientoPdf(data, sections, { title = "PERFILAMI
 
   const regular = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const oblique = await doc.embedFont(StandardFonts.HelveticaOblique);
   const black = rgb(0, 0, 0);
+  const muted = rgb(0.5, 0.5, 0.5);
+
+  // Texto que se imprime en lugar del valor cuando el campo quedó vacío, para
+  // que la hoja impresa deje ver de un vistazo qué falta por capturar.
+  const MISSING_TEXT = "(dato faltante)";
 
   let page = doc.getPages()[0];
   let y = TOP_Y;
@@ -130,17 +136,19 @@ export async function buildPerfilamientoPdf(data, sections, { title = "PERFILAMI
     y -= LINE_HEIGHT * 1.6;
   };
 
-  const drawField = async (label, value) => {
+  const drawField = async (label, value, missing) => {
     const labelText = `${sanitize(label)}: `;
     const labelWidth = regular.widthOfTextAtSize(labelText, SIZE_BODY);
     const valueText = sanitize(value);
     const inlineWidth = CONTENT_WIDTH - labelWidth;
+    const valueFont = missing ? oblique : bold;
+    const valueColor = missing ? muted : black;
 
     // Si el valor cabe junto a la etiqueta, va en la misma línea.
-    if (bold.widthOfTextAtSize(valueText, SIZE_BODY) <= inlineWidth) {
+    if (valueFont.widthOfTextAtSize(valueText, SIZE_BODY) <= inlineWidth) {
       await ensureSpace(LINE_HEIGHT);
       page.drawText(labelText, { x: MARGIN_LEFT, y, size: SIZE_BODY, font: regular, color: black });
-      page.drawText(valueText, { x: MARGIN_LEFT + labelWidth, y, size: SIZE_BODY, font: bold, color: black });
+      page.drawText(valueText, { x: MARGIN_LEFT + labelWidth, y, size: SIZE_BODY, font: valueFont, color: valueColor });
       y -= LINE_HEIGHT;
       return;
     }
@@ -150,19 +158,21 @@ export async function buildPerfilamientoPdf(data, sections, { title = "PERFILAMI
     page.drawText(labelText, { x: MARGIN_LEFT, y, size: SIZE_BODY, font: regular, color: black });
     y -= LINE_HEIGHT;
 
-    for (const line of wrapText(valueText, bold, SIZE_BODY, CONTENT_WIDTH - 12)) {
+    for (const line of wrapText(valueText, valueFont, SIZE_BODY, CONTENT_WIDTH - 12)) {
       await ensureSpace(LINE_HEIGHT);
-      page.drawText(line, { x: MARGIN_LEFT + 12, y, size: SIZE_BODY, font: bold, color: black });
+      page.drawText(line, { x: MARGIN_LEFT + 12, y, size: SIZE_BODY, font: valueFont, color: valueColor });
       y -= LINE_HEIGHT;
     }
   };
 
+  // Los campos vacíos también se imprimen (con "(dato faltante)" en gris) en
+  // vez de omitirse, para que la hoja impresa sirva para detectar de un
+  // vistazo qué le falta capturar al expediente.
   const drawFields = async (fields) => {
     for (const field of fields) {
       if (!isFieldVisible(field, data)) continue;
       const value = displayValue(field, data);
-      if (!value) continue; // los campos vacíos no se imprimen
-      await drawField(field.label, value);
+      await drawField(field.label, value || MISSING_TEXT, !value);
     }
   };
 
