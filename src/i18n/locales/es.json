@@ -606,6 +606,7 @@
     "notes": "Notas",
     "noResults": "No se encontraron clientes.",
     "viewDocuments": "Documentos",
+    "downloadPdf": "Descargar PDF",
     "searchPlaceholder": "Nombre o teléfono",
     "expedienteSection": "Datos del expediente",
     "expedienteSectionHint": "Se imprimen en la hoja de datos del expediente para avalúos y precargan el perfilamiento del cliente. A cualquiera se le piden sus datos personales; al comprador además NSS, contraseña del portal, los datos de su empresa y 2 referencias; al vendedor, el número de crédito.",

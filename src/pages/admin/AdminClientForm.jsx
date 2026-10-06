@@ -3,7 +3,8 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { CLIENT_TYPES } from "../../lib/format";
-import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteGroups } from "../../lib/clientExpedienteFields";
+import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteGroups, clientSheetData, clientSheetSections } from "../../lib/clientExpedienteFields";
+import { downloadPerfilamientoPdf } from "../../lib/perfilamientoPdf";
 import "./admin.css";
 
 // Mismos tipos que soporta el perfilamiento (ver FieldInput en
@@ -60,6 +61,7 @@ export default function AdminClientForm() {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   // Vínculo con otro cliente (expediente conjunto) — ej. una pareja que
   // junta su crédito INFONAVIT y aplica como 2 acreditados. `otherClients`
@@ -98,6 +100,23 @@ export default function AdminClientForm() {
   const handleChange = (field) => (e) => {
     const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Ficha de una sola hoja con lo que ya está en pantalla (nombre, tipo,
+  // teléfono, correo, notas y los datos del expediente según el tipo —
+  // vendedor: domicilio/RFC/CURP/número de crédito; comprador: eso mismo
+  // más NSS, contraseña del portal, empresa y referencias). Reusa el mismo
+  // motor que el PDF de perfilamiento, solo que con las secciones del
+  // cliente en vez de las del perfilamiento.
+  const handleDownloadPdf = async () => {
+    setDownloadingPdf(true);
+    try {
+      await downloadPerfilamientoPdf(clientSheetData(form), clientSheetSections(form), { title: "DATOS DEL CLIENTE" }, form.name, "Cliente");
+    } catch (err) {
+      window.alert(err.message || "Error al generar el PDF");
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
   const validate = () => {
@@ -171,6 +190,10 @@ export default function AdminClientForm() {
         <h1>{isEdit ? t("admin.editClient") : t("admin.newClient")}</h1>
         {isEdit && (
           <div className="admin-header__actions">
+            <button type="button" className="btn btn-outline" onClick={handleDownloadPdf} disabled={downloadingPdf}>
+              {downloadingPdf ? <span className="spinner" /> : null}
+              {t("clients.downloadPdf")}
+            </button>
             <Link to={`/admin/clientes/${id}/perfilamiento`} className="btn btn-outline">
               {t("profiling.title")}
             </Link>

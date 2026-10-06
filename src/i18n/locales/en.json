@@ -606,6 +606,7 @@
     "notes": "Notes",
     "noResults": "No clients found.",
     "viewDocuments": "Documents",
+    "downloadPdf": "Download PDF",
     "searchPlaceholder": "Name or phone",
     "expedienteSection": "Appraisal file data",
     "expedienteSectionHint": "Printed on the appraisal file's data sheet and used to pre-fill the client's profiling. Everyone is asked for their personal data; buyers are also asked for their social security number, credit portal password, employer details and 2 references; sellers, for their credit number.",
