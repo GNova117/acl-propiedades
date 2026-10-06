@@ -213,7 +213,8 @@ export default function PerfilamientoManager({
     setBusyPdfId(id);
     try {
       const full = await backend.getById(id);
-      if (full) await downloadPerfilamientoPdf(full, sections, pdfOptions, full[nombreKey], filePrefix);
+      if (!full) throw new Error("No se encontró el registro a descargar");
+      await downloadPerfilamientoPdf(full, sections, pdfOptions, full[nombreKey], filePrefix);
     } catch (err) {
       window.alert(err.message || "Error al generar el PDF");
     } finally {
