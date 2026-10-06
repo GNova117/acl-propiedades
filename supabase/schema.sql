@@ -3493,3 +3493,21 @@ alter table construccion_aberturas add column if not exists estilo text;
 alter table construccion_habitaciones add column if not exists tipo_piso text;
 alter table construccion_habitaciones add column if not exists tipo_pared text;
 alter table construccion_habitaciones add column if not exists tipo_techo text;
+
+-- ─────────────────────────────────────────────
+-- Datos personales pegados al cliente (2026-10-06)
+-- Fecha de nacimiento, estado civil, domicilio, RFC, CURP e identificación
+-- oficial — se pedían solo al abrir un perfilamiento (vendedor o
+-- comprador); ahora se capturan ya desde el alta/edición del cliente
+-- (mismas llaves que perfilamientos/perfilamientos_comprador) para que un
+-- perfilamiento nuevo se precargue con ellos sin tener que volver a
+-- teclearlos (ver vendedorInitialValues/compradorInitialValues).
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+alter table clients add column if not exists fecha_nacimiento date;
+alter table clients add column if not exists estado_civil text check (estado_civil is null or estado_civil in ('Soltero', 'Casado', 'Divorciado', 'Viudo', 'Unión libre'));
+alter table clients add column if not exists domicilio text;
+alter table clients add column if not exists rfc text check (rfc is null or rfc ~ '^[A-ZÑ&]{4}[0-9]{6}[A-Z0-9]{3}$');
+alter table clients add column if not exists curp text check (curp is null or curp ~ '^[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[A-Z0-9]{2}$');
+alter table clients add column if not exists identificacion_oficial text;

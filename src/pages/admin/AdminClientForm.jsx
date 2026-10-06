@@ -6,6 +6,35 @@ import { CLIENT_TYPES } from "../../lib/format";
 import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteGroups } from "../../lib/clientExpedienteFields";
 import "./admin.css";
 
+// Mismos tipos que soporta el perfilamiento (ver FieldInput en
+// PerfilamientoManager.jsx) — aquí sin el botón de "revelar" la contraseña,
+// que no hace falta mientras se está dando de alta al cliente.
+function ExpedienteFieldInput({ field, value, onChange }) {
+  const common = {
+    id: `c-${field.key}`,
+    value,
+    onChange,
+  };
+  if (field.type === "textarea") return <textarea {...common} rows={3} />;
+  if (field.type === "select") {
+    return (
+      <select {...common}>
+        <option value="">—</option>
+        {field.options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    );
+  }
+  if (field.type === "date") return <input {...common} type="date" />;
+  if (field.type === "email") return <input {...common} type="email" />;
+  if (field.type === "tel") return <input {...common} type="tel" />;
+  if (field.sensitive) return <input {...common} type="password" autoComplete="off" />;
+  return <input {...common} type="text" />;
+}
+
 const EMPTY = {
   name: "",
   type: "comprador",
@@ -196,12 +225,7 @@ export default function AdminClientForm() {
               {group.fields.map((field) => (
                 <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
                   <label htmlFor={`c-${field.key}`}>{field.label}</label>
-                  <input
-                    id={`c-${field.key}`}
-                    type={field.type === "email" ? "email" : field.type === "tel" ? "tel" : "text"}
-                    value={form[field.key]}
-                    onChange={handleChange(field.key)}
-                  />
+                  <ExpedienteFieldInput field={field} value={form[field.key]} onChange={handleChange(field.key)} />
                 </div>
               ))}
             </div>
