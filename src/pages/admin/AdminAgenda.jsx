@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
 import { whatsappDigits } from "../../lib/format";
+import AgendaReagendarModal from "../../components/AgendaReagendarModal";
 import "./admin.css";
 
 // advisorId es null tanto en modo demo como para cualquier correo sin
@@ -18,6 +19,7 @@ export default function AdminAgenda() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [advisorFilter, setAdvisorFilter] = useState("");
+  const [reagendando, setReagendando] = useState(null);
 
   const seesAll = advisorId == null;
 
@@ -140,6 +142,9 @@ export default function AdminAgenda() {
                     <Link to={`/admin/agenda/${cita.id}/expedientes`} className="btn btn-outline btn-sm">
                       {t("agenda.expedientes")}
                     </Link>
+                    <button type="button" className="btn btn-outline btn-sm" onClick={() => setReagendando(cita)}>
+                      {t("agenda.reschedule")}
+                    </button>
                     {clients.find((c) => c.id === cita.client_id)?.phone && (
                       <button type="button" className="btn btn-outline btn-sm" onClick={() => remind(cita)}>
                         {t("agenda.remindClient")}
@@ -155,6 +160,10 @@ export default function AdminAgenda() {
           </tbody>
         </table>
       </div>
+
+      {reagendando && (
+        <AgendaReagendarModal cita={reagendando} onClose={() => setReagendando(null)} onSaved={load} />
+      )}
     </div>
   );
 }
