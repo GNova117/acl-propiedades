@@ -3500,7 +3500,7 @@ alter table construccion_habitaciones add column if not exists tipo_techo text;
 -- confirmó con el cliente, que ya se realizó, que se canceló, ni de
 -- reagendarla cuando hubo algún problema sin perder el rastro de qué
 -- pasó. "pendiente" es el estado inicial de toda cita nueva; al
--- reagendar (ver agendarCitaReagendada en dataStore) vuelve a quedar en
+-- reagendar (ver reagendarAgendaCita en dataStore) vuelve a quedar en
 -- "pendiente" con la fecha/hora nueva y se limpian reminder_sent_at /
 -- client_reminder_sent_at para que los avisos automáticos se vuelvan a
 -- armar para la nueva fecha en vez de quedarse callados pensando que ya
