@@ -3652,7 +3652,7 @@ where contrasena_portal is not null and left(contrasena_portal, 6) <> 'encv1:';
 create or replace view clients_decrypted
 with (security_invoker = true) as
 select
-  id, name, type, email, phone, notes, profile, active, created_at, updated_at,
+  id, name, type, email, phone, notes, active, created_at, updated_at,
   nss, _decrypt_portal_password(contrasena_portal) as contrasena_portal, numero_credito,
   referencia1_nombre, referencia1_telefono, referencia1_correo, referencia1_direccion,
   referencia2_nombre, referencia2_telefono, referencia2_correo, referencia2_direccion,
