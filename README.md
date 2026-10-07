@@ -32,7 +32,16 @@ npm run build    # build de producción a /dist
 npm run preview  # sirve el build de producción localmente
 ```
 
-## Configurar Supabase desde cero (si alguna vez usas otro proyecto)
+## Pruebas automatizadas
+
+```bash
+npm run test        # corre todas las pruebas una vez
+npm run test:watch  # las vuelve a correr al guardar un archivo
+```
+
+Usa [Vitest](https://vitest.dev) (mismo motor que Vite, sin configuración aparte). Las pruebas viven junto al archivo que cubren (`src/lib/algo.js` → `src/lib/algo.test.js`) y por ahora solo cubren funciones puras de `src/lib/` — cálculos de dinero y de negocio (liquidaciones, valuación, simulador Infonavit, informe de visitas) que no dependen de React ni de Supabase. Para cubrir una función nueva, crea su `.test.js` junto a ella; no hace falta tocar `vite.config.js`. `.github/workflows/ci.yml` corre `lint` + `test` + `build` en cada push y pull request.
+
+
 
 1. Crea un proyecto gratuito en [supabase.com](https://supabase.com).
 2. Ve a **SQL Editor** y ejecuta, en orden:
