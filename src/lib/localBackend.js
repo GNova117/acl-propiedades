@@ -2144,6 +2144,18 @@ export const localBackend = {
     return () => authListeners.delete(callback);
   },
 
+  // Notificaciones push: la suscripción en sí es una operación del propio
+  // navegador (Service Worker + Push API, ver lib/pushNotifications.js) que
+  // funciona igual en demo, pero guardarla no sirve de nada sin el backend
+  // real que de verdad manda el push (Edge Function enviar-push con la
+  // service role key) — no vale la pena simularlo sobre localStorage.
+  async savePushSubscription() {
+    throw new Error("Las notificaciones push no están disponibles en modo demo (requieren Supabase configurado).");
+  },
+  async deletePushSubscription() {
+    throw new Error("Las notificaciones push no están disponibles en modo demo (requieren Supabase configurado).");
+  },
+
   // Construcción no tiene paridad en modo demo a propósito (geometría 2D/3D
   // no vale la pena replicar sobre localStorage) — las páginas de ese
   // apartado chequean useAuth().isDemoMode y nunca llegan a llamar esto; estos

@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePendingToday } from "../lib/usePendingToday";
+import { useAuth } from "../context/AuthContext";
+import { db } from "../lib/dataStore";
+import { isSupabaseConfigured } from "../lib/supabaseClient";
+import { isPushSupported, getExistingSubscription, subscribeToPush, unsubscribeFromPush, subscriptionToRow } from "../lib/pushNotifications";
 import "./NotificationBell.css";
 
 // Campana del topbar del admin: mismo cálculo de "pendientes de hoy" que ya
@@ -13,11 +17,43 @@ import "./NotificationBell.css";
 export default function NotificationBell() {
   const { t } = useTranslation();
   const { items } = usePendingToday();
+  const { session } = useAuth();
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const rootRef = useRef(null);
+  const pushSupported = isPushSupported();
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
 
   useEffect(() => setOpen(false), [pathname]);
+
+  useEffect(() => {
+    if (!pushSupported) return;
+    getExistingSubscription().then((sub) => setPushEnabled(Boolean(sub)));
+  }, [pushSupported]);
+
+  const togglePush = async () => {
+    if (!isSupabaseConfigured) {
+      window.alert(t("admin.pushDemoUnavailable"));
+      return;
+    }
+    setPushBusy(true);
+    try {
+      if (pushEnabled) {
+        const subscription = await unsubscribeFromPush();
+        if (subscription) await db.deletePushSubscription(subscription.endpoint).catch(() => {});
+        setPushEnabled(false);
+      } else {
+        const subscription = await subscribeToPush();
+        await db.savePushSubscription(subscriptionToRow(subscription, session?.user?.email));
+        setPushEnabled(true);
+      }
+    } catch (err) {
+      window.alert(err.message || t("admin.pushError"));
+    } finally {
+      setPushBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (!open) return undefined;
@@ -73,9 +109,16 @@ export default function NotificationBell() {
               ))}
             </ul>
           )}
-          <Link to="/admin" className="notification-bell__viewall" onClick={() => setOpen(false)}>
-            {t("admin.dashboard")}
-          </Link>
+          <div className="notification-bell__footer">
+            {pushSupported && (
+              <button type="button" className="notification-bell__push-toggle" onClick={togglePush} disabled={pushBusy}>
+                {pushEnabled ? t("admin.pushDisable") : t("admin.pushEnable")}
+              </button>
+            )}
+            <Link to="/admin" className="notification-bell__viewall" onClick={() => setOpen(false)}>
+              {t("admin.dashboard")}
+            </Link>
+          </div>
         </div>
       )}
     </div>

@@ -2052,6 +2052,22 @@ export const supabaseBackend = {
     return () => data.subscription.unsubscribe();
   },
 
+  // Notificaciones push del navegador/SO (ver schema.sql: push_subscriptions,
+  // Edge Function enviar-push). `endpoint` es único por dispositivo/navegador
+  // — upsert por endpoint para que volver a activar en el mismo dispositivo
+  // actualice la fila en vez de duplicarla.
+  async savePushSubscription({ email, endpoint, p256dh, auth, userAgent }) {
+    const { error } = await supabase
+      .from("push_subscriptions")
+      .upsert({ email, endpoint, p256dh, auth, user_agent: userAgent || null }, { onConflict: "endpoint" });
+    if (error) throw error;
+  },
+
+  async deletePushSubscription(endpoint) {
+    const { error } = await supabase.from("push_subscriptions").delete().eq("endpoint", endpoint);
+    if (error) throw error;
+  },
+
   // Construcción: mediciones, plano 2D/3D, presupuesto y valuación — apartado
   // nuevo e independiente de Remodelaciones (remodel_projects/materials_catalog),
   // no comparte datos con ese módulo. La lógica de mapeo vive en

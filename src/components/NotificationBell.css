@@ -87,11 +87,37 @@
   color: var(--color-text-muted);
 }
 
+.notification-bell__footer {
+  border-top: 1px solid var(--color-border);
+}
+
+.notification-bell__push-toggle {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 0.6rem 0.65rem;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text);
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.notification-bell__push-toggle:hover {
+  background: var(--color-bg-alt);
+}
+
+.notification-bell__push-toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .notification-bell__viewall {
   display: block;
   text-align: center;
   padding: 0.65rem;
-  border-top: 1px solid var(--color-border);
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-primary);
