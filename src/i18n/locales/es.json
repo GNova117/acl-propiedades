@@ -2295,7 +2295,21 @@
     "addFile": "Subir expediente",
     "noFiles": "Aún no hay expedientes para esta cita.",
     "fileName": "Archivo",
-    "uploadedAt": "Subido"
+    "uploadedAt": "Subido",
+    "status": {
+      "pendiente": "Pendiente",
+      "confirmada": "Confirmada",
+      "realizada": "Realizada",
+      "cancelada": "Cancelada"
+    },
+    "cancelReasonPrompt": "¿Motivo de la cancelación? (opcional)",
+    "cancelledNotePrefix": "Cita cancelada.",
+    "reschedule": "Reagendar cita",
+    "rescheduleHint": "Si hubo algún problema y la cita ya no es en la fecha/hora de arriba, cámbiala aquí: la cita vuelve a quedar pendiente y los recordatorios se vuelven a armar para la nueva fecha.",
+    "rescheduleReason": "Motivo (opcional)",
+    "rescheduleReasonPlaceholder": "Ej. El cliente tuvo un imprevisto y pidió cambiarla",
+    "rescheduleSubmit": "Reagendar",
+    "rescheduleDone": "Cita reagendada."
   },
   "seasons": {
     "anio-nuevo": {

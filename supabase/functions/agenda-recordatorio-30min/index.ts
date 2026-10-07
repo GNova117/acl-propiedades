@@ -47,7 +47,8 @@ Deno.serve(async (req) => {
     .is("reminder_sent_at", null)
     .not("hora", "is", null)
     .gte("hora", windowStart)
-    .lte("hora", windowEnd);
+    .lte("hora", windowEnd)
+    .not("status", "in", "(cancelada,realizada)");
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });

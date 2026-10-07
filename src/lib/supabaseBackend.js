@@ -1882,7 +1882,14 @@ export const supabaseBackend = {
     return data;
   },
 
+  // Si la fecha/hora cambia aquí (edición normal, no por reagendarAgendaCita),
+  // se limpian los avisos ya mandados: de lo contrario el recordatorio de
+  // 30 min o el del cliente se quedarían callados pensando que ya se avisó
+  // de una cita que, para efectos de la hora, es otra.
   async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades }) {
+    const { data: prev, error: prevError } = await supabase.from("agenda_citas").select("fecha, hora").eq("id", id).single();
+    if (prevError) throw prevError;
+    const moved = prev.fecha !== fecha || (prev.hora?.slice(0, 5) || null) !== (hora || null);
     const payload = {
       advisor_id,
       client_id: client_id || null,
@@ -1890,6 +1897,47 @@ export const supabaseBackend = {
       fecha,
       hora: hora || null,
       actividades: actividades?.trim() || null,
+      ...(moved ? { reminder_sent_at: null, client_reminder_sent_at: null } : null),
+      updated_at: new Date().toISOString(),
+    };
+    const { data, error } = await supabase.from("agenda_citas").update(payload).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  // Cambio rápido de estatus desde la lista de Agenda (Confirmar/Realizada/
+  // Cancelar). "nota" es opcional (p. ej. el motivo de cancelación) y, si
+  // viene, se antepone a las actividades de la cita para no perder el rastro.
+  async updateAgendaCitaStatus(id, status, nota) {
+    const payload = { status, updated_at: new Date().toISOString() };
+    if (nota) {
+      const { data: prev, error: prevError } = await supabase.from("agenda_citas").select("actividades").eq("id", id).single();
+      if (prevError) throw prevError;
+      payload.actividades = [nota, prev.actividades].filter(Boolean).join("\n\n");
+    }
+    const { data, error } = await supabase.from("agenda_citas").update(payload).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  // Reagendar: cambia fecha/hora, regresa la cita a "pendiente" (aunque
+  // estuviera cancelada o ya realizada) y limpia los avisos ya mandados
+  // para que se vuelvan a armar con la fecha nueva. El motivo (si hubo
+  // algún problema) queda anotado en las actividades junto con la fecha/
+  // hora anterior, para no perder el rastro de qué pasó.
+  async reagendarAgendaCita(id, { fecha, hora, motivo }) {
+    const { data: prev, error: prevError } = await supabase.from("agenda_citas").select("fecha, hora, actividades").eq("id", id).single();
+    if (prevError) throw prevError;
+    const antes = new Date(`${prev.fecha}T00:00:00`).toLocaleDateString("es-MX") + (prev.hora ? ` ${prev.hora.slice(0, 5)}` : "");
+    const despues = new Date(`${fecha}T00:00:00`).toLocaleDateString("es-MX") + (hora ? ` ${hora.slice(0, 5)}` : "");
+    const nota = `Reagendada del ${antes} al ${despues}.${motivo ? ` Motivo: ${motivo.trim()}` : ""}`;
+    const payload = {
+      fecha,
+      hora: hora || null,
+      status: "pendiente",
+      reminder_sent_at: null,
+      client_reminder_sent_at: null,
+      actividades: [nota, prev.actividades].filter(Boolean).join("\n\n"),
       updated_at: new Date().toISOString(),
     };
     const { data, error } = await supabase.from("agenda_citas").update(payload).eq("id", id).select().single();

@@ -46,7 +46,9 @@ export default function PendingToday() {
       }
 
       if (citas) {
-        const todays = citas.filter((c) => c.fecha === today).sort((a, b) => (a.hora || "").localeCompare(b.hora || ""));
+        const todays = citas
+          .filter((c) => c.fecha === today && !["realizada", "cancelada"].includes(c.status))
+          .sort((a, b) => (a.hora || "").localeCompare(b.hora || ""));
         if (todays.length) list.push({ key: "agenda", count: todays.length, to: "/admin/agenda", lines: todays.slice(0, MAX_LINES).map((c) => [c.hora, c.titulo].filter(Boolean).join(" · ")) });
       }
 

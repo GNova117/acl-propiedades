@@ -115,7 +115,8 @@ async function handler(req: Request): Promise<Response> {
     .select("id, titulo, fecha, hora, clients(name, phone), advisors(name)")
     .eq("fecha", fecha)
     .is("client_reminder_sent_at", null)
-    .not("client_id", "is", null);
+    .not("client_id", "is", null)
+    .not("status", "in", "(cancelada,realizada)");
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });

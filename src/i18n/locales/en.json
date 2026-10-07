@@ -2295,7 +2295,21 @@
     "addFile": "Upload case file",
     "noFiles": "No case files for this appointment yet.",
     "fileName": "File",
-    "uploadedAt": "Uploaded"
+    "uploadedAt": "Uploaded",
+    "status": {
+      "pendiente": "Pending",
+      "confirmada": "Confirmed",
+      "realizada": "Completed",
+      "cancelada": "Cancelled"
+    },
+    "cancelReasonPrompt": "Reason for cancelling? (optional)",
+    "cancelledNotePrefix": "Appointment cancelled.",
+    "reschedule": "Reschedule appointment",
+    "rescheduleHint": "If something came up and the appointment is no longer on the date/time above, change it here: it goes back to pending and reminders are rebuilt for the new date.",
+    "rescheduleReason": "Reason (optional)",
+    "rescheduleReasonPlaceholder": "E.g. The client had something come up and asked to reschedule",
+    "rescheduleSubmit": "Reschedule",
+    "rescheduleDone": "Appointment rescheduled."
   },
   "seasons": {
     "anio-nuevo": {

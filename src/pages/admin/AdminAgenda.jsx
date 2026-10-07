@@ -53,6 +53,15 @@ export default function AdminAgenda() {
 
   const clientName = (id) => (id ? clients.find((c) => c.id === id)?.name : null) || t("agenda.noClient");
 
+  // Cambio rápido de estatus desde la lista. Al cancelar se pide el motivo
+  // (opcional, se puede dejar en blanco) para no perder el rastro de qué pasó.
+  const handleStatusChange = async (cita, status) => {
+    const nota = status === "cancelada" ? window.prompt(t("agenda.cancelReasonPrompt")) : null;
+    if (status === "cancelada" && nota === null) return; // canceló el prompt, no el estatus
+    await db.updateAgendaCitaStatus(cita.id, status, nota ? `${t("agenda.cancelledNotePrefix")} ${nota.trim()}` : null);
+    load();
+  };
+
   const visibleCitas = useMemo(() => {
     if (!seesAll || !advisorFilter) return citas;
     return citas.filter((c) => c.advisor_id === advisorFilter);
@@ -89,17 +98,18 @@ export default function AdminAgenda() {
               <th>{t("agenda.titleField")}</th>
               {seesAll && <th>{t("agenda.advisor")}</th>}
               <th>{t("agenda.client")}</th>
+              <th>{t("common.status")}</th>
               <th>{t("common.actions")}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={seesAll ? 5 : 4}>{t("common.loading")}</td>
+                <td colSpan={seesAll ? 6 : 5}>{t("common.loading")}</td>
               </tr>
             ) : visibleCitas.length === 0 ? (
               <tr>
-                <td colSpan={seesAll ? 5 : 4}>{t("agenda.noAppointments")}</td>
+                <td colSpan={seesAll ? 6 : 5}>{t("agenda.noAppointments")}</td>
               </tr>
             ) : (
               visibleCitas.map((cita) => (
@@ -111,6 +121,18 @@ export default function AdminAgenda() {
                   <td>{cita.titulo}</td>
                   {seesAll && <td>{advisorName(cita.advisor_id)}</td>}
                   <td>{clientName(cita.client_id)}</td>
+                  <td>
+                    <select
+                      className={`agenda-status agenda-status--${cita.status || "pendiente"}`}
+                      value={cita.status || "pendiente"}
+                      onChange={(e) => handleStatusChange(cita, e.target.value)}
+                    >
+                      <option value="pendiente">{t("agenda.status.pendiente")}</option>
+                      <option value="confirmada">{t("agenda.status.confirmada")}</option>
+                      <option value="realizada">{t("agenda.status.realizada")}</option>
+                      <option value="cancelada">{t("agenda.status.cancelada")}</option>
+                    </select>
+                  </td>
                   <td className="admin-table__actions">
                     <Link to={`/admin/agenda/${cita.id}`} className="btn btn-outline btn-sm">
                       {t("common.edit")}

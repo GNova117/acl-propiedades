@@ -29,6 +29,9 @@ export default function AdminAgendaForm() {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState("pendiente");
+  const [reagendo, setReagendo] = useState({ fecha: "", hora: "", motivo: "" });
+  const [reagendando, setReagendando] = useState(false);
 
   useEffect(() => {
     Promise.all([db.getAdvisors(), db.getClients(), isEdit ? db.getAgendaCitaById(id) : Promise.resolve(null)]).then(
@@ -44,6 +47,8 @@ export default function AdminAgendaForm() {
             hora: cita.hora ? cita.hora.slice(0, 5) : "",
             actividades: cita.actividades || "",
           });
+          setStatus(cita.status || "pendiente");
+          setReagendo({ fecha: cita.fecha, hora: cita.hora ? cita.hora.slice(0, 5) : "", motivo: "" });
         } else if (advisorId) {
           // Agenda propia: el asesor no elige, la cita siempre se crea para sí mismo.
           setForm((prev) => ({ ...prev, advisor_id: advisorId }));
@@ -84,12 +89,30 @@ export default function AdminAgendaForm() {
     }
   };
 
+  const handleReagendar = async (e) => {
+    e.preventDefault();
+    if (!reagendo.fecha) return;
+    setReagendando(true);
+    try {
+      const cita = await db.reagendarAgendaCita(id, reagendo);
+      setForm((prev) => ({ ...prev, fecha: cita.fecha, hora: cita.hora ? cita.hora.slice(0, 5) : "", actividades: cita.actividades || "" }));
+      setStatus(cita.status);
+      setReagendo((prev) => ({ ...prev, motivo: "" }));
+      window.alert(t("agenda.rescheduleDone"));
+    } catch (err) {
+      window.alert(err.message || "Error al reagendar");
+    } finally {
+      setReagendando(false);
+    }
+  };
+
   if (loading) return <div className="empty-state">{t("common.loading")}</div>;
 
   return (
     <div>
       <div className="admin-header">
         <h1>{isEdit ? t("agenda.editAppointment") : t("agenda.newAppointment")}</h1>
+        {isEdit && <span className={`agenda-status agenda-status--${status}`}>{t(`agenda.status.${status}`)}</span>}
       </div>
 
       <form className="card admin-form" onSubmit={handleSubmit} noValidate>
@@ -159,6 +182,49 @@ export default function AdminAgendaForm() {
           </button>
         </div>
       </form>
+
+      {isEdit && (
+        <form className="card admin-form agenda-reagendar" onSubmit={handleReagendar}>
+          <h2>{t("agenda.reschedule")}</h2>
+          <p className="form-hint">{t("agenda.rescheduleHint")}</p>
+          <div className="form-row">
+            <div className="form-field">
+              <label htmlFor="reagendo-fecha">{t("agenda.date")}</label>
+              <input
+                id="reagendo-fecha"
+                type="date"
+                value={reagendo.fecha}
+                onChange={(e) => setReagendo((prev) => ({ ...prev, fecha: e.target.value }))}
+              />
+            </div>
+            <div className="form-field">
+              <label htmlFor="reagendo-hora">{t("agenda.time")}</label>
+              <input
+                id="reagendo-hora"
+                type="time"
+                value={reagendo.hora}
+                onChange={(e) => setReagendo((prev) => ({ ...prev, hora: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div className="form-field">
+            <label htmlFor="reagendo-motivo">{t("agenda.rescheduleReason")}</label>
+            <textarea
+              id="reagendo-motivo"
+              rows={2}
+              placeholder={t("agenda.rescheduleReasonPlaceholder")}
+              value={reagendo.motivo}
+              onChange={(e) => setReagendo((prev) => ({ ...prev, motivo: e.target.value }))}
+            />
+          </div>
+          <div className="admin-form__actions">
+            <button type="submit" className="btn btn-primary" disabled={reagendando}>
+              {reagendando ? <span className="spinner" /> : null}
+              {t("agenda.rescheduleSubmit")}
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   );
 }

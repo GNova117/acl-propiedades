@@ -1934,6 +1934,9 @@ export const localBackend = {
       fecha,
       hora: hora || null,
       actividades: actividades?.trim() || null,
+      status: "pendiente",
+      reminder_sent_at: null,
+      client_reminder_sent_at: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -1942,18 +1945,70 @@ export const localBackend = {
     return record;
   },
 
+  // Si la fecha/hora cambia aquí (edición normal, no por reagendarAgendaCita),
+  // se limpian los avisos ya mandados: de lo contrario el recordatorio de
+  // 30 min o el del cliente se quedarían callados pensando que ya se avisó
+  // de una cita que, para efectos de la hora, es otra.
   async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades }) {
     const citas = readStore(KEYS.agendaCitas, []);
     const idx = citas.findIndex((c) => c.id === id);
     if (idx === -1) throw new Error("Cita no encontrada");
+    const prev = citas[idx];
+    const moved = prev.fecha !== fecha || (prev.hora || null) !== (hora || null);
     citas[idx] = {
-      ...citas[idx],
+      ...prev,
       advisor_id,
       client_id: client_id || null,
       titulo: titulo.trim(),
       fecha,
       hora: hora || null,
       actividades: actividades?.trim() || null,
+      ...(moved ? { reminder_sent_at: null, client_reminder_sent_at: null } : null),
+      updated_at: new Date().toISOString(),
+    };
+    writeStore(KEYS.agendaCitas, citas);
+    return citas[idx];
+  },
+
+  // Cambio rápido de estatus desde la lista de Agenda (Confirmar/Realizada/
+  // Cancelar). "nota" es opcional (p. ej. el motivo de cancelación) y, si
+  // viene, se antepone a las actividades de la cita para no perder el rastro.
+  async updateAgendaCitaStatus(id, status, nota) {
+    const citas = readStore(KEYS.agendaCitas, []);
+    const idx = citas.findIndex((c) => c.id === id);
+    if (idx === -1) throw new Error("Cita no encontrada");
+    const prev = citas[idx];
+    citas[idx] = {
+      ...prev,
+      status,
+      actividades: nota ? [nota, prev.actividades].filter(Boolean).join("\n\n") : prev.actividades,
+      updated_at: new Date().toISOString(),
+    };
+    writeStore(KEYS.agendaCitas, citas);
+    return citas[idx];
+  },
+
+  // Reagendar: cambia fecha/hora, regresa la cita a "pendiente" (aunque
+  // estuviera cancelada o ya realizada) y limpia los avisos ya mandados
+  // para que se vuelvan a armar con la fecha nueva. El motivo (si hubo
+  // algún problema) queda anotado en las actividades junto con la fecha/
+  // hora anterior, para no perder el rastro de qué pasó.
+  async reagendarAgendaCita(id, { fecha, hora, motivo }) {
+    const citas = readStore(KEYS.agendaCitas, []);
+    const idx = citas.findIndex((c) => c.id === id);
+    if (idx === -1) throw new Error("Cita no encontrada");
+    const prev = citas[idx];
+    const antes = new Date(`${prev.fecha}T00:00:00`).toLocaleDateString("es-MX") + (prev.hora ? ` ${prev.hora.slice(0, 5)}` : "");
+    const despues = new Date(`${fecha}T00:00:00`).toLocaleDateString("es-MX") + (hora ? ` ${hora.slice(0, 5)}` : "");
+    const nota = `Reagendada del ${antes} al ${despues}.${motivo ? ` Motivo: ${motivo.trim()}` : ""}`;
+    citas[idx] = {
+      ...prev,
+      fecha,
+      hora: hora || null,
+      status: "pendiente",
+      reminder_sent_at: null,
+      client_reminder_sent_at: null,
+      actividades: [nota, prev.actividades].filter(Boolean).join("\n\n"),
       updated_at: new Date().toISOString(),
     };
     writeStore(KEYS.agendaCitas, citas);

@@ -91,7 +91,7 @@ export default function AdminDashboard() {
   const todayCitas = useMemo(() => {
     const today = new Date().toLocaleDateString("en-CA");
     return citas
-      .filter((c) => c.fecha === today)
+      .filter((c) => c.fecha === today && !["realizada", "cancelada"].includes(c.status))
       .slice()
       .sort((a, b) => (a.hora || "").localeCompare(b.hora || ""));
   }, [citas]);

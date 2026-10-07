@@ -3493,3 +3493,22 @@ alter table construccion_aberturas add column if not exists estilo text;
 alter table construccion_habitaciones add column if not exists tipo_piso text;
 alter table construccion_habitaciones add column if not exists tipo_pared text;
 alter table construccion_habitaciones add column if not exists tipo_techo text;
+
+-- ─────────────────────────────────────────────
+-- Agenda · estatus de la cita y reagendado (2026-10): antes toda cita se
+-- quedaba "viva" para siempre — no había forma de marcar que ya se
+-- confirmó con el cliente, que ya se realizó, que se canceló, ni de
+-- reagendarla cuando hubo algún problema sin perder el rastro de qué
+-- pasó. "pendiente" es el estado inicial de toda cita nueva; al
+-- reagendar (ver agendarCitaReagendada en dataStore) vuelve a quedar en
+-- "pendiente" con la fecha/hora nueva y se limpian reminder_sent_at /
+-- client_reminder_sent_at para que los avisos automáticos se vuelvan a
+-- armar para la nueva fecha en vez de quedarse callados pensando que ya
+-- se avisó. Las funciones de recordatorio (30min/resumen diario/aviso al
+-- cliente) ya no avisan de una cita cancelada.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+alter table agenda_citas add column if not exists status text not null default 'pendiente';
+alter table agenda_citas drop constraint if exists agenda_citas_status_check;
+alter table agenda_citas add constraint agenda_citas_status_check
+  check (status in ('pendiente', 'confirmada', 'realizada', 'cancelada'));

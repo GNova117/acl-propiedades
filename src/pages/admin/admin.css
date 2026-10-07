@@ -307,3 +307,44 @@
   font-family: inherit;
   resize: vertical;
 }
+
+.agenda-status {
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.agenda-status--pendiente {
+  color: var(--color-text-muted);
+}
+
+.agenda-status--confirmada {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.agenda-status--realizada {
+  color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.agenda-status--cancelada {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.agenda-reagendar {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.agenda-reagendar h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.75rem;
+}

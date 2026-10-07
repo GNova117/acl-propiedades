@@ -29,6 +29,7 @@ Deno.serve(async (req) => {
     .from("agenda_citas")
     .select("id, titulo, hora, advisor_id, advisors(name, whatsapp), clients(name)")
     .eq("fecha", fecha)
+    .not("status", "eq", "cancelada")
     .order("hora", { ascending: true, nullsFirst: false });
 
   if (error) {
