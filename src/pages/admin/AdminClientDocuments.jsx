@@ -8,6 +8,8 @@ import DocumentCapture from "../../components/DocumentCapture";
 import DocumentPreviewModal from "../../components/DocumentPreviewModal";
 import ExpedienteAvaluoModal from "../../components/ExpedienteAvaluoModal";
 import ClientValuations from "../../components/ClientValuations";
+import AdminPortalLinkPanel from "../../components/portal/AdminPortalLinkPanel";
+import AdminPortalDocumentReview from "../../components/portal/AdminPortalDocumentReview";
 import "./admin.css";
 
 // Tope de Supabase Storage para el bucket client-documents: arriba de esto
@@ -145,6 +147,8 @@ export default function AdminClientDocuments() {
         </div>
       </div>
 
+      <AdminPortalLinkPanel clientId={id} />
+
       <div className="form-row" style={{ maxWidth: 480, marginBottom: "1.25rem" }}>
         <div className="form-field">
           <label htmlFor="doc-month-filter">{t("dateFilter.month")}</label>
@@ -193,6 +197,9 @@ export default function AdminClientDocuments() {
                       <span className="form-hint">
                         {t("documentCapture.capturedAt")} {new Date(doc.captured_at).toLocaleString()}
                       </span>
+                      {doc.source === "client_portal" && (
+                        <AdminPortalDocumentReview doc={doc} clientId={id} onChanged={load} />
+                      )}
                       {downloadErrorId === doc.id && (
                         <p className="form-error">
                           {t("documentCapture.downloadError")} ({downloadErrorDetail})
