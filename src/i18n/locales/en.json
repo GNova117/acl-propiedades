@@ -2290,7 +2290,11 @@
     "subtitle": "Download the Privacy Notice and the Consumer Rights Notice on the letterhead, ready to print and sign. Same text published on the site.",
     "privacyHint": "Same content published at /aviso-de-privacidad.",
     "rightsHint": "Same content published at /carta-de-derechos.",
-    "download": "Download PDF"
+    "download": "Download PDF",
+    "officialLinksTitle": "Official online procedures",
+    "officialLinksSubtitle": "Direct links to the government portals where the client (or you) can get these documents without standing in line. See also the client Document Portal on each client's page, which walks through the same process step by step.",
+    "satHint": "To get the RFC/tax certificate: the client signs in with their RFC and SAT password (CIEC) or their e.firma — that password is never captured on our site.",
+    "actasHint": "Downloaded by typing in the CURP — no password required."
   },
   "privacy": {
     "title": "Privacy Notice",

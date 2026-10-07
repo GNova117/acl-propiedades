@@ -2290,7 +2290,11 @@
     "subtitle": "Descarga el Aviso de Privacidad y la Carta de Derechos sobre la hoja membretada, listos para imprimir y firmar. El texto es el mismo que se publica en el sitio.",
     "privacyHint": "Mismo contenido publicado en /aviso-de-privacidad.",
     "rightsHint": "Mismo contenido publicado en /carta-de-derechos.",
-    "download": "Descargar PDF"
+    "download": "Descargar PDF",
+    "officialLinksTitle": "Trámites oficiales en línea",
+    "officialLinksSubtitle": "Enlaces directos a los portales de gobierno donde el cliente (o tú) puede sacar estos documentos sin ir a hacer fila. Ver también el Portal de documentos del cliente en la ficha de cada cliente, que guía el mismo trámite paso a paso.",
+    "satHint": "Para obtener el RFC/cédula fiscal: el cliente entra con su RFC y contraseña del SAT (CIEC) o su e.firma — esa contraseña nunca se captura en nuestro sitio.",
+    "actasHint": "Se descarga tecleando la CURP — no pide contraseña."
   },
   "privacy": {
     "title": "Aviso de Privacidad",
