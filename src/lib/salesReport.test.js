@@ -311,4 +311,9 @@ describe("availableYears", () => {
     const years = availableYears(properties, ventas, new Date("2026-01-01T00:00:00.000Z"));
     expect(years).toEqual([2026, 2025, 2024]);
   });
+
+  it("incluye el año actual aunque no haya ventas ni altas registradas", () => {
+    const years = availableYears([], [], new Date("2026-05-01T00:00:00.000Z"));
+    expect(years).toContain(2026);
+  });
 });

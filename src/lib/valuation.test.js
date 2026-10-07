@@ -31,10 +31,16 @@ describe("estimateValue", () => {
     expect(result.high % 5000).toBe(0);
   });
 
-  it("evita el error de punto flotante al calcular el techo del rango", () => {
+  it("nunca deja el rango más angosto que el margen pedido, incluso con redondeo de punto flotante", () => {
     // 900,000 * 1.1 = 990,000.0000000001 en punto flotante sin el redondeo a centavos
     const result = estimateValue({ landArea: 0, builtArea: 100, landRate: 0, builtRate: 9000, spreadPct: 10 });
     expect(result.high).toBe(990000);
+  });
+
+  it("nunca deja el rango más angosto que el margen pedido con otra magnitud (90 m² a $10,000/m²)", () => {
+    const result = estimateValue({ landArea: 0, builtArea: 90, builtRate: 10000, landRate: 0, spreadPct: 10 });
+    expect(result.low).toBeLessThanOrEqual(900000 * 0.9);
+    expect(result.high).toBeGreaterThanOrEqual(900000 * 1.1 - 0.01);
   });
 
   it("limita el margen al tope máximo (50%) aunque se pida más", () => {

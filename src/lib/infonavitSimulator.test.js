@@ -35,6 +35,12 @@ describe("simularCreditoInfonavit", () => {
   it("recorta el plazo cuando la edad límite menos la edad actual es menor a 30 años", () => {
     const result = simularCreditoInfonavit({ edad: 65, sexo: "hombre", salarioMensual: 15000, ssv: 0 });
     expect(result.plazoAnios).toBe(5); // 70 - 65
+    expect(result.plazoMeses).toBe(60);
+  });
+
+  it("da plazo más amplio a una mujer de la misma edad (límite 75 vs. 70)", () => {
+    const result = simularCreditoInfonavit({ edad: 65, sexo: "mujer", salarioMensual: 15000, ssv: 0 });
+    expect(result.plazoAnios).toBe(10);
   });
 
   it("da plazo y crédito cero cuando ya se rebasó la edad límite", () => {
@@ -58,7 +64,11 @@ describe("simularCreditoInfonavit", () => {
     const alto = simularCreditoInfonavit({ edad: 30, sexo: "hombre", salarioMensual: UMA_2026.mensual * 10, ssv: 0 });
     expect(bajo.exentoTitulacion).toBe(true);
     expect(alto.exentoTitulacion).toBe(false);
-    expect(alto.gastosFinancierosOperacion).toBe(0);
+  });
+
+  it("reporta gastos de titulación/financieros siempre en cero (eliminados desde mayo 2024)", () => {
+    const result = simularCreditoInfonavit({ edad: 30, sexo: "hombre", salarioMensual: 15000, ssv: 0 });
+    expect(result.gastosFinancierosOperacion).toBe(0);
   });
 
   it("trata un sexo desconocido como hombre por default", () => {
@@ -84,8 +94,8 @@ describe("calcularSubcuentaViviendaPorEmpleos", () => {
     expect(total).toBeCloseTo(esperado, 6);
   });
 
-  it("regresa total 0 sin empleos", () => {
-    expect(calcularSubcuentaViviendaPorEmpleos([]).total).toBe(0);
-    expect(calcularSubcuentaViviendaPorEmpleos(undefined).total).toBe(0);
+  it("regresa detalle vacío y total 0 sin reventar cuando no hay empleos", () => {
+    expect(calcularSubcuentaViviendaPorEmpleos([])).toEqual({ detalle: [], total: 0 });
+    expect(calcularSubcuentaViviendaPorEmpleos(undefined)).toEqual({ detalle: [], total: 0 });
   });
 });

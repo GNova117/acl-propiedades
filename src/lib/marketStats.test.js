@@ -90,7 +90,6 @@ describe("normalizeComp", () => {
   it("rechaza el anuncio completo si, dada la base pedida, el precio por m² es imposible", () => {
     // 1,200,000 / 120 = 10,000 por m² construido: razonable
     expect(normalizeComp(valid, { basis: "built" })).not.toBeNull();
-    // 1,200,000 / 150 = 8,000 por m² de terreno: fuera del rango de LIMITS.ppm.land (max 60,000 pero min 150, aquí ok)
     // forzamos un ppm imposible con una superficie enorme válida pero ppm bajo
     const comp = normalizeComp({ ...valid, price: 60000, builtArea: 20 }, { basis: "built" }); // ppm=3000, min es 3000 -> válido
     expect(comp).not.toBeNull();
@@ -141,6 +140,11 @@ describe("quantile", () => {
   it("interpola linealmente sobre una lista ya ordenada", () => {
     expect(quantile([10, 20, 30, 40], 0.5)).toBe(25); // interpolado entre 20 y 30
     expect(quantile([10, 20, 30], 0.5)).toBe(20); // cae exacto en un punto
+  });
+
+  it("en los extremos (q=0, q=1) regresa el mínimo y el máximo", () => {
+    expect(quantile([1, 2, 3, 4], 0)).toBe(1);
+    expect(quantile([1, 2, 3, 4], 1)).toBe(4);
   });
 
   it("regresa 0 para una lista vacía", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeLiquidacion, toLiquidacionFormValues, toLiquidacionPayload } from "./liquidacion.js";
+import { computeLiquidacion, EMPTY_LIQUIDACION, toLiquidacionFormValues, toLiquidacionPayload } from "./liquidacion.js";
 
 const baseForm = {
   precio_propiedad: 1000000,
@@ -69,6 +69,13 @@ describe("computeLiquidacion", () => {
     expect(result.utilidadNeta).toBe(0);
     expect(Number.isNaN(result.utilidadNeta)).toBe(false);
   });
+
+  it("trata EMPTY_LIQUIDACION con precio vacío como subtotal y utilidad en cero", () => {
+    const r = computeLiquidacion({ ...EMPTY_LIQUIDACION, precio_propiedad: "" });
+    expect(Number.isNaN(r.subtotal)).toBe(false);
+    expect(r.subtotal).toBe(0);
+    expect(r.utilidadNeta).toBe(0);
+  });
 });
 
 describe("toLiquidacionPayload", () => {
@@ -79,6 +86,29 @@ describe("toLiquidacionPayload", () => {
     expect(payload.costo_total).toBe(50000);
     expect(typeof payload.tasa_comision_captacion).toBe("number");
   });
+
+  it("convierte montos de texto a número y cadenas vacías de ids a null", () => {
+    const payload = toLiquidacionPayload({
+      costo_total: "20000",
+      devolucion_vendedor: "300000",
+      inversion_servicios: "10000",
+      captador_id: "",
+      vendedor_id: "asesor-1",
+      tasa_comision_captacion: "40",
+      tasa_comision_venta: "30",
+      tasa_gastos_admin: "10",
+    });
+    expect(payload).toMatchObject({
+      costo_total: 20000,
+      devolucion_vendedor: 300000,
+      inversion_servicios: 10000,
+      captador_id: null,
+      vendedor_id: "asesor-1",
+      tasa_comision_captacion: 40,
+      tasa_comision_venta: 30,
+      tasa_gastos_admin: 10,
+    });
+  });
 });
 
 describe("toLiquidacionFormValues", () => {
@@ -88,9 +118,20 @@ describe("toLiquidacionFormValues", () => {
     expect(values.costo_total).toBe("");
   });
 
+  it("vuelve a los valores vacíos por defecto cuando no hay registro (igual a EMPTY_LIQUIDACION)", () => {
+    expect(toLiquidacionFormValues(null)).toEqual(EMPTY_LIQUIDACION);
+  });
+
   it("solo sobreescribe las llaves presentes y no nulas del registro", () => {
     const values = toLiquidacionFormValues({ costo_total: 12345, devolucion_vendedor: null });
     expect(values.costo_total).toBe(12345);
     expect(values.devolucion_vendedor).toBe(""); // null no pisa el default
+  });
+
+  it("solo toma del registro las llaves conocidas, dejando el resto en su default", () => {
+    const values = toLiquidacionFormValues({ costo_total: 999, campo_desconocido: "x" });
+    expect(values.costo_total).toBe(999);
+    expect(values.devolucion_vendedor).toBe(EMPTY_LIQUIDACION.devolucion_vendedor);
+    expect(values.campo_desconocido).toBeUndefined();
   });
 });
