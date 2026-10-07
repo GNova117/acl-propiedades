@@ -3821,7 +3821,11 @@ drop policy if exists "Authenticated manage testimonials" on testimonials;
 create policy "Rol con apartado testimonios maneja testimonials" on testimonials for all
   using (has_admin_section('testimonios')) with check (has_admin_section('testimonios'));
 
--- Blog (la lectura pública de entradas publicadas no se toca)
+-- Blog (la lectura pública de entradas publicadas no se toca). Depende del
+-- bloque "Blog" que crea `blog_posts` y el bucket `blog-images` más arriba
+-- en este archivo — si no se ha corrido (el blog no está desplegado en el
+-- proyecto, como en producción al 2026-10), esta parte falla con "relation
+-- blog_posts does not exist"; sáltatela hasta que exista esa tabla.
 drop policy if exists "Authenticated administra blog" on blog_posts;
 create policy "Rol con apartado blog administra blog_posts" on blog_posts for all
   using (has_admin_section('blog')) with check (has_admin_section('blog'));
