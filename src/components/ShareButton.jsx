@@ -12,7 +12,7 @@ import "./ShareButton.css";
 // como en una publicación de portal inmobiliario) — si no se manda, se
 // arma uno genérico con solo título y URL, para no romper otros usos
 // futuros de este botón que no tengan un texto propio que armar.
-export default function ShareButton({ title, text, url }) {
+export default function ShareButton({ title, text, url, openUpward = false }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
@@ -57,7 +57,7 @@ export default function ShareButton({ title, text, url }) {
   }
 
   return (
-    <details className="share-button">
+    <details className={`share-button${openUpward ? " share-button--up" : ""}`}>
       <summary className="btn btn-outline btn-sm">{t("detail.share")}</summary>
       <div className="share-button__menu">
         <a href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noreferrer">

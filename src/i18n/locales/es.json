@@ -276,7 +276,20 @@
     "allAdvisors": "Todos los asesores",
     "noAdvisor": "Sin asesor asignado",
     "propertyAndAdvisor": "Propiedad / asesor",
-    "generalInquiry": "Mensaje general"
+    "generalInquiry": "Mensaje general",
+    "quickReply": "Respuesta rápida",
+    "templates": {
+      "theProperty": "la propiedad por la que preguntaste",
+      "emailSubject": "Sobre tu consulta en ACL Propiedades",
+      "availabilityLabel": "Disponibilidad",
+      "availabilityText": "Hola {{name}}, gracias por tu interés en {{property}}. ¡Sigue disponible! ¿Te gustaría agendar una visita o que te comparta más información?",
+      "priceLabel": "Precio y condiciones",
+      "priceText": "Hola {{name}}, con gusto te comparto que el precio de {{property}} es de {{price}}. ¿Te gustaría conocer las formas de pago o el financiamiento disponible?",
+      "visitLabel": "Agendar visita",
+      "visitText": "Hola {{name}}, ¡perfecto! Dime qué día y horario te quedan mejor para agendar tu visita a {{property}} y te confirmo cuanto antes.",
+      "thanksLabel": "Agradecimiento",
+      "thanksText": "Hola {{name}}, gracias por tu mensaje. Ya vimos tu consulta y en breve uno de nuestros asesores te contacta. ¡Que tengas excelente día!"
+    }
   },
   "testimonials": {
     "title": "Testimonios",
@@ -420,6 +433,7 @@
     },
     "menu": "Menú",
     "logout": "Cerrar sesión",
+    "notifications": "Notificaciones",
     "dashboard": "Panel principal",
     "totalProperties": "Total de propiedades",
     "activeAdvisors": "Asesores activos",
@@ -2398,6 +2412,13 @@
     "cancelAdd": "Cancelar"
   },
   "agenda": {
+    "viewToggle": "Vista de la agenda",
+    "viewList": "Lista",
+    "viewCalendar": "Calendario",
+    "prevMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "today": "Hoy",
+    "moreAppointments": "+{{count}} más",
     "remindClient": "Recordar al cliente",
     "reminderText": "Hola {{name}}, te recuerdo tu cita \"{{title}}\" el {{when}}. Te atiende {{advisor}} de ACL Propiedades. ¡Te esperamos!",
     "myAgenda": "Mi agenda",

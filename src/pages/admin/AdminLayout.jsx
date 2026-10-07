@@ -7,6 +7,7 @@ import LanguageToggle from "../../components/LanguageToggle";
 import ErrorBoundary from "../../components/ErrorBoundary";
 import AdminGlobalSearch from "../../components/AdminGlobalSearch";
 import InstallAppButton from "../../components/InstallAppButton";
+import NotificationBell from "../../components/NotificationBell";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
 import "./AdminLayout.css";
@@ -209,6 +210,7 @@ export default function AdminLayout() {
           </button>
           <AdminGlobalSearch />
           <div className="admin-layout__topbar-actions">
+            <NotificationBell />
             <InstallAppButton />
             <ThemeToggle />
             <LanguageToggle />

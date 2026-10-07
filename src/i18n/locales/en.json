@@ -276,7 +276,20 @@
     "allAdvisors": "All advisors",
     "noAdvisor": "No advisor assigned",
     "propertyAndAdvisor": "Property / advisor",
-    "generalInquiry": "General inquiry"
+    "generalInquiry": "General inquiry",
+    "quickReply": "Quick reply",
+    "templates": {
+      "theProperty": "the property you asked about",
+      "emailSubject": "About your inquiry with ACL Propiedades",
+      "availabilityLabel": "Availability",
+      "availabilityText": "Hi {{name}}, thanks for your interest in {{property}}. It's still available! Would you like to schedule a visit or get more information?",
+      "priceLabel": "Price and terms",
+      "priceText": "Hi {{name}}, happy to share that the price of {{property}} is {{price}}. Would you like to know about payment options or available financing?",
+      "visitLabel": "Schedule a visit",
+      "visitText": "Hi {{name}}, perfect! Let me know what day and time work best for you to visit {{property}} and I'll confirm right away.",
+      "thanksLabel": "Thank you",
+      "thanksText": "Hi {{name}}, thanks for your message. We've seen your inquiry and one of our advisors will contact you shortly. Have a great day!"
+    }
   },
   "testimonials": {
     "title": "Testimonials",
@@ -420,6 +433,7 @@
     },
     "menu": "Menu",
     "logout": "Sign out",
+    "notifications": "Notifications",
     "dashboard": "Dashboard",
     "totalProperties": "Total properties",
     "activeAdvisors": "Active advisors",
@@ -2398,6 +2412,13 @@
     "cancelAdd": "Cancel"
   },
   "agenda": {
+    "viewToggle": "Agenda view",
+    "viewList": "List",
+    "viewCalendar": "Calendar",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "today": "Today",
+    "moreAppointments": "+{{count}} more",
     "remindClient": "Remind client",
     "reminderText": "Hi {{name}}, a reminder of your appointment \"{{title}}\" on {{when}}. {{advisor}} from ACL Propiedades will assist you. See you there!",
     "myAgenda": "My agenda",
