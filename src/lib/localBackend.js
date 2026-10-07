@@ -1,5 +1,6 @@
 import { ZONES, ADVISORS, PROPERTIES, VENTAS_SEED, VISITS_SEED, PROPERTY_TYPES_SEED, AMENITIES_SEED, DEMO_ADMIN, ADMIN_ROLES_SEED, ADMIN_ACCESS_SEED } from "./seedData";
 import { generateReportToken, REPORT_TOKEN_PATTERN } from "./visitReport";
+import { generatePortalToken, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS } from "./clientPortal";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify, numOrNull } from "./format";
@@ -53,6 +54,9 @@ const KEYS = {
   testimonials: "acl_local_testimonials",
   propertyChanges: "acl_local_property_changes",
   blogPosts: "acl_local_blog_posts",
+  clientPortalTokens: "acl_local_client_portal_tokens",
+  documentAccessLog: "acl_local_document_access_log",
+  privacyConsents: "acl_local_privacy_consents",
 };
 
 // Un par de artículos de muestra para que /blog no se vea vacío en modo
@@ -788,6 +792,7 @@ export const localBackend = {
     writeStore(KEYS.clients, clients.filter((c) => c.id !== id));
     const docs = readStore(KEYS.clientDocuments, []);
     writeStore(KEYS.clientDocuments, docs.filter((d) => d.client_id !== id));
+    writeStore(KEYS.clientPortalTokens, readStore(KEYS.clientPortalTokens, []).filter((t) => t.client_id !== id));
   },
 
   async getClientDocuments(clientId) {
@@ -795,7 +800,17 @@ export const localBackend = {
     return docs
       .filter((d) => d.client_id === clientId)
       .sort((a, b) => new Date(b.captured_at) - new Date(a.captured_at))
-      .map((d) => ({ ...d, signed_url: d.file_path }));
+      .map((d) => ({
+        source: "admin_capture",
+        file_kind: "document",
+        extracted_data: {},
+        qr_validated: null,
+        review_status: "pendiente",
+        review_notes: null,
+        client_confirmed: false,
+        ...d,
+        signed_url: d.file_path,
+      }));
   },
 
   // En demo file_path ya es la data URL completa (no expira, no requiere
@@ -846,6 +861,122 @@ export const localBackend = {
   async unlinkClients(linkId) {
     const links = readStore(KEYS.clientLinks, []);
     writeStore(KEYS.clientLinks, links.filter((l) => l.id !== linkId));
+  },
+
+  // ── Portal de documentos para clientes — modo demo ──
+  async getClientPortalToken(clientId) {
+    return readStore(KEYS.clientPortalTokens, []).find((t) => t.client_id === clientId) || null;
+  },
+
+  async saveClientPortalToken(clientId) {
+    const tokens = readStore(KEYS.clientPortalTokens, []).filter((t) => t.client_id !== clientId);
+    const record = {
+      id: uid("portaltoken"),
+      client_id: clientId,
+      token: generatePortalToken(),
+      active: true,
+      created_by: DEMO_ADMIN.email,
+      created_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + PORTAL_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString(),
+      last_accessed_at: null,
+    };
+    tokens.push(record);
+    writeStore(KEYS.clientPortalTokens, tokens);
+    return record;
+  },
+
+  async revokeClientPortalToken(clientId) {
+    const tokens = readStore(KEYS.clientPortalTokens, []);
+    writeStore(
+      KEYS.clientPortalTokens,
+      tokens.map((t) => (t.client_id === clientId ? { ...t, active: false } : t))
+    );
+  },
+
+  async reviewClientDocument(documentId, clientId, { reviewStatus, reviewNotes }) {
+    const docs = readStore(KEYS.clientDocuments, []);
+    writeStore(
+      KEYS.clientDocuments,
+      docs.map((d) =>
+        d.id === documentId
+          ? { ...d, review_status: reviewStatus, review_notes: reviewNotes || null, reviewed_by: DEMO_ADMIN.email, reviewed_at: new Date().toISOString() }
+          : d
+      )
+    );
+    const log = readStore(KEYS.documentAccessLog, []);
+    log.push({
+      id: uid("doclog"),
+      client_document_id: documentId,
+      client_id: clientId,
+      actor_type: "admin",
+      actor_ref: DEMO_ADMIN.email,
+      action: reviewStatus === "rechazado" ? "reject" : "approve",
+      created_at: new Date().toISOString(),
+    });
+    writeStore(KEYS.documentAccessLog, log);
+  },
+
+  // Lado del cliente (sin sesión): en demo no hay token de verdad guardado
+  // aparte de localStorage de ESTE navegador, así que solo sirve para
+  // probar el flujo completo, no para compartir un enlace real.
+  async getPortalStatus(token) {
+    if (!PORTAL_TOKEN_PATTERN.test(token || "")) return { status: "invalido" };
+    const t = readStore(KEYS.clientPortalTokens, []).find((x) => x.token === token);
+    if (!t) return { status: "invalido" };
+    if (!t.active) return { status: "desactivado" };
+    if (new Date(t.expires_at).getTime() < Date.now()) return { status: "expirado" };
+    const client = await this.getClientById(t.client_id);
+    const docs = readStore(KEYS.clientDocuments, [])
+      .filter((d) => d.client_id === t.client_id && d.source === "client_portal")
+      .sort((a, b) => new Date(b.captured_at) - new Date(a.captured_at));
+    return { status: "activo", client_name: (client?.name || "").split(" ")[0], documents: docs };
+  },
+
+  async registerPortalConsent(token, consentVersion) {
+    const t = readStore(KEYS.clientPortalTokens, []).find((x) => x.token === token);
+    if (!t) return { error: "not_found" };
+    const consents = readStore(KEYS.privacyConsents, []);
+    consents.push({ id: uid("consent"), client_id: t.client_id, token_id: t.id, consent_version: consentVersion, accepted_at: new Date().toISOString() });
+    writeStore(KEYS.privacyConsents, consents);
+    return { ok: true };
+  },
+
+  async confirmPortalDocument(token, documentId, extractedData, clientConfirmed) {
+    const t = readStore(KEYS.clientPortalTokens, []).find((x) => x.token === token);
+    if (!t) return { error: "invalid_token" };
+    const docs = readStore(KEYS.clientDocuments, []);
+    writeStore(
+      KEYS.clientDocuments,
+      docs.map((d) => (d.id === documentId && d.client_id === t.client_id ? { ...d, extracted_data: extractedData, client_confirmed: clientConfirmed } : d))
+    );
+    return { ok: true };
+  },
+
+  // Sin servidor en modo demo: no hay lectura real de texto/QR, solo se
+  // guarda el archivo (como data URL, igual que el resto del modo demo) y
+  // queda marcado para revisión manual — se avisa en pantalla que es demo.
+  async uploadPortalDocument(token, { docType, fileKind, file }) {
+    const t = readStore(KEYS.clientPortalTokens, []).find((x) => x.token === token);
+    if (!t) throw new Error("invalid_token");
+    const file_path = await fileToDataUrl(file);
+    const record = {
+      id: uid("doc"),
+      client_id: t.client_id,
+      doc_type: docType,
+      file_path,
+      source: "client_portal",
+      file_kind: fileKind,
+      quality_metrics: {},
+      extracted_data: fileKind === "document" ? { nota: "Modo demo: sin validación automática (sin servidor)." } : {},
+      qr_validated: null,
+      review_status: fileKind === "document" ? "requiere_revision" : "pendiente",
+      client_confirmed: false,
+      captured_at: new Date().toISOString(),
+    };
+    const docs = readStore(KEYS.clientDocuments, []);
+    docs.push(record);
+    writeStore(KEYS.clientDocuments, docs);
+    return record;
   },
 
   async getRemodelProjects(filters = {}) {

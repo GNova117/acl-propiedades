@@ -696,6 +696,122 @@
     "previewError": "Couldn't load the preview. Try again.",
     "closePreview": "Close preview"
   },
+  "portal": {
+    "pageTitle": "Your documents",
+    "greeting": "Hi, {{name}}",
+    "greetingGeneric": "Hi",
+    "intro": "Download your Tax Status Certificate (Constancia de Situación Fiscal) and your Birth Certificate from the official government portals and upload them here as a PDF. We never ask for your SAT password — that password stays on the official site, never here.",
+    "invalidTitle": "Invalid link",
+    "invalidBody": "This link doesn't exist or is no longer available. Ask your advisor for a new one.",
+    "revokedTitle": "Link disabled",
+    "revokedBody": "Your advisor disabled this link. Ask them for a new one to continue.",
+    "expiredTitle": "Link expired",
+    "expiredBody": "This link has expired. Ask your advisor for a new one.",
+    "errorTitle": "Couldn't load",
+    "errorBody": "Something went wrong loading your information. Please try again in a moment.",
+    "consent": {
+      "title": "Privacy notice",
+      "summary": "You're about to upload documents with personal data (RFC, CURP, address). We use them only for your transaction with ACL Propiedades, they're stored encrypted, and only authorized staff can view them.",
+      "linkText": "Read the full privacy notice",
+      "checkbox": "I have read the privacy notice and I agree that ACL Propiedades processes my personal data for this transaction.",
+      "continue": "Agree and continue",
+      "error": "Couldn't record your consent. Please try again."
+    },
+    "docTypes": {
+      "cedula_fiscal": {
+        "steps": [
+          "Go to the SAT portal (button below) and look for \"Genera tu Constancia de Situación Fiscal\".",
+          "Sign in with your RFC and your SAT password (CIEC), or your e.firma. That password stays on the SAT site — never share it with us.",
+          "Download your certificate as a PDF.",
+          "Come back here and upload it with the \"Upload PDF\" button."
+        ],
+        "officialUrlLabel": "Go to the SAT portal"
+      },
+      "acta_nacimiento": {
+        "steps": [
+          "Go to gob.mx/actas (button below).",
+          "Look up your birth certificate with your CURP.",
+          "Download the certified PDF.",
+          "Come back here and upload it with the \"Upload PDF\" button."
+        ],
+        "officialUrlLabel": "Go to gob.mx/actas"
+      }
+    },
+    "guide": { "show": "Show instructions again", "hide": "Hide instructions" },
+    "fields": {
+      "rfc": "RFC",
+      "nombre": "Name / Company name",
+      "regimen": "Tax regime",
+      "domicilioFiscal": "Tax address",
+      "fechaEmision": "Issue date",
+      "curp": "CURP",
+      "folio": "Folio / verification code",
+      "fechaNacimiento": "Date of birth"
+    },
+    "missingField": "couldn't be read, please check",
+    "ageWarning": "This certificate is more than 3 months old. Your advisor may ask for a more recent one.",
+    "rejectedNote": "Your advisor asked for a correction on this document: {{reason}}",
+    "confirm": "Confirm this data",
+    "confirmed": "Data confirmed ✓",
+    "saveChanges": "Save changes",
+    "upload": {
+      "selectPdf": "Upload PDF",
+      "selectBackup": "Upload backup photo",
+      "uploading": "Uploading…",
+      "replace": "Replace",
+      "backupAdded": "Backup photo added ✓",
+      "helpWhatsapp": "Ask for help on WhatsApp",
+      "helpWhatsappText": "Hi, I need help getting my {{doc}} for my transaction with ACL Propiedades."
+    },
+    "status": {
+      "pendiente": "Under review",
+      "valido": "Valid",
+      "requiere_revision": "Needs review",
+      "rechazado": "Rejected"
+    },
+    "errors": {
+      "invalid_token": "Invalid link.",
+      "revoked_token": "This link was disabled.",
+      "expired_token": "This link has expired.",
+      "rate_limited": "Too many attempts. Please wait a moment and try again.",
+      "file_too_large": "The file is too large (3 MB max).",
+      "invalid_file_type": "The file isn't a valid PDF/photo.",
+      "suspicious_pdf": "This PDF couldn't be processed. If you downloaded it from the official site, contact your advisor.",
+      "not_configured": "Document upload isn't available right now.",
+      "bad_request": "The request couldn't be processed.",
+      "server_error": "Something went wrong. Please try again."
+    },
+    "summary": {
+      "done": "Done! You've uploaded both documents. Your advisor will review them.",
+      "notifyAdvisor": "Notify my advisor on WhatsApp",
+      "whatsappText": "Hi, I already uploaded my documents (Tax Certificate and Birth Certificate) to the portal."
+    }
+  },
+  "adminPortal": {
+    "generate": "Generate document link",
+    "regenerate": "Regenerate link",
+    "revoke": "Disable link",
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "copyPrompt": "Copy this link:",
+    "shareWhatsapp": "Share on WhatsApp",
+    "whatsappText": "Hi, to continue your process we need you to upload your Tax Status Certificate and your Birth Certificate through this link: {{url}}",
+    "linkReady": "Link valid until {{date}}.",
+    "expired": "The link expired — generate a new one.",
+    "revoked": "The link is disabled.",
+    "confirmRevoke": "Disable this client's document link?",
+    "fromPortal": "Uploaded by the client",
+    "notConfirmed": "not confirmed yet",
+    "notRead": "couldn't be read",
+    "qrMismatch": "The QR code doesn't match the official validator.",
+    "qrUnread": "Couldn't read the document's QR code.",
+    "notesPlaceholder": "Reason (required to reject)",
+    "approve": "Approve",
+    "reject": "Reject",
+    "reasonRequired": "Write the reason before rejecting.",
+    "rejectedReason": "Rejection reason: {{reason}}",
+    "backupImage": "Backup photo (no automatic review)."
+  },
   "expedienteAvaluo": {
     "title": "Appraisal file",
     "subtitle": "Pick whose documents go in. Everything downloads as a single PDF, in the order the appraiser expects.",
@@ -2204,6 +2320,10 @@
       {
         "title": "Cookies and tracking technologies",
         "body": "We use Google Analytics to understand how the site is used (pages visited, time on site, traffic sources); this means some of your browsing information is shared with Google. We do not use cookies for advertising purposes or sell your browsing information to third parties. We also use your browser's local storage to remember your language and appearance (light/dark mode) preferences."
+      },
+      {
+        "title": "Document portal (Tax Certificate and Birth Certificate)",
+        "body": "If you use our document portal (/documentos/<link>) to upload your Tax Status Certificate or your Birth Certificate, we process the data contained in those documents (RFC, CURP, name, tax address, date of birth) solely for the transaction your advisor shared the link for. Files are stored encrypted in private storage, only authorized ACL Propiedades staff can view them through signed, time-limited links, and we never ask for or store your SAT password, e.firma, or CIEC — you download those documents directly from the corresponding official site. We keep these documents while your transaction is active and afterward under ACL Propiedades' current retention policy; you may request their early deletion by exercising your ARCO rights."
       },
       {
         "title": "Changes to this notice",
