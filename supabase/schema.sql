@@ -3528,7 +3528,10 @@ alter table construccion_habitaciones add column if not exists tipo_techo text;
 -- siempre que ya hayas creado el secreto una vez)
 -- ─────────────────────────────────────────────
 
-create extension if not exists pgcrypto;
+-- Supabase instala las extensiones en el esquema `extensions`, no en
+-- `public` — de ahí que las dos funciones de abajo agreguen `extensions` a
+-- su search_path, si no `pgp_sym_encrypt`/`pgp_sym_decrypt` no se encuentran.
+create extension if not exists pgcrypto with schema extensions;
 
 -- Única forma de leer la llave: una función privada, sin EXECUTE para nadie
 -- más que su dueño (mismo patrón que has_admin_section/_visit_report_payload).
@@ -3550,7 +3553,7 @@ create or replace function _encrypt_portal_password(plain text)
 returns text
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   key text := _portal_password_key();
@@ -3580,7 +3583,7 @@ returns text
 language plpgsql
 stable
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   key text := _portal_password_key();
