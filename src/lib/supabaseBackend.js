@@ -692,8 +692,15 @@ export const supabaseBackend = {
     return true;
   },
 
+  // Las dos de abajo leen de `clients_decrypted` (vista, ver supabase/schema.sql
+  // "Cifrado de la contraseña del portal de crédito"), no de la tabla: la
+  // tabla guarda `contrasena_portal` cifrada y esta vista la descifra al
+  // vuelo para quien tenga el apartado 'clientes' — la app recibe el mismo
+  // shape de siempre, en claro, sin ningún cambio aparte de estas dos líneas.
+  // Insert/update/delete sí van contra la tabla real: el trigger de ese mismo
+  // bloque cifra automáticamente lo que llegue en `contrasena_portal`.
   async getClients(filters = {}) {
-    let query = supabase.from("clients").select("*").order("created_at", { ascending: false });
+    let query = supabase.from("clients_decrypted").select("*").order("created_at", { ascending: false });
     if (filters.type) query = query.eq("type", filters.type);
     const { data, error } = await query;
     if (error) throw error;
@@ -701,7 +708,7 @@ export const supabaseBackend = {
   },
 
   async getClientById(id) {
-    const { data, error } = await supabase.from("clients").select("*").eq("id", id).maybeSingle();
+    const { data, error } = await supabase.from("clients_decrypted").select("*").eq("id", id).maybeSingle();
     if (error) throw error;
     return data;
   },
@@ -1061,8 +1068,11 @@ export const supabaseBackend = {
     return data || [];
   },
 
+  // Lee de `perfilamientos_comprador_decrypted` (vista que descifra
+  // `contrasena_portal` al vuelo) por el mismo motivo que getClientById.
+  // Insert/update/delete siguen contra la tabla real: el trigger cifra solo.
   async getPerfilamientoCompradorById(id) {
-    const { data, error } = await supabase.from("perfilamientos_comprador").select("*").eq("id", id).maybeSingle();
+    const { data, error } = await supabase.from("perfilamientos_comprador_decrypted").select("*").eq("id", id).maybeSingle();
     if (error) throw error;
     return data;
   },
