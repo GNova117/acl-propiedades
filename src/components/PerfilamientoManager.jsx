@@ -52,7 +52,10 @@ function FieldInput({ field, value, error, revealed, onToggleReveal, onChange })
   return <input {...common} type="text" />;
 }
 
-function FieldGroup({ fields, form, errors, revealedKeys, onToggleReveal, onChange }) {
+// Exportado para que otras pantallas con el mismo motor de secciones
+// (p. ej. Solicitud de avalúo) reutilicen el mismo render de campos sin
+// duplicarlo.
+export function FieldGroup({ fields, form, errors, revealedKeys, onToggleReveal, onChange }) {
   return (
     <div className="profiling-grid">
       {fields.map((field) => {
@@ -82,7 +85,7 @@ function FieldGroup({ fields, form, errors, revealedKeys, onToggleReveal, onChan
   );
 }
 
-function ReadSection({ fields, record, revealedKeys, onToggleReveal }) {
+export function ReadSection({ fields, record, revealedKeys, onToggleReveal }) {
   const visible = fields.filter((field) => isFieldVisible(field, record) && displayValue(field, record));
   if (visible.length === 0) return <p className="form-hint">—</p>;
   return (
