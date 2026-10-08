@@ -5,6 +5,7 @@ import {
   generateReportToken,
   isInterested,
   isValidProspectPhone,
+  parseDateOnly,
   percentages,
   phoneDigits,
   reportPath,
@@ -14,26 +15,47 @@ import {
   toVisitFields,
   validateVisitForm,
   whatsappNumber,
-} from "./visitReport";
+} from "./visitReport.js";
 
-describe("percentages", () => {
-  it("siempre suma exactamente 100 aunque el reparto no sea exacto", () => {
+describe("percentages (método del mayor residuo)", () => {
+  it("siempre suma exactamente 100, incluso con empates que redondearían a 99", () => {
     const result = percentages([1, 1, 1]);
     expect(result.reduce((a, b) => a + b, 0)).toBe(100);
-    expect(result).toEqual([34, 33, 33]);
+    expect(result).toEqual([34, 33, 33]); // el primer índice se lleva el residuo mayor en empate
   });
 
   it("no inventa reparto cuando el total ya cae exacto", () => {
     expect(percentages([5, 3, 2])).toEqual([50, 30, 20]);
   });
 
-  it("devuelve ceros, no NaN, cuando no hay nada que repartir", () => {
+  it("regresa ceros (no NaN) cuando el total es 0, sin dividir entre cero", () => {
     expect(percentages([0, 0])).toEqual([0, 0]);
+  });
+
+  it("reparte proporcionalmente con un solo valor dominante", () => {
+    expect(percentages([9, 1])).toEqual([90, 10]);
+  });
+});
+
+describe("parseDateOnly / daysBetween", () => {
+  it("interpreta una fecha YYYY-MM-DD como fecha local, no UTC", () => {
+    const d = parseDateOnly("2026-09-01");
+    expect(d.getFullYear()).toBe(2026);
+    expect(d.getMonth()).toBe(8); // septiembre = índice 8
+    expect(d.getDate()).toBe(1);
+  });
+
+  it("cuenta días naturales entre dos fechas", () => {
+    expect(daysBetween("2026-01-01", "2026-01-11")).toBe(10);
+  });
+
+  it("nunca regresa días negativos aunque 'to' sea anterior a 'from'", () => {
+    expect(daysBetween("2026-01-10", "2026-01-01")).toBe(0);
   });
 });
 
 describe("isInterested", () => {
-  it("todo lo que no es 'descartado' cuenta como interesado, incluida una oferta", () => {
+  it("cuenta todo lo que no es 'descartado' como interesado, incluida una oferta", () => {
     expect(isInterested("muy_interesado")).toBe(true);
     expect(isInterested("oferta_realizada")).toBe(true);
     expect(isInterested("descartado")).toBe(false);
@@ -52,8 +74,9 @@ describe("phoneDigits / isValidProspectPhone / whatsappNumber", () => {
   });
 
   it("valida teléfonos de 10 a 15 dígitos", () => {
-    expect(isValidProspectPhone("8714871494")).toBe(true);
-    expect(isValidProspectPhone("123")).toBe(false);
+    expect(isValidProspectPhone("871 123 4567")).toBe(true);
+    expect(isValidProspectPhone("12345")).toBe(false);
+    expect(isValidProspectPhone("1".repeat(16))).toBe(false);
   });
 
   it("antepone la lada 52 solo a números de 10 dígitos (sin lada de país)", () => {
@@ -99,7 +122,7 @@ describe("validateVisitForm", () => {
 });
 
 describe("toVisitFields", () => {
-  it("convierte cadenas vacías a null y recorta espacios", () => {
+  it("convierte cadenas vacías a null, recorta espacios y deduplica motivos", () => {
     const fields = toVisitFields({
       property_id: "p1",
       advisor_id: "a1",
@@ -181,11 +204,11 @@ describe("buildVisitReport", () => {
     const report = buildVisitReport({ property: {}, visits: [] });
     expect(report.daysOnMarket).toBeNull();
   });
-});
 
-describe("daysBetween", () => {
-  it("nunca da negativo aunque 'to' sea anterior a 'from'", () => {
-    expect(daysBetween("2026-01-10", "2026-01-01")).toBe(0);
+  it("ordena las visitas de más reciente a más antigua en el log", () => {
+    const report = buildVisitReport(payload, { now: new Date("2026-01-11T00:00:00.000Z") });
+    const dates = report.log.map((v) => v.visited_at);
+    expect(dates).toEqual([...dates].sort().reverse());
   });
 });
 
