@@ -26,6 +26,14 @@
   padding: 0.4rem;
 }
 
+/* Para usarse cerca del borde inferior de un contenedor con overflow:hidden
+   (p. ej. PropertyCard) — abre el menú hacia arriba en vez de hacia abajo,
+   donde quedaría recortado. */
+.share-button--up .share-button__menu {
+  top: auto;
+  bottom: calc(100% + 0.4rem);
+}
+
 .share-button__menu a,
 .share-button__menu button {
   display: block;

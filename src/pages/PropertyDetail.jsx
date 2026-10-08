@@ -12,7 +12,7 @@ import CompareButton from "../components/CompareButton";
 import ScheduleVisitCard from "../components/ScheduleVisitCard";
 import AlertSignupCard from "../components/AlertSignupCard";
 import { db } from "../lib/dataStore";
-import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
+import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
 import "./PropertyDetail.css";
 
 // Leaflet (react-leaflet + leaflet, ~150KB) queda fuera del bundle
@@ -262,15 +262,7 @@ export default function PropertyDetail() {
   // "Título — URL", que es lo único que se ve al abrirlo en otro lado.
   const shareText = useMemo(() => {
     if (!property || typeof window === "undefined") return "";
-    const lines = [
-      `📍 ${t(`propertyOperation.${property.operation_type}`)} | ${propertyTypeLabel(t, property.type)} en ${property.address}`,
-      "",
-      `💰 ${formatMXN(property.price)} MXN`,
-      `📐 ${formatArea(property.area_m2)}`,
-    ];
-    if (property.bedrooms != null) lines.push(`🛌 ${property.bedrooms} recámaras`);
-    if (property.bathrooms != null) lines.push(`🛁 ${property.bathrooms} baños`);
-    if (property.parking != null) lines.push(`🚗 ${property.parking} estacionamientos`);
+    const lines = propertyShareLines(property, t);
     propertyAmenities.forEach((amenity) => lines.push(`${AMENITY_EMOJI[amenity.key] || "✅"} ${amenity.label}`));
     lines.push("", `${window.location.origin}/propiedades/${property.id}`);
     return lines.join("\n");

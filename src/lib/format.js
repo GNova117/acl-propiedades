@@ -83,6 +83,25 @@ export function propertyTypeLabel(t, type) {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+// Encabezado + datos clave para compartir una propiedad por WhatsApp/redes
+// (al estilo de las fichas que ya circulan en otros portales inmobiliarios).
+// Compartido entre la tarjeta de listado (PropertyCard, sin amenidades
+// cargadas) y la ficha de propiedad (PropertyDetail, que le agrega
+// amenidades y el link antes de unir las líneas) para no repetir el mismo
+// armado de texto en los dos lugares.
+export function propertyShareLines(property, t) {
+  const lines = [
+    `📍 ${t(`propertyOperation.${property.operation_type}`)} | ${propertyTypeLabel(t, property.type)} en ${property.address}`,
+    "",
+    `💰 ${formatMXN(property.price)} MXN`,
+    `📐 ${formatArea(property.area_m2)}`,
+  ];
+  if (property.bedrooms != null) lines.push(`🛌 ${property.bedrooms} recámaras`);
+  if (property.bathrooms != null) lines.push(`🛁 ${property.bathrooms} baños`);
+  if (property.parking != null) lines.push(`🚗 ${property.parking} estacionamientos`);
+  return lines;
+}
+
 export const CLIENT_TYPES = ["comprador", "vendedor", "ambos"];
 
 // Nota: "cedula_fiscal" es el documento del RFC (la cédula de identificación

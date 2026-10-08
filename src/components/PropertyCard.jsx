@@ -1,14 +1,26 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import PropertyTypeIcon from "./PropertyTypeIcon";
 import FavoriteButton from "./FavoriteButton";
 import CompareButton from "./CompareButton";
-import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
+import ShareButton from "./ShareButton";
+import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
 import "./PropertyCard.css";
 
 export default function PropertyCard({ property }) {
   const { t } = useTranslation();
   const advisor = property.advisors?.[0];
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/propiedades/${property.id}` : "";
+  // Mismo formato que el botón de Compartir de la ficha de propiedad, pero
+  // sin amenidades (la tarjeta de listado no las trae cargadas) — para que
+  // alguien pueda reenviar una propiedad desde los resultados o sus
+  // favoritos sin tener que abrir la ficha primero.
+  const shareText = useMemo(() => {
+    const lines = propertyShareLines(property, t);
+    lines.push("", shareUrl);
+    return lines.join("\n");
+  }, [property, t, shareUrl]);
 
   return (
     <article className="property-card card">
@@ -44,9 +56,12 @@ export default function PropertyCard({ property }) {
           ) : (
             <span />
           )}
-          <Link to={`/propiedades/${property.id}`} className="btn btn-outline btn-sm">
-            {t("properties.viewDetail")}
-          </Link>
+          <div className="property-card__footer-actions">
+            <ShareButton title={property.title} text={shareText} url={shareUrl} openUpward />
+            <Link to={`/propiedades/${property.id}`} className="btn btn-outline btn-sm">
+              {t("properties.viewDetail")}
+            </Link>
+          </div>
         </div>
       </div>
     </article>
