@@ -113,8 +113,6 @@ export const SOLICITUD_AVALUO_SECTIONS = [
   },
 ];
 
-export const SOLICITUD_AVALUO_PDF_TITLE = "SOLICITUD DE AVALUO INMOBILIARIO Y DICTAMEN TECNICO DE CALIDAD";
-
 // Columnas que la lista necesita para mostrarse sin pedir el registro
 // completo (igual que PERFILAMIENTO_VENDEDOR_LIST_FIELDS).
 export const SOLICITUD_AVALUO_LIST_FIELDS = [

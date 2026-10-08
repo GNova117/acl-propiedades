@@ -8,11 +8,10 @@ import {
   toFormValues,
   formatFecha,
 } from "../../lib/perfilamientoShared";
-import { downloadPerfilamientoPdf } from "../../lib/perfilamientoPdf";
+import { downloadSolicitudAvaluoOfficialPdf } from "../../lib/solicitudAvaluoOfficialPdf";
 import { FieldGroup, ReadSection } from "../../components/PerfilamientoManager";
 import {
   SOLICITUD_AVALUO_SECTIONS,
-  SOLICITUD_AVALUO_PDF_TITLE,
   solicitudAvaluoNombre,
   clienteToDerechohabiente,
   clienteToPropietario,
@@ -20,8 +19,6 @@ import {
 } from "../../lib/solicitudAvaluo";
 import "./AdminClientProfiling.css";
 import "./admin.css";
-
-const PDF_OPTIONS = { title: SOLICITUD_AVALUO_PDF_TITLE };
 
 export default function AdminSolicitudAvaluo() {
   const { t } = useTranslation();
@@ -163,7 +160,7 @@ export default function AdminSolicitudAvaluo() {
       setMode("read");
       load();
       if (withPdf) {
-        await downloadPerfilamientoPdf(full, SOLICITUD_AVALUO_SECTIONS, PDF_OPTIONS, solicitudAvaluoNombre(full), "Solicitud_Avaluo");
+        await downloadSolicitudAvaluoOfficialPdf(full, solicitudAvaluoNombre(full));
       }
     } catch (err) {
       window.alert(err.message || t("solicitudAvaluo.saveError"));
@@ -177,7 +174,7 @@ export default function AdminSolicitudAvaluo() {
     try {
       const full = await db.getSolicitudAvaluoById(id);
       if (!full) throw new Error(t("solicitudAvaluo.notFound"));
-      await downloadPerfilamientoPdf(full, SOLICITUD_AVALUO_SECTIONS, PDF_OPTIONS, solicitudAvaluoNombre(full), "Solicitud_Avaluo");
+      await downloadSolicitudAvaluoOfficialPdf(full, solicitudAvaluoNombre(full));
     } catch (err) {
       window.alert(err.message || t("solicitudAvaluo.pdfError"));
     } finally {
