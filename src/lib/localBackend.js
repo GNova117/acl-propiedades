@@ -38,6 +38,7 @@ const KEYS = {
   keyLog: "acl_local_key_log",
   docLog: "acl_local_doc_log",
   valuations: "acl_local_valuation_estimates",
+  solicitudesAvaluo: "acl_local_solicitudes_avaluo",
   marketSnapshots: "acl_local_market_snapshots",
   prospects: "acl_local_prospectos",
   signing: "acl_local_signing_requests",
@@ -1837,6 +1838,37 @@ export const localBackend = {
 
   async deleteValuationEstimate(id) {
     writeStore(KEYS.valuations, readStore(KEYS.valuations, []).filter((r) => r.id !== id));
+  },
+
+  // Solicitudes de avalúo (modo demo: localStorage).
+  async getSolicitudesAvaluo() {
+    return readStore(KEYS.solicitudesAvaluo, []).sort((a, b) => String(b.fecha_creacion).localeCompare(String(a.fecha_creacion)));
+  },
+
+  async getSolicitudAvaluoById(id) {
+    return readStore(KEYS.solicitudesAvaluo, []).find((r) => r.id === id) || null;
+  },
+
+  async addSolicitudAvaluo(payload) {
+    const items = readStore(KEYS.solicitudesAvaluo, []);
+    const now = new Date().toISOString();
+    const record = { id: uid("solicitud-avaluo"), ...payload, usuario_creo: DEMO_ADMIN.email, fecha_creacion: now, fecha_modificacion: now };
+    items.push(record);
+    writeStore(KEYS.solicitudesAvaluo, items);
+    return record;
+  },
+
+  async updateSolicitudAvaluo(id, payload) {
+    const items = readStore(KEYS.solicitudesAvaluo, []);
+    const idx = items.findIndex((r) => r.id === id);
+    if (idx === -1) throw new Error("Solicitud de avalúo no encontrada");
+    items[idx] = { ...items[idx], ...payload, fecha_modificacion: new Date().toISOString() };
+    writeStore(KEYS.solicitudesAvaluo, items);
+    return items[idx];
+  },
+
+  async deleteSolicitudAvaluo(id) {
+    writeStore(KEYS.solicitudesAvaluo, readStore(KEYS.solicitudesAvaluo, []).filter((r) => r.id !== id));
   },
 
   // Mercado en internet (modo demo): no hay función de Vercel ni llave de

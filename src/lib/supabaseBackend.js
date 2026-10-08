@@ -2,6 +2,7 @@ import { supabase } from "./supabaseClient";
 import * as construccionSync from "./construccion/sync";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
+import { SOLICITUD_AVALUO_LIST_FIELDS } from "./solicitudAvaluo";
 import { slugify, numOrNull } from "./format";
 import { CLIENT_EXPEDIENTE_KEYS } from "./clientExpedienteFields";
 import { compressImageFile, compressImageFiles } from "./imageCompression";
@@ -1733,6 +1734,42 @@ export const supabaseBackend = {
 
   async deleteValuationEstimate(id) {
     const { error } = await supabase.from("valuation_estimates").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  // Solicitudes de avalúo (formato INFONAVIT). RLS: apartado 'valuacion'.
+  async getSolicitudesAvaluo() {
+    const { data, error } = await supabase
+      .from("solicitudes_avaluo")
+      .select(SOLICITUD_AVALUO_LIST_FIELDS.join(", "))
+      .order("fecha_creacion", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getSolicitudAvaluoById(id) {
+    const { data, error } = await supabase.from("solicitudes_avaluo").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async addSolicitudAvaluo(payload) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = { ...payload, usuario_creo: sessionData?.session?.user?.email || null };
+    const { data, error } = await supabase.from("solicitudes_avaluo").insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateSolicitudAvaluo(id, payload) {
+    const row = { ...payload, fecha_modificacion: new Date().toISOString() };
+    const { data, error } = await supabase.from("solicitudes_avaluo").update(row).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteSolicitudAvaluo(id) {
+    const { error } = await supabase.from("solicitudes_avaluo").delete().eq("id", id);
     if (error) throw error;
   },
 
