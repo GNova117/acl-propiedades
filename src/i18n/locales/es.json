@@ -1681,6 +1681,20 @@
       "admin_access": "Accesos"
     }
   },
+  "novedades": {
+    "admin": {
+      "title": "Novedades del sitio",
+      "subtitle": "Cada cambio o mejora que se hace al sitio queda aquí como una entrada aparte, separada de las demás, para tener control de qué se modificó y cuándo. Solo lo ve el panel admin, nunca se muestra en el sitio público.",
+      "new": "Nueva entrada",
+      "edit": "Editar entrada",
+      "empty": "Todavía no hay entradas registradas.",
+      "postedOn": "Publicada el {{date}}",
+      "fields": {
+        "title": "Título del cambio",
+        "body": "Qué se cambió"
+      }
+    }
+  },
   "clientHistory": {
     "title": "Historial del cliente",
     "button": "Historial",

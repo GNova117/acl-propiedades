@@ -1681,6 +1681,20 @@
       "admin_access": "Access"
     }
   },
+  "novedades": {
+    "admin": {
+      "title": "Site updates",
+      "subtitle": "Every change or improvement made to the site is logged here as its own entry, separate from the rest, so you can track what changed and when. Only visible in the admin panel, never shown on the public site.",
+      "new": "New entry",
+      "edit": "Edit entry",
+      "empty": "No entries yet.",
+      "postedOn": "Posted on {{date}}",
+      "fields": {
+        "title": "Change title",
+        "body": "What changed"
+      }
+    }
+  },
   "clientHistory": {
     "title": "Client history",
     "button": "History",

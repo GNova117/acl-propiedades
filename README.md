@@ -41,6 +41,19 @@ npm run test:watch  # las vuelve a correr al guardar un archivo
 
 Usa [Vitest](https://vitest.dev) (mismo motor que Vite, sin configuración aparte). Las pruebas viven junto al archivo que cubren (`src/lib/algo.js` → `src/lib/algo.test.js`) y por ahora solo cubren funciones puras de `src/lib/` — cálculos de dinero y de negocio (liquidaciones, valuación, simulador Infonavit, informe de visitas) que no dependen de React ni de Supabase. Para cubrir una función nueva, crea su `.test.js` junto a ella; no hace falta tocar `vite.config.js`. `.github/workflows/ci.yml` corre `lint` + `test` + `build` en cada push y pull request.
 
+### Novedades del sitio: registro automático de cambios
+
+El apartado `/admin/novedades` (solo visible con ese permiso, otorgado por default al rol admin) lleva una bitácora de cada cambio que se le hace al sitio, como un blog interno. No hay que escribir las entradas a mano: `.github/workflows/log-site-update.yml` inserta una automáticamente en la tabla `site_updates` cada vez que un pull request se fusiona a `main`, usando el título y la descripción del PR. (También se puede agregar una entrada a mano desde el panel para algo que no vino de un PR, como un cambio de configuración hecho directo en Supabase o Vercel.)
+
+Para que ese workflow funcione hace falta darle dos secretos al repositorio (**Settings → Secrets and variables → Actions → New repository secret**; están en Supabase, en **Project Settings → API**):
+
+```
+SUPABASE_URL=https://xxxxxxxx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=xxxxxxxxxxxxxxxxxxxxxxxx   # Project API keys > service_role
+```
+
+Si no se configuran, el workflow no falla: el paso se salta con un aviso en los logs de Actions. El `service_role` key se usa aquí (y solo aquí, fuera de las Edge Functions de Supabase) porque este insert corre sin sesión de usuario — necesita saltarse las políticas RLS de `site_updates`, que de otra forma exigen el apartado `novedades` para escribir.
+
 
 
 1. Crea un proyecto gratuito en [supabase.com](https://supabase.com).

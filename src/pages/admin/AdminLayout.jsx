@@ -72,6 +72,7 @@ const NAV = [
       { section: "reportes", to: "/admin/reportes", labelKey: "accessControl.sections.reportes" },
       { section: "reportes", to: "/admin/reporte-mensual", labelKey: "monthly.title" },
       { section: "roles", to: "/admin/actividad", labelKey: "activity.title" },
+      { section: "novedades", to: "/admin/novedades", labelKey: "novedades.admin.title" },
     ],
   },
   { section: "roles", to: "/admin/roles", labelKey: "accessControl.sections.roles" },
