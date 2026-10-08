@@ -10,7 +10,14 @@ import {
 } from "../../lib/perfilamientoShared";
 import { downloadPerfilamientoPdf } from "../../lib/perfilamientoPdf";
 import { FieldGroup, ReadSection } from "../../components/PerfilamientoManager";
-import { SOLICITUD_AVALUO_SECTIONS, SOLICITUD_AVALUO_PDF_TITLE, solicitudAvaluoNombre } from "../../lib/solicitudAvaluo";
+import {
+  SOLICITUD_AVALUO_SECTIONS,
+  SOLICITUD_AVALUO_PDF_TITLE,
+  solicitudAvaluoNombre,
+  clienteToDerechohabiente,
+  clienteToPropietario,
+  propiedadToVivienda,
+} from "../../lib/solicitudAvaluo";
 import "./AdminClientProfiling.css";
 import "./admin.css";
 
@@ -27,6 +34,7 @@ export default function AdminSolicitudAvaluo() {
   const [current, setCurrent] = useState(null);
   const [form, setForm] = useState(() => emptyForm(SOLICITUD_AVALUO_SECTIONS));
   const [clienteId, setClienteId] = useState("");
+  const [propietarioClienteId, setPropietarioClienteId] = useState("");
   const [propiedadId, setPropiedadId] = useState("");
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -63,10 +71,63 @@ export default function AdminSolicitudAvaluo() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  // Solo rellena los campos que el formulario todavía tiene vacíos — nunca
+  // pisa algo que el asesor ya escribió o corrigió a mano.
+  const fillEmpty = (patch) => {
+    setForm((prev) => {
+      const next = { ...prev };
+      for (const [key, value] of Object.entries(patch)) {
+        if (!next[key]) next[key] = value;
+      }
+      return next;
+    });
+  };
+
+  // Al elegir el cliente derechohabiente se precarga la sección 1 con sus
+  // datos generales y, si tiene un perfilamiento de comprador capturado, con
+  // ese detalle (NSS, domicilio, teléfono) — ahorra volver a teclear lo que
+  // ya se capturó en Clientes.
+  const handleClienteChange = async (id) => {
+    setClienteId(id);
+    const client = clientById[id];
+    if (!client) return;
+    try {
+      const perfiles = await db.getPerfilamientosComprador(id);
+      const full = perfiles[0] ? await db.getPerfilamientoCompradorById(perfiles[0].id) : null;
+      fillEmpty(clienteToDerechohabiente(client, full));
+    } catch {
+      fillEmpty(clienteToDerechohabiente(client, null));
+    }
+  };
+
+  // Mismo autollenado, pero para la sección 2 (propietario actual de la
+  // vivienda — normalmente el vendedor de la operación). No se guarda como
+  // relación en la base de datos: es solo un atajo para traer los datos una
+  // vez, de ahí en más los campos son los que se editan y se guardan.
+  const handlePropietarioClienteChange = async (id) => {
+    setPropietarioClienteId(id);
+    const client = clientById[id];
+    if (!client) return;
+    try {
+      const perfiles = await db.getPerfilamientosVendedor(id);
+      const full = perfiles[0] ? await db.getPerfilamientoVendedorById(perfiles[0].id) : null;
+      fillEmpty(clienteToPropietario(client, full));
+    } catch {
+      fillEmpty(clienteToPropietario(client, null));
+    }
+  };
+
+  // Al elegir la propiedad se precarga la sección 3 con su dirección y zona.
+  const handlePropiedadChange = (id) => {
+    setPropiedadId(id);
+    fillEmpty(propiedadToVivienda(propertyById[id]));
+  };
+
   const startNew = () => {
     setCurrent(null);
     setForm(emptyForm(SOLICITUD_AVALUO_SECTIONS));
     setClienteId("");
+    setPropietarioClienteId("");
     setPropiedadId("");
     setErrors({});
     setMode("form");
@@ -77,6 +138,7 @@ export default function AdminSolicitudAvaluo() {
     if (!full) return;
     setCurrent(full);
     setClienteId(full.cliente_id || "");
+    setPropietarioClienteId("");
     setPropiedadId(full.propiedad_id || "");
     setMode("read");
   };
@@ -216,7 +278,7 @@ export default function AdminSolicitudAvaluo() {
           <div className="form-row">
             <div className="form-field">
               <label htmlFor="sa-cliente">{t("solicitudAvaluo.linkClient")}</label>
-              <select id="sa-cliente" value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
+              <select id="sa-cliente" value={clienteId} onChange={(e) => handleClienteChange(e.target.value)}>
                 <option value="">{t("valuation.history.none")}</option>
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -224,10 +286,23 @@ export default function AdminSolicitudAvaluo() {
                   </option>
                 ))}
               </select>
+              <span className="form-hint">{t("solicitudAvaluo.linkClientHint")}</span>
+            </div>
+            <div className="form-field">
+              <label htmlFor="sa-propietario-cliente">{t("solicitudAvaluo.autofillOwner")}</label>
+              <select id="sa-propietario-cliente" value={propietarioClienteId} onChange={(e) => handlePropietarioClienteChange(e.target.value)}>
+                <option value="">{t("valuation.history.none")}</option>
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <span className="form-hint">{t("solicitudAvaluo.autofillOwnerHint")}</span>
             </div>
             <div className="form-field">
               <label htmlFor="sa-propiedad">{t("solicitudAvaluo.linkProperty")}</label>
-              <select id="sa-propiedad" value={propiedadId} onChange={(e) => setPropiedadId(e.target.value)}>
+              <select id="sa-propiedad" value={propiedadId} onChange={(e) => handlePropiedadChange(e.target.value)}>
                 <option value="">{t("valuation.history.none")}</option>
                 {properties.map((p) => (
                   <option key={p.id} value={p.id}>
