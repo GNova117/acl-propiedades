@@ -35,10 +35,13 @@ export default function AdminSolicitudAvaluo() {
 
   const load = () => {
     setLoading(true);
-    db.getSolicitudesAvaluo().then((data) => {
-      setList(data);
-      setLoading(false);
-    });
+    db.getSolicitudesAvaluo()
+      .then(setList)
+      .catch((err) => {
+        console.error("AdminSolicitudAvaluo: no se pudo cargar la lista", err);
+        setList([]);
+      })
+      .finally(() => setLoading(false));
   };
 
   useEffect(load, []);
