@@ -2303,6 +2303,31 @@
       "attribution": "Satellite imagery: Esri, Maxar, Earthstar Geographics. Search: OpenStreetMap."
     }
   },
+  "solicitudAvaluo": {
+    "navTitle": "Appraisal request",
+    "title": "Real estate appraisal request",
+    "subtitle": "Fill out the real estate appraisal and technical quality report request (INFONAVIT form) online and download it as a PDF.",
+    "new": "New request",
+    "linkClient": "Client (optional)",
+    "linkProperty": "Property (optional)",
+    "saveError": "The request could not be saved",
+    "notFound": "The request to download was not found",
+    "pdfError": "The PDF could not be generated",
+    "sections": {
+      "destino": "Purpose of the loan",
+      "derechohabiente": "1. Loan holder identification",
+      "propietario": "2. Current owner of the home",
+      "vivienda": "3. Details of the home being financed",
+      "tramite": "4. Place and date of the request"
+    },
+    "list": {
+      "derechohabiente": "Loan holder",
+      "vivienda": "Property",
+      "destino": "Purpose of the loan",
+      "createdAt": "Created on",
+      "empty": "No appraisal requests saved yet."
+    }
+  },
   "legalDocs": {
     "title": "Legal documents",
     "subtitle": "Download the Privacy Notice and the Consumer Rights Notice on the letterhead, ready to print and sign. Same text published on the site.",
