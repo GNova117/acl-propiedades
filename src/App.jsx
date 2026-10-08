@@ -96,6 +96,8 @@ const AdminMonthlyReport = lazy(() => import("./pages/admin/AdminMonthlyReport")
 const AdminAlerts = lazy(() => import("./pages/admin/AdminAlerts"));
 const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const AdminBlogForm = lazy(() => import("./pages/admin/AdminBlogForm"));
+const AdminNovedades = lazy(() => import("./pages/admin/AdminNovedades"));
+const AdminNovedadesForm = lazy(() => import("./pages/admin/AdminNovedadesForm"));
 
 const SPECIAL_SECTION_KEYS = Object.keys(SPECIAL_SECTION_TYPES);
 
@@ -295,6 +297,9 @@ export default function App() {
         <Route path="firmas" element={<RequireSection section="documentos_legales"><AdminSignatures /></RequireSection>} />
         <Route path="documentos-legales" element={<RequireSection section="documentos_legales"><AdminLegalDocs /></RequireSection>} />
         <Route path="actividad" element={<RequireSection section="roles"><AdminActivity /></RequireSection>} />
+        <Route path="novedades" element={<RequireSection section="novedades"><AdminNovedades /></RequireSection>} />
+        <Route path="novedades/nueva" element={<RequireSection section="novedades"><AdminNovedadesForm /></RequireSection>} />
+        <Route path="novedades/:id" element={<RequireSection section="novedades"><AdminNovedadesForm /></RequireSection>} />
         <Route path="roles" element={<RequireSection section="roles"><AdminRoles /></RequireSection>} />
         <Route path="agenda" element={<RequireSection section="agenda"><AdminAgenda /></RequireSection>} />
         <Route path="agenda/nueva" element={<RequireSection section="agenda"><AdminAgendaForm /></RequireSection>} />

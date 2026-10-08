@@ -53,6 +53,7 @@ const KEYS = {
   messages: "acl_local_messages",
   testimonials: "acl_local_testimonials",
   propertyChanges: "acl_local_property_changes",
+  siteUpdates: "acl_local_site_updates",
   blogPosts: "acl_local_blog_posts",
   clientPortalTokens: "acl_local_client_portal_tokens",
   documentAccessLog: "acl_local_document_access_log",
@@ -680,6 +681,46 @@ export const localBackend = {
   async deleteBlogPost(id) {
     const posts = readStore(KEYS.blogPosts, BLOG_POSTS_SEED);
     writeStore(KEYS.blogPosts, posts.filter((p) => p.id !== id));
+  },
+
+  async getSiteUpdates() {
+    const updates = readStore(KEYS.siteUpdates, []);
+    return updates.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  },
+
+  async addSiteUpdate(data) {
+    const updates = readStore(KEYS.siteUpdates, []);
+    const now = new Date().toISOString();
+    const record = {
+      id: uid("update"),
+      title: data.title.trim(),
+      body: data.body.trim(),
+      created_by: DEMO_ADMIN.email,
+      created_at: now,
+      updated_at: now,
+    };
+    updates.push(record);
+    writeStore(KEYS.siteUpdates, updates);
+    return record;
+  },
+
+  async updateSiteUpdate(id, data) {
+    const updates = readStore(KEYS.siteUpdates, []);
+    const idx = updates.findIndex((u) => u.id === id);
+    if (idx === -1) throw new Error("Entrada no encontrada");
+    updates[idx] = {
+      ...updates[idx],
+      title: data.title.trim(),
+      body: data.body.trim(),
+      updated_at: new Date().toISOString(),
+    };
+    writeStore(KEYS.siteUpdates, updates);
+    return updates[idx];
+  },
+
+  async deleteSiteUpdate(id) {
+    const updates = readStore(KEYS.siteUpdates, []);
+    writeStore(KEYS.siteUpdates, updates.filter((u) => u.id !== id));
   },
 
   // Modo demo no tiene backend de correo real (eso solo existe con Supabase

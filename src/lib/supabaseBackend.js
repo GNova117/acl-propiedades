@@ -627,6 +627,40 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  async getSiteUpdates() {
+    const { data, error } = await supabase.from("site_updates").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addSiteUpdate(data) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const payload = {
+      title: data.title.trim(),
+      body: data.body.trim(),
+      created_by: sessionData?.session?.user?.email || null,
+    };
+    const { data: inserted, error } = await supabase.from("site_updates").insert(payload).select().single();
+    if (error) throw error;
+    return inserted;
+  },
+
+  async updateSiteUpdate(id, data) {
+    const payload = {
+      title: data.title.trim(),
+      body: data.body.trim(),
+      updated_at: new Date().toISOString(),
+    };
+    const { data: updated, error } = await supabase.from("site_updates").update(payload).eq("id", id).select().single();
+    if (error) throw error;
+    return updated;
+  },
+
+  async deleteSiteUpdate(id) {
+    const { error } = await supabase.from("site_updates").delete().eq("id", id);
+    if (error) throw error;
+  },
+
   // Envío puntual de un correo (botón "Enviar por correo" en Visitas/Gastos),
   // vía la Edge Function enviar-correo (Resend). `attachment` es opcional:
   // { filename, contentBase64 }.
