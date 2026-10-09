@@ -36,6 +36,28 @@ export const CLIENT_BUYER_FIELDS = [
   { key: "contrasena_portal", label: "Contraseña del portal (INFONAVIT/FOVISSSTE/banco)", type: "text", sensitive: true },
 ];
 
+// Sección 1 ("Datos de identificación del derechohabiente") de la Solicitud
+// de avalúo y de la Solicitud de crédito INFONAVIT — mismas claves `dh_*`
+// que usa solicitudAvaluo.js (clienteToDerechohabiente las toma de aquí
+// antes de recurrir al perfilamiento o de partir el nombre completo).
+// Nombre, apellidos, CURP, RFC y domicilio van en mayúsculas porque así los
+// pide el formato oficial impreso.
+export const CLIENT_DERECHOHABIENTE_FIELDS = [
+  { key: "dh_apellido_paterno", label: "Apellido paterno", type: "text", uppercase: true },
+  { key: "dh_apellido_materno", label: "Apellido materno", type: "text", uppercase: true },
+  { key: "dh_nombres", label: "Nombre(s)", type: "text", uppercase: true },
+  { key: "dh_curp", label: "CURP", type: "text", uppercase: true },
+  { key: "dh_rfc", label: "RFC", type: "text", uppercase: true },
+  { key: "dh_calle_numero", label: "Calle y número", type: "text", full: true, uppercase: true },
+  { key: "dh_colonia", label: "Colonia o fraccionamiento", type: "text", uppercase: true },
+  { key: "dh_municipio", label: "Municipio o delegación", type: "text", uppercase: true },
+  { key: "dh_estado", label: "Estado (entidad)", type: "text", uppercase: true },
+  { key: "dh_codigo_postal", label: "Código postal", type: "text" },
+  { key: "dh_telefono_casa", label: "Teléfono casa", type: "tel" },
+  { key: "dh_telefono_trabajo", label: "Teléfono trabajo", type: "tel" },
+  { key: "dh_telefono_celular", label: "Teléfono celular", type: "tel" },
+];
+
 // Empresa donde trabaja el comprador: es lo que pide el trámite de crédito
 // para comprobar la relación laboral. Mismas llaves que en el perfilamiento
 // del comprador (`tel_empresa` es el número de la empresa).
@@ -56,6 +78,7 @@ export const CLIENT_REFERENCE_FIELDS = [1, 2].flatMap((n) => [
 
 export const CLIENT_EXPEDIENTE_KEYS = [
   ...CLIENT_PERSONAL_FIELDS,
+  ...CLIENT_DERECHOHABIENTE_FIELDS,
   ...CLIENT_BUYER_FIELDS,
   ...CLIENT_COMPANY_FIELDS,
   ...CLIENT_SELLER_FIELDS,
@@ -63,17 +86,19 @@ export const CLIENT_EXPEDIENTE_KEYS = [
 ].map((f) => f.key);
 
 const PERSONAL_TITLE = "Datos personales";
+const DERECHOHABIENTE_TITLE = "Datos de identificación del derechohabiente";
 const COMPANY_TITLE = "Datos de la empresa";
 const REFERENCES_TITLE = "Referencias personales";
 
 // Qué se le pide a un cliente según su tipo: los datos personales a
-// cualquiera; al comprador además el crédito, la empresa y las referencias;
-// al vendedor el número de crédito. Un cliente "ambos" ve todo. Se devuelve
-// por bloques para que el formulario y la hoja membretada muestren los
-// mismos encabezados.
+// cualquiera; al comprador además la identificación del derechohabiente,
+// el crédito, la empresa y las referencias; al vendedor el número de
+// crédito. Un cliente "ambos" ve todo. Se devuelve por bloques para que el
+// formulario y la hoja membretada muestren los mismos encabezados.
 export function clientExpedienteGroups(clientType) {
   const groups = [{ key: "personal", title: PERSONAL_TITLE, fields: CLIENT_PERSONAL_FIELDS }];
   if (clientType !== "vendedor") {
+    groups.push({ key: "derechohabiente", title: DERECHOHABIENTE_TITLE, fields: CLIENT_DERECHOHABIENTE_FIELDS });
     groups.push({ key: "credito", title: "Datos del crédito", fields: CLIENT_BUYER_FIELDS });
     groups.push({ key: "empresa", title: COMPANY_TITLE, fields: CLIENT_COMPANY_FIELDS });
     groups.push({ key: "referencias", title: REFERENCES_TITLE, fields: CLIENT_REFERENCE_FIELDS });
@@ -108,6 +133,7 @@ export function clientSheetSections(client) {
   if (client.type === "vendedor") return [datos];
   return [
     datos,
+    { key: "derechohabiente", title: DERECHOHABIENTE_TITLE, optional: true, fields: CLIENT_DERECHOHABIENTE_FIELDS },
     { key: "empresa", title: COMPANY_TITLE, optional: true, fields: CLIENT_COMPANY_FIELDS },
     { key: "referencias", title: REFERENCES_TITLE, optional: true, fields: CLIENT_REFERENCE_FIELDS },
   ];

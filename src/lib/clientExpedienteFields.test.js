@@ -7,9 +7,9 @@ describe("clientExpedienteGroups", () => {
     expect(clientExpedienteGroups("vendedor").map((g) => g.key)).toContain("personal");
   });
 
-  it("un comprador ve crédito, empresa y referencias, pero no los datos de venta", () => {
+  it("un comprador ve datos personales, identificación del derechohabiente, crédito, empresa y referencias, pero no los datos de venta", () => {
     const groups = clientExpedienteGroups("comprador").map((g) => g.key);
-    expect(groups).toEqual(["personal", "credito", "empresa", "referencias"]);
+    expect(groups).toEqual(["personal", "derechohabiente", "credito", "empresa", "referencias"]);
   });
 
   it("un vendedor solo ve, además de los personales, los datos de venta", () => {
@@ -19,7 +19,7 @@ describe("clientExpedienteGroups", () => {
 
   it("un cliente 'ambos' ve todos los bloques", () => {
     const groups = clientExpedienteGroups("ambos").map((g) => g.key);
-    expect(groups).toEqual(["personal", "credito", "empresa", "referencias", "venta"]);
+    expect(groups).toEqual(["personal", "derechohabiente", "credito", "empresa", "referencias", "venta"]);
   });
 });
 
@@ -30,10 +30,11 @@ describe("clientSheetSections", () => {
     expect(sections[0].key).toBe("cliente");
   });
 
-  it("un comprador incluye empresa y referencias como secciones opcionales", () => {
+  it("un comprador incluye identificación del derechohabiente, empresa y referencias como secciones opcionales", () => {
     const sections = clientSheetSections({ type: "comprador" });
-    expect(sections.map((s) => s.key)).toEqual(["cliente", "empresa", "referencias"]);
+    expect(sections.map((s) => s.key)).toEqual(["cliente", "derechohabiente", "empresa", "referencias"]);
     expect(sections.find((s) => s.key === "empresa").optional).toBe(true);
+    expect(sections.find((s) => s.key === "derechohabiente").optional).toBe(true);
   });
 
   it("la sección de datos del cliente incluye los campos de crédito solo si no es vendedor", () => {

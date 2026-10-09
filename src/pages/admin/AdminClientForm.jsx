@@ -104,6 +104,14 @@ export default function AdminClientForm() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Para los campos del expediente marcados `uppercase` (identificación del
+  // derechohabiente, igual que en el formato oficial impreso): se escribe
+  // tal cual lo tecleado, pero se guarda en mayúsculas.
+  const handleExpedienteFieldChange = (field) => (e) => {
+    const value = field.uppercase ? e.target.value.toUpperCase() : e.target.value;
+    setForm((prev) => ({ ...prev, [field.key]: value }));
+  };
+
   // Ficha con lo que ya está en pantalla (nombre, tipo, teléfono, correo,
   // notas y los datos del expediente según el tipo — vendedor:
   // domicilio/RFC/CURP/número de crédito; comprador: eso mismo más NSS,
@@ -275,21 +283,47 @@ export default function AdminClientForm() {
           <textarea id="c-notes" rows={3} value={form.notes} onChange={handleChange("notes")} />
         </div>
 
-        <h3 style={{ margin: "0.5rem 0 0" }}>{t("clients.expedienteSection")}</h3>
-        <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{t("clients.expedienteSectionHint")}</p>
-        {clientExpedienteGroups(form.type).map((group) => (
-          <div key={group.key}>
-            <h4 style={{ margin: "0 0 0.5rem" }}>{group.title}</h4>
-            <div className="form-row">
-              {group.fields.map((field) => (
-                <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
-                  <label htmlFor={`c-${field.key}`}>{field.label}</label>
-                  <ExpedienteFieldInput field={field} value={form[field.key]} onChange={handleChange(field.key)} />
+        {/* "Datos personales" (fecha de nacimiento, estado civil, domicilio, RFC, CURP,
+            identificación oficial) aplica a cualquier cliente — precarga su perfilamiento
+            (comprador o vendedor) sin importar el financiamiento, así que va siempre visible. */}
+        {clientExpedienteGroups(form.type)
+          .filter((group) => group.key === "personal")
+          .map((group) => (
+            <div key={group.key}>
+              <h4 style={{ margin: "0 0 0.5rem" }}>{group.title}</h4>
+              <div className="form-row">
+                {group.fields.map((field) => (
+                  <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
+                    <label htmlFor={`c-${field.key}`}>{field.label}</label>
+                    <ExpedienteFieldInput field={field} value={form[field.key]} onChange={handleExpedienteFieldChange(field)} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+        {form.financiamiento === "infonavit" && (
+          <>
+            <h3 style={{ margin: "0.5rem 0 0" }}>{t("clients.expedienteSection")}</h3>
+            <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{t("clients.expedienteSectionHint")}</p>
+            {clientExpedienteGroups(form.type)
+              .filter((group) => group.key !== "personal")
+              .map((group) => (
+                <div key={group.key}>
+                  <h4 style={{ margin: "0 0 0.5rem" }}>{group.title}</h4>
+                  <div className="form-row">
+                    {group.fields.map((field) => (
+                      <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
+                        <label htmlFor={`c-${field.key}`}>{field.label}</label>
+                        <ExpedienteFieldInput field={field} value={form[field.key]} onChange={handleExpedienteFieldChange(field)} />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
-            </div>
-          </div>
-        ))}
+          </>
+        )}
+        {form.financiamiento !== "infonavit" && <p className="form-hint">{t("clients.expedienteSectionHiddenHint")}</p>}
 
         <div className="form-field">
           <label>

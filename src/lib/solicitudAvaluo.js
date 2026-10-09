@@ -164,14 +164,31 @@ function compact(obj) {
 // del cliente.
 export function clienteToDerechohabiente(client, perfilComprador) {
   if (!client) return {};
-  const { nombres, apellidoPaterno, apellidoMaterno } = splitNombreCompleto(perfilComprador?.nombre || client.name);
+  // El perfilamiento, cuando existe, trae el detalle más fresco (se captura
+  // en una sesión dedicada); si no, se usan los campos de identificación
+  // `dh_*` capturados directo en el cliente y, a falta de esos, se parte su
+  // nombre completo.
+  const nombreCompleto = splitNombreCompleto(client.name);
+  const { nombres, apellidoPaterno, apellidoMaterno } = perfilComprador?.nombre
+    ? splitNombreCompleto(perfilComprador.nombre)
+    : {
+        nombres: client.dh_nombres || nombreCompleto.nombres,
+        apellidoPaterno: client.dh_apellido_paterno || nombreCompleto.apellidoPaterno,
+        apellidoMaterno: client.dh_apellido_materno || nombreCompleto.apellidoMaterno,
+      };
   return compact({
     nss: perfilComprador?.nss || client.nss,
     dh_apellido_paterno: apellidoPaterno,
     dh_apellido_materno: apellidoMaterno,
     dh_nombres: nombres,
-    dh_calle_numero: perfilComprador?.domicilio,
-    dh_telefono_celular: perfilComprador?.telefono || client.phone,
+    dh_calle_numero: perfilComprador?.domicilio || client.dh_calle_numero || client.domicilio,
+    dh_colonia: client.dh_colonia,
+    dh_municipio: client.dh_municipio,
+    dh_estado: client.dh_estado,
+    dh_codigo_postal: client.dh_codigo_postal,
+    dh_telefono_casa: client.dh_telefono_casa,
+    dh_telefono_trabajo: client.dh_telefono_trabajo,
+    dh_telefono_celular: perfilComprador?.telefono || client.dh_telefono_celular || client.phone,
   });
 }
 

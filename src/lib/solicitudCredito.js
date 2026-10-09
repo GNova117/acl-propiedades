@@ -310,16 +310,30 @@ function compact(obj) {
 // duplicar el mismo best-effort de separar nombre completo).
 export function clienteToDerechohabienteCredito(client, perfilComprador) {
   if (!client) return {};
-  const { nombres, apellidoPaterno, apellidoMaterno } = splitNombreCompleto(perfilComprador?.nombre || client.name);
+  // Mismo criterio que clienteToDerechohabiente (Solicitud de avalúo): el
+  // perfilamiento manda si existe; si no, se usan los campos `dh_*`
+  // capturados directo en el cliente.
+  const nombreCompleto = splitNombreCompleto(client.name);
+  const { nombres, apellidoPaterno, apellidoMaterno } = perfilComprador?.nombre
+    ? splitNombreCompleto(perfilComprador.nombre)
+    : {
+        nombres: client.dh_nombres || nombreCompleto.nombres,
+        apellidoPaterno: client.dh_apellido_paterno || nombreCompleto.apellidoPaterno,
+        apellidoMaterno: client.dh_apellido_materno || nombreCompleto.apellidoMaterno,
+      };
   return compact({
     nss: perfilComprador?.nss || client.nss,
-    curp: perfilComprador?.curp,
-    rfc: perfilComprador?.rfc || client.rfc,
+    curp: perfilComprador?.curp || client.dh_curp || client.curp,
+    rfc: perfilComprador?.rfc || client.dh_rfc || client.rfc,
     apellido_paterno: apellidoPaterno,
     apellido_materno: apellidoMaterno,
     nombres,
-    domicilio_calle: perfilComprador?.domicilio,
-    celular: perfilComprador?.telefono || client.phone,
+    domicilio_calle: perfilComprador?.domicilio || client.dh_calle_numero || client.domicilio,
+    domicilio_colonia: client.dh_colonia,
+    domicilio_entidad: client.dh_estado,
+    domicilio_delegacion: client.dh_municipio,
+    domicilio_cp: client.dh_codigo_postal,
+    celular: perfilComprador?.telefono || client.dh_telefono_celular || client.phone,
     email: perfilComprador?.correo || client.email,
   });
 }
