@@ -214,26 +214,31 @@ export default function AdminClientForm() {
           <textarea id="c-notes" rows={3} value={form.notes} onChange={handleChange("notes")} />
         </div>
 
-        <h3 style={{ margin: "0.5rem 0 0" }}>{t("clients.expedienteSection")}</h3>
-        <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{t("clients.expedienteSectionHint")}</p>
-        {clientExpedienteGroups(form.type).map((group) => (
-          <div key={group.key}>
-            <h4 style={{ margin: "0 0 0.5rem" }}>{group.title}</h4>
-            <div className="form-row">
-              {group.fields.map((field) => (
-                <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
-                  <label htmlFor={`c-${field.key}`}>{field.label}</label>
-                  <input
-                    id={`c-${field.key}`}
-                    type={field.type === "email" ? "email" : field.type === "tel" ? "tel" : "text"}
-                    value={form[field.key]}
-                    onChange={handleChange(field.key)}
-                  />
+        {form.financiamiento === "infonavit" && (
+          <>
+            <h3 style={{ margin: "0.5rem 0 0" }}>{t("clients.expedienteSection")}</h3>
+            <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{t("clients.expedienteSectionHint")}</p>
+            {clientExpedienteGroups(form.type).map((group) => (
+              <div key={group.key}>
+                <h4 style={{ margin: "0 0 0.5rem" }}>{group.title}</h4>
+                <div className="form-row">
+                  {group.fields.map((field) => (
+                    <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
+                      <label htmlFor={`c-${field.key}`}>{field.label}</label>
+                      <input
+                        id={`c-${field.key}`}
+                        type={field.type === "email" ? "email" : field.type === "tel" ? "tel" : "text"}
+                        value={form[field.key]}
+                        onChange={handleChange(field.key)}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        ))}
+              </div>
+            ))}
+          </>
+        )}
+        {form.financiamiento !== "infonavit" && <p className="form-hint">{t("clients.expedienteSectionHiddenHint")}</p>}
 
         <div className="form-field">
           <label>
