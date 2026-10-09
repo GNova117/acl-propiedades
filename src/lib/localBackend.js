@@ -39,6 +39,7 @@ const KEYS = {
   docLog: "acl_local_doc_log",
   valuations: "acl_local_valuation_estimates",
   solicitudesAvaluo: "acl_local_solicitudes_avaluo",
+  solicitudesCredito: "acl_local_solicitudes_credito",
   marketSnapshots: "acl_local_market_snapshots",
   prospects: "acl_local_prospectos",
   signing: "acl_local_signing_requests",
@@ -1910,6 +1911,37 @@ export const localBackend = {
 
   async deleteSolicitudAvaluo(id) {
     writeStore(KEYS.solicitudesAvaluo, readStore(KEYS.solicitudesAvaluo, []).filter((r) => r.id !== id));
+  },
+
+  // Solicitudes de crédito (modo demo: localStorage).
+  async getSolicitudesCredito() {
+    return readStore(KEYS.solicitudesCredito, []).sort((a, b) => String(b.fecha_creacion).localeCompare(String(a.fecha_creacion)));
+  },
+
+  async getSolicitudCreditoById(id) {
+    return readStore(KEYS.solicitudesCredito, []).find((r) => r.id === id) || null;
+  },
+
+  async addSolicitudCredito(payload) {
+    const items = readStore(KEYS.solicitudesCredito, []);
+    const now = new Date().toISOString();
+    const record = { id: uid("solicitud-credito"), ...payload, usuario_creo: DEMO_ADMIN.email, fecha_creacion: now, fecha_modificacion: now };
+    items.push(record);
+    writeStore(KEYS.solicitudesCredito, items);
+    return record;
+  },
+
+  async updateSolicitudCredito(id, payload) {
+    const items = readStore(KEYS.solicitudesCredito, []);
+    const idx = items.findIndex((r) => r.id === id);
+    if (idx === -1) throw new Error("Solicitud de crédito no encontrada");
+    items[idx] = { ...items[idx], ...payload, fecha_modificacion: new Date().toISOString() };
+    writeStore(KEYS.solicitudesCredito, items);
+    return items[idx];
+  },
+
+  async deleteSolicitudCredito(id) {
+    writeStore(KEYS.solicitudesCredito, readStore(KEYS.solicitudesCredito, []).filter((r) => r.id !== id));
   },
 
   // Mercado en internet (modo demo): no hay función de Vercel ni llave de

@@ -50,6 +50,7 @@ const NAV = [
       { section: "valuacion", to: "/admin/solicitud-avaluo", labelKey: "solicitudAvaluo.navTitle" },
       { section: "inspecciones", to: "/admin/inspecciones", labelKey: "accessControl.sections.inspecciones" },
       { section: "credito_infonavit", to: "/admin/credito-infonavit", labelKey: "admin.infonavitSimulator" },
+      { section: "credito_infonavit", to: "/admin/solicitud-credito", labelKey: "solicitudCredito.navTitle" },
       { section: "documentos_legales", to: "/admin/documentos-legales", labelKey: "accessControl.sections.documentos_legales" },
       { section: "documentos_legales", to: "/admin/firmas", labelKey: "signing.admin.title" },
     ],

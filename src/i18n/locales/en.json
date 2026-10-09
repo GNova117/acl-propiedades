@@ -2345,6 +2345,38 @@
       "empty": "No appraisal requests saved yet."
     }
   },
+  "solicitudCredito": {
+    "navTitle": "Credit application",
+    "title": "Credit registration application",
+    "subtitle": "Fill out the credit registration application (INFONAVIT form, 3 pages) online and download it as a PDF.",
+    "new": "New application",
+    "linkClient": "Client (optional)",
+    "linkClientHint": "Pre-fills section 5 with the client's details (and their buyer profile, if any).",
+    "linkProperty": "Property (optional)",
+    "saveError": "The application could not be saved",
+    "notFound": "The application to download was not found",
+    "pdfError": "The PDF could not be generated",
+    "sections": {
+      "credito": "1. Requested credit",
+      "monto": "2. Data to determine the credit amount",
+      "vivienda": "3. Home/land the credit is for",
+      "empresa": "4. Employer details",
+      "derechohabiente": "5. Loan holder identification",
+      "cfc": "6. Spouse, family member or co-resident identification",
+      "referencias": "7. Loan holder's family references",
+      "abono": "8. Credit deposit details",
+      "representante": "9. Representative designation",
+      "contacto": "10. Contact identification",
+      "cierre": "11. Binding offer"
+    },
+    "list": {
+      "derechohabiente": "Loan holder",
+      "vivienda": "Property",
+      "destino": "Purpose of the loan",
+      "createdAt": "Created on",
+      "empty": "No credit applications saved yet."
+    }
+  },
   "legalDocs": {
     "title": "Legal documents",
     "subtitle": "Download the Privacy Notice and the Consumer Rights Notice on the letterhead, ready to print and sign. Same text published on the site.",
