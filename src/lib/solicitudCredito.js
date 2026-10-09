@@ -323,12 +323,12 @@ export function clienteToDerechohabienteCredito(client, perfilComprador) {
       };
   return compact({
     nss: perfilComprador?.nss || client.nss,
-    curp: perfilComprador?.curp || client.dh_curp,
-    rfc: perfilComprador?.rfc || client.dh_rfc,
+    curp: perfilComprador?.curp || client.dh_curp || client.curp,
+    rfc: perfilComprador?.rfc || client.dh_rfc || client.rfc,
     apellido_paterno: apellidoPaterno,
     apellido_materno: apellidoMaterno,
     nombres,
-    domicilio_calle: perfilComprador?.domicilio || client.dh_calle_numero,
+    domicilio_calle: perfilComprador?.domicilio || client.dh_calle_numero || client.domicilio,
     domicilio_colonia: client.dh_colonia,
     domicilio_entidad: client.dh_estado,
     domicilio_delegacion: client.dh_municipio,

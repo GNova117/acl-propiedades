@@ -2,19 +2,24 @@ import { describe, expect, it } from "vitest";
 import { clientExpedienteGroups, clientSheetData, clientSheetSections } from "./clientExpedienteFields";
 
 describe("clientExpedienteGroups", () => {
-  it("un comprador ve identificación del derechohabiente, crédito, empresa y referencias, pero no los datos de venta", () => {
-    const groups = clientExpedienteGroups("comprador").map((g) => g.key);
-    expect(groups).toEqual(["derechohabiente", "credito", "empresa", "referencias"]);
+  it("cualquier tipo ve los datos personales", () => {
+    expect(clientExpedienteGroups("comprador").map((g) => g.key)).toContain("personal");
+    expect(clientExpedienteGroups("vendedor").map((g) => g.key)).toContain("personal");
   });
 
-  it("un vendedor solo ve los datos de venta", () => {
+  it("un comprador ve datos personales, identificación del derechohabiente, crédito, empresa y referencias, pero no los datos de venta", () => {
+    const groups = clientExpedienteGroups("comprador").map((g) => g.key);
+    expect(groups).toEqual(["personal", "derechohabiente", "credito", "empresa", "referencias"]);
+  });
+
+  it("un vendedor solo ve, además de los personales, los datos de venta", () => {
     const groups = clientExpedienteGroups("vendedor").map((g) => g.key);
-    expect(groups).toEqual(["venta"]);
+    expect(groups).toEqual(["personal", "venta"]);
   });
 
   it("un cliente 'ambos' ve todos los bloques", () => {
     const groups = clientExpedienteGroups("ambos").map((g) => g.key);
-    expect(groups).toEqual(["derechohabiente", "credito", "empresa", "referencias", "venta"]);
+    expect(groups).toEqual(["personal", "derechohabiente", "credito", "empresa", "referencias", "venta"]);
   });
 });
 

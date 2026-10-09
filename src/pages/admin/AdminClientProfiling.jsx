@@ -3,8 +3,8 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import PerfilamientoManager from "../../components/PerfilamientoManager";
-import { VENDEDOR_SECTIONS, vendedorExtraRules } from "../../lib/perfilamientoVendedor";
-import { COMPRADOR_SECTIONS } from "../../lib/perfilamientoComprador";
+import { VENDEDOR_SECTIONS, vendedorExtraRules, vendedorInitialValues } from "../../lib/perfilamientoVendedor";
+import { COMPRADOR_SECTIONS, compradorInitialValues } from "../../lib/perfilamientoComprador";
 import "./AdminClientProfiling.css";
 import "./admin.css";
 
@@ -72,6 +72,7 @@ export default function AdminClientProfiling() {
           filePrefix="Perfilamiento_Vendedor"
           emptyMessageKey="profiling.noResultsSeller"
           newLabelKey="profiling.newSeller"
+          initialValues={vendedorInitialValues(client)}
           listColumns={[
             { key: "nombre_completo", label: t("profiling.seller") },
             { key: "ubicacion", label: t("profiling.property") },
@@ -95,6 +96,7 @@ export default function AdminClientProfiling() {
           filePrefix="Perfilamiento_Comprador"
           emptyMessageKey="profiling.noResultsBuyer"
           newLabelKey="profiling.newBuyer"
+          initialValues={compradorInitialValues(client)}
           listColumns={[
             { key: "nombre", label: t("profiling.buyer") },
             { key: "telefono", label: t("clients.phone") },

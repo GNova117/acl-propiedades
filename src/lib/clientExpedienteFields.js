@@ -1,15 +1,33 @@
-// Datos del expediente que se capturan junto con el cliente: del comprador
-// el NSS, la contraseña del portal de crédito, los datos de la empresa donde
+// Datos del expediente que se capturan junto con el cliente: los datos
+// personales (fecha de nacimiento, estado civil, domicilio, RFC, CURP,
+// identificación oficial) de cualquier cliente; del comprador además el
+// NSS, la contraseña del portal de crédito, los datos de la empresa donde
 // trabaja y 2 referencias personales; del vendedor el número de crédito.
 //
 // Estos mismos datos también se capturan en el perfilamiento (a petición
-// explícita del negocio se piden en los dos lados, cada pantalla guarda su
-// propia copia). Aquí viven pegados al cliente para que el expediente para
-// avalúos los pueda imprimir sin depender de que exista un perfilamiento.
+// explícita del negocio se piden en los dos lados). Para no hacer que el
+// usuario los teclee dos veces, AdminClientProfiling.jsx precarga un
+// perfilamiento nuevo con lo que ya haya en el cliente (ver
+// perfilamientoVendedor.js/perfilamientoComprador.js) usando las mismas
+// llaves que aquí. Aun así cada perfilamiento guarda su propia copia, para
+// no romper si luego se corrige el cliente.
 //
 // Las etiquetas van en español directo, igual que perfilamientoComprador.js
 // /perfilamientoVendedor.js: son definiciones que se usan tanto para pintar
 // el formulario como para imprimir la hoja membretada.
+
+import { ESTADOS_CIVILES } from "./perfilamientoShared";
+
+// Comunes a comprador y vendedor — mismas llaves que la sección de datos
+// generales de cada perfilamiento, para que la precarga sea directa.
+export const CLIENT_PERSONAL_FIELDS = [
+  { key: "fecha_nacimiento", label: "Fecha de nacimiento", type: "date" },
+  { key: "estado_civil", label: "Estado civil", type: "select", options: ESTADOS_CIVILES },
+  { key: "domicilio", label: "Domicilio", type: "textarea", full: true },
+  { key: "rfc", label: "RFC", type: "text" },
+  { key: "curp", label: "CURP", type: "text" },
+  { key: "identificacion_oficial", label: "Número de identificación oficial", type: "text" },
+];
 
 export const CLIENT_BUYER_FIELDS = [
   { key: "nss", label: "Número de seguro social (NSS)", type: "text" },
@@ -59,6 +77,7 @@ export const CLIENT_REFERENCE_FIELDS = [1, 2].flatMap((n) => [
 ]);
 
 export const CLIENT_EXPEDIENTE_KEYS = [
+  ...CLIENT_PERSONAL_FIELDS,
   ...CLIENT_DERECHOHABIENTE_FIELDS,
   ...CLIENT_BUYER_FIELDS,
   ...CLIENT_COMPANY_FIELDS,
@@ -66,17 +85,18 @@ export const CLIENT_EXPEDIENTE_KEYS = [
   ...CLIENT_REFERENCE_FIELDS,
 ].map((f) => f.key);
 
+const PERSONAL_TITLE = "Datos personales";
 const DERECHOHABIENTE_TITLE = "Datos de identificación del derechohabiente";
 const COMPANY_TITLE = "Datos de la empresa";
 const REFERENCES_TITLE = "Referencias personales";
 
-// Qué se le pide a un cliente según su tipo: al comprador la identificación
-// del derechohabiente, el crédito, la empresa y las referencias; al
-// vendedor solo el número de crédito. Un cliente "ambos" ve todo. Se
-// devuelve por bloques para que el formulario y la hoja membretada
-// muestren los mismos encabezados.
+// Qué se le pide a un cliente según su tipo: los datos personales a
+// cualquiera; al comprador además la identificación del derechohabiente,
+// el crédito, la empresa y las referencias; al vendedor el número de
+// crédito. Un cliente "ambos" ve todo. Se devuelve por bloques para que el
+// formulario y la hoja membretada muestren los mismos encabezados.
 export function clientExpedienteGroups(clientType) {
-  const groups = [];
+  const groups = [{ key: "personal", title: PERSONAL_TITLE, fields: CLIENT_PERSONAL_FIELDS }];
   if (clientType !== "vendedor") {
     groups.push({ key: "derechohabiente", title: DERECHOHABIENTE_TITLE, fields: CLIENT_DERECHOHABIENTE_FIELDS });
     groups.push({ key: "credito", title: "Datos del crédito", fields: CLIENT_BUYER_FIELDS });
@@ -103,6 +123,7 @@ export function clientSheetSections(client) {
       { key: "rol", label: "Rol en el expediente", type: "text" },
       { key: "phone", label: "Número de teléfono", type: "tel" },
       { key: "email", label: "Correo", type: "email" },
+      ...CLIENT_PERSONAL_FIELDS,
       ...(client.type !== "vendedor" ? CLIENT_BUYER_FIELDS : []),
       ...(client.type !== "comprador" ? CLIENT_SELLER_FIELDS : []),
       { key: "notes", label: "Notas", type: "textarea", full: true },

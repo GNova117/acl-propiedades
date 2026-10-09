@@ -181,7 +181,7 @@ export function clienteToDerechohabiente(client, perfilComprador) {
     dh_apellido_paterno: apellidoPaterno,
     dh_apellido_materno: apellidoMaterno,
     dh_nombres: nombres,
-    dh_calle_numero: perfilComprador?.domicilio || client.dh_calle_numero,
+    dh_calle_numero: perfilComprador?.domicilio || client.dh_calle_numero || client.domicilio,
     dh_colonia: client.dh_colonia,
     dh_municipio: client.dh_municipio,
     dh_estado: client.dh_estado,

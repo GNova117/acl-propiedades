@@ -3495,6 +3495,22 @@ alter table construccion_habitaciones add column if not exists tipo_pared text;
 alter table construccion_habitaciones add column if not exists tipo_techo text;
 
 -- ─────────────────────────────────────────────
+-- Datos personales pegados al cliente (2026-10-06)
+-- Fecha de nacimiento, estado civil, domicilio, RFC, CURP e identificación
+-- oficial — se pedían solo al abrir un perfilamiento (vendedor o
+-- comprador); ahora se capturan ya desde el alta/edición del cliente
+-- (mismas llaves que perfilamientos/perfilamientos_comprador) para que un
+-- perfilamiento nuevo se precargue con ellos sin tener que volver a
+-- teclearlos (ver vendedorInitialValues/compradorInitialValues).
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+alter table clients add column if not exists fecha_nacimiento date;
+alter table clients add column if not exists estado_civil text check (estado_civil is null or estado_civil in ('Soltero', 'Casado', 'Divorciado', 'Viudo', 'Unión libre'));
+alter table clients add column if not exists domicilio text;
+alter table clients add column if not exists rfc text check (rfc is null or rfc ~ '^[A-ZÑ&]{4}[0-9]{6}[A-Z0-9]{3}$');
+alter table clients add column if not exists curp text check (curp is null or curp ~ '^[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[A-Z0-9]{2}$');
+alter table clients add column if not exists identificacion_oficial text;
 -- Cifrado de la contraseña del portal de crédito (2026-10)
 --
 -- Hasta ahora `clients.contrasena_portal` y `perfilamientos_comprador.
@@ -4610,10 +4626,15 @@ alter table clients add column if not exists dh_telefono_casa text;
 alter table clients add column if not exists dh_telefono_trabajo text;
 alter table clients add column if not exists dh_telefono_celular text;
 
--- Mismo motivo que el bloque de `financiamiento` arriba: hay que agregar
--- las columnas nuevas también a `clients_decrypted` o desaparecen de la
--- lectura. Van al final de la lista por la misma razón (`create or replace
--- view` no permite reordenar columnas ya existentes).
+-- Mismo motivo que el bloque de `financiamiento` (y el de "Datos personales
+-- pegados al cliente") arriba: hay que agregar las columnas nuevas también
+-- a `clients_decrypted` o desaparecen de la lectura (ver
+-- supabaseBackend.js getClients/getClientById). Van al final de la lista
+-- por la misma razón: `create or replace view` no permite reordenar ni
+-- renombrar columnas ya existentes, solo agregar nuevas al final.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
 create or replace view clients_decrypted
 with (security_invoker = true) as
 select
@@ -4622,6 +4643,7 @@ select
   referencia1_nombre, referencia1_telefono, referencia1_correo, referencia1_direccion,
   referencia2_nombre, referencia2_telefono, referencia2_correo, referencia2_direccion,
   razon_social, registro_patronal, tel_empresa, financiamiento,
+  fecha_nacimiento, estado_civil, domicilio, rfc, curp, identificacion_oficial,
   dh_apellido_paterno, dh_apellido_materno, dh_nombres, dh_curp, dh_rfc,
   dh_calle_numero, dh_colonia, dh_municipio, dh_estado, dh_codigo_postal,
   dh_telefono_casa, dh_telefono_trabajo, dh_telefono_celular

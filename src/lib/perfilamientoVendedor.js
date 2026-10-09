@@ -86,6 +86,27 @@ export function vendedorExtraRules(form) {
   return {};
 }
 
+// Con qué se precarga un perfilamiento nuevo: lo que ya se capturó al
+// registrar al cliente (mismas llaves, ver clientExpedienteFields.js), para
+// no hacer que el usuario lo teclee otra vez. Los datos del inmueble (no
+// existen en el cliente, pueden variar entre perfilamientos del mismo
+// vendedor) se quedan vacíos.
+export function vendedorInitialValues(client) {
+  if (!client) return {};
+  return {
+    nombre_completo: client.name || "",
+    correo: client.email || "",
+    telefono: client.phone || "",
+    fecha_nacimiento: client.fecha_nacimiento || "",
+    estado_civil: client.estado_civil || "",
+    domicilio: client.domicilio || "",
+    rfc: client.rfc || "",
+    curp: client.curp || "",
+    identificacion_oficial: client.identificacion_oficial || "",
+    numero_credito: client.numero_credito || "",
+  };
+}
+
 // Campos que la lista NO necesita: RFC, CURP e identificación oficial son
 // datos sensibles y solo viajan cuando se abre un perfilamiento concreto.
 export const PERFILAMIENTO_VENDEDOR_LIST_FIELDS = [

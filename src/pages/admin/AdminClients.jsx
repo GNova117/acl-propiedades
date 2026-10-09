@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
+import ClientPdfModal from "../../components/ClientPdfModal";
 import { FINANCIAMIENTO_TYPES } from "../../lib/format";
 import "./admin.css";
 
@@ -23,6 +24,7 @@ export default function AdminClients() {
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showPdfModal, setShowPdfModal] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -82,11 +84,16 @@ export default function AdminClients() {
           <button type="button" className="btn btn-outline" onClick={handleExport} disabled={filteredClients.length === 0}>
             {t("common.exportCsv")}
           </button>
+          <button type="button" className="btn btn-outline" onClick={() => setShowPdfModal(true)}>
+            {t("clients.downloadPdf")}
+          </button>
           <Link to="/admin/clientes/nuevo" className="btn btn-primary">
             {t("admin.newClient")}
           </Link>
         </div>
       </div>
+
+      {showPdfModal && <ClientPdfModal initialTypeFilter={typeFilter} onClose={() => setShowPdfModal(false)} />}
 
       <div className="form-row" style={{ maxWidth: 820, marginBottom: "1.25rem" }}>
         <div className="form-field">
