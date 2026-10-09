@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { emptyForm, validateSections, toPayload, toFormValues, formatFecha } from "../../lib/perfilamientoShared";
@@ -15,6 +16,7 @@ import "./admin.css";
 
 export default function AdminSolicitudCredito() {
   const { t } = useTranslation();
+  const location = useLocation();
 
   const [list, setList] = useState([]);
   const [clients, setClients] = useState([]);
@@ -47,6 +49,22 @@ export default function AdminSolicitudCredito() {
     db.getProperties().then(setProperties).catch(() => setProperties([]));
   }, []);
 
+  // Llega aquí desde la ficha de un cliente INFONAVIT (botón "Solicitud de
+  // crédito" en AdminClientForm) con el cliente ya elegido — abre
+  // directamente una solicitud nueva con ese cliente preseleccionado, sin
+  // que el asesor tenga que volver a buscarlo en el combo.
+  useEffect(() => {
+    const prefillId = location.state?.prefillClienteId;
+    if (!prefillId || clients.length === 0) return;
+    setCurrent(null);
+    setForm(emptyForm(SOLICITUD_CREDITO_SECTIONS));
+    setPropiedadId("");
+    setErrors({});
+    setMode("form");
+    handleClienteChange(prefillId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clients, location.state]);
+
   const clientById = Object.fromEntries(clients.map((c) => [c.id, c]));
   const propertyById = Object.fromEntries(properties.map((p) => [p.id, p]));
 
@@ -74,11 +92,14 @@ export default function AdminSolicitudCredito() {
 
   // Al elegir el cliente derechohabiente se precarga la sección 5 con sus
   // datos generales y, si tiene un perfilamiento de comprador capturado,
-  // con ese detalle (NSS, CURP, domicilio, teléfono, correo).
+  // con ese detalle (NSS, CURP, domicilio, teléfono, correo). Si el cliente
+  // está segmentado como "infonavit" (ver clients.financiamiento), también
+  // se preselecciona el producto de la sección 1 — sigue siendo editable.
   const handleClienteChange = async (id) => {
     setClienteId(id);
     const client = clientById[id];
     if (!client) return;
+    if (client.financiamiento === "infonavit") fillEmpty({ producto: "Infonavit" });
     try {
       const perfiles = await db.getPerfilamientosComprador(id);
       const full = perfiles[0] ? await db.getPerfilamientoCompradorById(perfiles[0].id) : null;

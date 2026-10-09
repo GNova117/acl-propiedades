@@ -3,10 +3,15 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
+import { FINANCIAMIENTO_TYPES } from "../../lib/format";
 import "./admin.css";
 
 function clientTypeLabel(t, type) {
   return t(`clients.${type === "comprador" ? "buyer" : type === "vendedor" ? "seller" : "both"}`);
+}
+
+function financiamientoLabel(t, value) {
+  return value ? t(`clients.financiamientoOptions.${value}`) : "—";
 }
 
 export default function AdminClients() {
@@ -14,6 +19,7 @@ export default function AdminClients() {
   const [clients, setClients] = useState([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+  const [financiamientoFilter, setFinanciamientoFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [loading, setLoading] = useState(true);
@@ -39,6 +45,7 @@ export default function AdminClients() {
     const term = search.trim().toLowerCase();
     return clients.filter((c) => {
       if (term && !c.name?.toLowerCase().includes(term) && !c.phone?.includes(term)) return false;
+      if (financiamientoFilter && c.financiamiento !== financiamientoFilter) return false;
       if (!c.created_at && (monthFilter || yearFilter)) return false;
       if (monthFilter || yearFilter) {
         const d = new Date(c.created_at);
@@ -47,7 +54,7 @@ export default function AdminClients() {
       }
       return true;
     });
-  }, [clients, search, monthFilter, yearFilter]);
+  }, [clients, search, financiamientoFilter, monthFilter, yearFilter]);
 
   const handleDelete = async (id) => {
     if (!window.confirm(t("common.confirmDelete"))) return;
@@ -59,6 +66,7 @@ export default function AdminClients() {
     exportToCsv("clientes.csv", filteredClients, [
       { label: t("clients.name"), key: "name" },
       { label: t("clients.type"), value: (c) => clientTypeLabel(t, c.type) },
+      { label: t("clients.financiamiento"), value: (c) => financiamientoLabel(t, c.financiamiento) },
       { label: t("clients.phone"), key: "phone" },
       { label: t("clients.email"), key: "email" },
       { label: t("clients.notes"), key: "notes" },
@@ -101,6 +109,21 @@ export default function AdminClients() {
           </select>
         </div>
         <div className="form-field">
+          <label htmlFor="client-financiamiento-filter">{t("clients.financiamiento")}</label>
+          <select
+            id="client-financiamiento-filter"
+            value={financiamientoFilter}
+            onChange={(e) => setFinanciamientoFilter(e.target.value)}
+          >
+            <option value="">—</option>
+            {FINANCIAMIENTO_TYPES.map((value) => (
+              <option key={value} value={value}>
+                {t(`clients.financiamientoOptions.${value}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="form-field">
           <label htmlFor="client-month-filter">{t("dateFilter.month")}</label>
           <select id="client-month-filter" value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)}>
             <option value="">{t("dateFilter.allMonths")}</option>
@@ -126,6 +149,7 @@ export default function AdminClients() {
             <tr>
               <th>{t("clients.name")}</th>
               <th>{t("clients.type")}</th>
+              <th>{t("clients.financiamiento")}</th>
               <th>{t("clients.phone")}</th>
               <th>{t("clients.email")}</th>
               <th>{t("common.actions")}</th>
@@ -134,17 +158,18 @@ export default function AdminClients() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5}>{t("common.loading")}</td>
+                <td colSpan={6}>{t("common.loading")}</td>
               </tr>
             ) : filteredClients.length === 0 ? (
               <tr>
-                <td colSpan={5}>{t("clients.noResults")}</td>
+                <td colSpan={6}>{t("clients.noResults")}</td>
               </tr>
             ) : (
               filteredClients.map((client) => (
                 <tr key={client.id}>
                   <td>{client.name}</td>
                   <td>{clientTypeLabel(t, client.type)}</td>
+                  <td>{financiamientoLabel(t, client.financiamiento)}</td>
                   <td>{client.phone}</td>
                   <td>{client.email}</td>
                   <td className="admin-table__actions">

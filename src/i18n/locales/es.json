@@ -622,6 +622,14 @@
     "email": "Correo",
     "phone": "Teléfono",
     "notes": "Notas",
+    "financiamiento": "Tipo de financiamiento",
+    "financiamientoHint": "Con qué va a comprar. Al elegir \"Infonavit\" se preselecciona en la Solicitud de avalúo y la Solicitud de crédito al crear una desde este cliente.",
+    "financiamientoOptions": {
+      "infonavit": "Infonavit",
+      "fovissste": "Fovissste",
+      "bancario": "Crédito bancario",
+      "contado": "Contado"
+    },
     "noResults": "No se encontraron clientes.",
     "viewDocuments": "Documentos",
     "searchPlaceholder": "Nombre o teléfono",

@@ -801,6 +801,7 @@ export const localBackend = {
       phone: data.phone || null,
       notes: data.notes || null,
       active: data.active !== false,
+      financiamiento: data.financiamiento || null,
       ...clientExpedientePayload(data),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -822,6 +823,7 @@ export const localBackend = {
       phone: data.phone || null,
       notes: data.notes || null,
       active: data.active !== false,
+      financiamiento: data.financiamiento || null,
       ...clientExpedientePayload(data),
       updated_at: new Date().toISOString(),
     };

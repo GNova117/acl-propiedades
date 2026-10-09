@@ -104,6 +104,11 @@ export function propertyShareLines(property, t) {
 
 export const CLIENT_TYPES = ["comprador", "vendedor", "ambos"];
 
+// Segmenta al cliente por su fuente de financiamiento — determina qué
+// trámites de crédito aplican y permite preseleccionar datos en la
+// Solicitud de avalúo y la Solicitud de crédito cuando es "infonavit".
+export const FINANCIAMIENTO_TYPES = ["infonavit", "fovissste", "bancario", "contado"];
+
 // Nota: "cedula_fiscal" es el documento del RFC (la cédula de identificación
 // fiscal) — se etiqueta como "RFC" en la interfaz, no se creó un tipo
 // "rfc" aparte para no partir en dos los documentos ya capturados.

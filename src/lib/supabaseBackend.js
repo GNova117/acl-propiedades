@@ -758,6 +758,7 @@ export const supabaseBackend = {
       phone: data.phone || null,
       notes: data.notes || null,
       active: data.active !== false,
+      financiamiento: data.financiamiento || null,
       ...clientExpedientePayload(data),
     };
     const { data: inserted, error } = await supabase.from("clients").insert(payload).select().single();
@@ -773,6 +774,7 @@ export const supabaseBackend = {
       phone: data.phone || null,
       notes: data.notes || null,
       active: data.active !== false,
+      financiamiento: data.financiamiento || null,
       ...clientExpedientePayload(data),
       updated_at: new Date().toISOString(),
     };
