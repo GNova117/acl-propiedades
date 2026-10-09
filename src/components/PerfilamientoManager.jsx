@@ -125,6 +125,7 @@ export default function PerfilamientoManager({
   emptyMessageKey,
   newLabelKey,
   backend,
+  initialValues,
 }) {
   const { t } = useTranslation();
 
@@ -167,7 +168,7 @@ export default function PerfilamientoManager({
 
   const startNew = () => {
     setCurrent(null);
-    setForm(emptyForm(sections));
+    setForm({ ...emptyForm(sections), ...initialValues });
     setErrors({});
     setRevealedKeys(new Set());
     setMode("form");

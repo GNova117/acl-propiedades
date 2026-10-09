@@ -44,6 +44,36 @@ export const COMPRADOR_SECTIONS = [
   },
 ];
 
+// Con qué se precarga un perfilamiento nuevo: lo que ya se capturó al
+// registrar al cliente (mismas llaves, ver clientExpedienteFields.js), para
+// no hacer que el usuario lo teclee otra vez.
+export function compradorInitialValues(client) {
+  if (!client) return {};
+  return {
+    nombre: client.name || "",
+    correo: client.email || "",
+    telefono: client.phone || "",
+    fecha_nacimiento: client.fecha_nacimiento || "",
+    estado_civil: client.estado_civil || "",
+    domicilio: client.domicilio || "",
+    rfc: client.rfc || "",
+    curp: client.curp || "",
+    nss: client.nss || "",
+    contrasena_portal: client.contrasena_portal || "",
+    razon_social: client.razon_social || "",
+    registro_patronal: client.registro_patronal || "",
+    tel_empresa: client.tel_empresa || "",
+    referencia1_nombre: client.referencia1_nombre || "",
+    referencia1_telefono: client.referencia1_telefono || "",
+    referencia1_correo: client.referencia1_correo || "",
+    referencia1_direccion: client.referencia1_direccion || "",
+    referencia2_nombre: client.referencia2_nombre || "",
+    referencia2_telefono: client.referencia2_telefono || "",
+    referencia2_correo: client.referencia2_correo || "",
+    referencia2_direccion: client.referencia2_direccion || "",
+  };
+}
+
 // Campos que la lista NO necesita: NSS, contraseña, CURP y RFC son datos
 // sensibles y solo viajan cuando se abre un perfilamiento concreto.
 export const PERFILAMIENTO_COMPRADOR_LIST_FIELDS = [

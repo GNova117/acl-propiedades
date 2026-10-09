@@ -3495,6 +3495,22 @@ alter table construccion_habitaciones add column if not exists tipo_pared text;
 alter table construccion_habitaciones add column if not exists tipo_techo text;
 
 -- ─────────────────────────────────────────────
+-- Datos personales pegados al cliente (2026-10-06)
+-- Fecha de nacimiento, estado civil, domicilio, RFC, CURP e identificación
+-- oficial — se pedían solo al abrir un perfilamiento (vendedor o
+-- comprador); ahora se capturan ya desde el alta/edición del cliente
+-- (mismas llaves que perfilamientos/perfilamientos_comprador) para que un
+-- perfilamiento nuevo se precargue con ellos sin tener que volver a
+-- teclearlos (ver vendedorInitialValues/compradorInitialValues).
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+alter table clients add column if not exists fecha_nacimiento date;
+alter table clients add column if not exists estado_civil text check (estado_civil is null or estado_civil in ('Soltero', 'Casado', 'Divorciado', 'Viudo', 'Unión libre'));
+alter table clients add column if not exists domicilio text;
+alter table clients add column if not exists rfc text check (rfc is null or rfc ~ '^[A-ZÑ&]{4}[0-9]{6}[A-Z0-9]{3}$');
+alter table clients add column if not exists curp text check (curp is null or curp ~ '^[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[A-Z0-9]{2}$');
+alter table clients add column if not exists identificacion_oficial text;
 -- Cifrado de la contraseña del portal de crédito (2026-10)
 --
 -- Hasta ahora `clients.contrasena_portal` y `perfilamientos_comprador.
@@ -4582,5 +4598,32 @@ select
   referencia1_nombre, referencia1_telefono, referencia1_correo, referencia1_direccion,
   referencia2_nombre, referencia2_telefono, referencia2_correo, referencia2_direccion,
   razon_social, registro_patronal, tel_empresa, financiamiento
+from clients;
+grant select on clients_decrypted to authenticated;
+
+-- ─────────────────────────────────────────────
+-- Datos personales en clients_decrypted (2026-10-09)
+--
+-- fecha_nacimiento/estado_civil/domicilio/rfc/curp/identificacion_oficial
+-- (bloque "Datos personales pegados al cliente" más arriba) no son
+-- sensibles al grado de contrasena_portal (no se cifran), pero
+-- clients_decrypted es la vista que usa toda la app para leer clientes
+-- (ver supabaseBackend.js getClients/getClientById) — sin agregarlas aquí
+-- desaparecen de esa lectura, igual que ya advierte el comentario de la
+-- vista más arriba. Mismo motivo por el que se agregó `financiamiento`
+-- en su propio bloque: `create or replace view` no permite reordenar ni
+-- renombrar columnas ya existentes, solo agregar nuevas al final.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+create or replace view clients_decrypted
+with (security_invoker = true) as
+select
+  id, name, type, email, phone, notes, active, created_at, updated_at,
+  nss, _decrypt_portal_password(contrasena_portal) as contrasena_portal, numero_credito,
+  referencia1_nombre, referencia1_telefono, referencia1_correo, referencia1_direccion,
+  referencia2_nombre, referencia2_telefono, referencia2_correo, referencia2_direccion,
+  razon_social, registro_patronal, tel_empresa, financiamiento,
+  fecha_nacimiento, estado_civil, domicilio, rfc, curp, identificacion_oficial
 from clients;
 grant select on clients_decrypted to authenticated;

@@ -3,8 +3,38 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { CLIENT_TYPES, FINANCIAMIENTO_TYPES } from "../../lib/format";
-import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteGroups } from "../../lib/clientExpedienteFields";
+import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteGroups, clientSheetData, clientSheetSections } from "../../lib/clientExpedienteFields";
+import { downloadMultiPerfilamientoPdf } from "../../lib/perfilamientoPdf";
 import "./admin.css";
+
+// Mismos tipos que soporta el perfilamiento (ver FieldInput en
+// PerfilamientoManager.jsx) — aquí sin el botón de "revelar" la contraseña,
+// que no hace falta mientras se está dando de alta al cliente.
+function ExpedienteFieldInput({ field, value, onChange }) {
+  const common = {
+    id: `c-${field.key}`,
+    value,
+    onChange,
+  };
+  if (field.type === "textarea") return <textarea {...common} rows={3} />;
+  if (field.type === "select") {
+    return (
+      <select {...common}>
+        <option value="">—</option>
+        {field.options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    );
+  }
+  if (field.type === "date") return <input {...common} type="date" />;
+  if (field.type === "email") return <input {...common} type="email" />;
+  if (field.type === "tel") return <input {...common} type="tel" />;
+  if (field.sensitive) return <input {...common} type="password" autoComplete="off" />;
+  return <input {...common} type="text" />;
+}
 
 const EMPTY = {
   name: "",
@@ -32,6 +62,7 @@ export default function AdminClientForm() {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   // Vínculo con otro cliente (expediente conjunto) — ej. una pareja que
   // junta su crédito INFONAVIT y aplica como 2 acreditados. `otherClients`
@@ -71,6 +102,32 @@ export default function AdminClientForm() {
   const handleChange = (field) => (e) => {
     const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Ficha con lo que ya está en pantalla (nombre, tipo, teléfono, correo,
+  // notas y los datos del expediente según el tipo — vendedor:
+  // domicilio/RFC/CURP/número de crédito; comprador: eso mismo más NSS,
+  // contraseña del portal, empresa y referencias). Si el cliente tiene un
+  // vinculado (expediente conjunto, ej. crédito INFONAVIT conyugal), su
+  // ficha se agrega al mismo PDF — ya no hay que descargarlas por separado.
+  const handleDownloadPdf = async () => {
+    setDownloadingPdf(true);
+    try {
+      const entries = [{ data: clientSheetData(form), sections: clientSheetSections(form), options: { title: "DATOS DEL CLIENTE" }, nombre: form.name }];
+      if (link?.other_client) {
+        entries.push({
+          data: clientSheetData(link.other_client),
+          sections: clientSheetSections(link.other_client),
+          options: { title: "DATOS DEL CLIENTE" },
+          nombre: link.other_client.name,
+        });
+      }
+      await downloadMultiPerfilamientoPdf(entries, "Cliente");
+    } catch (err) {
+      window.alert(err.message || "Error al generar el PDF");
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
   const validate = () => {
@@ -144,6 +201,10 @@ export default function AdminClientForm() {
         <h1>{isEdit ? t("admin.editClient") : t("admin.newClient")}</h1>
         {isEdit && (
           <div className="admin-header__actions">
+            <button type="button" className="btn btn-outline" onClick={handleDownloadPdf} disabled={downloadingPdf}>
+              {downloadingPdf ? <span className="spinner" /> : null}
+              {t("clients.downloadPdf")}
+            </button>
             <Link to={`/admin/clientes/${id}/perfilamiento`} className="btn btn-outline">
               {t("profiling.title")}
             </Link>
@@ -223,12 +284,7 @@ export default function AdminClientForm() {
               {group.fields.map((field) => (
                 <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
                   <label htmlFor={`c-${field.key}`}>{field.label}</label>
-                  <input
-                    id={`c-${field.key}`}
-                    type={field.type === "email" ? "email" : field.type === "tel" ? "tel" : "text"}
-                    value={form[field.key]}
-                    onChange={handleChange(field.key)}
-                  />
+                  <ExpedienteFieldInput field={field} value={form[field.key]} onChange={handleChange(field.key)} />
                 </div>
               ))}
             </div>
