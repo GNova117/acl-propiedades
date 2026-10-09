@@ -622,6 +622,14 @@
     "email": "Email",
     "phone": "Phone",
     "notes": "Notes",
+    "financiamiento": "Financing type",
+    "financiamientoHint": "What they're buying with. Choosing \"Infonavit\" preselects it in the Appraisal request and Credit request when creating one from this client.",
+    "financiamientoOptions": {
+      "infonavit": "Infonavit",
+      "fovissste": "Fovissste",
+      "bancario": "Bank loan",
+      "contado": "Cash"
+    },
     "noResults": "No clients found.",
     "viewDocuments": "Documents",
     "searchPlaceholder": "Name or phone",

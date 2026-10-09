@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import {
@@ -22,6 +23,7 @@ import "./admin.css";
 
 export default function AdminSolicitudAvaluo() {
   const { t } = useTranslation();
+  const location = useLocation();
 
   const [list, setList] = useState([]);
   const [clients, setClients] = useState([]);
@@ -54,6 +56,23 @@ export default function AdminSolicitudAvaluo() {
     db.getClients().then(setClients).catch(() => setClients([]));
     db.getProperties().then(setProperties).catch(() => setProperties([]));
   }, []);
+
+  // Llega aquí desde la ficha de un cliente INFONAVIT (botón "Solicitud de
+  // avalúo" en AdminClientForm) con el cliente ya elegido — abre
+  // directamente una solicitud nueva con ese cliente preseleccionado como
+  // derechohabiente, sin que el asesor tenga que volver a buscarlo.
+  useEffect(() => {
+    const prefillId = location.state?.prefillClienteId;
+    if (!prefillId || clients.length === 0) return;
+    setCurrent(null);
+    setForm(emptyForm(SOLICITUD_AVALUO_SECTIONS));
+    setPropietarioClienteId("");
+    setPropiedadId("");
+    setErrors({});
+    setMode("form");
+    handleClienteChange(prefillId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clients, location.state]);
 
   const clientById = Object.fromEntries(clients.map((c) => [c.id, c]));
   const propertyById = Object.fromEntries(properties.map((p) => [p.id, p]));
