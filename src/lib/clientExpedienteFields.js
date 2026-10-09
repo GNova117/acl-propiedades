@@ -47,6 +47,24 @@ export const CLIENT_COMPANY_FIELDS = [
 
 export const CLIENT_SELLER_FIELDS = [{ key: "numero_credito", label: "Número de crédito", type: "text" }];
 
+// Domicilio y teléfonos que pide la Solicitud de avalúo INFONAVIT en su
+// sección "Datos de identificación del derechohabiente" — mismas llaves que
+// SOLICITUD_AVALUO_SECTIONS en solicitudAvaluo.js (prefijo `dh_`), para que
+// clienteToDerechohabiente() los tome directo del cliente sin volver a
+// teclearlos. Solo aplica si el financiamiento es INFONAVIT (ver
+// clients.financiamiento) — por eso no entra en clientExpedienteGroups
+// (que agrupa por tipo de cliente, no por financiamiento): AdminClientForm.jsx
+// la muestra aparte, condicionada a `form.financiamiento === "infonavit"`.
+export const CLIENT_INFONAVIT_FIELDS = [
+  { key: "dh_calle_numero", label: "Calle y número", type: "text", full: true },
+  { key: "dh_colonia", label: "Colonia o fraccionamiento", type: "text" },
+  { key: "dh_municipio", label: "Municipio o delegación", type: "text" },
+  { key: "dh_estado", label: "Estado (entidad)", type: "text" },
+  { key: "dh_codigo_postal", label: "Código postal", type: "text" },
+  { key: "dh_telefono_casa", label: "Teléfono casa", type: "tel" },
+  { key: "dh_telefono_trabajo", label: "Teléfono trabajo", type: "tel" },
+];
+
 export const CLIENT_REFERENCE_FIELDS = [1, 2].flatMap((n) => [
   { key: `referencia${n}_nombre`, label: `Referencia ${n} — nombre completo`, type: "text" },
   { key: `referencia${n}_telefono`, label: `Referencia ${n} — número de teléfono`, type: "tel" },
@@ -60,11 +78,13 @@ export const CLIENT_EXPEDIENTE_KEYS = [
   ...CLIENT_COMPANY_FIELDS,
   ...CLIENT_SELLER_FIELDS,
   ...CLIENT_REFERENCE_FIELDS,
+  ...CLIENT_INFONAVIT_FIELDS,
 ].map((f) => f.key);
 
 const PERSONAL_TITLE = "Datos personales";
 const COMPANY_TITLE = "Datos de la empresa";
 const REFERENCES_TITLE = "Referencias personales";
+export const INFONAVIT_TITLE = "Domicilio y teléfonos (Solicitud de avalúo INFONAVIT)";
 
 // Qué se le pide a un cliente según su tipo: los datos personales a
 // cualquiera; al comprador además el crédito, la empresa y las referencias;
@@ -105,12 +125,15 @@ export function clientSheetSections(client) {
     ],
   };
 
-  if (client.type === "vendedor") return [datos];
-  return [
-    datos,
-    { key: "empresa", title: COMPANY_TITLE, optional: true, fields: CLIENT_COMPANY_FIELDS },
-    { key: "referencias", title: REFERENCES_TITLE, optional: true, fields: CLIENT_REFERENCE_FIELDS },
-  ];
+  const sections = [datos];
+  if (client.type !== "vendedor") {
+    sections.push({ key: "empresa", title: COMPANY_TITLE, optional: true, fields: CLIENT_COMPANY_FIELDS });
+    sections.push({ key: "referencias", title: REFERENCES_TITLE, optional: true, fields: CLIENT_REFERENCE_FIELDS });
+  }
+  if (client.financiamiento === "infonavit") {
+    sections.push({ key: "infonavit", title: INFONAVIT_TITLE, optional: true, fields: CLIENT_INFONAVIT_FIELDS });
+  }
+  return sections;
 }
 
 // `rol` no es columna de la tabla: se deriva del tipo de cliente para que la

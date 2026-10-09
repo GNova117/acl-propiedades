@@ -159,9 +159,12 @@ function compact(obj) {
 }
 
 // Datos del derechohabiente (sección 1) a partir del cliente elegido y, si
-// existe, su perfilamiento de comprador más reciente — que trae NSS,
-// teléfono y domicilio capturados con más detalle que el registro general
-// del cliente.
+// existe, su perfilamiento de comprador más reciente. Calle/colonia/
+// municipio/estado/CP y teléfono casa/trabajo vienen del cliente (mismas
+// llaves `dh_*`, ver CLIENT_INFONAVIT_FIELDS en clientExpedienteFields.js —
+// se capturan ahí en cuanto se marca financiamiento INFONAVIT); el
+// perfilamiento de comprador sigue aportando NSS/nombre/celular cuando trae
+// más detalle que el registro general del cliente.
 export function clienteToDerechohabiente(client, perfilComprador) {
   if (!client) return {};
   const { nombres, apellidoPaterno, apellidoMaterno } = splitNombreCompleto(perfilComprador?.nombre || client.name);
@@ -170,7 +173,13 @@ export function clienteToDerechohabiente(client, perfilComprador) {
     dh_apellido_paterno: apellidoPaterno,
     dh_apellido_materno: apellidoMaterno,
     dh_nombres: nombres,
-    dh_calle_numero: perfilComprador?.domicilio,
+    dh_calle_numero: client.dh_calle_numero || perfilComprador?.domicilio,
+    dh_colonia: client.dh_colonia,
+    dh_municipio: client.dh_municipio,
+    dh_estado: client.dh_estado,
+    dh_codigo_postal: client.dh_codigo_postal,
+    dh_telefono_casa: client.dh_telefono_casa,
+    dh_telefono_trabajo: client.dh_telefono_trabajo,
     dh_telefono_celular: perfilComprador?.telefono || client.phone,
   });
 }
