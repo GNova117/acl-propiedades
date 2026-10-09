@@ -4627,3 +4627,41 @@ select
   fecha_nacimiento, estado_civil, domicilio, rfc, curp, identificacion_oficial
 from clients;
 grant select on clients_decrypted to authenticated;
+
+-- ─────────────────────────────────────────────
+-- Domicilio y teléfonos para la Solicitud de avalúo INFONAVIT (2026-10-09)
+--
+-- Calle y número, colonia, municipio, estado, código postal, teléfono casa
+-- y teléfono trabajo del derechohabiente — mismas llaves `dh_*` que la
+-- sección "Datos de identificación del derechohabiente" de
+-- SOLICITUD_AVALUO_SECTIONS (ver solicitudAvaluo.js). Se capturan ya desde
+-- el cliente en cuanto se marca financiamiento = 'infonavit' (ver
+-- CLIENT_INFONAVIT_FIELDS en clientExpedienteFields.js), para que
+-- clienteToDerechohabiente() las tome directo sin volver a teclearlas.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+alter table clients add column if not exists dh_calle_numero text;
+alter table clients add column if not exists dh_colonia text;
+alter table clients add column if not exists dh_municipio text;
+alter table clients add column if not exists dh_estado text;
+alter table clients add column if not exists dh_codigo_postal text;
+alter table clients add column if not exists dh_telefono_casa text;
+alter table clients add column if not exists dh_telefono_trabajo text;
+
+-- No son sensibles (no se cifran) pero clients_decrypted es la vista que
+-- usa toda la app para leer clientes — hay que agregarlas aquí también o
+-- desaparecen de esa lectura (`create or replace view` no permite
+-- reordenar ni renombrar columnas ya existentes, solo agregar al final).
+create or replace view clients_decrypted
+with (security_invoker = true) as
+select
+  id, name, type, email, phone, notes, active, created_at, updated_at,
+  nss, _decrypt_portal_password(contrasena_portal) as contrasena_portal, numero_credito,
+  referencia1_nombre, referencia1_telefono, referencia1_correo, referencia1_direccion,
+  referencia2_nombre, referencia2_telefono, referencia2_correo, referencia2_direccion,
+  razon_social, registro_patronal, tel_empresa, financiamiento,
+  fecha_nacimiento, estado_civil, domicilio, rfc, curp, identificacion_oficial,
+  dh_calle_numero, dh_colonia, dh_municipio, dh_estado, dh_codigo_postal, dh_telefono_casa, dh_telefono_trabajo
+from clients;
+grant select on clients_decrypted to authenticated;

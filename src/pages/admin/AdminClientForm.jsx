@@ -3,7 +3,14 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { CLIENT_TYPES, FINANCIAMIENTO_TYPES } from "../../lib/format";
-import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteGroups, clientSheetData, clientSheetSections } from "../../lib/clientExpedienteFields";
+import {
+  CLIENT_EXPEDIENTE_KEYS,
+  CLIENT_INFONAVIT_FIELDS,
+  INFONAVIT_TITLE,
+  clientExpedienteGroups,
+  clientSheetData,
+  clientSheetSections,
+} from "../../lib/clientExpedienteFields";
 import { downloadMultiPerfilamientoPdf } from "../../lib/perfilamientoPdf";
 import "./admin.css";
 
@@ -269,6 +276,20 @@ export default function AdminClientForm() {
             <span className="form-hint">{t("clients.financiamientoHint")}</span>
           </div>
         </div>
+
+        {form.financiamiento === "infonavit" && (
+          <div>
+            <h4 style={{ margin: "0 0 0.5rem" }}>{INFONAVIT_TITLE}</h4>
+            <div className="form-row">
+              {CLIENT_INFONAVIT_FIELDS.map((field) => (
+                <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
+                  <label htmlFor={`c-${field.key}`}>{field.label}</label>
+                  <ExpedienteFieldInput field={field} value={form[field.key]} onChange={handleChange(field.key)} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="form-field">
           <label htmlFor="c-notes">{t("clients.notes")}</label>
