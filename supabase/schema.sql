@@ -4570,13 +4570,17 @@ alter table clients add constraint clients_financiamiento_check
 -- vista que usa toda la app para leer clientes — hay que agregarla aquí
 -- también o desaparece de esa lectura, igual que advierte el comentario de
 -- la vista más arriba.
+-- `create or replace view` no permite reordenar ni renombrar columnas ya
+-- existentes en la vista — solo agregar nuevas al final. `financiamiento`
+-- va al final de la lista, no junto a `active`, para no correr de lugar
+-- `created_at`/`updated_at`/etc. que ya existían en esta vista.
 create or replace view clients_decrypted
 with (security_invoker = true) as
 select
-  id, name, type, email, phone, notes, active, financiamiento, created_at, updated_at,
+  id, name, type, email, phone, notes, active, created_at, updated_at,
   nss, _decrypt_portal_password(contrasena_portal) as contrasena_portal, numero_credito,
   referencia1_nombre, referencia1_telefono, referencia1_correo, referencia1_direccion,
   referencia2_nombre, referencia2_telefono, referencia2_correo, referencia2_direccion,
-  razon_social, registro_patronal, tel_empresa
+  razon_social, registro_patronal, tel_empresa, financiamiento
 from clients;
 grant select on clients_decrypted to authenticated;
