@@ -51,7 +51,7 @@ const TEXT_FIELDS = {
   // Sección 4 — ciudad de la solicitud (la fecha se maneja aparte: día / mes / año).
   // Es el único renglón sin etiqueta debajo (va en línea con "Ciudad de"),
   // así que no hay riesgo de pisar nada al dejarlo como texto corrido.
-  ciudad_solicitud: { x: 90, y: 154 },
+  ciudad_solicitud: { x: 90, y: 162 },
 };
 
 // Campos "comb": un carácter por celda, para imitar los recuadros impresos.
@@ -106,19 +106,19 @@ const COMB_FIELDS = {
   viv_lote: { x: 229.3, y: 305, cellWidth: 11.8, maxCells: 5, size: SIZE_SMALL },
   viv_manzana: { x: 288.3, y: 305, cellWidth: 11.8, maxCells: 5, size: SIZE_SMALL },
   viv_colonia: { x: 347.3, y: 305, cellWidth: 11.8, maxCells: 17 },
-  viv_municipio: { x: 52.3, y: 290, cellWidth: 11.8, maxCells: 17 },
-  viv_estado: { x: 289, y: 290, cellWidth: 11.8, maxCells: 15 },
-  viv_codigo_postal: { x: 466, y: 290, cellWidth: 11.8, maxCells: 8 },
+  viv_municipio: { x: 52.3, y: 286, cellWidth: 11.8, maxCells: 17 },
+  viv_estado: { x: 289, y: 286, cellWidth: 11.8, maxCells: 15 },
+  viv_codigo_postal: { x: 466, y: 286, cellWidth: 11.8, maxCells: 8 },
 
   viv_clave_conjunto: { x: 200, y: 338, cellWidth: 11.9, maxCells: 16, size: SIZE_SMALL },
   viv_antiguedad: { x: 85, y: 273, cellWidth: 11.8, maxCells: 2, size: SIZE_SMALL },
 
-  fecha_dia: { x: 327, y: 154, cellWidth: 11, maxCells: 2, size: SIZE_SMALL },
-  fecha_anio: { x: 506, y: 154, cellWidth: 11, maxCells: 2, size: SIZE_SMALL },
+  fecha_dia: { x: 327, y: 162, cellWidth: 11, maxCells: 2, size: SIZE_SMALL },
+  fecha_anio: { x: 506, y: 162, cellWidth: 11, maxCells: 2, size: SIZE_SMALL },
 };
 
 const FECHA_MES_X = 403;
-const FECHA_MES_Y = 154;
+const FECHA_MES_Y = 162;
 
 const MESES = [
   "Enero",
