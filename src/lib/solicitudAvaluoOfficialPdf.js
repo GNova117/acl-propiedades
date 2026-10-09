@@ -5,10 +5,13 @@
 //
 // El formato es un solo PDF de una página sin campos de formulario (es una
 // imagen), así que las coordenadas de cada renglón se midieron a mano sobre
-// la plantilla (en puntos PDF, origen abajo-izquierda). Los campos "comb"
-// (NSS, teléfonos, antigüedad, clave del conjunto) escriben un carácter por
-// celda para imitar los recuadros impresos; el resto es texto normal
-// alineado a la izquierda sobre el renglón.
+// la plantilla (en puntos PDF, origen abajo-izquierda), renderizándola a
+// 300dpi con una cuadrícula superpuesta y leyendo la posición real de cada
+// fila de casillas impresa (no la de su etiqueta). Prácticamente todo el
+// formato usa el mismo ancho de celda (~11.8pt), así que casi todos los
+// campos se escriben como "comb": un carácter por celda, igual que el NSS o
+// el teléfono. Solo "Ciudad de" queda pendiente de ese estilo porque su
+// renglón no tiene etiqueta debajo que se pueda pisar.
 
 import { DESTINO_CREDITO_OPTIONS } from "./solicitudAvaluo";
 
@@ -45,65 +48,73 @@ const DESTINO_CIRCLES = [
 // Campos de texto simple: se escriben alineados a la izquierda, empezando en
 // (x, y) — y es la línea base, un par de puntos arriba del renglón impreso.
 const TEXT_FIELDS = {
-  // Sección 1 — derechohabiente
-  dh_apellido_paterno: { x: 60, y: 641 },
-  dh_apellido_materno: { x: 60, y: 624 },
-  dh_nombres: { x: 60, y: 607 },
-  dh_calle_numero: { x: 60, y: 597, size: SIZE_SMALL },
-  dh_colonia: { x: 60, y: 573 },
-  dh_municipio: { x: 305, y: 573 },
-  dh_estado: { x: 60, y: 556 },
-  dh_codigo_postal: { x: 225, y: 556 },
-
-  // Sección 2 — propietario actual
-  prop_apellido_paterno: { x: 60, y: 479 },
-  prop_apellido_materno: { x: 60, y: 463 },
-  prop_nombre_razon_social: { x: 60, y: 446 },
-  prop_rfc: { x: 85, y: 425, size: SIZE_SMALL },
-  prop_acreedor_hipotecario: { x: 60, y: 400 },
-  prop_rfc_acreedor: { x: 85, y: 384, size: SIZE_SMALL },
-  prop_calle_numero: { x: 307, y: 472 },
-  prop_colonia: { x: 307, y: 456 },
-  prop_municipio: { x: 307, y: 440 },
-  prop_estado: { x: 307, y: 424 },
-  prop_codigo_postal: { x: 462, y: 424 },
-
-  // Sección 3 — vivienda
-  viv_calle: { x: 60, y: 322 },
-  viv_numero_exterior: { x: 60, y: 306, size: SIZE_SMALL },
-  viv_numero_interior: { x: 145, y: 306, size: SIZE_SMALL },
-  viv_lote: { x: 227, y: 306, size: SIZE_SMALL },
-  viv_manzana: { x: 292, y: 306, size: SIZE_SMALL },
-  viv_colonia: { x: 347, y: 306 },
-  viv_municipio: { x: 60, y: 290 },
-  viv_estado: { x: 302, y: 290 },
-  viv_codigo_postal: { x: 462, y: 290 },
-
-  // Sección 4 — ciudad de la solicitud (la fecha se maneja aparte: día / mes / año)
-  ciudad_solicitud: { x: 216, y: 154 },
+  // Sección 4 — ciudad de la solicitud (la fecha se maneja aparte: día / mes / año).
+  // Es el único renglón sin etiqueta debajo (va en línea con "Ciudad de"),
+  // así que no hay riesgo de pisar nada al dejarlo como texto corrido.
+  ciudad_solicitud: { x: 90, y: 154 },
 };
 
-// Campos "comb": un carácter por celda, para imitar los recuadros impresos
-// (NSS, teléfonos, antigüedad, clave del conjunto habitacional).
+// Campos "comb": un carácter por celda, para imitar los recuadros impresos.
+// Casi todo el formato usa este estilo de casillas, con el mismo ancho de
+// celda (~11.8pt) en cualquier renglón — nombre, domicilio, teléfono, RFC,
+// NSS, etc. — así que se escriben todos igual en vez de como texto corrido.
 const COMB_FIELDS = {
-  nss: { x: 298, y: 662, cellWidth: 19.45, maxCells: 11 },
-  dh_telefono_casa_lada: { x: 404, y: 556, cellWidth: 9, maxCells: 3 },
-  dh_telefono_casa_numero: { x: 435, y: 556, cellWidth: 15, maxCells: 7 },
-  dh_telefono_trabajo_lada: { x: 404, y: 541, cellWidth: 9, maxCells: 3 },
-  dh_telefono_trabajo_numero: { x: 435, y: 541, cellWidth: 15, maxCells: 7 },
-  dh_telefono_celular_lada: { x: 404, y: 526, cellWidth: 9, maxCells: 3 },
-  dh_telefono_celular_numero: { x: 435, y: 526, cellWidth: 15, maxCells: 7 },
+  nss: { x: 254, y: 662, cellWidth: 11, maxCells: 11 },
 
-  prop_telefono_trabajo_lada: { x: 398, y: 400, cellWidth: 9, maxCells: 3 },
-  prop_telefono_trabajo_numero: { x: 429, y: 400, cellWidth: 14, maxCells: 7 },
-  prop_telefono_celular_lada: { x: 398, y: 384, cellWidth: 9, maxCells: 3 },
-  prop_telefono_celular_numero: { x: 429, y: 384, cellWidth: 14, maxCells: 7 },
+  // Sección 1 — derechohabiente
+  dh_apellido_paterno: { x: 52.3, y: 646, cellWidth: 11.8, maxCells: 42 },
+  dh_apellido_materno: { x: 52.3, y: 630, cellWidth: 11.8, maxCells: 42 },
+  dh_nombres: { x: 52.3, y: 614, cellWidth: 11.8, maxCells: 42 },
+  // Este renglón trae el encabezado "DOMICILIO ACTUAL" pegado arriba (en vez
+  // de una etiqueta abajo), así que usa letra chica y la línea base más baja
+  // dentro de su propia fila de casillas para no pisarlo.
+  dh_calle_numero: { x: 52.3, y: 586, cellWidth: 11.8, maxCells: 44, size: SIZE_SMALL },
+  dh_colonia: { x: 52.3, y: 574, cellWidth: 11.8, maxCells: 21 },
+  dh_municipio: { x: 300.5, y: 574, cellWidth: 11.8, maxCells: 20 },
+  dh_estado: { x: 52.3, y: 558, cellWidth: 11.8, maxCells: 15 },
+  dh_codigo_postal: { x: 225, y: 558, cellWidth: 11.8, maxCells: 10 },
 
-  viv_clave_conjunto: { x: 255, y: 338, cellWidth: 17.5, maxCells: 16, size: SIZE_SMALL },
-  viv_antiguedad: { x: 133, y: 274, cellWidth: 13.5, maxCells: 2, size: SIZE_SMALL },
+  dh_telefono_casa_lada: { x: 363, y: 556, cellWidth: 11, maxCells: 3 },
+  dh_telefono_casa_numero: { x: 400, y: 556, cellWidth: 10, maxCells: 7 },
+  dh_telefono_trabajo_lada: { x: 363, y: 541, cellWidth: 11, maxCells: 3 },
+  dh_telefono_trabajo_numero: { x: 400, y: 541, cellWidth: 10, maxCells: 7 },
+  dh_telefono_celular_lada: { x: 363, y: 526, cellWidth: 11, maxCells: 3 },
+  dh_telefono_celular_numero: { x: 400, y: 526, cellWidth: 10, maxCells: 7 },
 
-  fecha_dia: { x: 357, y: 154, cellWidth: 11, maxCells: 2, size: SIZE_SMALL },
-  fecha_anio: { x: 527, y: 154, cellWidth: 11, maxCells: 2, size: SIZE_SMALL },
+  // Sección 2 — propietario actual
+  prop_apellido_paterno: { x: 52.3, y: 478, cellWidth: 11.8, maxCells: 19 },
+  prop_apellido_materno: { x: 52.3, y: 464, cellWidth: 11.8, maxCells: 19 },
+  prop_nombre_razon_social: { x: 52.3, y: 448, cellWidth: 11.8, maxCells: 19 },
+  prop_rfc: { x: 75, y: 430, cellWidth: 11.8, maxCells: 13, size: SIZE_SMALL },
+  prop_acreedor_hipotecario: { x: 52.3, y: 405, cellWidth: 11.8, maxCells: 19 },
+  prop_rfc_acreedor: { x: 75, y: 389, cellWidth: 11.8, maxCells: 13, size: SIZE_SMALL },
+  prop_calle_numero: { x: 300.5, y: 472, cellWidth: 11.8, maxCells: 22 },
+  prop_colonia: { x: 300.5, y: 456, cellWidth: 11.8, maxCells: 22 },
+  prop_municipio: { x: 300.5, y: 440, cellWidth: 11.8, maxCells: 22 },
+  prop_estado: { x: 300.5, y: 424, cellWidth: 11.8, maxCells: 14 },
+  prop_codigo_postal: { x: 462, y: 424, cellWidth: 11.8, maxCells: 8 },
+
+  prop_telefono_trabajo_lada: { x: 363, y: 400, cellWidth: 11, maxCells: 3 },
+  prop_telefono_trabajo_numero: { x: 400, y: 400, cellWidth: 10, maxCells: 7 },
+  prop_telefono_celular_lada: { x: 363, y: 384, cellWidth: 11, maxCells: 3 },
+  prop_telefono_celular_numero: { x: 400, y: 384, cellWidth: 10, maxCells: 7 },
+
+  // Sección 3 — vivienda
+  viv_calle: { x: 52.3, y: 322, cellWidth: 11.8, maxCells: 42 },
+  viv_numero_exterior: { x: 52.3, y: 305, cellWidth: 11.8, maxCells: 8, size: SIZE_SMALL },
+  viv_numero_interior: { x: 146.7, y: 305, cellWidth: 11.8, maxCells: 7, size: SIZE_SMALL },
+  viv_lote: { x: 229.3, y: 305, cellWidth: 11.8, maxCells: 5, size: SIZE_SMALL },
+  viv_manzana: { x: 288.3, y: 305, cellWidth: 11.8, maxCells: 5, size: SIZE_SMALL },
+  viv_colonia: { x: 347.3, y: 305, cellWidth: 11.8, maxCells: 17 },
+  viv_municipio: { x: 52.3, y: 290, cellWidth: 11.8, maxCells: 17 },
+  viv_estado: { x: 289, y: 290, cellWidth: 11.8, maxCells: 15 },
+  viv_codigo_postal: { x: 466, y: 290, cellWidth: 11.8, maxCells: 8 },
+
+  viv_clave_conjunto: { x: 200, y: 338, cellWidth: 11.9, maxCells: 16, size: SIZE_SMALL },
+  viv_antiguedad: { x: 85, y: 273, cellWidth: 11.8, maxCells: 2, size: SIZE_SMALL },
+
+  fecha_dia: { x: 327, y: 154, cellWidth: 11, maxCells: 2, size: SIZE_SMALL },
+  fecha_anio: { x: 506, y: 154, cellWidth: 11, maxCells: 2, size: SIZE_SMALL },
 };
 
 const FECHA_MES_X = 403;
@@ -164,12 +175,15 @@ export async function buildSolicitudAvaluoOfficialPdf(record) {
     drawText(record[key], pos);
   }
 
+  const TELEFONO_PREFIXES = ["dh_telefono_casa", "dh_telefono_trabajo", "dh_telefono_celular", "prop_telefono_trabajo", "prop_telefono_celular"];
+  const isTelefonoPart = (key) => TELEFONO_PREFIXES.some((prefix) => key === `${prefix}_lada` || key === `${prefix}_numero`);
+
   for (const [key, pos] of Object.entries(COMB_FIELDS)) {
-    if (key.endsWith("_lada") || key.endsWith("_numero")) continue; // se procesan abajo, en pareja
+    if (isTelefonoPart(key)) continue; // se procesan abajo, en pareja
     drawComb(record[key], pos);
   }
 
-  for (const prefix of ["dh_telefono_casa", "dh_telefono_trabajo", "dh_telefono_celular", "prop_telefono_trabajo", "prop_telefono_celular"]) {
+  for (const prefix of TELEFONO_PREFIXES) {
     const { lada, numero } = splitTelefono(record[prefix]);
     drawComb(lada, COMB_FIELDS[`${prefix}_lada`]);
     drawComb(numero, COMB_FIELDS[`${prefix}_numero`]);
