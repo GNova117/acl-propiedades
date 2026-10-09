@@ -73,6 +73,14 @@ export default function AdminClientForm() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Para los campos del expediente marcados `uppercase` (identificación del
+  // derechohabiente, igual que en el formato oficial impreso): se escribe
+  // tal cual lo tecleado, pero se guarda en mayúsculas.
+  const handleExpedienteFieldChange = (field) => (e) => {
+    const value = field.uppercase ? e.target.value.toUpperCase() : e.target.value;
+    setForm((prev) => ({ ...prev, [field.key]: value }));
+  };
+
   const validate = () => {
     const next = {};
     if (!form.name.trim()) next.name = t("contact.required");
@@ -229,7 +237,7 @@ export default function AdminClientForm() {
                         id={`c-${field.key}`}
                         type={field.type === "email" ? "email" : field.type === "tel" ? "tel" : "text"}
                         value={form[field.key]}
-                        onChange={handleChange(field.key)}
+                        onChange={handleExpedienteFieldChange(field)}
                       />
                     </div>
                   ))}

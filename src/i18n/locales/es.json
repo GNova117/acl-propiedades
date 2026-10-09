@@ -634,7 +634,7 @@
     "viewDocuments": "Documentos",
     "searchPlaceholder": "Nombre o teléfono",
     "expedienteSection": "Datos del expediente",
-    "expedienteSectionHint": "Se usan para llenar la Solicitud de avalúo y la Solicitud de crédito INFONAVIT. Al comprador se le piden NSS, contraseña del portal, los datos de su empresa y 2 referencias; al vendedor, el número de crédito.",
+    "expedienteSectionHint": "Se usan para llenar la Solicitud de avalúo y la Solicitud de crédito INFONAVIT. Al comprador se le pide su identificación (nombre, CURP, RFC y domicilio — se guarda en mayúsculas), NSS, contraseña del portal, los datos de su empresa y 2 referencias; al vendedor, el número de crédito.",
     "expedienteSectionHiddenHint": "Elige \"Infonavit\" como tipo de financiamiento arriba para capturar estos datos.",
     "jointTitle": "Cliente vinculado (expediente conjunto)",
     "jointSubtitle": "Para casos como un crédito INFONAVIT conyugal — cada quien sigue siendo su propio registro, con su propio perfilamiento y documentos, pero se pueden ver juntos en una sola pantalla.",
