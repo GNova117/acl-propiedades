@@ -2,10 +2,13 @@ import { supabase } from "./supabaseClient";
 import * as construccionSync from "./construccion/sync";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
+import { SOLICITUD_AVALUO_LIST_FIELDS } from "./solicitudAvaluo";
+import { SOLICITUD_CREDITO_LIST_FIELDS } from "./solicitudCredito";
 import { slugify, numOrNull } from "./format";
 import { CLIENT_EXPEDIENTE_KEYS } from "./clientExpedienteFields";
 import { compressImageFile, compressImageFiles } from "./imageCompression";
 import { generateReportToken, REPORT_TOKEN_PATTERN } from "./visitReport";
+import { generatePortalToken, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS, PortalUploadError, blobToBase64 } from "./clientPortal";
 
 // Los campos del expediente del cliente (NSS, contraseña del portal, número
 // de crédito y las 2 referencias) se guardan igual al crear y al editar — se
@@ -626,6 +629,40 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  async getSiteUpdates() {
+    const { data, error } = await supabase.from("site_updates").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addSiteUpdate(data) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const payload = {
+      title: data.title.trim(),
+      body: data.body.trim(),
+      created_by: sessionData?.session?.user?.email || null,
+    };
+    const { data: inserted, error } = await supabase.from("site_updates").insert(payload).select().single();
+    if (error) throw error;
+    return inserted;
+  },
+
+  async updateSiteUpdate(id, data) {
+    const payload = {
+      title: data.title.trim(),
+      body: data.body.trim(),
+      updated_at: new Date().toISOString(),
+    };
+    const { data: updated, error } = await supabase.from("site_updates").update(payload).eq("id", id).select().single();
+    if (error) throw error;
+    return updated;
+  },
+
+  async deleteSiteUpdate(id) {
+    const { error } = await supabase.from("site_updates").delete().eq("id", id);
+    if (error) throw error;
+  },
+
   // Envío puntual de un correo (botón "Enviar por correo" en Visitas/Gastos),
   // vía la Edge Function enviar-correo (Resend). `attachment` es opcional:
   // { filename, contentBase64 }.
@@ -692,8 +729,15 @@ export const supabaseBackend = {
     return true;
   },
 
+  // Las dos de abajo leen de `clients_decrypted` (vista, ver supabase/schema.sql
+  // "Cifrado de la contraseña del portal de crédito"), no de la tabla: la
+  // tabla guarda `contrasena_portal` cifrada y esta vista la descifra al
+  // vuelo para quien tenga el apartado 'clientes' — la app recibe el mismo
+  // shape de siempre, en claro, sin ningún cambio aparte de estas dos líneas.
+  // Insert/update/delete sí van contra la tabla real: el trigger de ese mismo
+  // bloque cifra automáticamente lo que llegue en `contrasena_portal`.
   async getClients(filters = {}) {
-    let query = supabase.from("clients").select("*").order("created_at", { ascending: false });
+    let query = supabase.from("clients_decrypted").select("*").order("created_at", { ascending: false });
     if (filters.type) query = query.eq("type", filters.type);
     const { data, error } = await query;
     if (error) throw error;
@@ -701,7 +745,7 @@ export const supabaseBackend = {
   },
 
   async getClientById(id) {
-    const { data, error } = await supabase.from("clients").select("*").eq("id", id).maybeSingle();
+    const { data, error } = await supabase.from("clients_decrypted").select("*").eq("id", id).maybeSingle();
     if (error) throw error;
     return data;
   },
@@ -714,6 +758,7 @@ export const supabaseBackend = {
       phone: data.phone || null,
       notes: data.notes || null,
       active: data.active !== false,
+      financiamiento: data.financiamiento || null,
       ...clientExpedientePayload(data),
     };
     const { data: inserted, error } = await supabase.from("clients").insert(payload).select().single();
@@ -729,6 +774,7 @@ export const supabaseBackend = {
       phone: data.phone || null,
       notes: data.notes || null,
       active: data.active !== false,
+      financiamiento: data.financiamiento || null,
       ...clientExpedientePayload(data),
       updated_at: new Date().toISOString(),
     };
@@ -839,6 +885,99 @@ export const supabaseBackend = {
   async unlinkClients(linkId) {
     const { error } = await supabase.from("client_links").delete().eq("id", linkId);
     if (error) throw error;
+  },
+
+  // ── Portal de documentos para clientes (/documentos/<token>) ──
+  // Lado del asesor: generar/revocar el enlace y aprobar/rechazar lo que
+  // suba el cliente. Todo bajo las políticas RLS normales de "clientes" —
+  // sin funciones security definer de por medio, igual que saveReportLink.
+  async getClientPortalToken(clientId) {
+    const { data, error } = await supabase.from("client_portal_tokens").select("*").eq("client_id", clientId).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  // Crea el enlace o, si ya había uno, lo REGENERA: el token anterior deja
+  // de servir en el acto (unique en client_id, ver schema.sql).
+  async saveClientPortalToken(clientId) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = {
+      client_id: clientId,
+      token: generatePortalToken(),
+      active: true,
+      created_by: sessionData?.session?.user?.email || null,
+      expires_at: new Date(Date.now() + PORTAL_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString(),
+    };
+    const { data, error } = await supabase.from("client_portal_tokens").upsert(row, { onConflict: "client_id" }).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async revokeClientPortalToken(clientId) {
+    const { error } = await supabase.from("client_portal_tokens").update({ active: false }).eq("client_id", clientId);
+    if (error) throw error;
+  },
+
+  // Aprobar/rechazar un documento subido por el portal. clientId se pide
+  // aparte (en vez de volver a consultar el documento) porque quien llama
+  // ya lo tiene a la mano en la lista que está mostrando.
+  async reviewClientDocument(documentId, clientId, { reviewStatus, reviewNotes }) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const reviewedBy = sessionData?.session?.user?.email || null;
+    const { error } = await supabase
+      .from("client_documents")
+      .update({ review_status: reviewStatus, review_notes: reviewNotes || null, reviewed_by: reviewedBy, reviewed_at: new Date().toISOString() })
+      .eq("id", documentId);
+    if (error) throw error;
+    await supabase.from("document_access_log").insert({
+      client_document_id: documentId,
+      client_id: clientId,
+      actor_type: "admin",
+      actor_ref: reviewedBy,
+      action: reviewStatus === "rechazado" ? "reject" : "approve",
+    });
+  },
+
+  // ── Portal de documentos: lado del cliente (sin sesión, solo token) ──
+  // Las tres son funciones security definer: la tabla sigue cerrada, solo
+  // ellas pueden leer/escribir validando el token por su cuenta.
+  async getPortalStatus(token) {
+    if (!PORTAL_TOKEN_PATTERN.test(token || "")) return { status: "invalido" };
+    const { data, error } = await supabase.rpc("portal_token_status", { p_token: token });
+    if (error) throw error;
+    return data || { status: "invalido" };
+  },
+
+  async registerPortalConsent(token, consentVersion) {
+    const { data, error } = await supabase.rpc("portal_register_consent", { p_token: token, p_consent_version: consentVersion });
+    if (error) throw error;
+    return data;
+  },
+
+  async confirmPortalDocument(token, documentId, extractedData, clientConfirmed) {
+    const { data, error } = await supabase.rpc("portal_confirm_document", {
+      p_token: token,
+      p_document_id: documentId,
+      p_extracted_data: extractedData,
+      p_client_confirmed: clientConfirmed,
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  // Sube el archivo a api/portal-upload.js (única pieza que usa la llave de
+  // servicio) — aquí solo se convierte a base64 y se interpreta la
+  // respuesta. file es un File/Blob (PDF o imagen de respaldo).
+  async uploadPortalDocument(token, { docType, fileKind, file }) {
+    const fileBase64 = await blobToBase64(file);
+    const res = await fetch("/api/portal-upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, docType, fileKind, fileBase64 }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new PortalUploadError(body?.error || "server_error");
+    return body.document;
   },
 
   async getRemodelProjects(filters = {}) {
@@ -1070,8 +1209,11 @@ export const supabaseBackend = {
     return data || [];
   },
 
+  // Lee de `perfilamientos_comprador_decrypted` (vista que descifra
+  // `contrasena_portal` al vuelo) por el mismo motivo que getClientById.
+  // Insert/update/delete siguen contra la tabla real: el trigger cifra solo.
   async getPerfilamientoCompradorById(id) {
-    const { data, error } = await supabase.from("perfilamientos_comprador").select("*").eq("id", id).maybeSingle();
+    const { data, error } = await supabase.from("perfilamientos_comprador_decrypted").select("*").eq("id", id).maybeSingle();
     if (error) throw error;
     return data;
   },
@@ -1641,6 +1783,78 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  // Solicitudes de avalúo (formato INFONAVIT). RLS: apartado 'valuacion'.
+  async getSolicitudesAvaluo() {
+    const { data, error } = await supabase
+      .from("solicitudes_avaluo")
+      .select(SOLICITUD_AVALUO_LIST_FIELDS.join(", "))
+      .order("fecha_creacion", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getSolicitudAvaluoById(id) {
+    const { data, error } = await supabase.from("solicitudes_avaluo").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async addSolicitudAvaluo(payload) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = { ...payload, usuario_creo: sessionData?.session?.user?.email || null };
+    const { data, error } = await supabase.from("solicitudes_avaluo").insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateSolicitudAvaluo(id, payload) {
+    const row = { ...payload, fecha_modificacion: new Date().toISOString() };
+    const { data, error } = await supabase.from("solicitudes_avaluo").update(row).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteSolicitudAvaluo(id) {
+    const { error } = await supabase.from("solicitudes_avaluo").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  // Solicitudes de inscripción de crédito (formato INFONAVIT). RLS: apartado 'credito_infonavit'.
+  async getSolicitudesCredito() {
+    const { data, error } = await supabase
+      .from("solicitudes_credito")
+      .select(SOLICITUD_CREDITO_LIST_FIELDS.join(", "))
+      .order("fecha_creacion", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getSolicitudCreditoById(id) {
+    const { data, error } = await supabase.from("solicitudes_credito").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async addSolicitudCredito(payload) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = { ...payload, usuario_creo: sessionData?.session?.user?.email || null };
+    const { data, error } = await supabase.from("solicitudes_credito").insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateSolicitudCredito(id, payload) {
+    const row = { ...payload, fecha_modificacion: new Date().toISOString() };
+    const { data, error } = await supabase.from("solicitudes_credito").update(row).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteSolicitudCredito(id) {
+    const { error } = await supabase.from("solicitudes_credito").delete().eq("id", id);
+    if (error) throw error;
+  },
+
   // Mercado en internet. La consulta la hace la función de Vercel
   // api/market-comps (la llave de Claude vive solo allá) y ella misma guarda la
   // "foto" en market_snapshots; aquí solo se pide, se lista y se borra.
@@ -1965,6 +2179,22 @@ export const supabaseBackend = {
   onAuthStateChange(callback) {
     const { data } = supabase.auth.onAuthStateChange((_event, session) => callback(session));
     return () => data.subscription.unsubscribe();
+  },
+
+  // Notificaciones push del navegador/SO (ver schema.sql: push_subscriptions,
+  // Edge Function enviar-push). `endpoint` es único por dispositivo/navegador
+  // — upsert por endpoint para que volver a activar en el mismo dispositivo
+  // actualice la fila en vez de duplicarla.
+  async savePushSubscription({ email, endpoint, p256dh, auth, userAgent }) {
+    const { error } = await supabase
+      .from("push_subscriptions")
+      .upsert({ email, endpoint, p256dh, auth, user_agent: userAgent || null }, { onConflict: "endpoint" });
+    if (error) throw error;
+  },
+
+  async deletePushSubscription(endpoint) {
+    const { error } = await supabase.from("push_subscriptions").delete().eq("endpoint", endpoint);
+    if (error) throw error;
   },
 
   // Construcción: mediciones, plano 2D/3D, presupuesto y valuación — apartado

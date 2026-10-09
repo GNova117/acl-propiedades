@@ -1,5 +1,6 @@
 import { ZONES, ADVISORS, PROPERTIES, VENTAS_SEED, VISITS_SEED, PROPERTY_TYPES_SEED, AMENITIES_SEED, DEMO_ADMIN, ADMIN_ROLES_SEED, ADMIN_ACCESS_SEED } from "./seedData";
 import { generateReportToken, REPORT_TOKEN_PATTERN } from "./visitReport";
+import { generatePortalToken, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS } from "./clientPortal";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify, numOrNull } from "./format";
@@ -37,6 +38,8 @@ const KEYS = {
   keyLog: "acl_local_key_log",
   docLog: "acl_local_doc_log",
   valuations: "acl_local_valuation_estimates",
+  solicitudesAvaluo: "acl_local_solicitudes_avaluo",
+  solicitudesCredito: "acl_local_solicitudes_credito",
   marketSnapshots: "acl_local_market_snapshots",
   prospects: "acl_local_prospectos",
   signing: "acl_local_signing_requests",
@@ -52,7 +55,11 @@ const KEYS = {
   messages: "acl_local_messages",
   testimonials: "acl_local_testimonials",
   propertyChanges: "acl_local_property_changes",
+  siteUpdates: "acl_local_site_updates",
   blogPosts: "acl_local_blog_posts",
+  clientPortalTokens: "acl_local_client_portal_tokens",
+  documentAccessLog: "acl_local_document_access_log",
+  privacyConsents: "acl_local_privacy_consents",
 };
 
 // Un par de artículos de muestra para que /blog no se vea vacío en modo
@@ -678,6 +685,46 @@ export const localBackend = {
     writeStore(KEYS.blogPosts, posts.filter((p) => p.id !== id));
   },
 
+  async getSiteUpdates() {
+    const updates = readStore(KEYS.siteUpdates, []);
+    return updates.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  },
+
+  async addSiteUpdate(data) {
+    const updates = readStore(KEYS.siteUpdates, []);
+    const now = new Date().toISOString();
+    const record = {
+      id: uid("update"),
+      title: data.title.trim(),
+      body: data.body.trim(),
+      created_by: DEMO_ADMIN.email,
+      created_at: now,
+      updated_at: now,
+    };
+    updates.push(record);
+    writeStore(KEYS.siteUpdates, updates);
+    return record;
+  },
+
+  async updateSiteUpdate(id, data) {
+    const updates = readStore(KEYS.siteUpdates, []);
+    const idx = updates.findIndex((u) => u.id === id);
+    if (idx === -1) throw new Error("Entrada no encontrada");
+    updates[idx] = {
+      ...updates[idx],
+      title: data.title.trim(),
+      body: data.body.trim(),
+      updated_at: new Date().toISOString(),
+    };
+    writeStore(KEYS.siteUpdates, updates);
+    return updates[idx];
+  },
+
+  async deleteSiteUpdate(id) {
+    const updates = readStore(KEYS.siteUpdates, []);
+    writeStore(KEYS.siteUpdates, updates.filter((u) => u.id !== id));
+  },
+
   // Modo demo no tiene backend de correo real (eso solo existe con Supabase
   // + la Edge Function enviar-correo) — simula el envío para que el botón se
   // pueda probar sin tronar.
@@ -754,6 +801,7 @@ export const localBackend = {
       phone: data.phone || null,
       notes: data.notes || null,
       active: data.active !== false,
+      financiamiento: data.financiamiento || null,
       ...clientExpedientePayload(data),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -775,6 +823,7 @@ export const localBackend = {
       phone: data.phone || null,
       notes: data.notes || null,
       active: data.active !== false,
+      financiamiento: data.financiamiento || null,
       ...clientExpedientePayload(data),
       updated_at: new Date().toISOString(),
     };
@@ -788,6 +837,7 @@ export const localBackend = {
     writeStore(KEYS.clients, clients.filter((c) => c.id !== id));
     const docs = readStore(KEYS.clientDocuments, []);
     writeStore(KEYS.clientDocuments, docs.filter((d) => d.client_id !== id));
+    writeStore(KEYS.clientPortalTokens, readStore(KEYS.clientPortalTokens, []).filter((t) => t.client_id !== id));
   },
 
   async getClientDocuments(clientId) {
@@ -795,7 +845,17 @@ export const localBackend = {
     return docs
       .filter((d) => d.client_id === clientId)
       .sort((a, b) => new Date(b.captured_at) - new Date(a.captured_at))
-      .map((d) => ({ ...d, signed_url: d.file_path }));
+      .map((d) => ({
+        source: "admin_capture",
+        file_kind: "document",
+        extracted_data: {},
+        qr_validated: null,
+        review_status: "pendiente",
+        review_notes: null,
+        client_confirmed: false,
+        ...d,
+        signed_url: d.file_path,
+      }));
   },
 
   // En demo file_path ya es la data URL completa (no expira, no requiere
@@ -853,6 +913,122 @@ export const localBackend = {
   async unlinkClients(linkId) {
     const links = readStore(KEYS.clientLinks, []);
     writeStore(KEYS.clientLinks, links.filter((l) => l.id !== linkId));
+  },
+
+  // ── Portal de documentos para clientes — modo demo ──
+  async getClientPortalToken(clientId) {
+    return readStore(KEYS.clientPortalTokens, []).find((t) => t.client_id === clientId) || null;
+  },
+
+  async saveClientPortalToken(clientId) {
+    const tokens = readStore(KEYS.clientPortalTokens, []).filter((t) => t.client_id !== clientId);
+    const record = {
+      id: uid("portaltoken"),
+      client_id: clientId,
+      token: generatePortalToken(),
+      active: true,
+      created_by: DEMO_ADMIN.email,
+      created_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + PORTAL_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString(),
+      last_accessed_at: null,
+    };
+    tokens.push(record);
+    writeStore(KEYS.clientPortalTokens, tokens);
+    return record;
+  },
+
+  async revokeClientPortalToken(clientId) {
+    const tokens = readStore(KEYS.clientPortalTokens, []);
+    writeStore(
+      KEYS.clientPortalTokens,
+      tokens.map((t) => (t.client_id === clientId ? { ...t, active: false } : t))
+    );
+  },
+
+  async reviewClientDocument(documentId, clientId, { reviewStatus, reviewNotes }) {
+    const docs = readStore(KEYS.clientDocuments, []);
+    writeStore(
+      KEYS.clientDocuments,
+      docs.map((d) =>
+        d.id === documentId
+          ? { ...d, review_status: reviewStatus, review_notes: reviewNotes || null, reviewed_by: DEMO_ADMIN.email, reviewed_at: new Date().toISOString() }
+          : d
+      )
+    );
+    const log = readStore(KEYS.documentAccessLog, []);
+    log.push({
+      id: uid("doclog"),
+      client_document_id: documentId,
+      client_id: clientId,
+      actor_type: "admin",
+      actor_ref: DEMO_ADMIN.email,
+      action: reviewStatus === "rechazado" ? "reject" : "approve",
+      created_at: new Date().toISOString(),
+    });
+    writeStore(KEYS.documentAccessLog, log);
+  },
+
+  // Lado del cliente (sin sesión): en demo no hay token de verdad guardado
+  // aparte de localStorage de ESTE navegador, así que solo sirve para
+  // probar el flujo completo, no para compartir un enlace real.
+  async getPortalStatus(token) {
+    if (!PORTAL_TOKEN_PATTERN.test(token || "")) return { status: "invalido" };
+    const t = readStore(KEYS.clientPortalTokens, []).find((x) => x.token === token);
+    if (!t) return { status: "invalido" };
+    if (!t.active) return { status: "desactivado" };
+    if (new Date(t.expires_at).getTime() < Date.now()) return { status: "expirado" };
+    const client = await this.getClientById(t.client_id);
+    const docs = readStore(KEYS.clientDocuments, [])
+      .filter((d) => d.client_id === t.client_id && d.source === "client_portal")
+      .sort((a, b) => new Date(b.captured_at) - new Date(a.captured_at));
+    return { status: "activo", client_name: (client?.name || "").split(" ")[0], documents: docs };
+  },
+
+  async registerPortalConsent(token, consentVersion) {
+    const t = readStore(KEYS.clientPortalTokens, []).find((x) => x.token === token);
+    if (!t) return { error: "not_found" };
+    const consents = readStore(KEYS.privacyConsents, []);
+    consents.push({ id: uid("consent"), client_id: t.client_id, token_id: t.id, consent_version: consentVersion, accepted_at: new Date().toISOString() });
+    writeStore(KEYS.privacyConsents, consents);
+    return { ok: true };
+  },
+
+  async confirmPortalDocument(token, documentId, extractedData, clientConfirmed) {
+    const t = readStore(KEYS.clientPortalTokens, []).find((x) => x.token === token);
+    if (!t) return { error: "invalid_token" };
+    const docs = readStore(KEYS.clientDocuments, []);
+    writeStore(
+      KEYS.clientDocuments,
+      docs.map((d) => (d.id === documentId && d.client_id === t.client_id ? { ...d, extracted_data: extractedData, client_confirmed: clientConfirmed } : d))
+    );
+    return { ok: true };
+  },
+
+  // Sin servidor en modo demo: no hay lectura real de texto/QR, solo se
+  // guarda el archivo (como data URL, igual que el resto del modo demo) y
+  // queda marcado para revisión manual — se avisa en pantalla que es demo.
+  async uploadPortalDocument(token, { docType, fileKind, file }) {
+    const t = readStore(KEYS.clientPortalTokens, []).find((x) => x.token === token);
+    if (!t) throw new Error("invalid_token");
+    const file_path = await fileToDataUrl(file);
+    const record = {
+      id: uid("doc"),
+      client_id: t.client_id,
+      doc_type: docType,
+      file_path,
+      source: "client_portal",
+      file_kind: fileKind,
+      quality_metrics: {},
+      extracted_data: fileKind === "document" ? { nota: "Modo demo: sin validación automática (sin servidor)." } : {},
+      qr_validated: null,
+      review_status: fileKind === "document" ? "requiere_revision" : "pendiente",
+      client_confirmed: false,
+      captured_at: new Date().toISOString(),
+    };
+    const docs = readStore(KEYS.clientDocuments, []);
+    docs.push(record);
+    writeStore(KEYS.clientDocuments, docs);
+    return record;
   },
 
   async getRemodelProjects(filters = {}) {
@@ -1715,6 +1891,68 @@ export const localBackend = {
     writeStore(KEYS.valuations, readStore(KEYS.valuations, []).filter((r) => r.id !== id));
   },
 
+  // Solicitudes de avalúo (modo demo: localStorage).
+  async getSolicitudesAvaluo() {
+    return readStore(KEYS.solicitudesAvaluo, []).sort((a, b) => String(b.fecha_creacion).localeCompare(String(a.fecha_creacion)));
+  },
+
+  async getSolicitudAvaluoById(id) {
+    return readStore(KEYS.solicitudesAvaluo, []).find((r) => r.id === id) || null;
+  },
+
+  async addSolicitudAvaluo(payload) {
+    const items = readStore(KEYS.solicitudesAvaluo, []);
+    const now = new Date().toISOString();
+    const record = { id: uid("solicitud-avaluo"), ...payload, usuario_creo: DEMO_ADMIN.email, fecha_creacion: now, fecha_modificacion: now };
+    items.push(record);
+    writeStore(KEYS.solicitudesAvaluo, items);
+    return record;
+  },
+
+  async updateSolicitudAvaluo(id, payload) {
+    const items = readStore(KEYS.solicitudesAvaluo, []);
+    const idx = items.findIndex((r) => r.id === id);
+    if (idx === -1) throw new Error("Solicitud de avalúo no encontrada");
+    items[idx] = { ...items[idx], ...payload, fecha_modificacion: new Date().toISOString() };
+    writeStore(KEYS.solicitudesAvaluo, items);
+    return items[idx];
+  },
+
+  async deleteSolicitudAvaluo(id) {
+    writeStore(KEYS.solicitudesAvaluo, readStore(KEYS.solicitudesAvaluo, []).filter((r) => r.id !== id));
+  },
+
+  // Solicitudes de crédito (modo demo: localStorage).
+  async getSolicitudesCredito() {
+    return readStore(KEYS.solicitudesCredito, []).sort((a, b) => String(b.fecha_creacion).localeCompare(String(a.fecha_creacion)));
+  },
+
+  async getSolicitudCreditoById(id) {
+    return readStore(KEYS.solicitudesCredito, []).find((r) => r.id === id) || null;
+  },
+
+  async addSolicitudCredito(payload) {
+    const items = readStore(KEYS.solicitudesCredito, []);
+    const now = new Date().toISOString();
+    const record = { id: uid("solicitud-credito"), ...payload, usuario_creo: DEMO_ADMIN.email, fecha_creacion: now, fecha_modificacion: now };
+    items.push(record);
+    writeStore(KEYS.solicitudesCredito, items);
+    return record;
+  },
+
+  async updateSolicitudCredito(id, payload) {
+    const items = readStore(KEYS.solicitudesCredito, []);
+    const idx = items.findIndex((r) => r.id === id);
+    if (idx === -1) throw new Error("Solicitud de crédito no encontrada");
+    items[idx] = { ...items[idx], ...payload, fecha_modificacion: new Date().toISOString() };
+    writeStore(KEYS.solicitudesCredito, items);
+    return items[idx];
+  },
+
+  async deleteSolicitudCredito(id) {
+    writeStore(KEYS.solicitudesCredito, readStore(KEYS.solicitudesCredito, []).filter((r) => r.id !== id));
+  },
+
   // Mercado en internet (modo demo): no hay función de Vercel ni llave de
   // Claude, así que se generan anuncios de EJEMPLO (src/lib/marketDemo.js),
   // marcados como tales. Mismo contrato que supabaseBackend, incluida la
@@ -2018,6 +2256,18 @@ export const localBackend = {
   onAuthStateChange(callback) {
     authListeners.add(callback);
     return () => authListeners.delete(callback);
+  },
+
+  // Notificaciones push: la suscripción en sí es una operación del propio
+  // navegador (Service Worker + Push API, ver lib/pushNotifications.js) que
+  // funciona igual en demo, pero guardarla no sirve de nada sin el backend
+  // real que de verdad manda el push (Edge Function enviar-push con la
+  // service role key) — no vale la pena simularlo sobre localStorage.
+  async savePushSubscription() {
+    throw new Error("Las notificaciones push no están disponibles en modo demo (requieren Supabase configurado).");
+  },
+  async deletePushSubscription() {
+    throw new Error("Las notificaciones push no están disponibles en modo demo (requieren Supabase configurado).");
   },
 
   // Construcción no tiene paridad en modo demo a propósito (geometría 2D/3D

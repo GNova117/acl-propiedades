@@ -60,6 +60,8 @@ const AdminConstruccionForm = lazy(() => import("./pages/admin/AdminConstruccion
 const AdminConstruccionProject = lazy(() => import("./pages/admin/AdminConstruccionProject"));
 const AdminInfonavitSimulator = lazy(() => import("./pages/admin/AdminInfonavitSimulator"));
 const AdminValuation = lazy(() => import("./pages/admin/AdminValuation"));
+const AdminSolicitudAvaluo = lazy(() => import("./pages/admin/AdminSolicitudAvaluo"));
+const AdminSolicitudCredito = lazy(() => import("./pages/admin/AdminSolicitudCredito"));
 const AdminInspections = lazy(() => import("./pages/admin/AdminInspections"));
 const AdminInspectionForm = lazy(() => import("./pages/admin/AdminInspectionForm"));
 const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
@@ -86,12 +88,18 @@ const AdminPropertyVisits = lazy(() => import("./pages/admin/AdminPropertyVisits
 // no es una página del sitio: ver la ruta /informe/:token más abajo.
 const PublicVisitReport = lazy(() => import("./pages/PublicVisitReport"));
 const PublicSign = lazy(() => import("./pages/PublicSign"));
+// Portal de documentos del cliente (Constancia de Situación Fiscal + Acta de
+// nacimiento). Público (sin login) pero no es una página del sitio: ver la
+// ruta /documentos/:token más abajo, igual patrón que /informe/:token y /firmar/:token.
+const PortalDocuments = lazy(() => import("./pages/PortalDocuments"));
 const AdminSignatures = lazy(() => import("./pages/admin/AdminSignatures"));
 const AdminFunnel = lazy(() => import("./pages/admin/AdminFunnel"));
 const AdminMonthlyReport = lazy(() => import("./pages/admin/AdminMonthlyReport"));
 const AdminAlerts = lazy(() => import("./pages/admin/AdminAlerts"));
 const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const AdminBlogForm = lazy(() => import("./pages/admin/AdminBlogForm"));
+const AdminNovedades = lazy(() => import("./pages/admin/AdminNovedades"));
+const AdminNovedadesForm = lazy(() => import("./pages/admin/AdminNovedadesForm"));
 
 const SPECIAL_SECTION_KEYS = Object.keys(SPECIAL_SECTION_TYPES);
 
@@ -175,6 +183,7 @@ export default function App() {
           llegar ahí; tampoco necesita el menú ni las decoraciones del sitio. */}
       <Route path="/informe/:token" element={<ErrorBoundary><PublicVisitReport /></ErrorBoundary>} />
       <Route path="/firmar/:token" element={<ErrorBoundary><PublicSign /></ErrorBoundary>} />
+      <Route path="/documentos/:token" element={<ErrorBoundary><PortalDocuments /></ErrorBoundary>} />
 
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route
@@ -284,12 +293,17 @@ export default function App() {
         <Route path="construccion/:id" element={<RequireSection section="construccion"><AdminConstruccionProject /></RequireSection>} />
         <Route path="credito-infonavit" element={<RequireSection section="credito_infonavit"><AdminInfonavitSimulator /></RequireSection>} />
         <Route path="valuacion" element={<RequireSection section="valuacion"><AdminValuation /></RequireSection>} />
+        <Route path="solicitud-avaluo" element={<RequireSection section="valuacion"><AdminSolicitudAvaluo /></RequireSection>} />
+        <Route path="solicitud-credito" element={<RequireSection section="credito_infonavit"><AdminSolicitudCredito /></RequireSection>} />
         <Route path="inspecciones" element={<RequireSection section="inspecciones"><AdminInspections /></RequireSection>} />
         <Route path="inspecciones/nueva" element={<RequireSection section="inspecciones"><AdminInspectionForm /></RequireSection>} />
         <Route path="inspecciones/:id" element={<RequireSection section="inspecciones"><AdminInspectionForm /></RequireSection>} />
         <Route path="firmas" element={<RequireSection section="documentos_legales"><AdminSignatures /></RequireSection>} />
         <Route path="documentos-legales" element={<RequireSection section="documentos_legales"><AdminLegalDocs /></RequireSection>} />
         <Route path="actividad" element={<RequireSection section="roles"><AdminActivity /></RequireSection>} />
+        <Route path="novedades" element={<RequireSection section="novedades"><AdminNovedades /></RequireSection>} />
+        <Route path="novedades/nueva" element={<RequireSection section="novedades"><AdminNovedadesForm /></RequireSection>} />
+        <Route path="novedades/:id" element={<RequireSection section="novedades"><AdminNovedadesForm /></RequireSection>} />
         <Route path="roles" element={<RequireSection section="roles"><AdminRoles /></RequireSection>} />
         <Route path="agenda" element={<RequireSection section="agenda"><AdminAgenda /></RequireSection>} />
         <Route path="agenda/nueva" element={<RequireSection section="agenda"><AdminAgendaForm /></RequireSection>} />

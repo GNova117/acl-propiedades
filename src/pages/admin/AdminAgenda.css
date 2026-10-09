@@ -1,0 +1,128 @@
+.agenda-view-toggle {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.agenda-calendar {
+  padding: 1rem 1.1rem 1.25rem;
+}
+
+.agenda-calendar__nav {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.agenda-calendar__title {
+  flex: 1;
+  text-transform: capitalize;
+}
+
+.agenda-calendar__today {
+  margin-left: auto;
+}
+
+.agenda-calendar__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.agenda-calendar__weekdays span {
+  text-align: center;
+}
+
+.agenda-calendar__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.agenda-calendar__week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
+}
+
+.agenda-calendar__day {
+  min-height: 92px;
+  padding: 0.35rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.agenda-calendar__day--out {
+  opacity: 0.4;
+  background: var(--color-bg-alt);
+}
+
+.agenda-calendar__day--today {
+  border-color: var(--color-primary);
+}
+
+.agenda-calendar__day-number {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.agenda-calendar__day--today .agenda-calendar__day-number {
+  color: var(--color-primary);
+}
+
+.agenda-calendar__chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  overflow: hidden;
+}
+
+.agenda-calendar__chip {
+  display: block;
+  padding: 0.15rem 0.35rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-text);
+  font-size: 0.72rem;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agenda-calendar__chip:hover {
+  background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+}
+
+.agenda-calendar__more {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .agenda-calendar__weekdays span:nth-child(n) {
+    font-size: 0.68rem;
+  }
+
+  .agenda-calendar__day {
+    min-height: 68px;
+  }
+
+  .agenda-calendar__chip {
+    font-size: 0.66rem;
+  }
+}

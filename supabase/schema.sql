@@ -3511,3 +3511,1119 @@ alter table clients add column if not exists domicilio text;
 alter table clients add column if not exists rfc text check (rfc is null or rfc ~ '^[A-ZÑ&]{4}[0-9]{6}[A-Z0-9]{3}$');
 alter table clients add column if not exists curp text check (curp is null or curp ~ '^[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[A-Z0-9]{2}$');
 alter table clients add column if not exists identificacion_oficial text;
+-- Cifrado de la contraseña del portal de crédito (2026-10)
+--
+-- Hasta ahora `clients.contrasena_portal` y `perfilamientos_comprador.
+-- contrasena_portal` guardaban la contraseña del portal de crédito del
+-- comprador (INFONAVIT/FOVISSSTE/banco) en texto plano — ver el riesgo
+-- aceptado documentado en README.md. Este bloque la cifra en la columna
+-- (pgcrypto + una llave en Supabase Vault, que nunca vive en este archivo
+-- ni en el repo) sin cambiar nada del front: la app sigue mandando y
+-- recibiendo la contraseña en claro exactamente igual que antes, solo que
+-- lo que queda guardado en la tabla ya no es legible sin la llave.
+--
+-- Qué SÍ resuelve: un volcado de la base (pg_dump, una copia de seguridad,
+-- un acceso directo a la tabla que no pase por la app) ya no expone la
+-- contraseña real, solo el cifrado. Qué NO resuelve: quien ya puede usar el
+-- panel con el apartado 'clientes' (como hoy) sigue viendo la contraseña en
+-- claro — ese acceso es intencional, lo pide el negocio para ayudar al
+-- cliente a entrar a su portal — y si la llave de Vault también se
+-- comprometiera, el cifrado no protege nada. No es un reemplazo de tener
+-- Supabase Vault bien resguardado, es una capa más.
+--
+-- PASO MANUAL, UNA SOLA VEZ, ANTES de correr el resto de este bloque (la
+-- llave no se puede traer ya escrita en este archivo: tiene que vivir solo
+-- en tu Supabase). En el SQL Editor, con tu propia frase larga y aleatoria:
+--   select vault.create_secret('<tu-frase-larga-y-aleatoria>', 'portal_password_key');
+-- Si ya existe y quieres rotarla:
+--   select vault.update_secret(id, '<frase-nueva>') from vault.secrets where name = 'portal_password_key';
+-- (rotar la llave inutiliza lo ya cifrado con la anterior — re-captura esas
+-- contraseñas después de rotar, o descífralas con la llave vieja antes).
+--
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor,
+-- siempre que ya hayas creado el secreto una vez)
+-- ─────────────────────────────────────────────
+
+-- Supabase instala las extensiones en el esquema `extensions`, no en
+-- `public` — de ahí que las dos funciones de abajo agreguen `extensions` a
+-- su search_path, si no `pgp_sym_encrypt`/`pgp_sym_decrypt` no se encuentran.
+create extension if not exists pgcrypto with schema extensions;
+
+-- Única forma de leer la llave: una función privada, sin EXECUTE para nadie
+-- más que su dueño (mismo patrón que has_admin_section/_visit_report_payload).
+create or replace function _portal_password_key()
+returns text
+language sql
+stable
+security definer
+set search_path = public, vault
+as $$
+  select decrypted_secret from vault.decrypted_secrets where name = 'portal_password_key' limit 1;
+$$;
+revoke all on function _portal_password_key() from public, anon, authenticated;
+
+-- Prefijo que marca un valor ya cifrado por esta función: permite volver a
+-- correr este bloque sin cifrar dos veces, y que el trigger de abajo sepa
+-- distinguir "el asesor tecleó una contraseña nueva" de "esto ya es cifrado".
+create or replace function _encrypt_portal_password(plain text)
+returns text
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  key text := _portal_password_key();
+begin
+  if plain is null or plain = '' then
+    return null;
+  end if;
+  if left(plain, 6) = 'encv1:' then
+    return plain; -- ya viene cifrado (re-ejecución de este bloque sobre una fila ya migrada)
+  end if;
+  if key is null then
+    raise exception 'portal_password_key no está configurada en Vault — ver instrucciones en schema.sql';
+  end if;
+  return 'encv1:' || encode(pgp_sym_encrypt(plain, key), 'base64');
+end;
+$$;
+revoke all on function _encrypt_portal_password(text) from public, anon, authenticated;
+
+-- Esta sí la llama la app (a través de las vistas de abajo): cualquier
+-- autenticado puede invocarla, pero sin una fila real de clients/
+-- perfilamientos_comprador (bloqueada por RLS a quien no tenga el apartado
+-- 'clientes') no hay ningún cifrado real que pasarle — y por si alguien
+-- guardó una copia de un cifrado antes de perder ese apartado, también se
+-- revisa aquí adentro, no solo en la vista.
+create or replace function _decrypt_portal_password(value text)
+returns text
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $$
+declare
+  key text := _portal_password_key();
+begin
+  if value is null or value = '' then
+    return null;
+  end if;
+  if not has_admin_section('clientes') then
+    raise exception 'No autorizado';
+  end if;
+  if left(value, 6) <> 'encv1:' then
+    return value; -- fila que aún no se migró (no debería pasar después del update de abajo)
+  end if;
+  if key is null then
+    raise exception 'portal_password_key no está configurada en Vault — ver instrucciones en schema.sql';
+  end if;
+  return pgp_sym_decrypt(decode(substring(value from 7), 'base64'), key);
+end;
+$$;
+revoke all on function _decrypt_portal_password(text) from public, anon;
+grant execute on function _decrypt_portal_password(text) to authenticated;
+
+-- Cifra automáticamente al guardar, sin que la app tenga que cambiar nada:
+-- sigue mandando la contraseña en claro en el insert/update de siempre.
+create or replace function _encrypt_portal_password_trigger()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  new.contrasena_portal := _encrypt_portal_password(new.contrasena_portal);
+  return new;
+end;
+$$;
+revoke all on function _encrypt_portal_password_trigger() from public, anon, authenticated;
+
+drop trigger if exists encrypt_contrasena_portal on clients;
+create trigger encrypt_contrasena_portal
+  before insert or update of contrasena_portal on clients
+  for each row execute function _encrypt_portal_password_trigger();
+
+drop trigger if exists encrypt_contrasena_portal on perfilamientos_comprador;
+create trigger encrypt_contrasena_portal
+  before insert or update of contrasena_portal on perfilamientos_comprador
+  for each row execute function _encrypt_portal_password_trigger();
+
+-- Migra lo que ya estaba guardado en texto plano (no toca lo que ya tenga el
+-- prefijo, así que correr esto de nuevo no vuelve a cifrar nada dos veces).
+update clients
+set contrasena_portal = _encrypt_portal_password(contrasena_portal)
+where contrasena_portal is not null and left(contrasena_portal, 6) <> 'encv1:';
+
+update perfilamientos_comprador
+set contrasena_portal = _encrypt_portal_password(contrasena_portal)
+where contrasena_portal is not null and left(contrasena_portal, 6) <> 'encv1:';
+
+-- Vistas de SOLO LECTURA que la app usa en vez de la tabla para traer la
+-- contraseña ya descifrada (nunca para guardar — el insert/update sigue
+-- yendo a la tabla real, donde el trigger de arriba cifra). `security_invoker
+-- = true` es imprescindible: sin esto, Postgres evaluaría el RLS de la vista
+-- con los permisos de quien la creó (saltándose has_admin_section('clientes')
+-- de la tabla real) en vez de con los de quien realmente consulta.
+-- Si se agrega una columna nueva a `clients` o a `perfilamientos_comprador`,
+-- hay que agregarla también aquí para que no desaparezca de estas vistas.
+create or replace view clients_decrypted
+with (security_invoker = true) as
+select
+  id, name, type, email, phone, notes, active, created_at, updated_at,
+  nss, _decrypt_portal_password(contrasena_portal) as contrasena_portal, numero_credito,
+  referencia1_nombre, referencia1_telefono, referencia1_correo, referencia1_direccion,
+  referencia2_nombre, referencia2_telefono, referencia2_correo, referencia2_direccion,
+  razon_social, registro_patronal, tel_empresa
+from clients;
+grant select on clients_decrypted to authenticated;
+
+create or replace view perfilamientos_comprador_decrypted
+with (security_invoker = true) as
+select
+  id, cliente_id, nombre, nss, telefono,
+  _decrypt_portal_password(contrasena_portal) as contrasena_portal,
+  fecha_nacimiento, estado_civil, domicilio, correo, curp, rfc,
+  registro_patronal, tel_empresa, razon_social,
+  referencia1_nombre, referencia1_telefono, referencia1_correo, referencia1_direccion,
+  referencia2_nombre, referencia2_telefono, referencia2_correo, referencia2_direccion,
+  usuario_creo, fecha_creacion, fecha_modificacion
+from perfilamientos_comprador;
+grant select on perfilamientos_comprador_decrypted to authenticated;
+
+-- Último paso manual: si tu proyecto no recarga el caché de la API solo,
+-- fuerza la recarga para que PostgREST vea las vistas nuevas:
+--   select pg_notify('pgrst', 'reload schema');
+
+-- ─────────────────────────────────────────────
+-- RLS por apartado para las tablas que faltaban (2026-10)
+--
+-- Hasta este bloque, solo Clientes/Liquidaciones/Visitas/Bitácora/Reportes/
+-- Valuación/Agenda/Secretaria/Inspecciones/Gastos/Prospectos/Documentos
+-- legales/Roles bloqueaban de verdad por apartado en la base de datos (ver
+-- "Roles y accesos" arriba). El resto —Zonas, Asesores, Propiedades/Naves
+-- Industriales, Mensajes, Materiales, Remodelaciones, Testimonios, Blog y
+-- Construcción— solo se ocultaban del menú y las rutas: cualquier cuenta
+-- con sesión iniciada podía leerlas/escribirlas igual por la API de
+-- Supabase, tuviera o no ese apartado en su rol. Este bloque cierra esa
+-- brecha con el mismo patrón ya usado arriba (has_admin_section(...)).
+--
+-- Dónde SIGUE siendo pública la lectura (zonas, tipos de propiedad,
+-- amenidades, asesores, propiedades, testimonios, blog publicado, fotos/
+-- videos de propiedad, asesor y blog): sin cambios — esas tablas ya tenían
+-- su propia política pública independiente ("Public can read ..."), así que
+-- esto solo cierra escritura (insert/update/delete) a quien no tenga el
+-- apartado. Construcción, Remodelaciones y Materiales son 100% internas
+-- (nunca tuvieron lectura pública), así que ahí el cambio cierra también la
+-- lectura.
+--
+-- Propiedades/Naves Industriales comparten la misma tabla `properties`
+-- desde siempre (ver el bloque "Naves Industriales pasa a tener su propio
+-- apartado" más arriba, que ya avisaba que esto quedaba pendiente): un rol
+-- puede tener cualquiera de los dos apartados por separado, así que la
+-- política exige uno U OTRO, nunca los dos a la vez.
+--
+-- ⚠️ IMPORTANTE antes de correr este bloque: revisa en /admin/roles que
+-- cada rol que de verdad necesita cada uno de estos apartados ya lo tenga
+-- marcado (el rol "Administrador" ya tiene todos). Una cuenta cuyo rol no
+-- traiga el apartado correspondiente empieza a recibir 0 filas de esa tabla
+-- en cuanto esto se corre — ya no por el menú, sino por la base de datos.
+--
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+-- Zonas (zonas, tipos de propiedad y amenidades se administran juntos en
+-- /admin/zonas, mismo apartado los tres).
+drop policy if exists "Authenticated manage zones" on zones;
+create policy "Rol con apartado zonas maneja zones" on zones for all
+  using (has_admin_section('zonas')) with check (has_admin_section('zonas'));
+
+drop policy if exists "Authenticated manage property_types" on property_types;
+create policy "Rol con apartado zonas maneja property_types" on property_types for all
+  using (has_admin_section('zonas')) with check (has_admin_section('zonas'));
+
+drop policy if exists "Authenticated manage amenities_catalog" on amenities_catalog;
+create policy "Rol con apartado zonas maneja amenities_catalog" on amenities_catalog for all
+  using (has_admin_section('zonas')) with check (has_admin_section('zonas'));
+
+-- Asesores
+drop policy if exists "Authenticated manage advisors" on advisors;
+create policy "Rol con apartado asesores maneja advisors" on advisors for all
+  using (has_admin_section('asesores')) with check (has_admin_section('asesores'));
+
+drop policy if exists "Authenticated can upload advisor photos" on storage.objects;
+create policy "Rol con apartado asesores sube fotos de asesor" on storage.objects
+  for insert with check (bucket_id = 'advisor-photos' and has_admin_section('asesores'));
+
+drop policy if exists "Authenticated can delete advisor photos" on storage.objects;
+create policy "Rol con apartado asesores borra fotos de asesor" on storage.objects
+  for delete using (bucket_id = 'advisor-photos' and has_admin_section('asesores'));
+
+-- Propiedades / Naves Industriales: mismas tablas, apartados distintos —
+-- cualquiera de los dos basta (ver nota arriba).
+drop policy if exists "Authenticated manage properties" on properties;
+create policy "Rol con apartado propiedades o naves_industriales maneja properties" on properties for all
+  using (has_admin_section('propiedades') or has_admin_section('naves_industriales'))
+  with check (has_admin_section('propiedades') or has_admin_section('naves_industriales'));
+
+drop policy if exists "Authenticated manage property_advisors" on property_advisors;
+create policy "Rol con apartado propiedades o naves_industriales maneja property_advisors" on property_advisors for all
+  using (has_admin_section('propiedades') or has_admin_section('naves_industriales'))
+  with check (has_admin_section('propiedades') or has_admin_section('naves_industriales'));
+
+drop policy if exists "Authenticated read property_changes" on property_changes;
+create policy "Rol con apartado propiedades o naves_industriales lee property_changes" on property_changes for select
+  using (has_admin_section('propiedades') or has_admin_section('naves_industriales'));
+
+drop policy if exists "Authenticated can upload property images" on storage.objects;
+create policy "Rol con apartado propiedades o naves sube fotos de propiedad" on storage.objects
+  for insert with check (bucket_id = 'property-images' and (has_admin_section('propiedades') or has_admin_section('naves_industriales')));
+
+drop policy if exists "Authenticated can delete property images" on storage.objects;
+create policy "Rol con apartado propiedades o naves borra fotos de propiedad" on storage.objects
+  for delete using (bucket_id = 'property-images' and (has_admin_section('propiedades') or has_admin_section('naves_industriales')));
+
+drop policy if exists "Authenticated can upload property videos" on storage.objects;
+create policy "Rol con apartado propiedades o naves sube videos de propiedad" on storage.objects
+  for insert with check (bucket_id = 'property-videos' and (has_admin_section('propiedades') or has_admin_section('naves_industriales')));
+
+drop policy if exists "Authenticated can delete property videos" on storage.objects;
+create policy "Rol con apartado propiedades o naves borra videos de propiedad" on storage.objects
+  for delete using (bucket_id = 'property-videos' and (has_admin_section('propiedades') or has_admin_section('naves_industriales')));
+
+-- Mensajes (el insert público del formulario de contacto no se toca)
+drop policy if exists "Authenticated read contact messages" on contact_messages;
+create policy "Rol con apartado mensajes lee contact_messages" on contact_messages for select
+  using (has_admin_section('mensajes'));
+
+drop policy if exists "Authenticated update contact messages" on contact_messages;
+create policy "Rol con apartado mensajes actualiza contact_messages" on contact_messages for update
+  using (has_admin_section('mensajes')) with check (has_admin_section('mensajes'));
+
+drop policy if exists "Authenticated delete contact messages" on contact_messages;
+create policy "Rol con apartado mensajes borra contact_messages" on contact_messages for delete
+  using (has_admin_section('mensajes'));
+
+-- Materiales (catálogo de materiales y de mano de obra, misma pantalla)
+drop policy if exists "Authenticated manage materials_catalog" on materials_catalog;
+create policy "Rol con apartado materiales maneja materials_catalog" on materials_catalog for all
+  using (has_admin_section('materiales')) with check (has_admin_section('materiales'));
+
+drop policy if exists "Authenticated manage labor_catalog" on labor_catalog;
+create policy "Rol con apartado materiales maneja labor_catalog" on labor_catalog for all
+  using (has_admin_section('materiales')) with check (has_admin_section('materiales'));
+
+-- Remodelaciones
+drop policy if exists "Authenticated manage remodel_projects" on remodel_projects;
+create policy "Rol con apartado remodelaciones maneja remodel_projects" on remodel_projects for all
+  using (has_admin_section('remodelaciones')) with check (has_admin_section('remodelaciones'));
+
+drop policy if exists "Authenticated manage remodel_progress_entries" on remodel_progress_entries;
+create policy "Rol con apartado remodelaciones maneja remodel_progress_entries" on remodel_progress_entries for all
+  using (has_admin_section('remodelaciones')) with check (has_admin_section('remodelaciones'));
+
+drop policy if exists "Authenticated can view remodel progress photos" on storage.objects;
+create policy "Rol con apartado remodelaciones ve fotos de avance" on storage.objects
+  for select using (bucket_id = 'remodel-progress' and has_admin_section('remodelaciones'));
+
+drop policy if exists "Authenticated can upload remodel progress photos" on storage.objects;
+create policy "Rol con apartado remodelaciones sube fotos de avance" on storage.objects
+  for insert with check (bucket_id = 'remodel-progress' and has_admin_section('remodelaciones'));
+
+drop policy if exists "Authenticated can delete remodel progress photos" on storage.objects;
+create policy "Rol con apartado remodelaciones borra fotos de avance" on storage.objects
+  for delete using (bucket_id = 'remodel-progress' and has_admin_section('remodelaciones'));
+
+-- Testimonios (la lectura pública de testimonios publicados no se toca)
+drop policy if exists "Authenticated manage testimonials" on testimonials;
+create policy "Rol con apartado testimonios maneja testimonials" on testimonials for all
+  using (has_admin_section('testimonios')) with check (has_admin_section('testimonios'));
+
+-- Blog (la lectura pública de entradas publicadas no se toca). Depende del
+-- bloque "Blog" que crea `blog_posts` y el bucket `blog-images` más arriba
+-- en este archivo — si no se ha corrido (el blog no está desplegado en el
+-- proyecto, como en producción al 2026-10), esta parte falla con "relation
+-- blog_posts does not exist"; sáltatela hasta que exista esa tabla.
+drop policy if exists "Authenticated administra blog" on blog_posts;
+create policy "Rol con apartado blog administra blog_posts" on blog_posts for all
+  using (has_admin_section('blog')) with check (has_admin_section('blog'));
+
+drop policy if exists "Authenticated can upload blog images" on storage.objects;
+create policy "Rol con apartado blog sube imágenes de blog" on storage.objects
+  for insert with check (bucket_id = 'blog-images' and has_admin_section('blog'));
+
+drop policy if exists "Authenticated can delete blog images" on storage.objects;
+create policy "Rol con apartado blog borra imágenes de blog" on storage.objects
+  for delete using (bucket_id = 'blog-images' and has_admin_section('blog'));
+
+-- Construcción (todas 100% internas, nunca tuvieron lectura pública)
+drop policy if exists "Authenticated manage construccion_proyectos" on construccion_proyectos;
+create policy "Rol con apartado construccion maneja construccion_proyectos" on construccion_proyectos for all
+  using (has_admin_section('construccion')) with check (has_admin_section('construccion'));
+
+drop policy if exists "Authenticated manage construccion_habitaciones" on construccion_habitaciones;
+create policy "Rol con apartado construccion maneja construccion_habitaciones" on construccion_habitaciones for all
+  using (has_admin_section('construccion')) with check (has_admin_section('construccion'));
+
+drop policy if exists "Authenticated manage construccion_muros" on construccion_muros;
+create policy "Rol con apartado construccion maneja construccion_muros" on construccion_muros for all
+  using (has_admin_section('construccion')) with check (has_admin_section('construccion'));
+
+drop policy if exists "Authenticated manage construccion_aberturas" on construccion_aberturas;
+create policy "Rol con apartado construccion maneja construccion_aberturas" on construccion_aberturas for all
+  using (has_admin_section('construccion')) with check (has_admin_section('construccion'));
+
+drop policy if exists "Authenticated manage construccion_catalogo_materiales" on construccion_catalogo_materiales;
+create policy "Rol con apartado construccion maneja construccion_catalogo_materiales" on construccion_catalogo_materiales for all
+  using (has_admin_section('construccion')) with check (has_admin_section('construccion'));
+
+drop policy if exists "Authenticated manage construccion_objetos" on construccion_objetos;
+create policy "Rol con apartado construccion maneja construccion_objetos" on construccion_objetos for all
+  using (has_admin_section('construccion')) with check (has_admin_section('construccion'));
+
+drop policy if exists "Authenticated manage construccion_niveles" on construccion_niveles;
+create policy "Rol con apartado construccion maneja construccion_niveles" on construccion_niveles for all
+  using (has_admin_section('construccion')) with check (has_admin_section('construccion'));
+
+drop policy if exists "Authenticated manage construccion_fotos" on construccion_fotos;
+create policy "Rol con apartado construccion maneja construccion_fotos" on construccion_fotos for all
+  using (has_admin_section('construccion')) with check (has_admin_section('construccion'));
+
+drop policy if exists "Authenticated view construccion fotos" on storage.objects;
+create policy "Rol con apartado construccion ve fotos" on storage.objects
+  for select using (bucket_id = 'construccion-fotos' and has_admin_section('construccion'));
+
+drop policy if exists "Authenticated upload construccion fotos" on storage.objects;
+create policy "Rol con apartado construccion sube fotos" on storage.objects
+  for insert with check (bucket_id = 'construccion-fotos' and has_admin_section('construccion'));
+
+drop policy if exists "Authenticated delete construccion fotos" on storage.objects;
+create policy "Rol con apartado construccion borra fotos" on storage.objects
+  for delete using (bucket_id = 'construccion-fotos' and has_admin_section('construccion'));
+
+drop policy if exists "Authenticated manage construccion_fondos" on construccion_fondos;
+create policy "Rol con apartado construccion maneja construccion_fondos" on construccion_fondos for all
+  using (has_admin_section('construccion')) with check (has_admin_section('construccion'));
+
+drop policy if exists "Authenticated view construccion fondos" on storage.objects;
+create policy "Rol con apartado construccion ve fondos" on storage.objects
+  for select using (bucket_id = 'construccion-fondos' and has_admin_section('construccion'));
+
+drop policy if exists "Authenticated upload construccion fondos" on storage.objects;
+create policy "Rol con apartado construccion sube fondos" on storage.objects
+  for insert with check (bucket_id = 'construccion-fondos' and has_admin_section('construccion'));
+
+drop policy if exists "Authenticated update construccion fondos" on storage.objects;
+create policy "Rol con apartado construccion actualiza fondos" on storage.objects
+  for update using (bucket_id = 'construccion-fondos' and has_admin_section('construccion'));
+
+drop policy if exists "Authenticated delete construccion fondos" on storage.objects;
+create policy "Rol con apartado construccion borra fondos" on storage.objects
+  for delete using (bucket_id = 'construccion-fondos' and has_admin_section('construccion'));
+
+-- ─────────────────────────────────────────────
+-- Portal de documentos para clientes (autoservicio) (2026-10)
+--
+-- El cliente NUNCA entrega credenciales del SAT ni de gob.mx: descarga su
+-- propia Constancia de Situación Fiscal y su Acta de Nacimiento desde los
+-- portales oficiales y sube el PDF aquí. El acceso es por un enlace privado
+-- con token (/documentos/<token>, igual patrón que /informe/<token> y
+-- /firmar/<token>: nada de login de cliente) que SOLO el asesor genera y
+-- comparte desde /admin/clientes/:id/documentos — el cliente no se puede
+-- autoregistrar.
+--
+-- Reutiliza client_documents (no se crea una tabla aparte): se le agregan
+-- columnas para distinguir el origen (asesor vs. portal), guardar lo que
+-- la extracción automática (texto + QR del PDF) encontró, y el estado de
+-- revisión. El archivo sigue viviendo en el mismo bucket privado
+-- client-documents, con el mismo esquema de ruta `${client_id}/...` que ya
+-- usa el panel — así AdminClientDocuments.jsx no necesita cambiar cómo
+-- pide las URLs firmadas.
+--
+-- Quién escribe qué:
+-- · api/portal-upload.js (función de Vercel) usa SUPABASE_SERVICE_ROLE_KEY
+--   para subir el archivo validado a Storage e insertar la fila — valida el
+--   token, el tipo real del archivo y el límite de intentos ANTES de
+--   escribir nada (igual que ya hacen las Edge Functions de Agenda con esa
+--   misma llave). El estado de revisión que calcula ('valido' o
+--   'requiere_revision') es solo una sugerencia automática: nunca
+--   'rechazado' por sí sola — eso lo decide siempre una persona.
+-- · portal_token_status / portal_register_consent / portal_confirm_document
+--   son las únicas funciones que puede llamar el navegador del cliente
+--   (anon, sin sesión) — security definer, cada una revisa el token por su
+--   cuenta antes de leer o escribir nada.
+-- · Generar/revocar el enlace y aprobar/rechazar un documento los hace el
+--   asesor con su sesión normal, bajo las políticas RLS de siempre
+--   (has_admin_section('clientes')) — no hace falta una función aparte.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+alter table client_documents add column if not exists source text not null default 'admin_capture'
+  check (source in ('admin_capture', 'client_portal'));
+alter table client_documents add column if not exists file_kind text not null default 'document'
+  check (file_kind in ('document', 'backup_image'));
+alter table client_documents add column if not exists extracted_data jsonb not null default '{}';
+alter table client_documents add column if not exists qr_validated boolean;
+alter table client_documents add column if not exists review_status text not null default 'pendiente'
+  check (review_status in ('pendiente', 'valido', 'requiere_revision', 'rechazado'));
+alter table client_documents add column if not exists review_notes text;
+alter table client_documents add column if not exists reviewed_by text;
+alter table client_documents add column if not exists reviewed_at timestamptz;
+alter table client_documents add column if not exists client_confirmed boolean not null default false;
+
+create index if not exists idx_client_documents_source on client_documents(source);
+
+-- Un solo token por cliente (unique en client_id): "generar enlace" hace un
+-- upsert — si ya había uno lo REGENERA (token nuevo, el anterior deja de
+-- servir en el acto), igual que property_report_links/saveReportLink.
+create table if not exists client_portal_tokens (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null unique references clients(id) on delete cascade,
+  token text not null unique default replace(gen_random_uuid()::text, '-', '')
+    check (token ~ '^[0-9a-f]{32}$'),
+  active boolean not null default true,
+  created_by text,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default (now() + interval '14 days'),
+  last_accessed_at timestamptz
+);
+
+create index if not exists idx_client_portal_tokens_client on client_portal_tokens(client_id);
+
+alter table client_portal_tokens enable row level security;
+
+drop policy if exists "Rol con apartado clientes maneja client_portal_tokens" on client_portal_tokens;
+create policy "Rol con apartado clientes maneja client_portal_tokens" on client_portal_tokens for all
+  using (has_admin_section('clientes')) with check (has_admin_section('clientes'));
+
+-- Bitácora de accesos (requisito de privacidad): quién hizo qué y cuándo,
+-- SIN nombre/RFC/CURP — solo ids y la acción. actor_ref es el correo del
+-- asesor en acciones de admin, o null en acciones del cliente (el portal no
+-- identifica al cliente por nombre, solo por el token que ya trae el enlace).
+create table if not exists document_access_log (
+  id uuid primary key default gen_random_uuid(),
+  client_document_id uuid references client_documents(id) on delete set null,
+  client_id uuid references clients(id) on delete set null,
+  actor_type text not null check (actor_type in ('client', 'admin', 'system')),
+  actor_ref text,
+  action text not null check (action in ('view', 'download', 'upload', 'approve', 'reject', 'consent')),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_document_access_log_client on document_access_log(client_id, created_at desc);
+
+alter table document_access_log enable row level security;
+
+drop policy if exists "Rol con apartado clientes lee document_access_log" on document_access_log;
+create policy "Rol con apartado clientes lee document_access_log" on document_access_log for select
+  using (has_admin_section('clientes'));
+
+-- El panel también escribe aquí directo (al aprobar/rechazar), con su
+-- propia sesión — por eso sí hay política de insert para 'authenticated'
+-- (las acciones del cliente las registran las funciones security definer
+-- de abajo, que no necesitan esta política porque corren con privilegios
+-- propios).
+drop policy if exists "Rol con apartado clientes escribe document_access_log" on document_access_log;
+create policy "Rol con apartado clientes escribe document_access_log" on document_access_log for insert
+  with check (has_admin_section('clientes'));
+
+-- Evidencia de que el cliente aceptó el aviso de privacidad antes de subir
+-- nada (LFPDPPP). IP y navegador vía request.headers, igual que ya hace
+-- signing_submit() para la evidencia de firma — ver ese bloque arriba.
+create table if not exists privacy_consents (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references clients(id) on delete cascade,
+  token_id uuid references client_portal_tokens(id) on delete set null,
+  consent_version text not null,
+  accepted_at timestamptz not null default now(),
+  accepted_ip text,
+  accepted_agent text
+);
+
+create index if not exists idx_privacy_consents_client on privacy_consents(client_id);
+
+alter table privacy_consents enable row level security;
+
+drop policy if exists "Rol con apartado clientes lee privacy_consents" on privacy_consents;
+create policy "Rol con apartado clientes lee privacy_consents" on privacy_consents for select
+  using (has_admin_section('clientes'));
+
+-- Límite de intentos de subida por token (contra abuso/fuerza bruta del
+-- enlace). api/portal-upload.js cuenta y escribe aquí con la llave de
+-- servicio antes de procesar cualquier archivo — ver el límite en ese
+-- archivo (PORTAL_UPLOAD_HOURLY_LIMIT), no fijo en SQL.
+create table if not exists portal_upload_attempts (
+  id uuid primary key default gen_random_uuid(),
+  token_id uuid not null references client_portal_tokens(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_portal_upload_attempts_token on portal_upload_attempts(token_id, created_at desc);
+
+alter table portal_upload_attempts enable row level security;
+
+drop policy if exists "Rol con apartado clientes lee portal_upload_attempts" on portal_upload_attempts;
+create policy "Rol con apartado clientes lee portal_upload_attempts" on portal_upload_attempts for select
+  using (has_admin_section('clientes'));
+
+-- ── Público (con token, sin sesión): estado del enlace + sus documentos ──
+-- Nunca se le manda el client_id al navegador, solo el primer nombre (para
+-- el saludo) y los documentos ya subidos por el PROPIO portal (nunca los
+-- capturados por el asesor, aunque sean el mismo cliente).
+create or replace function portal_token_status(p_token text)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  t client_portal_tokens;
+  c clients;
+  docs jsonb;
+begin
+  select * into t from client_portal_tokens where token = p_token;
+  if not found then
+    return jsonb_build_object('status', 'invalido');
+  end if;
+  if not t.active then
+    return jsonb_build_object('status', 'desactivado');
+  end if;
+  if now() > t.expires_at then
+    return jsonb_build_object('status', 'expirado');
+  end if;
+
+  select * into c from clients where id = t.client_id;
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'id', d.id,
+    'doc_type', d.doc_type,
+    'file_kind', d.file_kind,
+    'review_status', d.review_status,
+    'review_notes', d.review_notes,
+    'extracted_data', d.extracted_data,
+    'qr_validated', d.qr_validated,
+    'client_confirmed', d.client_confirmed,
+    'captured_at', d.captured_at
+  ) order by d.captured_at desc), '[]'::jsonb)
+  into docs
+  from client_documents d
+  where d.client_id = t.client_id and d.source = 'client_portal';
+
+  return jsonb_build_object('status', 'activo', 'client_name', split_part(c.name, ' ', 1), 'documents', docs);
+end;
+$$;
+
+revoke all on function portal_token_status(text) from public;
+grant execute on function portal_token_status(text) to anon, authenticated;
+
+-- ── Público (con token): registrar la aceptación del aviso de privacidad ──
+create or replace function portal_register_consent(p_token text, p_consent_version text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  t client_portal_tokens;
+  headers json;
+  ip text;
+  agent text;
+begin
+  select * into t from client_portal_tokens where token = p_token;
+  if not found then return jsonb_build_object('error', 'not_found'); end if;
+  if not t.active then return jsonb_build_object('error', 'desactivado'); end if;
+  if now() > t.expires_at then return jsonb_build_object('error', 'expirado'); end if;
+  if coalesce(trim(p_consent_version), '') = '' then return jsonb_build_object('error', 'version_required'); end if;
+
+  headers := nullif(current_setting('request.headers', true), '')::json;
+  ip := nullif(trim(split_part(coalesce(headers ->> 'x-forwarded-for', headers ->> 'cf-connecting-ip', ''), ',', 1)), '');
+  agent := left(coalesce(headers ->> 'user-agent', ''), 300);
+
+  insert into privacy_consents (client_id, token_id, consent_version, accepted_ip, accepted_agent)
+  values (t.client_id, t.id, p_consent_version, ip, agent);
+
+  insert into document_access_log (client_id, actor_type, action)
+  values (t.client_id, 'client', 'consent');
+
+  update client_portal_tokens set last_accessed_at = now() where id = t.id;
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+revoke all on function portal_register_consent(text, text) from public;
+grant execute on function portal_register_consent(text, text) to anon, authenticated;
+
+-- ── Público (con token): el cliente confirma o corrige los datos que leyó
+-- la extracción automática, sobre UN documento que ya es suyo (el mismo
+-- client_id del token) y que vino del propio portal — nunca puede tocar un
+-- documento capturado por el asesor.
+create or replace function portal_confirm_document(p_token text, p_document_id uuid, p_extracted_data jsonb, p_client_confirmed boolean)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  t client_portal_tokens;
+  d client_documents;
+begin
+  select * into t from client_portal_tokens where token = p_token;
+  if not found or not t.active or now() > t.expires_at then
+    return jsonb_build_object('error', 'invalid_token');
+  end if;
+
+  select * into d from client_documents
+    where id = p_document_id and client_id = t.client_id and source = 'client_portal'
+    for update;
+  if not found then
+    return jsonb_build_object('error', 'not_found');
+  end if;
+
+  update client_documents
+  set extracted_data = coalesce(p_extracted_data, extracted_data),
+      client_confirmed = coalesce(p_client_confirmed, client_confirmed)
+  where id = d.id;
+
+  insert into document_access_log (client_document_id, client_id, actor_type, action)
+  values (d.id, t.client_id, 'client', 'upload');
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+revoke all on function portal_confirm_document(text, uuid, jsonb, boolean) from public;
+grant execute on function portal_confirm_document(text, uuid, jsonb, boolean) to anon, authenticated;
+
+-- ─────────────────────────────────────────────
+-- Notificaciones push del navegador/SO para el equipo del panel admin. Un
+-- dispositivo (navegador logueado en /admin) se suscribe desde la campana
+-- de notificaciones ("Activar notificaciones en este dispositivo"),
+-- guardando su endpoint + llaves de cifrado en push_subscriptions — cada
+-- quien solo puede leer/crear/borrar sus propias filas (auth.email() =
+-- email), no hace falta has_admin_section aquí porque es una preferencia
+-- personal del dispositivo, no un dato del negocio.
+--
+-- Cuando llega un mensaje de contacto nuevo, un trigger after insert en
+-- contact_messages llama a la Edge Function enviar-push (mismo patrón que
+-- ya usa notify_new_contact_message() para el aviso por WhatsApp, mismo
+-- secreto compartido — vault 'agenda_cron_secret' ↔ función CRON_SECRET),
+-- que manda un Web Push firmado con VAPID a cada dispositivo de quien
+-- tenga el apartado 'mensajes'.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+create table if not exists push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  user_agent text,
+  created_at timestamptz not null default now()
+);
+
+alter table push_subscriptions enable row level security;
+
+drop policy if exists "Cada quien ve sus propias suscripciones push" on push_subscriptions;
+create policy "Cada quien ve sus propias suscripciones push" on push_subscriptions for select
+  using (auth.email() = email);
+
+drop policy if exists "Cada quien crea sus propias suscripciones push" on push_subscriptions;
+create policy "Cada quien crea sus propias suscripciones push" on push_subscriptions for insert
+  with check (auth.email() = email);
+
+drop policy if exists "Cada quien actualiza sus propias suscripciones push" on push_subscriptions;
+create policy "Cada quien actualiza sus propias suscripciones push" on push_subscriptions for update
+  using (auth.email() = email) with check (auth.email() = email);
+
+drop policy if exists "Cada quien borra sus propias suscripciones push" on push_subscriptions;
+create policy "Cada quien borra sus propias suscripciones push" on push_subscriptions for delete
+  using (auth.email() = email);
+
+create or replace function notify_new_contact_message_push() returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/enviar-push',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'publishable_key'),
+      'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'agenda_cron_secret')
+    ),
+    body := jsonb_build_object(
+      'section', 'mensajes',
+      'title', 'Nuevo mensaje: ' || new.name,
+      'body', left(coalesce(new.message, ''), 150),
+      'url', '/admin/mensajes'
+    )
+  );
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_notify_new_contact_message_push on contact_messages;
+create trigger trg_notify_new_contact_message_push
+after insert on contact_messages
+for each row execute function notify_new_contact_message_push();
+
+-- ─────────────────────────────────────────────
+-- Novedades del sitio (2026-10-08): bitácora interna donde queda cada
+-- cambio o mejora que se hace al sitio como una entrada aparte, para que
+-- quien tenga el apartado 'novedades' pueda darle seguimiento — es como el
+-- blog público, pero 100% interno: nunca se expone fuera del panel. Solo
+-- se le da el apartado al rol 'admin' por default; si se quiere mostrar a
+-- otros roles, se asigna desde /admin/roles igual que cualquier otro
+-- apartado.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+create table if not exists site_updates (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  body text not null,
+  created_by text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_site_updates_created_at on site_updates(created_at desc);
+
+alter table site_updates enable row level security;
+
+drop policy if exists "Rol con apartado novedades administra site_updates" on site_updates;
+create policy "Rol con apartado novedades administra site_updates" on site_updates for all
+  using (has_admin_section('novedades')) with check (has_admin_section('novedades'));
+
+update admin_roles
+set sections = array_append(sections, 'novedades')
+where slug = 'admin' and not ('novedades' = any(sections));
+
+-- ─────────────────────────────────────────────
+-- Solicitud de avalúo inmobiliario y dictamen técnico de calidad (2026-10-08)
+-- — mismos campos y 4 secciones que el formato INFONAVIT en papel, para
+-- llenarlo en línea y descargarlo de nuevo en PDF (membretado ACL). No está
+-- ligada obligatoriamente a un cliente/propiedad del catálogo: cliente_id y
+-- propiedad_id son solo referencia opcional. Mismo patrón que perfilamientos
+-- (ver arriba): RLS con el apartado 'valuacion'.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+create table if not exists solicitudes_avaluo (
+  id uuid primary key default gen_random_uuid(),
+  cliente_id uuid references clients(id) on delete set null,
+  propiedad_id uuid references properties(id) on delete set null,
+
+  -- Destino del crédito
+  destino_credito text check (
+    destino_credito is null or destino_credito in (
+      'Comprar una vivienda', 'Construir tu vivienda', 'Ampliar, remodelar o mejorar tu vivienda', 'Pagar la hipoteca de tu vivienda'
+    )
+  ),
+
+  -- Sección 1: datos de identificación del derechohabiente
+  nss text,
+  dh_apellido_paterno text,
+  dh_apellido_materno text,
+  dh_nombres text,
+  dh_calle_numero text,
+  dh_colonia text,
+  dh_municipio text,
+  dh_estado text,
+  dh_codigo_postal text,
+  dh_telefono_casa text,
+  dh_telefono_trabajo text,
+  dh_telefono_celular text,
+
+  -- Sección 2: datos del propietario actual de la vivienda
+  prop_apellido_paterno text,
+  prop_apellido_materno text,
+  prop_nombre_razon_social text,
+  prop_rfc text,
+  prop_acreedor_hipotecario text,
+  prop_rfc_acreedor text,
+  prop_calle_numero text,
+  prop_colonia text,
+  prop_municipio text,
+  prop_estado text,
+  prop_codigo_postal text,
+  prop_telefono_trabajo text,
+  prop_telefono_celular text,
+
+  -- Sección 3: datos de la vivienda objeto del crédito
+  viv_clave_conjunto text,
+  viv_calle text,
+  viv_numero_exterior text,
+  viv_numero_interior text,
+  viv_lote text,
+  viv_manzana text,
+  viv_colonia text,
+  viv_municipio text,
+  viv_estado text,
+  viv_codigo_postal text,
+  viv_antiguedad integer,
+
+  -- Sección 4: lugar y fecha de la solicitud
+  ciudad_solicitud text,
+  fecha_solicitud date,
+  notas text,
+
+  usuario_creo text,
+  fecha_creacion timestamptz not null default now(),
+  fecha_modificacion timestamptz not null default now()
+);
+
+create index if not exists idx_solicitudes_avaluo_cliente on solicitudes_avaluo(cliente_id);
+create index if not exists idx_solicitudes_avaluo_fecha on solicitudes_avaluo(fecha_creacion desc);
+
+alter table solicitudes_avaluo enable row level security;
+
+drop policy if exists "Rol con apartado valuacion maneja solicitudes_avaluo" on solicitudes_avaluo;
+create policy "Rol con apartado valuacion maneja solicitudes_avaluo" on solicitudes_avaluo for all
+  using (has_admin_section('valuacion')) with check (has_admin_section('valuacion'));
+
+-- ─────────────────────────────────────────────
+-- Solicitud de Inscripción de Crédito (2026-10-09) — formato INFONAVIT
+-- CRED.1000.25 (3 hojas), para llenarlo en línea y descargarlo de nuevo en
+-- PDF. A diferencia de solicitudes_avaluo, el PDF oficial de este formato
+-- SÍ trae campos de formulario reales (AcroForm): se llena por nombre de
+-- campo, no por coordenadas — ver src/lib/solicitudCreditoPdf.js. Mismo
+-- patrón que solicitudes_avaluo: cliente_id/propiedad_id son solo
+-- referencia opcional, RLS con el apartado 'credito_infonavit' (mismo que
+-- ya usa el Simulador de crédito Infonavit).
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+create table if not exists solicitudes_credito (
+  id uuid primary key default gen_random_uuid(),
+  cliente_id uuid references clients(id) on delete set null,
+  propiedad_id uuid references properties(id) on delete set null,
+
+  -- 1. Crédito solicitado
+  producto text,
+  entidad_financiera text,
+  tipo_credito text,
+  tipo_credito_corresidencial text,
+  familiar text,
+  destino_credito text,
+
+  -- 2. Datos para determinar el monto de crédito
+  desc_pension_dh numeric,
+  desc_pension_cfc numeric,
+  monto_credito_dh numeric,
+  monto_credito_cfc numeric,
+  monto_ahorro numeric,
+  equipa_tu_casa text,
+
+  -- 3. Datos de la vivienda/terreno destino del crédito
+  viv_calle text,
+  viv_num_ext text,
+  viv_num_int text,
+  viv_lote text,
+  viv_mza text,
+  viv_colonia text,
+  viv_entidad text,
+  viv_municipio text,
+  viv_cp text,
+  discapacidad text,
+  tipo_discapacidad text,
+  persona_discapacidad text,
+  precio_compraventa numeric,
+  monto_presupuesto_construccion numeric,
+  monto_presupuesto_reparar numeric,
+  monto_deuda numeric,
+  afectacion_estructural text,
+
+  -- 4. Datos de la empresa o patrón
+  empresa_nombre text,
+  empresa_nrp text,
+  empresa_lada text,
+  empresa_numero text,
+  empresa_ext text,
+
+  -- 5. Datos de identificación del derechohabiente
+  nss text,
+  curp text,
+  rfc text,
+  apellido_paterno text,
+  apellido_materno text,
+  nombres text,
+  domicilio_calle text,
+  domicilio_colonia text,
+  domicilio_entidad text,
+  domicilio_delegacion text,
+  domicilio_cp text,
+  telefono_lada text,
+  telefono_numero text,
+  celular text,
+  email text,
+  genero text,
+  estado_civil text,
+  regimen_patrimonial text,
+
+  -- 6. Datos de identificación del cónyuge, familiar o corresidente
+  cfc_nss text,
+  cfc_curp text,
+  cfc_rfc text,
+  cfc_apellido_paterno text,
+  cfc_apellido_materno text,
+  cfc_nombre text,
+  cfc_lada text,
+  cfc_numero text,
+  cfc_celular text,
+  cfc_email text,
+  cfc_genero text,
+  cfc_empresa_nombre text,
+  cfc_empresa_nrp text,
+
+  -- 7. Referencias familiares del derechohabiente (2)
+  ref1_paterno text,
+  ref1_materno text,
+  ref1_nombre text,
+  ref1_lada text,
+  ref1_numero text,
+  ref1_celular text,
+  ref1_calle text,
+  ref1_colonia text,
+  ref1_entidad text,
+  ref1_delegacion text,
+  ref1_cp text,
+  ref2_paterno text,
+  ref2_materno text,
+  ref2_nombre text,
+  ref2_lada text,
+  ref2_numero text,
+  ref2_celular text,
+  ref2_calle text,
+  ref2_colonia text,
+  ref2_entidad text,
+  ref2_delegacion text,
+  ref2_cp text,
+
+  -- 8. Datos para abono en cuenta del crédito
+  vendedor_tipo text,
+  vendedor_nombre text,
+  vendedor_rfc text,
+  vendedor_razon_social_cuenta text,
+  vendedor_clabe text,
+  acreedor_nombre text,
+  acreedor_rfc text,
+  acreedor_razon_social_cuenta text,
+  acreedor_clabe text,
+  numero_credito_titular text,
+  numero_credito_cfc text,
+  numero_inventario_vr text,
+  numero_credito_entidad text,
+
+  -- 9. Designación de representante
+  repres_paterno text,
+  repres_materno text,
+  repres_nombre text,
+  repres_lada text,
+  repres_numero text,
+  repres_celular text,
+  repres_identificacion text,
+
+  -- 10. Datos de identificación del contacto
+  contacto_tipo text,
+  contacto_curp text,
+  contacto_paterno text,
+  contacto_materno text,
+  contacto_nombre text,
+  contacto_lada text,
+  contacto_numero text,
+
+  -- 11. Oferta vinculante
+  oferta_vinculante text,
+  ciudad text,
+  fecha_solicitud date,
+
+  usuario_creo text,
+  fecha_creacion timestamptz not null default now(),
+  fecha_modificacion timestamptz not null default now()
+);
+
+create index if not exists idx_solicitudes_credito_cliente on solicitudes_credito(cliente_id);
+create index if not exists idx_solicitudes_credito_fecha on solicitudes_credito(fecha_creacion desc);
+
+alter table solicitudes_credito enable row level security;
+
+drop policy if exists "Rol con apartado credito_infonavit maneja solicitudes_credito" on solicitudes_credito;
+create policy "Rol con apartado credito_infonavit maneja solicitudes_credito" on solicitudes_credito for all
+  using (has_admin_section('credito_infonavit')) with check (has_admin_section('credito_infonavit'));
+
+-- ─────────────────────────────────────────────
+-- Segmentación del cliente por financiamiento (2026-10-09)
+-- Permite marcar con qué va a comprar: INFONAVIT, FOVISSSTE, crédito
+-- bancario o de contado. Cuando es "infonavit", Solicitud de avalúo y
+-- Solicitud de crédito preseleccionan al cliente (y, en Solicitud de
+-- crédito, el producto "Infonavit") al crear una solicitud nueva desde su
+-- ficha — ver AdminClientForm.jsx / AdminSolicitudAvaluo.jsx /
+-- AdminSolicitudCredito.jsx.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+alter table clients add column if not exists financiamiento text;
+
+do $$
+declare
+  con record;
+begin
+  for con in
+    select conname from pg_constraint
+    where conrelid = 'clients'::regclass
+      and contype = 'c'
+      and pg_get_constraintdef(oid) ilike '%financiamiento%'
+  loop
+    execute format('alter table clients drop constraint %I', con.conname);
+  end loop;
+end $$;
+
+alter table clients add constraint clients_financiamiento_check
+  check (financiamiento is null or financiamiento in ('infonavit', 'fovissste', 'bancario', 'contado'));
+
+-- `financiamiento` no es sensible (no se cifra) pero clients_decrypted es la
+-- vista que usa toda la app para leer clientes — hay que agregarla aquí
+-- también o desaparece de esa lectura, igual que advierte el comentario de
+-- la vista más arriba.
+-- `create or replace view` no permite reordenar ni renombrar columnas ya
+-- existentes en la vista — solo agregar nuevas al final. `financiamiento`
+-- va al final de la lista, no junto a `active`, para no correr de lugar
+-- `created_at`/`updated_at`/etc. que ya existían en esta vista.
+create or replace view clients_decrypted
+with (security_invoker = true) as
+select
+  id, name, type, email, phone, notes, active, created_at, updated_at,
+  nss, _decrypt_portal_password(contrasena_portal) as contrasena_portal, numero_credito,
+  referencia1_nombre, referencia1_telefono, referencia1_correo, referencia1_direccion,
+  referencia2_nombre, referencia2_telefono, referencia2_correo, referencia2_direccion,
+  razon_social, registro_patronal, tel_empresa, financiamiento
+from clients;
+grant select on clients_decrypted to authenticated;
+
+-- ─────────────────────────────────────────────
+-- Datos personales en clients_decrypted (2026-10-09)
+--
+-- fecha_nacimiento/estado_civil/domicilio/rfc/curp/identificacion_oficial
+-- (bloque "Datos personales pegados al cliente" más arriba) no son
+-- sensibles al grado de contrasena_portal (no se cifran), pero
+-- clients_decrypted es la vista que usa toda la app para leer clientes
+-- (ver supabaseBackend.js getClients/getClientById) — sin agregarlas aquí
+-- desaparecen de esa lectura, igual que ya advierte el comentario de la
+-- vista más arriba. Mismo motivo por el que se agregó `financiamiento`
+-- en su propio bloque: `create or replace view` no permite reordenar ni
+-- renombrar columnas ya existentes, solo agregar nuevas al final.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+create or replace view clients_decrypted
+with (security_invoker = true) as
+select
+  id, name, type, email, phone, notes, active, created_at, updated_at,
+  nss, _decrypt_portal_password(contrasena_portal) as contrasena_portal, numero_credito,
+  referencia1_nombre, referencia1_telefono, referencia1_correo, referencia1_direccion,
+  referencia2_nombre, referencia2_telefono, referencia2_correo, referencia2_direccion,
+  razon_social, registro_patronal, tel_empresa, financiamiento,
+  fecha_nacimiento, estado_civil, domicilio, rfc, curp, identificacion_oficial
+from clients;
+grant select on clients_decrypted to authenticated;

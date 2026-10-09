@@ -7,6 +7,7 @@ import LanguageToggle from "../../components/LanguageToggle";
 import ErrorBoundary from "../../components/ErrorBoundary";
 import AdminGlobalSearch from "../../components/AdminGlobalSearch";
 import InstallAppButton from "../../components/InstallAppButton";
+import NotificationBell from "../../components/NotificationBell";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
 import "./AdminLayout.css";
@@ -46,8 +47,10 @@ const NAV = [
     items: [
       { section: "gastos", to: "/admin/gastos", labelKey: "accessControl.sections.gastos" },
       { section: "valuacion", to: "/admin/valuacion", labelKey: "accessControl.sections.valuacion" },
+      { section: "valuacion", to: "/admin/solicitud-avaluo", labelKey: "solicitudAvaluo.navTitle" },
       { section: "inspecciones", to: "/admin/inspecciones", labelKey: "accessControl.sections.inspecciones" },
       { section: "credito_infonavit", to: "/admin/credito-infonavit", labelKey: "admin.infonavitSimulator" },
+      { section: "credito_infonavit", to: "/admin/solicitud-credito", labelKey: "solicitudCredito.navTitle" },
       { section: "documentos_legales", to: "/admin/documentos-legales", labelKey: "accessControl.sections.documentos_legales" },
       { section: "documentos_legales", to: "/admin/firmas", labelKey: "signing.admin.title" },
     ],
@@ -70,6 +73,7 @@ const NAV = [
       { section: "reportes", to: "/admin/reportes", labelKey: "accessControl.sections.reportes" },
       { section: "reportes", to: "/admin/reporte-mensual", labelKey: "monthly.title" },
       { section: "roles", to: "/admin/actividad", labelKey: "activity.title" },
+      { section: "novedades", to: "/admin/novedades", labelKey: "novedades.admin.title" },
     ],
   },
   { section: "roles", to: "/admin/roles", labelKey: "accessControl.sections.roles" },
@@ -209,6 +213,7 @@ export default function AdminLayout() {
           </button>
           <AdminGlobalSearch />
           <div className="admin-layout__topbar-actions">
+            <NotificationBell />
             <InstallAppButton />
             <ThemeToggle />
             <LanguageToggle />

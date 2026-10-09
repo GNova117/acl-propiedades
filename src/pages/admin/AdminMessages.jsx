@@ -4,7 +4,9 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { whatsappDigits } from "../../lib/format";
 import { messageToProspectFields } from "../../lib/prospects";
+import { quickReplyTemplates } from "../../lib/messageTemplates";
 import { useAuth } from "../../context/AuthContext";
+import QuickReplyButton from "../../components/QuickReplyButton";
 import "./admin.css";
 
 const PREVIEW_LENGTH = 80;
@@ -256,6 +258,12 @@ export default function AdminMessages() {
                           {t("detail.email")}
                         </a>
                       )}
+                      <QuickReplyButton
+                        templates={quickReplyTemplates(t, message, propertyById.get(message.property_id))}
+                        phone={message.phone}
+                        email={message.email}
+                        emailSubject={t("messages.templates.emailSubject")}
+                      />
                       {message.channel === "estimacion" && hasSection("valuacion") && (
                         <Link to="/admin/valuacion" state={{ prefill: valuationPrefill(message) }} className="btn btn-primary btn-sm">
                           {t("messages.estimate")}

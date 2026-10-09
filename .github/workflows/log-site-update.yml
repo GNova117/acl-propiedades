@@ -1,0 +1,48 @@
+name: Registrar cambio en Novedades del sitio
+
+# Cada vez que un pull request se fusiona a main (un cambio real que ya
+# quedó publicado), esto inserta una entrada automática en site_updates
+# con el título y la descripción del PR — así nadie tiene que entrar al
+# panel a escribirla a mano, como pide el apartado /admin/novedades.
+# Necesita dos secretos del repositorio (Settings > Secrets and variables >
+# Actions), documentados en el README: SUPABASE_URL y
+# SUPABASE_SERVICE_ROLE_KEY. Si no están configurados, el paso se salta
+# sin tronar el workflow (por ejemplo, en un fork antes de configurarlos).
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  log-update:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Insertar la entrada en site_updates
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "Faltan los secretos SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY en este repositorio; se omite el registro automático de esta entrada (ver README, sección Novedades del sitio)."
+            exit 0
+          fi
+
+          PAYLOAD=$(jq -n \
+            --arg title "$PR_TITLE" \
+            --arg body "${PR_BODY:-Sin descripción.}" \
+            --arg url "$PR_URL" \
+            --arg author "$PR_AUTHOR" \
+            '{title: $title, body: ($body + "\n\nPR: " + $url), created_by: $author}')
+
+          curl -sS -f -X POST "$SUPABASE_URL/rest/v1/site_updates" \
+            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "$PAYLOAD"

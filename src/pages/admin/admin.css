@@ -307,3 +307,58 @@
   font-family: inherit;
   resize: vertical;
 }
+
+/* Portal de documentos para clientes: badge de estado (PortalStatusBadge,
+   compartido con la página pública /documentos/<token>) y la mini-tarjeta de
+   revisión que aparece junto a un documento subido por el propio cliente. */
+.portal-badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.portal-badge--ok {
+  background: color-mix(in srgb, var(--color-success) 18%, transparent);
+  color: var(--color-success);
+}
+
+.portal-badge--warning {
+  background: color-mix(in srgb, var(--color-warning) 18%, transparent);
+  color: var(--color-warning);
+}
+
+.portal-badge--error {
+  background: color-mix(in srgb, var(--color-danger) 18%, transparent);
+  color: var(--color-danger);
+}
+
+.portal-badge--neutral {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.admin-doc-card__portal-review {
+  margin-top: 0.5rem;
+  padding: 0.6rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.admin-doc-card__portal-fields {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.admin-portal-link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}

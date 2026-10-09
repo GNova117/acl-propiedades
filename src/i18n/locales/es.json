@@ -276,7 +276,20 @@
     "allAdvisors": "Todos los asesores",
     "noAdvisor": "Sin asesor asignado",
     "propertyAndAdvisor": "Propiedad / asesor",
-    "generalInquiry": "Mensaje general"
+    "generalInquiry": "Mensaje general",
+    "quickReply": "Respuesta rápida",
+    "templates": {
+      "theProperty": "la propiedad por la que preguntaste",
+      "emailSubject": "Sobre tu consulta en ACL Propiedades",
+      "availabilityLabel": "Disponibilidad",
+      "availabilityText": "Hola {{name}}, gracias por tu interés en {{property}}. ¡Sigue disponible! ¿Te gustaría agendar una visita o que te comparta más información?",
+      "priceLabel": "Precio y condiciones",
+      "priceText": "Hola {{name}}, con gusto te comparto que el precio de {{property}} es de {{price}}. ¿Te gustaría conocer las formas de pago o el financiamiento disponible?",
+      "visitLabel": "Agendar visita",
+      "visitText": "Hola {{name}}, ¡perfecto! Dime qué día y horario te quedan mejor para agendar tu visita a {{property}} y te confirmo cuanto antes.",
+      "thanksLabel": "Agradecimiento",
+      "thanksText": "Hola {{name}}, gracias por tu mensaje. Ya vimos tu consulta y en breve uno de nuestros asesores te contacta. ¡Que tengas excelente día!"
+    }
   },
   "testimonials": {
     "title": "Testimonios",
@@ -420,6 +433,11 @@
     },
     "menu": "Menú",
     "logout": "Cerrar sesión",
+    "notifications": "Notificaciones",
+    "pushEnable": "Activar notificaciones en este dispositivo",
+    "pushDisable": "Desactivar notificaciones en este dispositivo",
+    "pushDemoUnavailable": "Las notificaciones push no están disponibles en modo demo (requieren Supabase configurado).",
+    "pushError": "No se pudo cambiar el estado de las notificaciones.",
     "dashboard": "Panel principal",
     "totalProperties": "Total de propiedades",
     "activeAdvisors": "Asesores activos",
@@ -604,6 +622,14 @@
     "email": "Correo",
     "phone": "Teléfono",
     "notes": "Notas",
+    "financiamiento": "Tipo de financiamiento",
+    "financiamientoHint": "Con qué va a comprar. Al elegir \"Infonavit\" se preselecciona en la Solicitud de avalúo y la Solicitud de crédito al crear una desde este cliente.",
+    "financiamientoOptions": {
+      "infonavit": "Infonavit",
+      "fovissste": "Fovissste",
+      "bancario": "Crédito bancario",
+      "contado": "Contado"
+    },
     "noResults": "No se encontraron clientes.",
     "viewDocuments": "Documentos",
     "downloadPdf": "Descargar PDF",
@@ -700,6 +726,122 @@
     "uploading": "Subiendo…",
     "previewError": "No se pudo cargar la vista previa. Intenta de nuevo.",
     "closePreview": "Cerrar vista previa"
+  },
+  "portal": {
+    "pageTitle": "Tus documentos",
+    "greeting": "Hola, {{name}}",
+    "greetingGeneric": "Hola",
+    "intro": "Descarga tu Constancia de Situación Fiscal y tu Acta de Nacimiento desde los portales oficiales del gobierno y súbelas aquí en PDF. Nunca te pedimos tu contraseña del SAT ni de ningún trámite de gobierno — esa contraseña se queda siempre en el sitio oficial, nunca aquí.",
+    "invalidTitle": "Enlace no válido",
+    "invalidBody": "Este enlace no existe o ya no está disponible. Pide a tu asesor que te comparta uno nuevo.",
+    "revokedTitle": "Enlace desactivado",
+    "revokedBody": "Tu asesor desactivó este enlace. Pídele uno nuevo para continuar.",
+    "expiredTitle": "Enlace vencido",
+    "expiredBody": "Este enlace ya venció. Pide a tu asesor que te comparta uno nuevo.",
+    "errorTitle": "No se pudo cargar",
+    "errorBody": "Ocurrió un problema al cargar tu información. Intenta de nuevo en un momento.",
+    "consent": {
+      "title": "Aviso de privacidad",
+      "summary": "Vas a subir documentos con datos personales (RFC, CURP, domicilio). Los usamos únicamente para tu trámite con ACL Propiedades, se guardan cifrados y solo el personal autorizado puede verlos.",
+      "linkText": "Lee el aviso de privacidad completo",
+      "checkbox": "He leído el aviso de privacidad y acepto que ACL Propiedades trate mis datos personales para este trámite.",
+      "continue": "Aceptar y continuar",
+      "error": "No se pudo registrar tu aceptación. Intenta de nuevo."
+    },
+    "docTypes": {
+      "cedula_fiscal": {
+        "steps": [
+          "Entra al portal del SAT (botón de abajo) y busca \"Genera tu Constancia de Situación Fiscal\".",
+          "Inicia sesión con tu RFC y tu contraseña del SAT (CIEC), o con tu e.firma. Esa contraseña se queda en el sitio del SAT — nunca nos la compartas a nosotros.",
+          "Descarga el PDF de tu constancia.",
+          "Regresa aquí y súbelo con el botón \"Subir PDF\"."
+        ],
+        "officialUrlLabel": "Ir al portal del SAT"
+      },
+      "acta_nacimiento": {
+        "steps": [
+          "Entra a gob.mx/actas (botón de abajo).",
+          "Busca tu acta con tu CURP.",
+          "Descarga el PDF de tu acta certificada.",
+          "Regresa aquí y súbela con el botón \"Subir PDF\"."
+        ],
+        "officialUrlLabel": "Ir a gob.mx/actas"
+      }
+    },
+    "guide": { "show": "Ver instrucciones de nuevo", "hide": "Ocultar instrucciones" },
+    "fields": {
+      "rfc": "RFC",
+      "nombre": "Nombre / Razón social",
+      "regimen": "Régimen fiscal",
+      "domicilioFiscal": "Domicilio fiscal",
+      "fechaEmision": "Fecha de emisión",
+      "curp": "CURP",
+      "folio": "Folio / cadena de verificación",
+      "fechaNacimiento": "Fecha de nacimiento"
+    },
+    "missingField": "no se pudo leer, compruébalo",
+    "ageWarning": "Esta constancia tiene más de 3 meses. Es posible que tu asesor te pida una más reciente.",
+    "rejectedNote": "Tu asesor pidió corregir este documento: {{reason}}",
+    "confirm": "Confirmar estos datos",
+    "confirmed": "Datos confirmados ✓",
+    "saveChanges": "Guardar cambios",
+    "upload": {
+      "selectPdf": "Subir PDF",
+      "selectBackup": "Subir foto de respaldo",
+      "uploading": "Subiendo…",
+      "replace": "Reemplazar",
+      "backupAdded": "Foto de respaldo agregada ✓",
+      "helpWhatsapp": "Pedir ayuda por WhatsApp",
+      "helpWhatsappText": "Hola, necesito ayuda para obtener mi {{doc}} para mi trámite con ACL Propiedades."
+    },
+    "status": {
+      "pendiente": "En revisión",
+      "valido": "Válido",
+      "requiere_revision": "Requiere revisión",
+      "rechazado": "Rechazado"
+    },
+    "errors": {
+      "invalid_token": "Enlace no válido.",
+      "revoked_token": "Este enlace fue desactivado.",
+      "expired_token": "Este enlace ya venció.",
+      "rate_limited": "Demasiados intentos. Espera un poco y vuelve a intentar.",
+      "file_too_large": "El archivo es muy grande (máximo 3 MB).",
+      "invalid_file_type": "El archivo no es un PDF/foto válido.",
+      "suspicious_pdf": "Este PDF no se pudo procesar. Si lo descargaste del sitio oficial, contacta a tu asesor.",
+      "not_configured": "La subida de documentos no está disponible en este momento.",
+      "bad_request": "No se pudo procesar la solicitud.",
+      "server_error": "Ocurrió un problema. Intenta de nuevo."
+    },
+    "summary": {
+      "done": "¡Listo! Ya subiste tus dos documentos. Tu asesor los revisará.",
+      "notifyAdvisor": "Avisar a mi asesor por WhatsApp",
+      "whatsappText": "Hola, ya subí mis documentos (Constancia Fiscal y Acta de Nacimiento) al portal."
+    }
+  },
+  "adminPortal": {
+    "generate": "Generar enlace de documentos",
+    "regenerate": "Regenerar enlace",
+    "revoke": "Desactivar enlace",
+    "copyLink": "Copiar enlace",
+    "copied": "¡Copiado!",
+    "copyPrompt": "Copia este enlace:",
+    "shareWhatsapp": "Compartir por WhatsApp",
+    "whatsappText": "Hola, para continuar tu trámite necesitamos que subas tu Constancia de Situación Fiscal y tu Acta de Nacimiento desde este enlace: {{url}}",
+    "linkReady": "Enlace vigente hasta el {{date}}.",
+    "expired": "El enlace venció — genera uno nuevo.",
+    "revoked": "El enlace está desactivado.",
+    "confirmRevoke": "¿Desactivar el enlace de documentos de este cliente?",
+    "fromPortal": "Subido por el cliente",
+    "notConfirmed": "aún no lo confirmó",
+    "notRead": "no se pudo leer",
+    "qrMismatch": "El código QR no corresponde al validador oficial.",
+    "qrUnread": "No se pudo leer el código QR del documento.",
+    "notesPlaceholder": "Motivo (obligatorio para rechazar)",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "reasonRequired": "Escribe el motivo antes de rechazar.",
+    "rejectedReason": "Motivo del rechazo: {{reason}}",
+    "backupImage": "Foto de respaldo (sin revisión automática)."
   },
   "expedienteAvaluo": {
     "title": "Expediente para avalúos",
@@ -1552,6 +1694,20 @@
       "admin_access": "Accesos"
     }
   },
+  "novedades": {
+    "admin": {
+      "title": "Novedades del sitio",
+      "subtitle": "Cada cambio o mejora que se hace al sitio queda aquí como una entrada aparte, separada de las demás, para tener control de qué se modificó y cuándo. Solo lo ve el panel admin, nunca se muestra en el sitio público.",
+      "new": "Nueva entrada",
+      "edit": "Editar entrada",
+      "empty": "Todavía no hay entradas registradas.",
+      "postedOn": "Publicada el {{date}}",
+      "fields": {
+        "title": "Título del cambio",
+        "body": "Qué se cambió"
+      }
+    }
+  },
   "clientHistory": {
     "title": "Historial del cliente",
     "button": "Historial",
@@ -2174,12 +2330,76 @@
       "attribution": "Imagen satelital: Esri, Maxar, Earthstar Geographics. Búsqueda: OpenStreetMap."
     }
   },
+  "solicitudAvaluo": {
+    "navTitle": "Solicitud de avalúo",
+    "title": "Solicitud de avalúo inmobiliario",
+    "subtitle": "Llena la solicitud de avalúo inmobiliario y dictamen técnico de calidad (formato INFONAVIT) en línea y descárgala en PDF.",
+    "new": "Nueva solicitud",
+    "linkClient": "Cliente (opcional)",
+    "linkClientHint": "Precarga la sección 1 con los datos del cliente (y su perfilamiento de comprador, si existe).",
+    "autofillOwner": "Propietario actual (cliente, opcional)",
+    "autofillOwnerHint": "Solo para precargar la sección 2 con los datos de ese cliente — no se guarda como relación.",
+    "linkProperty": "Propiedad (opcional)",
+    "saveError": "No se pudo guardar la solicitud",
+    "notFound": "No se encontró la solicitud a descargar",
+    "pdfError": "No se pudo generar el PDF",
+    "sections": {
+      "destino": "Destino del crédito",
+      "derechohabiente": "1. Datos de identificación del derechohabiente",
+      "propietario": "2. Datos del propietario actual de la vivienda",
+      "vivienda": "3. Datos de la vivienda objeto del crédito",
+      "tramite": "4. Lugar y fecha de la solicitud"
+    },
+    "list": {
+      "derechohabiente": "Derechohabiente",
+      "vivienda": "Vivienda",
+      "destino": "Destino del crédito",
+      "createdAt": "Fecha de creación",
+      "empty": "Aún no hay solicitudes de avalúo guardadas."
+    }
+  },
+  "solicitudCredito": {
+    "navTitle": "Solicitud de crédito",
+    "title": "Solicitud de inscripción de crédito",
+    "subtitle": "Llena la solicitud de inscripción de crédito (formato INFONAVIT, 3 hojas) en línea y descárgala en PDF.",
+    "new": "Nueva solicitud",
+    "linkClient": "Cliente (opcional)",
+    "linkClientHint": "Precarga la sección 5 con los datos del cliente (y su perfilamiento de comprador, si existe).",
+    "linkProperty": "Propiedad (opcional)",
+    "saveError": "No se pudo guardar la solicitud",
+    "notFound": "No se encontró la solicitud a descargar",
+    "pdfError": "No se pudo generar el PDF",
+    "sections": {
+      "credito": "1. Crédito solicitado",
+      "monto": "2. Datos para determinar el monto de crédito",
+      "vivienda": "3. Datos de la vivienda/terreno destino del crédito",
+      "empresa": "4. Datos de la empresa o patrón",
+      "derechohabiente": "5. Datos de identificación del (de la) derechohabiente",
+      "cfc": "6. Datos de identificación del cónyuge, familiar o corresidente",
+      "referencias": "7. Referencias familiares del (de la) derechohabiente",
+      "abono": "8. Datos para abono en cuenta del crédito",
+      "representante": "9. Designación de representante",
+      "contacto": "10. Datos de identificación del contacto",
+      "cierre": "11. Oferta vinculante"
+    },
+    "list": {
+      "derechohabiente": "Derechohabiente",
+      "vivienda": "Vivienda",
+      "destino": "Destino del crédito",
+      "createdAt": "Fecha de creación",
+      "empty": "Aún no hay solicitudes de crédito guardadas."
+    }
+  },
   "legalDocs": {
     "title": "Documentos legales",
     "subtitle": "Descarga el Aviso de Privacidad y la Carta de Derechos sobre la hoja membretada, listos para imprimir y firmar. El texto es el mismo que se publica en el sitio.",
     "privacyHint": "Mismo contenido publicado en /aviso-de-privacidad.",
     "rightsHint": "Mismo contenido publicado en /carta-de-derechos.",
-    "download": "Descargar PDF"
+    "download": "Descargar PDF",
+    "officialLinksTitle": "Trámites oficiales en línea",
+    "officialLinksSubtitle": "Enlaces directos a los portales de gobierno donde el cliente (o tú) puede sacar estos documentos sin ir a hacer fila. Ver también el Portal de documentos del cliente en la ficha de cada cliente, que guía el mismo trámite paso a paso.",
+    "satHint": "Para obtener el RFC/cédula fiscal: el cliente entra con su RFC y contraseña del SAT (CIEC) o su e.firma — esa contraseña nunca se captura en nuestro sitio.",
+    "actasHint": "Se descarga tecleando la CURP — no pide contraseña."
   },
   "privacy": {
     "title": "Aviso de Privacidad",
@@ -2209,6 +2429,10 @@
       {
         "title": "Cookies y tecnologías de rastreo",
         "body": "Usamos Google Analytics para entender cómo se usa el sitio (páginas visitadas, tiempo de permanencia, origen del tráfico); esto implica que cierta información de tu navegación se comparte con Google. No usamos cookies con fines publicitarios ni vendemos tu información de navegación a terceros. También usamos el almacenamiento local de tu navegador para recordar tu preferencia de idioma y de apariencia (modo claro/oscuro)."
+      },
+      {
+        "title": "Portal de documentos (Constancia Fiscal y Acta de Nacimiento)",
+        "body": "Si usas nuestro portal de documentos (/documentos/<enlace>) para subir tu Constancia de Situación Fiscal o tu Acta de Nacimiento, tratamos los datos que esos documentos contienen (RFC, CURP, nombre, domicilio fiscal, fecha de nacimiento) únicamente para el trámite por el que tu asesor te compartió el enlace. Los archivos se guardan cifrados en un almacenamiento privado, solo el personal autorizado de ACL Propiedades puede verlos mediante enlaces firmados y con vigencia limitada, y nunca te pedimos ni guardamos tu contraseña del SAT, tu e.firma ni tu CIEC — tú descargas esos documentos directamente del sitio oficial correspondiente. Conservamos estos documentos mientras dure tu trámite y, en adelante, conforme a la política de retención vigente de ACL Propiedades; puedes solicitar su eliminación anticipada ejerciendo tus derechos ARCO."
       },
       {
         "title": "Cambios a este aviso",
@@ -2279,6 +2503,13 @@
     "cancelAdd": "Cancelar"
   },
   "agenda": {
+    "viewToggle": "Vista de la agenda",
+    "viewList": "Lista",
+    "viewCalendar": "Calendario",
+    "prevMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "today": "Hoy",
+    "moreAppointments": "+{{count}} más",
     "remindClient": "Recordar al cliente",
     "reminderText": "Hola {{name}}, te recuerdo tu cita \"{{title}}\" el {{when}}. Te atiende {{advisor}} de ACL Propiedades. ¡Te esperamos!",
     "myAgenda": "Mi agenda",

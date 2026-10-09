@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { CLIENT_TYPES } from "../../lib/format";
+import { CLIENT_TYPES, FINANCIAMIENTO_TYPES } from "../../lib/format";
 import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteGroups, clientSheetData, clientSheetSections } from "../../lib/clientExpedienteFields";
 import { downloadMultiPerfilamientoPdf } from "../../lib/perfilamientoPdf";
 import "./admin.css";
@@ -43,6 +43,7 @@ const EMPTY = {
   phone: "",
   notes: "",
   active: true,
+  financiamiento: "",
   ...Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, ""])),
 };
 
@@ -86,6 +87,7 @@ export default function AdminClientForm() {
         phone: client.phone || "",
         notes: client.notes || "",
         active: client.active !== false,
+        financiamiento: client.financiamiento || "",
         ...Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, client[key] || ""])),
       });
       setLoading(false);
@@ -209,6 +211,16 @@ export default function AdminClientForm() {
             <Link to={`/admin/clientes/${id}/documentos`} className="btn btn-outline">
               {t("clients.viewDocuments")}
             </Link>
+            {form.financiamiento === "infonavit" && (
+              <>
+                <Link to="/admin/solicitud-avaluo" state={{ prefillClienteId: id }} className="btn btn-outline">
+                  {t("solicitudAvaluo.navTitle")}
+                </Link>
+                <Link to="/admin/solicitud-credito" state={{ prefillClienteId: id }} className="btn btn-outline">
+                  {t("solicitudCredito.navTitle")}
+                </Link>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -240,6 +252,21 @@ export default function AdminClientForm() {
           <div className="form-field">
             <label htmlFor="c-email">{t("clients.email")}</label>
             <input id="c-email" type="email" value={form.email} onChange={handleChange("email")} />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-field">
+            <label htmlFor="c-financiamiento">{t("clients.financiamiento")}</label>
+            <select id="c-financiamiento" value={form.financiamiento} onChange={handleChange("financiamiento")}>
+              <option value="">—</option>
+              {FINANCIAMIENTO_TYPES.map((value) => (
+                <option key={value} value={value}>
+                  {t(`clients.financiamientoOptions.${value}`)}
+                </option>
+              ))}
+            </select>
+            <span className="form-hint">{t("clients.financiamientoHint")}</span>
           </div>
         </div>
 
