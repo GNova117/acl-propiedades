@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import { db, TYPE_FACTORS } from "../lib/dataStore";
 import { formatMXN, propertyTypeLabel } from "../lib/format";
+import { groupZonesByCity, zoneDisplayName } from "../lib/zones";
 import "./Calculator.css";
 
 export default function Calculator() {
@@ -64,10 +65,14 @@ export default function Calculator() {
             <div className="form-field">
               <label htmlFor="calc-zone">{t("calculator.zone")}</label>
               <select id="calc-zone" value={zoneId} onChange={(e) => setZoneId(e.target.value)}>
-                {zones.map((zone) => (
-                  <option key={zone.id} value={zone.id}>
-                    {zone.name}
-                  </option>
+                {groupZonesByCity(zones).map(({ city, zones: groupZones }) => (
+                  <optgroup key={city ?? "other"} label={city ?? t("zones.otherZones")}>
+                    {groupZones.map((zone) => (
+                      <option key={zone.id} value={zone.id}>
+                        {zoneDisplayName(zone)}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
               {selectedZone && (

@@ -558,7 +558,13 @@
     "renameConfirm": "{{count}} propert(ies) use this zone and will also be renamed to \"{{name}}\". Continue?",
     "inUse_one": "{{count}} property uses this zone.",
     "inUse_other": "{{count}} properties use this zone.",
-    "cannotDelete": "Can't delete: there are properties registered in this zone."
+    "cannotDelete": "Can't delete: there are properties registered in this zone.",
+    "search": "Search zone or neighborhood…",
+    "allCities": "All cities",
+    "showingCount_one": "{{count}} zone",
+    "showingCount_other": "{{count}} zones",
+    "pricesDisclaimer": "Neighborhood prices are estimated from average market rates per area and can be adjusted here at any time.",
+    "otherZones": "Other zones"
   },
   "propertyTypesModule": {
     "name": "Type name",
