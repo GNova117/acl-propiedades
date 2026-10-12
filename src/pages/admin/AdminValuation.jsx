@@ -6,6 +6,7 @@ import ValuationMap from "../../components/ValuationMap";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
 import { formatArea, formatMXN } from "../../lib/format";
+import { groupZonesByCity, zoneDisplayName } from "../../lib/zones";
 import { polygonAreaM2, polygonToLocalMeters } from "../../lib/geoArea";
 import { MAX_SPREAD_PCT, estimateValue } from "../../lib/valuation";
 import { downloadValuationPdf } from "../../lib/valuationPdf";
@@ -339,10 +340,14 @@ export default function AdminValuation() {
                 <div className="form-field">
                   <label htmlFor="val-zone">{t("valuation.zone")}</label>
                   <select id="val-zone" value={zoneId} onChange={(e) => setZoneId(e.target.value)}>
-                    {zones.map((z) => (
-                      <option key={z.id} value={z.id}>
-                        {z.name}
-                      </option>
+                    {groupZonesByCity(zones).map(({ city, zones: groupZones }) => (
+                      <optgroup key={city ?? "other"} label={city ?? t("zones.otherZones")}>
+                        {groupZones.map((z) => (
+                          <option key={z.id} value={z.id}>
+                            {zoneDisplayName(z)}
+                          </option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                 </div>

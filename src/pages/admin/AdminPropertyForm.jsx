@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { propertyTypeLabel } from "../../lib/format";
+import { groupZonesByCity, zoneDisplayName } from "../../lib/zones";
 import ImageUploader from "../../components/ImageUploader";
 import VideoUploader from "../../components/VideoUploader";
 import "./admin.css";
@@ -260,8 +261,12 @@ export default function AdminPropertyForm({
             <label htmlFor="p-zone">{t("properties.zone")}</label>
             <select id="p-zone" value={form.zone} onChange={handleChange("zone")}>
               <option value="">—</option>
-              {zones.map((zone) => (
-                <option key={zone.id} value={zone.name}>{zone.name}</option>
+              {groupZonesByCity(zones).map(({ city, zones: groupZones }) => (
+                <optgroup key={city ?? "other"} label={city ?? t("zones.otherZones")}>
+                  {groupZones.map((zone) => (
+                    <option key={zone.id} value={zone.name}>{zoneDisplayName(zone)}</option>
+                  ))}
+                </optgroup>
               ))}
             </select>
             {errors.zone && <span className="form-error">{errors.zone}</span>}

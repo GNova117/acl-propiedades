@@ -4,7 +4,10 @@ import { db } from "../../lib/dataStore";
 import { formatMXN, propertyTypeLabel } from "../../lib/format";
 import { applyPropertyTypeLabels } from "../../lib/propertyTypeLabels";
 import InlineRename from "../../components/InlineRename";
+import { LAGUNA_CITIES, cityOfZone } from "../../lib/zones";
 import "./admin.css";
+
+const normalize = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 export default function AdminZones() {
   const { t } = useTranslation();
@@ -28,6 +31,8 @@ export default function AdminZones() {
   const [newAmenityLabel, setNewAmenityLabel] = useState("");
   const [addingAmenity, setAddingAmenity] = useState(false);
   const [deletingAmenityId, setDeletingAmenityId] = useState(null);
+  const [zoneSearch, setZoneSearch] = useState("");
+  const [cityFilter, setCityFilter] = useState("");
 
   const load = () => {
     Promise.all([db.getZones(), db.getProperties({}), db.getPropertyTypes(), db.getAmenities()]).then(
@@ -45,6 +50,13 @@ export default function AdminZones() {
   };
 
   useEffect(load, []);
+
+  const availableCities = LAGUNA_CITIES.filter((city) => zones.some((z) => cityOfZone(z.name) === city));
+  const visibleZones = zones.filter((z) => {
+    if (cityFilter && cityOfZone(z.name) !== cityFilter) return false;
+    if (zoneSearch.trim() && !normalize(z.name).includes(normalize(zoneSearch.trim()))) return false;
+    return true;
+  });
 
   const propertyCountByZone = (zoneName) => properties.filter((p) => p.zone === zoneName).length;
   const propertyCountByType = (typeKey) => properties.filter((p) => p.type === typeKey).length;
@@ -203,6 +215,7 @@ export default function AdminZones() {
       <div className="admin-header">
         <h1>{t("admin.zones")}</h1>
       </div>
+      <p className="form-hint" style={{ marginTop: "-0.5rem", marginBottom: "1.25rem" }}>{t("zones.pricesDisclaimer")}</p>
 
       <form className="card admin-form" onSubmit={handleAdd} style={{ maxWidth: 480, marginBottom: "1.5rem" }}>
         <h2 className="profiling-section-title">{t("admin.newZone")}</h2>
@@ -236,8 +249,43 @@ export default function AdminZones() {
         </div>
       </form>
 
+      {zones.length > 0 && (
+        <div className="admin-zones-toolbar">
+          <input
+            type="search"
+            className="admin-zones-toolbar__search"
+            placeholder={t("zones.search")}
+            value={zoneSearch}
+            onChange={(e) => setZoneSearch(e.target.value)}
+            aria-label={t("zones.search")}
+          />
+          {availableCities.length > 0 && (
+            <div className="admin-zones-toolbar__cities">
+              <button
+                type="button"
+                className={`btn btn-sm ${cityFilter === "" ? "btn-primary" : "btn-outline"}`}
+                onClick={() => setCityFilter("")}
+              >
+                {t("zones.allCities")}
+              </button>
+              {availableCities.map((city) => (
+                <button
+                  key={city}
+                  type="button"
+                  className={`btn btn-sm ${cityFilter === city ? "btn-primary" : "btn-outline"}`}
+                  onClick={() => setCityFilter(city)}
+                >
+                  {city}
+                </button>
+              ))}
+            </div>
+          )}
+          <span className="form-hint">{t(visibleZones.length === 1 ? "zones.showingCount_one" : "zones.showingCount_other", { count: visibleZones.length })}</span>
+        </div>
+      )}
+
       <div className="admin-zones-grid">
-        {zones.map((zone) => {
+        {visibleZones.map((zone) => {
           const inUse = propertyCountByZone(zone.name);
           return (
             <div key={zone.id} className="card admin-zone-card">
