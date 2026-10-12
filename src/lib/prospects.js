@@ -59,8 +59,12 @@ export function visitToProspectFields(visit) {
 }
 
 // Prospecto nuevo a partir de un mensaje del sitio (formulario, solicitud de
-// contacto o botón de WhatsApp de una propiedad). El asesor sale de la propiedad
-// solo si tiene exactamente uno asignado.
+// contacto o botón de WhatsApp de una propiedad). El asesor sale de la
+// propiedad: si tiene varios asignados, se le da al primero de la lista en
+// vez de dejarlo sin dueño — un prospecto con advisor_id null solo lo ve la
+// oficina (RLS de prospectos), así que en una propiedad compartida nadie lo
+// traería en su seguimiento aunque a todos les llegó el aviso de WhatsApp del
+// mensaje original. La oficina puede reasignarlo después desde su edición.
 export function messageToProspectFields(message, property) {
   const advisors = property?.advisors || [];
   return {
@@ -69,7 +73,7 @@ export function messageToProspectFields(message, property) {
     email: message.email || null,
     source: ["whatsapp", "simulador", "estimacion", "comparador", "alerta"].includes(message.channel) ? message.channel : "sitio",
     stage: "nuevo",
-    advisor_id: advisors.length === 1 ? advisors[0].id : null,
+    advisor_id: advisors.length > 0 ? advisors[0].id : null,
     property_id: message.property_id || null,
     message_id: message.id,
     looking_for: null,

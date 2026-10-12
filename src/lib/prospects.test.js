@@ -65,11 +65,11 @@ describe("visitToProspectFields", () => {
 });
 
 describe("messageToProspectFields", () => {
-  it("asigna el asesor de la propiedad solo si tiene exactamente uno", () => {
+  it("asigna el primer asesor de la propiedad, aunque tenga varios, para que el prospecto no quede sin dueño", () => {
     const withOne = messageToProspectFields({ name: "Ana" }, { advisors: [{ id: "a1" }] });
     expect(withOne.advisor_id).toBe("a1");
     const withTwo = messageToProspectFields({ name: "Ana" }, { advisors: [{ id: "a1" }, { id: "a2" }] });
-    expect(withTwo.advisor_id).toBeNull();
+    expect(withTwo.advisor_id).toBe("a1");
     const withNone = messageToProspectFields({ name: "Ana" }, undefined);
     expect(withNone.advisor_id).toBeNull();
   });

@@ -5,6 +5,7 @@ import { db } from "../../lib/dataStore";
 import { formatMXN, propertyTypeLabel } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
 import { isBackupStale } from "../../lib/backup";
+import { OPEN_STAGES } from "../../lib/prospects";
 import PendingToday from "../../components/PendingToday";
 import "./admin.css";
 
@@ -21,6 +22,7 @@ export default function AdminDashboard() {
   const [analytics, setAnalytics] = useState({ loading: true, data: null });
   const [myVentas, setMyVentas] = useState([]);
   const [ventaProperties, setVentaProperties] = useState([]);
+  const [myProspects, setMyProspects] = useState([]);
 
   const sectionsKey = sections.join(",");
   const seesAllAgendas = advisorId == null;
@@ -63,6 +65,30 @@ export default function AdminDashboard() {
         setVentaProperties([]);
       });
   }, [advisorId]);
+
+  // "Mi embudo": conteo rápido del propio pipeline abierto, para complementar
+  // a "Mis ventas" (lo ya cerrado) con lo que todavía está en curso sin tener
+  // que entrar a Prospectos o Estadísticas del embudo. Mismo criterio que
+  // "Mis ventas": solo con login vinculado a un asesor, y requiere el
+  // apartado 'prospectos' (RLS de prospectos lo exige también del lado de
+  // Supabase). Filtra por advisor_id aquí mismo por el mismo motivo que
+  // "Mis ventas": en modo demo no hay RLS real que ya lo haga.
+  useEffect(() => {
+    if (advisorId == null || !hasSection("prospectos")) {
+      setMyProspects([]);
+      return;
+    }
+    db.getProspects()
+      .then((prospects) => setMyProspects(prospects.filter((p) => p.advisor_id === advisorId)))
+      .catch(() => setMyProspects([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [advisorId, sectionsKey]);
+
+  const myPipelineByStage = useMemo(
+    () => OPEN_STAGES.map((stage) => ({ stage, count: myProspects.filter((p) => p.stage === stage).length })),
+    [myProspects]
+  );
+  const myPipelineTotal = myPipelineByStage.reduce((sum, s) => sum + s.count, 0);
 
   // No hay sección propia para esto (es tráfico agregado del sitio, no
   // dato de cliente ni financiero) — se muestra a cualquiera que llegue
@@ -207,6 +233,29 @@ export default function AdminDashboard() {
                       </div>
                     );
                   })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {advisorId != null && hasSection("prospectos") && (
+            <div className="card admin-dashboard-panel">
+              <div className="admin-dashboard-panel__header">
+                <h2>{t("admin.myPipelineTitle")}</h2>
+                <Link to="/admin/prospectos" className="btn btn-outline btn-sm">
+                  {t("admin.viewAll")}
+                </Link>
+              </div>
+              {myPipelineTotal === 0 ? (
+                <p className="form-hint">{t("admin.myPipelineEmpty")}</p>
+              ) : (
+                <div className="admin-dashboard-panel__list">
+                  {myPipelineByStage.map(({ stage, count }) => (
+                    <div key={stage} className="admin-dashboard-panel__row">
+                      <span>{t(`prospects.stages.${stage}`)}</span>
+                      <span className="admin-dashboard-panel__row-meta">{count}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

@@ -22,22 +22,29 @@ function median(values) {
   return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
-// Agrupa por una llave y saca total, cerrados, perdidos y tasa de cierre.
+// Agrupa por una llave y saca total, cerrados, perdidos, tasa de cierre y
+// tiempo de primera respuesta.
 function groupBy(rows, keyOf) {
   const map = new Map();
   for (const row of rows) {
     const key = keyOf(row);
-    const entry = map.get(key) || { key, total: 0, closed: 0, lost: 0, active: 0, daysToClose: [] };
+    const entry = map.get(key) || { key, total: 0, closed: 0, lost: 0, active: 0, daysToClose: [], hoursToFirstContact: [] };
     entry.total += 1;
     if (row.closed) {
       entry.closed += 1;
       if (row.daysToClose != null) entry.daysToClose.push(row.daysToClose);
     } else if (row.lost) entry.lost += 1;
     else entry.active += 1;
+    if (row.hoursToFirstContact != null) entry.hoursToFirstContact.push(row.hoursToFirstContact);
     map.set(key, entry);
   }
   return Array.from(map.values())
-    .map(({ daysToClose, ...e }) => ({ ...e, rate: pct(e.closed, e.total), avgDaysToClose: daysToClose.length ? round1(daysToClose.reduce((a, b) => a + b, 0) / daysToClose.length) : null }))
+    .map(({ daysToClose, hoursToFirstContact, ...e }) => ({
+      ...e,
+      rate: pct(e.closed, e.total),
+      avgDaysToClose: daysToClose.length ? round1(daysToClose.reduce((a, b) => a + b, 0) / daysToClose.length) : null,
+      avgHoursToFirstContact: hoursToFirstContact.length ? round1(hoursToFirstContact.reduce((a, b) => a + b, 0) / hoursToFirstContact.length) : null,
+    }))
     .sort((a, b) => b.total - a.total);
 }
 
@@ -68,7 +75,18 @@ export function computeFunnel({ prospects, history, periodDays = null, now = new
         const closedStep = steps.filter((s) => s.stage === "cerrado").sort((a, b) => new Date(a.at) - new Date(b.at))[0];
         if (closedStep) daysToClose = Math.max(0, (new Date(closedStep.at) - new Date(p.created_at)) / DAY_MS);
       }
-      return { ...p, lost: lost && !closed, closed, reached, daysToClose };
+
+      // Primera respuesta: horas desde que se creó hasta el primer paso del
+      // historial que lo sacó de "nuevo". Un prospecto sembrado directo en
+      // otra etapa (importado de una visita, por ejemplo) no tiene ese paso
+      // en su historial, así que no se puede medir y queda en null — no es
+      // lo mismo "respondió rápido" que "no sabemos cuándo respondió".
+      const firstMoveStep = steps
+        .filter((s) => s.stage !== "nuevo")
+        .sort((a, b) => new Date(a.at) - new Date(b.at))[0];
+      const hoursToFirstContact = firstMoveStep ? Math.max(0, (new Date(firstMoveStep.at) - new Date(p.created_at)) / 3600000) : null;
+
+      return { ...p, lost: lost && !closed, closed, reached, daysToClose, hoursToFirstContact };
     });
 
   const total = rows.length;
@@ -76,6 +94,7 @@ export function computeFunnel({ prospects, history, periodDays = null, now = new
   const lost = rows.filter((r) => r.lost).length;
   const active = rows.filter((r) => !r.closed && !r.lost && OPEN_STAGES.includes(r.stage)).length;
   const closeDays = rows.filter((r) => r.closed && r.daysToClose != null).map((r) => r.daysToClose);
+  const firstContactHours = rows.filter((r) => r.hoursToFirstContact != null).map((r) => r.hoursToFirstContact);
 
   const funnel = FUNNEL_STAGES.map((stage, i) => {
     const reachedCount = rows.filter((r) => r.reached >= i).length;
@@ -102,6 +121,8 @@ export function computeFunnel({ prospects, history, periodDays = null, now = new
     closeRate: pct(closed, total),
     avgDaysToClose: closeDays.length ? round1(closeDays.reduce((a, b) => a + b, 0) / closeDays.length) : null,
     medianDaysToClose: closeDays.length ? round1(median(closeDays)) : null,
+    avgHoursToFirstContact: firstContactHours.length ? round1(firstContactHours.reduce((a, b) => a + b, 0) / firstContactHours.length) : null,
+    medianHoursToFirstContact: firstContactHours.length ? round1(median(firstContactHours)) : null,
     funnel,
     lostReasons,
     bySource: groupBy(rows, (r) => r.source || "manual"),

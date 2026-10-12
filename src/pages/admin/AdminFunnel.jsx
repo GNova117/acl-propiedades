@@ -61,6 +61,7 @@ export default function AdminFunnel() {
               <th>{t("funnel.colClosed")}</th>
               <th>{t("funnel.colRate")}</th>
               <th>{t("funnel.colDays")}</th>
+              <th>{t("funnel.colFirstContact")}</th>
             </tr>
           </thead>
           <tbody>
@@ -76,6 +77,7 @@ export default function AdminFunnel() {
                   </span>
                 </td>
                 <td>{row.avgDaysToClose == null ? "—" : num(row.avgDaysToClose)}</td>
+                <td>{row.avgHoursToFirstContact == null ? "—" : num(row.avgHoursToFirstContact)}</td>
               </tr>
             ))}
           </tbody>
@@ -154,6 +156,11 @@ export default function AdminFunnel() {
               <strong>{stats.avgDaysToClose == null ? "—" : num(stats.avgDaysToClose)}</strong>
               <span>{t("funnel.kpi.days")}</span>
               <small>{stats.avgDaysToClose == null ? t("funnel.kpi.noDays") : t("funnel.kpi.daysHint", { median: num(stats.medianDaysToClose) })}</small>
+            </div>
+            <div className="card funnel-kpi">
+              <strong>{stats.avgHoursToFirstContact == null ? "—" : num(stats.avgHoursToFirstContact)}</strong>
+              <span>{t("funnel.kpi.firstContact")}</span>
+              <small>{stats.avgHoursToFirstContact == null ? t("funnel.kpi.noFirstContact") : t("funnel.kpi.firstContactHint", { median: num(stats.medianHoursToFirstContact) })}</small>
             </div>
           </div>
 

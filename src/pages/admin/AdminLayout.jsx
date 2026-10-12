@@ -17,6 +17,9 @@ import "./AdminLayout.css";
 // (sin carpeta) van como { section, to, label } directo en la lista.
 const NAV = [
   { section: null, to: "/admin", end: true, labelKey: "admin.dashboard" },
+  // Sin apartado: se muestra por tener un login vinculado a un asesor
+  // (advisorId), no por un permiso de rol — ver AdminMyProfile.jsx.
+  { section: null, to: "/admin/mi-perfil", labelKey: "admin.myProfile", requiresAdvisor: true },
   {
     key: "propiedades",
     labelKey: "admin.groups.propiedades",
@@ -92,7 +95,7 @@ const isInside = (pathname, to) => pathname === to || pathname.startsWith(`${to}
 
 export default function AdminLayout() {
   const { t } = useTranslation();
-  const { logout, hasSection } = useAuth();
+  const { logout, hasSection, advisorId } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [newMessagesCount, setNewMessagesCount] = useState(0);
@@ -117,7 +120,11 @@ export default function AdminLayout() {
 
   const visibleNav = NAV.map((entry) =>
     entry.items ? { ...entry, items: entry.items.filter((item) => hasSection(item.section)) } : entry
-  ).filter((entry) => (entry.items ? entry.items.length > 0 : entry.section === null || hasSection(entry.section)));
+  ).filter((entry) => {
+    if (entry.items) return entry.items.length > 0;
+    if (entry.requiresAdvisor) return advisorId != null;
+    return entry.section === null || hasSection(entry.section);
+  });
 
   // La carpeta de la página actual siempre se abre, aunque el usuario la
   // hubiera cerrado antes (así nunca se "pierde" dónde está).
