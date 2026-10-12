@@ -39,7 +39,7 @@ function sanitizeFileName(name) {
 // El tercer parámetro va anotando cada archivo que ya quedó arriba, para
 // que quien llama pueda deshacer las subidas si el guardado no llega a
 // completarse (ver discardUploads).
-async function uploadFiles(bucket, files, uploaded) {
+async function uploadFiles(bucket, files, uploaded, pathPrefix = "") {
   if (!files || files.length === 0) return [];
   // Solo esta función sube property-images/property-videos/advisor-photos
   // (documentos de clientes y adjuntos de Agenda suben por su cuenta más
@@ -48,7 +48,7 @@ async function uploadFiles(bucket, files, uploaded) {
   const compressed = await compressImageFiles(files);
   const urls = [];
   for (const file of compressed) {
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${sanitizeFileName(file.name)}`;
+    const path = `${pathPrefix}${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${sanitizeFileName(file.name)}`;
     const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: false });
     if (error) throw error;
     uploaded?.push({ bucket, path });
@@ -397,7 +397,10 @@ export const supabaseBackend = {
     const uploaded = [];
     let photo_url = data.existingPhoto;
     if (data.photoFile) {
-      const [url] = await uploadFiles("advisor-photos", [data.photoFile], uploaded);
+      // Prefijo con el id del asesor: así la política de storage para la
+      // edición de perfil propio (ver schema.sql) puede comprobar que solo
+      // sube a su propia carpeta, sin necesitar la sección 'asesores'.
+      const [url] = await uploadFiles("advisor-photos", [data.photoFile], uploaded, `${id}/`);
       photo_url = url;
     }
     const payload = {
@@ -406,8 +409,13 @@ export const supabaseBackend = {
       email: data.email,
       whatsapp: data.whatsapp,
       bio: data.bio,
-      active: data.active,
-      show_in_team: data.show_in_team !== false,
+      // active/show_in_team solo se tocan si vienen en los datos: la edición
+      // de perfil propio (AdminMyProfile, sin la sección 'asesores') no los
+      // manda a propósito — son de control de la oficina. El trigger
+      // advisors_guard_self_edit en Supabase los vuelve a dejar como estaban
+      // de todos modos si alguien los mandara por fuera de este formulario.
+      ...(data.active !== undefined ? { active: data.active } : {}),
+      ...(data.show_in_team !== undefined ? { show_in_team: data.show_in_team !== false } : {}),
       ...(photo_url ? { photo_url } : {}),
     };
     const { data: updated, error } = await supabase.from("advisors").update(payload).eq("id", id).select().single();

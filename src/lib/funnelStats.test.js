@@ -74,4 +74,14 @@ describe("computeFunnel", () => {
   it("FUNNEL_STAGES no incluye 'perdido': estar perdido no es una etapa del embudo", () => {
     expect(FUNNEL_STAGES).not.toContain("perdido");
   });
+
+  it("el tiempo de primera respuesta se mide desde la creación hasta el primer paso que lo saca de 'nuevo'", () => {
+    const r = computeFunnel({ prospects, history });
+    // #1: creado 2026-01-01, primer paso fuera de "nuevo" es "contactado" en 2026-01-02 → 24h.
+    expect(r.avgHoursToFirstContact).toBe(24);
+    expect(r.medianHoursToFirstContact).toBe(24);
+    // #3 llegó directo a "interesado" sin historial (prospecto sembrado ya en esa etapa): no se puede medir.
+    expect(r.byAdvisor.find((g) => g.key === "a2").avgHoursToFirstContact).toBeNull();
+    expect(r.byAdvisor.find((g) => g.key === "a1").avgHoursToFirstContact).toBe(24);
+  });
 });
