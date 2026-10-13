@@ -22,7 +22,7 @@ export default function AdvisorCard({ advisor, property }) {
 
   return (
     <div className="advisor-card card">
-      <img src={advisor.photo_url} alt={advisor.name} className="advisor-card__photo" />
+      <img src={advisor.photo_url} alt={advisor.name} className="advisor-card__photo" loading="lazy" decoding="async" />
       <h4>{advisor.name}</h4>
       {advisor.bio && <p className="advisor-card__bio">{advisor.bio}</p>}
       <div className="advisor-card__actions">

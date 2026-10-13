@@ -71,7 +71,7 @@ export default function PropertyMap({ properties, height = 480 }) {
           <Marker key={property.id} position={[property.lat, property.lng]} icon={getIcon(property.type)}>
             <Popup>
               <div className="map-popup">
-                <img src={property.main_image} alt={property.title} />
+                <img src={property.main_image} alt={property.title} loading="lazy" decoding="async" />
                 <strong>{property.title}</strong>
                 <span className="map-popup__price">{formatMXN(property.price)}</span>
                 <span className="map-popup__area">{formatArea(property.area_m2)}</span>

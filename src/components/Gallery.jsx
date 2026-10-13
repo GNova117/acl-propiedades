@@ -8,7 +8,9 @@ export default function Gallery({ images, alt }) {
   return (
     <div className="gallery">
       <div className="gallery__main">
-        <img src={list[active]} alt={`${alt} - imagen ${active + 1}`} />
+        {/* Es la imagen principal de la ficha de propiedad — normalmente el
+            LCP de la página — así que se carga eager, no lazy. */}
+        <img src={list[active]} alt={`${alt} - imagen ${active + 1}`} decoding="async" fetchPriority="high" />
       </div>
       {list.length > 1 && (
         <div className="gallery__thumbs">
@@ -20,7 +22,7 @@ export default function Gallery({ images, alt }) {
               onClick={() => setActive(index)}
               aria-label={`Ver imagen ${index + 1}`}
             >
-              <img src={src} alt="" />
+              <img src={src} alt="" loading="lazy" decoding="async" />
             </button>
           ))}
         </div>

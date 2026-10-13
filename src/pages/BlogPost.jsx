@@ -57,7 +57,7 @@ export default function BlogPost() {
           <Link to="/blog" className="blog-post__back">{t("blog.back")}</Link>
           <p className="blog-post__date">{formatDate(post.published_at, i18n.language)}</p>
           <h1>{post.title}</h1>
-          {post.cover_image && <img src={post.cover_image} alt="" className="blog-post__cover" />}
+          {post.cover_image && <img src={post.cover_image} alt="" className="blog-post__cover" decoding="async" />}
           <div className="blog-post__body">
             {post.body.split(/\n{2,}/).map((paragraph, i) => (
               <p key={i}>{paragraph}</p>
