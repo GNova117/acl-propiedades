@@ -70,6 +70,8 @@
     "industrialSubtitle": "Filter by zone, price and area to find the right warehouse for your business.",
     "landTitle": "Available land",
     "landSubtitle": "Filter by zone, price and area to find the right lot for your project.",
+    "zoneTitle": "Properties in {{city}}",
+    "zoneSubtitle": "Houses, apartments, industrial warehouses and land available in {{city}}.",
     "filters": "Filters",
     "type": "Type",
     "operationType": "Transaction",
@@ -398,6 +400,7 @@
   "footer": {
     "tagline": "Buying and selling houses, land, commercial spaces and industrial warehouses in La Comarca Lagunera.",
     "quickLinks": "Quick links",
+    "zones": "Zones",
     "contactInfo": "Contact",
     "followUs": "Follow us",
     "rights": "All rights reserved.",

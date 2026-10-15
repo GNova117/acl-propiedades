@@ -7,6 +7,7 @@ import ChatWidget from "./components/ChatWidget";
 import Home from "./pages/Home";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
+import ZoneLanding from "./pages/ZoneLanding";
 import Calculator from "./pages/Calculator";
 import SellYourHome from "./pages/SellYourHome";
 import CreditCompare from "./pages/CreditCompare";
@@ -152,6 +153,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
       <Route path="/propiedades" element={<PublicLayout><Properties excludeTypes={SPECIAL_SECTION_KEYS} /></PublicLayout>} />
+      <Route path="/propiedades/zona/:zoneSlug" element={<PublicLayout><ZoneLanding /></PublicLayout>} />
       <Route path="/propiedades/:id" element={<PublicLayout><PropertyDetail /></PublicLayout>} />
       <Route
         path="/naves-industriales"

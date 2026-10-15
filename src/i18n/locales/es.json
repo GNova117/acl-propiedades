@@ -70,6 +70,8 @@
     "industrialSubtitle": "Filtra por zona, precio y superficie para encontrar la nave ideal para tu negocio.",
     "landTitle": "Terrenos disponibles",
     "landSubtitle": "Filtra por zona, precio y superficie para encontrar el terreno ideal para tu proyecto.",
+    "zoneTitle": "Propiedades en {{city}}",
+    "zoneSubtitle": "Casas, departamentos, naves industriales y terrenos disponibles en {{city}}.",
     "filters": "Filtros",
     "type": "Tipo",
     "operationType": "Operación",
@@ -398,6 +400,7 @@
   "footer": {
     "tagline": "Compra y venta de casas, terrenos, locales comerciales y naves industriales en La Comarca Lagunera.",
     "quickLinks": "Enlaces rápidos",
+    "zones": "Zonas",
     "contactInfo": "Contacto",
     "followUs": "Síguenos",
     "rights": "Todos los derechos reservados.",

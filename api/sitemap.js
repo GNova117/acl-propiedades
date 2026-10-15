@@ -6,12 +6,14 @@
 // y otro. Usa la llave pública (anon) — RLS ya permite lectura pública de
 // properties, no hace falta la service role aquí.
 import { createClient } from "@supabase/supabase-js";
+import { slugify, ZONE_LANDING_CITIES } from "../src/lib/zoneLandingPages.js";
 
 const SITE_URL = "https://acl-propiedades.vercel.app";
 const STATIC_PATHS = ["/", "/propiedades", "/naves-industriales", "/terrenos", "/calculadora", "/nosotros", "/contacto", "/blog"];
+const ZONE_PATHS = ZONE_LANDING_CITIES.map((city) => `/propiedades/zona/${slugify(city)}`);
 
 export default async function handler(req, res) {
-  const urls = STATIC_PATHS.map((path) => ({ loc: `${SITE_URL}${path}` }));
+  const urls = [...STATIC_PATHS, ...ZONE_PATHS].map((path) => ({ loc: `${SITE_URL}${path}` }));
 
   const url = process.env.VITE_SUPABASE_URL;
   const key = process.env.VITE_SUPABASE_ANON_KEY;

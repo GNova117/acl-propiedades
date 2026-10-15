@@ -7,6 +7,7 @@ import PropertyCard from "../components/PropertyCard";
 import Reveal from "../components/Reveal";
 import AlertSignupCard from "../components/AlertSignupCard";
 import { filtersToCriteria } from "../lib/alertMatch";
+import { propertyMatchesCity } from "../lib/zoneLandingPages";
 import { db } from "../lib/dataStore";
 import "./Properties.css";
 
@@ -71,7 +72,24 @@ const NO_EXCLUDED_TYPES = [];
 // seleccionables sale en vivo de property_types, menos los que ya tienen
 // su propio apartado; un tipo nuevo que se agregue desde /admin/zonas cae
 // aquí por default sin tocar código.
-export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES, titleKey = "properties.title", subtitleKey = "properties.subtitle" }) {
+// `title`/`subtitle`: texto literal, tiene prioridad sobre `titleKey`/
+// `subtitleKey` — lo usan las páginas de aterrizaje por ciudad (ZoneLanding),
+// donde el título depende del nombre de la ciudad y no puede ser una llave
+// fija de i18n.
+// `cityFilter`: filtro adicional por ciudad (ZoneLanding) aplicado en el
+// cliente sobre zona+dirección. No puede resolverse en queryFilters como el
+// resto de los filtros porque el filtro de `zone` del backend exige
+// coincidencia exacta contra el nombre de colonia (admin/zonas), no contra
+// el nombre de la ciudad.
+export default function Properties({
+  fixedType,
+  excludeTypes = NO_EXCLUDED_TYPES,
+  titleKey = "properties.title",
+  subtitleKey = "properties.subtitle",
+  title,
+  subtitle,
+  cityFilter,
+}) {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState({
@@ -176,24 +194,30 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
     let active = true;
     setLoading(true);
     db.getProperties(queryFilters)
-      .then((data) => active && setProperties(data))
+      .then((data) => {
+        if (!active) return;
+        setProperties(cityFilter ? data.filter((property) => propertyMatchesCity(property, cityFilter)) : data);
+      })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, [queryFilters]);
+  }, [queryFilters, cityFilter]);
+
+  const pageTitle = title || t(titleKey);
+  const pageSubtitle = subtitle || t(subtitleKey);
 
   if (sectionDisabled) {
     return (
       <>
-        <Seo title={t(titleKey)} description={t(subtitleKey)} />
+        <Seo title={pageTitle} description={pageSubtitle} />
         <div className="container properties-page">
           <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
-            <h2>{t(titleKey)}</h2>
+            <h2>{pageTitle}</h2>
           </div>
           <div className="empty-state">
             {t("properties.comingSoon")}
-            <NotifyMeCta section={t(titleKey)} />
+            <NotifyMeCta section={pageTitle} />
           </div>
         </div>
       </>
@@ -202,12 +226,12 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
 
   return (
     <>
-      <Seo title={t(titleKey)} description={t(subtitleKey)} />
+      <Seo title={pageTitle} description={pageSubtitle} />
 
       <div className="container properties-page">
         <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
-          <h2>{t(titleKey)}</h2>
-          <p>{t(subtitleKey)}</p>
+          <h2>{pageTitle}</h2>
+          <p>{pageSubtitle}</p>
         </div>
 
         <div className="properties-page__layout">
@@ -255,7 +279,7 @@ export default function Properties({ fixedType, excludeTypes = NO_EXCLUDED_TYPES
             ) : properties.length === 0 ? (
               <div className="empty-state">
                 {t(hasActiveFilters ? "properties.noResults" : "properties.emptySection")}
-                <NotifyMeCta section={t(titleKey)} />
+                <NotifyMeCta section={pageTitle} />
               </div>
             ) : view === "map" ? (
               <Suspense fallback={<div className="empty-state" style={{ height: 560 }}>{t("common.loading")}</div>}>

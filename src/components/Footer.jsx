@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Logo from "./Logo";
 import WhatsAppIcon from "./icons/WhatsAppIcon";
+import { slugify, ZONE_LANDING_CITIES } from "../lib/zoneLandingPages";
 import "./Footer.css";
 
 function FacebookIcon() {
@@ -44,6 +45,17 @@ export default function Footer() {
             <li><NavLink to="/vende-tu-casa">{t("nav.sellHome")}</NavLink></li>
             <li><NavLink to="/nosotros">{t("nav.about")}</NavLink></li>
             <li><NavLink to="/contacto">{t("nav.contact")}</NavLink></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4>{t("footer.zones")}</h4>
+          <ul className="site-footer__links">
+            {ZONE_LANDING_CITIES.map((city) => (
+              <li key={city}>
+                <NavLink to={`/propiedades/zona/${slugify(city)}`}>{city}</NavLink>
+              </li>
+            ))}
           </ul>
         </div>
 
