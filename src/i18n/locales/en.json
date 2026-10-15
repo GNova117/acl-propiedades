@@ -92,6 +92,8 @@
     "viewDetail": "View detail",
     "advisor": "Advisor",
     "mapView": "Map view",
+    "mapFullscreen": "Fullscreen",
+    "mapExitFullscreen": "Exit fullscreen",
     "listView": "List view",
     "bedrooms": "Bedrooms",
     "bathrooms": "Bathrooms",
