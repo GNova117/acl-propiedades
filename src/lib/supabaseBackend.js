@@ -83,9 +83,11 @@ async function collectMedia(data, uploaded) {
   try {
     const newImages = await uploadFiles("property-images", data.imageFiles, uploaded);
     const newVideos = await uploadFiles("property-videos", data.videoFiles, uploaded);
+    const newTour360 = await uploadFiles("property-360", data.tour360Files, uploaded);
     return {
       images: [...(data.existingImages || []), ...newImages],
       videos: [...(data.existingVideos || []), ...newVideos],
+      tour_360_images: [...(data.existingTour360Images || []), ...newTour360],
     };
   } catch (err) {
     await discardUploads(uploaded);
@@ -201,7 +203,7 @@ export const supabaseBackend = {
 
   async addProperty(data) {
     const uploaded = [];
-    const { images, videos } = await collectMedia(data, uploaded);
+    const { images, videos, tour_360_images } = await collectMedia(data, uploaded);
     const payload = {
       title: data.title,
       type: data.type,
@@ -221,6 +223,7 @@ export const supabaseBackend = {
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
       videos,
+      tour_360_images,
       colindancias: data.colindancias || null,
       servicios: data.servicios || null,
       acabados: data.acabados || null,
@@ -275,7 +278,7 @@ export const supabaseBackend = {
 
   async updateProperty(id, data) {
     const uploaded = [];
-    const { images, videos } = await collectMedia(data, uploaded);
+    const { images, videos, tour_360_images } = await collectMedia(data, uploaded);
     const payload = {
       title: data.title,
       type: data.type,
@@ -295,6 +298,7 @@ export const supabaseBackend = {
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
       videos,
+      tour_360_images,
       colindancias: data.colindancias || null,
       servicios: data.servicios || null,
       acabados: data.acabados || null,

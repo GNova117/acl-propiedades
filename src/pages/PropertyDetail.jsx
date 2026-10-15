@@ -20,6 +20,9 @@ import "./PropertyDetail.css";
 // opcional como en /propiedades), pero separarlo en su propio chunk
 // evita que cargue para cualquiera que solo visite el inicio o la lista.
 const PropertyMap = lazy(() => import("../components/PropertyMap"));
+// three.js (~150KB) solo se carga si alguien de verdad abre el recorrido
+// 360°, no para cualquiera que entre a la ficha de la propiedad.
+const Panorama360 = lazy(() => import("../components/Panorama360"));
 
 // Todos los campos "especificaciones" que puede tener una propiedad —
 // genéricos (NOM-247) más los propios de Naves Industriales. Se listan
@@ -175,6 +178,7 @@ export default function PropertyDetail() {
   const [loading, setLoading] = useState(true);
   const [similar, setSimilar] = useState([]);
   const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
+  const [showPanorama, setShowPanorama] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -306,6 +310,12 @@ export default function PropertyDetail() {
         <div className="property-detail__layout">
           <div>
             <Gallery images={property.images} alt={property.title} />
+
+            {property.tour_360_images?.length > 0 && (
+              <button type="button" className="btn btn-outline property-detail__tour360-btn" onClick={() => setShowPanorama(true)}>
+                {t("panorama360.viewButton")}
+              </button>
+            )}
 
             <div className="property-detail__header">
               <div>
@@ -477,6 +487,12 @@ export default function PropertyDetail() {
           </section>
         )}
       </div>
+
+      {showPanorama && (
+        <Suspense fallback={null}>
+          <Panorama360 images={property.tour_360_images} onClose={() => setShowPanorama(false)} />
+        </Suspense>
+      )}
     </>
   );
 }

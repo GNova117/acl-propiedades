@@ -2452,6 +2452,14 @@
       "activeHint": "Una plantilla inactiva no aparece al generar documentos, pero no se borra."
     }
   },
+  "panorama360": {
+    "title": "Recorrido 360°",
+    "dragHint": "Arrastra para mirar alrededor.",
+    "choose": "Elegir foto 360°",
+    "viewButton": "Ver recorrido 360°",
+    "adminLabel": "Fotos 360°",
+    "adminHint": "Fotos panorámicas (equirectangulares, 2:1) de cada espacio. Se muestran en un visor donde el cliente puede arrastrar para mirar alrededor."
+  },
   "internalNotes": {
     "title": "Notas internas",
     "subtitle": "Notas visibles para todo el equipo sobre este registro — no las ve el cliente.",

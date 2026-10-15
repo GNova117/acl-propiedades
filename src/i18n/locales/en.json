@@ -2452,6 +2452,14 @@
       "activeHint": "An inactive template won't show up when generating documents, but it isn't deleted."
     }
   },
+  "panorama360": {
+    "title": "360° tour",
+    "dragHint": "Drag to look around.",
+    "choose": "Choose 360° photo",
+    "viewButton": "View 360° tour",
+    "adminLabel": "360° photos",
+    "adminHint": "Panoramic (equirectangular, 2:1) photos of each space. Shown in a viewer the client can drag to look around."
+  },
   "internalNotes": {
     "title": "Internal notes",
     "subtitle": "Notes visible to the whole team about this record — the client never sees these.",

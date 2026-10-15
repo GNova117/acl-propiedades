@@ -239,6 +239,8 @@ export const localBackend = {
     const images = [...(data.existingImages || []), ...newImages];
     const newVideos = await filesToDataUrls(data.videoFiles);
     const videos = [...(data.existingVideos || []), ...newVideos];
+    const newTour360 = await filesToDataUrls(await compressImageFiles(data.tour360Files));
+    const tour_360_images = [...(data.existingTour360Images || []), ...newTour360];
     const record = {
       id: uid("prop"),
       code: nextPropertyCode(),
@@ -260,6 +262,7 @@ export const localBackend = {
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
       videos,
+      tour_360_images,
       advisor_ids: data.advisor_ids || [],
       colindancias: data.colindancias || null,
       servicios: data.servicios || null,
@@ -310,6 +313,8 @@ export const localBackend = {
     const images = [...(data.existingImages || []), ...newImages];
     const newVideos = await filesToDataUrls(data.videoFiles);
     const videos = [...(data.existingVideos || []), ...newVideos];
+    const newTour360 = await filesToDataUrls(await compressImageFiles(data.tour360Files));
+    const tour_360_images = [...(data.existingTour360Images || []), ...newTour360];
     const updated = {
       ...properties[idx],
       title: data.title,
@@ -330,6 +335,7 @@ export const localBackend = {
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
       videos,
+      tour_360_images,
       advisor_ids: data.advisor_ids || [],
       colindancias: data.colindancias || null,
       servicios: data.servicios || null,
