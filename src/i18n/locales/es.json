@@ -1508,6 +1508,7 @@
       "simulador": "Simulador de crédito",
       "estimacion": "Estimación (vende tu casa)",
       "whatsapp": "WhatsApp",
+      "chatbot": "Chatbot del sitio",
       "manual": "Captura manual",
       "visita": "Visita",
       "recomendacion": "Recomendación",
@@ -2453,6 +2454,18 @@
       "requiresSignaturesHint": "Agrega dos líneas de firma al final del PDF, igual que los documentos predefinidos.",
       "activeHint": "Una plantilla inactiva no aparece al generar documentos, pero no se borra."
     }
+  },
+  "chatWidget": {
+    "title": "Asistente ACL Propiedades",
+    "open": "Abrir chat",
+    "close": "Cerrar chat",
+    "greeting": "¡Hola! Soy el asistente virtual de ACL Propiedades. Puedo ayudarte a buscar propiedades o resolver dudas generales. ¿En qué te ayudo?",
+    "placeholder": "Escribe tu mensaje...",
+    "send": "Enviar",
+    "typing": "Escribiendo...",
+    "talkToAdvisor": "Hablar con un asesor por WhatsApp",
+    "unavailable": "El chat no está disponible por el momento. Escríbenos directo por WhatsApp y con gusto te ayudamos.",
+    "error": "Algo salió mal. Intenta de nuevo o escríbenos por WhatsApp."
   },
   "gallery": {
     "expand": "Ampliar",

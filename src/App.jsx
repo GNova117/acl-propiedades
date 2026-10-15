@@ -3,7 +3,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import FloatingWhatsApp from "./components/FloatingWhatsApp";
+import ChatWidget from "./components/ChatWidget";
 import Home from "./pages/Home";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
@@ -131,7 +131,7 @@ function PublicLayout({ children }) {
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>
       <Footer />
-      <FloatingWhatsApp />
+      <ChatWidget />
     </>
   );
 }

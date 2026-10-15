@@ -35,7 +35,7 @@ const EMPTY_FILTERS = {
 const SORT_OPTIONS = ["newest", "price_asc", "price_desc", "area_desc"];
 
 // Número de oficina — mismo que usa Contact.jsx/Footer.jsx/
-// FloatingWhatsApp.jsx (cada uno lo tiene por separado, no hay una
+// ChatWidget.jsx (cada uno lo tiene por separado, no hay una
 // constante compartida en el proyecto todavía).
 const OFFICE_WHATSAPP = "528713243271";
 

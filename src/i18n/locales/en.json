@@ -1508,6 +1508,7 @@
       "simulador": "Credit simulator",
       "estimacion": "Estimate (sell your home)",
       "whatsapp": "WhatsApp",
+      "chatbot": "Site chatbot",
       "manual": "Manual entry",
       "visita": "Visit",
       "recomendacion": "Referral",
@@ -2453,6 +2454,18 @@
       "requiresSignaturesHint": "Adds two signature lines at the end of the PDF, same as the built-in documents.",
       "activeHint": "An inactive template won't show up when generating documents, but it isn't deleted."
     }
+  },
+  "chatWidget": {
+    "title": "ACL Propiedades Assistant",
+    "open": "Open chat",
+    "close": "Close chat",
+    "greeting": "Hi! I'm ACL Propiedades' virtual assistant. I can help you search for properties or answer general questions. How can I help?",
+    "placeholder": "Type your message...",
+    "send": "Send",
+    "typing": "Typing...",
+    "talkToAdvisor": "Talk to an advisor on WhatsApp",
+    "unavailable": "Chat isn't available right now. Message us directly on WhatsApp and we'll be happy to help.",
+    "error": "Something went wrong. Try again or message us on WhatsApp."
   },
   "gallery": {
     "expand": "Expand",
