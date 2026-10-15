@@ -2454,6 +2454,13 @@
       "activeHint": "Una plantilla inactiva no aparece al generar documentos, pero no se borra."
     }
   },
+  "gallery": {
+    "expand": "Ampliar",
+    "counter": "{{current}} / {{total}}",
+    "prev": "Foto anterior",
+    "next": "Foto siguiente",
+    "zoomHint": "Clic en la foto para acercar · flechas o desliza para cambiar · Esc para cerrar"
+  },
   "panorama360": {
     "title": "Recorrido 360°",
     "dragHint": "Arrastra para mirar alrededor.",
