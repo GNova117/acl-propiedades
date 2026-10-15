@@ -127,6 +127,8 @@
       "cta": "Comparar opciones de crédito"
     },
     "back": "Volver a propiedades",
+    "recentViews_one": "{{count}} persona vio esta propiedad en los últimos 3 días",
+    "recentViews_other": "{{count}} personas vieron esta propiedad en los últimos 3 días",
     "description": "Descripción",
     "features": "Características",
     "location": "Ubicación",

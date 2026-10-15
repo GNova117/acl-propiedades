@@ -127,6 +127,8 @@
       "cta": "Compare credit options"
     },
     "back": "Back to properties",
+    "recentViews_one": "{{count}} person viewed this property in the last 3 days",
+    "recentViews_other": "{{count}} people viewed this property in the last 3 days",
     "description": "Description",
     "features": "Features",
     "location": "Location",

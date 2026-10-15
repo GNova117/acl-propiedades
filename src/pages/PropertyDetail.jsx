@@ -12,6 +12,7 @@ import CompareButton from "../components/CompareButton";
 import ScheduleVisitCard from "../components/ScheduleVisitCard";
 import AlertSignupCard from "../components/AlertSignupCard";
 import RecentlyViewed from "../components/RecentlyViewed";
+import RecentViewsBadge from "../components/RecentViewsBadge";
 import { db } from "../lib/dataStore";
 import { recordPropertyView } from "../lib/recentlyViewed";
 import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
@@ -332,6 +333,7 @@ export default function PropertyDetail() {
                 </div>
                 <h1>{property.title}</h1>
                 <p className="property-detail__address">{property.address}</p>
+                <RecentViewsBadge propertyId={property.id} />
               </div>
               <div className="property-detail__price-block">
                 <div className="property-detail__price-block-top">

@@ -7,6 +7,7 @@ import { slugify, numOrNull } from "./format";
 import { CLIENT_EXPEDIENTE_KEYS } from "./clientExpedienteFields";
 import { compressImageFile, compressImageFiles } from "./imageCompression";
 import { buildDemoSnapshot } from "./marketDemo";
+import { getOrCreateVisitorId } from "./visitorId";
 
 function clientExpedientePayload(data) {
   return Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, data[key] || null]));
@@ -62,6 +63,7 @@ const KEYS = {
   privacyConsents: "acl_local_privacy_consents",
   documentTemplates: "acl_local_document_templates",
   internalNotes: "acl_local_internal_notes",
+  propertyViews: "acl_local_property_views",
 };
 
 // Un par de artículos de muestra para que /blog no se vea vacío en modo
@@ -223,6 +225,27 @@ export const localBackend = {
     const advisors = readStore(KEYS.advisors, ADVISORS);
     const found = properties.find((p) => p.id === id);
     return found ? withAdvisors(found, advisors) : null;
+  },
+
+  // Espejo de record_property_view (schema.sql): registra como máximo una
+  // vista por visitante por propiedad por día y devuelve cuántos visitantes
+  // distintos la vieron en los últimos `days` días.
+  async trackPropertyView(propertyId, days = 3) {
+    const visitorId = getOrCreateVisitorId();
+    const today = new Date().toISOString().slice(0, 10);
+    const views = readStore(KEYS.propertyViews, []);
+    const alreadyToday = views.some((v) => v.property_id === propertyId && v.visitor_id === visitorId && v.viewed_on === today);
+    if (!alreadyToday) {
+      views.push({ property_id: propertyId, visitor_id: visitorId, viewed_on: today });
+      writeStore(KEYS.propertyViews, views);
+    }
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    const recentVisitors = new Set(
+      views.filter((v) => v.property_id === propertyId && v.viewed_on > cutoffStr).map((v) => v.visitor_id)
+    );
+    return recentVisitors.size;
   },
 
   async getPropertyByCode(code) {

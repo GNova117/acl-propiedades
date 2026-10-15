@@ -9,6 +9,7 @@ import { CLIENT_EXPEDIENTE_KEYS } from "./clientExpedienteFields";
 import { compressImageFile, compressImageFiles } from "./imageCompression";
 import { generateReportToken, REPORT_TOKEN_PATTERN } from "./visitReport";
 import { generatePortalToken, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS, PortalUploadError, blobToBase64 } from "./clientPortal";
+import { getOrCreateVisitorId } from "./visitorId";
 
 // Los campos del expediente del cliente (NSS, contraseña del portal, número
 // de crédito y las 2 referencias) se guardan igual al crear y al editar — se
@@ -199,6 +200,20 @@ export const supabaseBackend = {
     const { data, error } = await supabase.from("properties").select(PROPERTY_SELECT).eq("code", normalized).maybeSingle();
     if (error) throw error;
     return data ? mapPropertyRow(data) : null;
+  },
+
+  // record_property_view (schema.sql, security definer): registra la vista
+  // de este visitante (como máximo una por día, por propiedad) y devuelve en
+  // la misma llamada cuántos visitantes distintos la vieron en los últimos
+  // `days` días — para el indicador "N vistas recientes" de la ficha pública.
+  async trackPropertyView(propertyId, days = 3) {
+    const { data, error } = await supabase.rpc("record_property_view", {
+      p_property_id: propertyId,
+      p_visitor_id: getOrCreateVisitorId(),
+      p_days: days,
+    });
+    if (error) throw error;
+    return data || 0;
   },
 
   async addProperty(data) {
