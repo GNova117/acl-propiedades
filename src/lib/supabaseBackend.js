@@ -576,6 +576,44 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  async getDocumentTemplates() {
+    const { data, error } = await supabase.from("document_templates").select("*").order("name");
+    if (error) throw error;
+    return data || [];
+  },
+
+  async createDocumentTemplate(data) {
+    const payload = {
+      name: data.name.trim(),
+      body: data.body,
+      custom_fields: data.custom_fields || [],
+      requires_signatures: data.requires_signatures !== false,
+      active: data.active !== false,
+    };
+    const { data: inserted, error } = await supabase.from("document_templates").insert(payload).select().single();
+    if (error) throw error;
+    return inserted;
+  },
+
+  async updateDocumentTemplate(id, data) {
+    const payload = {
+      name: data.name.trim(),
+      body: data.body,
+      custom_fields: data.custom_fields || [],
+      requires_signatures: data.requires_signatures !== false,
+      active: data.active !== false,
+      updated_at: new Date().toISOString(),
+    };
+    const { data: updated, error } = await supabase.from("document_templates").update(payload).eq("id", id).select().single();
+    if (error) throw error;
+    return updated;
+  },
+
+  async deleteDocumentTemplate(id) {
+    const { error } = await supabase.from("document_templates").delete().eq("id", id);
+    if (error) throw error;
+  },
+
   async getBlogPosts({ publishedOnly = false } = {}) {
     let query = supabase.from("blog_posts").select("*");
     query = publishedOnly ? query.eq("published", true).order("published_at", { ascending: false }) : query.order("created_at", { ascending: false });

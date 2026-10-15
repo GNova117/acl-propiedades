@@ -60,6 +60,7 @@ const KEYS = {
   clientPortalTokens: "acl_local_client_portal_tokens",
   documentAccessLog: "acl_local_document_access_log",
   privacyConsents: "acl_local_privacy_consents",
+  documentTemplates: "acl_local_document_templates",
 };
 
 // Un par de artículos de muestra para que /blog no se vea vacío en modo
@@ -622,6 +623,51 @@ export const localBackend = {
   async deleteTestimonial(id) {
     const testimonials = readStore(KEYS.testimonials, []);
     writeStore(KEYS.testimonials, testimonials.filter((t) => t.id !== id));
+  },
+
+  async getDocumentTemplates() {
+    const templates = readStore(KEYS.documentTemplates, []);
+    return templates.slice().sort((a, b) => a.name.localeCompare(b.name));
+  },
+
+  async createDocumentTemplate(data) {
+    const templates = readStore(KEYS.documentTemplates, []);
+    const now = new Date().toISOString();
+    const record = {
+      id: uid("doctpl"),
+      name: data.name.trim(),
+      body: data.body,
+      custom_fields: data.custom_fields || [],
+      requires_signatures: data.requires_signatures !== false,
+      active: data.active !== false,
+      created_at: now,
+      updated_at: now,
+    };
+    templates.push(record);
+    writeStore(KEYS.documentTemplates, templates);
+    return record;
+  },
+
+  async updateDocumentTemplate(id, data) {
+    const templates = readStore(KEYS.documentTemplates, []);
+    const idx = templates.findIndex((t) => t.id === id);
+    if (idx === -1) throw new Error("Plantilla no encontrada");
+    templates[idx] = {
+      ...templates[idx],
+      name: data.name.trim(),
+      body: data.body,
+      custom_fields: data.custom_fields || [],
+      requires_signatures: data.requires_signatures !== false,
+      active: data.active !== false,
+      updated_at: new Date().toISOString(),
+    };
+    writeStore(KEYS.documentTemplates, templates);
+    return templates[idx];
+  },
+
+  async deleteDocumentTemplate(id) {
+    const templates = readStore(KEYS.documentTemplates, []);
+    writeStore(KEYS.documentTemplates, templates.filter((t) => t.id !== id));
   },
 
   async getBlogPosts({ publishedOnly = false } = {}) {

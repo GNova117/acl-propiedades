@@ -67,6 +67,8 @@ const AdminInspections = lazy(() => import("./pages/admin/AdminInspections"));
 const AdminInspectionForm = lazy(() => import("./pages/admin/AdminInspectionForm"));
 const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
 const AdminLegalDocs = lazy(() => import("./pages/admin/AdminLegalDocs"));
+const AdminDocumentTemplates = lazy(() => import("./pages/admin/AdminDocumentTemplates"));
+const AdminDocumentTemplateForm = lazy(() => import("./pages/admin/AdminDocumentTemplateForm"));
 const AdminAgenda = lazy(() => import("./pages/admin/AdminAgenda"));
 const AdminAgendaForm = lazy(() => import("./pages/admin/AdminAgendaForm"));
 const AdminAgendaExpedientes = lazy(() => import("./pages/admin/AdminAgendaExpedientes"));
@@ -302,6 +304,9 @@ export default function App() {
         <Route path="inspecciones/:id" element={<RequireSection section="inspecciones"><AdminInspectionForm /></RequireSection>} />
         <Route path="firmas" element={<RequireSection section="documentos_legales"><AdminSignatures /></RequireSection>} />
         <Route path="documentos-legales" element={<RequireSection section="documentos_legales"><AdminLegalDocs /></RequireSection>} />
+        <Route path="plantillas-documentos" element={<RequireSection section="documentos_legales"><AdminDocumentTemplates /></RequireSection>} />
+        <Route path="plantillas-documentos/nueva" element={<RequireSection section="documentos_legales"><AdminDocumentTemplateForm /></RequireSection>} />
+        <Route path="plantillas-documentos/:id" element={<RequireSection section="documentos_legales"><AdminDocumentTemplateForm /></RequireSection>} />
         <Route path="actividad" element={<RequireSection section="roles"><AdminActivity /></RequireSection>} />
         <Route path="novedades" element={<RequireSection section="novedades"><AdminNovedades /></RequireSection>} />
         <Route path="novedades/nueva" element={<RequireSection section="novedades"><AdminNovedadesForm /></RequireSection>} />
