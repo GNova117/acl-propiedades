@@ -614,6 +614,36 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  async getInternalNotes(entityType, entityId) {
+    const { data, error } = await supabase
+      .from("internal_notes")
+      .select("*")
+      .eq("entity_type", entityType)
+      .eq("entity_id", entityId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addInternalNote({ entityType, entityId, body, mentions = [] }) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const payload = {
+      entity_type: entityType,
+      entity_id: entityId,
+      body: body.trim(),
+      mentions,
+      author_email: sessionData?.session?.user?.email || null,
+    };
+    const { data: inserted, error } = await supabase.from("internal_notes").insert(payload).select().single();
+    if (error) throw error;
+    return inserted;
+  },
+
+  async deleteInternalNote(id) {
+    const { error } = await supabase.from("internal_notes").delete().eq("id", id);
+    if (error) throw error;
+  },
+
   async getBlogPosts({ publishedOnly = false } = {}) {
     let query = supabase.from("blog_posts").select("*");
     query = publishedOnly ? query.eq("published", true).order("published_at", { ascending: false }) : query.order("created_at", { ascending: false });

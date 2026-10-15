@@ -5,6 +5,7 @@ import { db } from "../../lib/dataStore";
 import { CLIENT_TYPES, FINANCIAMIENTO_TYPES } from "../../lib/format";
 import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteGroups, clientSheetData, clientSheetSections } from "../../lib/clientExpedienteFields";
 import { downloadMultiPerfilamientoPdf } from "../../lib/perfilamientoPdf";
+import InternalNotes from "../../components/InternalNotes";
 import "./admin.css";
 
 // Mismos tipos que soporta el perfilamiento (ver FieldInput en
@@ -398,6 +399,8 @@ export default function AdminClientForm() {
           </div>
         )}
       </div>
+
+      {isEdit && <InternalNotes entityType="client" entityId={id} />}
     </div>
   );
 }

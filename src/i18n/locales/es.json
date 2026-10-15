@@ -2452,6 +2452,17 @@
       "activeHint": "Una plantilla inactiva no aparece al generar documentos, pero no se borra."
     }
   },
+  "internalNotes": {
+    "title": "Notas internas",
+    "subtitle": "Notas visibles para todo el equipo sobre este registro — no las ve el cliente.",
+    "newNote": "Nueva nota",
+    "notify": "Notificar a:",
+    "add": "Agregar nota",
+    "empty": "Todavía no hay notas.",
+    "you": "Tú",
+    "saveError": "Error al guardar la nota",
+    "deleteError": "Error al eliminar la nota"
+  },
   "privacy": {
     "title": "Aviso de Privacidad",
     "intro": "ACL Propiedades es responsable del tratamiento de tus datos personales conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) y a la NOM-247-SE-2021.",

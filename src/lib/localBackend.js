@@ -61,6 +61,7 @@ const KEYS = {
   documentAccessLog: "acl_local_document_access_log",
   privacyConsents: "acl_local_privacy_consents",
   documentTemplates: "acl_local_document_templates",
+  internalNotes: "acl_local_internal_notes",
 };
 
 // Un par de artículos de muestra para que /blog no se vea vacío en modo
@@ -668,6 +669,34 @@ export const localBackend = {
   async deleteDocumentTemplate(id) {
     const templates = readStore(KEYS.documentTemplates, []);
     writeStore(KEYS.documentTemplates, templates.filter((t) => t.id !== id));
+  },
+
+  async getInternalNotes(entityType, entityId) {
+    const notes = readStore(KEYS.internalNotes, []);
+    return notes
+      .filter((n) => n.entity_type === entityType && n.entity_id === entityId)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  },
+
+  async addInternalNote({ entityType, entityId, body, mentions = [] }) {
+    const notes = readStore(KEYS.internalNotes, []);
+    const record = {
+      id: uid("note"),
+      entity_type: entityType,
+      entity_id: entityId,
+      body: body.trim(),
+      mentions,
+      author_email: getSession()?.user?.email || DEMO_ADMIN.email,
+      created_at: new Date().toISOString(),
+    };
+    notes.push(record);
+    writeStore(KEYS.internalNotes, notes);
+    return record;
+  },
+
+  async deleteInternalNote(id) {
+    const notes = readStore(KEYS.internalNotes, []);
+    writeStore(KEYS.internalNotes, notes.filter((n) => n.id !== id));
   },
 
   async getBlogPosts({ publishedOnly = false } = {}) {

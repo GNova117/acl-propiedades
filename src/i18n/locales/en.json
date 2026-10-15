@@ -2452,6 +2452,17 @@
       "activeHint": "An inactive template won't show up when generating documents, but it isn't deleted."
     }
   },
+  "internalNotes": {
+    "title": "Internal notes",
+    "subtitle": "Notes visible to the whole team about this record — the client never sees these.",
+    "newNote": "New note",
+    "notify": "Notify:",
+    "add": "Add note",
+    "empty": "No notes yet.",
+    "you": "You",
+    "saveError": "Error saving the note",
+    "deleteError": "Error deleting the note"
+  },
   "privacy": {
     "title": "Privacy Notice",
     "intro": "ACL Propiedades is responsible for processing your personal data in accordance with Mexico's Federal Law on Protection of Personal Data Held by Private Parties (LFPDPPP) and NOM-247-SE-2021.",

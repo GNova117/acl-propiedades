@@ -6,6 +6,7 @@ import { propertyTypeLabel } from "../../lib/format";
 import { groupZonesByCity, zoneDisplayName } from "../../lib/zones";
 import ImageUploader from "../../components/ImageUploader";
 import VideoUploader from "../../components/VideoUploader";
+import InternalNotes from "../../components/InternalNotes";
 import "./admin.css";
 
 const EMPTY = {
@@ -491,6 +492,8 @@ export default function AdminPropertyForm({
           </button>
         </div>
       </form>
+
+      {isEdit && <InternalNotes entityType="property" entityId={id} />}
     </div>
   );
 }
