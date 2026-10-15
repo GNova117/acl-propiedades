@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
@@ -24,23 +24,44 @@ export default function AdminProperties({
   const { hasSection } = useAuth();
   const [properties, setProperties] = useState([]);
   const [remodelProjects, setRemodelProjects] = useState([]);
+  const [zones, setZones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyFichaId, setBusyFichaId] = useState(null);
   const [socialProperty, setSocialProperty] = useState(null);
+  const [search, setSearch] = useState("");
+  const [zoneFilter, setZoneFilter] = useState("");
+  const [operationFilter, setOperationFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
 
   const load = () => {
     setLoading(true);
-    Promise.all([db.getProperties({}), db.getRemodelProjects({})]).then(([propertyData, remodelData]) => {
+    Promise.all([db.getProperties({}), db.getRemodelProjects({}), db.getZones().catch(() => [])]).then(([propertyData, remodelData, zoneData]) => {
       const filtered = fixedType
         ? propertyData.filter((p) => p.type === fixedType)
         : propertyData.filter((p) => !excludeTypes.includes(p.type));
       setProperties(filtered);
       setRemodelProjects(remodelData);
+      setZones(zoneData);
       setLoading(false);
     });
   };
 
   useEffect(load, [fixedType]);
+
+  const visibleProperties = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return properties.filter((p) => {
+      if (term && !p.title?.toLowerCase().includes(term) && !p.code?.toLowerCase().includes(term) && !p.address?.toLowerCase().includes(term)) return false;
+      if (zoneFilter && p.zone !== zoneFilter) return false;
+      if (operationFilter && p.operation_type !== operationFilter) return false;
+      if (statusFilter && p.status !== statusFilter) return false;
+      if (minPrice && Number(p.price) < Number(minPrice)) return false;
+      if (maxPrice && Number(p.price) > Number(maxPrice)) return false;
+      return true;
+    });
+  }, [properties, search, zoneFilter, operationFilter, statusFilter, minPrice, maxPrice]);
 
   const handleDelete = async (id) => {
     if (!window.confirm(t("common.confirmDelete"))) return;
@@ -54,7 +75,7 @@ export default function AdminProperties({
   };
 
   const handleExport = () => {
-    exportToCsv(`${basePath.split("/").pop()}.csv`, properties, [
+    exportToCsv(`${basePath.split("/").pop()}.csv`, visibleProperties, [
       { label: t("detail.code"), key: "code" },
       { label: "Título", key: "title" },
       { label: t("properties.type"), value: (p) => propertyTypeLabel(t, p.type) },
@@ -91,12 +112,55 @@ export default function AdminProperties({
       <div className="admin-header">
         <h1>{t(titleKey)}</h1>
         <div className="admin-header__actions">
-          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={properties.length === 0}>
+          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={visibleProperties.length === 0}>
             {t("common.exportCsv")}
           </button>
           <Link to={`${basePath}/nueva`} className="btn btn-primary">
             {t(newLabelKey)}
           </Link>
+        </div>
+      </div>
+
+      <div className="card" style={{ padding: "1rem", marginBottom: "1.25rem", display: "grid", gap: "0.75rem", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
+        <div className="form-field">
+          <label htmlFor="ap-search">{t("common.search")}</label>
+          <input id="ap-search" type="search" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <div className="form-field">
+          <label htmlFor="ap-zone">{t("properties.zone")}</label>
+          <select id="ap-zone" value={zoneFilter} onChange={(e) => setZoneFilter(e.target.value)}>
+            <option value="">{t("hero.allZones")}</option>
+            {zones.map((zone) => (
+              <option key={zone.id} value={zone.name}>
+                {zone.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="form-field">
+          <label htmlFor="ap-operation">{t("properties.operationType")}</label>
+          <select id="ap-operation" value={operationFilter} onChange={(e) => setOperationFilter(e.target.value)}>
+            <option value="">{t("hero.allOperations")}</option>
+            <option value="compra">{t("propertyOperation.compra")}</option>
+            <option value="renta">{t("propertyOperation.renta")}</option>
+          </select>
+        </div>
+        <div className="form-field">
+          <label htmlFor="ap-status">{t("common.status")}</label>
+          <select id="ap-status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="">{t("properties.allStatus")}</option>
+            <option value="disponible">{t("propertyStatus.disponible")}</option>
+            <option value="apartada">{t("propertyStatus.apartada")}</option>
+            <option value="vendida">{t("propertyStatus.vendida")}</option>
+          </select>
+        </div>
+        <div className="form-field">
+          <label htmlFor="ap-min-price">{t("properties.minPrice")}</label>
+          <input id="ap-min-price" type="number" min="0" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
+        </div>
+        <div className="form-field">
+          <label htmlFor="ap-max-price">{t("properties.maxPrice")}</label>
+          <input id="ap-max-price" type="number" min="0" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
         </div>
       </div>
 
@@ -120,10 +184,10 @@ export default function AdminProperties({
           <tbody>
             {loading ? (
               <tr><td colSpan={fixedType === "nave_industrial" ? 11 : 10}>{t("common.loading")}</td></tr>
-            ) : properties.length === 0 ? (
+            ) : visibleProperties.length === 0 ? (
               <tr><td colSpan={fixedType === "nave_industrial" ? 11 : 10}>{t("properties.noResults")}</td></tr>
             ) : (
-              properties.map((property) => {
+              visibleProperties.map((property) => {
                 const remodelProject = remodelProjects.find((r) => r.property_id === property.id);
                 return (
                   <tr key={property.id}>

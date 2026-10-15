@@ -79,6 +79,7 @@
     "maxPrice": "Max. price",
     "minArea": "Min. area (sqm)",
     "maxArea": "Max. area (sqm)",
+    "allStatus": "All statuses",
     "clear": "Clear filters",
     "results_one": "{{count}} result",
     "results_other": "{{count}} results",

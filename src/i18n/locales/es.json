@@ -79,6 +79,7 @@
     "maxPrice": "Precio máx.",
     "minArea": "Superficie mín. (m²)",
     "maxArea": "Superficie máx. (m²)",
+    "allStatus": "Todos los estatus",
     "clear": "Limpiar filtros",
     "results_one": "{{count}} resultado",
     "results_other": "{{count}} resultados",
