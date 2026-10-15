@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
+import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
 import { whatsappDigits } from "../../lib/format";
 import { PROSPECT_STAGES, daysSince, followUpState, visitToProspectFields } from "../../lib/prospects";
@@ -83,6 +84,19 @@ export default function AdminProspects() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prospects, query, advisorFilter, overdueOnly, properties]);
+
+  const handleExport = () => {
+    exportToCsv("prospectos.csv", filtered, [
+      { label: t("prospects.form.name"), key: "name" },
+      { label: t("prospects.form.phone"), key: "phone" },
+      { label: t("clients.email"), key: "email" },
+      { label: t("prospects.form.stage"), value: (p) => t(`prospects.stages.${p.stage}`) },
+      { label: t("prospects.form.advisor"), value: (p) => advisorName(p.advisor_id) },
+      { label: t("prospects.form.property"), value: (p) => propertyTitle(p.property_id) },
+      { label: t("prospects.form.lookingFor"), key: "looking_for" },
+      { label: t("messages.date"), value: (p) => (p.created_at ? new Date(p.created_at).toLocaleDateString("es-MX") : "") },
+    ]);
+  };
 
   const patch = async (prospect, fields) => {
     setBusyId(prospect.id);
@@ -199,6 +213,9 @@ export default function AdminProspects() {
           <p className="form-hint">{t("prospects.subtitle")}</p>
         </div>
         <div className="admin-header__actions">
+          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={filtered.length === 0}>
+            {t("common.exportCsv")}
+          </button>
           {canImport && importable.length > 0 && (
             <button type="button" className="btn btn-outline" onClick={handleImport} disabled={importing}>
               {importing ? <span className="spinner" /> : null}

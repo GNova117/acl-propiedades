@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
+import { exportToCsv } from "../../lib/csvExport";
 import { formatMXN, propertyTypeLabel } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -328,12 +329,46 @@ export default function AdminSalesReports() {
 
   const periodLabel = month == null ? String(year) : `${monthLabels[month]} ${year}`;
 
+  const exportSales = () => {
+    exportToCsv("ventas.csv", periodRows, [
+      { label: t("salesReports.table.date"), value: (r) => formatDate(r.fecha, i18n.language) },
+      { label: t("salesReports.table.property"), value: (r) => propertyLabel(r.property) },
+      { label: t("properties.type"), value: (r) => propertyTypeLabel(t, r.property.type) },
+      { label: t("salesReports.table.advisor"), value: (r) => r.advisorName || t("salesReports.noAdvisor") },
+      { label: t("salesReports.table.price"), value: (r) => r.price },
+    ]);
+  };
+
+  const exportAdvisors = () => {
+    exportToCsv("desempeno_asesores.csv", performance, [
+      { label: t("salesReports.table.advisor"), value: (a) => a.name ?? t("salesReports.noAdvisor") },
+      { label: t("salesReports.performance.sales"), key: "sales" },
+      { label: t("salesReports.performance.perMonth"), value: (a) => decimals(a.perMonth) },
+      { label: t("salesReports.performance.avgDays"), value: (a) => (a.avgDays == null ? "" : Math.round(a.avgDays)) },
+      { label: t("salesReports.performance.avgTicket"), value: (a) => a.avgTicket ?? "" },
+      { label: t("salesReports.kpi.volume"), value: (a) => a.volume ?? "" },
+      ...(canSeeProfit ? [{ label: t("salesReports.performance.commission"), value: (a) => a.commission ?? "" }] : []),
+    ]);
+  };
+
   return (
     <div className="sales-reports">
       <div className="admin-header">
         <div>
           <h1>{t("salesReports.title")}</h1>
           <p className="form-hint">{t("salesReports.subtitle")}</p>
+        </div>
+        <div className="admin-header__actions">
+          {tab === "sales" && periodRows.length > 0 && (
+            <button type="button" className="btn btn-outline" onClick={exportSales}>
+              {t("common.exportCsv")}
+            </button>
+          )}
+          {tab === "advisors" && performance.length > 0 && (
+            <button type="button" className="btn btn-outline" onClick={exportAdvisors}>
+              {t("common.exportCsv")}
+            </button>
+          )}
         </div>
       </div>
 

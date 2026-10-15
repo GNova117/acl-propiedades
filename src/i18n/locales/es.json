@@ -1975,6 +1975,8 @@
     "colRate": "Tasa",
     "colDays": "Días a cerrar",
     "colFirstContact": "Primera respuesta (h)",
+    "colStagePct": "% del total",
+    "colConversion": "Conversión desde etapa anterior (%)",
     "noAdvisor": "Sin asignar",
     "lostTitle": "Por qué se pierden",
     "lostEmpty": "No hay prospectos perdidos en este periodo.",

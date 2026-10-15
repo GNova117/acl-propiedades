@@ -1975,6 +1975,8 @@
     "colRate": "Rate",
     "colDays": "Days to close",
     "colFirstContact": "First response (h)",
+    "colStagePct": "% of total",
+    "colConversion": "Conversion from previous stage (%)",
     "noAdvisor": "Unassigned",
     "lostTitle": "Why they are lost",
     "lostEmpty": "No lost prospects in this period.",
