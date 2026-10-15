@@ -11,7 +11,9 @@ import FavoriteButton from "../components/FavoriteButton";
 import CompareButton from "../components/CompareButton";
 import ScheduleVisitCard from "../components/ScheduleVisitCard";
 import AlertSignupCard from "../components/AlertSignupCard";
+import RecentlyViewed from "../components/RecentlyViewed";
 import { db } from "../lib/dataStore";
+import { recordPropertyView } from "../lib/recentlyViewed";
 import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
 import "./PropertyDetail.css";
 
@@ -194,6 +196,10 @@ export default function PropertyDetail() {
   useEffect(() => {
     db.getAmenities().then(setAmenitiesCatalog).catch(() => setAmenitiesCatalog([]));
   }, []);
+
+  useEffect(() => {
+    if (property?.id) recordPropertyView(property.id);
+  }, [property?.id]);
 
   const seoTitle = useMemo(() => {
     if (!property) return "";
@@ -486,6 +492,8 @@ export default function PropertyDetail() {
             </div>
           </section>
         )}
+
+        <RecentlyViewed excludeId={property.id} />
       </div>
 
       {showPanorama && (

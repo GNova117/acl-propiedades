@@ -2471,6 +2471,9 @@
       "activeHint": "An inactive template won't show up when generating documents, but it isn't deleted."
     }
   },
+  "recentlyViewed": {
+    "title": "Recently viewed"
+  },
   "chatWidget": {
     "title": "ACL Propiedades Assistant",
     "open": "Open chat",

@@ -1,0 +1,20 @@
+.recently-viewed {
+  margin-top: 3rem;
+}
+
+.recently-viewed h2 {
+  margin-bottom: 1.25rem;
+}
+
+.recently-viewed__row {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scroll-snap-type: x proximity;
+}
+
+.recently-viewed__item {
+  flex: 0 0 280px;
+  scroll-snap-align: start;
+}

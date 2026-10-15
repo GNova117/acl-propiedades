@@ -2471,6 +2471,9 @@
       "activeHint": "Una plantilla inactiva no aparece al generar documentos, pero no se borra."
     }
   },
+  "recentlyViewed": {
+    "title": "Vistos recientemente"
+  },
   "chatWidget": {
     "title": "Asistente ACL Propiedades",
     "open": "Abrir chat",
