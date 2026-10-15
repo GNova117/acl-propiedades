@@ -405,6 +405,22 @@
     "rightsLink": "Consumer Rights Notice",
     "creditNotice": "Prices in Mexican pesos (MXN). For financed purchases, the final total price depends on variable credit and notarial costs, which must be confirmed with our sales advisors."
   },
+  "bulkActions": {
+    "selectAll": "Select all",
+    "selectRow": "Select row",
+    "selectedCount_one": "{{count}} selected",
+    "selectedCount_other": "{{count}} selected",
+    "clearSelection": "Clear selection",
+    "deleteSelected": "Delete selected",
+    "deleteConfirm_one": "Delete {{count}} record? This can't be undone.",
+    "deleteConfirm_other": "Delete {{count}} records? This can't be undone.",
+    "activateSelected": "Activate",
+    "deactivateSelected": "Deactivate",
+    "applyStatus": "Apply",
+    "done_one": "Done: {{count}} updated.",
+    "done_other": "Done: {{count}} updated.",
+    "someFailed": "Some records couldn't be updated — try again."
+  },
   "common": {
     "loading": "Loading...",
     "save": "Save",

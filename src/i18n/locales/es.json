@@ -405,6 +405,22 @@
     "rightsLink": "Carta de Derechos",
     "creditNotice": "Precios en pesos mexicanos (MXN). En operaciones de crédito, el precio total se determinará en función de los montos variables de conceptos de crédito y gastos notariales, que deben consultarse con nuestros promotores."
   },
+  "bulkActions": {
+    "selectAll": "Seleccionar todos",
+    "selectRow": "Seleccionar fila",
+    "selectedCount_one": "{{count}} seleccionado",
+    "selectedCount_other": "{{count}} seleccionados",
+    "clearSelection": "Cancelar selección",
+    "deleteSelected": "Eliminar seleccionados",
+    "deleteConfirm_one": "¿Eliminar {{count}} registro? No se puede deshacer.",
+    "deleteConfirm_other": "¿Eliminar {{count}} registros? No se puede deshacer.",
+    "activateSelected": "Activar",
+    "deactivateSelected": "Desactivar",
+    "applyStatus": "Aplicar",
+    "done_one": "Listo: {{count}} actualizado.",
+    "done_other": "Listo: {{count}} actualizados.",
+    "someFailed": "Algunos registros no se pudieron actualizar — vuelve a intentar."
+  },
   "common": {
     "loading": "Cargando...",
     "save": "Guardar",

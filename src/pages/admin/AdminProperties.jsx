@@ -7,7 +7,26 @@ import { downloadFichaTecnicaPdf } from "../../lib/propertyFichaPdf";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
 import SocialPostModal from "../../components/SocialPostModal";
+import BulkActionsBar from "../../components/BulkActionsBar";
 import "./admin.css";
+
+// updateProperty espera el registro casi completo (no hace un merge parcial
+// en el servidor) y, en particular, pisa fotos/videos/360° a [] si no se le
+// pasan explícitos — así que un cambio en lote de un solo campo (estatus,
+// activo) tiene que ir con todo lo demás de la propiedad, incluyendo los
+// tres arreglos de medios ya existentes, para no perderlos.
+function mediaPreservingPatch(property, patch) {
+  return {
+    ...property,
+    ...patch,
+    imageFiles: [],
+    existingImages: property.images || [],
+    videoFiles: [],
+    existingVideos: property.videos || [],
+    tour360Files: [],
+    existingTour360Images: property.tour_360_images || [],
+  };
+}
 
 // `fixedType`: apartado de un solo tipo (Naves Industriales) — la lista solo
 // muestra propiedades de ese tipo y "Nueva" cae directo en ese tipo.
@@ -34,6 +53,9 @@ export default function AdminProperties({
   const [statusFilter, setStatusFilter] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [selected, setSelected] = useState(() => new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState("disponible");
 
   const load = () => {
     setLoading(true);
@@ -73,6 +95,63 @@ export default function AdminProperties({
     await db.updateProperty(property.id, { ...property, active: !property.active, imageFiles: [], existingImages: property.images });
     load();
   };
+
+  const toggleOne = (id) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const allVisibleSelected = visibleProperties.length > 0 && visibleProperties.every((p) => selected.has(p.id));
+
+  const toggleAll = () => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      visibleProperties.forEach((p) => (allVisibleSelected ? next.delete(p.id) : next.add(p.id)));
+      return next;
+    });
+  };
+
+  const selectedProperties = useMemo(() => properties.filter((p) => selected.has(p.id)), [properties, selected]);
+
+  // Una por una, NO en paralelo: en modo demo (localStorage) updateProperty
+  // lee el arreglo completo, lo modifica en memoria y lo vuelve a escribir
+  // completo — dos llamadas a la vez (p. ej. Promise.all) se pisan entre sí
+  // y la última en guardar revierte el cambio de la otra en silencio.
+  const runBulk = async (fn) => {
+    setBulkBusy(true);
+    let okCount = 0;
+    let failed = false;
+    try {
+      for (const property of selectedProperties) {
+        try {
+          await fn(property);
+          okCount += 1;
+        } catch {
+          failed = true;
+        }
+      }
+      if (failed) window.alert(t("bulkActions.someFailed"));
+      if (okCount > 0) window.alert(t("bulkActions.done", { count: okCount }));
+      setSelected(new Set());
+      load();
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selected.size === 0) return;
+    if (!window.confirm(t("bulkActions.deleteConfirm", { count: selected.size }))) return;
+    runBulk((property) => db.deleteProperty(property.id));
+  };
+
+  const handleBulkActive = (active) => runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { active })));
+
+  const handleBulkStatus = () => runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { status: bulkStatus })));
 
   const handleExport = () => {
     exportToCsv(`${basePath.split("/").pop()}.csv`, visibleProperties, [
@@ -164,10 +243,33 @@ export default function AdminProperties({
         </div>
       </div>
 
+      <BulkActionsBar count={selected.size} onClear={() => setSelected(new Set())} busy={bulkBusy}>
+        <select value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)} disabled={bulkBusy} aria-label={t("common.status")}>
+          <option value="disponible">{t("propertyStatus.disponible")}</option>
+          <option value="apartada">{t("propertyStatus.apartada")}</option>
+          <option value="vendida">{t("propertyStatus.vendida")}</option>
+        </select>
+        <button type="button" className="btn btn-outline btn-sm" onClick={handleBulkStatus} disabled={bulkBusy}>
+          {t("bulkActions.applyStatus")}
+        </button>
+        <button type="button" className="btn btn-outline btn-sm" onClick={() => handleBulkActive(true)} disabled={bulkBusy}>
+          {t("bulkActions.activateSelected")}
+        </button>
+        <button type="button" className="btn btn-outline btn-sm" onClick={() => handleBulkActive(false)} disabled={bulkBusy}>
+          {t("bulkActions.deactivateSelected")}
+        </button>
+        <button type="button" className="btn btn-danger btn-sm" onClick={handleBulkDelete} disabled={bulkBusy}>
+          {t("bulkActions.deleteSelected")}
+        </button>
+      </BulkActionsBar>
+
       <div className="card admin-table-wrapper">
         <table className="admin-table">
           <thead>
             <tr>
+              <th>
+                <input type="checkbox" checked={allVisibleSelected} onChange={toggleAll} aria-label={t("bulkActions.selectAll")} />
+              </th>
               <th></th>
               <th>{t("detail.code")}</th>
               <th>Título</th>
@@ -183,14 +285,22 @@ export default function AdminProperties({
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={fixedType === "nave_industrial" ? 11 : 10}>{t("common.loading")}</td></tr>
+              <tr><td colSpan={fixedType === "nave_industrial" ? 12 : 11}>{t("common.loading")}</td></tr>
             ) : visibleProperties.length === 0 ? (
-              <tr><td colSpan={fixedType === "nave_industrial" ? 11 : 10}>{t("properties.noResults")}</td></tr>
+              <tr><td colSpan={fixedType === "nave_industrial" ? 12 : 11}>{t("properties.noResults")}</td></tr>
             ) : (
               visibleProperties.map((property) => {
                 const remodelProject = remodelProjects.find((r) => r.property_id === property.id);
                 return (
                   <tr key={property.id}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selected.has(property.id)}
+                        onChange={() => toggleOne(property.id)}
+                        aria-label={t("bulkActions.selectRow")}
+                      />
+                    </td>
                     <td><img src={property.main_image} alt="" /></td>
                     <td>{property.code || "—"}</td>
                     <td>{property.title}</td>
