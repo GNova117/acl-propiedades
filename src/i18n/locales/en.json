@@ -1546,6 +1546,23 @@
     "followToday": "Follow-up today",
     "followOn": "Follow-up: {{date}}",
     "logContact": "Log contact",
+    "nextFollowupQuestion": "When is the next follow-up?",
+    "followupOptions": {
+      "tomorrow": "Tomorrow",
+      "days3": "In 3 days",
+      "week1": "In 1 week",
+      "week2": "In 2 weeks"
+    },
+    "keepFollowup": "Keep {{date}}",
+    "noFollowup": "No date",
+    "templates": {
+      "label": "Quick message",
+      "firstContact": "First contact",
+      "thanksVisit": "Thanks for the visit",
+      "checkIn": "Did they review the property?",
+      "scheduleVisit": "Propose a visit",
+      "sendProperty": "Send the property"
+    },
     "confirmDelete": "Remove {{name}} from prospects?",
     "saveError": "Could not save the prospect",
     "deleteError": "Could not delete the prospect",

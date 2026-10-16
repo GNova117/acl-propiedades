@@ -5,8 +5,10 @@ import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
 import { whatsappDigits } from "../../lib/format";
-import { PROSPECT_STAGES, daysSince, followUpState, visitToProspectFields } from "../../lib/prospects";
+import { FOLLOWUP_OPTIONS, PROSPECT_STAGES, addDaysISO, contactFields, daysSince, followUpState, isOpenStage, todayISO, visitToProspectFields } from "../../lib/prospects";
 import { POSTSALE_STEPS, postsaleDue, postsaleMessage } from "../../lib/postsale";
+import { prospectMessageTemplates } from "../../lib/prospectMessages";
+import QuickReplyButton from "../../components/QuickReplyButton";
 import "./admin.css";
 import "./AdminProspects.css";
 
@@ -41,6 +43,8 @@ export default function AdminProspects() {
   const [query, setQuery] = useState("");
   const [advisorFilter, setAdvisorFilter] = useState("");
   const [overdueOnly, setOverdueOnly] = useState(false);
+  // Tarjeta cuyo selector de "próximo seguimiento" está abierto (tras pulsar Registrar contacto).
+  const [followPickerId, setFollowPickerId] = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -115,13 +119,27 @@ export default function AdminProspects() {
 
   const changeStage = (prospect, stage) => patch(prospect, { stage, ...(stage === "perdido" ? {} : { lost_reason: null }) });
 
-  const logContact = (prospect) =>
-    patch(prospect, {
-      last_contact_at: new Date().toISOString(),
-      // Si había un seguimiento pendiente para hoy o vencido, ya se atendió.
-      ...(followUpState(prospect) ? { next_followup_at: null } : {}),
-      ...(prospect.stage === "nuevo" ? { stage: "contactado" } : {}),
-    });
+  // `nextFollowup`: fecha elegida, null (sin fecha) o undefined (no tocar una
+  // fecha futura) — ver contactFields.
+  const logContact = (prospect, nextFollowup) => {
+    setFollowPickerId(null);
+    return patch(prospect, contactFields(prospect, nextFollowup));
+  };
+
+  // En una etapa abierta se pregunta cuándo dar el siguiente seguimiento, para
+  // que el prospecto no se quede sin fecha y se pierda de vista; cerrado y
+  // perdido no tienen seguimiento, así que se registra directo.
+  const handleLogContact = (prospect) => {
+    if (!isOpenStage(prospect.stage)) return logContact(prospect);
+    setFollowPickerId((current) => (current === prospect.id ? null : prospect.id));
+  };
+
+  const templatesFor = (p) =>
+    prospectMessageTemplates(p, {
+      propertyTitle: propertyTitle(p.property_id),
+      propertyUrl: p.property_id ? `${window.location.origin}/propiedades/${p.property_id}` : "",
+      advisorName: advisorName(p.advisor_id),
+    }).map((tpl) => ({ ...tpl, label: t(`prospects.templates.${tpl.key}`) }));
 
   const handleDelete = async (prospect) => {
     if (!window.confirm(t("prospects.confirmDelete", { name: prospect.name }))) return;
@@ -316,6 +334,27 @@ export default function AdminProspects() {
                           </div>
                         );
                       })()}
+                      {followPickerId === p.id && (
+                        <div className="prospect-followup-picker" role="group" aria-label={t("prospects.nextFollowupQuestion")}>
+                          <span className="prospect-followup-picker__title">{t("prospects.nextFollowupQuestion")}</span>
+                          {FOLLOWUP_OPTIONS.map((option) => (
+                            <button key={option.key} type="button" className="btn btn-outline btn-sm" onClick={() => logContact(p, addDaysISO(option.days))} disabled={busyId === p.id}>
+                              {t(`prospects.followupOptions.${option.key}`)}
+                            </button>
+                          ))}
+                          {p.next_followup_at && p.next_followup_at > todayISO() && (
+                            <button type="button" className="btn btn-outline btn-sm" onClick={() => logContact(p)} disabled={busyId === p.id}>
+                              {t("prospects.keepFollowup", { date: new Date(`${p.next_followup_at}T00:00:00`).toLocaleDateString("es-MX", { day: "numeric", month: "short" }) })}
+                            </button>
+                          )}
+                          <button type="button" className="btn btn-outline btn-sm" onClick={() => logContact(p, null)} disabled={busyId === p.id}>
+                            {t("prospects.noFollowup")}
+                          </button>
+                          <button type="button" className="btn btn-sm" onClick={() => setFollowPickerId(null)}>
+                            {t("common.cancel")}
+                          </button>
+                        </div>
+                      )}
                       <div className="prospect-card__actions">
                         <select
                           value={p.stage}
@@ -329,9 +368,18 @@ export default function AdminProspects() {
                             </option>
                           ))}
                         </select>
-                        <button type="button" className="btn btn-outline btn-sm" onClick={() => logContact(p)} disabled={busyId === p.id}>
+                        <button
+                          type="button"
+                          className="btn btn-outline btn-sm"
+                          onClick={() => handleLogContact(p)}
+                          disabled={busyId === p.id}
+                          aria-expanded={followPickerId === p.id}
+                        >
                           {t("prospects.logContact")}
                         </button>
+                        {isOpenStage(p.stage) && (
+                          <QuickReplyButton templates={templatesFor(p)} phone={p.phone} email={p.email} emailSubject="ACL Propiedades" label={t("prospects.templates.label")} />
+                        )}
                         {p.client_id ? (
                           <Link to={`/admin/clientes/${p.client_id}`} className="btn btn-outline btn-sm">
                             {t("prospects.viewClient")}

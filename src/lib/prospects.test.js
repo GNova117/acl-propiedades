@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  FOLLOWUP_OPTIONS,
+  addDaysISO,
+  contactFields,
   daysSince,
   followUpState,
   messageToProspectFields,
@@ -111,5 +114,59 @@ describe("validateProspectForm", () => {
   it("valida el formato del correo solo si se escribió algo", () => {
     expect(validateProspectForm({ ...valid, email: "no-es-correo" }).email).toBeTruthy();
     expect(validateProspectForm(valid).email).toBeUndefined();
+  });
+});
+
+describe("addDaysISO", () => {
+  it("suma días de calendario y devuelve YYYY-MM-DD", () => {
+    expect(addDaysISO(1, new Date(2026, 9, 16))).toBe("2026-10-17");
+    expect(addDaysISO(14, new Date(2026, 9, 16))).toBe("2026-10-30");
+  });
+
+  it("cruza el fin de mes y de año", () => {
+    expect(addDaysISO(3, new Date(2026, 9, 30))).toBe("2026-11-02");
+    expect(addDaysISO(7, new Date(2026, 11, 28))).toBe("2027-01-04");
+  });
+
+  it("sin fecha base cuenta desde hoy", () => {
+    expect(addDaysISO(0)).toBe(todayISO());
+  });
+});
+
+describe("FOLLOWUP_OPTIONS", () => {
+  it("ofrece atajos ordenados de menor a mayor y sin repetir claves", () => {
+    const days = FOLLOWUP_OPTIONS.map((o) => o.days);
+    expect(days).toEqual([...days].sort((a, b) => a - b));
+    expect(new Set(FOLLOWUP_OPTIONS.map((o) => o.key)).size).toBe(FOLLOWUP_OPTIONS.length);
+  });
+});
+
+describe("contactFields", () => {
+  const now = new Date("2026-10-16T18:00:00.000Z");
+  const tomorrow = addDaysISO(1);
+
+  it("programa el siguiente seguimiento con la fecha elegida", () => {
+    const fields = contactFields({ stage: "interesado", next_followup_at: addDaysISO(-2) }, tomorrow, now);
+    expect(fields).toEqual({ last_contact_at: now.toISOString(), next_followup_at: tomorrow });
+  });
+
+  it("con null deja al prospecto sin fecha de seguimiento, aunque hubiera una futura", () => {
+    const fields = contactFields({ stage: "interesado", next_followup_at: addDaysISO(5) }, null, now);
+    expect(fields.next_followup_at).toBeNull();
+  });
+
+  it("sin elegir (undefined) conserva una fecha futura ya programada", () => {
+    const fields = contactFields({ stage: "interesado", next_followup_at: addDaysISO(5) }, undefined, now);
+    expect(fields).toEqual({ last_contact_at: now.toISOString() });
+  });
+
+  it("sin elegir (undefined) limpia un seguimiento vencido o de hoy, porque ya se atendió", () => {
+    expect(contactFields({ stage: "contactado", next_followup_at: addDaysISO(-1) }, undefined, now).next_followup_at).toBeNull();
+    expect(contactFields({ stage: "contactado", next_followup_at: todayISO() }, undefined, now).next_followup_at).toBeNull();
+  });
+
+  it("un prospecto nuevo pasa a 'contactado'; los demás conservan su etapa", () => {
+    expect(contactFields({ stage: "nuevo" }, tomorrow, now).stage).toBe("contactado");
+    expect(contactFields({ stage: "negociacion" }, tomorrow, now)).not.toHaveProperty("stage");
   });
 });

@@ -28,6 +28,31 @@ export function followUpState(prospect) {
   return null;
 }
 
+// Fecha (YYYY-MM-DD, la misma forma que next_followup_at) dentro de `days` días.
+export function addDaysISO(days, from = new Date()) {
+  return new Date(from.getFullYear(), from.getMonth(), from.getDate() + days).toLocaleDateString("en-CA");
+}
+
+// Atajos al registrar un contacto: cuándo dar el siguiente seguimiento.
+export const FOLLOWUP_OPTIONS = [
+  { key: "tomorrow", days: 1 },
+  { key: "days3", days: 3 },
+  { key: "week1", days: 7 },
+  { key: "week2", days: 14 },
+];
+
+// Campos que se guardan al registrar un contacto. `nextFollowup`: una fecha
+// (YYYY-MM-DD) para programar el siguiente seguimiento, null para dejarlo sin
+// fecha, o undefined para no tocar una fecha futura ya programada (si el
+// seguimiento era para hoy o estaba vencido, ya se atendió y se limpia).
+export function contactFields(prospect, nextFollowup, now = new Date()) {
+  const fields = { last_contact_at: now.toISOString() };
+  if (nextFollowup !== undefined) fields.next_followup_at = nextFollowup;
+  else if (followUpState(prospect)) fields.next_followup_at = null;
+  if (prospect.stage === "nuevo") fields.stage = "contactado";
+  return fields;
+}
+
 // Etapa inicial sugerida al importar una visita (interés registrado en ella).
 const VISIT_INTEREST_TO_STAGE = {
   muy_interesado: "interesado",

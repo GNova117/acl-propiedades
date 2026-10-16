@@ -1546,6 +1546,23 @@
     "followToday": "Seguimiento hoy",
     "followOn": "Seguimiento: {{date}}",
     "logContact": "Registrar contacto",
+    "nextFollowupQuestion": "¿Cuándo das el siguiente seguimiento?",
+    "followupOptions": {
+      "tomorrow": "Mañana",
+      "days3": "En 3 días",
+      "week1": "En 1 semana",
+      "week2": "En 2 semanas"
+    },
+    "keepFollowup": "Dejar {{date}}",
+    "noFollowup": "Sin fecha",
+    "templates": {
+      "label": "Mensaje rápido",
+      "firstContact": "Primer contacto",
+      "thanksVisit": "Gracias por la visita",
+      "checkIn": "¿Pudo revisar la propiedad?",
+      "scheduleVisit": "Proponer una visita",
+      "sendProperty": "Enviar la propiedad"
+    },
     "confirmDelete": "¿Eliminar a {{name}} de los prospectos?",
     "saveError": "No se pudo guardar el prospecto",
     "deleteError": "No se pudo eliminar el prospecto",
