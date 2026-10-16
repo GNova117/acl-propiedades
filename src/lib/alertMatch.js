@@ -38,6 +38,28 @@ export function filtersToCriteria(filters, { fixedType } = {}) {
 
 export const isAvailable = (p) => p.active !== false && (p.status ?? "disponible") === "disponible";
 
+// Criterios de "avísame de algo similar" a partir de una propiedad YA
+// vendida/apartada (PropertyDetail.jsx): mismo tipo, operación y zona, con
+// una banda de precio (no el precio exacto — casi nunca habría una coincidencia
+// futura) y, si la tenía, el mismo mínimo de recámaras.
+const SIMILAR_PRICE_BAND_PCT = 0.15;
+
+export function buildSimilarCriteria(property) {
+  const c = {};
+  if (!property) return c;
+  if (property.type) c.type = property.type;
+  if (property.operation_type) c.operation_type = property.operation_type;
+  if (property.zone) c.zone = property.zone;
+  const price = Number(property.price) || 0;
+  if (price > 0) {
+    c.min_price = Math.round(price * (1 - SIMILAR_PRICE_BAND_PCT));
+    c.max_price = Math.round(price * (1 + SIMILAR_PRICE_BAND_PCT));
+  }
+  const bedrooms = Number(property.bedrooms) || 0;
+  if (bedrooms > 0) c.min_bedrooms = bedrooms;
+  return c;
+}
+
 export function matchesCriteria(p, raw) {
   const c = raw || {};
   const eq = (want, have) => !want || String(want) === String(have ?? "");

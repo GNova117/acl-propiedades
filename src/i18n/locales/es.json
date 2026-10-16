@@ -2129,6 +2129,12 @@
       "submit": "Avísame si baja",
       "success": "¡Listo! Te escribiremos por {{channel}} si esta propiedad baja de precio."
     },
+    "similar": {
+      "title": "Esta propiedad ya no está disponible",
+      "subtitle": "Pero te avisamos en cuanto publiquemos algo similar (mismo tipo, zona y un precio parecido).",
+      "submit": "Avísame de propiedades similares",
+      "success": "¡Listo! Te escribiremos por {{channel}} en cuanto publiquemos algo similar a esta propiedad."
+    },
     "criteria": {
       "type": "Tipo",
       "operation": "Operación",

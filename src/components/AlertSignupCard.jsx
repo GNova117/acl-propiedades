@@ -22,7 +22,12 @@ const ERRORS = {
 // propiedad como estas" (mode "search", con los filtros actuales) y en la ficha,
 // "avísame si baja de precio" (mode "price"). Pide nombre y WhatsApp, con el
 // consentimiento a la vista; cada aviso lleva su enlace para darse de baja.
-export default function AlertSignupCard({ mode, criteria, property, matchCount }) {
+// `variant` (opcional, por defecto = mode) solo cambia los textos (título,
+// subtítulo, botón, éxito) sin tocar la lógica de negocio (`kind: mode` sigue
+// siendo "search" o "price" para que el backend/la Edge Function de avisos no
+// necesiten un tercer caso) — lo usa PropertyDetail para "avísame de algo
+// similar" en una propiedad ya vendida/apartada, reusando mode="search".
+export default function AlertSignupCard({ mode, variant = mode, criteria, property, matchCount }) {
   const { t } = useTranslation();
   const [form, setForm] = useState({ name: "", phone: "", email: "", empresa: "" });
   const [contactMethod, setContactMethod] = useState("whatsapp");
@@ -114,9 +119,9 @@ export default function AlertSignupCard({ mode, criteria, property, matchCount }
   if (status === "success" || status === "duplicate") {
     return (
       <div className="card alert-signup">
-        <h2 className="alert-signup__title">{t(`alerts.${mode}.title`)}</h2>
+        <h2 className="alert-signup__title">{t(`alerts.${variant}.title`)}</h2>
         <p className="form-hint" style={{ color: "var(--color-success)", marginBottom: 0 }}>
-          {t(status === "duplicate" ? "alerts.duplicate" : `alerts.${mode}.success`, { channel })}
+          {t(status === "duplicate" ? "alerts.duplicate" : `alerts.${variant}.success`, { channel })}
         </p>
       </div>
     );
@@ -124,8 +129,8 @@ export default function AlertSignupCard({ mode, criteria, property, matchCount }
 
   return (
     <div className="card alert-signup">
-      <h2 className="alert-signup__title">{t(`alerts.${mode}.title`)}</h2>
-      <p className="form-hint">{t(`alerts.${mode}.subtitle`)}</p>
+      <h2 className="alert-signup__title">{t(`alerts.${variant}.title`)}</h2>
+      <p className="form-hint">{t(`alerts.${variant}.subtitle`)}</p>
 
       {mode === "search" && (
         <p className="alert-signup__criteria">
@@ -208,7 +213,7 @@ export default function AlertSignupCard({ mode, criteria, property, matchCount }
         {status === "error" && <p className="form-error">{t(errorKey || "alerts.errors.generic")}</p>}
         <button type="submit" className="btn btn-primary btn-block" disabled={status === "sending"}>
           {status === "sending" ? <span className="spinner" /> : null}
-          {t(`alerts.${mode}.submit`)}
+          {t(`alerts.${variant}.submit`)}
         </button>
         <p className="form-hint" style={{ marginTop: "0.75rem", marginBottom: 0 }}>
           {t("alerts.consent", { channel })} <Link to="/aviso-de-privacidad">{t("contact.privacyLinkLabel")}</Link>.

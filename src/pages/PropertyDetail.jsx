@@ -15,6 +15,7 @@ import RecentlyViewed from "../components/RecentlyViewed";
 import RecentViewsBadge from "../components/RecentViewsBadge";
 import { db } from "../lib/dataStore";
 import { recordPropertyView } from "../lib/recentlyViewed";
+import { buildSimilarCriteria } from "../lib/alertMatch";
 import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
 import "./PropertyDetail.css";
 
@@ -454,7 +455,11 @@ export default function PropertyDetail() {
               </Link>
             </div>
 
-            {property.status === "disponible" && <AlertSignupCard mode="price" property={property} />}
+            {property.status === "disponible" ? (
+              <AlertSignupCard mode="price" property={property} />
+            ) : (
+              <AlertSignupCard mode="search" variant="similar" criteria={buildSimilarCriteria(property)} />
+            )}
 
             <ContactRequestCard property={property} />
 

@@ -2129,6 +2129,12 @@
       "submit": "Tell me if it drops",
       "success": "Done! We will message you by {{channel}} if this property's price drops."
     },
+    "similar": {
+      "title": "This property is no longer available",
+      "subtitle": "But we'll let you know as soon as we list something similar (same type, zone and a similar price).",
+      "submit": "Notify me about similar properties",
+      "success": "Done! We will message you by {{channel}} as soon as we list something similar to this property."
+    },
     "criteria": {
       "type": "Type",
       "operation": "Operation",
