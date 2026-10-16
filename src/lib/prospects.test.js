@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  FOLLOWUP_OPTIONS,
+  addDaysISO,
+  contactFields,
+  criteriaFromForm,
+  criteriaToForm,
   daysSince,
+  emptyProspectForm,
   followUpState,
   messageToProspectFields,
+  prospectToForm,
   todayISO,
   toProspectFields,
   validateProspectForm,
@@ -111,5 +118,104 @@ describe("validateProspectForm", () => {
   it("valida el formato del correo solo si se escribió algo", () => {
     expect(validateProspectForm({ ...valid, email: "no-es-correo" }).email).toBeTruthy();
     expect(validateProspectForm(valid).email).toBeUndefined();
+  });
+});
+
+describe("addDaysISO", () => {
+  it("suma días de calendario y devuelve YYYY-MM-DD", () => {
+    expect(addDaysISO(1, new Date(2026, 9, 16))).toBe("2026-10-17");
+    expect(addDaysISO(14, new Date(2026, 9, 16))).toBe("2026-10-30");
+  });
+
+  it("cruza el fin de mes y de año", () => {
+    expect(addDaysISO(3, new Date(2026, 9, 30))).toBe("2026-11-02");
+    expect(addDaysISO(7, new Date(2026, 11, 28))).toBe("2027-01-04");
+  });
+
+  it("sin fecha base cuenta desde hoy", () => {
+    expect(addDaysISO(0)).toBe(todayISO());
+  });
+});
+
+describe("FOLLOWUP_OPTIONS", () => {
+  it("ofrece atajos ordenados de menor a mayor y sin repetir claves", () => {
+    const days = FOLLOWUP_OPTIONS.map((o) => o.days);
+    expect(days).toEqual([...days].sort((a, b) => a - b));
+    expect(new Set(FOLLOWUP_OPTIONS.map((o) => o.key)).size).toBe(FOLLOWUP_OPTIONS.length);
+  });
+});
+
+describe("contactFields", () => {
+  const now = new Date("2026-10-16T18:00:00.000Z");
+  const tomorrow = addDaysISO(1);
+
+  it("programa el siguiente seguimiento con la fecha elegida", () => {
+    const fields = contactFields({ stage: "interesado", next_followup_at: addDaysISO(-2) }, tomorrow, now);
+    expect(fields).toEqual({ last_contact_at: now.toISOString(), next_followup_at: tomorrow });
+  });
+
+  it("con null deja al prospecto sin fecha de seguimiento, aunque hubiera una futura", () => {
+    const fields = contactFields({ stage: "interesado", next_followup_at: addDaysISO(5) }, null, now);
+    expect(fields.next_followup_at).toBeNull();
+  });
+
+  it("sin elegir (undefined) conserva una fecha futura ya programada", () => {
+    const fields = contactFields({ stage: "interesado", next_followup_at: addDaysISO(5) }, undefined, now);
+    expect(fields).toEqual({ last_contact_at: now.toISOString() });
+  });
+
+  it("sin elegir (undefined) limpia un seguimiento vencido o de hoy, porque ya se atendió", () => {
+    expect(contactFields({ stage: "contactado", next_followup_at: addDaysISO(-1) }, undefined, now).next_followup_at).toBeNull();
+    expect(contactFields({ stage: "contactado", next_followup_at: todayISO() }, undefined, now).next_followup_at).toBeNull();
+  });
+
+  it("un prospecto nuevo pasa a 'contactado'; los demás conservan su etapa", () => {
+    expect(contactFields({ stage: "nuevo" }, tomorrow, now).stage).toBe("contactado");
+    expect(contactFields({ stage: "negociacion" }, tomorrow, now)).not.toHaveProperty("stage");
+  });
+});
+
+describe("'qué busca' estructurado", () => {
+  const filled = { ...emptyProspectForm(), name: "Ana", phone: "8711234567" };
+
+  it("un formulario sin 'qué busca' no genera criterios ni manda el campo", () => {
+    expect(criteriaFromForm(filled)).toEqual({});
+    expect(toProspectFields(filled)).not.toHaveProperty("search_criteria");
+  });
+
+  it("arma los criterios solo con lo capturado, con números como números", () => {
+    const form = { ...filled, want_type: "casa", want_operation: "compra", want_zone: " Lerdo ", want_max_price: "1800000", want_min_bedrooms: "3" };
+    expect(criteriaFromForm(form)).toEqual({ type: "casa", operation_type: "compra", zone: "Lerdo", max_price: 1800000, min_bedrooms: 3 });
+    expect(toProspectFields(form).search_criteria).toEqual({ type: "casa", operation_type: "compra", zone: "Lerdo", max_price: 1800000, min_bedrooms: 3 });
+  });
+
+  it("ida y vuelta: lo guardado vuelve igual al formulario", () => {
+    const criteria = { type: "casa", zone: "Lerdo", min_price: 900000, max_price: 1800000, min_bedrooms: 2 };
+    const form = prospectToForm({ name: "Ana", stage: "nuevo", search_criteria: criteria });
+    expect(form).toMatchObject({ want_type: "casa", want_zone: "Lerdo", want_min_price: "900000", want_max_price: "1800000", want_min_bedrooms: "2" });
+    expect(criteriaFromForm(form)).toEqual(criteria);
+  });
+
+  it("conserva los criterios que el formulario no edita (p. ej. de una alerta)", () => {
+    const criteria = { type: "casa", min_area: 120, min_bathrooms: 2, amenities: ["alberca"] };
+    const form = { ...prospectToForm({ name: "Ana", stage: "nuevo", search_criteria: criteria }), want_zone: "Lerdo" };
+    expect(criteriaFromForm(form)).toEqual({ type: "casa", zone: "Lerdo", min_area: 120, min_bathrooms: 2, amenities: ["alberca"] });
+  });
+
+  it("tolera prospectos sin search_criteria (datos anteriores)", () => {
+    expect(prospectToForm({ name: "Ana", stage: "nuevo" })).toMatchObject({ want_type: "", want_zone: "", want_extra: {} });
+    expect(criteriaToForm(null)).toMatchObject({ want_type: "" });
+  });
+
+  it("al borrar todo lo que buscaba manda null solo si antes tenía algo guardado", () => {
+    expect(toProspectFields(filled, { hadCriteria: true }).search_criteria).toBeNull();
+    expect(toProspectFields(filled, { hadCriteria: false })).not.toHaveProperty("search_criteria");
+  });
+
+  it("rechaza un presupuesto mínimo mayor que el máximo", () => {
+    const errors = validateProspectForm({ ...filled, want_min_price: "2000000", want_max_price: "1000000" });
+    expect(errors.want_max_price).toBe("prospects.form.errors.budgetRange");
+    expect(validateProspectForm({ ...filled, want_min_price: "1000000", want_max_price: "2000000" })).toEqual({});
+    expect(validateProspectForm({ ...filled, want_max_price: "2000000" })).toEqual({});
   });
 });

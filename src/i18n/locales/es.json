@@ -1546,6 +1546,37 @@
     "followToday": "Seguimiento hoy",
     "followOn": "Seguimiento: {{date}}",
     "logContact": "Registrar contacto",
+    "nextFollowupQuestion": "¿Cuándo das el siguiente seguimiento?",
+    "followupOptions": {
+      "tomorrow": "Mañana",
+      "days3": "En 3 días",
+      "week1": "En 1 semana",
+      "week2": "En 2 semanas"
+    },
+    "keepFollowup": "Dejar {{date}}",
+    "noFollowup": "Sin fecha",
+    "match": {
+      "count_one": "{{count}} propiedad le encaja",
+      "count_other": "{{count}} propiedades le encajan",
+      "looking": "Busca: {{text}}",
+      "send": "Enviar",
+      "view": "Ver",
+      "more": "y {{count}} más",
+      "propertyButton": "Prospectos ({{count}})",
+      "modalTitle": "Prospectos que encajan con esta propiedad",
+      "modalHint": "Prospectos abiertos cuyo \"qué busca\" coincide con {{title}}, los más avanzados primero.",
+      "openProspect": "Abrir",
+      "noContact": "Sin teléfono ni correo",
+      "emailSubject": "Una propiedad para ti — ACL Propiedades"
+    },
+    "templates": {
+      "label": "Mensaje rápido",
+      "firstContact": "Primer contacto",
+      "thanksVisit": "Gracias por la visita",
+      "checkIn": "¿Pudo revisar la propiedad?",
+      "scheduleVisit": "Proponer una visita",
+      "sendProperty": "Enviar la propiedad"
+    },
     "confirmDelete": "¿Eliminar a {{name}} de los prospectos?",
     "saveError": "No se pudo guardar el prospecto",
     "deleteError": "No se pudo eliminar el prospecto",
@@ -1570,12 +1601,17 @@
       "noProperty": "— Ninguna —",
       "lookingFor": "Qué busca",
       "lookingForPlaceholder": "Ej. casa de 3 recámaras en Torreón, hasta $1.8 M",
+      "searchTitle": "Criterios de búsqueda (para sugerirle propiedades)",
+      "searchHint": "Con tipo, zona y presupuesto, el sistema te muestra qué propiedades disponibles le encajan, en la tarjeta del prospecto.",
+      "any": "Cualquiera",
+      "searchExtra": "Criterios adicionales (se conservan): {{text}}",
       "lostReason": "Motivo por el que se perdió",
       "notes": "Notas internas",
       "errors": {
         "name": "Escribe el nombre.",
         "contact": "Captura al menos un teléfono o un correo.",
-        "email": "El correo no es válido."
+        "email": "El correo no es válido.",
+        "budgetRange": "El precio mínimo no puede ser mayor que el máximo."
       }
     }
   },
