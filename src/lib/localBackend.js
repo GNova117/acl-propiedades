@@ -208,12 +208,16 @@ function notifyAuthListeners() {
 export const localBackend = {
   mode: "local",
 
+  // Mismo contrato opcional de paginación que supabaseBackend: sin
+  // `pageSize` devuelve el arreglo completo como siempre.
   async getProperties(filters = {}) {
     const properties = readStore(KEYS.properties, PROPERTIES);
     const advisors = readStore(KEYS.advisors, ADVISORS);
     const filtered = properties.filter((p) => matchesFilters(p, filters));
-    const sorted = (SORTERS[filters.sortBy] || SORTERS.newest)(filtered);
-    return sorted.map((p) => withAdvisors(p, advisors));
+    const sorted = (SORTERS[filters.sortBy] || SORTERS.newest)(filtered).map((p) => withAdvisors(p, advisors));
+    if (filters.pageSize == null) return sorted;
+    const from = (filters.page || 0) * filters.pageSize;
+    return { data: sorted.slice(from, from + filters.pageSize), total: sorted.length };
   },
 
   async getPropertyById(id) {
