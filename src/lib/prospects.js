@@ -1,6 +1,8 @@
 // Prospectos por etapas: helpers puros (sin acceso a datos) que usan la lista,
 // el formulario, el panel de pendientes y la búsqueda global.
 
+import { filtersToCriteria } from "./alertMatch";
+
 export const PROSPECT_STAGES = ["nuevo", "contactado", "interesado", "negociacion", "cerrado", "perdido"];
 export const OPEN_STAGES = ["nuevo", "contactado", "interesado", "negociacion"];
 export const PROSPECT_SOURCES = ["manual", "visita", "whatsapp", "chatbot", "simulador", "estimacion", "comparador", "alerta", "sitio", "recomendacion", "redes", "otro"];
@@ -109,6 +111,52 @@ export function messageToProspectFields(message, property) {
   };
 }
 
+// "Qué busca" estructurado (prospectos.search_criteria): mismo formato que los
+// criterios de las alertas del sitio, para poder cruzarlo con las propiedades
+// usando la misma coincidencia (alertMatch.matchesCriteria). El formulario solo
+// edita estos campos; los demás criterios que pudiera traer (superficie, baños,
+// estacionamiento, amenidades — p. ej. de una alerta convertida en prospecto)
+// se conservan aparte en `want_extra` para no perderse al guardar.
+const EDITABLE_CRITERIA = ["type", "operation_type", "zone", "min_price", "max_price", "min_bedrooms"];
+
+export const emptyWantForm = () => ({
+  want_type: "",
+  want_operation: "",
+  want_zone: "",
+  want_min_price: "",
+  want_max_price: "",
+  want_min_bedrooms: "",
+  want_extra: {},
+});
+
+export function criteriaToForm(criteria) {
+  const c = criteria && typeof criteria === "object" ? criteria : {};
+  const text = (v) => (v == null ? "" : String(v));
+  return {
+    want_type: text(c.type),
+    want_operation: text(c.operation_type),
+    want_zone: text(c.zone),
+    want_min_price: text(c.min_price),
+    want_max_price: text(c.max_price),
+    want_min_bedrooms: text(c.min_bedrooms),
+    want_extra: Object.fromEntries(Object.entries(c).filter(([key]) => !EDITABLE_CRITERIA.includes(key))),
+  };
+}
+
+export function criteriaFromForm(form) {
+  return {
+    ...(form.want_extra || {}),
+    ...filtersToCriteria({
+      type: form.want_type,
+      operationType: form.want_operation,
+      zone: String(form.want_zone || "").trim(),
+      minPrice: form.want_min_price,
+      maxPrice: form.want_max_price,
+      minBedrooms: form.want_min_bedrooms,
+    }),
+  };
+}
+
 export const emptyProspectForm = (overrides = {}) => ({
   name: "",
   phone: "",
@@ -121,6 +169,7 @@ export const emptyProspectForm = (overrides = {}) => ({
   notes: "",
   next_followup_at: "",
   lost_reason: "",
+  ...emptyWantForm(),
   ...overrides,
 });
 
@@ -136,6 +185,7 @@ export const prospectToForm = (p) => ({
   notes: p.notes || "",
   next_followup_at: p.next_followup_at || "",
   lost_reason: p.lost_reason || "",
+  ...criteriaToForm(p.search_criteria),
 });
 
 const blank = (v) => {
@@ -143,8 +193,15 @@ const blank = (v) => {
   return s === "" ? null : s;
 };
 
-export function toProspectFields(form) {
+// `hadCriteria`: el prospecto ya tenía "qué busca" guardado. Solo entonces se
+// manda search_criteria vacío (null) para borrarlo; si nunca tuvo y sigue sin
+// nada, el campo ni se envía, así guardar un prospecto no depende de que la
+// columna exista en bases que aún no tienen la migración.
+export function toProspectFields(form, { hadCriteria = false } = {}) {
+  const criteria = criteriaFromForm(form);
+  const hasCriteria = Object.keys(criteria).length > 0;
   return {
+    ...(hasCriteria ? { search_criteria: criteria } : hadCriteria ? { search_criteria: null } : {}),
     name: form.name.trim(),
     phone: blank(form.phone),
     email: blank(form.email),
@@ -165,5 +222,7 @@ export function validateProspectForm(form) {
   if (!form.name.trim()) errors.name = "prospects.form.errors.name";
   if (!form.phone.trim() && !form.email.trim()) errors.phone = "prospects.form.errors.contact";
   if (form.email.trim() && !/^\S+@\S+\.\S+$/.test(form.email.trim())) errors.email = "prospects.form.errors.email";
+  const { min_price: minPrice, max_price: maxPrice } = criteriaFromForm(form);
+  if (minPrice != null && maxPrice != null && minPrice > maxPrice) errors.want_max_price = "prospects.form.errors.budgetRange";
   return errors;
 }

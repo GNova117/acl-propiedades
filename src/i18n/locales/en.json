@@ -1555,6 +1555,20 @@
     },
     "keepFollowup": "Keep {{date}}",
     "noFollowup": "No date",
+    "match": {
+      "count_one": "{{count}} property fits",
+      "count_other": "{{count}} properties fit",
+      "looking": "Looking for: {{text}}",
+      "send": "Send",
+      "view": "View",
+      "more": "and {{count}} more",
+      "propertyButton": "Prospects ({{count}})",
+      "modalTitle": "Prospects that fit this property",
+      "modalHint": "Open prospects whose \"what they are looking for\" matches {{title}}, most advanced first.",
+      "openProspect": "Open",
+      "noContact": "No phone or email",
+      "emailSubject": "A property for you — ACL Propiedades"
+    },
     "templates": {
       "label": "Quick message",
       "firstContact": "First contact",
@@ -1587,12 +1601,17 @@
       "noProperty": "— None —",
       "lookingFor": "What they are looking for",
       "lookingForPlaceholder": "E.g. 3-bedroom house in Torreón, up to $1.8 M",
+      "searchTitle": "Search criteria (to suggest properties)",
+      "searchHint": "With type, zone and budget, the system shows which available properties fit them, on the prospect's card.",
+      "any": "Any",
+      "searchExtra": "Additional criteria (kept): {{text}}",
       "lostReason": "Reason it was lost",
       "notes": "Internal notes",
       "errors": {
         "name": "Enter the name.",
         "contact": "Enter at least a phone or an email.",
-        "email": "The email is not valid."
+        "email": "The email is not valid.",
+        "budgetRange": "The minimum price cannot be higher than the maximum."
       }
     }
   },

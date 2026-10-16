@@ -4,6 +4,8 @@
 // el texto va al cliente, así que siempre es español sin importar el idioma
 // del panel (igual que postsaleMessage). Se pueden editar antes de enviar.
 
+import { formatMXN, whatsappUrl } from "./format";
+
 const firstName = (name) => String(name || "").trim().split(/\s+/)[0] || "";
 
 // `propertyTitle`: título de la propiedad de interés (si tiene una).
@@ -50,4 +52,21 @@ export function prospectMessageTemplates(prospect, { propertyTitle, propertyUrl,
   }
 
   return templates;
+}
+
+// Mensaje para sugerirle a un prospecto una propiedad que encaja con lo que busca.
+export function suggestPropertyMessage(prospect, property, propertyUrl) {
+  const name = firstName(prospect.name);
+  const hello = name ? `Hola ${name}` : "Hola";
+  const where = property.zone ? ` en ${property.zone}` : "";
+  return `${hello}, encontré una propiedad que va con lo que buscas: ${property.title}${where}, ${formatMXN(property.price)}.\nAquí puedes ver los detalles: ${propertyUrl}\n¿Te gustaría visitarla?`;
+}
+
+// A dónde mandar un texto al prospecto: WhatsApp si tiene teléfono, si no su
+// correo, y null si no hay ninguno de los dos.
+export function sendLink(prospect, text, emailSubject) {
+  const whatsapp = whatsappUrl(prospect.phone, text);
+  if (whatsapp) return whatsapp;
+  const email = String(prospect.email || "").trim();
+  return email ? `mailto:${email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(text)}` : null;
 }

@@ -3,9 +3,13 @@ import {
   FOLLOWUP_OPTIONS,
   addDaysISO,
   contactFields,
+  criteriaFromForm,
+  criteriaToForm,
   daysSince,
+  emptyProspectForm,
   followUpState,
   messageToProspectFields,
+  prospectToForm,
   todayISO,
   toProspectFields,
   validateProspectForm,
@@ -168,5 +172,50 @@ describe("contactFields", () => {
   it("un prospecto nuevo pasa a 'contactado'; los demás conservan su etapa", () => {
     expect(contactFields({ stage: "nuevo" }, tomorrow, now).stage).toBe("contactado");
     expect(contactFields({ stage: "negociacion" }, tomorrow, now)).not.toHaveProperty("stage");
+  });
+});
+
+describe("'qué busca' estructurado", () => {
+  const filled = { ...emptyProspectForm(), name: "Ana", phone: "8711234567" };
+
+  it("un formulario sin 'qué busca' no genera criterios ni manda el campo", () => {
+    expect(criteriaFromForm(filled)).toEqual({});
+    expect(toProspectFields(filled)).not.toHaveProperty("search_criteria");
+  });
+
+  it("arma los criterios solo con lo capturado, con números como números", () => {
+    const form = { ...filled, want_type: "casa", want_operation: "compra", want_zone: " Lerdo ", want_max_price: "1800000", want_min_bedrooms: "3" };
+    expect(criteriaFromForm(form)).toEqual({ type: "casa", operation_type: "compra", zone: "Lerdo", max_price: 1800000, min_bedrooms: 3 });
+    expect(toProspectFields(form).search_criteria).toEqual({ type: "casa", operation_type: "compra", zone: "Lerdo", max_price: 1800000, min_bedrooms: 3 });
+  });
+
+  it("ida y vuelta: lo guardado vuelve igual al formulario", () => {
+    const criteria = { type: "casa", zone: "Lerdo", min_price: 900000, max_price: 1800000, min_bedrooms: 2 };
+    const form = prospectToForm({ name: "Ana", stage: "nuevo", search_criteria: criteria });
+    expect(form).toMatchObject({ want_type: "casa", want_zone: "Lerdo", want_min_price: "900000", want_max_price: "1800000", want_min_bedrooms: "2" });
+    expect(criteriaFromForm(form)).toEqual(criteria);
+  });
+
+  it("conserva los criterios que el formulario no edita (p. ej. de una alerta)", () => {
+    const criteria = { type: "casa", min_area: 120, min_bathrooms: 2, amenities: ["alberca"] };
+    const form = { ...prospectToForm({ name: "Ana", stage: "nuevo", search_criteria: criteria }), want_zone: "Lerdo" };
+    expect(criteriaFromForm(form)).toEqual({ type: "casa", zone: "Lerdo", min_area: 120, min_bathrooms: 2, amenities: ["alberca"] });
+  });
+
+  it("tolera prospectos sin search_criteria (datos anteriores)", () => {
+    expect(prospectToForm({ name: "Ana", stage: "nuevo" })).toMatchObject({ want_type: "", want_zone: "", want_extra: {} });
+    expect(criteriaToForm(null)).toMatchObject({ want_type: "" });
+  });
+
+  it("al borrar todo lo que buscaba manda null solo si antes tenía algo guardado", () => {
+    expect(toProspectFields(filled, { hadCriteria: true }).search_criteria).toBeNull();
+    expect(toProspectFields(filled, { hadCriteria: false })).not.toHaveProperty("search_criteria");
+  });
+
+  it("rechaza un presupuesto mínimo mayor que el máximo", () => {
+    const errors = validateProspectForm({ ...filled, want_min_price: "2000000", want_max_price: "1000000" });
+    expect(errors.want_max_price).toBe("prospects.form.errors.budgetRange");
+    expect(validateProspectForm({ ...filled, want_min_price: "1000000", want_max_price: "2000000" })).toEqual({});
+    expect(validateProspectForm({ ...filled, want_max_price: "2000000" })).toEqual({});
   });
 });

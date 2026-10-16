@@ -90,6 +90,9 @@ export default function AdminAlerts() {
         advisor_id: null,
         property_id: a.kind === "price" ? a.property_id : null,
         looking_for: typeof summary === "string" ? summary : null,
+        // Los criterios de la búsqueda quedan como "qué busca" estructurado, para
+        // cruzarlo con las propiedades (ver prospectMatch.js).
+        ...(a.kind === "search" && Object.keys(a.criteria || {}).length > 0 ? { search_criteria: a.criteria } : {}),
         notes: t("alerts.admin.prospectNote", { kind: t(`alerts.admin.kind_${a.kind}`) }),
         last_contact_at: null,
         next_followup_at: null,
