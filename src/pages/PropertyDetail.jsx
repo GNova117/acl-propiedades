@@ -11,7 +11,11 @@ import FavoriteButton from "../components/FavoriteButton";
 import CompareButton from "../components/CompareButton";
 import ScheduleVisitCard from "../components/ScheduleVisitCard";
 import AlertSignupCard from "../components/AlertSignupCard";
+import RecentlyViewed from "../components/RecentlyViewed";
+import RecentViewsBadge from "../components/RecentViewsBadge";
 import { db } from "../lib/dataStore";
+import { recordPropertyView } from "../lib/recentlyViewed";
+import { buildSimilarCriteria } from "../lib/alertMatch";
 import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
 import "./PropertyDetail.css";
 
@@ -20,6 +24,9 @@ import "./PropertyDetail.css";
 // opcional como en /propiedades), pero separarlo en su propio chunk
 // evita que cargue para cualquiera que solo visite el inicio o la lista.
 const PropertyMap = lazy(() => import("../components/PropertyMap"));
+// three.js (~150KB) solo se carga si alguien de verdad abre el recorrido
+// 360°, no para cualquiera que entre a la ficha de la propiedad.
+const Panorama360 = lazy(() => import("../components/Panorama360"));
 
 // Todos los campos "especificaciones" que puede tener una propiedad —
 // genéricos (NOM-247) más los propios de Naves Industriales. Se listan
@@ -175,6 +182,7 @@ export default function PropertyDetail() {
   const [loading, setLoading] = useState(true);
   const [similar, setSimilar] = useState([]);
   const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
+  const [showPanorama, setShowPanorama] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -190,6 +198,10 @@ export default function PropertyDetail() {
   useEffect(() => {
     db.getAmenities().then(setAmenitiesCatalog).catch(() => setAmenitiesCatalog([]));
   }, []);
+
+  useEffect(() => {
+    if (property?.id) recordPropertyView(property.id);
+  }, [property?.id]);
 
   const seoTitle = useMemo(() => {
     if (!property) return "";
@@ -307,6 +319,12 @@ export default function PropertyDetail() {
           <div>
             <Gallery images={property.images} alt={property.title} />
 
+            {property.tour_360_images?.length > 0 && (
+              <button type="button" className="btn btn-outline property-detail__tour360-btn" onClick={() => setShowPanorama(true)}>
+                {t("panorama360.viewButton")}
+              </button>
+            )}
+
             <div className="property-detail__header">
               <div>
                 <div className="property-card__type">
@@ -316,6 +334,7 @@ export default function PropertyDetail() {
                 </div>
                 <h1>{property.title}</h1>
                 <p className="property-detail__address">{property.address}</p>
+                <RecentViewsBadge propertyId={property.id} />
               </div>
               <div className="property-detail__price-block">
                 <div className="property-detail__price-block-top">
@@ -436,7 +455,11 @@ export default function PropertyDetail() {
               </Link>
             </div>
 
-            {property.status === "disponible" && <AlertSignupCard mode="price" property={property} />}
+            {property.status === "disponible" ? (
+              <AlertSignupCard mode="price" property={property} />
+            ) : (
+              <AlertSignupCard mode="search" variant="similar" criteria={buildSimilarCriteria(property)} />
+            )}
 
             <ContactRequestCard property={property} />
 
@@ -476,7 +499,15 @@ export default function PropertyDetail() {
             </div>
           </section>
         )}
+
+        <RecentlyViewed excludeId={property.id} />
       </div>
+
+      {showPanorama && (
+        <Suspense fallback={null}>
+          <Panorama360 images={property.tour_360_images} onClose={() => setShowPanorama(false)} />
+        </Suspense>
+      )}
     </>
   );
 }

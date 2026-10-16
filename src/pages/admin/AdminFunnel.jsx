@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
+import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
 import { computeFunnel } from "../../lib/funnelStats";
 import "./admin.css";
@@ -88,6 +89,15 @@ export default function AdminFunnel() {
 
   const maxLost = Math.max(1, ...stats.lostReasons.map((r) => r.count));
 
+  const handleExport = () => {
+    exportToCsv("embudo.csv", stats.funnel, [
+      { label: t("funnel.colName"), value: (step) => t(`prospects.stages.${step.stage}`) },
+      { label: t("funnel.colTotal"), key: "reached" },
+      { label: t("funnel.colStagePct"), value: (step) => num(step.pctOfTotal) },
+      { label: t("funnel.colConversion"), value: (step) => (step.conversionFromPrev == null ? "" : num(step.conversionFromPrev)) },
+    ]);
+  };
+
   return (
     <div>
       <div className="admin-header">
@@ -95,6 +105,13 @@ export default function AdminFunnel() {
           <h1>{t("funnel.title")}</h1>
           <p className="form-hint">{t("funnel.subtitle")}</p>
         </div>
+        {!loading && stats.total > 0 && (
+          <div className="admin-header__actions">
+            <button type="button" className="btn btn-outline" onClick={handleExport}>
+              {t("common.exportCsv")}
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="form-row" style={{ flexWrap: "wrap", marginBottom: "1.25rem" }}>

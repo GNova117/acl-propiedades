@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
+import { exportToCsv } from "../../lib/csvExport";
 import { formatMXN } from "../../lib/format";
 import { MUNICIPALITIES, PROFILES, creditRefund, rateText, toReportItems } from "../../lib/expenseBreakdown";
 import { formatVisitDateTime } from "../../lib/visitReport";
@@ -157,6 +158,16 @@ export default function AdminExpenseHistory() {
     }
   };
 
+  const handleExport = () => {
+    exportToCsv("historial_gastos.csv", visible, [
+      { label: t("expenses.history.colDate"), value: (r) => formatVisitDateTime(r.created_at, i18n.language) },
+      { label: t("expenses.history.colHouse"), key: "house_name" },
+      { label: t("expenses.history.colMunicipality"), key: "municipality" },
+      { label: t("expenses.history.colProfile"), value: (r) => t(`expenses.${r.profile}`) },
+      { label: t("expenses.history.colTotal"), key: "total" },
+    ]);
+  };
+
   return (
     <div>
       <div className="admin-header">
@@ -165,6 +176,9 @@ export default function AdminExpenseHistory() {
           <p className="form-hint">{t("expenses.history.subtitle")}</p>
         </div>
         <div className="admin-header__actions">
+          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={visible.length === 0}>
+            {t("common.exportCsv")}
+          </button>
           <Link to="/admin/gastos" className="btn btn-outline">
             {t("expenses.history.backToExpenses")}
           </Link>

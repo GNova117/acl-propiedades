@@ -7,6 +7,7 @@ import { slugify, numOrNull } from "./format";
 import { CLIENT_EXPEDIENTE_KEYS } from "./clientExpedienteFields";
 import { compressImageFile, compressImageFiles } from "./imageCompression";
 import { buildDemoSnapshot } from "./marketDemo";
+import { getOrCreateVisitorId } from "./visitorId";
 
 function clientExpedientePayload(data) {
   return Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, data[key] || null]));
@@ -60,6 +61,9 @@ const KEYS = {
   clientPortalTokens: "acl_local_client_portal_tokens",
   documentAccessLog: "acl_local_document_access_log",
   privacyConsents: "acl_local_privacy_consents",
+  documentTemplates: "acl_local_document_templates",
+  internalNotes: "acl_local_internal_notes",
+  propertyViews: "acl_local_property_views",
 };
 
 // Un par de artículos de muestra para que /blog no se vea vacío en modo
@@ -223,6 +227,27 @@ export const localBackend = {
     return found ? withAdvisors(found, advisors) : null;
   },
 
+  // Espejo de record_property_view (schema.sql): registra como máximo una
+  // vista por visitante por propiedad por día y devuelve cuántos visitantes
+  // distintos la vieron en los últimos `days` días.
+  async trackPropertyView(propertyId, days = 3) {
+    const visitorId = getOrCreateVisitorId();
+    const today = new Date().toISOString().slice(0, 10);
+    const views = readStore(KEYS.propertyViews, []);
+    const alreadyToday = views.some((v) => v.property_id === propertyId && v.visitor_id === visitorId && v.viewed_on === today);
+    if (!alreadyToday) {
+      views.push({ property_id: propertyId, visitor_id: visitorId, viewed_on: today });
+      writeStore(KEYS.propertyViews, views);
+    }
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    const recentVisitors = new Set(
+      views.filter((v) => v.property_id === propertyId && v.viewed_on > cutoffStr).map((v) => v.visitor_id)
+    );
+    return recentVisitors.size;
+  },
+
   async getPropertyByCode(code) {
     const properties = readStore(KEYS.properties, PROPERTIES);
     const advisors = readStore(KEYS.advisors, ADVISORS);
@@ -237,6 +262,8 @@ export const localBackend = {
     const images = [...(data.existingImages || []), ...newImages];
     const newVideos = await filesToDataUrls(data.videoFiles);
     const videos = [...(data.existingVideos || []), ...newVideos];
+    const newTour360 = await filesToDataUrls(await compressImageFiles(data.tour360Files));
+    const tour_360_images = [...(data.existingTour360Images || []), ...newTour360];
     const record = {
       id: uid("prop"),
       code: nextPropertyCode(),
@@ -258,6 +285,7 @@ export const localBackend = {
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
       videos,
+      tour_360_images,
       advisor_ids: data.advisor_ids || [],
       colindancias: data.colindancias || null,
       servicios: data.servicios || null,
@@ -308,6 +336,8 @@ export const localBackend = {
     const images = [...(data.existingImages || []), ...newImages];
     const newVideos = await filesToDataUrls(data.videoFiles);
     const videos = [...(data.existingVideos || []), ...newVideos];
+    const newTour360 = await filesToDataUrls(await compressImageFiles(data.tour360Files));
+    const tour_360_images = [...(data.existingTour360Images || []), ...newTour360];
     const updated = {
       ...properties[idx],
       title: data.title,
@@ -328,6 +358,7 @@ export const localBackend = {
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
       videos,
+      tour_360_images,
       advisor_ids: data.advisor_ids || [],
       colindancias: data.colindancias || null,
       servicios: data.servicios || null,
@@ -622,6 +653,79 @@ export const localBackend = {
   async deleteTestimonial(id) {
     const testimonials = readStore(KEYS.testimonials, []);
     writeStore(KEYS.testimonials, testimonials.filter((t) => t.id !== id));
+  },
+
+  async getDocumentTemplates() {
+    const templates = readStore(KEYS.documentTemplates, []);
+    return templates.slice().sort((a, b) => a.name.localeCompare(b.name));
+  },
+
+  async createDocumentTemplate(data) {
+    const templates = readStore(KEYS.documentTemplates, []);
+    const now = new Date().toISOString();
+    const record = {
+      id: uid("doctpl"),
+      name: data.name.trim(),
+      body: data.body,
+      custom_fields: data.custom_fields || [],
+      requires_signatures: data.requires_signatures !== false,
+      active: data.active !== false,
+      created_at: now,
+      updated_at: now,
+    };
+    templates.push(record);
+    writeStore(KEYS.documentTemplates, templates);
+    return record;
+  },
+
+  async updateDocumentTemplate(id, data) {
+    const templates = readStore(KEYS.documentTemplates, []);
+    const idx = templates.findIndex((t) => t.id === id);
+    if (idx === -1) throw new Error("Plantilla no encontrada");
+    templates[idx] = {
+      ...templates[idx],
+      name: data.name.trim(),
+      body: data.body,
+      custom_fields: data.custom_fields || [],
+      requires_signatures: data.requires_signatures !== false,
+      active: data.active !== false,
+      updated_at: new Date().toISOString(),
+    };
+    writeStore(KEYS.documentTemplates, templates);
+    return templates[idx];
+  },
+
+  async deleteDocumentTemplate(id) {
+    const templates = readStore(KEYS.documentTemplates, []);
+    writeStore(KEYS.documentTemplates, templates.filter((t) => t.id !== id));
+  },
+
+  async getInternalNotes(entityType, entityId) {
+    const notes = readStore(KEYS.internalNotes, []);
+    return notes
+      .filter((n) => n.entity_type === entityType && n.entity_id === entityId)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  },
+
+  async addInternalNote({ entityType, entityId, body, mentions = [] }) {
+    const notes = readStore(KEYS.internalNotes, []);
+    const record = {
+      id: uid("note"),
+      entity_type: entityType,
+      entity_id: entityId,
+      body: body.trim(),
+      mentions,
+      author_email: getSession()?.user?.email || DEMO_ADMIN.email,
+      created_at: new Date().toISOString(),
+    };
+    notes.push(record);
+    writeStore(KEYS.internalNotes, notes);
+    return record;
+  },
+
+  async deleteInternalNote(id) {
+    const notes = readStore(KEYS.internalNotes, []);
+    writeStore(KEYS.internalNotes, notes.filter((n) => n.id !== id));
   },
 
   async getBlogPosts({ publishedOnly = false } = {}) {

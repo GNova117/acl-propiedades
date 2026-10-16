@@ -1,8 +1,56 @@
 .property-map {
+  position: relative;
   width: 100%;
   border-radius: var(--radius-md);
   overflow: hidden;
   border: 1px solid var(--color-border);
+}
+
+.property-map--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  border-radius: 0;
+  border: none;
+}
+
+.map-fullscreen-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  background: #fff;
+  color: #1a1a1a;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.map-fullscreen-btn:hover {
+  background: #f4f6f9;
+}
+
+.map-cluster-wrapper {
+  background: transparent;
+  border: none;
+}
+
+.map-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-primary-dark);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
 }
 
 .map-marker-wrapper {

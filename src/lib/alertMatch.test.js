@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { describeCriteria, filtersToCriteria, isAvailable, matchesCriteria } from "./alertMatch";
+import { buildSimilarCriteria, describeCriteria, filtersToCriteria, isAvailable, matchesCriteria } from "./alertMatch";
 
 describe("filtersToCriteria", () => {
   it("solo incluye lo que el filtro realmente tiene puesto", () => {
@@ -87,5 +87,26 @@ describe("describeCriteria", () => {
       { key: "bedrooms", value: "≥ 3" },
       { key: "amenities", value: "alberca, jardin" },
     ]);
+  });
+});
+
+describe("buildSimilarCriteria", () => {
+  it("toma tipo, operación, zona y una banda de precio alrededor del precio de la propiedad", () => {
+    const c = buildSimilarCriteria({ type: "casa", operation_type: "compra", zone: "Centro", price: 2000000, bedrooms: 3 });
+    expect(c).toEqual({ type: "casa", operation_type: "compra", zone: "Centro", min_price: 1700000, max_price: 2300000, min_bedrooms: 3 });
+  });
+
+  it("no incluye min_bedrooms si la propiedad no tiene recámaras (p. ej. un terreno)", () => {
+    const c = buildSimilarCriteria({ type: "terreno", price: 500000 });
+    expect(c.min_bedrooms).toBeUndefined();
+    expect(c).toMatchObject({ min_price: 425000, max_price: 575000 });
+  });
+
+  it("no incluye precio si no hay un precio válido", () => {
+    expect(buildSimilarCriteria({ type: "casa", price: 0 })).toEqual({ type: "casa" });
+  });
+
+  it("devuelve un objeto vacío sin propiedad", () => {
+    expect(buildSimilarCriteria(null)).toEqual({});
   });
 });

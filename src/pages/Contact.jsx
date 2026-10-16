@@ -4,7 +4,7 @@ import ContactForm from "../components/ContactForm";
 import WhatsAppIcon from "../components/icons/WhatsAppIcon";
 import "./Contact.css";
 
-// Mismo número y formato que ya usan Footer.jsx y FloatingWhatsApp.jsx —
+// Mismo número y formato que ya usan Footer.jsx y ChatWidget.jsx —
 // una sola fuente hubiera sido mejor desde el inicio, pero no vale la pena
 // tocar esos dos archivos ya probados solo para extraer una constante.
 const OFFICE_PHONE_DISPLAY = "871 324 3271";

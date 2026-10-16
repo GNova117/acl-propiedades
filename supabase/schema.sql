@@ -5032,3 +5032,164 @@ insert into zones (name, price_per_m2, land_price_per_m2) values
   ('Lerdo - Vicente Suárez', 2200, 160),
   ('Lerdo - Las Palomas', 2200, 160)
 on conflict (name) do nothing;
+
+-- ─────────────────────────────────────────────
+-- Plantillas de documentos personalizadas (2026-10-15)
+-- El generador de documentos (/admin/documentos-legales) solo tenía 3 tipos
+-- fijos (recibo de apartado, autorización de venta, carta oferta), definidos
+-- en código. Esta tabla deja que el equipo cree sus propios tipos de
+-- documento desde el admin, con marcadores como {{cliente.nombre}} o
+-- {{propiedad.precio}} que se rellenan al generar el PDF — sin que un
+-- desarrollador tenga que tocar código para cada documento nuevo.
+-- custom_fields: arreglo de { key, label, type } para datos que no vienen
+-- de un cliente/propiedad/asesor ya capturado (type: text | number | date).
+-- Mismo apartado que Documentos legales, para no abrir un permiso nuevo.
+-- ─────────────────────────────────────────────
+
+create table if not exists document_templates (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  body text not null,
+  custom_fields jsonb not null default '[]',
+  requires_signatures boolean not null default true,
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table document_templates enable row level security;
+
+drop policy if exists "Rol con apartado documentos_legales maneja document_templates" on document_templates;
+create policy "Rol con apartado documentos_legales maneja document_templates" on document_templates for all
+  using (has_admin_section('documentos_legales')) with check (has_admin_section('documentos_legales'));
+
+-- ─────────────────────────────────────────────
+-- Notas internas del equipo (2026-10-15)
+-- Comunicación interna simple sobre un cliente, prospecto o propiedad: una
+-- nota de texto, con quién la escribió y a quién etiqueta (mentions, correos
+-- de asesores) para que quede visible quién debería verla — sin manejar aquí
+-- el envío de la notificación en sí (eso ya es responsabilidad de
+-- push_subscriptions / las Edge Functions existentes, fuera de este cambio).
+-- Visible/editable por cualquier cuenta autenticada, igual que otras tablas
+-- de uso interno del equipo (p. ej. zones, advisors): no se gatea por un
+-- apartado nuevo porque ya se monta solo dentro de pantallas que sí lo están
+-- (ficha de cliente, prospecto o propiedad).
+-- ─────────────────────────────────────────────
+
+create table if not exists internal_notes (
+  id uuid primary key default gen_random_uuid(),
+  entity_type text not null check (entity_type in ('client', 'prospect', 'property')),
+  entity_id uuid not null,
+  author_email text not null,
+  body text not null,
+  mentions text[] not null default '{}',
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_internal_notes_entity on internal_notes(entity_type, entity_id);
+
+alter table internal_notes enable row level security;
+
+drop policy if exists "Authenticated manage internal_notes" on internal_notes;
+create policy "Authenticated manage internal_notes" on internal_notes for all
+  using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+-- ─────────────────────────────────────────────
+-- Fotos 360° por propiedad (2026-10-15)
+-- Fotos panorámicas equirectangulares (no un recorrido 3D del plano, eso ya
+-- existe en Construcción): el visor público las proyecta dentro de una
+-- esfera y se arrastra para mirar alrededor. Mismo patrón de bucket público
+-- que property-images/property-videos.
+-- ─────────────────────────────────────────────
+
+alter table properties add column if not exists tour_360_images text[] not null default '{}';
+
+insert into storage.buckets (id, name, public)
+values ('property-360', 'property-360', true)
+on conflict (id) do nothing;
+
+create policy "Public can view property 360 photos" on storage.objects
+  for select using (bucket_id = 'property-360');
+
+create policy "Authenticated can upload property 360 photos" on storage.objects
+  for insert with check (bucket_id = 'property-360' and auth.role() = 'authenticated');
+
+create policy "Authenticated can delete property 360 photos" on storage.objects
+  for delete using (bucket_id = 'property-360' and auth.role() = 'authenticated');
+
+-- ─────────────────────────────────────────────
+-- Chatbot público (2026-10-15)
+-- /api/chat.js (función de Vercel) atiende el chat del sitio público (sin
+-- login) con Claude Haiku 5.5 — ver server/chatbot.js. Un visitante nunca
+-- tiene sesión de Supabase, así que esta tabla (como portal_upload_attempts)
+-- solo la toca la función con SUPABASE_SERVICE_ROLE_KEY: cuenta mensajes por
+-- sesión de chat (abuso de una sola persona) Y en total (gasto del día),
+-- ambos con la misma fila — session_id es un UUID que genera el navegador
+-- por conversación, no identifica a la persona.
+-- RLS sin políticas = nadie con anon/authenticated puede leer ni escribir
+-- aquí directo; la service role siempre pasa por encima de RLS.
+-- ─────────────────────────────────────────────
+
+create table if not exists chat_rate_limits (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_chat_rate_limits_session on chat_rate_limits(session_id, created_at desc);
+create index if not exists idx_chat_rate_limits_created on chat_rate_limits(created_at desc);
+
+alter table chat_rate_limits enable row level security;
+
+-- ─────────────────────────────────────────────
+-- Indicador social discreto: vistas recientes por propiedad (2026-10-15)
+-- "N personas vieron esta propiedad en los últimos 3 días" en la ficha
+-- pública — con datos reales, nunca un número inventado. Un visitante no
+-- tiene sesión; visitor_id es un id aleatorio que genera y guarda el propio
+-- navegador (localStorage), no identifica a la persona. El unique index
+-- evita que recargar la página una y otra vez infle el conteo: cuenta una
+-- vez por visitante por propiedad por día.
+-- RLS sin políticas = nadie con anon/authenticated lee ni escribe la tabla
+-- directo; solo la función security definer de abajo puede, validando y
+-- agregando sin exponer las filas crudas (quién vio qué y cuándo).
+-- ─────────────────────────────────────────────
+
+create table if not exists property_views (
+  id uuid primary key default gen_random_uuid(),
+  property_id uuid not null references properties(id) on delete cascade,
+  visitor_id uuid not null,
+  viewed_on date not null default current_date,
+  created_at timestamptz not null default now(),
+  unique (property_id, visitor_id, viewed_on)
+);
+
+create index if not exists idx_property_views_property_date on property_views(property_id, viewed_on desc);
+
+alter table property_views enable row level security;
+
+-- Registra la vista (si no existía ya hoy para este visitante+propiedad) y
+-- devuelve, en la misma llamada, cuántos visitantes distintos la vieron en
+-- los últimos p_days días — evita una segunda ida y vuelta al servidor solo
+-- para leer el conteo que se acaba de escribir.
+create or replace function record_property_view(p_property_id uuid, p_visitor_id uuid, p_days int default 3)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into property_views (property_id, visitor_id)
+  values (p_property_id, p_visitor_id)
+  on conflict (property_id, visitor_id, viewed_on) do nothing;
+
+  return (
+    select count(distinct visitor_id)
+    from property_views
+    where property_id = p_property_id
+      and viewed_on > current_date - p_days
+  );
+end;
+$$;
+
+revoke all on function record_property_view(uuid, uuid, int) from public;
+grant execute on function record_property_view(uuid, uuid, int) to anon, authenticated;
