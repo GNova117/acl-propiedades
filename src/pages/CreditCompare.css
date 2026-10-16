@@ -10,6 +10,10 @@
   margin-top: 0.5rem;
 }
 
+.credit-compare__reference-rate {
+  margin-top: 0.75rem;
+}
+
 .credit-compare__advanced summary {
   cursor: pointer;
   font-weight: 600;

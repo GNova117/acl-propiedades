@@ -2017,6 +2017,7 @@
     "price": "Precio de la casa",
     "advanced": "Condiciones del banco y gastos",
     "advancedHint": "Cada banco ofrece condiciones distintas: cámbialas por las que te dieron. Los gastos de escrituración, impuestos y avalúo se estiman con el mismo porcentaje en las tres opciones.",
+    "referenceRate": "Tasa de referencia del mercado (TIIE 28 días): {{rate}}% al {{date}} — fuente: Banxico. La tasa de tu crédito normalmente es esta más el margen que cobra tu banco; ajusta \"Tasa bancaria\" abajo con la que te hayan dado a ti.",
     "bankRate": "Tasa anual del banco (%)",
     "bankDown": "Enganche (% del precio)",
     "bankYears": "Plazo (años)",

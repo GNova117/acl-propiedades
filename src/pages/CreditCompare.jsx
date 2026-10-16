@@ -14,7 +14,7 @@ import "./CreditCompare.css";
 // el precio) o directo. Al final invita a dejar nombre y teléfono; llega a
 // Mensajes (canal "comparador") con el resumen.
 export default function CreditCompare() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
   const propertyId = searchParams.get("propiedad");
   const [property, setProperty] = useState(null);
@@ -22,6 +22,25 @@ export default function CreditCompare() {
   const [lead, setLead] = useState({ name: "", phone: "", empresa: "" });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
+  const [referenceRate, setReferenceRate] = useState(null);
+
+  // Tasa de referencia real del mercado (TIIE 28 días, Banxico) — solo
+  // informativa, nunca reemplaza el campo de "tasa bancaria" que la persona
+  // ya puede editar a mano. Si no está configurada o Banxico no responde,
+  // simplemente no se muestra nada (mismo criterio que el resto del sitio:
+  // dato real o ninguno).
+  useEffect(() => {
+    let active = true;
+    fetch("/api/mortgage-rate")
+      .then((res) => res.json())
+      .then((data) => {
+        if (active && data?.available) setReferenceRate({ rate: data.rate, asOf: data.asOf });
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!propertyId) return;
@@ -148,6 +167,12 @@ export default function CreditCompare() {
               <input id="cc-ssv" type="number" min="0" inputMode="numeric" value={form.ssv} onChange={change("ssv")} />
             </div>
           </div>
+
+          {referenceRate && (
+            <p className="form-hint credit-compare__reference-rate">
+              {t("creditCompare.referenceRate", { rate: referenceRate.rate, date: new Date(`${referenceRate.asOf}T00:00:00`).toLocaleDateString(i18n.language === "en" ? "en-US" : "es-MX") })}
+            </p>
+          )}
 
           <details className="credit-compare__advanced">
             <summary>{t("creditCompare.advanced")}</summary>

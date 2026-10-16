@@ -2017,6 +2017,7 @@
     "price": "Home price",
     "advanced": "Bank terms and costs",
     "advancedHint": "Every bank offers different terms: change them to the ones you were given. Closing costs, taxes and appraisal are estimated with the same percentage for all three options.",
+    "referenceRate": "Market reference rate (28-day TIIE): {{rate}}% as of {{date}} — source: Banxico (Mexico's central bank). Your actual loan rate is usually this plus your bank's own margin; adjust \"Bank rate\" below to the one you were quoted.",
     "bankRate": "Bank annual rate (%)",
     "bankDown": "Down payment (% of price)",
     "bankYears": "Term (years)",
