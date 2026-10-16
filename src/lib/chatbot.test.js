@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildSystemPrompt,
+  buildWhatsappHandoffMessage,
   normalizePropertySearchArgs,
   summarizePropertiesForChat,
   validateIncomingMessages,
@@ -126,5 +127,40 @@ describe("whatsappHref", () => {
 
   it("usa un mensaje por defecto cuando no se le da ninguno", () => {
     expect(whatsappHref()).toContain("Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n");
+  });
+});
+
+describe("buildWhatsappHandoffMessage", () => {
+  it("devuelve undefined sin conversación", () => {
+    expect(buildWhatsappHandoffMessage([])).toBeUndefined();
+    expect(buildWhatsappHandoffMessage(null)).toBeUndefined();
+  });
+
+  it("incluye los turnos de la conversación en orden", () => {
+    const msg = buildWhatsappHandoffMessage([
+      { role: "user", content: "Busco casa en Torreón" },
+      { role: "assistant", content: "Tengo 3 opciones en Torreón" },
+    ]);
+    expect(msg).toContain("Yo: Busco casa en Torreón");
+    expect(msg).toContain("Asistente: Tengo 3 opciones en Torreón");
+    expect(msg.indexOf("Busco casa")).toBeLessThan(msg.indexOf("Tengo 3 opciones"));
+  });
+
+  it("ignora mensajes de otros roles y contenido vacío", () => {
+    const msg = buildWhatsappHandoffMessage([
+      { role: "system", content: "prompt interno" },
+      { role: "user", content: "  " },
+      { role: "user", content: "Hola" },
+    ]);
+    expect(msg).not.toContain("prompt interno");
+    expect(msg).toContain("Yo: Hola");
+  });
+
+  it("se queda con los turnos más recientes si la conversación no cabe en el tope", () => {
+    const messages = Array.from({ length: 30 }, (_, i) => ({ role: i % 2 === 0 ? "user" : "assistant", content: `mensaje número ${i} con algo de texto para que pese` }));
+    const msg = buildWhatsappHandoffMessage(messages);
+    expect(msg.length).toBeLessThan(900);
+    expect(msg).toContain("mensaje número 29");
+    expect(msg).not.toContain("mensaje número 0 ");
   });
 });

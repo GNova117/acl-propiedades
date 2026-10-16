@@ -165,4 +165,31 @@ export function whatsappHref(message) {
   return `https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(message || "Hola, quiero más información.")}`;
 }
 
+// Tope generoso pero no ilimitado: wa.me no trunca el texto, pero un
+// prellenado kilométrico es igual de inútil para el asesor que uno vacío —
+// se queda con los turnos más RECIENTES (los más relevantes) hasta llenarlo.
+const WHATSAPP_HANDOFF_MAX_CHARS = 700;
+
+// Cuando el chatbot no pudo resolver algo y la persona pasa a WhatsApp, el
+// mensaje prellenado lleva el resumen de lo que ya platicó — para que el
+// asesor no le pregunte desde cero lo que el bot ya sabía.
+export function buildWhatsappHandoffMessage(messages) {
+  const cleaned = (Array.isArray(messages) ? messages : []).filter((m) => m?.role === "user" || m?.role === "assistant");
+  if (cleaned.length === 0) return undefined;
+
+  const lines = [];
+  let total = 0;
+  for (let i = cleaned.length - 1; i >= 0; i--) {
+    const content = String(cleaned[i].content ?? "").trim();
+    if (!content) continue;
+    const line = `${cleaned[i].role === "user" ? "Yo" : "Asistente"}: ${content}`;
+    if (total + line.length > WHATSAPP_HANDOFF_MAX_CHARS) break;
+    lines.unshift(line);
+    total += line.length + 1;
+  }
+  if (lines.length === 0) return undefined;
+
+  return `Hola, vengo del chat del sitio y quiero continuar con un asesor. Esto es lo que ya platiqué:\n\n${lines.join("\n")}`;
+}
+
 export const typeLabel = (type) => TYPE_LABELS[type] || type;

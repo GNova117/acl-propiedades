@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ChatIcon from "./icons/ChatIcon";
-import { whatsappHref } from "../lib/chatbot";
+import { buildWhatsappHandoffMessage, whatsappHref } from "../lib/chatbot";
 import "./ChatWidget.css";
 
 const SESSION_KEY = "acl_chat_session_id";
@@ -58,6 +58,10 @@ export default function ChatWidget() {
     if (open && listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
   }, [messages, open, sending]);
 
+  // Lo que ya se platicó va prellenado en el mensaje de WhatsApp (plan B):
+  // el asesor no tiene que preguntar desde cero lo que el bot ya sabía.
+  const handoffHref = useMemo(() => whatsappHref(buildWhatsappHandoffMessage(messages)), [messages]);
+
   const handleSend = async (e) => {
     e.preventDefault();
     const text = input.trim();
@@ -106,7 +110,7 @@ export default function ChatWidget() {
         <div className="chat-widget__panel" role="dialog" aria-label={t("chatWidget.title")}>
           <div className="chat-widget__header">
             <span>{t("chatWidget.title")}</span>
-            <a href={whatsappHref()} target="_blank" rel="noreferrer" className="chat-widget__whatsapp-link">
+            <a href={handoffHref} target="_blank" rel="noreferrer" className="chat-widget__whatsapp-link">
               {t("chatWidget.talkToAdvisor")}
             </a>
           </div>
@@ -117,7 +121,7 @@ export default function ChatWidget() {
               <div key={i} className={`chat-widget__bubble chat-widget__bubble--${m.role}`}>
                 <span>{m.content}</span>
                 {m.fallback && (
-                  <a href={whatsappHref()} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm chat-widget__fallback-btn">
+                  <a href={handoffHref} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm chat-widget__fallback-btn">
                     {t("chatWidget.talkToAdvisor")}
                   </a>
                 )}
