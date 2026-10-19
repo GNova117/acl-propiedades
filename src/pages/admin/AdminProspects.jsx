@@ -4,11 +4,11 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
-import { whatsappDigits } from "../../lib/format";
-import { PROSPECT_STAGES, daysSince, followUpState, unattendedAge, unattendedState, visitToProspectFields } from "../../lib/prospects";
+import { formatMXN, whatsappDigits } from "../../lib/format";
+import { PROSPECT_STAGES, contactFields, daysSince, followUpState, isOpenStage, unattendedAge, unattendedState, visitToProspectFields } from "../../lib/prospects";
 import { POSTSALE_STEPS, postsaleDue, postsaleMessage } from "../../lib/postsale";
-import { contactUpdateFields } from "../../lib/prospectContacts";
-import { prospectTemplates } from "../../lib/prospectTemplates";
+import { prospectMessageTemplates, sendLink, suggestPropertyMessage } from "../../lib/prospectMessages";
+import { criteriaSummary, matchingProperties } from "../../lib/prospectMatch";
 import QuickReplyButton from "../../components/QuickReplyButton";
 import ProspectContactForm from "../../components/ProspectContactForm";
 import "./admin.css";
@@ -18,6 +18,9 @@ import "./AdminProspects.css";
 // con login vinculado ve solo los suyos; un correo sin asesor vinculado ve todos
 // y puede filtrar por asesor. Cambiar de etapa es un selector en cada tarjeta
 // (sin arrastrar: funciona igual con el dedo en el celular).
+// Cuántas propiedades que le encajan se listan en la tarjeta (el resto se cuenta).
+const MAX_MATCHES = 5;
+
 const normalize = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
 function whatsappLink(phone) {
@@ -50,6 +53,8 @@ export default function AdminProspects() {
   const [contactFor, setContactFor] = useState(null);
   const [contactSaving, setContactSaving] = useState(false);
   const [contactError, setContactError] = useState("");
+  // Tarjeta con la lista de "propiedades que le encajan" desplegada.
+  const [matchesOpenId, setMatchesOpenId] = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -83,6 +88,9 @@ export default function AdminProspects() {
     const imported = new Set(prospects.map((p) => p.visit_id).filter(Boolean));
     return visits.filter((v) => v.potential_client && !imported.has(v.id));
   }, [visits, prospects]);
+
+  // Propiedades disponibles que encajan con lo que busca cada prospecto abierto.
+  const matchesByProspect = useMemo(() => new Map(prospects.map((p) => [p.id, matchingProperties(p, properties)])), [prospects, properties]);
 
   const filtered = useMemo(() => {
     const q = normalize(query);
@@ -135,12 +143,14 @@ export default function AdminProspects() {
   };
 
   // Guarda el contacto en el historial y actualiza al prospecto (último
-  // contacto, etapa nuevo → contactado y próximo seguimiento).
-  const saveContact = async (prospect, { channel, note, nextFollowupAt }) => {
+  // contacto, etapa nuevo → contactado y próximo seguimiento). `nextFollowup`:
+  // fecha elegida, null (sin fecha) o undefined (no tocar una fecha futura) —
+  // ver contactFields.
+  const saveContact = async (prospect, { channel, note, nextFollowup }) => {
     setContactSaving(true);
     setContactError("");
     try {
-      const updated = await db.logProspectContact(prospect.id, contactUpdateFields(prospect, { nextFollowupAt }), { channel, note });
+      const updated = await db.logProspectContact(prospect.id, contactFields(prospect, nextFollowup), { channel, note });
       setProspects((prev) => prev.map((p) => (p.id === prospect.id ? updated : p)));
       setContactFor(null);
     } catch (err) {
@@ -149,6 +159,16 @@ export default function AdminProspects() {
       setContactSaving(false);
     }
   };
+
+  const suggestionLink = (p, property) =>
+    sendLink(p, suggestPropertyMessage(p, property, `${window.location.origin}/propiedades/${property.id}`), t("prospects.match.emailSubject"));
+
+  const templatesFor = (p) =>
+    prospectMessageTemplates(p, {
+      propertyTitle: propertyTitle(p.property_id),
+      propertyUrl: p.property_id ? `${window.location.origin}/propiedades/${p.property_id}` : "",
+      advisorName: advisorName(p.advisor_id),
+    }).map((tpl) => ({ ...tpl, label: t(`prospects.templates.${tpl.key}`) }));
 
   const handleDelete = async (prospect) => {
     if (!window.confirm(t("prospects.confirmDelete", { name: prospect.name }))) return;
@@ -357,6 +377,47 @@ export default function AdminProspects() {
                           </div>
                         );
                       })()}
+                      {(() => {
+                        const matches = matchesByProspect.get(p.id) || [];
+                        if (matches.length === 0) return null;
+                        const open = matchesOpenId === p.id;
+                        return (
+                          <div className="prospect-matches">
+                            <button
+                              type="button"
+                              className="prospect-chip prospect-chip--match"
+                              onClick={() => setMatchesOpenId(open ? null : p.id)}
+                              aria-expanded={open}
+                            >
+                              {t("prospects.match.count", { count: matches.length })} {open ? "▴" : "▾"}
+                            </button>
+                            {open && (
+                              <>
+                                <p className="form-hint">{t("prospects.match.looking", { text: criteriaSummary(p.search_criteria, t) })}</p>
+                                <ul className="prospect-matches__list">
+                                  {matches.slice(0, MAX_MATCHES).map((property) => {
+                                    const link = suggestionLink(p, property);
+                                    return (
+                                      <li key={property.id} className="prospect-matches__item">
+                                        <a href={`/propiedades/${property.id}`} target="_blank" rel="noopener noreferrer" className="prospect-matches__title">
+                                          {property.title}
+                                        </a>
+                                        <span className="form-hint">{[property.zone, formatMXN(property.price)].filter(Boolean).join(" · ")}</span>
+                                        {link && (
+                                          <a className="btn btn-outline btn-sm" href={link} target={link.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">
+                                            {t("prospects.match.send")}
+                                          </a>
+                                        )}
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                                {matches.length > MAX_MATCHES && <p className="form-hint">{t("prospects.match.more", { count: matches.length - MAX_MATCHES })}</p>}
+                              </>
+                            )}
+                          </div>
+                        );
+                      })()}
                       <div className="prospect-card__actions">
                         <select
                           value={p.stage}
@@ -370,16 +431,19 @@ export default function AdminProspects() {
                             </option>
                           ))}
                         </select>
-                        <QuickReplyButton
-                          templates={prospectTemplates(t, p, { property: propertyOf(p.property_id), advisorName: advisorName(p.advisor_id) })}
-                          phone={p.phone}
-                          email={p.email}
-                          emailSubject={t("prospects.templates.emailSubject")}
-                          onSend={(_template, channel) => openContact(p, channel, true)}
-                        />
                         <button type="button" className="btn btn-outline btn-sm" onClick={() => openContact(p)} aria-expanded={contactFor?.id === p.id} disabled={busyId === p.id}>
                           {t("prospects.logContact")}
                         </button>
+                        {isOpenStage(p.stage) && (
+                          <QuickReplyButton
+                            templates={templatesFor(p)}
+                            phone={p.phone}
+                            email={p.email}
+                            emailSubject="ACL Propiedades"
+                            label={t("prospects.templates.label")}
+                            onSend={(_template, channel) => openContact(p, channel, true)}
+                          />
+                        )}
                         {p.client_id ? (
                           <Link to={`/admin/clientes/${p.client_id}`} className="btn btn-outline btn-sm">
                             {t("prospects.viewClient")}

@@ -1563,39 +1563,44 @@
       },
       "note": "Note (optional)",
       "notePlaceholder": "E.g. Will see the house on Saturday",
-      "nextFollowup": "Next follow-up",
-      "in1": "Tomorrow",
-      "in3": "In 3 days",
-      "in7": "In 1 week",
-      "dueHint": "If you don't pick a date, the pending follow-up is marked as done.",
       "errors": {
         "channel": "Pick how you reached them.",
+        "followup": "Pick when you will follow up next.",
         "pastDate": "The date can't be before today."
       },
       "historyTitle": "Contact history",
       "historyEmpty": "No contacts logged yet."
     },
+    "nextFollowupQuestion": "When is the next follow-up?",
+    "followupOptions": {
+      "tomorrow": "Tomorrow",
+      "days3": "In 3 days",
+      "week1": "In 1 week",
+      "week2": "In 2 weeks"
+    },
+    "keepFollowup": "Keep {{date}}",
+    "noFollowup": "No date",
+    "match": {
+      "count_one": "{{count}} property fits",
+      "count_other": "{{count}} properties fit",
+      "looking": "Looking for: {{text}}",
+      "send": "Send",
+      "view": "View",
+      "more": "and {{count}} more",
+      "propertyButton": "Prospects ({{count}})",
+      "modalTitle": "Prospects that fit this property",
+      "modalHint": "Open prospects whose \"what they are looking for\" matches {{title}}, most advanced first.",
+      "openProspect": "Open",
+      "noContact": "No phone or email",
+      "emailSubject": "A property for you — ACL Propiedades"
+    },
     "templates": {
-      "theAgency": "the ACL Propiedades team",
-      "signedBy": "{{advisor}} from ACL Propiedades",
-      "theSearch": "the property you're looking for",
-      "emailSubject": "Following up on your search at ACL Propiedades",
-      "firstLabel": "First contact",
-      "firstText": "Hi {{name}}, this is {{advisor}}. I saw your interest in {{property}} and I'd be glad to help. When is a good time for a quick chat?",
-      "followupLabel": "Follow-up",
-      "followupText": "Hi {{name}}, this is {{advisor}}. I wanted to check whether you're still interested in {{property}} or would like me to share other options. I'm here if you need anything!",
-      "visitLabel": "Schedule a visit",
-      "visitText": "Hi {{name}}, would you like to see {{property}}? Tell me which day and time work best and I'll confirm as soon as possible.",
-      "priceLabel": "Price and terms",
-      "priceText": "Hi {{name}}, the price of {{property}} is {{price}}. Would you like me to explain the payment options and available financing?",
-      "postVisitLabel": "After the visit",
-      "postVisitText": "Hi {{name}}, thanks for visiting {{property}}. What did you think? If you have questions about the price, the paperwork or payment options, we're happy to help.",
-      "offerLabel": "Offer progress",
-      "offerText": "Hi {{name}}, I'm following up on your offer for {{property}}. Shall we talk today about the next steps?",
-      "reactivateLabel": "Get back in touch",
-      "reactivateText": "Hi {{name}}, this is {{advisor}}. We talked a while ago about {{property}}. Are you still looking? We have new options that might interest you.",
-      "postsale30Label": "After-sale: 1 month",
-      "postsale180Label": "After-sale: 6 months"
+      "label": "Quick message",
+      "firstContact": "First contact",
+      "thanksVisit": "Thanks for the visit",
+      "checkIn": "Did they review the property?",
+      "scheduleVisit": "Propose a visit",
+      "sendProperty": "Send the property"
     },
     "confirmDelete": "Remove {{name}} from prospects?",
     "saveError": "Could not save the prospect",
@@ -1621,12 +1626,17 @@
       "noProperty": "— None —",
       "lookingFor": "What they are looking for",
       "lookingForPlaceholder": "E.g. 3-bedroom house in Torreón, up to $1.8 M",
+      "searchTitle": "Search criteria (to suggest properties)",
+      "searchHint": "With type, zone and budget, the system shows which available properties fit them, on the prospect's card.",
+      "any": "Any",
+      "searchExtra": "Additional criteria (kept): {{text}}",
       "lostReason": "Reason it was lost",
       "notes": "Internal notes",
       "errors": {
         "name": "Enter the name.",
         "contact": "Enter at least a phone or an email.",
-        "email": "The email is not valid."
+        "email": "The email is not valid.",
+        "budgetRange": "The minimum price cannot be higher than the maximum."
       }
     }
   },

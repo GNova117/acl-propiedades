@@ -1,36 +1,36 @@
 // Registro de contactos con un prospecto (llamada, WhatsApp...): helpers puros
-// que usan la tarjeta de Prospectos y su formulario de "Registrar contacto".
+// que usa el formulario de "Registrar contacto" de la tarjeta de Prospectos.
 // Cada contacto queda en prospecto_contactos (historial); además se actualiza
-// el propio prospecto (último contacto, etapa y próximo seguimiento).
+// el propio prospecto con contactFields() (prospects.js: último contacto, etapa
+// y próximo seguimiento).
 
-import { followUpState, todayISO } from "./prospects";
+import { todayISO } from "./prospects";
 
 export const CONTACT_CHANNELS = ["llamada", "whatsapp", "correo", "presencial"];
 
-// Atajos de "próximo seguimiento", en días a partir de hoy.
-export const FOLLOWUP_PRESET_DAYS = [1, 3, 7];
+// Valores especiales de la elección de seguimiento (cualquier otro valor es una
+// fecha YYYY-MM-DD): dejar la fecha futura que ya tenía, o no dar ninguna.
+export const FOLLOWUP_KEEP = "keep";
+export const FOLLOWUP_NONE = "none";
 
-export function addDaysISO(days, from = new Date()) {
-  return new Date(from.getFullYear(), from.getMonth(), from.getDate() + days).toLocaleDateString("en-CA");
-}
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-// Campos del prospecto que cambian al registrar un contacto. Un prospecto
-// "nuevo" pasa a "contactado" (eso es lo que mide el tiempo de primera
-// respuesta del embudo). Con fecha de seguimiento nueva se reemplaza la
-// anterior; sin ella, un seguimiento vencido o de hoy se da por atendido y uno
-// futuro se respeta.
-export function contactUpdateFields(prospect, { nextFollowupAt = "", now = new Date() } = {}) {
-  const fields = { last_contact_at: now.toISOString() };
-  if (prospect.stage === "nuevo") fields.stage = "contactado";
-  if (nextFollowupAt) fields.next_followup_at = nextFollowupAt;
-  else if (followUpState(prospect)) fields.next_followup_at = null;
-  return fields;
+// La elección del formulario como el argumento `nextFollowup` de contactFields:
+// una fecha, null (sin fecha) o undefined (no tocar una fecha futura).
+export function followupArg(choice) {
+  if (choice === FOLLOWUP_NONE) return null;
+  if (!choice || choice === FOLLOWUP_KEEP) return undefined;
+  return choice;
 }
 
 // Devuelve { campo: "clave i18n" } con los errores; vacío si todo está bien.
-export function validateContact({ channel, nextFollowupAt }) {
+// `askFollowup`: en una etapa abierta el seguimiento se pide explícito (fecha,
+// "dejar la que tiene" o "sin fecha"), para que el prospecto no se quede sin
+// fecha por descuido; en cerrado y perdido no aplica.
+export function validateContact({ channel, followup = "", askFollowup = false }) {
   const errors = {};
   if (!CONTACT_CHANNELS.includes(channel)) errors.channel = "prospects.contact.errors.channel";
-  if (nextFollowupAt && nextFollowupAt < todayISO()) errors.nextFollowupAt = "prospects.contact.errors.pastDate";
+  if (askFollowup && !followup) errors.followup = "prospects.contact.errors.followup";
+  else if (ISO_DATE.test(followup) && followup < todayISO()) errors.followup = "prospects.contact.errors.pastDate";
   return errors;
 }

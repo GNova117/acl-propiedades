@@ -1,31 +1,47 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CONTACT_CHANNELS, FOLLOWUP_PRESET_DAYS, addDaysISO, validateContact } from "../lib/prospectContacts";
-import { followUpState, todayISO } from "../lib/prospects";
+import { CONTACT_CHANNELS, FOLLOWUP_KEEP, FOLLOWUP_NONE, followupArg, validateContact } from "../lib/prospectContacts";
+import { FOLLOWUP_OPTIONS, addDaysISO, isOpenStage, todayISO } from "../lib/prospects";
 import "./ProspectContactForm.css";
 
 // "Registrar contacto" de la tarjeta de un prospecto: canal (obligatorio), nota
-// corta y, si se quiere, la fecha del próximo seguimiento. No preselecciona un
-// canal por su cuenta (se guardaría un dato equivocado sin que nadie lo note);
-// solo cuando el asesor acaba de mandar un WhatsApp o un correo desde las
-// plantillas, `defaultChannel` ya lo trae elegido y basta con "Guardar".
+// corta y, en una etapa abierta, cuándo es el siguiente seguimiento (también
+// obligatorio: una fecha, "dejar la que tiene" o "sin fecha" — así el prospecto
+// no se queda sin fecha por descuido). En cerrado y perdido no hay seguimiento.
+// No preselecciona un canal por su cuenta (se guardaría un dato equivocado sin
+// que nadie lo note); solo cuando el asesor acaba de mandar un WhatsApp o un
+// correo desde los mensajes rápidos, `defaultChannel` ya lo trae elegido.
 export default function ProspectContactForm({ prospect, defaultChannel = "", saving = false, error = "", onSave, onCancel }) {
   const { t } = useTranslation();
   const [channel, setChannel] = useState(defaultChannel);
   const [note, setNote] = useState("");
-  const [nextFollowupAt, setNextFollowupAt] = useState("");
+  // "" (sin elegir) | FOLLOWUP_KEEP | FOLLOWUP_NONE | una fecha YYYY-MM-DD.
+  const [followup, setFollowup] = useState("");
   const [errors, setErrors] = useState({});
 
-  const dueFollowUp = Boolean(followUpState(prospect));
-  const presets = FOLLOWUP_PRESET_DAYS.map((days) => ({ days, date: addDaysISO(days) }));
+  const askFollowup = isOpenStage(prospect.stage);
+  const keepDate = prospect.next_followup_at && prospect.next_followup_at > todayISO() ? prospect.next_followup_at : null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const found = validateContact({ channel, nextFollowupAt });
+    const found = validateContact({ channel, followup, askFollowup });
     setErrors(found);
     if (Object.keys(found).length > 0) return;
-    onSave({ channel, note, nextFollowupAt });
+    onSave({ channel, note, nextFollowup: askFollowup ? followupArg(followup) : undefined });
   };
+
+  // Una opción de seguimiento: se vuelve a pulsar para quitarla.
+  const followupChip = (value, label) => (
+    <button
+      key={value}
+      type="button"
+      className={`contact-form__chip${followup === value ? " is-active" : ""}`}
+      aria-pressed={followup === value}
+      onClick={() => setFollowup(followup === value ? "" : value)}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <form className="contact-form" onSubmit={handleSubmit} noValidate aria-label={t("prospects.logContact")}>
@@ -54,31 +70,28 @@ export default function ProspectContactForm({ prospect, defaultChannel = "", sav
         />
       </div>
 
-      <fieldset className="contact-form__group">
-        <legend>{t("prospects.contact.nextFollowup")}</legend>
-        <div className="contact-form__chips">
-          {presets.map(({ days, date }) => (
-            <button
-              key={days}
-              type="button"
-              className={`contact-form__chip${nextFollowupAt === date ? " is-active" : ""}`}
-              aria-pressed={nextFollowupAt === date}
-              onClick={() => setNextFollowupAt(nextFollowupAt === date ? "" : date)}
-            >
-              {t(`prospects.contact.in${days}`)}
-            </button>
-          ))}
-          <input
-            type="date"
-            min={todayISO()}
-            value={nextFollowupAt}
-            onChange={(e) => setNextFollowupAt(e.target.value)}
-            aria-label={t("prospects.contact.nextFollowup")}
-          />
-        </div>
-        {errors.nextFollowupAt && <span className="form-error">{t(errors.nextFollowupAt)}</span>}
-        {dueFollowUp && !nextFollowupAt && <p className="form-hint">{t("prospects.contact.dueHint")}</p>}
-      </fieldset>
+      {askFollowup && (
+        <fieldset className="contact-form__group">
+          <legend>{t("prospects.nextFollowupQuestion")}</legend>
+          <div className="contact-form__chips">
+            {FOLLOWUP_OPTIONS.map((option) => followupChip(addDaysISO(option.days), t(`prospects.followupOptions.${option.key}`)))}
+            {keepDate &&
+              followupChip(
+                FOLLOWUP_KEEP,
+                t("prospects.keepFollowup", { date: new Date(`${keepDate}T00:00:00`).toLocaleDateString("es-MX", { day: "numeric", month: "short" }) })
+              )}
+            {followupChip(FOLLOWUP_NONE, t("prospects.noFollowup"))}
+            <input
+              type="date"
+              min={todayISO()}
+              value={/^\d{4}-\d{2}-\d{2}$/.test(followup) ? followup : ""}
+              onChange={(e) => setFollowup(e.target.value)}
+              aria-label={t("prospects.form.nextFollowup")}
+            />
+          </div>
+          {errors.followup && <span className="form-error">{t(errors.followup)}</span>}
+        </fieldset>
+      )}
 
       {error && <span className="form-error">{error}</span>}
 

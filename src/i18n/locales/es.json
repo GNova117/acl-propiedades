@@ -1563,39 +1563,44 @@
       },
       "note": "Nota (opcional)",
       "notePlaceholder": "Ej. Quedó de ver la casa el sábado",
-      "nextFollowup": "Próximo seguimiento",
-      "in1": "Mañana",
-      "in3": "En 3 días",
-      "in7": "En 1 semana",
-      "dueHint": "Si no eliges fecha, el seguimiento pendiente se da por atendido.",
       "errors": {
         "channel": "Elige cómo lo contactaste.",
+        "followup": "Elige cuándo das el siguiente seguimiento.",
         "pastDate": "La fecha no puede ser anterior a hoy."
       },
       "historyTitle": "Historial de contactos",
       "historyEmpty": "Todavía no hay contactos registrados."
     },
+    "nextFollowupQuestion": "¿Cuándo das el siguiente seguimiento?",
+    "followupOptions": {
+      "tomorrow": "Mañana",
+      "days3": "En 3 días",
+      "week1": "En 1 semana",
+      "week2": "En 2 semanas"
+    },
+    "keepFollowup": "Dejar {{date}}",
+    "noFollowup": "Sin fecha",
+    "match": {
+      "count_one": "{{count}} propiedad le encaja",
+      "count_other": "{{count}} propiedades le encajan",
+      "looking": "Busca: {{text}}",
+      "send": "Enviar",
+      "view": "Ver",
+      "more": "y {{count}} más",
+      "propertyButton": "Prospectos ({{count}})",
+      "modalTitle": "Prospectos que encajan con esta propiedad",
+      "modalHint": "Prospectos abiertos cuyo \"qué busca\" coincide con {{title}}, los más avanzados primero.",
+      "openProspect": "Abrir",
+      "noContact": "Sin teléfono ni correo",
+      "emailSubject": "Una propiedad para ti — ACL Propiedades"
+    },
     "templates": {
-      "theAgency": "el equipo de ACL Propiedades",
-      "signedBy": "{{advisor}} de ACL Propiedades",
-      "theSearch": "la propiedad que buscas",
-      "emailSubject": "Seguimiento de tu búsqueda en ACL Propiedades",
-      "firstLabel": "Primer contacto",
-      "firstText": "Hola {{name}}, te escribe {{advisor}}. Vi tu interés en {{property}} y con gusto te ayudo. ¿Cuándo te queda bien que platiquemos unos minutos?",
-      "followupLabel": "Seguimiento",
-      "followupText": "Hola {{name}}, te escribe {{advisor}}. Quería saber si sigues interesado en {{property}} o si prefieres que te comparta otras opciones. ¡Quedo al pendiente!",
-      "visitLabel": "Agendar visita",
-      "visitText": "Hola {{name}}, ¿te gustaría conocer {{property}}? Dime qué día y horario te quedan mejor y te confirmo cuanto antes.",
-      "priceLabel": "Precio y condiciones",
-      "priceText": "Hola {{name}}, te comparto que el precio de {{property}} es de {{price}}. ¿Te explico las formas de pago y el financiamiento disponible?",
-      "postVisitLabel": "Después de la visita",
-      "postVisitText": "Hola {{name}}, gracias por visitar {{property}}. ¿Qué te pareció? Si tienes dudas sobre el precio, los documentos o las formas de pago, con gusto las resolvemos.",
-      "offerLabel": "Avance de la oferta",
-      "offerText": "Hola {{name}}, te escribo para darle seguimiento a tu propuesta por {{property}}. ¿Te parece si platicamos hoy los siguientes pasos?",
-      "reactivateLabel": "Retomar contacto",
-      "reactivateText": "Hola {{name}}, te escribe {{advisor}}. Hace tiempo platicamos sobre {{property}}. ¿Sigues buscando? Tenemos opciones nuevas que podrían interesarte.",
-      "postsale30Label": "Posventa: 1 mes",
-      "postsale180Label": "Posventa: 6 meses"
+      "label": "Mensaje rápido",
+      "firstContact": "Primer contacto",
+      "thanksVisit": "Gracias por la visita",
+      "checkIn": "¿Pudo revisar la propiedad?",
+      "scheduleVisit": "Proponer una visita",
+      "sendProperty": "Enviar la propiedad"
     },
     "confirmDelete": "¿Eliminar a {{name}} de los prospectos?",
     "saveError": "No se pudo guardar el prospecto",
@@ -1621,12 +1626,17 @@
       "noProperty": "— Ninguna —",
       "lookingFor": "Qué busca",
       "lookingForPlaceholder": "Ej. casa de 3 recámaras en Torreón, hasta $1.8 M",
+      "searchTitle": "Criterios de búsqueda (para sugerirle propiedades)",
+      "searchHint": "Con tipo, zona y presupuesto, el sistema te muestra qué propiedades disponibles le encajan, en la tarjeta del prospecto.",
+      "any": "Cualquiera",
+      "searchExtra": "Criterios adicionales (se conservan): {{text}}",
       "lostReason": "Motivo por el que se perdió",
       "notes": "Notas internas",
       "errors": {
         "name": "Escribe el nombre.",
         "contact": "Captura al menos un teléfono o un correo.",
-        "email": "El correo no es válido."
+        "email": "El correo no es válido.",
+        "budgetRange": "El precio mínimo no puede ser mayor que el máximo."
       }
     }
   },
