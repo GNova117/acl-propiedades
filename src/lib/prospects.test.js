@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  INBOUND_SOURCES,
   daysSince,
   followUpState,
   messageToProspectFields,
   todayISO,
   toProspectFields,
+  unattendedAge,
+  unattendedState,
   validateProspectForm,
   visitToProspectFields,
 } from "./prospects";
@@ -111,5 +114,48 @@ describe("validateProspectForm", () => {
   it("valida el formato del correo solo si se escribió algo", () => {
     expect(validateProspectForm({ ...valid, email: "no-es-correo" }).email).toBeTruthy();
     expect(validateProspectForm(valid).email).toBeUndefined();
+  });
+});
+
+describe("unattendedState", () => {
+  const now = new Date("2026-10-19T18:00:00Z");
+  const hoursAgo = (h) => new Date(now.getTime() - h * 3600000).toISOString();
+  const lead = (overrides = {}) => ({ stage: "nuevo", source: "chatbot", last_contact_at: null, created_at: hoursAgo(2), ...overrides });
+
+  it("no avisa durante la primera hora", () => {
+    expect(unattendedState(lead({ created_at: hoursAgo(0.5) }), now)).toBeNull();
+  });
+
+  it("avisa ('warn') desde la primera hora y marca 'late' desde las 4 h", () => {
+    expect(unattendedState(lead({ created_at: hoursAgo(1) }), now)).toEqual({ hours: 1, level: "warn" });
+    expect(unattendedState(lead({ created_at: hoursAgo(3.9) }), now)).toEqual({ hours: 3, level: "warn" });
+    expect(unattendedState(lead({ created_at: hoursAgo(4) }), now)).toEqual({ hours: 4, level: "late" });
+  });
+
+  it("deja de aplicar en cuanto hay un contacto o la etapa cambia", () => {
+    expect(unattendedState(lead({ last_contact_at: hoursAgo(1) }), now)).toBeNull();
+    expect(unattendedState(lead({ stage: "contactado" }), now)).toBeNull();
+  });
+
+  it("solo cuenta prospectos entrantes, no los que captura el asesor", () => {
+    for (const source of ["manual", "visita", "recomendacion", "redes", "otro"]) {
+      expect(unattendedState(lead({ source }), now)).toBeNull();
+    }
+    for (const source of INBOUND_SOURCES) {
+      expect(unattendedState(lead({ source }), now)).not.toBeNull();
+    }
+  });
+
+  it("ignora una fecha de creación inválida", () => {
+    expect(unattendedState(lead({ created_at: "no-es-fecha" }), now)).toBeNull();
+  });
+});
+
+describe("unattendedAge", () => {
+  it("usa horas hasta 47 y días después", () => {
+    expect(unattendedAge(5)).toEqual({ unit: "hours", count: 5 });
+    expect(unattendedAge(47)).toEqual({ unit: "hours", count: 47 });
+    expect(unattendedAge(48)).toEqual({ unit: "days", count: 2 });
+    expect(unattendedAge(75)).toEqual({ unit: "days", count: 3 });
   });
 });

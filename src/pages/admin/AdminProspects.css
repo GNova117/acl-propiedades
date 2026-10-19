@@ -116,6 +116,11 @@
   flex: 1 1 100%;
 }
 
+/* El selector de plantillas comparte fila con los botones, no la ocupa entera. */
+.prospect-card__actions .quick-reply-select {
+  flex: 1 1 auto;
+}
+
 .prospect-chip {
   align-self: flex-start;
   padding: 0.1rem 0.5rem;

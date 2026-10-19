@@ -1546,6 +1546,57 @@
     "followToday": "Seguimiento hoy",
     "followOn": "Seguimiento: {{date}}",
     "logContact": "Registrar contacto",
+    "unattendedOnly": "Solo sin atender",
+    "unattended": {
+      "hours_one": "Sin atender: {{count}} h",
+      "hours_other": "Sin atender: {{count}} h",
+      "days_one": "Sin atender: {{count}} día",
+      "days_other": "Sin atender: {{count}} días"
+    },
+    "contact": {
+      "channel": "¿Cómo lo contactaste?",
+      "channels": {
+        "llamada": "Llamada",
+        "whatsapp": "WhatsApp",
+        "correo": "Correo",
+        "presencial": "En persona"
+      },
+      "note": "Nota (opcional)",
+      "notePlaceholder": "Ej. Quedó de ver la casa el sábado",
+      "nextFollowup": "Próximo seguimiento",
+      "in1": "Mañana",
+      "in3": "En 3 días",
+      "in7": "En 1 semana",
+      "dueHint": "Si no eliges fecha, el seguimiento pendiente se da por atendido.",
+      "errors": {
+        "channel": "Elige cómo lo contactaste.",
+        "pastDate": "La fecha no puede ser anterior a hoy."
+      },
+      "historyTitle": "Historial de contactos",
+      "historyEmpty": "Todavía no hay contactos registrados."
+    },
+    "templates": {
+      "theAgency": "el equipo de ACL Propiedades",
+      "signedBy": "{{advisor}} de ACL Propiedades",
+      "theSearch": "la propiedad que buscas",
+      "emailSubject": "Seguimiento de tu búsqueda en ACL Propiedades",
+      "firstLabel": "Primer contacto",
+      "firstText": "Hola {{name}}, te escribe {{advisor}}. Vi tu interés en {{property}} y con gusto te ayudo. ¿Cuándo te queda bien que platiquemos unos minutos?",
+      "followupLabel": "Seguimiento",
+      "followupText": "Hola {{name}}, te escribe {{advisor}}. Quería saber si sigues interesado en {{property}} o si prefieres que te comparta otras opciones. ¡Quedo al pendiente!",
+      "visitLabel": "Agendar visita",
+      "visitText": "Hola {{name}}, ¿te gustaría conocer {{property}}? Dime qué día y horario te quedan mejor y te confirmo cuanto antes.",
+      "priceLabel": "Precio y condiciones",
+      "priceText": "Hola {{name}}, te comparto que el precio de {{property}} es de {{price}}. ¿Te explico las formas de pago y el financiamiento disponible?",
+      "postVisitLabel": "Después de la visita",
+      "postVisitText": "Hola {{name}}, gracias por visitar {{property}}. ¿Qué te pareció? Si tienes dudas sobre el precio, los documentos o las formas de pago, con gusto las resolvemos.",
+      "offerLabel": "Avance de la oferta",
+      "offerText": "Hola {{name}}, te escribo para darle seguimiento a tu propuesta por {{property}}. ¿Te parece si platicamos hoy los siguientes pasos?",
+      "reactivateLabel": "Retomar contacto",
+      "reactivateText": "Hola {{name}}, te escribe {{advisor}}. Hace tiempo platicamos sobre {{property}}. ¿Sigues buscando? Tenemos opciones nuevas que podrían interesarte.",
+      "postsale30Label": "Posventa: 1 mes",
+      "postsale180Label": "Posventa: 6 meses"
+    },
     "confirmDelete": "¿Eliminar a {{name}} de los prospectos?",
     "saveError": "No se pudo guardar el prospecto",
     "deleteError": "No se pudo eliminar el prospecto",
@@ -1587,6 +1638,10 @@
     "keysLate_other": "{{count}} con 2 días o más fuera",
     "daysOut_one": "{{count}} día",
     "daysOut_other": "{{count}} días",
+    "hoursOut_one": "{{count}} hora",
+    "hoursOut_other": "{{count}} horas",
+    "unattendedLate_one": "{{count}} lleva más de 4 horas sin atenderse",
+    "unattendedLate_other": "{{count}} llevan más de 4 horas sin atenderse",
     "items": {
       "postsale": "Posventa por hacer",
       "signatures": "Firmas sin completar (3 días o más)",

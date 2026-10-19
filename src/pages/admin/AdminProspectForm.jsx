@@ -12,6 +12,7 @@ import {
   validateProspectForm,
 } from "../../lib/prospects";
 import InternalNotes from "../../components/InternalNotes";
+import ProspectContactHistory from "../../components/ProspectContactHistory";
 import "./admin.css";
 
 // Alta y edición de un prospecto. El asesor con login vinculado siempre queda
@@ -206,6 +207,8 @@ export default function AdminProspectForm() {
           </button>
         </div>
       </form>
+
+      {isEdit && <ProspectContactHistory prospectId={id} />}
 
       {isEdit && <InternalNotes entityType="prospect" entityId={id} />}
     </div>

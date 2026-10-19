@@ -5,8 +5,12 @@ import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
 import { whatsappDigits } from "../../lib/format";
-import { PROSPECT_STAGES, daysSince, followUpState, visitToProspectFields } from "../../lib/prospects";
+import { PROSPECT_STAGES, daysSince, followUpState, unattendedAge, unattendedState, visitToProspectFields } from "../../lib/prospects";
 import { POSTSALE_STEPS, postsaleDue, postsaleMessage } from "../../lib/postsale";
+import { contactUpdateFields } from "../../lib/prospectContacts";
+import { prospectTemplates } from "../../lib/prospectTemplates";
+import QuickReplyButton from "../../components/QuickReplyButton";
+import ProspectContactForm from "../../components/ProspectContactForm";
 import "./admin.css";
 import "./AdminProspects.css";
 
@@ -41,6 +45,11 @@ export default function AdminProspects() {
   const [query, setQuery] = useState("");
   const [advisorFilter, setAdvisorFilter] = useState("");
   const [overdueOnly, setOverdueOnly] = useState(false);
+  const [unattendedOnly, setUnattendedOnly] = useState(false);
+  // Tarjeta con el formulario de "Registrar contacto" abierto: { id, channel }.
+  const [contactFor, setContactFor] = useState(null);
+  const [contactSaving, setContactSaving] = useState(false);
+  const [contactError, setContactError] = useState("");
 
   const load = () => {
     setLoading(true);
@@ -66,7 +75,8 @@ export default function AdminProspects() {
   useEffect(load, []);
 
   const advisorName = (id) => advisors.find((a) => a.id === id)?.name || "";
-  const propertyTitle = (id) => properties.find((p) => p.id === id)?.title || "";
+  const propertyOf = (id) => properties.find((p) => p.id === id) || null;
+  const propertyTitle = (id) => propertyOf(id)?.title || "";
 
   // Visitas marcadas como "posible cliente" que aún no son prospecto.
   const importable = useMemo(() => {
@@ -79,11 +89,12 @@ export default function AdminProspects() {
     return prospects.filter((p) => {
       if (advisorFilter && p.advisor_id !== advisorFilter) return false;
       if (overdueOnly && followUpState(p) !== "overdue") return false;
+      if (unattendedOnly && !unattendedState(p)) return false;
       if (!q) return true;
       return [p.name, p.phone, p.email, p.looking_for, propertyTitle(p.property_id)].some((v) => normalize(v).includes(q));
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prospects, query, advisorFilter, overdueOnly, properties]);
+  }, [prospects, query, advisorFilter, overdueOnly, unattendedOnly, properties]);
 
   const handleExport = () => {
     exportToCsv("prospectos.csv", filtered, [
@@ -115,13 +126,29 @@ export default function AdminProspects() {
 
   const changeStage = (prospect, stage) => patch(prospect, { stage, ...(stage === "perdido" ? {} : { lost_reason: null }) });
 
-  const logContact = (prospect) =>
-    patch(prospect, {
-      last_contact_at: new Date().toISOString(),
-      // Si había un seguimiento pendiente para hoy o vencido, ya se atendió.
-      ...(followUpState(prospect) ? { next_followup_at: null } : {}),
-      ...(prospect.stage === "nuevo" ? { stage: "contactado" } : {}),
-    });
+  // Abre (o cierra, si ya estaba abierto) el formulario de contacto de una
+  // tarjeta. `channel` llega ya elegido cuando se acaba de mandar un mensaje
+  // desde las plantillas; `force` evita cerrarlo en ese caso.
+  const openContact = (prospect, channel = "", force = false) => {
+    setContactError("");
+    setContactFor((current) => (!force && current?.id === prospect.id ? null : { id: prospect.id, channel }));
+  };
+
+  // Guarda el contacto en el historial y actualiza al prospecto (último
+  // contacto, etapa nuevo → contactado y próximo seguimiento).
+  const saveContact = async (prospect, { channel, note, nextFollowupAt }) => {
+    setContactSaving(true);
+    setContactError("");
+    try {
+      const updated = await db.logProspectContact(prospect.id, contactUpdateFields(prospect, { nextFollowupAt }), { channel, note });
+      setProspects((prev) => prev.map((p) => (p.id === prospect.id ? updated : p)));
+      setContactFor(null);
+    } catch (err) {
+      setContactError(err.message || t("prospects.saveError"));
+    } finally {
+      setContactSaving(false);
+    }
+  };
 
   const handleDelete = async (prospect) => {
     if (!window.confirm(t("prospects.confirmDelete", { name: prospect.name }))) return;
@@ -191,6 +218,15 @@ export default function AdminProspects() {
     return t("prospects.contactAgo", { count: days });
   };
 
+  // Prospecto que llegó solo y nadie ha contactado: amarillo desde la primera
+  // hora, rojo desde las 4.
+  const unattendedChip = (p) => {
+    const state = unattendedState(p);
+    if (!state) return null;
+    const age = unattendedAge(state.hours);
+    return <span className={`prospect-chip prospect-chip--${state.level === "late" ? "overdue" : "today"}`}>{t(`prospects.unattended.${age.unit}`, { count: age.count })}</span>;
+  };
+
   const followChip = (p) => {
     const state = followUpState(p);
     if (state === "overdue") return <span className="prospect-chip prospect-chip--overdue">{t("prospects.followOverdue")}</span>;
@@ -250,6 +286,10 @@ export default function AdminProspects() {
           <input type="checkbox" checked={overdueOnly} onChange={(e) => setOverdueOnly(e.target.checked)} />
           {t("prospects.overdueOnly")}
         </label>
+        <label className="prospect-filters__check">
+          <input type="checkbox" checked={unattendedOnly} onChange={(e) => setUnattendedOnly(e.target.checked)} />
+          {t("prospects.unattendedOnly")}
+        </label>
       </div>
 
       {loadError && <p className="form-error">{loadError}</p>}
@@ -296,6 +336,7 @@ export default function AdminProspects() {
                         {contactText(p)}
                         {seesAll && advisorName(p.advisor_id) ? ` · ${advisorName(p.advisor_id)}` : ""}
                       </p>
+                      {unattendedChip(p)}
                       {followChip(p)}
                       {(() => {
                         const due = stage === "cerrado" ? postsaleDue(p, history) : null;
@@ -329,7 +370,14 @@ export default function AdminProspects() {
                             </option>
                           ))}
                         </select>
-                        <button type="button" className="btn btn-outline btn-sm" onClick={() => logContact(p)} disabled={busyId === p.id}>
+                        <QuickReplyButton
+                          templates={prospectTemplates(t, p, { property: propertyOf(p.property_id), advisorName: advisorName(p.advisor_id) })}
+                          phone={p.phone}
+                          email={p.email}
+                          emailSubject={t("prospects.templates.emailSubject")}
+                          onSend={(_template, channel) => openContact(p, channel, true)}
+                        />
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => openContact(p)} aria-expanded={contactFor?.id === p.id} disabled={busyId === p.id}>
                           {t("prospects.logContact")}
                         </button>
                         {p.client_id ? (
@@ -347,6 +395,17 @@ export default function AdminProspects() {
                           {t("common.delete")}
                         </button>
                       </div>
+                      {contactFor?.id === p.id && (
+                        <ProspectContactForm
+                          key={`${p.id}-${contactFor.channel}`}
+                          prospect={p}
+                          defaultChannel={contactFor.channel}
+                          saving={contactSaving}
+                          error={contactError}
+                          onSave={(values) => saveContact(p, values)}
+                          onCancel={() => setContactFor(null)}
+                        />
+                      )}
                     </article>
                   );
                 })}
