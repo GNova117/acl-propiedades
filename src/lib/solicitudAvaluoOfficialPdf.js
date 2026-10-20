@@ -4,14 +4,15 @@
 // literalmente ese formato, listo para entregar a la instancia de valuación.
 //
 // El formato es un solo PDF de una página sin campos de formulario (es una
-// imagen), así que las coordenadas de cada renglón se midieron a mano sobre
-// la plantilla (en puntos PDF, origen abajo-izquierda), renderizándola a
-// 300dpi con una cuadrícula superpuesta y leyendo la posición real de cada
-// fila de casillas impresa (no la de su etiqueta). Prácticamente todo el
-// formato usa el mismo ancho de celda (~11.8pt), así que casi todos los
-// campos se escriben como "comb": un carácter por celda, igual que el NSS o
-// el teléfono. Solo "Ciudad de" queda pendiente de ese estilo porque su
-// renglón no tiene etiqueta debajo que se pueda pisar.
+// imagen), así que la geometría de cada renglón se midió sobre la plantilla
+// renderizada a 600dpi (en puntos PDF, origen abajo-izquierda): para cada fila
+// de casillas se tomó la línea sobre la que se escribe (`y`), la posición de
+// la PRIMERA marca vertical — el borde izquierdo de la primera casilla, no el
+// borde del recuadro de la sección —, el paso real entre marcas y cuántas
+// casillas trae. Casi todo el formato usa un paso de ~11.8pt, pero cada fila
+// difiere unas décimas (y las de teléfono, fecha y antigüedad son más
+// angostas), así que cada campo lleva su propio paso en vez de una constante.
+// Cada carácter se escribe centrado en su casilla ("comb").
 
 import { DESTINO_CREDITO_OPTIONS } from "./solicitudAvaluo";
 
@@ -19,6 +20,9 @@ const TEMPLATE_URL = "/solicitud_avaluo_infonavit.pdf";
 
 const SIZE = 9;
 const SIZE_SMALL = 8;
+
+// Distancia entre la línea impresa de la casilla y la línea base del texto.
+const BASELINE_RISE = 2;
 
 const SMART_CHARS = {
   "‘": "'",
@@ -45,80 +49,79 @@ const DESTINO_CIRCLES = [
   { x: 547.4, y: 701 },
 ];
 
-// Campos de texto simple: se escriben alineados a la izquierda, empezando en
-// (x, y) — y es la línea base, un par de puntos arriba del renglón impreso.
-const TEXT_FIELDS = {
-  // Sección 4 — ciudad de la solicitud (la fecha se maneja aparte: día / mes / año).
-  // Es el único renglón sin etiqueta debajo (va en línea con "Ciudad de"),
-  // así que no hay riesgo de pisar nada al dejarlo como texto corrido.
-  ciudad_solicitud: { x: 90, y: 162 },
-};
-
-// Campos "comb": un carácter por celda, para imitar los recuadros impresos.
-// Casi todo el formato usa este estilo de casillas, con el mismo ancho de
-// celda (~11.8pt) en cualquier renglón — nombre, domicilio, teléfono, RFC,
-// NSS, etc. — así que se escriben todos igual en vez de como texto corrido.
+// Campos "comb": un carácter por casilla.
+//   x          borde izquierdo de la primera casilla (primera marca impresa)
+//   y          línea impresa sobre la que se escribe
+//   cellWidth  paso real entre marcas de esa fila
+//   maxCells   casillas impresas (lo que sobre se recorta)
+//   size       tamaño de letra (por defecto SIZE)
+//   rise       separación línea→línea base (por defecto BASELINE_RISE)
+//   rows       otras líneas `y` donde continúa el texto cuando no cabe en la primera
 const COMB_FIELDS = {
-  nss: { x: 254, y: 662, cellWidth: 11, maxCells: 11 },
+  nss: { x: 240.1, y: 659.07, cellWidth: 11.817, maxCells: 11, size: SIZE_SMALL },
 
   // Sección 1 — derechohabiente
-  dh_apellido_paterno: { x: 52.3, y: 646, cellWidth: 11.8, maxCells: 42 },
-  dh_apellido_materno: { x: 52.3, y: 630, cellWidth: 11.8, maxCells: 42 },
-  dh_nombres: { x: 52.3, y: 614, cellWidth: 11.8, maxCells: 42 },
+  dh_apellido_paterno: { x: 57.74, y: 643.17, cellWidth: 11.836, maxCells: 40 },
+  dh_apellido_materno: { x: 57.74, y: 627.27, cellWidth: 11.836, maxCells: 40 },
+  dh_nombres: { x: 57.74, y: 611.43, cellWidth: 11.836, maxCells: 40 },
   // Este renglón trae el encabezado "DOMICILIO ACTUAL" pegado arriba (en vez
-  // de una etiqueta abajo), así que usa letra chica y la línea base más baja
-  // dentro de su propia fila de casillas para no pisarlo.
-  dh_calle_numero: { x: 52.3, y: 586, cellWidth: 11.8, maxCells: 44, size: SIZE_SMALL },
-  dh_colonia: { x: 52.3, y: 574, cellWidth: 11.8, maxCells: 21 },
-  dh_municipio: { x: 300.5, y: 574, cellWidth: 11.8, maxCells: 20 },
-  dh_estado: { x: 52.3, y: 558, cellWidth: 11.8, maxCells: 15 },
-  dh_codigo_postal: { x: 225, y: 558, cellWidth: 11.8, maxCells: 10 },
+  // de una etiqueta abajo), así que usa letra chica y se escribe más abajo
+  // dentro de su fila para no pisarlo.
+  dh_calle_numero: { x: 57.98, y: 587.19, cellWidth: 11.797, maxCells: 41, size: SIZE_SMALL, rise: 1 },
+  dh_colonia: { x: 57.88, y: 571.23, cellWidth: 11.817, maxCells: 20 },
+  dh_municipio: { x: 304.22, y: 571.23, cellWidth: 11.819, maxCells: 19 },
+  dh_estado: { x: 57.8, y: 553.53, cellWidth: 11.92, maxCells: 15 },
+  dh_codigo_postal: { x: 239.64, y: 553.53, cellWidth: 11.789, maxCells: 5 },
 
-  dh_telefono_casa_lada: { x: 363, y: 556, cellWidth: 11, maxCells: 3 },
-  dh_telefono_casa_numero: { x: 400, y: 556, cellWidth: 10, maxCells: 7 },
-  dh_telefono_trabajo_lada: { x: 363, y: 541, cellWidth: 11, maxCells: 3 },
-  dh_telefono_trabajo_numero: { x: 400, y: 541, cellWidth: 10, maxCells: 7 },
-  dh_telefono_celular_lada: { x: 363, y: 526, cellWidth: 11, maxCells: 3 },
-  dh_telefono_celular_numero: { x: 400, y: 526, cellWidth: 10, maxCells: 7 },
+  // Teléfonos: lada de 3 casillas "( )" y número de 8 casillas.
+  dh_telefono_casa_lada: { x: 363.4, y: 553.53, cellWidth: 11.77, maxCells: 3 },
+  dh_telefono_casa_numero: { x: 403.44, y: 553.53, cellWidth: 11.806, maxCells: 8 },
+  dh_telefono_trabajo_lada: { x: 363.3, y: 540.93, cellWidth: 11.8, maxCells: 3 },
+  dh_telefono_trabajo_numero: { x: 403.42, y: 540.93, cellWidth: 11.805, maxCells: 8 },
+  dh_telefono_celular_lada: { x: 362.9, y: 529.23, cellWidth: 11.8, maxCells: 3 },
+  dh_telefono_celular_numero: { x: 403.09, y: 529.23, cellWidth: 11.797, maxCells: 8 },
 
   // Sección 2 — propietario actual
-  prop_apellido_paterno: { x: 52.3, y: 478, cellWidth: 11.8, maxCells: 19 },
-  prop_apellido_materno: { x: 52.3, y: 464, cellWidth: 11.8, maxCells: 19 },
-  prop_nombre_razon_social: { x: 52.3, y: 448, cellWidth: 11.8, maxCells: 19 },
-  prop_rfc: { x: 75, y: 430, cellWidth: 11.8, maxCells: 13, size: SIZE_SMALL },
-  prop_acreedor_hipotecario: { x: 52.3, y: 405, cellWidth: 11.8, maxCells: 19 },
-  prop_rfc_acreedor: { x: 75, y: 389, cellWidth: 11.8, maxCells: 13, size: SIZE_SMALL },
-  prop_calle_numero: { x: 300.5, y: 472, cellWidth: 11.8, maxCells: 22 },
-  prop_colonia: { x: 300.5, y: 456, cellWidth: 11.8, maxCells: 22 },
-  prop_municipio: { x: 300.5, y: 440, cellWidth: 11.8, maxCells: 22 },
-  prop_estado: { x: 300.5, y: 424, cellWidth: 11.8, maxCells: 14 },
-  prop_codigo_postal: { x: 462, y: 424, cellWidth: 11.8, maxCells: 8 },
+  prop_apellido_paterno: { x: 57.86, y: 476.97, cellWidth: 11.829, maxCells: 19 },
+  prop_apellido_materno: { x: 57.89, y: 461.07, cellWidth: 11.816, maxCells: 19 },
+  prop_nombre_razon_social: { x: 57.87, y: 445.23, cellWidth: 11.823, maxCells: 19 },
+  prop_rfc: { x: 73.67, y: 428.85, cellWidth: 11.803, maxCells: 13 },
+  // El acreedor trae dos renglones de 19 casillas.
+  prop_acreedor_hipotecario: { x: 57.89, y: 406.47, cellWidth: 11.817, maxCells: 19, rows: [396.15] },
+  prop_rfc_acreedor: { x: 73.68, y: 385.47, cellWidth: 11.802, maxCells: 13 },
+  prop_calle_numero: { x: 306.06, y: 468.99, cellWidth: 11.816, maxCells: 20 },
+  prop_colonia: { x: 306.06, y: 453.15, cellWidth: 11.816, maxCells: 20 },
+  prop_municipio: { x: 306.02, y: 437.25, cellWidth: 11.822, maxCells: 20 },
+  prop_estado: { x: 306, y: 421.35, cellWidth: 11.88, maxCells: 15 },
+  prop_codigo_postal: { x: 487.53, y: 421.35, cellWidth: 11.818, maxCells: 5 },
 
-  prop_telefono_trabajo_lada: { x: 363, y: 400, cellWidth: 11, maxCells: 3 },
-  prop_telefono_trabajo_numero: { x: 400, y: 400, cellWidth: 10, maxCells: 7 },
-  prop_telefono_celular_lada: { x: 363, y: 384, cellWidth: 11, maxCells: 3 },
-  prop_telefono_celular_numero: { x: 400, y: 384, cellWidth: 10, maxCells: 7 },
+  prop_telefono_trabajo_lada: { x: 362.3, y: 400.83, cellWidth: 11.8, maxCells: 3 },
+  prop_telefono_trabajo_numero: { x: 402.42, y: 400.83, cellWidth: 11.806, maxCells: 8 },
+  prop_telefono_celular_lada: { x: 362.3, y: 389.19, cellWidth: 11.8, maxCells: 3 },
+  prop_telefono_celular_numero: { x: 402.41, y: 389.19, cellWidth: 11.806, maxCells: 8 },
 
   // Sección 3 — vivienda
-  viv_calle: { x: 52.3, y: 322, cellWidth: 11.8, maxCells: 42 },
-  viv_numero_exterior: { x: 52.3, y: 305, cellWidth: 11.8, maxCells: 8, size: SIZE_SMALL },
-  viv_numero_interior: { x: 146.7, y: 305, cellWidth: 11.8, maxCells: 7, size: SIZE_SMALL },
-  viv_lote: { x: 229.3, y: 305, cellWidth: 11.8, maxCells: 5, size: SIZE_SMALL },
-  viv_manzana: { x: 288.3, y: 305, cellWidth: 11.8, maxCells: 5, size: SIZE_SMALL },
-  viv_colonia: { x: 347.3, y: 305, cellWidth: 11.8, maxCells: 17 },
-  viv_municipio: { x: 52.3, y: 286, cellWidth: 11.8, maxCells: 17 },
-  viv_estado: { x: 289, y: 286, cellWidth: 11.8, maxCells: 15 },
-  viv_codigo_postal: { x: 466, y: 286, cellWidth: 11.8, maxCells: 8 },
+  viv_clave_conjunto: { x: 203.51, y: 341.07, cellWidth: 11.828, maxCells: 16 },
+  // Pegada a la línea que cierra el recuadro de arriba, de ahí la letra chica.
+  viv_calle: { x: 56.81, y: 318.63, cellWidth: 11.839, maxCells: 40, size: SIZE_SMALL },
+  viv_numero_exterior: { x: 56.93, y: 302.31, cellWidth: 11.808, maxCells: 3 },
+  viv_numero_interior: { x: 99.94, y: 302.31, cellWidth: 11.802, maxCells: 3 },
+  viv_lote: { x: 141.88, y: 302.31, cellWidth: 11.78, maxCells: 3 },
+  viv_manzana: { x: 183.64, y: 302.31, cellWidth: 11.826, maxCells: 3 },
+  viv_colonia: { x: 237.6, y: 302.31, cellWidth: 11.836, maxCells: 20 },
+  viv_municipio: { x: 56.86, y: 286.47, cellWidth: 11.843, maxCells: 17 },
+  viv_estado: { x: 289.43, y: 286.47, cellWidth: 11.834, maxCells: 16 },
+  viv_codigo_postal: { x: 489.55, y: 286.47, cellWidth: 11.823, maxCells: 5 },
+  viv_antiguedad: { x: 86.02, y: 270.57, cellWidth: 11.82, maxCells: 2, size: SIZE_SMALL },
 
-  viv_clave_conjunto: { x: 200, y: 338, cellWidth: 11.9, maxCells: 16, size: SIZE_SMALL },
-  viv_antiguedad: { x: 85, y: 273, cellWidth: 11.8, maxCells: 2, size: SIZE_SMALL },
-
-  fecha_dia: { x: 327, y: 162, cellWidth: 11, maxCells: 2, size: SIZE_SMALL },
-  fecha_anio: { x: 506, y: 162, cellWidth: 11, maxCells: 2, size: SIZE_SMALL },
+  // Sección 4 — "Ciudad de ___ a __ de ______ de 20__"
+  ciudad_solicitud: { x: 92.9, y: 161.79, cellWidth: 11.84, maxCells: 19 },
+  fecha_dia: { x: 326.8, y: 161.79, cellWidth: 9.95, maxCells: 2, size: SIZE_SMALL },
+  fecha_anio: { x: 502.02, y: 161.79, cellWidth: 10.35, maxCells: 2, size: SIZE_SMALL },
 };
 
-const FECHA_MES_X = 403;
-const FECHA_MES_Y = 162;
+// El mes se escribe completo (no por casilla), centrado en su recuadro.
+const FECHA_MES = { centerX: 419.5, y: 161.79, size: SIZE_SMALL };
 
 const MESES = [
   "Enero",
@@ -156,24 +159,23 @@ export async function buildSolicitudAvaluoOfficialPdf(record) {
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const black = rgb(0, 0, 0);
 
-  const drawText = (text, { x, y, size = SIZE }) => {
+  const drawCenteredText = (text, { centerX, y, size = SIZE }) => {
     const value = sanitize(text);
     if (!value) return;
-    page.drawText(value, { x, y, size, font, color: black });
+    const w = font.widthOfTextAtSize(value, size);
+    page.drawText(value, { x: centerX - w / 2, y: y + BASELINE_RISE, size, font, color: black });
   };
 
-  const drawComb = (text, { x, y, cellWidth, maxCells, size = SIZE }) => {
-    const chars = sanitize(text).slice(0, maxCells).split("");
-    chars.forEach((ch, i) => {
-      const cellCenter = x + i * cellWidth + cellWidth / 2;
-      const w = font.widthOfTextAtSize(ch, size);
-      page.drawText(ch, { x: cellCenter - w / 2, y, size, font, color: black });
+  const drawComb = (text, { x, y, cellWidth, maxCells, size = SIZE, rise = BASELINE_RISE, rows = [] }) => {
+    const chars = sanitize(text).split("");
+    [y, ...rows].forEach((lineY, row) => {
+      chars.slice(row * maxCells, (row + 1) * maxCells).forEach((ch, i) => {
+        const cellCenter = x + i * cellWidth + cellWidth / 2;
+        const w = font.widthOfTextAtSize(ch, size);
+        page.drawText(ch, { x: cellCenter - w / 2, y: lineY + rise, size, font, color: black });
+      });
     });
   };
-
-  for (const [key, pos] of Object.entries(TEXT_FIELDS)) {
-    drawText(record[key], pos);
-  }
 
   const TELEFONO_PREFIXES = ["dh_telefono_casa", "dh_telefono_trabajo", "dh_telefono_celular", "prop_telefono_trabajo", "prop_telefono_celular"];
   const isTelefonoPart = (key) => TELEFONO_PREFIXES.some((prefix) => key === `${prefix}_lada` || key === `${prefix}_numero`);
@@ -198,7 +200,7 @@ export async function buildSolicitudAvaluoOfficialPdf(record) {
   if (record.fecha_solicitud) {
     const [year, month, day] = String(record.fecha_solicitud).slice(0, 10).split("-");
     if (day) drawComb(day, COMB_FIELDS.fecha_dia);
-    if (month) drawText(MESES[Number(month) - 1] || "", { x: FECHA_MES_X, y: FECHA_MES_Y, size: SIZE_SMALL });
+    if (month) drawCenteredText(MESES[Number(month) - 1] || "", FECHA_MES);
     if (year) drawComb(year.slice(-2), COMB_FIELDS.fecha_anio);
   }
 
