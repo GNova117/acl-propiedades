@@ -1546,6 +1546,31 @@
     "followToday": "Seguimiento hoy",
     "followOn": "Seguimiento: {{date}}",
     "logContact": "Registrar contacto",
+    "unattendedOnly": "Solo sin atender",
+    "unattended": {
+      "hours_one": "Sin atender: {{count}} h",
+      "hours_other": "Sin atender: {{count}} h",
+      "days_one": "Sin atender: {{count}} día",
+      "days_other": "Sin atender: {{count}} días"
+    },
+    "contact": {
+      "channel": "¿Cómo lo contactaste?",
+      "channels": {
+        "llamada": "Llamada",
+        "whatsapp": "WhatsApp",
+        "correo": "Correo",
+        "presencial": "En persona"
+      },
+      "note": "Nota (opcional)",
+      "notePlaceholder": "Ej. Quedó de ver la casa el sábado",
+      "errors": {
+        "channel": "Elige cómo lo contactaste.",
+        "followup": "Elige cuándo das el siguiente seguimiento.",
+        "pastDate": "La fecha no puede ser anterior a hoy."
+      },
+      "historyTitle": "Historial de contactos",
+      "historyEmpty": "Todavía no hay contactos registrados."
+    },
     "nextFollowupQuestion": "¿Cuándo das el siguiente seguimiento?",
     "followupOptions": {
       "tomorrow": "Mañana",
@@ -1623,6 +1648,10 @@
     "keysLate_other": "{{count}} con 2 días o más fuera",
     "daysOut_one": "{{count}} día",
     "daysOut_other": "{{count}} días",
+    "hoursOut_one": "{{count}} hora",
+    "hoursOut_other": "{{count}} horas",
+    "unattendedLate_one": "{{count}} lleva más de 4 horas sin atenderse",
+    "unattendedLate_other": "{{count}} llevan más de 4 horas sin atenderse",
     "items": {
       "postsale": "Posventa por hacer",
       "signatures": "Firmas sin completar (3 días o más)",

@@ -1546,6 +1546,31 @@
     "followToday": "Follow-up today",
     "followOn": "Follow-up: {{date}}",
     "logContact": "Log contact",
+    "unattendedOnly": "Unattended only",
+    "unattended": {
+      "hours_one": "Unattended: {{count}} h",
+      "hours_other": "Unattended: {{count}} h",
+      "days_one": "Unattended: {{count}} day",
+      "days_other": "Unattended: {{count}} days"
+    },
+    "contact": {
+      "channel": "How did you reach them?",
+      "channels": {
+        "llamada": "Call",
+        "whatsapp": "WhatsApp",
+        "correo": "Email",
+        "presencial": "In person"
+      },
+      "note": "Note (optional)",
+      "notePlaceholder": "E.g. Will see the house on Saturday",
+      "errors": {
+        "channel": "Pick how you reached them.",
+        "followup": "Pick when you will follow up next.",
+        "pastDate": "The date can't be before today."
+      },
+      "historyTitle": "Contact history",
+      "historyEmpty": "No contacts logged yet."
+    },
     "nextFollowupQuestion": "When is the next follow-up?",
     "followupOptions": {
       "tomorrow": "Tomorrow",
@@ -1623,6 +1648,10 @@
     "keysLate_other": "{{count}} out for 2 days or more",
     "daysOut_one": "{{count}} day",
     "daysOut_other": "{{count}} days",
+    "hoursOut_one": "{{count}} hour",
+    "hoursOut_other": "{{count}} hours",
+    "unattendedLate_one": "{{count}} has gone over 4 hours without a reply",
+    "unattendedLate_other": "{{count}} have gone over 4 hours without a reply",
     "items": {
       "postsale": "After-sale follow-ups",
       "signatures": "Unfinished signatures (3 days or more)",

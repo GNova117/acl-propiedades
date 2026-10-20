@@ -55,6 +55,33 @@ export function contactFields(prospect, nextFollowup, now = new Date()) {
   return fields;
 }
 
+// Orígenes "entrantes": el prospecto llegó solo (sitio, chatbot, alerta...) y
+// alguien tiene que escribirle. Los que captura el propio asesor (manual,
+// visita, recomendación, redes, otro) no cuentan: él ya sabe que existen.
+// Estos números y la lista de orígenes se repiten en notify_unattended_prospects()
+// (schema.sql, "Aviso de prospectos sin atender"): si cambian aquí, cambian allá.
+export const INBOUND_SOURCES = ["whatsapp", "chatbot", "simulador", "estimacion", "comparador", "alerta", "sitio"];
+export const UNATTENDED_WARN_HOURS = 1; // avisa al asesor (o a la oficina si no tiene)
+export const UNATTENDED_LATE_HOURS = 4; // escala a la oficina
+
+// Prospecto entrante que sigue en "nuevo" sin ningún contacto registrado.
+// Devuelve { hours, level } ("warn" desde la hora, "late" desde las 4 h) o null
+// si no aplica o todavía no pasa la primera hora.
+export function unattendedState(prospect, now = new Date()) {
+  if (prospect.stage !== "nuevo" || prospect.last_contact_at) return null;
+  if (!INBOUND_SOURCES.includes(prospect.source)) return null;
+  const created = new Date(prospect.created_at);
+  if (Number.isNaN(created.getTime())) return null;
+  const hours = (now - created) / 3600000;
+  if (hours < UNATTENDED_WARN_HOURS) return null;
+  return { hours: Math.floor(hours), level: hours >= UNATTENDED_LATE_HOURS ? "late" : "warn" };
+}
+
+// Antigüedad lista para mostrar: horas hasta 47 h, después días.
+export function unattendedAge(hours) {
+  return hours < 48 ? { unit: "hours", count: hours } : { unit: "days", count: Math.floor(hours / 24) };
+}
+
 // Etapa inicial sugerida al importar una visita (interés registrado en ella).
 const VISIT_INTEREST_TO_STAGE = {
   muy_interesado: "interesado",

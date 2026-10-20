@@ -160,24 +160,6 @@
   margin-top: 0.2rem;
 }
 
-/* "¿Cuándo das seguimiento?" al registrar un contacto. */
-.prospect-followup-picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  align-items: center;
-  margin-top: 0.3rem;
-  padding: 0.5rem;
-  border: 1px dashed var(--color-border);
-  border-radius: 8px;
-}
-
-.prospect-followup-picker__title {
-  flex: 1 1 100%;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
 /* "Qué busca" estructurado en el formulario del prospecto. */
 .prospect-search {
   margin: 0 0 1rem;

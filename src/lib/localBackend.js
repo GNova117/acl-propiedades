@@ -45,6 +45,7 @@ const KEYS = {
   prospects: "acl_local_prospectos",
   signing: "acl_local_signing_requests",
   prospectStages: "acl_local_prospect_stages",
+  prospectContacts: "acl_local_prospect_contacts",
   alerts: "acl_local_property_alerts",
   reportLinks: "acl_local_report_links",
   adminRoles: "acl_local_admin_roles",
@@ -1976,6 +1977,23 @@ export const localBackend = {
   async deleteProspect(id) {
     writeStore(KEYS.prospects, readStore(KEYS.prospects, []).filter((p) => p.id !== id));
     writeStore(KEYS.prospectStages, readStore(KEYS.prospectStages, []).filter((s) => s.prospecto_id !== id));
+    writeStore(KEYS.prospectContacts, readStore(KEYS.prospectContacts, []).filter((c) => c.prospecto_id !== id));
+  },
+
+  // Historial de contactos (modo demo: localStorage).
+  async getProspectContacts(prospectId) {
+    return readStore(KEYS.prospectContacts, [])
+      .filter((c) => c.prospecto_id === prospectId)
+      .sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  },
+
+  async logProspectContact(prospectId, fields, { channel, note }) {
+    const updated = await this.updateProspect(prospectId, fields);
+    const text = String(note ?? "").trim();
+    const contacts = readStore(KEYS.prospectContacts, []);
+    contacts.push({ id: uid("contact"), prospecto_id: prospectId, channel, note: text === "" ? null : text, at: new Date().toISOString(), actor: DEMO_ADMIN.email });
+    writeStore(KEYS.prospectContacts, contacts);
+    return updated;
   },
 
   // Historial de Estimación de valor (modo demo: localStorage).

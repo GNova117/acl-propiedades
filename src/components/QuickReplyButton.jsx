@@ -8,8 +8,12 @@ import "./QuickReplyButton.css";
 // botón vive dentro de una tabla con overflow-x:auto (admin-table-wrapper),
 // donde un menú desplegable propio se recortaría cerca del borde inferior;
 // el popup nativo del navegador no tiene ese problema.
+//
 // `label`: texto del selector; por omisión "Respuesta rápida" (Mensajes).
-export default function QuickReplyButton({ templates, phone, email, emailSubject, label }) {
+// `onSend` (opcional): se llama justo después de abrir WhatsApp o el correo,
+// con la plantilla elegida y el canal usado ("whatsapp" | "correo"). Prospectos
+// lo usa para ofrecer registrar el contacto en cuanto el asesor regresa.
+export default function QuickReplyButton({ templates, phone, email, emailSubject, label, onSend }) {
   const { t } = useTranslation();
   const selectLabel = label || t("messages.quickReply");
   let digits = whatsappDigits(phone);
@@ -26,6 +30,7 @@ export default function QuickReplyButton({ templates, phone, email, emailSubject
     } else {
       window.location.href = `mailto:${email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(template.text)}`;
     }
+    onSend?.(template, digits ? "whatsapp" : "correo");
   };
 
   return (

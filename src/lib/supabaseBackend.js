@@ -11,6 +11,12 @@ import { generateReportToken, REPORT_TOKEN_PATTERN } from "./visitReport";
 import { generatePortalToken, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS, PortalUploadError, blobToBase64 } from "./clientPortal";
 import { getOrCreateVisitorId } from "./visitorId";
 
+// La tabla aún no existe en la base (falta correr su bloque de schema.sql):
+// 42P01 es Postgres directo, PGRST205 es PostgREST ("no está en el schema cache").
+function isMissingTable(error) {
+  return error?.code === "42P01" || error?.code === "PGRST205";
+}
+
 // Los campos del expediente del cliente (NSS, contraseña del portal, número
 // de crédito y las 2 referencias) se guardan igual al crear y al editar — se
 // arman desde una sola lista para no repetirlos campo por campo.
@@ -1856,6 +1862,34 @@ export const supabaseBackend = {
   async deleteProspect(id) {
     const { error } = await supabase.from("prospectos").delete().eq("id", id);
     if (error) throw error;
+  },
+
+  // Historial de contactos de un prospecto (llamadas, WhatsApp...). RLS: hereda
+  // la de prospectos. Si el bloque "Registro de contactos" de schema.sql aún no
+  // se corrió, el historial sale vacío y registrar un contacto sigue
+  // actualizando al prospecto (solo se pierde la fila del historial).
+  async getProspectContacts(prospectId) {
+    const { data, error } = await supabase
+      .from("prospecto_contactos")
+      .select("id, channel, note, at, actor")
+      .eq("prospecto_id", prospectId)
+      .order("at", { ascending: false });
+    if (error) {
+      if (isMissingTable(error)) return [];
+      throw error;
+    }
+    return data || [];
+  },
+
+  // Registra un contacto: primero actualiza al prospecto (`fields` ya viene
+  // calculado por contactUpdateFields; es idempotente) y luego guarda la fila
+  // del historial. Devuelve el prospecto actualizado.
+  async logProspectContact(prospectId, fields, { channel, note }) {
+    const updated = await this.updateProspect(prospectId, fields);
+    const text = String(note ?? "").trim();
+    const { error } = await supabase.from("prospecto_contactos").insert({ prospecto_id: prospectId, channel, note: text === "" ? null : text });
+    if (error && !isMissingTable(error)) throw error;
+    return updated;
   },
 
   // Historial de Estimación de valor. RLS: apartado 'valuacion' (ver schema.sql).

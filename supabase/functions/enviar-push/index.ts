@@ -10,6 +10,14 @@
 // la service role key y no una sesión con auth.email(). Sin `section`, se
 // manda a todos los dispositivos registrados.
 //
+// Dos filtros más, para avisos que no son para todo el equipo:
+//  - `advisorId`: solo a los logins vinculados a ese asesor
+//    (admin_access.advisor_id). No depende del apartado: el aviso es sobre
+//    sus propios prospectos.
+//  - `office: true` (junto con `section`): solo a la oficina, o sea quien
+//    tiene el apartado pero NO tiene asesor vinculado (el mismo criterio de
+//    "ve todo" de my_advisor_id() is null en las políticas).
+//
 // Si un endpoint ya no es válido (404/410 — el navegador se desinstaló, se
 // borraron los datos del sitio, etc.) se borra esa suscripción para no
 // reintentar en vano en el siguiente aviso.
@@ -37,21 +45,32 @@ Deno.serve(async (req) => {
   const body = String(payload.body || "");
   const url = String(payload.url || "/admin");
   const section = payload.section ? String(payload.section) : null;
+  const advisorId = payload.advisorId ? String(payload.advisorId) : null;
+  const officeOnly = payload.office === true;
+  if (officeOnly && !section) {
+    return new Response(JSON.stringify({ error: "office requiere section" }), { status: 400 });
+  }
 
   const { createClient } = await import("jsr:@supabase/supabase-js@2");
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
   let emails: string[] | null = null;
-  if (section) {
+  if (advisorId) {
+    const { data: access, error: accessError } = await supabase.from("admin_access").select("email").eq("advisor_id", advisorId);
+    if (accessError) return new Response(JSON.stringify({ error: accessError.message }), { status: 500 });
+    emails = [...new Set((access || []).map((a: { email: string }) => a.email))];
+    if (emails.length === 0) return new Response(JSON.stringify({ sent: 0, note: "ese asesor no tiene login vinculado" }), { headers: { "Content-Type": "application/json" } });
+  } else if (section) {
     const { data: roles, error: rolesError } = await supabase.from("admin_roles").select("id").contains("sections", [section]);
     if (rolesError) return new Response(JSON.stringify({ error: rolesError.message }), { status: 500 });
     const roleIds = (roles || []).map((r: { id: string }) => r.id);
     if (roleIds.length === 0) return new Response(JSON.stringify({ sent: 0, note: "ningún rol tiene ese apartado" }), { headers: { "Content-Type": "application/json" } });
 
-    const { data: access, error: accessError } = await supabase.from("admin_access").select("email").in("role_id", roleIds);
+    const { data: access, error: accessError } = await supabase.from("admin_access").select("email, advisor_id").in("role_id", roleIds);
     if (accessError) return new Response(JSON.stringify({ error: accessError.message }), { status: 500 });
-    emails = [...new Set((access || []).map((a: { email: string }) => a.email))];
-    if (emails.length === 0) return new Response(JSON.stringify({ sent: 0, note: "nadie tiene ese apartado" }), { headers: { "Content-Type": "application/json" } });
+    const visible = (access || []).filter((a: { advisor_id: string | null }) => !officeOnly || a.advisor_id == null);
+    emails = [...new Set(visible.map((a: { email: string }) => a.email))];
+    if (emails.length === 0) return new Response(JSON.stringify({ sent: 0, note: officeOnly ? "nadie de la oficina tiene ese apartado" : "nadie tiene ese apartado" }), { headers: { "Content-Type": "application/json" } });
   }
 
   let query = supabase.from("push_subscriptions").select("id, endpoint, p256dh, auth");
