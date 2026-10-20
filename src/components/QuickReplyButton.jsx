@@ -8,8 +8,10 @@ import "./QuickReplyButton.css";
 // botón vive dentro de una tabla con overflow-x:auto (admin-table-wrapper),
 // donde un menú desplegable propio se recortaría cerca del borde inferior;
 // el popup nativo del navegador no tiene ese problema.
-export default function QuickReplyButton({ templates, phone, email, emailSubject }) {
+// `label`: texto del selector; por omisión "Respuesta rápida" (Mensajes).
+export default function QuickReplyButton({ templates, phone, email, emailSubject, label }) {
   const { t } = useTranslation();
+  const selectLabel = label || t("messages.quickReply");
   let digits = whatsappDigits(phone);
   if (digits.length === 10) digits = `52${digits}`;
 
@@ -27,9 +29,9 @@ export default function QuickReplyButton({ templates, phone, email, emailSubject
   };
 
   return (
-    <select className="quick-reply-select btn btn-outline btn-sm" value="" onChange={handleChange} aria-label={t("messages.quickReply")}>
+    <select className="quick-reply-select btn btn-outline btn-sm" value="" onChange={handleChange} aria-label={selectLabel}>
       <option value="" disabled>
-        {t("messages.quickReply")}
+        {selectLabel}
       </option>
       {templates.map((tpl) => (
         <option key={tpl.key} value={tpl.key}>

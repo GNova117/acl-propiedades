@@ -116,6 +116,13 @@
   flex: 1 1 100%;
 }
 
+/* El selector de mensajes rápidos va en línea con los botones, no en su propia fila. */
+.prospect-card__actions select.quick-reply-select {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .prospect-chip {
   align-self: flex-start;
   padding: 0.1rem 0.5rem;
@@ -151,4 +158,81 @@
   gap: 0.4rem;
   align-items: center;
   margin-top: 0.2rem;
+}
+
+/* "¿Cuándo das seguimiento?" al registrar un contacto. */
+.prospect-followup-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.3rem;
+  padding: 0.5rem;
+  border: 1px dashed var(--color-border);
+  border-radius: 8px;
+}
+
+.prospect-followup-picker__title {
+  flex: 1 1 100%;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* "Qué busca" estructurado en el formulario del prospecto. */
+.prospect-search {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  min-width: 0;
+}
+
+.prospect-search legend {
+  padding: 0 0.4rem;
+  font-weight: 600;
+}
+
+/* "N propiedades le encajan": chip que despliega la lista dentro de la tarjeta. */
+.prospect-chip--match {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+  cursor: pointer;
+  background: none;
+  font-family: inherit;
+}
+
+.prospect-matches {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.2rem;
+}
+
+.prospect-matches .form-hint {
+  margin: 0;
+}
+
+.prospect-matches__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.prospect-matches__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+
+.prospect-matches__title {
+  font-weight: 600;
+  font-size: 0.85rem;
 }

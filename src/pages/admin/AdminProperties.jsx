@@ -7,6 +7,8 @@ import { downloadFichaTecnicaPdf } from "../../lib/propertyFichaPdf";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
 import SocialPostModal from "../../components/SocialPostModal";
+import PropertyProspectsModal from "../../components/PropertyProspectsModal";
+import { matchingProspects } from "../../lib/prospectMatch";
 import BulkActionsBar from "../../components/BulkActionsBar";
 import "./admin.css";
 
@@ -44,9 +46,11 @@ export default function AdminProperties({
   const [properties, setProperties] = useState([]);
   const [remodelProjects, setRemodelProjects] = useState([]);
   const [zones, setZones] = useState([]);
+  const [prospects, setProspects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyFichaId, setBusyFichaId] = useState(null);
   const [socialProperty, setSocialProperty] = useState(null);
+  const [matchProperty, setMatchProperty] = useState(null);
   const [search, setSearch] = useState("");
   const [zoneFilter, setZoneFilter] = useState("");
   const [operationFilter, setOperationFilter] = useState("");
@@ -59,18 +63,28 @@ export default function AdminProperties({
 
   const load = () => {
     setLoading(true);
-    Promise.all([db.getProperties({}), db.getRemodelProjects({}), db.getZones().catch(() => [])]).then(([propertyData, remodelData, zoneData]) => {
+    Promise.all([
+      db.getProperties({}),
+      db.getRemodelProjects({}),
+      db.getZones().catch(() => []),
+      // Los prospectos solo se piden a quien tiene el apartado (RLS: un asesor recibe solo los suyos).
+      hasSection("prospectos") ? db.getProspects().catch(() => []) : Promise.resolve([]),
+    ]).then(([propertyData, remodelData, zoneData, prospectData]) => {
       const filtered = fixedType
         ? propertyData.filter((p) => p.type === fixedType)
         : propertyData.filter((p) => !excludeTypes.includes(p.type));
       setProperties(filtered);
       setRemodelProjects(remodelData);
       setZones(zoneData);
+      setProspects(prospectData);
       setLoading(false);
     });
   };
 
   useEffect(load, [fixedType]);
+
+  // A qué prospectos abiertos les encaja cada propiedad disponible.
+  const prospectsByProperty = useMemo(() => new Map(properties.map((p) => [p.id, matchingProspects(p, prospects)])), [properties, prospects]);
 
   const visibleProperties = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -291,6 +305,7 @@ export default function AdminProperties({
             ) : (
               visibleProperties.map((property) => {
                 const remodelProject = remodelProjects.find((r) => r.property_id === property.id);
+                const matchedProspects = prospectsByProperty.get(property.id) || [];
                 return (
                   <tr key={property.id}>
                     <td>
@@ -334,6 +349,11 @@ export default function AdminProperties({
                       <button type="button" className="btn btn-outline btn-sm" onClick={() => setSocialProperty(property)}>
                         {t("socialPost.button")}
                       </button>
+                      {matchedProspects.length > 0 && (
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => setMatchProperty(property)}>
+                          {t("prospects.match.propertyButton", { count: matchedProspects.length })}
+                        </button>
+                      )}
                       {remodelProject && hasSection("remodelaciones") && (
                         <Link to={`/admin/remodelaciones/${remodelProject.id}`} className="btn btn-outline btn-sm">
                           {t("remodelCalculator.button")}
@@ -377,6 +397,9 @@ export default function AdminProperties({
       </div>
 
       {socialProperty && <SocialPostModal property={socialProperty} onClose={() => setSocialProperty(null)} />}
+      {matchProperty && (
+        <PropertyProspectsModal property={matchProperty} prospects={prospectsByProperty.get(matchProperty.id) || []} onClose={() => setMatchProperty(null)} />
+      )}
     </div>
   );
 }

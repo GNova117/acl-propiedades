@@ -15,6 +15,15 @@ export function whatsappDigits(value) {
   return (value || "").replace(/\D/g, "");
 }
 
+// Enlace de WhatsApp a un teléfono mexicano (10 dígitos → se antepone la lada 52),
+// con un texto ya escrito si se pasa. null si el teléfono no tiene dígitos.
+export function whatsappUrl(phone, text) {
+  let digits = whatsappDigits(phone);
+  if (digits.length === 10) digits = `52${digits}`;
+  if (!digits) return null;
+  return text ? `https://wa.me/${digits}?text=${encodeURIComponent(text)}` : `https://wa.me/${digits}`;
+}
+
 // Un documento de cliente capturado por cámara siempre es jpeg; uno
 // subido directo puede ser un PDF (contrato, cédula fiscal, etc. que ya
 // existen como archivo). En modo demo file_path/signed_url es la propia
