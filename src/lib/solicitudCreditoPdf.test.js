@@ -1,6 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { PDFDocument } from "pdf-lib";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { SOLICITUD_CREDITO_SECTIONS } from "./solicitudCredito";
-import { TEXT_FIELD_MAP, RADIO_FIELD_MAP, REGIMEN_CHECKBOX_MAP } from "./solicitudCreditoPdf";
+import { CELL_ROWS } from "./solicitudCreditoLayout";
+import { TEXT_FIELD_MAP, RADIO_FIELD_MAP, REGIMEN_CHECKBOX_MAP, buildSolicitudCreditoPdf } from "./solicitudCreditoPdf";
 
 // Campos que no van por TEXT_FIELD_MAP/RADIO_FIELD_MAP porque el llenador
 // los resuelve aparte: ref1_cp/ref2_cp (el PDF trae el campo "P" duplicado
@@ -104,5 +107,86 @@ describe("RADIO_FIELD_MAP: valores exactos confirmados contra el PDF oficial", (
       "Sociedad Conyugal": "Casilla de verificación1",
       "Sociedad Legal": "Casilla de verificación2",
     });
+  });
+});
+
+const TEMPLATE_BYTES = readFileSync(new URL("../../public/solicitud_credito_infonavit.pdf", import.meta.url));
+
+// Widgets de un campo con ese nombre, en el orden en que CELL_ROWS los espera.
+async function widgetRectangles(doc) {
+  const byName = {};
+  for (const field of doc.getForm().getFields()) {
+    for (const widget of field.acroField.getWidgets()) (byName[field.getName()] ??= []).push(widget.getRectangle());
+  }
+  return byName;
+}
+
+describe("CELL_ROWS: geometría de casillas medida sobre la plantilla", () => {
+  it("cada renglón cae sobre el rectángulo de su widget en el PDF oficial", async () => {
+    const rects = await widgetRectangles(await PDFDocument.load(TEMPLATE_BYTES));
+    for (const [name, rows] of Object.entries(CELL_ROWS)) {
+      expect(rows.length, `"${name}": renglones vs widgets`).toBe(rects[name]?.length);
+      rows.forEach((row, i) => {
+        const rect = rects[name][i];
+        expect(Math.abs(row.x - rect.x), `"${name}" x`).toBeLessThan(8);
+        expect(row.y, `"${name}" y`).toBeGreaterThan(rect.y - 3);
+        expect(row.y, `"${name}" y`).toBeLessThan(rect.y + rect.height);
+        expect(row.cells).toBeGreaterThanOrEqual(2);
+        expect(row.pitch).toBeGreaterThan(9);
+        expect(row.pitch).toBeLessThan(13);
+      });
+    }
+  });
+
+  it("todo campo de TEXT_FIELD_MAP (salvo Entidad financiera, que es un renglón corrido) tiene sus casillas", () => {
+    const missing = Object.values(TEXT_FIELD_MAP).filter((pdfName) => pdfName !== "ENTIDAD FINANCIERA" && !CELL_ROWS[pdfName]);
+    expect(missing).toEqual([]);
+  });
+});
+
+describe("buildSolicitudCreditoPdf: llenado sobre las casillas", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  async function build(record) {
+    vi.stubGlobal("fetch", async () => ({ ok: true, arrayBuffer: async () => TEMPLATE_BYTES }));
+    const doc = await PDFDocument.load(await buildSolicitudCreditoPdf(record));
+    return doc.getForm();
+  }
+
+  it("escribe un carácter por casilla cuando el valor cabe", async () => {
+    const form = await build({ viv_calle: "CALLE DE LOS PINOS", nss: "12345678901" });
+    const calle = form.getTextField("Calle DV");
+    expect(calle.getText()).toBe("CALLE DE LOS PINOS");
+    expect(calle.isCombed()).toBe(true);
+    expect(calle.getMaxLength()).toBe(CELL_ROWS["Calle DV"][0].cells);
+    expect(form.getTextField("NSS").isCombed()).toBe(true);
+  });
+
+  it("no trunca: un monto de 7 dígitos en un renglón de 6 casillas se escribe completo, sin comb", async () => {
+    const form = await build({ monto_credito_dh: "1250000" });
+    const monto = form.getTextField("Monto Credito DH");
+    expect(monto.getText()).toBe("1250000");
+    expect(monto.isCombed()).toBe(false);
+  });
+
+  it("la lada (2 casillas impresas) admite 3 dígitos sin comb", async () => {
+    const form = await build({ telefono_lada: "871", telefono_numero: "1234567" });
+    expect(form.getTextField("Lada DI-DH").getText()).toBe("871");
+    expect(form.getTextField("Lada DI-DH").isCombed()).toBe(false);
+    expect(form.getTextField("Número DI-DH").getText()).toBe("1234567");
+  });
+
+  it("la CLABE del acreedor va en su renglón (Texto94), no en la razón social", async () => {
+    const form = await build({ acreedor_clabe: "112345678901234567", acreedor_razon_social_cuenta: "BANCO EJEMPLO SA" });
+    expect(form.getTextField("Texto94").getText()).toBe("112345678901234567");
+    expect(form.getTextField("RFC Vend 2b").getText()).toBe("BANCO EJEMPLO SA");
+    expect(form.getTextField("Razon Social  Vend2").getText() ?? "").toBe("");
+  });
+
+  it("reparte la fecha en día, mes y los dos últimos dígitos del año", async () => {
+    const form = await build({ fecha_solicitud: "2026-10-20" });
+    expect(form.getTextField("Dia").getText()).toBe("20");
+    expect(form.getTextField("Mes").getText()).toBe("OCTUBRE");
+    expect(form.getTextField("Año").getText()).toBe("26");
   });
 });

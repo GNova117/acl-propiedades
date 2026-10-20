@@ -15,7 +15,17 @@
 // ("P", el código postal de cada una de las 2 referencias familiares):
 // pdf-lib solo expone el primero por `form.getTextField(name)`, así que se
 // acceden por posición dentro de `form.getFields()`.
+//
+// Los campos del PDF original son rectángulos de ~12pt de alto, con letra de
+// 10–12pt y sin casillas: el texto salía pegado a los renglones, encima de las
+// etiquetas y sin caer en las casillas impresas. Por eso, al escribir cada
+// campo se recoloca y se le da formato según la geometría medida de su renglón
+// de casillas (solicitudCreditoLayout.js): cada carácter en su casilla, sobre
+// la línea impresa. Si el valor no cabe en las casillas (p. ej. un monto de 7
+// dígitos en 6 casillas) o es una lada (el formato solo trae 2 casillas), se
+// escribe como texto corrido en vez de truncarlo.
 
+import { CELL_ROWS } from "./solicitudCreditoLayout";
 import {
   PRODUCTO_OPTIONS,
   TIPO_CREDITO_OPTIONS,
@@ -115,7 +125,8 @@ export const TEXT_FIELD_MAP = {
   acreedor_nombre: "Razon Social Vend2",
   acreedor_rfc: "RFC Vend2",
   acreedor_razon_social_cuenta: "RFC Vend 2b",
-  acreedor_clabe: "Razon Social  Vend2",
+  // "Razon Social  Vend2" es un renglón de continuación de la razón social; el de la CLABE es "Texto94".
+  acreedor_clabe: "Texto94",
   numero_credito_titular: "N° Credito Titular",
   numero_credito_cfc: "N° Crédito CFC",
   numero_inventario_vr: "N°  Inventario VR",
@@ -182,10 +193,66 @@ function zip(labels, values) {
   return Object.fromEntries(labels.map((label, i) => [label, values[i]]));
 }
 
+const SIZE = 9;
+const SIZE_SMALL = 8;
+// Alto del rectángulo de cada campo y separación línea impresa → línea base del
+// texto. El renglón más justo deja 9pt libres bajo la etiqueta de arriba y la
+// mayúscula de 9pt mide 6.5pt, así que sobra margen.
+const ROW_HEIGHT = 12;
+const BASELINE_RISE = 1.8;
+// Altura de mayúscula de Helvetica (em): pdf-lib centra el texto verticalmente
+// en el rectángulo del campo usando esa altura.
+const CAP_HEIGHT = 0.718;
+
+// Rectángulo del campo para que la línea base del texto quede BASELINE_RISE
+// arriba de la línea impresa del renglón.
+function rowRectangle(row, size) {
+  return {
+    x: row.x,
+    y: row.y + BASELINE_RISE - (ROW_HEIGHT - CAP_HEIGHT * size) / 2,
+    width: row.cells * row.pitch,
+    height: ROW_HEIGHT,
+  };
+}
+
+// Achica la letra lo necesario para que el texto quepa en `width` (sin pasar de `size`).
+function fitFontSize(value, size, font, width) {
+  const natural = font.widthOfTextAtSize(value, size);
+  return natural > width ? Math.max(5, (size * width) / natural) : size;
+}
+
+// Escribe `value` en un campo de texto. `rows` son los renglones de casillas de
+// sus widgets (CELL_ROWS), si el formato los trae. `TextAlignment` viene de la
+// importación diferida de pdf-lib (no se importa aquí para no cargarla de entrada).
+function writeTextField(field, value, rows, font, TextAlignment) {
+  if (!rows?.length) {
+    const [widget] = field.acroField.getWidgets();
+    field.setFontSize(fitFontSize(value, SIZE, font, widget.getRectangle().width - 2));
+    field.setText(value);
+    return;
+  }
+
+  const [first] = rows;
+  const size = first.pitch >= 11 ? SIZE : SIZE_SMALL;
+  const isLada = /lada/i.test(field.getName());
+  const comb = !isLada && value.length <= first.cells;
+
+  field.acroField.getWidgets().forEach((widget, i) => widget.setRectangle(rowRectangle(rows[i] ?? first, size)));
+  if (comb) {
+    field.setMaxLength(first.cells);
+    field.enableCombing();
+    field.setFontSize(size);
+  } else {
+    field.setAlignment(isLada ? TextAlignment.Center : TextAlignment.Left);
+    field.setFontSize(fitFontSize(value, size, font, first.cells * first.pitch - 2));
+  }
+  field.setText(value);
+}
+
 const MESES = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
 
 export async function buildSolicitudCreditoPdf(record) {
-  const { PDFDocument } = await import("pdf-lib");
+  const { PDFDocument, StandardFonts, TextAlignment } = await import("pdf-lib");
 
   const templateBytes = await fetch(TEMPLATE_URL).then((res) => {
     if (!res.ok) throw new Error("No se pudo cargar el formato oficial de INFONAVIT");
@@ -194,6 +261,20 @@ export async function buildSolicitudCreditoPdf(record) {
 
   const doc = await PDFDocument.load(templateBytes);
   const form = doc.getForm();
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+
+  // Renglones de casillas de cada campo, en el orden de los widgets (ver CELL_ROWS).
+  const cellRows = new Map();
+  const consumed = {};
+  for (const field of form.getFields()) {
+    const name = field.getName();
+    if (!CELL_ROWS[name]) continue;
+    const from = consumed[name] ?? 0;
+    const count = field.acroField.getWidgets().length;
+    cellRows.set(field.ref.tag, CELL_ROWS[name].slice(from, from + count));
+    consumed[name] = from + count;
+  }
+  const writeText = (field, value) => writeTextField(field, value, cellRows.get(field.ref.tag), font, TextAlignment);
 
   // Limpia todo el formulario (trae un ejemplo capturado, no está en blanco).
   for (const field of form.getFields()) {
@@ -211,14 +292,14 @@ export async function buildSolicitudCreditoPdf(record) {
   // "P" (código postal de cada referencia familiar) está duplicado con el
   // mismo nombre interno en el PDF original — se accede por posición.
   const pFields = form.getFields().filter((f) => f.getName() === "P" && f.constructor.name === "PDFTextField");
-  if (pFields[0]) pFields[0].setText(sanitizeValue(record.ref1_cp));
-  if (pFields[1]) pFields[1].setText(sanitizeValue(record.ref2_cp));
+  if (pFields[0] && record.ref1_cp) writeText(pFields[0], sanitizeValue(record.ref1_cp));
+  if (pFields[1] && record.ref2_cp) writeText(pFields[1], sanitizeValue(record.ref2_cp));
 
   for (const [key, pdfName] of Object.entries(TEXT_FIELD_MAP)) {
     const value = sanitizeValue(record[key]);
     if (!value) continue;
     try {
-      form.getTextField(pdfName).setText(value);
+      writeText(form.getTextField(pdfName), value);
     } catch (err) {
       console.error(`solicitudCreditoPdf: no se pudo escribir "${pdfName}"`, err);
     }
@@ -228,17 +309,19 @@ export async function buildSolicitudCreditoPdf(record) {
   const nombreCompleto = [record.nombres, record.apellido_paterno, record.apellido_materno].filter(Boolean).join(" ");
   if (nombreCompleto) {
     try {
-      form.getTextField("Oferta Vin").setText(nombreCompleto);
+      writeText(form.getTextField("Oferta Vin"), nombreCompleto);
     } catch {
       /* campo ausente en alguna variante del PDF */
     }
   }
 
   if (record.fecha_solicitud) {
-    const [, month, day] = String(record.fecha_solicitud).slice(0, 10).split("-");
+    const [year, month, day] = String(record.fecha_solicitud).slice(0, 10).split("-");
     try {
-      if (day) form.getTextField("Dia").setText(day);
-      if (month) form.getTextField("Mes").setText(MESES[Number(month) - 1] || "");
+      if (day) writeText(form.getTextField("Dia"), day);
+      if (month) writeText(form.getTextField("Mes"), MESES[Number(month) - 1] || "");
+      // El formato ya imprime "de 20__": solo van los dos últimos dígitos.
+      if (year) writeText(form.getTextField("Año"), year.slice(-2));
     } catch {
       /* noop */
     }
