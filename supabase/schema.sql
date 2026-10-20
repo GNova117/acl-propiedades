@@ -5264,6 +5264,10 @@ revoke update, delete, truncate on prospecto_contactos from authenticated;
 -- unattended_alert_at / unattended_escalated_at recuerdan qué ya se avisó para
 -- no repetirlo. Lo que ya estaba sin atender al agregar esto queda marcado como
 -- avisado (el panel ya lo señala); solo avisa lo que llegue de aquí en adelante.
+-- ⚠️ ORDEN: correr este bloque DESPUÉS de volver a desplegar la Edge Function
+-- enviar-push. La versión anterior de la función ignora advisorId y office y,
+-- sin section, manda el aviso (con nombres de prospectos) a TODOS los
+-- dispositivos registrados; la nueva ya los respeta.
 -- Misma lista de orígenes y mismos umbrales que src/lib/prospects.js
 -- (INBOUND_SOURCES, UNATTENDED_WARN_HOURS): si cambian allá, cambian aquí.
 -- Usa push: necesita el bloque "Notificaciones push" y las llaves VAPID (ver
