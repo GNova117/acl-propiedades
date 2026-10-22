@@ -9,14 +9,28 @@ import InternalNotes from "../../components/InternalNotes";
 import "./admin.css";
 
 // Mismos tipos que soporta el perfilamiento (ver FieldInput en
-// PerfilamientoManager.jsx) — aquí sin el botón de "revelar" la contraseña,
-// que no hace falta mientras se está dando de alta al cliente.
+// PerfilamientoManager.jsx). Un campo sensible (la contraseña del portal de
+// crédito) se muestra oculto y trae un botón para verla; cada vez que se abre
+// la pantalla vuelve a empezar oculto.
 function ExpedienteFieldInput({ field, value, onChange }) {
+  const { t } = useTranslation();
+  const [revealed, setRevealed] = useState(false);
   const common = {
     id: `c-${field.key}`,
     value,
     onChange,
   };
+  if (field.sensitive) {
+    const label = t(revealed ? "clients.hidePassword" : "clients.showPassword");
+    return (
+      <div className="sensitive-input">
+        <input {...common} type={revealed ? "text" : "password"} autoComplete="off" />
+        <button type="button" className="btn btn-outline btn-sm" onClick={() => setRevealed((v) => !v)} aria-pressed={revealed} aria-label={label} title={label}>
+          <span aria-hidden="true">{revealed ? "🙈" : "👁"}</span>
+        </button>
+      </div>
+    );
+  }
   if (field.type === "textarea") return <textarea {...common} rows={3} />;
   if (field.type === "select") {
     return (
@@ -33,7 +47,6 @@ function ExpedienteFieldInput({ field, value, onChange }) {
   if (field.type === "date") return <input {...common} type="date" />;
   if (field.type === "email") return <input {...common} type="email" />;
   if (field.type === "tel") return <input {...common} type="tel" />;
-  if (field.sensitive) return <input {...common} type="password" autoComplete="off" />;
   return <input {...common} type="text" />;
 }
 

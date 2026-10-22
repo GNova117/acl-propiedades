@@ -659,6 +659,8 @@
     "email": "Correo",
     "phone": "Teléfono",
     "notes": "Notas",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
     "financiamiento": "Tipo de financiamiento",
     "financiamientoHint": "Con qué va a comprar. Al elegir \"Infonavit\" se preselecciona en la Solicitud de avalúo y la Solicitud de crédito al crear una desde este cliente.",
     "financiamientoOptions": {

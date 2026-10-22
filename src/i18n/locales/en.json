@@ -659,6 +659,8 @@
     "email": "Email",
     "phone": "Phone",
     "notes": "Notes",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "financiamiento": "Financing type",
     "financiamientoHint": "What they're buying with. Choosing \"Infonavit\" preselects it in the Appraisal request and Credit request when creating one from this client.",
     "financiamientoOptions": {
