@@ -9,6 +9,7 @@ import { PROSPECT_STAGES, contactFields, daysSince, followUpState, isOpenStage, 
 import { POSTSALE_STEPS, postsaleDue, postsaleMessage } from "../../lib/postsale";
 import { prospectMessageTemplates, sendLink, suggestPropertyMessage } from "../../lib/prospectMessages";
 import { criteriaSummary, matchingProperties } from "../../lib/prospectMatch";
+import { propertiesShareMessage } from "../../lib/propertyShare";
 import QuickReplyButton from "../../components/QuickReplyButton";
 import ProspectContactForm from "../../components/ProspectContactForm";
 import "./admin.css";
@@ -20,6 +21,7 @@ import "./AdminProspects.css";
 // (sin arrastrar: funciona igual con el dedo en el celular).
 // Cuántas propiedades que le encajan se listan en la tarjeta (el resto se cuenta).
 const MAX_MATCHES = 5;
+const MAX_SENT_TOGETHER = 3; // propiedades en un mismo mensaje de "enviar juntas"
 
 const normalize = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
@@ -162,6 +164,15 @@ export default function AdminProspects() {
 
   const suggestionLink = (p, property) =>
     sendLink(p, suggestPropertyMessage(p, property, `${window.location.origin}/propiedades/${property.id}`), t("prospects.match.emailSubject"));
+
+  // Las primeras coincidencias en un solo mensaje (una sola ida a WhatsApp en
+  // vez de una por propiedad). null si el prospecto no tiene teléfono ni correo.
+  const bundleLink = (p, matches) =>
+    sendLink(
+      p,
+      propertiesShareMessage(matches, { origin: window.location.origin, recipientName: p.name, advisorName: advisorName(p.advisor_id), limit: MAX_SENT_TOGETHER }),
+      t("prospects.match.emailSubject")
+    );
 
   const templatesFor = (p) =>
     prospectMessageTemplates(p, {
@@ -413,6 +424,22 @@ export default function AdminProspects() {
                                   })}
                                 </ul>
                                 {matches.length > MAX_MATCHES && <p className="form-hint">{t("prospects.match.more", { count: matches.length - MAX_MATCHES })}</p>}
+                                {matches.length > 1 &&
+                                  (() => {
+                                    const link = bundleLink(p, matches);
+                                    if (!link) return null;
+                                    return (
+                                      <a
+                                        className="btn btn-primary btn-sm"
+                                        href={link}
+                                        target={link.startsWith("http") ? "_blank" : undefined}
+                                        rel="noopener noreferrer"
+                                        onClick={() => openContact(p, link.startsWith("http") ? "whatsapp" : "correo", true)}
+                                      >
+                                        {t("prospects.match.sendTop", { count: Math.min(matches.length, MAX_SENT_TOGETHER) })}
+                                      </a>
+                                    );
+                                  })()}
                               </>
                             )}
                           </div>

@@ -464,6 +464,7 @@
     "pushError": "No se pudo cambiar el estado de las notificaciones.",
     "dashboard": "Panel principal",
     "myProfile": "Mi perfil",
+    "myDay": "Mi día",
     "totalProperties": "Total de propiedades",
     "activeAdvisors": "Asesores activos",
     "newMessages": "Mensajes nuevos",
@@ -1592,7 +1593,8 @@
       "modalHint": "Prospectos abiertos cuyo \"qué busca\" coincide con {{title}}, los más avanzados primero.",
       "openProspect": "Abrir",
       "noContact": "Sin teléfono ni correo",
-      "emailSubject": "Una propiedad para ti — ACL Propiedades"
+      "emailSubject": "Una propiedad para ti — ACL Propiedades",
+      "sendTop": "Enviar las primeras {{count}} juntas"
     },
     "templates": {
       "label": "Mensaje rápido",
@@ -1642,6 +1644,7 @@
   },
   "pending": {
     "title": "Pendientes de hoy",
+    "openMyDay": "Ver mi día, en orden →",
     "allClear": "Todo al día: no hay pendientes.",
     "andMore": "y {{count}} más",
     "keysLate_one": "{{count}} con 2 días o más fuera",
@@ -2719,7 +2722,174 @@
     "addFile": "Subir expediente",
     "noFiles": "Aún no hay expedientes para esta cita.",
     "fileName": "Archivo",
-    "uploadedAt": "Subido"
+    "uploadedAt": "Subido",
+    "place": "Lugar",
+    "placePlaceholder": "Dirección, colonia o enlace de Google Maps",
+    "placeHint": "Con esto aparece \"Cómo llegar\" y el lugar viaja en el archivo de calendario.",
+    "directions": "Cómo llegar",
+    "addToCalendar": "A mi calendario",
+    "addToCalendarTitle": "Descargar para tu calendario (te avisa 1 hora y 15 minutos antes)",
+    "reminderPlace": "Nos vemos en: {{place}}"
+  },
+  "sendProperty": {
+    "button": "Enviar",
+    "title": "Enviar propiedad",
+    "hint": "Elige a quién se la mandas y revisa el mensaje; se abre WhatsApp con el texto ya escrito.",
+    "search": "Buscar prospecto por nombre o teléfono",
+    "prospects": "Prospectos",
+    "noProspects": "No hay prospectos abiertos que coincidan.",
+    "noPhone": "Sin teléfono",
+    "otherNumber": "Otro número",
+    "phone": "Teléfono (10 dígitos)",
+    "message": "Mensaje",
+    "openWhatsApp": "Abrir WhatsApp",
+    "copy": "Copiar mensaje",
+    "copied": "¡Copiado!",
+    "needRecipient": "Elige un prospecto o escribe un teléfono.",
+    "logTitle": "¿Ya se lo mandaste? Registra el contacto con {{name}}:",
+    "logged": "Contacto registrado."
+  },
+  "quickCapture": {
+    "open": "Prospecto rápido",
+    "title": "Prospecto rápido",
+    "hint": "Lo mínimo para no perderlo; el resto lo completas después.",
+    "name": "Nombre",
+    "phone": "Teléfono",
+    "lookingFor": "Qué busca",
+    "lookingForPlaceholder": "Ej. casa de 3 recámaras en Lerdo, hasta 1.5 millones",
+    "pasted": "Pegar mensaje de WhatsApp (opcional)",
+    "pastedHint": "Si no escribiste el teléfono, se toma del mensaje. El texto queda en las notas.",
+    "save": "Guardar prospecto",
+    "saveError": "No se pudo guardar el prospecto.",
+    "saved": "Guardado: {{name}}",
+    "openProspect": "Ver en prospectos",
+    "addAnother": "Agregar otro",
+    "errors": {
+      "name": "Escribe el nombre.",
+      "phone": "Escribe un teléfono (o pega un mensaje que lo traiga)."
+    }
+  },
+  "duplicates": {
+    "title": "Este contacto ya existe",
+    "client": "Cliente",
+    "prospect": "Prospecto ({{stage}})",
+    "ofAdvisor": "lo lleva {{name}}",
+    "matched": {
+      "phone": "mismo teléfono",
+      "email": "mismo correo"
+    },
+    "open": "Abrir",
+    "hint": "Si es otra persona, guárdalo de todos modos; si es la misma, ábrelo para no duplicar el seguimiento.",
+    "saveAnyway": "Guardar de todos modos"
+  },
+  "myDay": {
+    "title": "Mi día",
+    "summary": "Hoy: {{appointments}} citas por atender y {{contacts}} contactos por hacer.",
+    "allClear": "Día libre: no hay citas ni contactos pendientes para hoy. 🎉",
+    "fullAgenda": "Agenda completa",
+    "allProspects": "Todos los prospectos",
+    "call": "Llamar",
+    "daysLate_one": "Vencido hace {{count}} día",
+    "daysLate_other": "Vencido hace {{count}} días",
+    "agenda": {
+      "now": "En curso",
+      "inMinutes_one": "En {{count}} min",
+      "inMinutes_other": "En {{count}} min",
+      "past": "Ya pasó",
+      "allDay": "Hoy",
+      "logVisit": "Registrar visita"
+    },
+    "sections": {
+      "agenda": "Citas de hoy",
+      "agendaHint": "En orden de hora; la próxima va resaltada.",
+      "urgent": "Contesta ya",
+      "urgentHint": "Llegaron solos y nadie los ha atendido: entre más rápido contestes, mejor.",
+      "overdue": "Seguimientos vencidos",
+      "overdueHint": "Les tocaba un contacto antes de hoy; los más atrasados primero.",
+      "today": "Seguimientos de hoy",
+      "todayHint": "Programados para hoy."
+    }
+  },
+  "adCopy": {
+    "title": "Redactar con IA",
+    "hint": "Claude escribe tres versiones con enfoques distintos a partir de los datos reales de la propiedad. Elige una y ajústala antes de publicar.",
+    "channel": "¿Dónde la vas a publicar?",
+    "channels": {
+      "whatsapp": "WhatsApp",
+      "facebook": "Facebook / Marketplace",
+      "instagram": "Instagram",
+      "portal": "Portal inmobiliario"
+    },
+    "tone": "Tono",
+    "tones": {
+      "cercano": "Cercano",
+      "profesional": "Profesional",
+      "aspiracional": "Aspiracional"
+    },
+    "extra": "¿Qué quieres resaltar? (opcional)",
+    "extraPlaceholder": "Ej. ideal para familias con niños",
+    "write": "Redactar",
+    "again": "Redactar otras versiones",
+    "writing": "Redactando…",
+    "use": "Usar este texto",
+    "copy": "Copiar",
+    "reviewNote": "Revisa el texto antes de publicarlo: el precio, las recámaras y los metros ya se comprueban contra la ficha, pero lo demás lo escribe la IA.",
+    "errors": {
+      "notConfigured": "La redacción con IA aún no está activada: falta la variable ANTHROPIC_API_KEY en Vercel.",
+      "limitUser": "Ya usaste tus {{count}} redacciones de hoy. Mañana se renuevan.",
+      "limitTeam": "El equipo ya alcanzó el tope de {{count}} redacciones de hoy. Mañana se renuevan.",
+      "demo": "La redacción con IA no está disponible en modo demo (requiere Supabase y el sitio publicado en Vercel).",
+      "no_table": "Falta crear la tabla de uso: corre en Supabase el bloque «Textos de anuncio con IA» de supabase/schema.sql.",
+      "no_function": "La redacción con IA no está disponible en este entorno (solo existe en el sitio publicado en Vercel).",
+      "unauthorized": "Tu sesión venció. Vuelve a iniciar sesión.",
+      "forbidden": "Tu rol no tiene acceso a Propiedades.",
+      "rate_limited": "Anthropic está limitando las consultas por ahora. Inténtalo en un minuto.",
+      "refused": "Claude no pudo redactar este texto. Inténtalo con otras indicaciones.",
+      "bad_output": "Ninguna versión salió fiel a los datos de la propiedad. Inténtalo de nuevo.",
+      "timeout": "La redacción tardó demasiado. Inténtalo de nuevo.",
+      "upstream": "No se pudo redactar el texto. Inténtalo de nuevo."
+    }
+  },
+  "goals": {
+    "title": "Mi mes: {{month}}",
+    "edit": "Editar metas",
+    "hint": "Tu meta de cada mes (se repite hasta que la cambies). Deja vacío lo que no quieras medir.",
+    "noGoal": "Sin meta",
+    "save": "Guardar metas",
+    "metrics": {
+      "contacts": "Contactos con prospectos",
+      "visits": "Visitas realizadas",
+      "newProspects": "Prospectos nuevos",
+      "sales": "Ventas cerradas"
+    },
+    "status": {
+      "done": "¡Meta cumplida!",
+      "ahead": "Vas por delante del ritmo del mes",
+      "onTrack": "Vas al corriente",
+      "behind": "Te conviene acelerar"
+    },
+    "remaining_one": "te falta {{count}}",
+    "remaining_other": "te faltan {{count}}",
+    "perDay_one": "≈ {{count}} al día",
+    "perDay_other": "≈ {{count}} al día",
+    "errors": {
+      "number": "Escribe un número entero de 0 a 9,999.",
+      "save": "No se pudieron guardar las metas.",
+      "noTable": "Falta crear la tabla de metas: corre en Supabase el bloque «Metas mensuales del asesor» de supabase/schema.sql."
+    }
+  },
+  "propertyQr": {
+    "button": "QR",
+    "title": "Código QR",
+    "hint": "quien lo escanee llega a su ficha con fotos, precio y contacto. Úsalo en letreros y volantes.",
+    "alt": "Código QR de {{title}}",
+    "downloadSign": "Descargar letrero (PDF)",
+    "downloadPng": "Descargar QR (PNG)",
+    "copyLink": "Copiar enlace",
+    "copied": "¡Copiado!",
+    "notAvailable": "Esta propiedad ya no está disponible: el letrero diría «{{heading}}». Confirma que quieres imprimirlo así.",
+    "tips": "Antes de imprimir, escanéalo con tu celular para comprobar que abre la ficha correcta. Si lo imprimes en un letrero, que el QR mida al menos 5 cm por lado. Si el sitio tiene Google Analytics activo, las visitas que llegan por QR deberían verse con la fuente «qr» (campaña = código de la propiedad).",
+    "error": "No se pudo generar el archivo."
   },
   "seasons": {
     "anio-nuevo": {

@@ -8,6 +8,7 @@ import { CLIENT_EXPEDIENTE_KEYS } from "./clientExpedienteFields";
 import { compressImageFile, compressImageFiles } from "./imageCompression";
 import { buildDemoSnapshot } from "./marketDemo";
 import { getOrCreateVisitorId } from "./visitorId";
+import { findDuplicates } from "./duplicates";
 
 function clientExpedientePayload(data) {
   return Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, data[key] || null]));
@@ -46,6 +47,7 @@ const KEYS = {
   signing: "acl_local_signing_requests",
   prospectStages: "acl_local_prospect_stages",
   prospectContacts: "acl_local_prospect_contacts",
+  advisorGoals: "acl_local_advisor_goals",
   alerts: "acl_local_property_alerts",
   reportLinks: "acl_local_report_links",
   adminRoles: "acl_local_admin_roles",
@@ -1944,6 +1946,18 @@ export const localBackend = {
     return [...stages, ...backfill].sort((a, b) => String(a.at).localeCompare(String(b.at)));
   },
 
+  async findContactDuplicates({ phone, email, excludeProspectId }) {
+    return findDuplicates(
+      { phone, email },
+      {
+        prospects: readStore(KEYS.prospects, []),
+        clients: readStore(KEYS.clients, []),
+        advisors: readStore(KEYS.advisors, ADVISORS),
+        excludeProspectId,
+      }
+    );
+  },
+
   async addProspect(fields) {
     const items = readStore(KEYS.prospects, []);
     const now = new Date().toISOString();
@@ -1985,6 +1999,21 @@ export const localBackend = {
     return readStore(KEYS.prospectContacts, [])
       .filter((c) => c.prospecto_id === prospectId)
       .sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  },
+
+  async countProspectContactsSince(sinceISO) {
+    return readStore(KEYS.prospectContacts, []).filter((c) => String(c.at) >= sinceISO).length;
+  },
+
+  async getAdvisorGoals(advisorId) {
+    return readStore(KEYS.advisorGoals, {})[advisorId] || null;
+  },
+
+  async saveAdvisorGoals(advisorId, columns) {
+    const all = readStore(KEYS.advisorGoals, {});
+    all[advisorId] = { advisor_id: advisorId, ...columns, updated_at: new Date().toISOString() };
+    writeStore(KEYS.advisorGoals, all);
+    return all[advisorId];
   },
 
   async logProspectContact(prospectId, fields, { channel, note }) {
@@ -2291,7 +2320,7 @@ export const localBackend = {
     return citas.find((c) => c.id === id) || null;
   },
 
-  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades }) {
+  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades, lugar }) {
     const citas = readStore(KEYS.agendaCitas, []);
     const record = {
       id: uid("cita"),
@@ -2301,6 +2330,7 @@ export const localBackend = {
       fecha,
       hora: hora || null,
       actividades: actividades?.trim() || null,
+      lugar: lugar?.trim() || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -2309,7 +2339,7 @@ export const localBackend = {
     return record;
   },
 
-  async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades }) {
+  async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades, lugar }) {
     const citas = readStore(KEYS.agendaCitas, []);
     const idx = citas.findIndex((c) => c.id === id);
     if (idx === -1) throw new Error("Cita no encontrada");
@@ -2321,6 +2351,7 @@ export const localBackend = {
       fecha,
       hora: hora || null,
       actividades: actividades?.trim() || null,
+      ...(lugar !== undefined ? { lugar: lugar?.trim() || null } : {}),
       updated_at: new Date().toISOString(),
     };
     writeStore(KEYS.agendaCitas, citas);
@@ -2447,6 +2478,13 @@ export const localBackend = {
   },
   async requestSketchToPlan() {
     throw new Error("Construcción no está disponible en modo demo.");
+  },
+
+  // Sin Supabase no hay función serverless: el modo demo deja el texto de plantilla.
+  async requestAdCopy() {
+    const err = new Error("demo");
+    err.code = "demo";
+    throw err;
   },
 
   demoCredentials: DEMO_ADMIN,

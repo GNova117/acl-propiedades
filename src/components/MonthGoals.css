@@ -1,0 +1,83 @@
+.month-goals {
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.month-goals__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.month-goals__head h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.month-goals__head h2::first-letter {
+  text-transform: uppercase;
+}
+
+.month-goals__list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.month-goals__line {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.3rem;
+}
+
+.month-goals__bar {
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.month-goals__bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-primary);
+  transition: width 0.3s ease;
+}
+
+.month-goals__bar--done span {
+  background: var(--color-success, #2e7d32);
+}
+
+.month-goals__bar--behind span {
+  background: #f0a500;
+}
+
+.month-goals__status {
+  margin: 0.3rem 0 0;
+  font-size: 0.85rem;
+}
+
+.month-goals__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.month-goals__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .month-goals__bar span {
+    transition: none;
+  }
+}

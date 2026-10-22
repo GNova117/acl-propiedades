@@ -8,6 +8,7 @@ import ErrorBoundary from "../../components/ErrorBoundary";
 import AdminGlobalSearch from "../../components/AdminGlobalSearch";
 import InstallAppButton from "../../components/InstallAppButton";
 import NotificationBell from "../../components/NotificationBell";
+import QuickCapture from "../../components/QuickCapture";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
 import "./AdminLayout.css";
@@ -17,6 +18,8 @@ import "./AdminLayout.css";
 // (sin carpeta) van como { section, to, label } directo en la lista.
 const NAV = [
   { section: null, to: "/admin", end: true, labelKey: "admin.dashboard" },
+  // Lo de hoy en un solo lugar: se muestra con la agenda o con prospectos.
+  { section: null, anySection: ["agenda", "prospectos"], to: "/admin/mi-dia", labelKey: "admin.myDay" },
   // Sin apartado: se muestra por tener un login vinculado a un asesor
   // (advisorId), no por un permiso de rol — ver AdminMyProfile.jsx.
   { section: null, to: "/admin/mi-perfil", labelKey: "admin.myProfile", requiresAdvisor: true },
@@ -124,6 +127,7 @@ export default function AdminLayout() {
   ).filter((entry) => {
     if (entry.items) return entry.items.length > 0;
     if (entry.requiresAdvisor) return advisorId != null;
+    if (entry.anySection) return entry.anySection.some(hasSection);
     return entry.section === null || hasSection(entry.section);
   });
 
@@ -233,6 +237,7 @@ export default function AdminLayout() {
           </ErrorBoundary>
         </main>
       </div>
+      {hasSection("prospectos") && <QuickCapture />}
     </div>
   );
 }

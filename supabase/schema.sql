@@ -5398,3 +5398,142 @@ select cron.schedule(
   '*/10 * * * *',
   $$ select notify_unattended_prospects(); $$
 );
+
+-- ─────────────────────────────────────────────
+-- Agenda: lugar de la cita
+-- ─────────────────────────────────────────────
+-- Dirección o referencia de la cita. Alimenta el enlace "Cómo llegar" (Google
+-- Maps) y el archivo de calendario (.ics) de la Agenda. Re-ejecutable; correrlo
+-- antes de desplegar no es indispensable: sin la columna, guardar una cita sin
+-- lugar sigue funcionando (el campo solo se manda cuando se captura).
+alter table agenda_citas add column if not exists lugar text;
+
+-- ─────────────────────────────────────────────
+-- Contactos duplicados
+-- ─────────────────────────────────────────────
+-- Antes de guardar un prospecto nuevo, el panel pregunta si ya existe alguien
+-- con el mismo teléfono (últimos 10 dígitos, sin importar el formato) o correo,
+-- entre los prospectos y los clientes. Va por una función security definer
+-- porque RLS deja a cada asesor ver solo sus prospectos y el aviso debe cubrir
+-- los de todos: del prospecto ajeno solo se devuelve nombre, etapa y asesor
+-- (sin id, no se puede abrir), nunca teléfono, correo ni notas. Los clientes
+-- solo se incluyen a quien tiene el apartado 'clientes'. La misma regla está
+-- en src/lib/duplicates.js (modo demo); si cambia aquí, cambia allá.
+-- Re-ejecutable. Sin correrla, el panel simplemente no avisa de duplicados.
+create or replace function find_contact_duplicates(p_phone text, p_email text default null, p_exclude uuid default null)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_phone text := right(regexp_replace(coalesce(p_phone, ''), '\D', '', 'g'), 10);
+  v_email text := lower(btrim(coalesce(p_email, '')));
+  v_me uuid := my_advisor_id();
+  v_found jsonb := '[]'::jsonb;
+  v_clients jsonb := '[]'::jsonb;
+begin
+  if length(v_phone) < 10 then v_phone := null; end if;
+  if v_email = '' then v_email := null; end if;
+  if v_phone is null and v_email is null then return v_found; end if;
+
+  if has_admin_section('prospectos') then
+    select coalesce(jsonb_agg(row_to_json(x)::jsonb), '[]'::jsonb) into v_found
+    from (
+      select
+        'prospect' as kind,
+        case when v_me is null or p.advisor_id = v_me then p.id end as id,
+        p.name,
+        p.stage,
+        a.name as advisor_name,
+        (v_me is null or p.advisor_id = v_me) as mine,
+        case when v_phone is not null and right(regexp_replace(coalesce(p.phone, ''), '\D', '', 'g'), 10) = v_phone then 'phone' else 'email' end as matched
+      from prospectos p
+      left join advisors a on a.id = p.advisor_id
+      where (p_exclude is null or p.id <> p_exclude)
+        and (
+          (v_phone is not null and right(regexp_replace(coalesce(p.phone, ''), '\D', '', 'g'), 10) = v_phone)
+          or (v_email is not null and lower(btrim(coalesce(p.email, ''))) = v_email)
+        )
+      order by p.created_at desc
+      limit 5
+    ) x;
+  end if;
+
+  if has_admin_section('clientes') then
+    select coalesce(jsonb_agg(row_to_json(x)::jsonb), '[]'::jsonb) into v_clients
+    from (
+      select
+        'client' as kind,
+        c.id,
+        c.name,
+        null::text as stage,
+        null::text as advisor_name,
+        true as mine,
+        case when v_phone is not null and right(regexp_replace(coalesce(c.phone, ''), '\D', '', 'g'), 10) = v_phone then 'phone' else 'email' end as matched
+      from clients c
+      where (
+        (v_phone is not null and right(regexp_replace(coalesce(c.phone, ''), '\D', '', 'g'), 10) = v_phone)
+        or (v_email is not null and lower(btrim(coalesce(c.email, ''))) = v_email)
+      )
+      order by c.created_at desc
+      limit 5
+    ) x;
+  end if;
+
+  return v_found || v_clients;
+end;
+$$;
+
+revoke execute on function find_contact_duplicates(text, text, uuid) from public, anon;
+grant execute on function find_contact_duplicates(text, text, uuid) to authenticated;
+
+-- ─────────────────────────────────────────────
+-- Textos de anuncio con IA (2026-10)
+-- ─────────────────────────────────────────────
+-- Cada vez que un asesor pide textos de anuncio a Claude (api/ad-copy.js) queda
+-- una fila aquí; sirve solo para los topes diarios (por persona y del equipo) y
+-- no guarda el texto generado. Lo ven y escriben quienes tienen el apartado
+-- 'propiedades' o 'naves_industriales'. Re-ejecutable. Sin correrlo, la función
+-- contesta "falta la tabla" en vez de gastar una consulta que no podría contar.
+create table if not exists ad_copy_usage (
+  id uuid primary key default gen_random_uuid(),
+  created_by text,
+  property_id uuid references properties(id) on delete set null,
+  channel text,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_ad_copy_usage_created on ad_copy_usage(created_at desc);
+
+alter table ad_copy_usage enable row level security;
+
+drop policy if exists "Rol con propiedades usa ad_copy_usage" on ad_copy_usage;
+create policy "Rol con propiedades usa ad_copy_usage" on ad_copy_usage for all
+  using (has_admin_section('propiedades') or has_admin_section('naves_industriales'))
+  with check (has_admin_section('propiedades') or has_admin_section('naves_industriales'));
+
+-- ─────────────────────────────────────────────
+-- Metas mensuales del asesor (2026-10)
+-- ─────────────────────────────────────────────
+-- Una fila por asesor con su meta mensual (se repite cada mes hasta que la
+-- cambie): contactos, visitas, prospectos nuevos y ventas; 0 = sin meta en eso.
+-- Cada asesor lee y edita solo la suya (my_advisor_id(), el asesor vinculado a
+-- su login en /admin/roles). El avance se calcula en el navegador con datos que
+-- ya existen (src/lib/goals.js); aquí no se guarda nada más. Re-ejecutable. Sin
+-- correrlo, "Mi mes" se muestra sin meta y guardar avisa que falta la tabla.
+create table if not exists advisor_goals (
+  advisor_id uuid primary key references advisors(id) on delete cascade,
+  contacts int not null default 0 check (contacts between 0 and 9999),
+  visits int not null default 0 check (visits between 0 and 9999),
+  new_prospects int not null default 0 check (new_prospects between 0 and 9999),
+  sales int not null default 0 check (sales between 0 and 9999),
+  updated_at timestamptz not null default now()
+);
+
+alter table advisor_goals enable row level security;
+
+drop policy if exists "Asesor ve y edita su meta" on advisor_goals;
+create policy "Asesor ve y edita su meta" on advisor_goals for all
+  using (my_advisor_id() is not null and my_advisor_id() = advisor_id)
+  with check (my_advisor_id() is not null and my_advisor_id() = advisor_id);

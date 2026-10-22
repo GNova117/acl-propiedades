@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
 import { whatsappDigits } from "../../lib/format";
+import { citaToIcs, downloadIcs, mapsUrl } from "../../lib/calendarEvent";
 import { formatIsoDate } from "../../lib/propertyLog";
 import "./admin.css";
 import "./AdminAgenda.css";
@@ -84,8 +85,16 @@ export default function AdminAgenda() {
     if (digits.length === 10) digits = `52${digits}`;
     const date = new Date(`${cita.fecha}T00:00:00`).toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
     const when = cita.hora ? `${date} a las ${cita.hora.slice(0, 5)}` : date;
-    const text = t("agenda.reminderText", { name: (client?.name || "").split(/\s+/)[0], title: cita.titulo, when, advisor: advisorName(cita.advisor_id) });
+    const place = cita.lugar ? `\n${t("agenda.reminderPlace", { place: cita.lugar })}\n${mapsUrl(cita.lugar)}` : "";
+    const text = t("agenda.reminderText", { name: (client?.name || "").split(/\s+/)[0], title: cita.titulo, when, advisor: advisorName(cita.advisor_id) }) + place;
     window.open(`https://wa.me/${digits}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+  };
+
+  // Archivo .ics de la cita: se abre en el calendario del teléfono y avisa 1 h y 15 min antes.
+  const addToCalendar = (cita) => {
+    const client = clients.find((c) => c.id === cita.client_id);
+    const content = citaToIcs(cita, { clientName: client?.name, clientPhone: client?.phone, advisorName: advisorName(cita.advisor_id) });
+    downloadIcs(`cita-${cita.fecha}.ics`, content);
   };
 
   const clientName = (id) => (id ? clients.find((c) => c.id === id)?.name : null) || t("agenda.noClient");
@@ -182,7 +191,17 @@ export default function AdminAgenda() {
                       {new Date(`${cita.fecha}T00:00:00`).toLocaleDateString()}
                       {cita.hora ? ` · ${cita.hora.slice(0, 5)}` : ""}
                     </td>
-                    <td>{cita.titulo}</td>
+                    <td>
+                      {cita.titulo}
+                      {cita.lugar && (
+                        <div className="form-hint">
+                          📍 {cita.lugar} ·{" "}
+                          <a href={mapsUrl(cita.lugar)} target="_blank" rel="noopener noreferrer">
+                            {t("agenda.directions")}
+                          </a>
+                        </div>
+                      )}
+                    </td>
                     {seesAll && <td>{advisorName(cita.advisor_id)}</td>}
                     <td>{clientName(cita.client_id)}</td>
                     <td className="admin-table__actions">
@@ -192,6 +211,9 @@ export default function AdminAgenda() {
                       <Link to={`/admin/agenda/${cita.id}/expedientes`} className="btn btn-outline btn-sm">
                         {t("agenda.expedientes")}
                       </Link>
+                      <button type="button" className="btn btn-outline btn-sm" onClick={() => addToCalendar(cita)} title={t("agenda.addToCalendarTitle")}>
+                        {t("agenda.addToCalendar")}
+                      </button>
                       {clients.find((c) => c.id === cita.client_id)?.phone && (
                         <button type="button" className="btn btn-outline btn-sm" onClick={() => remind(cita)}>
                           {t("agenda.remindClient")}

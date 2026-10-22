@@ -8,7 +8,10 @@ import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
 import SocialPostModal from "../../components/SocialPostModal";
 import PropertyProspectsModal from "../../components/PropertyProspectsModal";
+import SendPropertyModal from "../../components/SendPropertyModal";
+import PropertyQrModal from "../../components/PropertyQrModal";
 import { matchingProspects } from "../../lib/prospectMatch";
+import { isOpenStage } from "../../lib/prospects";
 import BulkActionsBar from "../../components/BulkActionsBar";
 import "./admin.css";
 
@@ -51,6 +54,8 @@ export default function AdminProperties({
   const [busyFichaId, setBusyFichaId] = useState(null);
   const [socialProperty, setSocialProperty] = useState(null);
   const [matchProperty, setMatchProperty] = useState(null);
+  const [sendProperty, setSendProperty] = useState(null);
+  const [qrProperty, setQrProperty] = useState(null);
   const [search, setSearch] = useState("");
   const [zoneFilter, setZoneFilter] = useState("");
   const [operationFilter, setOperationFilter] = useState("");
@@ -85,6 +90,12 @@ export default function AdminProperties({
 
   // A qué prospectos abiertos les encaja cada propiedad disponible.
   const prospectsByProperty = useMemo(() => new Map(properties.map((p) => [p.id, matchingProspects(p, prospects)])), [properties, prospects]);
+
+  // Destinatarios posibles del botón "Enviar": prospectos abiertos, los más recientes primero.
+  const openProspects = useMemo(
+    () => prospects.filter((p) => isOpenStage(p.stage)).sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || ""))),
+    [prospects]
+  );
 
   const visibleProperties = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -346,6 +357,12 @@ export default function AdminProperties({
                         {busyFichaId === property.id ? <span className="spinner" /> : null}
                         {t("admin.technicalSheet")}
                       </button>
+                      <button type="button" className="btn btn-primary btn-sm" onClick={() => setSendProperty(property)}>
+                        {t("sendProperty.button")}
+                      </button>
+                      <button type="button" className="btn btn-outline btn-sm" onClick={() => setQrProperty(property)}>
+                        {t("propertyQr.button")}
+                      </button>
                       <button type="button" className="btn btn-outline btn-sm" onClick={() => setSocialProperty(property)}>
                         {t("socialPost.button")}
                       </button>
@@ -397,6 +414,15 @@ export default function AdminProperties({
       </div>
 
       {socialProperty && <SocialPostModal property={socialProperty} onClose={() => setSocialProperty(null)} />}
+      {qrProperty && <PropertyQrModal property={qrProperty} onClose={() => setQrProperty(null)} />}
+      {sendProperty && (
+        <SendPropertyModal
+          property={sendProperty}
+          prospects={openProspects}
+          onClose={() => setSendProperty(null)}
+          onLogged={(updated) => setProspects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))}
+        />
+      )}
       {matchProperty && (
         <PropertyProspectsModal property={matchProperty} prospects={prospectsByProperty.get(matchProperty.id) || []} onClose={() => setMatchProperty(null)} />
       )}

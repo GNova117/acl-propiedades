@@ -464,6 +464,7 @@
     "pushError": "Couldn't change the notification status.",
     "dashboard": "Dashboard",
     "myProfile": "My profile",
+    "myDay": "My day",
     "totalProperties": "Total properties",
     "activeAdvisors": "Active advisors",
     "newMessages": "New messages",
@@ -1592,7 +1593,8 @@
       "modalHint": "Open prospects whose \"what they are looking for\" matches {{title}}, most advanced first.",
       "openProspect": "Open",
       "noContact": "No phone or email",
-      "emailSubject": "A property for you — ACL Propiedades"
+      "emailSubject": "A property for you — ACL Propiedades",
+      "sendTop": "Send the first {{count}} together"
     },
     "templates": {
       "label": "Quick message",
@@ -1642,6 +1644,7 @@
   },
   "pending": {
     "title": "To do today",
+    "openMyDay": "See my day, in order →",
     "allClear": "All caught up: nothing pending.",
     "andMore": "and {{count}} more",
     "keysLate_one": "{{count}} out for 2 days or more",
@@ -2719,7 +2722,174 @@
     "addFile": "Upload case file",
     "noFiles": "No case files for this appointment yet.",
     "fileName": "File",
-    "uploadedAt": "Uploaded"
+    "uploadedAt": "Uploaded",
+    "place": "Place",
+    "placePlaceholder": "Address, neighborhood or Google Maps link",
+    "placeHint": "Adds a \"Directions\" link and the place travels in the calendar file.",
+    "directions": "Directions",
+    "addToCalendar": "To my calendar",
+    "addToCalendarTitle": "Download for your calendar (alerts you 1 hour and 15 minutes before)",
+    "reminderPlace": "Meeting at: {{place}}"
+  },
+  "sendProperty": {
+    "button": "Send",
+    "title": "Send property",
+    "hint": "Pick who gets it and review the message; WhatsApp opens with the text ready.",
+    "search": "Search prospect by name or phone",
+    "prospects": "Prospects",
+    "noProspects": "No open prospects match.",
+    "noPhone": "No phone",
+    "otherNumber": "Other number",
+    "phone": "Phone (10 digits)",
+    "message": "Message",
+    "openWhatsApp": "Open WhatsApp",
+    "copy": "Copy message",
+    "copied": "Copied!",
+    "needRecipient": "Pick a prospect or type a phone number.",
+    "logTitle": "Already sent it? Log the contact with {{name}}:",
+    "logged": "Contact logged."
+  },
+  "quickCapture": {
+    "open": "Quick prospect",
+    "title": "Quick prospect",
+    "hint": "Just enough so you don't lose them; fill in the rest later.",
+    "name": "Name",
+    "phone": "Phone",
+    "lookingFor": "Looking for",
+    "lookingForPlaceholder": "E.g. 3-bedroom house in Lerdo, up to 1.5 million",
+    "pasted": "Paste WhatsApp message (optional)",
+    "pastedHint": "If you didn't type a phone, it is taken from the message. The text is saved in the notes.",
+    "save": "Save prospect",
+    "saveError": "The prospect could not be saved.",
+    "saved": "Saved: {{name}}",
+    "openProspect": "View in prospects",
+    "addAnother": "Add another",
+    "errors": {
+      "name": "Enter the name.",
+      "phone": "Enter a phone (or paste a message that has one)."
+    }
+  },
+  "duplicates": {
+    "title": "This contact already exists",
+    "client": "Client",
+    "prospect": "Prospect ({{stage}})",
+    "ofAdvisor": "handled by {{name}}",
+    "matched": {
+      "phone": "same phone",
+      "email": "same email"
+    },
+    "open": "Open",
+    "hint": "If it's a different person, save anyway; if it's the same one, open it so follow-up isn't duplicated.",
+    "saveAnyway": "Save anyway"
+  },
+  "myDay": {
+    "title": "My day",
+    "summary": "Today: {{appointments}} appointments to attend and {{contacts}} contacts to make.",
+    "allClear": "Free day: no appointments or pending contacts for today. 🎉",
+    "fullAgenda": "Full agenda",
+    "allProspects": "All prospects",
+    "call": "Call",
+    "daysLate_one": "{{count}} day overdue",
+    "daysLate_other": "{{count}} days overdue",
+    "agenda": {
+      "now": "In progress",
+      "inMinutes_one": "In {{count}} min",
+      "inMinutes_other": "In {{count}} min",
+      "past": "Done",
+      "allDay": "Today",
+      "logVisit": "Log visit"
+    },
+    "sections": {
+      "agenda": "Today's appointments",
+      "agendaHint": "In time order; the next one is highlighted.",
+      "urgent": "Reply now",
+      "urgentHint": "They came in on their own and nobody has attended them: the faster you reply, the better.",
+      "overdue": "Overdue follow-ups",
+      "overdueHint": "A contact was due before today; the most overdue first.",
+      "today": "Today's follow-ups",
+      "todayHint": "Scheduled for today."
+    }
+  },
+  "adCopy": {
+    "title": "Write with AI",
+    "hint": "Claude writes three versions with different angles from the property's real data. Pick one and tweak it before posting.",
+    "channel": "Where will you post it?",
+    "channels": {
+      "whatsapp": "WhatsApp",
+      "facebook": "Facebook / Marketplace",
+      "instagram": "Instagram",
+      "portal": "Real estate portal"
+    },
+    "tone": "Tone",
+    "tones": {
+      "cercano": "Friendly",
+      "profesional": "Professional",
+      "aspiracional": "Aspirational"
+    },
+    "extra": "What do you want to highlight? (optional)",
+    "extraPlaceholder": "E.g. ideal for families with kids",
+    "write": "Write",
+    "again": "Write other versions",
+    "writing": "Writing…",
+    "use": "Use this text",
+    "copy": "Copy",
+    "reviewNote": "Review the text before posting: price, bedrooms and square meters are checked against the listing, but the rest is written by the AI.",
+    "errors": {
+      "notConfigured": "AI writing isn't enabled yet: the ANTHROPIC_API_KEY variable is missing in Vercel.",
+      "limitUser": "You've used your {{count}} writes for today. They renew tomorrow.",
+      "limitTeam": "The team reached today's limit of {{count}} writes. They renew tomorrow.",
+      "demo": "AI writing isn't available in demo mode (it needs Supabase and the site deployed on Vercel).",
+      "no_table": "The usage table is missing: run the \"Textos de anuncio con IA\" block of supabase/schema.sql in Supabase.",
+      "no_function": "AI writing isn't available in this environment (it only exists on the site deployed to Vercel).",
+      "unauthorized": "Your session expired. Sign in again.",
+      "forbidden": "Your role has no access to Properties.",
+      "rate_limited": "Anthropic is rate limiting requests right now. Try again in a minute.",
+      "refused": "Claude couldn't write this text. Try different instructions.",
+      "bad_output": "No version matched the property's data. Try again.",
+      "timeout": "Writing took too long. Try again.",
+      "upstream": "The text couldn't be written. Try again."
+    }
+  },
+  "goals": {
+    "title": "My month: {{month}}",
+    "edit": "Edit goals",
+    "hint": "Your goal for each month (it repeats until you change it). Leave blank what you don't want to track.",
+    "noGoal": "No goal",
+    "save": "Save goals",
+    "metrics": {
+      "contacts": "Contacts with prospects",
+      "visits": "Visits made",
+      "newProspects": "New prospects",
+      "sales": "Closed sales"
+    },
+    "status": {
+      "done": "Goal reached!",
+      "ahead": "You're ahead of the month's pace",
+      "onTrack": "You're on track",
+      "behind": "Time to speed up"
+    },
+    "remaining_one": "{{count}} to go",
+    "remaining_other": "{{count}} to go",
+    "perDay_one": "≈ {{count}} a day",
+    "perDay_other": "≈ {{count}} a day",
+    "errors": {
+      "number": "Enter a whole number from 0 to 9,999.",
+      "save": "The goals could not be saved.",
+      "noTable": "The goals table is missing: run the \"Metas mensuales del asesor\" block of supabase/schema.sql in Supabase."
+    }
+  },
+  "propertyQr": {
+    "button": "QR",
+    "title": "QR code",
+    "hint": "whoever scans it lands on its page with photos, price and contact. Use it on signs and flyers.",
+    "alt": "QR code for {{title}}",
+    "downloadSign": "Download sign (PDF)",
+    "downloadPng": "Download QR (PNG)",
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "notAvailable": "This property is no longer available: the sign would say \"{{heading}}\". Make sure you want to print it that way.",
+    "tips": "Before printing, scan it with your phone to check that it opens the right page. On a sign, the QR should be at least 5 cm per side. If the site has Google Analytics enabled, visits that arrive by QR should show up with source \"qr\" (campaign = the property's code).",
+    "error": "The file could not be generated."
   },
   "seasons": {
     "anio-nuevo": {
