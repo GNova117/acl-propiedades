@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../context/AuthContext";
 import { usePendingToday } from "../lib/usePendingToday";
 import "./PendingToday.css";
 
@@ -9,12 +10,18 @@ import "./PendingToday.css";
 export default function PendingToday() {
   const { t } = useTranslation();
   const { items, sectionsKey } = usePendingToday();
+  const { hasSection } = useAuth();
 
   if (items === null || (items.length === 0 && sectionsKey === "false,false,false,false,false,false,false")) return null;
 
   return (
     <section className="pending-today" aria-label={t("pending.title")}>
       <h2 className="pending-today__title">{t("pending.title")}</h2>
+      {(hasSection("agenda") || hasSection("prospectos")) && (
+        <p className="form-hint">
+          <Link to="/admin/mi-dia">{t("pending.openMyDay")}</Link>
+        </p>
+      )}
       {items.length === 0 ? (
         <p className="form-hint">{t("pending.allClear")}</p>
       ) : (

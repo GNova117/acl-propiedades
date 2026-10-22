@@ -464,6 +464,7 @@
     "pushError": "Couldn't change the notification status.",
     "dashboard": "Dashboard",
     "myProfile": "My profile",
+    "myDay": "My day",
     "totalProperties": "Total properties",
     "activeAdvisors": "Active advisors",
     "newMessages": "New messages",
@@ -1643,6 +1644,7 @@
   },
   "pending": {
     "title": "To do today",
+    "openMyDay": "See my day, in order →",
     "allClear": "All caught up: nothing pending.",
     "andMore": "and {{count}} more",
     "keysLate_one": "{{count}} out for 2 days or more",
@@ -2765,6 +2767,47 @@
     "errors": {
       "name": "Enter the name.",
       "phone": "Enter a phone (or paste a message that has one)."
+    }
+  },
+  "duplicates": {
+    "title": "This contact already exists",
+    "client": "Client",
+    "prospect": "Prospect ({{stage}})",
+    "ofAdvisor": "handled by {{name}}",
+    "matched": {
+      "phone": "same phone",
+      "email": "same email"
+    },
+    "open": "Open",
+    "hint": "If it's a different person, save anyway; if it's the same one, open it so follow-up isn't duplicated.",
+    "saveAnyway": "Save anyway"
+  },
+  "myDay": {
+    "title": "My day",
+    "summary": "Today: {{appointments}} appointments to attend and {{contacts}} contacts to make.",
+    "allClear": "Free day: no appointments or pending contacts for today. 🎉",
+    "fullAgenda": "Full agenda",
+    "allProspects": "All prospects",
+    "call": "Call",
+    "daysLate_one": "{{count}} day overdue",
+    "daysLate_other": "{{count}} days overdue",
+    "agenda": {
+      "now": "In progress",
+      "inMinutes_one": "In {{count}} min",
+      "inMinutes_other": "In {{count}} min",
+      "past": "Done",
+      "allDay": "Today",
+      "logVisit": "Log visit"
+    },
+    "sections": {
+      "agenda": "Today's appointments",
+      "agendaHint": "In time order; the next one is highlighted.",
+      "urgent": "Reply now",
+      "urgentHint": "They came in on their own and nobody has attended them: the faster you reply, the better.",
+      "overdue": "Overdue follow-ups",
+      "overdueHint": "A contact was due before today; the most overdue first.",
+      "today": "Today's follow-ups",
+      "todayHint": "Scheduled for today."
     }
   },
   "seasons": {

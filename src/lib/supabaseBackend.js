@@ -1831,6 +1831,21 @@ export const supabaseBackend = {
     return data;
   },
 
+  // ¿Ya existe un prospecto o cliente con este teléfono/correo? Va por una
+  // función SQL porque un asesor solo lee sus propios prospectos y el aviso debe
+  // cubrir los de todos (ver find_contact_duplicates en schema.sql). El aviso
+  // nunca debe impedir guardar: sin la función (migración sin correr) o sin
+  // conexión, simplemente no hay aviso.
+  async findContactDuplicates({ phone, email, excludeProspectId }) {
+    const { data, error } = await supabase.rpc("find_contact_duplicates", {
+      p_phone: phone || null,
+      p_email: email || null,
+      p_exclude: excludeProspectId || null,
+    });
+    if (error) return [];
+    return data || [];
+  },
+
   async addProspect(fields) {
     const { data: sessionData } = await supabase.auth.getSession();
     const row = { ...fields, created_by: sessionData?.session?.user?.email || null };

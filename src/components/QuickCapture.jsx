@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/dataStore";
 import { quickProspectFields, validateQuickProspect } from "../lib/quickProspect";
+import DuplicateWarning from "./DuplicateWarning";
 import "./QuickCapture.css";
 
 const EMPTY = { name: "", phone: "", lookingFor: "", pasted: "" };
@@ -23,6 +24,9 @@ export default function QuickCapture() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [saved, setSaved] = useState(null);
+  // Coincidencias con un prospecto o cliente que ya existe; mientras haya, el
+  // botón pasa a "Guardar de todos modos" (el aviso no bloquea).
+  const [duplicates, setDuplicates] = useState([]);
   const nameRef = useRef(null);
 
   useEffect(() => {
@@ -41,6 +45,7 @@ export default function QuickCapture() {
     setErrors({});
     setSaveError("");
     setSaved(null);
+    setDuplicates([]);
   };
 
   const close = () => {
@@ -48,7 +53,11 @@ export default function QuickCapture() {
     reset();
   };
 
-  const setField = (key) => (e) => setForm((prev) => ({ ...prev, [key]: e.target.value }));
+  const setField = (key) => (e) => {
+    setForm((prev) => ({ ...prev, [key]: e.target.value }));
+    // Si cambia el teléfono o el mensaje (de donde sale el teléfono), el aviso ya no aplica.
+    if (key === "phone" || key === "pasted") setDuplicates([]);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,7 +67,15 @@ export default function QuickCapture() {
     setSaving(true);
     setSaveError("");
     try {
-      const record = await db.addProspect(quickProspectFields(form, { advisorId }));
+      const fields = quickProspectFields(form, { advisorId });
+      if (duplicates.length === 0) {
+        const found = await db.findContactDuplicates({ phone: fields.phone, email: fields.email });
+        if (found.length > 0) {
+          setDuplicates(found);
+          return;
+        }
+      }
+      const record = await db.addProspect(fields);
       setSaved(record);
     } catch (err) {
       setSaveError(err.message || t("quickCapture.saveError"));
@@ -120,11 +137,12 @@ export default function QuickCapture() {
                   <textarea id="qc-pasted" rows={3} value={form.pasted} onChange={setField("pasted")} />
                   <span className="form-hint">{t("quickCapture.pastedHint")}</span>
                 </div>
+                <DuplicateWarning duplicates={duplicates} onOpen={close} />
                 {saveError && <p className="form-error" role="alert">{saveError}</p>}
                 <div className="quick-capture__actions">
                   <button type="submit" className="btn btn-primary" disabled={saving}>
                     {saving ? <span className="spinner" /> : null}
-                    {t("quickCapture.save")}
+                    {duplicates.length > 0 ? t("duplicates.saveAnyway") : t("quickCapture.save")}
                   </button>
                 </div>
               </form>

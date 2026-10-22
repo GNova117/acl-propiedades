@@ -1,0 +1,99 @@
+.my-day__date {
+  margin: 0;
+}
+
+/* Solo la primera letra ("jueves, 22 de octubre" → "Jueves…"): capitalize pondría "De" en mayúscula. */
+.my-day__date::first-letter {
+  text-transform: uppercase;
+}
+
+.my-day__summary {
+  margin: 0 0 1rem;
+  font-weight: 600;
+}
+
+.my-day__clear {
+  padding: 1.25rem;
+}
+
+.my-day__section {
+  margin-bottom: 1.75rem;
+}
+
+.my-day__section h2 {
+  margin: 0 0 0.15rem;
+  font-size: 1.1rem;
+}
+
+.my-day__count {
+  display: inline-block;
+  min-width: 1.4rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.8rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.my-day__list {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.my-day__item {
+  display: flex;
+  gap: 0.9rem;
+  padding: 0.8rem 1rem;
+}
+
+.my-day__item--past {
+  opacity: 0.6;
+}
+
+.my-day__item--now,
+.my-day__item--next {
+  border-left: 4px solid #f0a500;
+}
+
+.my-day__time {
+  flex: 0 0 3.6rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.my-day__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.my-day__headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.my-day__body .form-hint {
+  margin: 0.2rem 0 0;
+}
+
+.my-day__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.6rem;
+}
+
+.my-day__actions select.quick-reply-select {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}

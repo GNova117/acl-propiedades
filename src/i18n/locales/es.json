@@ -464,6 +464,7 @@
     "pushError": "No se pudo cambiar el estado de las notificaciones.",
     "dashboard": "Panel principal",
     "myProfile": "Mi perfil",
+    "myDay": "Mi día",
     "totalProperties": "Total de propiedades",
     "activeAdvisors": "Asesores activos",
     "newMessages": "Mensajes nuevos",
@@ -1643,6 +1644,7 @@
   },
   "pending": {
     "title": "Pendientes de hoy",
+    "openMyDay": "Ver mi día, en orden →",
     "allClear": "Todo al día: no hay pendientes.",
     "andMore": "y {{count}} más",
     "keysLate_one": "{{count}} con 2 días o más fuera",
@@ -2765,6 +2767,47 @@
     "errors": {
       "name": "Escribe el nombre.",
       "phone": "Escribe un teléfono (o pega un mensaje que lo traiga)."
+    }
+  },
+  "duplicates": {
+    "title": "Este contacto ya existe",
+    "client": "Cliente",
+    "prospect": "Prospecto ({{stage}})",
+    "ofAdvisor": "lo lleva {{name}}",
+    "matched": {
+      "phone": "mismo teléfono",
+      "email": "mismo correo"
+    },
+    "open": "Abrir",
+    "hint": "Si es otra persona, guárdalo de todos modos; si es la misma, ábrelo para no duplicar el seguimiento.",
+    "saveAnyway": "Guardar de todos modos"
+  },
+  "myDay": {
+    "title": "Mi día",
+    "summary": "Hoy: {{appointments}} citas por atender y {{contacts}} contactos por hacer.",
+    "allClear": "Día libre: no hay citas ni contactos pendientes para hoy. 🎉",
+    "fullAgenda": "Agenda completa",
+    "allProspects": "Todos los prospectos",
+    "call": "Llamar",
+    "daysLate_one": "Vencido hace {{count}} día",
+    "daysLate_other": "Vencido hace {{count}} días",
+    "agenda": {
+      "now": "En curso",
+      "inMinutes_one": "En {{count}} min",
+      "inMinutes_other": "En {{count}} min",
+      "past": "Ya pasó",
+      "allDay": "Hoy",
+      "logVisit": "Registrar visita"
+    },
+    "sections": {
+      "agenda": "Citas de hoy",
+      "agendaHint": "En orden de hora; la próxima va resaltada.",
+      "urgent": "Contesta ya",
+      "urgentHint": "Llegaron solos y nadie los ha atendido: entre más rápido contestes, mejor.",
+      "overdue": "Seguimientos vencidos",
+      "overdueHint": "Les tocaba un contacto antes de hoy; los más atrasados primero.",
+      "today": "Seguimientos de hoy",
+      "todayHint": "Programados para hoy."
     }
   },
   "seasons": {

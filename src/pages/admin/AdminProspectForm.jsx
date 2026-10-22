@@ -16,6 +16,7 @@ import {
 } from "../../lib/prospects";
 import InternalNotes from "../../components/InternalNotes";
 import ProspectContactHistory from "../../components/ProspectContactHistory";
+import DuplicateWarning from "../../components/DuplicateWarning";
 import "./admin.css";
 import "./AdminProspects.css";
 
@@ -40,6 +41,9 @@ export default function AdminProspectForm() {
   const [notFound, setNotFound] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  // Coincidencias con un prospecto o cliente que ya existe (solo al dar de alta);
+  // mientras haya, guardar pide confirmarlo con "Guardar de todos modos".
+  const [duplicates, setDuplicates] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,7 +84,10 @@ export default function AdminProspectForm() {
   const orphanZone = form.want_zone && !zones.some((z) => z.name === form.want_zone) ? form.want_zone : null;
   const extraSummary = criteriaSummary(form.want_extra, t);
 
-  const setField = (key) => (e) => setForm((prev) => ({ ...prev, [key]: e.target.value }));
+  const setField = (key) => (e) => {
+    setForm((prev) => ({ ...prev, [key]: e.target.value }));
+    if (key === "phone" || key === "email") setDuplicates([]);
+  };
   const errorText = (key) => (errors[key] ? <span className="form-error">{t(errors[key])}</span> : null);
 
   const handleSubmit = async (e) => {
@@ -93,7 +100,17 @@ export default function AdminProspectForm() {
     try {
       const fields = toProspectFields({ ...form, advisor_id: advisorId || form.advisor_id }, { hadCriteria: hadCriteria.current });
       if (isEdit) await db.updateProspect(id, fields);
-      else await db.addProspect({ ...fields, last_contact_at: null });
+      else {
+        if (duplicates.length === 0) {
+          const found = await db.findContactDuplicates({ phone: fields.phone, email: fields.email });
+          if (found.length > 0) {
+            setDuplicates(found);
+            setSaving(false);
+            return;
+          }
+        }
+        await db.addProspect({ ...fields, last_contact_at: null });
+      }
       navigate("/admin/prospectos");
     } catch (err) {
       setSaveError(err.message || t("prospects.saveError"));
@@ -280,13 +297,15 @@ export default function AdminProspectForm() {
 
         {saveError && <span className="form-error">{saveError}</span>}
 
+        <DuplicateWarning duplicates={duplicates} />
+
         <div className="admin-form__actions">
           <Link to="/admin/prospectos" className="btn btn-outline">
             {t("common.cancel")}
           </Link>
           <button type="submit" className="btn btn-primary" disabled={saving}>
             {saving ? <span className="spinner" /> : null}
-            {t("common.save")}
+            {duplicates.length > 0 ? t("duplicates.saveAnyway") : t("common.save")}
           </button>
         </div>
       </form>

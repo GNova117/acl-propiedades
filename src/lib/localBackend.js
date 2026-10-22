@@ -8,6 +8,7 @@ import { CLIENT_EXPEDIENTE_KEYS } from "./clientExpedienteFields";
 import { compressImageFile, compressImageFiles } from "./imageCompression";
 import { buildDemoSnapshot } from "./marketDemo";
 import { getOrCreateVisitorId } from "./visitorId";
+import { findDuplicates } from "./duplicates";
 
 function clientExpedientePayload(data) {
   return Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, data[key] || null]));
@@ -1942,6 +1943,18 @@ export const localBackend = {
       .filter((p) => !seen.has(p.id))
       .map((p) => ({ prospecto_id: p.id, stage: p.stage, at: p.stage === "nuevo" ? p.created_at : p.updated_at }));
     return [...stages, ...backfill].sort((a, b) => String(a.at).localeCompare(String(b.at)));
+  },
+
+  async findContactDuplicates({ phone, email, excludeProspectId }) {
+    return findDuplicates(
+      { phone, email },
+      {
+        prospects: readStore(KEYS.prospects, []),
+        clients: readStore(KEYS.clients, []),
+        advisors: readStore(KEYS.advisors, ADVISORS),
+        excludeProspectId,
+      }
+    );
   },
 
   async addProspect(fields) {
