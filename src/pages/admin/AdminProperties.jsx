@@ -9,6 +9,7 @@ import { useAuth } from "../../context/AuthContext";
 import SocialPostModal from "../../components/SocialPostModal";
 import PropertyProspectsModal from "../../components/PropertyProspectsModal";
 import SendPropertyModal from "../../components/SendPropertyModal";
+import PropertyQrModal from "../../components/PropertyQrModal";
 import { matchingProspects } from "../../lib/prospectMatch";
 import { isOpenStage } from "../../lib/prospects";
 import BulkActionsBar from "../../components/BulkActionsBar";
@@ -54,6 +55,7 @@ export default function AdminProperties({
   const [socialProperty, setSocialProperty] = useState(null);
   const [matchProperty, setMatchProperty] = useState(null);
   const [sendProperty, setSendProperty] = useState(null);
+  const [qrProperty, setQrProperty] = useState(null);
   const [search, setSearch] = useState("");
   const [zoneFilter, setZoneFilter] = useState("");
   const [operationFilter, setOperationFilter] = useState("");
@@ -358,6 +360,9 @@ export default function AdminProperties({
                       <button type="button" className="btn btn-primary btn-sm" onClick={() => setSendProperty(property)}>
                         {t("sendProperty.button")}
                       </button>
+                      <button type="button" className="btn btn-outline btn-sm" onClick={() => setQrProperty(property)}>
+                        {t("propertyQr.button")}
+                      </button>
                       <button type="button" className="btn btn-outline btn-sm" onClick={() => setSocialProperty(property)}>
                         {t("socialPost.button")}
                       </button>
@@ -409,6 +414,7 @@ export default function AdminProperties({
       </div>
 
       {socialProperty && <SocialPostModal property={socialProperty} onClose={() => setSocialProperty(null)} />}
+      {qrProperty && <PropertyQrModal property={qrProperty} onClose={() => setQrProperty(null)} />}
       {sendProperty && (
         <SendPropertyModal
           property={sendProperty}

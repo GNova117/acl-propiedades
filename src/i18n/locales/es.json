@@ -2878,6 +2878,19 @@
       "noTable": "Falta crear la tabla de metas: corre en Supabase el bloque «Metas mensuales del asesor» de supabase/schema.sql."
     }
   },
+  "propertyQr": {
+    "button": "QR",
+    "title": "Código QR",
+    "hint": "quien lo escanee llega a su ficha con fotos, precio y contacto. Úsalo en letreros y volantes.",
+    "alt": "Código QR de {{title}}",
+    "downloadSign": "Descargar letrero (PDF)",
+    "downloadPng": "Descargar QR (PNG)",
+    "copyLink": "Copiar enlace",
+    "copied": "¡Copiado!",
+    "notAvailable": "Esta propiedad ya no está disponible: el letrero diría «{{heading}}». Confirma que quieres imprimirlo así.",
+    "tips": "Antes de imprimir, escanéalo con tu celular para comprobar que abre la ficha correcta. Si lo imprimes en un letrero, que el QR mida al menos 5 cm por lado. Si el sitio tiene Google Analytics activo, las visitas que llegan por QR deberían verse con la fuente «qr» (campaña = código de la propiedad).",
+    "error": "No se pudo generar el archivo."
+  },
   "seasons": {
     "anio-nuevo": {
       "greeting": "¡Feliz Año Nuevo {{year}}! Que este sea el año de tu nuevo hogar."

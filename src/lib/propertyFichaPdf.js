@@ -51,13 +51,13 @@ const SMART_CHARS = {
   "…": "...",
 };
 
-function sanitize(text) {
+export function sanitize(text) {
   return String(text ?? "")
     .replace(/[‘’“”–—…]/g, (c) => SMART_CHARS[c])
     .replace(/[^\x20-\xFF\n]/g, "");
 }
 
-function wrapText(text, font, size, maxWidth) {
+export function wrapText(text, font, size, maxWidth) {
   const words = sanitize(text).split(/\s+/).filter(Boolean);
   const lines = [];
   let line = "";
@@ -317,7 +317,7 @@ export async function buildFichaTecnicaPdf(property, { typeLabel, statusLabel, t
   return doc.save();
 }
 
-function fileSafe(text) {
+export function fileSafe(text) {
   return sanitize(text)
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")

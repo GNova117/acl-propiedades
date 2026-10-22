@@ -2878,6 +2878,19 @@
       "noTable": "The goals table is missing: run the \"Metas mensuales del asesor\" block of supabase/schema.sql in Supabase."
     }
   },
+  "propertyQr": {
+    "button": "QR",
+    "title": "QR code",
+    "hint": "whoever scans it lands on its page with photos, price and contact. Use it on signs and flyers.",
+    "alt": "QR code for {{title}}",
+    "downloadSign": "Download sign (PDF)",
+    "downloadPng": "Download QR (PNG)",
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "notAvailable": "This property is no longer available: the sign would say \"{{heading}}\". Make sure you want to print it that way.",
+    "tips": "Before printing, scan it with your phone to check that it opens the right page. On a sign, the QR should be at least 5 cm per side. If the site has Google Analytics enabled, visits that arrive by QR should show up with source \"qr\" (campaign = the property's code).",
+    "error": "The file could not be generated."
+  },
   "seasons": {
     "anio-nuevo": {
       "greeting": "Happy New Year {{year}}! May this be the year of your new home."
