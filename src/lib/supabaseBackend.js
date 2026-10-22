@@ -171,8 +171,17 @@ async function uploadInspectionChecklistPhotos(inspectionId, checklist) {
 export const supabaseBackend = {
   mode: "supabase",
 
+  // `page`/`pageSize` son opcionales: sin ellos se comporta exactamente
+  // igual que antes (devuelve el arreglo completo) — así no se toca a los
+  // ~20 llamadores (admin, reportes, el buscador global, etc.) que sí
+  // necesitan el catálogo entero. Solo el listado público (/propiedades)
+  // los manda, para no bajar cada propiedad —con todas sus imágenes— de
+  // una sola vez conforme crece el catálogo. `count: "exact"` le pide a
+  // Postgres el total de filas que cumplen el filtro en la misma consulta
+  // (vía el header Content-Range), sin una segunda ida y vuelta.
   async getProperties(filters = {}) {
-    let query = supabase.from("properties").select(PROPERTY_SELECT);
+    const paginated = filters.pageSize != null;
+    let query = supabase.from("properties").select(PROPERTY_SELECT, paginated ? { count: "exact" } : undefined);
     if (filters.activeOnly) query = query.eq("active", true);
     if (filters.type) query = query.eq("type", filters.type);
     else if (filters.types) query = query.in("type", filters.types);
@@ -190,9 +199,14 @@ export const supabaseBackend = {
     for (const [column, ascending] of PROPERTY_SORTERS[filters.sortBy] || PROPERTY_SORTERS.newest) {
       query = query.order(column, { ascending });
     }
-    const { data, error } = await query;
+    if (paginated) {
+      const from = (filters.page || 0) * filters.pageSize;
+      query = query.range(from, from + filters.pageSize - 1);
+    }
+    const { data, error, count } = await query;
     if (error) throw error;
-    return (data || []).map(mapPropertyRow);
+    const mapped = (data || []).map(mapPropertyRow);
+    return paginated ? { data: mapped, total: count ?? mapped.length } : mapped;
   },
 
   async getPropertyById(id) {

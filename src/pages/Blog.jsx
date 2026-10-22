@@ -45,7 +45,7 @@ export default function Blog() {
                 <Reveal key={post.id} delay={(index % 6) * 70}>
                   <Link to={`/blog/${post.slug}`} className="card blog-card">
                     {post.cover_image ? (
-                      <img src={post.cover_image} alt="" className="blog-card__image" />
+                      <img src={post.cover_image} alt="" className="blog-card__image" loading="lazy" decoding="async" />
                     ) : (
                       <div className="blog-card__image blog-card__image--placeholder" />
                     )}

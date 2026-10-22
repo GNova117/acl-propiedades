@@ -4,23 +4,6 @@ import { useTranslation } from "react-i18next";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ChatWidget from "./components/ChatWidget";
-import Home from "./pages/Home";
-import Properties from "./pages/Properties";
-import PropertyDetail from "./pages/PropertyDetail";
-import ZoneLanding from "./pages/ZoneLanding";
-import Calculator from "./pages/Calculator";
-import SellYourHome from "./pages/SellYourHome";
-import CreditCompare from "./pages/CreditCompare";
-import AlertUnsubscribe from "./pages/AlertUnsubscribe";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import Favorites from "./pages/Favorites";
-import Compare from "./pages/Compare";
-import Privacy from "./pages/Privacy";
-import Rights from "./pages/Rights";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
-import NotFound from "./pages/NotFound";
 import { db } from "./lib/dataStore";
 import { applyPropertyTypeLabels } from "./lib/propertyTypeLabels";
 import RequireSection from "./components/RequireSection";
@@ -30,6 +13,29 @@ import SeasonalGarland from "./components/SeasonalGarland";
 import SeasonalParticles from "./components/SeasonalParticles";
 import { SPECIAL_SECTION_TYPES } from "./lib/format";
 import { initAnalytics, trackPageview } from "./lib/analytics";
+
+// Cada página pública en su propio chunk: quien entra a /calculadora no
+// descarga el código de /blog, etc. Home se queda eager porque es la
+// entrada más común del sitio — lazy-loading ahí solo cambiaría una espera
+// de red por otra y de paso metería un parpadeo de "cargando" en la
+// primera impresión.
+import Home from "./pages/Home";
+const Properties = lazy(() => import("./pages/Properties"));
+const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
+const ZoneLanding = lazy(() => import("./pages/ZoneLanding"));
+const Calculator = lazy(() => import("./pages/Calculator"));
+const SellYourHome = lazy(() => import("./pages/SellYourHome"));
+const CreditCompare = lazy(() => import("./pages/CreditCompare"));
+const AlertUnsubscribe = lazy(() => import("./pages/AlertUnsubscribe"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Favorites = lazy(() => import("./pages/Favorites"));
+const Compare = lazy(() => import("./pages/Compare"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Rights = lazy(() => import("./pages/Rights"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Todo /admin va en su propio chunk, separado del bundle público — un
 // visitante que solo ve propiedades nunca descarga el código del panel de

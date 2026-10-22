@@ -35,6 +35,11 @@ const EMPTY_FILTERS = {
 
 const SORT_OPTIONS = ["newest", "price_asc", "price_desc", "area_desc"];
 
+// Tamaño de página del listado: solo aplica a la vista de lista — la vista
+// de mapa necesita todas las propiedades que cumplen el filtro para poner
+// cada pin, así que esa sigue pidiendo el set completo.
+const PAGE_SIZE = 24;
+
 // Número de oficina — mismo que usa Contact.jsx/Footer.jsx/
 // ChatWidget.jsx (cada uno lo tiene por separado, no hay una
 // constante compartida en el proyecto todavía).
@@ -108,11 +113,22 @@ export default function Properties({
     sortBy: searchParams.get("orden") || "newest",
   });
   const [properties, setProperties] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
   const [zones, setZones] = useState([]);
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [typesLoaded, setTypesLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
+
+  // Cualquier cambio de filtro o de orden deja resultados viejos de otra
+  // búsqueda en la página 2+; se regresa a la primera página para no
+  // mostrar un vacío falso ("sin resultados") solo porque esa búsqueda
+  // nueva no llega tan lejos.
+  const goToFilters = (updater) => {
+    setPage(0);
+    setFilters(updater);
+  };
 
   useEffect(() => {
     db.getZones().then(setZones).catch(() => setZones([]));
@@ -193,16 +209,32 @@ export default function Properties({
   useEffect(() => {
     let active = true;
     setLoading(true);
-    db.getProperties(queryFilters)
-      .then((data) => {
+    // La vista de mapa necesita el set completo (cada propiedad es un pin).
+    // `cityFilter` (páginas de ZoneLanding) también: es un filtro que se
+    // resuelve en el cliente —no es una `zone` exacta, sino cualquier
+    // colonia de esa ciudad— así que no se le puede pedir al backend que
+    // pagine algo que todavía no sabe si va a quedar en el resultado. Solo
+    // la lista normal, sin cityFilter, pide su página directo al servidor.
+    const needsFullSet = view === "map" || Boolean(cityFilter);
+    const request = needsFullSet
+      ? db.getProperties(queryFilters).then((data) => {
+          const filtered = cityFilter ? data.filter((property) => propertyMatchesCity(property, cityFilter)) : data;
+          return view === "map"
+            ? { data: filtered, total: filtered.length }
+            : { data: filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), total: filtered.length };
+        })
+      : db.getProperties({ ...queryFilters, page, pageSize: PAGE_SIZE });
+    request
+      .then(({ data, total: count }) => {
         if (!active) return;
-        setProperties(cityFilter ? data.filter((property) => propertyMatchesCity(property, cityFilter)) : data);
+        setProperties(data);
+        setTotal(count);
       })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, [queryFilters, cityFilter]);
+  }, [queryFilters, view, page, cityFilter]);
 
   const pageTitle = title || t(titleKey);
   const pageSubtitle = subtitle || t(subtitleKey);
@@ -243,19 +275,19 @@ export default function Properties({
               showOperation={!fixedType}
               showNaveTipo={fixedType === "nave_industrial"}
               showHomeFilters={fixedType !== "terreno"}
-              onChange={setFilters}
-              onClear={() => setFilters(EMPTY_FILTERS)}
+              onChange={goToFilters}
+              onClear={() => goToFilters(EMPTY_FILTERS)}
             />
           </aside>
 
           <div className="properties-page__results">
             <div className="properties-page__toolbar">
-              <span>{t(properties.length === 1 ? "properties.results_one" : "properties.results_other", { count: properties.length })}</span>
+              <span>{t(total === 1 ? "properties.results_one" : "properties.results_other", { count: total })}</span>
               <div className="properties-page__toolbar-actions">
                 <select
                   aria-label={t("properties.sortBy")}
                   value={filters.sortBy}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, sortBy: e.target.value }))}
+                  onChange={(e) => goToFilters((prev) => ({ ...prev, sortBy: e.target.value }))}
                 >
                   {SORT_OPTIONS.map((option) => (
                     <option key={option} value={option}>
@@ -276,7 +308,7 @@ export default function Properties({
 
             {loading ? (
               <div className="empty-state">{t("common.loading")}</div>
-            ) : properties.length === 0 ? (
+            ) : total === 0 ? (
               <div className="empty-state">
                 {t(hasActiveFilters ? "properties.noResults" : "properties.emptySection")}
                 <NotifyMeCta section={pageTitle} />
@@ -286,19 +318,37 @@ export default function Properties({
                 <PropertyMap properties={properties} height={560} />
               </Suspense>
             ) : (
-              <div className="properties-grid">
-                {properties.map((property, index) => (
-                  <Reveal key={property.id} delay={(index % 6) * 70}>
-                    <PropertyCard property={property} />
-                  </Reveal>
-                ))}
-              </div>
+              <>
+                <div className="properties-grid">
+                  {properties.map((property, index) => (
+                    <Reveal key={property.id} delay={(index % 6) * 70}>
+                      <PropertyCard property={property} />
+                    </Reveal>
+                  ))}
+                </div>
+                {total > PAGE_SIZE && (
+                  <div className="properties-page__pagination">
+                    <button type="button" className="btn btn-outline btn-sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+                      {t("properties.prevPage")}
+                    </button>
+                    <span>{t("properties.pageOf", { page: page + 1, pages: Math.ceil(total / PAGE_SIZE) })}</span>
+                    <button
+                      type="button"
+                      className="btn btn-outline btn-sm"
+                      disabled={(page + 1) * PAGE_SIZE >= total}
+                      onClick={() => setPage((p) => p + 1)}
+                    >
+                      {t("properties.nextPage")}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
             {!loading && (
               <AlertSignupCard
                 mode="search"
                 criteria={alertCriteria}
-                matchCount={properties.length}
+                matchCount={total}
                 key={JSON.stringify(alertCriteria)}
               />
             )}
