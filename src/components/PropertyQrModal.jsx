@@ -11,7 +11,9 @@ export default function PropertyQrModal({ property, onClose }) {
   const { t } = useTranslation();
   const origin = window.location.origin;
   const url = useMemo(() => qrTargetUrl(property, origin), [property, origin]);
-  const preview = useMemo(() => qrCanvas(qrMatrix(url), { scale: 8 }).toDataURL("image/png"), [url]);
+  // Con el logo de ACL al centro (se puede quitar: un QR liso es más fácil de leer en una impresión chica o dañada).
+  const [withLogo, setWithLogo] = useState(true);
+  const preview = useMemo(() => qrCanvas(qrMatrix(url), { scale: 8, logo: withLogo }).toDataURL("image/png"), [url, withLogo]);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
@@ -70,12 +72,16 @@ export default function PropertyQrModal({ property, onClose }) {
           <img src={preview} alt={t("propertyQr.alt", { title: property.title })} width="240" height="240" />
         </div>
 
+        <label className="property-qr__logo">
+          <input type="checkbox" checked={withLogo} onChange={(e) => setWithLogo(e.target.checked)} /> {t("propertyQr.logo")}
+        </label>
+
         <div className="property-qr__actions">
-          <button type="button" className="btn btn-primary" disabled={Boolean(busy)} onClick={() => run("pdf", () => downloadQrSignPdf(property, { origin }))}>
+          <button type="button" className="btn btn-primary" disabled={Boolean(busy)} onClick={() => run("pdf", () => downloadQrSignPdf(property, { origin, logo: withLogo }))}>
             {busy === "pdf" ? <span className="spinner" /> : null}
             {t("propertyQr.downloadSign")}
           </button>
-          <button type="button" className="btn btn-outline" disabled={Boolean(busy)} onClick={() => run("png", () => downloadQrPng(property, origin))}>
+          <button type="button" className="btn btn-outline" disabled={Boolean(busy)} onClick={() => run("png", () => downloadQrPng(property, origin, { logo: withLogo }))}>
             {busy === "png" ? <span className="spinner" /> : null}
             {t("propertyQr.downloadPng")}
           </button>

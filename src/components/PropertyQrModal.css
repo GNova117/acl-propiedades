@@ -31,3 +31,12 @@
   margin-top: 0.75rem;
   word-break: break-all;
 }
+
+.property-qr__logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+}
