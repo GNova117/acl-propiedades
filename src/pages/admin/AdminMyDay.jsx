@@ -10,6 +10,7 @@ import { contactFields, isOpenStage, unattendedAge } from "../../lib/prospects";
 import { prospectMessageTemplates } from "../../lib/prospectMessages";
 import QuickReplyButton from "../../components/QuickReplyButton";
 import ProspectContactForm from "../../components/ProspectContactForm";
+import MonthGoals from "../../components/MonthGoals";
 import "./admin.css";
 import "./AdminProspects.css";
 import "./AdminMyDay.css";
@@ -250,6 +251,8 @@ export default function AdminMyDay() {
           )}
         </div>
       </div>
+
+      {advisorId && <MonthGoals advisorId={advisorId} />}
 
       {plan.isEmpty ? (
         <p className="card my-day__clear">{t("myDay.allClear")}</p>

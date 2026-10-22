@@ -5488,3 +5488,52 @@ $$;
 
 revoke execute on function find_contact_duplicates(text, text, uuid) from public, anon;
 grant execute on function find_contact_duplicates(text, text, uuid) to authenticated;
+
+-- ─────────────────────────────────────────────
+-- Textos de anuncio con IA (2026-10)
+-- ─────────────────────────────────────────────
+-- Cada vez que un asesor pide textos de anuncio a Claude (api/ad-copy.js) queda
+-- una fila aquí; sirve solo para los topes diarios (por persona y del equipo) y
+-- no guarda el texto generado. Lo ven y escriben quienes tienen el apartado
+-- 'propiedades' o 'naves_industriales'. Re-ejecutable. Sin correrlo, la función
+-- contesta "falta la tabla" en vez de gastar una consulta que no podría contar.
+create table if not exists ad_copy_usage (
+  id uuid primary key default gen_random_uuid(),
+  created_by text,
+  property_id uuid references properties(id) on delete set null,
+  channel text,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_ad_copy_usage_created on ad_copy_usage(created_at desc);
+
+alter table ad_copy_usage enable row level security;
+
+drop policy if exists "Rol con propiedades usa ad_copy_usage" on ad_copy_usage;
+create policy "Rol con propiedades usa ad_copy_usage" on ad_copy_usage for all
+  using (has_admin_section('propiedades') or has_admin_section('naves_industriales'))
+  with check (has_admin_section('propiedades') or has_admin_section('naves_industriales'));
+
+-- ─────────────────────────────────────────────
+-- Metas mensuales del asesor (2026-10)
+-- ─────────────────────────────────────────────
+-- Una fila por asesor con su meta mensual (se repite cada mes hasta que la
+-- cambie): contactos, visitas, prospectos nuevos y ventas; 0 = sin meta en eso.
+-- Cada asesor lee y edita solo la suya (my_advisor_id(), el asesor vinculado a
+-- su login en /admin/roles). El avance se calcula en el navegador con datos que
+-- ya existen (src/lib/goals.js); aquí no se guarda nada más. Re-ejecutable. Sin
+-- correrlo, "Mi mes" se muestra sin meta y guardar avisa que falta la tabla.
+create table if not exists advisor_goals (
+  advisor_id uuid primary key references advisors(id) on delete cascade,
+  contacts int not null default 0 check (contacts between 0 and 9999),
+  visits int not null default 0 check (visits between 0 and 9999),
+  new_prospects int not null default 0 check (new_prospects between 0 and 9999),
+  sales int not null default 0 check (sales between 0 and 9999),
+  updated_at timestamptz not null default now()
+);
+
+alter table advisor_goals enable row level security;
+
+drop policy if exists "Asesor ve y edita su meta" on advisor_goals;
+create policy "Asesor ve y edita su meta" on advisor_goals for all
+  using (my_advisor_id() is not null and my_advisor_id() = advisor_id)
+  with check (my_advisor_id() is not null and my_advisor_id() = advisor_id);

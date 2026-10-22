@@ -1899,6 +1899,32 @@ export const supabaseBackend = {
   // Registra un contacto: primero actualiza al prospecto (`fields` ya viene
   // calculado por contactUpdateFields; es idempotente) y luego guarda la fila
   // del historial. Devuelve el prospecto actualizado.
+  // Contactos registrados desde `sinceISO` (RLS: un asesor cuenta solo los de sus
+  // prospectos). Solo el conteo, sin traer filas. Alimenta "Mi mes" (lib/goals.js).
+  async countProspectContactsSince(sinceISO) {
+    const { count, error } = await supabase.from("prospecto_contactos").select("id", { count: "exact", head: true }).gte("at", sinceISO);
+    if (error) return 0;
+    return count ?? 0;
+  },
+
+  // Meta mensual del asesor (una fila por asesor, ver advisor_goals en schema.sql).
+  // Sin la tabla (migración sin correr) se lee como "sin meta"; guardar sí avisa.
+  async getAdvisorGoals(advisorId) {
+    const { data, error } = await supabase.from("advisor_goals").select("*").eq("advisor_id", advisorId).maybeSingle();
+    if (error) return null;
+    return data;
+  },
+
+  async saveAdvisorGoals(advisorId, columns) {
+    const { data, error } = await supabase
+      .from("advisor_goals")
+      .upsert({ advisor_id: advisorId, ...columns, updated_at: new Date().toISOString() }, { onConflict: "advisor_id" })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
   async logProspectContact(prospectId, fields, { channel, note }) {
     const updated = await this.updateProspect(prospectId, fields);
     const text = String(note ?? "").trim();
@@ -2045,6 +2071,33 @@ export const supabaseBackend = {
       const err = new Error(body.message || body.error || `HTTP ${res.status}`);
       err.code = res.status === 404 ? "no_function" : body.error || "upstream";
       err.limit = body.limit;
+      throw err;
+    }
+    return body;
+  },
+
+  // Textos de anuncio con Claude (api/ad-copy). Solo se manda el id de la
+  // propiedad: la función lee los datos de la base. Errores con `code`
+  // (limit, no_table, no_function…) para que la pantalla explique qué pasó.
+  async requestAdCopy({ propertyId, channel, tone, extra }) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) {
+      const err = new Error("unauthorized");
+      err.code = "unauthorized";
+      throw err;
+    }
+    const res = await fetch("/api/ad-copy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ propertyId, channel, tone, extra }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(body.message || body.error || `HTTP ${res.status}`);
+      err.code = res.status === 404 && !body.error ? "no_function" : body.error || "upstream";
+      err.limit = body.limit;
+      err.scope = body.scope;
       throw err;
     }
     return body;

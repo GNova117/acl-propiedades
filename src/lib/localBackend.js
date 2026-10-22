@@ -47,6 +47,7 @@ const KEYS = {
   signing: "acl_local_signing_requests",
   prospectStages: "acl_local_prospect_stages",
   prospectContacts: "acl_local_prospect_contacts",
+  advisorGoals: "acl_local_advisor_goals",
   alerts: "acl_local_property_alerts",
   reportLinks: "acl_local_report_links",
   adminRoles: "acl_local_admin_roles",
@@ -2000,6 +2001,21 @@ export const localBackend = {
       .sort((a, b) => String(b.at).localeCompare(String(a.at)));
   },
 
+  async countProspectContactsSince(sinceISO) {
+    return readStore(KEYS.prospectContacts, []).filter((c) => String(c.at) >= sinceISO).length;
+  },
+
+  async getAdvisorGoals(advisorId) {
+    return readStore(KEYS.advisorGoals, {})[advisorId] || null;
+  },
+
+  async saveAdvisorGoals(advisorId, columns) {
+    const all = readStore(KEYS.advisorGoals, {});
+    all[advisorId] = { advisor_id: advisorId, ...columns, updated_at: new Date().toISOString() };
+    writeStore(KEYS.advisorGoals, all);
+    return all[advisorId];
+  },
+
   async logProspectContact(prospectId, fields, { channel, note }) {
     const updated = await this.updateProspect(prospectId, fields);
     const text = String(note ?? "").trim();
@@ -2462,6 +2478,13 @@ export const localBackend = {
   },
   async requestSketchToPlan() {
     throw new Error("Construcción no está disponible en modo demo.");
+  },
+
+  // Sin Supabase no hay función serverless: el modo demo deja el texto de plantilla.
+  async requestAdCopy() {
+    const err = new Error("demo");
+    err.code = "demo";
+    throw err;
   },
 
   demoCredentials: DEMO_ADMIN,

@@ -2810,6 +2810,74 @@
       "todayHint": "Scheduled for today."
     }
   },
+  "adCopy": {
+    "title": "Write with AI",
+    "hint": "Claude writes three versions with different angles from the property's real data. Pick one and tweak it before posting.",
+    "channel": "Where will you post it?",
+    "channels": {
+      "whatsapp": "WhatsApp",
+      "facebook": "Facebook / Marketplace",
+      "instagram": "Instagram",
+      "portal": "Real estate portal"
+    },
+    "tone": "Tone",
+    "tones": {
+      "cercano": "Friendly",
+      "profesional": "Professional",
+      "aspiracional": "Aspirational"
+    },
+    "extra": "What do you want to highlight? (optional)",
+    "extraPlaceholder": "E.g. ideal for families with kids",
+    "write": "Write",
+    "again": "Write other versions",
+    "writing": "Writing…",
+    "use": "Use this text",
+    "copy": "Copy",
+    "reviewNote": "Review the text before posting: price, bedrooms and square meters are checked against the listing, but the rest is written by the AI.",
+    "errors": {
+      "notConfigured": "AI writing isn't enabled yet: the ANTHROPIC_API_KEY variable is missing in Vercel.",
+      "limitUser": "You've used your {{count}} writes for today. They renew tomorrow.",
+      "limitTeam": "The team reached today's limit of {{count}} writes. They renew tomorrow.",
+      "demo": "AI writing isn't available in demo mode (it needs Supabase and the site deployed on Vercel).",
+      "no_table": "The usage table is missing: run the \"Textos de anuncio con IA\" block of supabase/schema.sql in Supabase.",
+      "no_function": "AI writing isn't available in this environment (it only exists on the site deployed to Vercel).",
+      "unauthorized": "Your session expired. Sign in again.",
+      "forbidden": "Your role has no access to Properties.",
+      "rate_limited": "Anthropic is rate limiting requests right now. Try again in a minute.",
+      "refused": "Claude couldn't write this text. Try different instructions.",
+      "bad_output": "No version matched the property's data. Try again.",
+      "timeout": "Writing took too long. Try again.",
+      "upstream": "The text couldn't be written. Try again."
+    }
+  },
+  "goals": {
+    "title": "My month: {{month}}",
+    "edit": "Edit goals",
+    "hint": "Your goal for each month (it repeats until you change it). Leave blank what you don't want to track.",
+    "noGoal": "No goal",
+    "save": "Save goals",
+    "metrics": {
+      "contacts": "Contacts with prospects",
+      "visits": "Visits made",
+      "newProspects": "New prospects",
+      "sales": "Closed sales"
+    },
+    "status": {
+      "done": "Goal reached!",
+      "ahead": "You're ahead of the month's pace",
+      "onTrack": "You're on track",
+      "behind": "Time to speed up"
+    },
+    "remaining_one": "{{count}} to go",
+    "remaining_other": "{{count}} to go",
+    "perDay_one": "≈ {{count}} a day",
+    "perDay_other": "≈ {{count}} a day",
+    "errors": {
+      "number": "Enter a whole number from 0 to 9,999.",
+      "save": "The goals could not be saved.",
+      "noTable": "The goals table is missing: run the \"Metas mensuales del asesor\" block of supabase/schema.sql in Supabase."
+    }
+  },
   "seasons": {
     "anio-nuevo": {
       "greeting": "Happy New Year {{year}}! May this be the year of your new home."

@@ -2810,6 +2810,74 @@
       "todayHint": "Programados para hoy."
     }
   },
+  "adCopy": {
+    "title": "Redactar con IA",
+    "hint": "Claude escribe tres versiones con enfoques distintos a partir de los datos reales de la propiedad. Elige una y ajústala antes de publicar.",
+    "channel": "¿Dónde la vas a publicar?",
+    "channels": {
+      "whatsapp": "WhatsApp",
+      "facebook": "Facebook / Marketplace",
+      "instagram": "Instagram",
+      "portal": "Portal inmobiliario"
+    },
+    "tone": "Tono",
+    "tones": {
+      "cercano": "Cercano",
+      "profesional": "Profesional",
+      "aspiracional": "Aspiracional"
+    },
+    "extra": "¿Qué quieres resaltar? (opcional)",
+    "extraPlaceholder": "Ej. ideal para familias con niños",
+    "write": "Redactar",
+    "again": "Redactar otras versiones",
+    "writing": "Redactando…",
+    "use": "Usar este texto",
+    "copy": "Copiar",
+    "reviewNote": "Revisa el texto antes de publicarlo: el precio, las recámaras y los metros ya se comprueban contra la ficha, pero lo demás lo escribe la IA.",
+    "errors": {
+      "notConfigured": "La redacción con IA aún no está activada: falta la variable ANTHROPIC_API_KEY en Vercel.",
+      "limitUser": "Ya usaste tus {{count}} redacciones de hoy. Mañana se renuevan.",
+      "limitTeam": "El equipo ya alcanzó el tope de {{count}} redacciones de hoy. Mañana se renuevan.",
+      "demo": "La redacción con IA no está disponible en modo demo (requiere Supabase y el sitio publicado en Vercel).",
+      "no_table": "Falta crear la tabla de uso: corre en Supabase el bloque «Textos de anuncio con IA» de supabase/schema.sql.",
+      "no_function": "La redacción con IA no está disponible en este entorno (solo existe en el sitio publicado en Vercel).",
+      "unauthorized": "Tu sesión venció. Vuelve a iniciar sesión.",
+      "forbidden": "Tu rol no tiene acceso a Propiedades.",
+      "rate_limited": "Anthropic está limitando las consultas por ahora. Inténtalo en un minuto.",
+      "refused": "Claude no pudo redactar este texto. Inténtalo con otras indicaciones.",
+      "bad_output": "Ninguna versión salió fiel a los datos de la propiedad. Inténtalo de nuevo.",
+      "timeout": "La redacción tardó demasiado. Inténtalo de nuevo.",
+      "upstream": "No se pudo redactar el texto. Inténtalo de nuevo."
+    }
+  },
+  "goals": {
+    "title": "Mi mes: {{month}}",
+    "edit": "Editar metas",
+    "hint": "Tu meta de cada mes (se repite hasta que la cambies). Deja vacío lo que no quieras medir.",
+    "noGoal": "Sin meta",
+    "save": "Guardar metas",
+    "metrics": {
+      "contacts": "Contactos con prospectos",
+      "visits": "Visitas realizadas",
+      "newProspects": "Prospectos nuevos",
+      "sales": "Ventas cerradas"
+    },
+    "status": {
+      "done": "¡Meta cumplida!",
+      "ahead": "Vas por delante del ritmo del mes",
+      "onTrack": "Vas al corriente",
+      "behind": "Te conviene acelerar"
+    },
+    "remaining_one": "te falta {{count}}",
+    "remaining_other": "te faltan {{count}}",
+    "perDay_one": "≈ {{count}} al día",
+    "perDay_other": "≈ {{count}} al día",
+    "errors": {
+      "number": "Escribe un número entero de 0 a 9,999.",
+      "save": "No se pudieron guardar las metas.",
+      "noTable": "Falta crear la tabla de metas: corre en Supabase el bloque «Metas mensuales del asesor» de supabase/schema.sql."
+    }
+  },
   "seasons": {
     "anio-nuevo": {
       "greeting": "¡Feliz Año Nuevo {{year}}! Que este sea el año de tu nuevo hogar."

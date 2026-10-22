@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import AdCopyPanel from "./AdCopyPanel";
 import { buildCaption, canvasToBlob, downloadBlob, postFileName, propertyUrl, renderPostCanvas } from "../lib/socialPost";
 import "./SocialPostModal.css";
 
@@ -173,6 +174,7 @@ export default function SocialPostModal({ property, onClose }) {
             </div>
             {notice && <p className="form-hint" style={{ color: "var(--color-success)" }}>{notice}</p>}
             <p className="form-hint">{t("socialPost.instagramNote")}</p>
+            <AdCopyPanel property={property} onUse={setCaption} />
           </div>
         </div>
       </div>
