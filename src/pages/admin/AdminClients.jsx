@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import ClientPdfModal from "../../components/ClientPdfModal";
+import BulkActionsBar from "../../components/BulkActionsBar";
 import { FINANCIAMIENTO_TYPES } from "../../lib/format";
 import "./admin.css";
 
@@ -25,6 +26,8 @@ export default function AdminClients() {
   const [yearFilter, setYearFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [showPdfModal, setShowPdfModal] = useState(false);
+  const [selected, setSelected] = useState(() => new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -62,6 +65,49 @@ export default function AdminClients() {
     if (!window.confirm(t("common.confirmDelete"))) return;
     await db.deleteClient(id);
     load();
+  };
+
+  const toggleOne = (id) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const allVisibleSelected = filteredClients.length > 0 && filteredClients.every((c) => selected.has(c.id));
+
+  const toggleAll = () => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      filteredClients.forEach((c) => (allVisibleSelected ? next.delete(c.id) : next.add(c.id)));
+      return next;
+    });
+  };
+
+  // Una por una, no en paralelo — ver la misma nota en AdminProperties.jsx:
+  // el backend de modo demo no es seguro para escrituras concurrentes.
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selected);
+    if (ids.length === 0) return;
+    if (!window.confirm(t("bulkActions.deleteConfirm", { count: ids.length }))) return;
+    setBulkBusy(true);
+    let failed = false;
+    try {
+      for (const id of ids) {
+        try {
+          await db.deleteClient(id);
+        } catch {
+          failed = true;
+        }
+      }
+      if (failed) window.alert(t("bulkActions.someFailed"));
+      setSelected(new Set());
+      load();
+    } finally {
+      setBulkBusy(false);
+    }
   };
 
   const handleExport = () => {
@@ -150,10 +196,24 @@ export default function AdminClients() {
         </div>
       </div>
 
+      <BulkActionsBar count={selected.size} onClear={() => setSelected(new Set())} busy={bulkBusy}>
+        <button type="button" className="btn btn-danger btn-sm" onClick={handleBulkDelete} disabled={bulkBusy}>
+          {t("bulkActions.deleteSelected")}
+        </button>
+      </BulkActionsBar>
+
       <div className="card admin-table-wrapper">
         <table className="admin-table">
           <thead>
             <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  checked={allVisibleSelected}
+                  onChange={toggleAll}
+                  aria-label={t("bulkActions.selectAll")}
+                />
+              </th>
               <th>{t("clients.name")}</th>
               <th>{t("clients.type")}</th>
               <th>{t("clients.financiamiento")}</th>
@@ -165,15 +225,23 @@ export default function AdminClients() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6}>{t("common.loading")}</td>
+                <td colSpan={7}>{t("common.loading")}</td>
               </tr>
             ) : filteredClients.length === 0 ? (
               <tr>
-                <td colSpan={6}>{t("clients.noResults")}</td>
+                <td colSpan={7}>{t("clients.noResults")}</td>
               </tr>
             ) : (
               filteredClients.map((client) => (
                 <tr key={client.id}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selected.has(client.id)}
+                      onChange={() => toggleOne(client.id)}
+                      aria-label={t("bulkActions.selectRow")}
+                    />
+                  </td>
                   <td>{client.name}</td>
                   <td>{clientTypeLabel(t, client.type)}</td>
                   <td>{financiamientoLabel(t, client.financiamiento)}</td>

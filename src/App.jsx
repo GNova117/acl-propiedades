@@ -3,7 +3,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import FloatingWhatsApp from "./components/FloatingWhatsApp";
+import ChatWidget from "./components/ChatWidget";
 import { db } from "./lib/dataStore";
 import { applyPropertyTypeLabels } from "./lib/propertyTypeLabels";
 import RequireSection from "./components/RequireSection";
@@ -22,6 +22,7 @@ import { initAnalytics, trackPageview } from "./lib/analytics";
 import Home from "./pages/Home";
 const Properties = lazy(() => import("./pages/Properties"));
 const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
+const ZoneLanding = lazy(() => import("./pages/ZoneLanding"));
 const Calculator = lazy(() => import("./pages/Calculator"));
 const SellYourHome = lazy(() => import("./pages/SellYourHome"));
 const CreditCompare = lazy(() => import("./pages/CreditCompare"));
@@ -73,6 +74,8 @@ const AdminInspections = lazy(() => import("./pages/admin/AdminInspections"));
 const AdminInspectionForm = lazy(() => import("./pages/admin/AdminInspectionForm"));
 const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
 const AdminLegalDocs = lazy(() => import("./pages/admin/AdminLegalDocs"));
+const AdminDocumentTemplates = lazy(() => import("./pages/admin/AdminDocumentTemplates"));
+const AdminDocumentTemplateForm = lazy(() => import("./pages/admin/AdminDocumentTemplateForm"));
 const AdminAgenda = lazy(() => import("./pages/admin/AdminAgenda"));
 const AdminAgendaForm = lazy(() => import("./pages/admin/AdminAgendaForm"));
 const AdminAgendaExpedientes = lazy(() => import("./pages/admin/AdminAgendaExpedientes"));
@@ -135,7 +138,7 @@ function PublicLayout({ children }) {
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>
       <Footer />
-      <FloatingWhatsApp />
+      <ChatWidget />
     </>
   );
 }
@@ -156,6 +159,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
       <Route path="/propiedades" element={<PublicLayout><Properties excludeTypes={SPECIAL_SECTION_KEYS} /></PublicLayout>} />
+      <Route path="/propiedades/zona/:zoneSlug" element={<PublicLayout><ZoneLanding /></PublicLayout>} />
       <Route path="/propiedades/:id" element={<PublicLayout><PropertyDetail /></PublicLayout>} />
       <Route
         path="/naves-industriales"
@@ -308,6 +312,9 @@ export default function App() {
         <Route path="inspecciones/:id" element={<RequireSection section="inspecciones"><AdminInspectionForm /></RequireSection>} />
         <Route path="firmas" element={<RequireSection section="documentos_legales"><AdminSignatures /></RequireSection>} />
         <Route path="documentos-legales" element={<RequireSection section="documentos_legales"><AdminLegalDocs /></RequireSection>} />
+        <Route path="plantillas-documentos" element={<RequireSection section="documentos_legales"><AdminDocumentTemplates /></RequireSection>} />
+        <Route path="plantillas-documentos/nueva" element={<RequireSection section="documentos_legales"><AdminDocumentTemplateForm /></RequireSection>} />
+        <Route path="plantillas-documentos/:id" element={<RequireSection section="documentos_legales"><AdminDocumentTemplateForm /></RequireSection>} />
         <Route path="actividad" element={<RequireSection section="roles"><AdminActivity /></RequireSection>} />
         <Route path="novedades" element={<RequireSection section="novedades"><AdminNovedades /></RequireSection>} />
         <Route path="novedades/nueva" element={<RequireSection section="novedades"><AdminNovedadesForm /></RequireSection>} />

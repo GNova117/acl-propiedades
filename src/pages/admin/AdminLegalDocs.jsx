@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { downloadLegalDocPdf } from "../../lib/legalDocsPdf";
 import ContractGenerator from "../../components/ContractGenerator";
+import TemplateDocGenerator from "../../components/TemplateDocGenerator";
 import { PORTAL_OFFICIAL_URLS } from "../../lib/clientPortal";
 import "./admin.css";
 
@@ -72,6 +74,13 @@ export default function AdminLegalDocs() {
       </div>
 
       <ContractGenerator />
+
+      <h2 style={{ marginTop: "2rem" }}>{t("documentTemplates.title")}</h2>
+      <p className="form-hint" style={{ marginBottom: "1.5rem" }}>
+        {t("documentTemplates.subtitle")}{" "}
+        <Link to="/admin/plantillas-documentos">{t("documentTemplates.manage")}</Link>
+      </p>
+      <TemplateDocGenerator />
     </div>
   );
 }

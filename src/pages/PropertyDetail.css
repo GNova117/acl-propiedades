@@ -33,6 +33,10 @@
    ancho disponible — se veía descolocado. Con grid, la columna del título
    envuelve su propio texto en varias líneas sin nunca desplazar la
    columna del precio; el precio se queda a la derecha siempre. */
+.property-detail__tour360-btn {
+  margin-top: 0.75rem;
+}
+
 .property-detail__header {
   display: grid;
   grid-template-columns: 1fr auto;

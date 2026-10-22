@@ -7,7 +7,9 @@ import SearchBar from "../components/SearchBar";
 import CategoryCard from "../components/CategoryCard";
 import Reveal from "../components/Reveal";
 import Stars from "../components/Stars";
+import RecentlyViewed from "../components/RecentlyViewed";
 import { db } from "../lib/dataStore";
+import { getRecentlyViewedIds } from "../lib/recentlyViewed";
 import "./Home.css";
 import "./Blog.css";
 
@@ -26,6 +28,9 @@ export default function Home() {
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
   const [blogPosts, setBlogPosts] = useState([]);
+  // Lectura síncrona de localStorage: evita renderizar la sección vacía
+  // (con su padding) mientras RecentlyViewed todavía pide los datos frescos.
+  const [hasRecentlyViewed] = useState(() => getRecentlyViewedIds().length > 0);
 
   useEffect(() => {
     let active = true;
@@ -110,6 +115,16 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {hasRecentlyViewed && (
+        <section className="section">
+          <div className="container">
+            <Reveal>
+              <RecentlyViewed />
+            </Reveal>
+          </div>
+        </section>
+      )}
 
       {testimonials.length > 0 && (
         <section className="section">

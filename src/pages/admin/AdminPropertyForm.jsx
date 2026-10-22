@@ -6,6 +6,8 @@ import { propertyTypeLabel } from "../../lib/format";
 import { groupZonesByCity, zoneDisplayName } from "../../lib/zones";
 import ImageUploader from "../../components/ImageUploader";
 import VideoUploader from "../../components/VideoUploader";
+import Tour360Uploader from "../../components/Tour360Uploader";
+import InternalNotes from "../../components/InternalNotes";
 import "./admin.css";
 
 const EMPTY = {
@@ -71,6 +73,8 @@ export default function AdminPropertyForm({
   const [mainIndex, setMainIndex] = useState(0);
   const [existingVideos, setExistingVideos] = useState([]);
   const [newVideoFiles, setNewVideoFiles] = useState([]);
+  const [existingTour360, setExistingTour360] = useState([]);
+  const [newTour360Files, setNewTour360Files] = useState([]);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
@@ -125,6 +129,7 @@ export default function AdminPropertyForm({
       });
       setExistingImages(property.images || []);
       setExistingVideos(property.videos || []);
+      setExistingTour360(property.tour_360_images || []);
       setPropertyCode(property.code || "");
       setLoading(false);
     });
@@ -175,6 +180,8 @@ export default function AdminPropertyForm({
         mainImageIndex: mainIndex,
         existingVideos,
         videoFiles: newVideoFiles,
+        existingTour360Images: existingTour360,
+        tour360Files: newTour360Files,
       };
       if (isEdit) {
         await db.updateProperty(id, payload);
@@ -481,6 +488,18 @@ export default function AdminPropertyForm({
           />
         </div>
 
+        <div className="form-field">
+          <label>{t("panorama360.adminLabel")}</label>
+          <p className="form-hint">{t("panorama360.adminHint")}</p>
+          <Tour360Uploader
+            existingImages={existingTour360}
+            files={newTour360Files}
+            onAddFiles={(files) => setNewTour360Files((prev) => [...prev, ...files])}
+            onRemoveExisting={(index) => setExistingTour360((prev) => prev.filter((_, i) => i !== index))}
+            onRemoveNew={(index) => setNewTour360Files((prev) => prev.filter((_, i) => i !== index))}
+          />
+        </div>
+
         <div className="admin-form__actions">
           <button type="submit" className="btn btn-primary" disabled={saving}>
             {saving ? <span className="spinner" /> : null}
@@ -491,6 +510,8 @@ export default function AdminPropertyForm({
           </button>
         </div>
       </form>
+
+      {isEdit && <InternalNotes entityType="property" entityId={id} />}
     </div>
   );
 }

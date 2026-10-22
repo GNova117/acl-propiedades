@@ -8,8 +8,14 @@ import "./QuickReplyButton.css";
 // botón vive dentro de una tabla con overflow-x:auto (admin-table-wrapper),
 // donde un menú desplegable propio se recortaría cerca del borde inferior;
 // el popup nativo del navegador no tiene ese problema.
-export default function QuickReplyButton({ templates, phone, email, emailSubject }) {
+//
+// `label`: texto del selector; por omisión "Respuesta rápida" (Mensajes).
+// `onSend` (opcional): se llama justo después de abrir WhatsApp o el correo,
+// con la plantilla elegida y el canal usado ("whatsapp" | "correo"). Prospectos
+// lo usa para ofrecer registrar el contacto en cuanto el asesor regresa.
+export default function QuickReplyButton({ templates, phone, email, emailSubject, label, onSend }) {
   const { t } = useTranslation();
+  const selectLabel = label || t("messages.quickReply");
   let digits = whatsappDigits(phone);
   if (digits.length === 10) digits = `52${digits}`;
 
@@ -24,12 +30,13 @@ export default function QuickReplyButton({ templates, phone, email, emailSubject
     } else {
       window.location.href = `mailto:${email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(template.text)}`;
     }
+    onSend?.(template, digits ? "whatsapp" : "correo");
   };
 
   return (
-    <select className="quick-reply-select btn btn-outline btn-sm" value="" onChange={handleChange} aria-label={t("messages.quickReply")}>
+    <select className="quick-reply-select btn btn-outline btn-sm" value="" onChange={handleChange} aria-label={selectLabel}>
       <option value="" disabled>
-        {t("messages.quickReply")}
+        {selectLabel}
       </option>
       {templates.map((tpl) => (
         <option key={tpl.key} value={tpl.key}>

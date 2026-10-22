@@ -1,0 +1,79 @@
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.3rem;
+  padding: 0.65rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md, 10px);
+  background: var(--color-bg);
+}
+
+.contact-form__group {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.contact-form__group legend {
+  padding: 0;
+  margin-bottom: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.contact-form__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+/* Chips que son <label><input type=radio> o <button>: mismo aspecto, y el radio
+   real queda oculto pero accesible por teclado (se enfoca el chip entero). */
+.contact-form__chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.contact-form__chip input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.contact-form__chip.is-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.contact-form__chip:focus-within,
+.contact-form__chip:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.contact-form input[type="date"] {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+.contact-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}

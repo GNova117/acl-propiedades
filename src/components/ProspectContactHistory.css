@@ -1,0 +1,47 @@
+.contact-history {
+  margin-top: 1.25rem;
+}
+
+.contact-history__title {
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+}
+
+.contact-history__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.contact-history__item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  align-items: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.contact-history__item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.contact-history__when {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.contact-history__note {
+  flex: 1 1 12rem;
+  min-width: 0;
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+.contact-history__actor {
+  font-size: 0.75rem;
+}

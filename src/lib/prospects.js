@@ -1,9 +1,11 @@
 // Prospectos por etapas: helpers puros (sin acceso a datos) que usan la lista,
 // el formulario, el panel de pendientes y la búsqueda global.
 
+import { filtersToCriteria } from "./alertMatch";
+
 export const PROSPECT_STAGES = ["nuevo", "contactado", "interesado", "negociacion", "cerrado", "perdido"];
 export const OPEN_STAGES = ["nuevo", "contactado", "interesado", "negociacion"];
-export const PROSPECT_SOURCES = ["manual", "visita", "whatsapp", "simulador", "estimacion", "comparador", "alerta", "sitio", "recomendacion", "redes", "otro"];
+export const PROSPECT_SOURCES = ["manual", "visita", "whatsapp", "chatbot", "simulador", "estimacion", "comparador", "alerta", "sitio", "recomendacion", "redes", "otro"];
 
 export const isOpenStage = (stage) => OPEN_STAGES.includes(stage);
 
@@ -26,6 +28,58 @@ export function followUpState(prospect) {
   if (prospect.next_followup_at < today) return "overdue";
   if (prospect.next_followup_at === today) return "today";
   return null;
+}
+
+// Fecha (YYYY-MM-DD, la misma forma que next_followup_at) dentro de `days` días.
+export function addDaysISO(days, from = new Date()) {
+  return new Date(from.getFullYear(), from.getMonth(), from.getDate() + days).toLocaleDateString("en-CA");
+}
+
+// Atajos al registrar un contacto: cuándo dar el siguiente seguimiento.
+export const FOLLOWUP_OPTIONS = [
+  { key: "tomorrow", days: 1 },
+  { key: "days3", days: 3 },
+  { key: "week1", days: 7 },
+  { key: "week2", days: 14 },
+];
+
+// Campos que se guardan al registrar un contacto. `nextFollowup`: una fecha
+// (YYYY-MM-DD) para programar el siguiente seguimiento, null para dejarlo sin
+// fecha, o undefined para no tocar una fecha futura ya programada (si el
+// seguimiento era para hoy o estaba vencido, ya se atendió y se limpia).
+export function contactFields(prospect, nextFollowup, now = new Date()) {
+  const fields = { last_contact_at: now.toISOString() };
+  if (nextFollowup !== undefined) fields.next_followup_at = nextFollowup;
+  else if (followUpState(prospect)) fields.next_followup_at = null;
+  if (prospect.stage === "nuevo") fields.stage = "contactado";
+  return fields;
+}
+
+// Orígenes "entrantes": el prospecto llegó solo (sitio, chatbot, alerta...) y
+// alguien tiene que escribirle. Los que captura el propio asesor (manual,
+// visita, recomendación, redes, otro) no cuentan: él ya sabe que existen.
+// Estos números y la lista de orígenes se repiten en notify_unattended_prospects()
+// (schema.sql, "Aviso de prospectos sin atender"): si cambian aquí, cambian allá.
+export const INBOUND_SOURCES = ["whatsapp", "chatbot", "simulador", "estimacion", "comparador", "alerta", "sitio"];
+export const UNATTENDED_WARN_HOURS = 1; // avisa al asesor (o a la oficina si no tiene)
+export const UNATTENDED_LATE_HOURS = 4; // escala a la oficina
+
+// Prospecto entrante que sigue en "nuevo" sin ningún contacto registrado.
+// Devuelve { hours, level } ("warn" desde la hora, "late" desde las 4 h) o null
+// si no aplica o todavía no pasa la primera hora.
+export function unattendedState(prospect, now = new Date()) {
+  if (prospect.stage !== "nuevo" || prospect.last_contact_at) return null;
+  if (!INBOUND_SOURCES.includes(prospect.source)) return null;
+  const created = new Date(prospect.created_at);
+  if (Number.isNaN(created.getTime())) return null;
+  const hours = (now - created) / 3600000;
+  if (hours < UNATTENDED_WARN_HOURS) return null;
+  return { hours: Math.floor(hours), level: hours >= UNATTENDED_LATE_HOURS ? "late" : "warn" };
+}
+
+// Antigüedad lista para mostrar: horas hasta 47 h, después días.
+export function unattendedAge(hours) {
+  return hours < 48 ? { unit: "hours", count: hours } : { unit: "days", count: Math.floor(hours / 24) };
 }
 
 // Etapa inicial sugerida al importar una visita (interés registrado en ella).
@@ -84,6 +138,52 @@ export function messageToProspectFields(message, property) {
   };
 }
 
+// "Qué busca" estructurado (prospectos.search_criteria): mismo formato que los
+// criterios de las alertas del sitio, para poder cruzarlo con las propiedades
+// usando la misma coincidencia (alertMatch.matchesCriteria). El formulario solo
+// edita estos campos; los demás criterios que pudiera traer (superficie, baños,
+// estacionamiento, amenidades — p. ej. de una alerta convertida en prospecto)
+// se conservan aparte en `want_extra` para no perderse al guardar.
+const EDITABLE_CRITERIA = ["type", "operation_type", "zone", "min_price", "max_price", "min_bedrooms"];
+
+export const emptyWantForm = () => ({
+  want_type: "",
+  want_operation: "",
+  want_zone: "",
+  want_min_price: "",
+  want_max_price: "",
+  want_min_bedrooms: "",
+  want_extra: {},
+});
+
+export function criteriaToForm(criteria) {
+  const c = criteria && typeof criteria === "object" ? criteria : {};
+  const text = (v) => (v == null ? "" : String(v));
+  return {
+    want_type: text(c.type),
+    want_operation: text(c.operation_type),
+    want_zone: text(c.zone),
+    want_min_price: text(c.min_price),
+    want_max_price: text(c.max_price),
+    want_min_bedrooms: text(c.min_bedrooms),
+    want_extra: Object.fromEntries(Object.entries(c).filter(([key]) => !EDITABLE_CRITERIA.includes(key))),
+  };
+}
+
+export function criteriaFromForm(form) {
+  return {
+    ...(form.want_extra || {}),
+    ...filtersToCriteria({
+      type: form.want_type,
+      operationType: form.want_operation,
+      zone: String(form.want_zone || "").trim(),
+      minPrice: form.want_min_price,
+      maxPrice: form.want_max_price,
+      minBedrooms: form.want_min_bedrooms,
+    }),
+  };
+}
+
 export const emptyProspectForm = (overrides = {}) => ({
   name: "",
   phone: "",
@@ -96,6 +196,7 @@ export const emptyProspectForm = (overrides = {}) => ({
   notes: "",
   next_followup_at: "",
   lost_reason: "",
+  ...emptyWantForm(),
   ...overrides,
 });
 
@@ -111,6 +212,7 @@ export const prospectToForm = (p) => ({
   notes: p.notes || "",
   next_followup_at: p.next_followup_at || "",
   lost_reason: p.lost_reason || "",
+  ...criteriaToForm(p.search_criteria),
 });
 
 const blank = (v) => {
@@ -118,8 +220,15 @@ const blank = (v) => {
   return s === "" ? null : s;
 };
 
-export function toProspectFields(form) {
+// `hadCriteria`: el prospecto ya tenía "qué busca" guardado. Solo entonces se
+// manda search_criteria vacío (null) para borrarlo; si nunca tuvo y sigue sin
+// nada, el campo ni se envía, así guardar un prospecto no depende de que la
+// columna exista en bases que aún no tienen la migración.
+export function toProspectFields(form, { hadCriteria = false } = {}) {
+  const criteria = criteriaFromForm(form);
+  const hasCriteria = Object.keys(criteria).length > 0;
   return {
+    ...(hasCriteria ? { search_criteria: criteria } : hadCriteria ? { search_criteria: null } : {}),
     name: form.name.trim(),
     phone: blank(form.phone),
     email: blank(form.email),
@@ -140,5 +249,7 @@ export function validateProspectForm(form) {
   if (!form.name.trim()) errors.name = "prospects.form.errors.name";
   if (!form.phone.trim() && !form.email.trim()) errors.phone = "prospects.form.errors.contact";
   if (form.email.trim() && !/^\S+@\S+\.\S+$/.test(form.email.trim())) errors.email = "prospects.form.errors.email";
+  const { min_price: minPrice, max_price: maxPrice } = criteriaFromForm(form);
+  if (minPrice != null && maxPrice != null && minPrice > maxPrice) errors.want_max_price = "prospects.form.errors.budgetRange";
   return errors;
 }

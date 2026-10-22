@@ -70,6 +70,8 @@
     "industrialSubtitle": "Filter by zone, price and area to find the right warehouse for your business.",
     "landTitle": "Available land",
     "landSubtitle": "Filter by zone, price and area to find the right lot for your project.",
+    "zoneTitle": "Properties in {{city}}",
+    "zoneSubtitle": "Houses, apartments, industrial warehouses and land available in {{city}}.",
     "filters": "Filters",
     "type": "Type",
     "operationType": "Transaction",
@@ -79,6 +81,7 @@
     "maxPrice": "Max. price",
     "minArea": "Min. area (sqm)",
     "maxArea": "Max. area (sqm)",
+    "allStatus": "All statuses",
     "clear": "Clear filters",
     "results_one": "{{count}} result",
     "results_other": "{{count}} results",
@@ -94,6 +97,8 @@
     "viewDetail": "View detail",
     "advisor": "Advisor",
     "mapView": "Map view",
+    "mapFullscreen": "Fullscreen",
+    "mapExitFullscreen": "Exit fullscreen",
     "listView": "List view",
     "bedrooms": "Bedrooms",
     "bathrooms": "Bathrooms",
@@ -125,6 +130,8 @@
       "cta": "Compare credit options"
     },
     "back": "Back to properties",
+    "recentViews_one": "{{count}} person viewed this property in the last 3 days",
+    "recentViews_other": "{{count}} people viewed this property in the last 3 days",
     "description": "Description",
     "features": "Features",
     "location": "Location",
@@ -398,12 +405,29 @@
   "footer": {
     "tagline": "Buying and selling houses, land, commercial spaces and industrial warehouses in La Comarca Lagunera.",
     "quickLinks": "Quick links",
+    "zones": "Zones",
     "contactInfo": "Contact",
     "followUs": "Follow us",
     "rights": "All rights reserved.",
     "privacyLink": "Privacy Notice",
     "rightsLink": "Consumer Rights Notice",
     "creditNotice": "Prices in Mexican pesos (MXN). For financed purchases, the final total price depends on variable credit and notarial costs, which must be confirmed with our sales advisors."
+  },
+  "bulkActions": {
+    "selectAll": "Select all",
+    "selectRow": "Select row",
+    "selectedCount_one": "{{count}} selected",
+    "selectedCount_other": "{{count}} selected",
+    "clearSelection": "Clear selection",
+    "deleteSelected": "Delete selected",
+    "deleteConfirm_one": "Delete {{count}} record? This can't be undone.",
+    "deleteConfirm_other": "Delete {{count}} records? This can't be undone.",
+    "activateSelected": "Activate",
+    "deactivateSelected": "Deactivate",
+    "applyStatus": "Apply",
+    "done_one": "Done: {{count}} updated.",
+    "done_other": "Done: {{count}} updated.",
+    "someFailed": "Some records couldn't be updated — try again."
   },
   "common": {
     "loading": "Loading...",
@@ -1508,6 +1532,7 @@
       "simulador": "Credit simulator",
       "estimacion": "Estimate (sell your home)",
       "whatsapp": "WhatsApp",
+      "chatbot": "Site chatbot",
       "manual": "Manual entry",
       "visita": "Visit",
       "recomendacion": "Referral",
@@ -1524,6 +1549,62 @@
     "followToday": "Follow-up today",
     "followOn": "Follow-up: {{date}}",
     "logContact": "Log contact",
+    "unattendedOnly": "Unattended only",
+    "unattended": {
+      "hours_one": "Unattended: {{count}} h",
+      "hours_other": "Unattended: {{count}} h",
+      "days_one": "Unattended: {{count}} day",
+      "days_other": "Unattended: {{count}} days"
+    },
+    "contact": {
+      "channel": "How did you reach them?",
+      "channels": {
+        "llamada": "Call",
+        "whatsapp": "WhatsApp",
+        "correo": "Email",
+        "presencial": "In person"
+      },
+      "note": "Note (optional)",
+      "notePlaceholder": "E.g. Will see the house on Saturday",
+      "errors": {
+        "channel": "Pick how you reached them.",
+        "followup": "Pick when you will follow up next.",
+        "pastDate": "The date can't be before today."
+      },
+      "historyTitle": "Contact history",
+      "historyEmpty": "No contacts logged yet."
+    },
+    "nextFollowupQuestion": "When is the next follow-up?",
+    "followupOptions": {
+      "tomorrow": "Tomorrow",
+      "days3": "In 3 days",
+      "week1": "In 1 week",
+      "week2": "In 2 weeks"
+    },
+    "keepFollowup": "Keep {{date}}",
+    "noFollowup": "No date",
+    "match": {
+      "count_one": "{{count}} property fits",
+      "count_other": "{{count}} properties fit",
+      "looking": "Looking for: {{text}}",
+      "send": "Send",
+      "view": "View",
+      "more": "and {{count}} more",
+      "propertyButton": "Prospects ({{count}})",
+      "modalTitle": "Prospects that fit this property",
+      "modalHint": "Open prospects whose \"what they are looking for\" matches {{title}}, most advanced first.",
+      "openProspect": "Open",
+      "noContact": "No phone or email",
+      "emailSubject": "A property for you — ACL Propiedades"
+    },
+    "templates": {
+      "label": "Quick message",
+      "firstContact": "First contact",
+      "thanksVisit": "Thanks for the visit",
+      "checkIn": "Did they review the property?",
+      "scheduleVisit": "Propose a visit",
+      "sendProperty": "Send the property"
+    },
     "confirmDelete": "Remove {{name}} from prospects?",
     "saveError": "Could not save the prospect",
     "deleteError": "Could not delete the prospect",
@@ -1548,12 +1629,17 @@
       "noProperty": "— None —",
       "lookingFor": "What they are looking for",
       "lookingForPlaceholder": "E.g. 3-bedroom house in Torreón, up to $1.8 M",
+      "searchTitle": "Search criteria (to suggest properties)",
+      "searchHint": "With type, zone and budget, the system shows which available properties fit them, on the prospect's card.",
+      "any": "Any",
+      "searchExtra": "Additional criteria (kept): {{text}}",
       "lostReason": "Reason it was lost",
       "notes": "Internal notes",
       "errors": {
         "name": "Enter the name.",
         "contact": "Enter at least a phone or an email.",
-        "email": "The email is not valid."
+        "email": "The email is not valid.",
+        "budgetRange": "The minimum price cannot be higher than the maximum."
       }
     }
   },
@@ -1565,6 +1651,10 @@
     "keysLate_other": "{{count}} out for 2 days or more",
     "daysOut_one": "{{count}} day",
     "daysOut_other": "{{count}} days",
+    "hoursOut_one": "{{count}} hour",
+    "hoursOut_other": "{{count}} hours",
+    "unattendedLate_one": "{{count}} has gone over 4 hours without a reply",
+    "unattendedLate_other": "{{count}} have gone over 4 hours without a reply",
     "items": {
       "postsale": "After-sale follow-ups",
       "signatures": "Unfinished signatures (3 days or more)",
@@ -1978,6 +2068,8 @@
     "colRate": "Rate",
     "colDays": "Days to close",
     "colFirstContact": "First response (h)",
+    "colStagePct": "% of total",
+    "colConversion": "Conversion from previous stage (%)",
     "noAdvisor": "Unassigned",
     "lostTitle": "Why they are lost",
     "lostEmpty": "No lost prospects in this period.",
@@ -1993,6 +2085,7 @@
     "price": "Home price",
     "advanced": "Bank terms and costs",
     "advancedHint": "Every bank offers different terms: change them to the ones you were given. Closing costs, taxes and appraisal are estimated with the same percentage for all three options.",
+    "referenceRate": "Market reference rate (28-day TIIE): {{rate}}% as of {{date}} — source: Banxico (Mexico's central bank). Your actual loan rate is usually this plus your bank's own margin; adjust \"Bank rate\" below to the one you were quoted.",
     "bankRate": "Bank annual rate (%)",
     "bankDown": "Down payment (% of price)",
     "bankYears": "Term (years)",
@@ -2103,6 +2196,12 @@
       "subtitle": "Leave your details and we will let you know if this property's price drops.",
       "submit": "Tell me if it drops",
       "success": "Done! We will message you by {{channel}} if this property's price drops."
+    },
+    "similar": {
+      "title": "This property is no longer available",
+      "subtitle": "But we'll let you know as soon as we list something similar (same type, zone and a similar price).",
+      "submit": "Notify me about similar properties",
+      "success": "Done! We will message you by {{channel}} as soon as we list something similar to this property."
     },
     "criteria": {
       "type": "Type",
@@ -2417,6 +2516,81 @@
     "officialLinksSubtitle": "Direct links to the government portals where the client (or you) can get these documents without standing in line. See also the client Document Portal on each client's page, which walks through the same process step by step.",
     "satHint": "To get the RFC/tax certificate: the client signs in with their RFC and SAT password (CIEC) or their e.firma — that password is never captured on our site.",
     "actasHint": "Downloaded by typing in the CURP — no password required."
+  },
+  "documentTemplates": {
+    "title": "Document templates",
+    "subtitle": "Create your own document types with placeholders that fill themselves in with client, property and advisor data — no code changes needed.",
+    "new": "New template",
+    "edit": "Edit template",
+    "empty": "No templates yet. Create the first one to start generating custom documents.",
+    "backToLegalDocs": "Back to Legal documents",
+    "manage": "Manage templates",
+    "noneActive": "No active templates yet.",
+    "generate": "Generate and download PDF",
+    "generateError": "Error generating the document",
+    "saveError": "Error saving the template",
+    "deleteError": "Error deleting the template",
+    "yes": "Yes",
+    "no": "No",
+    "fields": {
+      "name": "Document name",
+      "body": "Content",
+      "bodyHint": "Free text. Separate paragraphs with a blank line. Use the buttons below to insert a placeholder at the cursor.",
+      "template": "Template",
+      "customFields": "Custom fields",
+      "customFieldsHint": "Data that doesn't come from an already-captured client/property and is asked for when generating the document (e.g. reason, file number, extra amount).",
+      "customFieldsCount": "Custom fields",
+      "fieldKeyPlaceholder": "key (e.g. reason)",
+      "fieldLabelPlaceholder": "Visible label",
+      "fieldError": "The key must be lowercase with no spaces (e.g. extra_amount) and the label can't be empty.",
+      "fieldDuplicate": "Another field already uses that key.",
+      "fieldTypes": { "text": "Text", "number": "Number", "date": "Date" },
+      "addField": "Add field",
+      "requiresSignatures": "Include signature area (client and office)",
+      "requiresSignaturesHint": "Adds two signature lines at the end of the PDF, same as the built-in documents.",
+      "activeHint": "An inactive template won't show up when generating documents, but it isn't deleted."
+    }
+  },
+  "recentlyViewed": {
+    "title": "Recently viewed"
+  },
+  "chatWidget": {
+    "title": "ACL Propiedades Assistant",
+    "open": "Open chat",
+    "close": "Close chat",
+    "greeting": "Hi! I'm ACL Propiedades' virtual assistant. I can help you search for properties or answer general questions. How can I help?",
+    "placeholder": "Type your message...",
+    "send": "Send",
+    "typing": "Typing...",
+    "talkToAdvisor": "Talk to an advisor on WhatsApp",
+    "unavailable": "Chat isn't available right now. Message us directly on WhatsApp and we'll be happy to help.",
+    "error": "Something went wrong. Try again or message us on WhatsApp."
+  },
+  "gallery": {
+    "expand": "Expand",
+    "counter": "{{current}} / {{total}}",
+    "prev": "Previous photo",
+    "next": "Next photo",
+    "zoomHint": "Click the photo to zoom · arrows or swipe to change · Esc to close"
+  },
+  "panorama360": {
+    "title": "360° tour",
+    "dragHint": "Drag to look around.",
+    "choose": "Choose 360° photo",
+    "viewButton": "View 360° tour",
+    "adminLabel": "360° photos",
+    "adminHint": "Panoramic (equirectangular, 2:1) photos of each space. Shown in a viewer the client can drag to look around."
+  },
+  "internalNotes": {
+    "title": "Internal notes",
+    "subtitle": "Notes visible to the whole team about this record — the client never sees these.",
+    "newNote": "New note",
+    "notify": "Notify:",
+    "add": "Add note",
+    "empty": "No notes yet.",
+    "you": "You",
+    "saveError": "Error saving the note",
+    "deleteError": "Error deleting the note"
   },
   "privacy": {
     "title": "Privacy Notice",

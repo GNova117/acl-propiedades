@@ -10,6 +10,7 @@ import {
   propertyTypeLabel,
   slugify,
   whatsappDigits,
+  whatsappUrl,
 } from "./format";
 
 describe("numOrNull", () => {
@@ -129,5 +130,22 @@ describe("docTypesForClientType", () => {
   it("un tipo de cliente desconocido cae a la lista completa de documentos", () => {
     expect(docTypesForClientType("ambos")).toEqual(DOC_TYPES);
     expect(docTypesForClientType(undefined)).toEqual(DOC_TYPES);
+  });
+});
+
+describe("whatsappUrl", () => {
+  it("antepone la lada 52 a un teléfono de 10 dígitos, sin importar el formato", () => {
+    expect(whatsappUrl("871 123-4567")).toBe("https://wa.me/528711234567");
+  });
+  it("respeta un número que ya trae lada", () => {
+    expect(whatsappUrl("+52 871 123 4567")).toBe("https://wa.me/528711234567");
+  });
+  it("agrega el texto codificado cuando se pasa", () => {
+    expect(whatsappUrl("8711234567", "Hola mundo")).toBe("https://wa.me/528711234567?text=Hola%20mundo");
+  });
+  it("devuelve null sin dígitos", () => {
+    expect(whatsappUrl("")).toBeNull();
+    expect(whatsappUrl(null)).toBeNull();
+    expect(whatsappUrl("sin teléfono")).toBeNull();
   });
 });

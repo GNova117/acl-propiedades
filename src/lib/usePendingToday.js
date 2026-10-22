@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { db } from "./dataStore";
-import { daysSince, followUpState, todayISO } from "./prospects";
+import { daysSince, followUpState, todayISO, unattendedAge, unattendedState } from "./prospects";
 import { effectiveStatus, signingAgeDays } from "./signing";
 import { postsaleDue } from "./postsale";
 import { isReportSent, monthLabel, previousMonthValue, reportableProperties } from "./visitMonthly";
@@ -101,8 +101,27 @@ export function usePendingToday() {
             lines: postsale.slice(0, MAX_LINES).map(({ p, due }) => `${p.name} — ${t("pending.daysOut", { count: due.since })}`),
           });
         }
-        const untouched = prospects.filter((p) => p.stage === "nuevo" && !p.last_contact_at);
-        if (untouched.length) list.push({ key: "newProspects", count: untouched.length, to: "/admin/prospectos", lines: untouched.slice(0, MAX_LINES).map((p) => p.name) });
+        // Los que llegaron solos y llevan más de 4 h sin contacto ("late") ponen el
+        // aviso en rojo; los más viejos van primero porque son los más urgentes.
+        const untouched = prospects
+          .filter((p) => p.stage === "nuevo" && !p.last_contact_at)
+          .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
+        if (untouched.length) {
+          const late = untouched.filter((p) => unattendedState(p)?.level === "late");
+          list.push({
+            key: "newProspects",
+            count: untouched.length,
+            to: "/admin/prospectos",
+            tone: late.length ? "warn" : undefined,
+            note: late.length ? t("pending.unattendedLate", { count: late.length }) : null,
+            lines: untouched.slice(0, MAX_LINES).map((p) => {
+              const state = unattendedState(p);
+              if (!state) return p.name;
+              const age = unattendedAge(state.hours);
+              return `${p.name} — ${t(age.unit === "hours" ? "pending.hoursOut" : "pending.daysOut", { count: age.count })}`;
+            }),
+          });
+        }
       }
 
       // Sin visitas en 15 días solo tiene sentido para quien ve las visitas de

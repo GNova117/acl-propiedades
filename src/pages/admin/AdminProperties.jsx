@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
@@ -7,7 +7,28 @@ import { downloadFichaTecnicaPdf } from "../../lib/propertyFichaPdf";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
 import SocialPostModal from "../../components/SocialPostModal";
+import PropertyProspectsModal from "../../components/PropertyProspectsModal";
+import { matchingProspects } from "../../lib/prospectMatch";
+import BulkActionsBar from "../../components/BulkActionsBar";
 import "./admin.css";
+
+// updateProperty espera el registro casi completo (no hace un merge parcial
+// en el servidor) y, en particular, pisa fotos/videos/360° a [] si no se le
+// pasan explícitos — así que un cambio en lote de un solo campo (estatus,
+// activo) tiene que ir con todo lo demás de la propiedad, incluyendo los
+// tres arreglos de medios ya existentes, para no perderlos.
+function mediaPreservingPatch(property, patch) {
+  return {
+    ...property,
+    ...patch,
+    imageFiles: [],
+    existingImages: property.images || [],
+    videoFiles: [],
+    existingVideos: property.videos || [],
+    tour360Files: [],
+    existingTour360Images: property.tour_360_images || [],
+  };
+}
 
 // `fixedType`: apartado de un solo tipo (Naves Industriales) — la lista solo
 // muestra propiedades de ese tipo y "Nueva" cae directo en ese tipo.
@@ -24,23 +45,59 @@ export default function AdminProperties({
   const { hasSection } = useAuth();
   const [properties, setProperties] = useState([]);
   const [remodelProjects, setRemodelProjects] = useState([]);
+  const [zones, setZones] = useState([]);
+  const [prospects, setProspects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyFichaId, setBusyFichaId] = useState(null);
   const [socialProperty, setSocialProperty] = useState(null);
+  const [matchProperty, setMatchProperty] = useState(null);
+  const [search, setSearch] = useState("");
+  const [zoneFilter, setZoneFilter] = useState("");
+  const [operationFilter, setOperationFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [selected, setSelected] = useState(() => new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState("disponible");
 
   const load = () => {
     setLoading(true);
-    Promise.all([db.getProperties({}), db.getRemodelProjects({})]).then(([propertyData, remodelData]) => {
+    Promise.all([
+      db.getProperties({}),
+      db.getRemodelProjects({}),
+      db.getZones().catch(() => []),
+      // Los prospectos solo se piden a quien tiene el apartado (RLS: un asesor recibe solo los suyos).
+      hasSection("prospectos") ? db.getProspects().catch(() => []) : Promise.resolve([]),
+    ]).then(([propertyData, remodelData, zoneData, prospectData]) => {
       const filtered = fixedType
         ? propertyData.filter((p) => p.type === fixedType)
         : propertyData.filter((p) => !excludeTypes.includes(p.type));
       setProperties(filtered);
       setRemodelProjects(remodelData);
+      setZones(zoneData);
+      setProspects(prospectData);
       setLoading(false);
     });
   };
 
   useEffect(load, [fixedType]);
+
+  // A qué prospectos abiertos les encaja cada propiedad disponible.
+  const prospectsByProperty = useMemo(() => new Map(properties.map((p) => [p.id, matchingProspects(p, prospects)])), [properties, prospects]);
+
+  const visibleProperties = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return properties.filter((p) => {
+      if (term && !p.title?.toLowerCase().includes(term) && !p.code?.toLowerCase().includes(term) && !p.address?.toLowerCase().includes(term)) return false;
+      if (zoneFilter && p.zone !== zoneFilter) return false;
+      if (operationFilter && p.operation_type !== operationFilter) return false;
+      if (statusFilter && p.status !== statusFilter) return false;
+      if (minPrice && Number(p.price) < Number(minPrice)) return false;
+      if (maxPrice && Number(p.price) > Number(maxPrice)) return false;
+      return true;
+    });
+  }, [properties, search, zoneFilter, operationFilter, statusFilter, minPrice, maxPrice]);
 
   const handleDelete = async (id) => {
     if (!window.confirm(t("common.confirmDelete"))) return;
@@ -53,8 +110,65 @@ export default function AdminProperties({
     load();
   };
 
+  const toggleOne = (id) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const allVisibleSelected = visibleProperties.length > 0 && visibleProperties.every((p) => selected.has(p.id));
+
+  const toggleAll = () => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      visibleProperties.forEach((p) => (allVisibleSelected ? next.delete(p.id) : next.add(p.id)));
+      return next;
+    });
+  };
+
+  const selectedProperties = useMemo(() => properties.filter((p) => selected.has(p.id)), [properties, selected]);
+
+  // Una por una, NO en paralelo: en modo demo (localStorage) updateProperty
+  // lee el arreglo completo, lo modifica en memoria y lo vuelve a escribir
+  // completo — dos llamadas a la vez (p. ej. Promise.all) se pisan entre sí
+  // y la última en guardar revierte el cambio de la otra en silencio.
+  const runBulk = async (fn) => {
+    setBulkBusy(true);
+    let okCount = 0;
+    let failed = false;
+    try {
+      for (const property of selectedProperties) {
+        try {
+          await fn(property);
+          okCount += 1;
+        } catch {
+          failed = true;
+        }
+      }
+      if (failed) window.alert(t("bulkActions.someFailed"));
+      if (okCount > 0) window.alert(t("bulkActions.done", { count: okCount }));
+      setSelected(new Set());
+      load();
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selected.size === 0) return;
+    if (!window.confirm(t("bulkActions.deleteConfirm", { count: selected.size }))) return;
+    runBulk((property) => db.deleteProperty(property.id));
+  };
+
+  const handleBulkActive = (active) => runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { active })));
+
+  const handleBulkStatus = () => runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { status: bulkStatus })));
+
   const handleExport = () => {
-    exportToCsv(`${basePath.split("/").pop()}.csv`, properties, [
+    exportToCsv(`${basePath.split("/").pop()}.csv`, visibleProperties, [
       { label: t("detail.code"), key: "code" },
       { label: "Título", key: "title" },
       { label: t("properties.type"), value: (p) => propertyTypeLabel(t, p.type) },
@@ -91,7 +205,7 @@ export default function AdminProperties({
       <div className="admin-header">
         <h1>{t(titleKey)}</h1>
         <div className="admin-header__actions">
-          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={properties.length === 0}>
+          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={visibleProperties.length === 0}>
             {t("common.exportCsv")}
           </button>
           <Link to={`${basePath}/nueva`} className="btn btn-primary">
@@ -100,10 +214,76 @@ export default function AdminProperties({
         </div>
       </div>
 
+      <div className="card" style={{ padding: "1rem", marginBottom: "1.25rem", display: "grid", gap: "0.75rem", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
+        <div className="form-field">
+          <label htmlFor="ap-search">{t("common.search")}</label>
+          <input id="ap-search" type="search" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <div className="form-field">
+          <label htmlFor="ap-zone">{t("properties.zone")}</label>
+          <select id="ap-zone" value={zoneFilter} onChange={(e) => setZoneFilter(e.target.value)}>
+            <option value="">{t("hero.allZones")}</option>
+            {zones.map((zone) => (
+              <option key={zone.id} value={zone.name}>
+                {zone.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="form-field">
+          <label htmlFor="ap-operation">{t("properties.operationType")}</label>
+          <select id="ap-operation" value={operationFilter} onChange={(e) => setOperationFilter(e.target.value)}>
+            <option value="">{t("hero.allOperations")}</option>
+            <option value="compra">{t("propertyOperation.compra")}</option>
+            <option value="renta">{t("propertyOperation.renta")}</option>
+          </select>
+        </div>
+        <div className="form-field">
+          <label htmlFor="ap-status">{t("common.status")}</label>
+          <select id="ap-status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="">{t("properties.allStatus")}</option>
+            <option value="disponible">{t("propertyStatus.disponible")}</option>
+            <option value="apartada">{t("propertyStatus.apartada")}</option>
+            <option value="vendida">{t("propertyStatus.vendida")}</option>
+          </select>
+        </div>
+        <div className="form-field">
+          <label htmlFor="ap-min-price">{t("properties.minPrice")}</label>
+          <input id="ap-min-price" type="number" min="0" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
+        </div>
+        <div className="form-field">
+          <label htmlFor="ap-max-price">{t("properties.maxPrice")}</label>
+          <input id="ap-max-price" type="number" min="0" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
+        </div>
+      </div>
+
+      <BulkActionsBar count={selected.size} onClear={() => setSelected(new Set())} busy={bulkBusy}>
+        <select value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)} disabled={bulkBusy} aria-label={t("common.status")}>
+          <option value="disponible">{t("propertyStatus.disponible")}</option>
+          <option value="apartada">{t("propertyStatus.apartada")}</option>
+          <option value="vendida">{t("propertyStatus.vendida")}</option>
+        </select>
+        <button type="button" className="btn btn-outline btn-sm" onClick={handleBulkStatus} disabled={bulkBusy}>
+          {t("bulkActions.applyStatus")}
+        </button>
+        <button type="button" className="btn btn-outline btn-sm" onClick={() => handleBulkActive(true)} disabled={bulkBusy}>
+          {t("bulkActions.activateSelected")}
+        </button>
+        <button type="button" className="btn btn-outline btn-sm" onClick={() => handleBulkActive(false)} disabled={bulkBusy}>
+          {t("bulkActions.deactivateSelected")}
+        </button>
+        <button type="button" className="btn btn-danger btn-sm" onClick={handleBulkDelete} disabled={bulkBusy}>
+          {t("bulkActions.deleteSelected")}
+        </button>
+      </BulkActionsBar>
+
       <div className="card admin-table-wrapper">
         <table className="admin-table">
           <thead>
             <tr>
+              <th>
+                <input type="checkbox" checked={allVisibleSelected} onChange={toggleAll} aria-label={t("bulkActions.selectAll")} />
+              </th>
               <th></th>
               <th>{t("detail.code")}</th>
               <th>Título</th>
@@ -119,14 +299,23 @@ export default function AdminProperties({
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={fixedType === "nave_industrial" ? 11 : 10}>{t("common.loading")}</td></tr>
-            ) : properties.length === 0 ? (
-              <tr><td colSpan={fixedType === "nave_industrial" ? 11 : 10}>{t("properties.noResults")}</td></tr>
+              <tr><td colSpan={fixedType === "nave_industrial" ? 12 : 11}>{t("common.loading")}</td></tr>
+            ) : visibleProperties.length === 0 ? (
+              <tr><td colSpan={fixedType === "nave_industrial" ? 12 : 11}>{t("properties.noResults")}</td></tr>
             ) : (
-              properties.map((property) => {
+              visibleProperties.map((property) => {
                 const remodelProject = remodelProjects.find((r) => r.property_id === property.id);
+                const matchedProspects = prospectsByProperty.get(property.id) || [];
                 return (
                   <tr key={property.id}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selected.has(property.id)}
+                        onChange={() => toggleOne(property.id)}
+                        aria-label={t("bulkActions.selectRow")}
+                      />
+                    </td>
                     <td><img src={property.main_image} alt="" /></td>
                     <td>{property.code || "—"}</td>
                     <td>{property.title}</td>
@@ -160,6 +349,11 @@ export default function AdminProperties({
                       <button type="button" className="btn btn-outline btn-sm" onClick={() => setSocialProperty(property)}>
                         {t("socialPost.button")}
                       </button>
+                      {matchedProspects.length > 0 && (
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => setMatchProperty(property)}>
+                          {t("prospects.match.propertyButton", { count: matchedProspects.length })}
+                        </button>
+                      )}
                       {remodelProject && hasSection("remodelaciones") && (
                         <Link to={`/admin/remodelaciones/${remodelProject.id}`} className="btn btn-outline btn-sm">
                           {t("remodelCalculator.button")}
@@ -203,6 +397,9 @@ export default function AdminProperties({
       </div>
 
       {socialProperty && <SocialPostModal property={socialProperty} onClose={() => setSocialProperty(null)} />}
+      {matchProperty && (
+        <PropertyProspectsModal property={matchProperty} prospects={prospectsByProperty.get(matchProperty.id) || []} onClose={() => setMatchProperty(null)} />
+      )}
     </div>
   );
 }

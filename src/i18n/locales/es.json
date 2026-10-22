@@ -70,6 +70,8 @@
     "industrialSubtitle": "Filtra por zona, precio y superficie para encontrar la nave ideal para tu negocio.",
     "landTitle": "Terrenos disponibles",
     "landSubtitle": "Filtra por zona, precio y superficie para encontrar el terreno ideal para tu proyecto.",
+    "zoneTitle": "Propiedades en {{city}}",
+    "zoneSubtitle": "Casas, departamentos, naves industriales y terrenos disponibles en {{city}}.",
     "filters": "Filtros",
     "type": "Tipo",
     "operationType": "Operación",
@@ -79,6 +81,7 @@
     "maxPrice": "Precio máx.",
     "minArea": "Superficie mín. (m²)",
     "maxArea": "Superficie máx. (m²)",
+    "allStatus": "Todos los estatus",
     "clear": "Limpiar filtros",
     "results_one": "{{count}} resultado",
     "results_other": "{{count}} resultados",
@@ -94,6 +97,8 @@
     "viewDetail": "Ver detalle",
     "advisor": "Asesor",
     "mapView": "Ver en mapa",
+    "mapFullscreen": "Pantalla completa",
+    "mapExitFullscreen": "Salir de pantalla completa",
     "listView": "Ver listado",
     "bedrooms": "Recámaras",
     "bathrooms": "Baños",
@@ -125,6 +130,8 @@
       "cta": "Comparar opciones de crédito"
     },
     "back": "Volver a propiedades",
+    "recentViews_one": "{{count}} persona vio esta propiedad en los últimos 3 días",
+    "recentViews_other": "{{count}} personas vieron esta propiedad en los últimos 3 días",
     "description": "Descripción",
     "features": "Características",
     "location": "Ubicación",
@@ -398,12 +405,29 @@
   "footer": {
     "tagline": "Compra y venta de casas, terrenos, locales comerciales y naves industriales en La Comarca Lagunera.",
     "quickLinks": "Enlaces rápidos",
+    "zones": "Zonas",
     "contactInfo": "Contacto",
     "followUs": "Síguenos",
     "rights": "Todos los derechos reservados.",
     "privacyLink": "Aviso de Privacidad",
     "rightsLink": "Carta de Derechos",
     "creditNotice": "Precios en pesos mexicanos (MXN). En operaciones de crédito, el precio total se determinará en función de los montos variables de conceptos de crédito y gastos notariales, que deben consultarse con nuestros promotores."
+  },
+  "bulkActions": {
+    "selectAll": "Seleccionar todos",
+    "selectRow": "Seleccionar fila",
+    "selectedCount_one": "{{count}} seleccionado",
+    "selectedCount_other": "{{count}} seleccionados",
+    "clearSelection": "Cancelar selección",
+    "deleteSelected": "Eliminar seleccionados",
+    "deleteConfirm_one": "¿Eliminar {{count}} registro? No se puede deshacer.",
+    "deleteConfirm_other": "¿Eliminar {{count}} registros? No se puede deshacer.",
+    "activateSelected": "Activar",
+    "deactivateSelected": "Desactivar",
+    "applyStatus": "Aplicar",
+    "done_one": "Listo: {{count}} actualizado.",
+    "done_other": "Listo: {{count}} actualizados.",
+    "someFailed": "Algunos registros no se pudieron actualizar — vuelve a intentar."
   },
   "common": {
     "loading": "Cargando...",
@@ -1508,6 +1532,7 @@
       "simulador": "Simulador de crédito",
       "estimacion": "Estimación (vende tu casa)",
       "whatsapp": "WhatsApp",
+      "chatbot": "Chatbot del sitio",
       "manual": "Captura manual",
       "visita": "Visita",
       "recomendacion": "Recomendación",
@@ -1524,6 +1549,62 @@
     "followToday": "Seguimiento hoy",
     "followOn": "Seguimiento: {{date}}",
     "logContact": "Registrar contacto",
+    "unattendedOnly": "Solo sin atender",
+    "unattended": {
+      "hours_one": "Sin atender: {{count}} h",
+      "hours_other": "Sin atender: {{count}} h",
+      "days_one": "Sin atender: {{count}} día",
+      "days_other": "Sin atender: {{count}} días"
+    },
+    "contact": {
+      "channel": "¿Cómo lo contactaste?",
+      "channels": {
+        "llamada": "Llamada",
+        "whatsapp": "WhatsApp",
+        "correo": "Correo",
+        "presencial": "En persona"
+      },
+      "note": "Nota (opcional)",
+      "notePlaceholder": "Ej. Quedó de ver la casa el sábado",
+      "errors": {
+        "channel": "Elige cómo lo contactaste.",
+        "followup": "Elige cuándo das el siguiente seguimiento.",
+        "pastDate": "La fecha no puede ser anterior a hoy."
+      },
+      "historyTitle": "Historial de contactos",
+      "historyEmpty": "Todavía no hay contactos registrados."
+    },
+    "nextFollowupQuestion": "¿Cuándo das el siguiente seguimiento?",
+    "followupOptions": {
+      "tomorrow": "Mañana",
+      "days3": "En 3 días",
+      "week1": "En 1 semana",
+      "week2": "En 2 semanas"
+    },
+    "keepFollowup": "Dejar {{date}}",
+    "noFollowup": "Sin fecha",
+    "match": {
+      "count_one": "{{count}} propiedad le encaja",
+      "count_other": "{{count}} propiedades le encajan",
+      "looking": "Busca: {{text}}",
+      "send": "Enviar",
+      "view": "Ver",
+      "more": "y {{count}} más",
+      "propertyButton": "Prospectos ({{count}})",
+      "modalTitle": "Prospectos que encajan con esta propiedad",
+      "modalHint": "Prospectos abiertos cuyo \"qué busca\" coincide con {{title}}, los más avanzados primero.",
+      "openProspect": "Abrir",
+      "noContact": "Sin teléfono ni correo",
+      "emailSubject": "Una propiedad para ti — ACL Propiedades"
+    },
+    "templates": {
+      "label": "Mensaje rápido",
+      "firstContact": "Primer contacto",
+      "thanksVisit": "Gracias por la visita",
+      "checkIn": "¿Pudo revisar la propiedad?",
+      "scheduleVisit": "Proponer una visita",
+      "sendProperty": "Enviar la propiedad"
+    },
     "confirmDelete": "¿Eliminar a {{name}} de los prospectos?",
     "saveError": "No se pudo guardar el prospecto",
     "deleteError": "No se pudo eliminar el prospecto",
@@ -1548,12 +1629,17 @@
       "noProperty": "— Ninguna —",
       "lookingFor": "Qué busca",
       "lookingForPlaceholder": "Ej. casa de 3 recámaras en Torreón, hasta $1.8 M",
+      "searchTitle": "Criterios de búsqueda (para sugerirle propiedades)",
+      "searchHint": "Con tipo, zona y presupuesto, el sistema te muestra qué propiedades disponibles le encajan, en la tarjeta del prospecto.",
+      "any": "Cualquiera",
+      "searchExtra": "Criterios adicionales (se conservan): {{text}}",
       "lostReason": "Motivo por el que se perdió",
       "notes": "Notas internas",
       "errors": {
         "name": "Escribe el nombre.",
         "contact": "Captura al menos un teléfono o un correo.",
-        "email": "El correo no es válido."
+        "email": "El correo no es válido.",
+        "budgetRange": "El precio mínimo no puede ser mayor que el máximo."
       }
     }
   },
@@ -1565,6 +1651,10 @@
     "keysLate_other": "{{count}} con 2 días o más fuera",
     "daysOut_one": "{{count}} día",
     "daysOut_other": "{{count}} días",
+    "hoursOut_one": "{{count}} hora",
+    "hoursOut_other": "{{count}} horas",
+    "unattendedLate_one": "{{count}} lleva más de 4 horas sin atenderse",
+    "unattendedLate_other": "{{count}} llevan más de 4 horas sin atenderse",
     "items": {
       "postsale": "Posventa por hacer",
       "signatures": "Firmas sin completar (3 días o más)",
@@ -1978,6 +2068,8 @@
     "colRate": "Tasa",
     "colDays": "Días a cerrar",
     "colFirstContact": "Primera respuesta (h)",
+    "colStagePct": "% del total",
+    "colConversion": "Conversión desde etapa anterior (%)",
     "noAdvisor": "Sin asignar",
     "lostTitle": "Por qué se pierden",
     "lostEmpty": "No hay prospectos perdidos en este periodo.",
@@ -1993,6 +2085,7 @@
     "price": "Precio de la casa",
     "advanced": "Condiciones del banco y gastos",
     "advancedHint": "Cada banco ofrece condiciones distintas: cámbialas por las que te dieron. Los gastos de escrituración, impuestos y avalúo se estiman con el mismo porcentaje en las tres opciones.",
+    "referenceRate": "Tasa de referencia del mercado (TIIE 28 días): {{rate}}% al {{date}} — fuente: Banxico. La tasa de tu crédito normalmente es esta más el margen que cobra tu banco; ajusta \"Tasa bancaria\" abajo con la que te hayan dado a ti.",
     "bankRate": "Tasa anual del banco (%)",
     "bankDown": "Enganche (% del precio)",
     "bankYears": "Plazo (años)",
@@ -2103,6 +2196,12 @@
       "subtitle": "Déjanos tus datos y te avisamos si esta propiedad baja de precio.",
       "submit": "Avísame si baja",
       "success": "¡Listo! Te escribiremos por {{channel}} si esta propiedad baja de precio."
+    },
+    "similar": {
+      "title": "Esta propiedad ya no está disponible",
+      "subtitle": "Pero te avisamos en cuanto publiquemos algo similar (mismo tipo, zona y un precio parecido).",
+      "submit": "Avísame de propiedades similares",
+      "success": "¡Listo! Te escribiremos por {{channel}} en cuanto publiquemos algo similar a esta propiedad."
     },
     "criteria": {
       "type": "Tipo",
@@ -2417,6 +2516,81 @@
     "officialLinksSubtitle": "Enlaces directos a los portales de gobierno donde el cliente (o tú) puede sacar estos documentos sin ir a hacer fila. Ver también el Portal de documentos del cliente en la ficha de cada cliente, que guía el mismo trámite paso a paso.",
     "satHint": "Para obtener el RFC/cédula fiscal: el cliente entra con su RFC y contraseña del SAT (CIEC) o su e.firma — esa contraseña nunca se captura en nuestro sitio.",
     "actasHint": "Se descarga tecleando la CURP — no pide contraseña."
+  },
+  "documentTemplates": {
+    "title": "Plantillas de documentos",
+    "subtitle": "Crea tus propios tipos de documento con marcadores que se rellenan solos con los datos del cliente, la propiedad y el asesor — sin tocar código.",
+    "new": "Nueva plantilla",
+    "edit": "Editar plantilla",
+    "empty": "Aún no hay plantillas. Crea la primera para empezar a generar documentos personalizados.",
+    "backToLegalDocs": "Volver a Documentos legales",
+    "manage": "Administrar plantillas",
+    "noneActive": "No hay plantillas activas todavía.",
+    "generate": "Generar y descargar PDF",
+    "generateError": "Error al generar el documento",
+    "saveError": "Error al guardar la plantilla",
+    "deleteError": "Error al eliminar la plantilla",
+    "yes": "Sí",
+    "no": "No",
+    "fields": {
+      "name": "Nombre del documento",
+      "body": "Contenido",
+      "bodyHint": "Texto libre. Separa párrafos con una línea en blanco. Usa los botones de abajo para insertar un marcador en el cursor.",
+      "template": "Plantilla",
+      "customFields": "Campos personalizados",
+      "customFieldsHint": "Datos que no vienen de un cliente/propiedad ya capturado y que se piden al generar el documento (por ejemplo: motivo, folio, monto adicional).",
+      "customFieldsCount": "Campos propios",
+      "fieldKeyPlaceholder": "clave (ej. motivo)",
+      "fieldLabelPlaceholder": "Etiqueta visible",
+      "fieldError": "La clave debe ser minúsculas sin espacios (ej. monto_extra) y la etiqueta no puede quedar vacía.",
+      "fieldDuplicate": "Ya hay otro campo con esa clave.",
+      "fieldTypes": { "text": "Texto", "number": "Número", "date": "Fecha" },
+      "addField": "Agregar campo",
+      "requiresSignatures": "Incluir espacio de firma (cliente y oficina)",
+      "requiresSignaturesHint": "Agrega dos líneas de firma al final del PDF, igual que los documentos predefinidos.",
+      "activeHint": "Una plantilla inactiva no aparece al generar documentos, pero no se borra."
+    }
+  },
+  "recentlyViewed": {
+    "title": "Vistos recientemente"
+  },
+  "chatWidget": {
+    "title": "Asistente ACL Propiedades",
+    "open": "Abrir chat",
+    "close": "Cerrar chat",
+    "greeting": "¡Hola! Soy el asistente virtual de ACL Propiedades. Puedo ayudarte a buscar propiedades o resolver dudas generales. ¿En qué te ayudo?",
+    "placeholder": "Escribe tu mensaje...",
+    "send": "Enviar",
+    "typing": "Escribiendo...",
+    "talkToAdvisor": "Hablar con un asesor por WhatsApp",
+    "unavailable": "El chat no está disponible por el momento. Escríbenos directo por WhatsApp y con gusto te ayudamos.",
+    "error": "Algo salió mal. Intenta de nuevo o escríbenos por WhatsApp."
+  },
+  "gallery": {
+    "expand": "Ampliar",
+    "counter": "{{current}} / {{total}}",
+    "prev": "Foto anterior",
+    "next": "Foto siguiente",
+    "zoomHint": "Clic en la foto para acercar · flechas o desliza para cambiar · Esc para cerrar"
+  },
+  "panorama360": {
+    "title": "Recorrido 360°",
+    "dragHint": "Arrastra para mirar alrededor.",
+    "choose": "Elegir foto 360°",
+    "viewButton": "Ver recorrido 360°",
+    "adminLabel": "Fotos 360°",
+    "adminHint": "Fotos panorámicas (equirectangulares, 2:1) de cada espacio. Se muestran en un visor donde el cliente puede arrastrar para mirar alrededor."
+  },
+  "internalNotes": {
+    "title": "Notas internas",
+    "subtitle": "Notas visibles para todo el equipo sobre este registro — no las ve el cliente.",
+    "newNote": "Nueva nota",
+    "notify": "Notificar a:",
+    "add": "Agregar nota",
+    "empty": "Todavía no hay notas.",
+    "you": "Tú",
+    "saveError": "Error al guardar la nota",
+    "deleteError": "Error al eliminar la nota"
   },
   "privacy": {
     "title": "Aviso de Privacidad",

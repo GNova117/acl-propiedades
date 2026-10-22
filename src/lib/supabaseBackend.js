@@ -9,6 +9,13 @@ import { CLIENT_EXPEDIENTE_KEYS } from "./clientExpedienteFields";
 import { compressImageFile, compressImageFiles } from "./imageCompression";
 import { generateReportToken, REPORT_TOKEN_PATTERN } from "./visitReport";
 import { generatePortalToken, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS, PortalUploadError, blobToBase64 } from "./clientPortal";
+import { getOrCreateVisitorId } from "./visitorId";
+
+// La tabla aún no existe en la base (falta correr su bloque de schema.sql):
+// 42P01 es Postgres directo, PGRST205 es PostgREST ("no está en el schema cache").
+function isMissingTable(error) {
+  return error?.code === "42P01" || error?.code === "PGRST205";
+}
 
 // Los campos del expediente del cliente (NSS, contraseña del portal, número
 // de crédito y las 2 referencias) se guardan igual al crear y al editar — se
@@ -83,9 +90,11 @@ async function collectMedia(data, uploaded) {
   try {
     const newImages = await uploadFiles("property-images", data.imageFiles, uploaded);
     const newVideos = await uploadFiles("property-videos", data.videoFiles, uploaded);
+    const newTour360 = await uploadFiles("property-360", data.tour360Files, uploaded);
     return {
       images: [...(data.existingImages || []), ...newImages],
       videos: [...(data.existingVideos || []), ...newVideos],
+      tour_360_images: [...(data.existingTour360Images || []), ...newTour360],
     };
   } catch (err) {
     await discardUploads(uploaded);
@@ -213,9 +222,23 @@ export const supabaseBackend = {
     return data ? mapPropertyRow(data) : null;
   },
 
+  // record_property_view (schema.sql, security definer): registra la vista
+  // de este visitante (como máximo una por día, por propiedad) y devuelve en
+  // la misma llamada cuántos visitantes distintos la vieron en los últimos
+  // `days` días — para el indicador "N vistas recientes" de la ficha pública.
+  async trackPropertyView(propertyId, days = 3) {
+    const { data, error } = await supabase.rpc("record_property_view", {
+      p_property_id: propertyId,
+      p_visitor_id: getOrCreateVisitorId(),
+      p_days: days,
+    });
+    if (error) throw error;
+    return data || 0;
+  },
+
   async addProperty(data) {
     const uploaded = [];
-    const { images, videos } = await collectMedia(data, uploaded);
+    const { images, videos, tour_360_images } = await collectMedia(data, uploaded);
     const payload = {
       title: data.title,
       type: data.type,
@@ -235,6 +258,7 @@ export const supabaseBackend = {
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
       videos,
+      tour_360_images,
       colindancias: data.colindancias || null,
       servicios: data.servicios || null,
       acabados: data.acabados || null,
@@ -289,7 +313,7 @@ export const supabaseBackend = {
 
   async updateProperty(id, data) {
     const uploaded = [];
-    const { images, videos } = await collectMedia(data, uploaded);
+    const { images, videos, tour_360_images } = await collectMedia(data, uploaded);
     const payload = {
       title: data.title,
       type: data.type,
@@ -309,6 +333,7 @@ export const supabaseBackend = {
       images,
       main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
       videos,
+      tour_360_images,
       colindancias: data.colindancias || null,
       servicios: data.servicios || null,
       acabados: data.acabados || null,
@@ -587,6 +612,74 @@ export const supabaseBackend = {
 
   async deleteTestimonial(id) {
     const { error } = await supabase.from("testimonials").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  async getDocumentTemplates() {
+    const { data, error } = await supabase.from("document_templates").select("*").order("name");
+    if (error) throw error;
+    return data || [];
+  },
+
+  async createDocumentTemplate(data) {
+    const payload = {
+      name: data.name.trim(),
+      body: data.body,
+      custom_fields: data.custom_fields || [],
+      requires_signatures: data.requires_signatures !== false,
+      active: data.active !== false,
+    };
+    const { data: inserted, error } = await supabase.from("document_templates").insert(payload).select().single();
+    if (error) throw error;
+    return inserted;
+  },
+
+  async updateDocumentTemplate(id, data) {
+    const payload = {
+      name: data.name.trim(),
+      body: data.body,
+      custom_fields: data.custom_fields || [],
+      requires_signatures: data.requires_signatures !== false,
+      active: data.active !== false,
+      updated_at: new Date().toISOString(),
+    };
+    const { data: updated, error } = await supabase.from("document_templates").update(payload).eq("id", id).select().single();
+    if (error) throw error;
+    return updated;
+  },
+
+  async deleteDocumentTemplate(id) {
+    const { error } = await supabase.from("document_templates").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  async getInternalNotes(entityType, entityId) {
+    const { data, error } = await supabase
+      .from("internal_notes")
+      .select("*")
+      .eq("entity_type", entityType)
+      .eq("entity_id", entityId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addInternalNote({ entityType, entityId, body, mentions = [] }) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const payload = {
+      entity_type: entityType,
+      entity_id: entityId,
+      body: body.trim(),
+      mentions,
+      author_email: sessionData?.session?.user?.email || null,
+    };
+    const { data: inserted, error } = await supabase.from("internal_notes").insert(payload).select().single();
+    if (error) throw error;
+    return inserted;
+  },
+
+  async deleteInternalNote(id) {
+    const { error } = await supabase.from("internal_notes").delete().eq("id", id);
     if (error) throw error;
   },
 
@@ -1783,6 +1876,34 @@ export const supabaseBackend = {
   async deleteProspect(id) {
     const { error } = await supabase.from("prospectos").delete().eq("id", id);
     if (error) throw error;
+  },
+
+  // Historial de contactos de un prospecto (llamadas, WhatsApp...). RLS: hereda
+  // la de prospectos. Si el bloque "Registro de contactos" de schema.sql aún no
+  // se corrió, el historial sale vacío y registrar un contacto sigue
+  // actualizando al prospecto (solo se pierde la fila del historial).
+  async getProspectContacts(prospectId) {
+    const { data, error } = await supabase
+      .from("prospecto_contactos")
+      .select("id, channel, note, at, actor")
+      .eq("prospecto_id", prospectId)
+      .order("at", { ascending: false });
+    if (error) {
+      if (isMissingTable(error)) return [];
+      throw error;
+    }
+    return data || [];
+  },
+
+  // Registra un contacto: primero actualiza al prospecto (`fields` ya viene
+  // calculado por contactUpdateFields; es idempotente) y luego guarda la fila
+  // del historial. Devuelve el prospecto actualizado.
+  async logProspectContact(prospectId, fields, { channel, note }) {
+    const updated = await this.updateProspect(prospectId, fields);
+    const text = String(note ?? "").trim();
+    const { error } = await supabase.from("prospecto_contactos").insert({ prospecto_id: prospectId, channel, note: text === "" ? null : text });
+    if (error && !isMissingTable(error)) throw error;
+    return updated;
   },
 
   // Historial de Estimación de valor. RLS: apartado 'valuacion' (ver schema.sql).
