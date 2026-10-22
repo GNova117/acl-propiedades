@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
 import "./admin.css";
 
-const EMPTY = { advisor_id: "", client_id: "", titulo: "", fecha: "", hora: "", actividades: "" };
+const EMPTY = { advisor_id: "", client_id: "", titulo: "", fecha: "", hora: "", actividades: "", lugar: "" };
 
 export default function AdminAgendaForm() {
   const { id } = useParams();
@@ -29,6 +29,9 @@ export default function AdminAgendaForm() {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  // ¿La cita ya tenía lugar guardado? Solo entonces se manda vacío para borrarlo;
+  // si nunca tuvo y sigue sin nada, el campo ni se envía (ver supabaseBackend).
+  const hadLugar = useRef(false);
 
   useEffect(() => {
     Promise.all([db.getAdvisors(), db.getClients(), isEdit ? db.getAgendaCitaById(id) : Promise.resolve(null)]).then(
@@ -36,6 +39,7 @@ export default function AdminAgendaForm() {
         setAdvisors(advisorData);
         setClients(clientData);
         if (cita) {
+          hadLugar.current = Boolean(cita.lugar);
           setForm({
             advisor_id: cita.advisor_id,
             client_id: cita.client_id || "",
@@ -43,6 +47,7 @@ export default function AdminAgendaForm() {
             fecha: cita.fecha,
             hora: cita.hora ? cita.hora.slice(0, 5) : "",
             actividades: cita.actividades || "",
+            lugar: cita.lugar || "",
           });
         } else if (advisorId) {
           // Agenda propia: el asesor no elige, la cita siempre se crea para sí mismo.
@@ -71,10 +76,12 @@ export default function AdminAgendaForm() {
     if (!validate()) return;
     setSaving(true);
     try {
+      const { lugar, ...rest } = form;
+      const payload = lugar.trim() || hadLugar.current ? { ...rest, lugar } : rest;
       if (isEdit) {
-        await db.updateAgendaCita(id, form);
+        await db.updateAgendaCita(id, payload);
       } else {
-        await db.addAgendaCita(form);
+        await db.addAgendaCita(payload);
       }
       navigate("/admin/agenda");
     } catch (err) {
@@ -136,6 +143,12 @@ export default function AdminAgendaForm() {
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="form-field">
+          <label htmlFor="cita-lugar">{t("agenda.place")}</label>
+          <input id="cita-lugar" value={form.lugar} onChange={handleChange("lugar")} placeholder={t("agenda.placePlaceholder")} />
+          <span className="form-hint">{t("agenda.placeHint")}</span>
         </div>
 
         <div className="form-field">

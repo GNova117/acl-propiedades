@@ -2291,7 +2291,7 @@ export const localBackend = {
     return citas.find((c) => c.id === id) || null;
   },
 
-  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades }) {
+  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades, lugar }) {
     const citas = readStore(KEYS.agendaCitas, []);
     const record = {
       id: uid("cita"),
@@ -2301,6 +2301,7 @@ export const localBackend = {
       fecha,
       hora: hora || null,
       actividades: actividades?.trim() || null,
+      lugar: lugar?.trim() || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -2309,7 +2310,7 @@ export const localBackend = {
     return record;
   },
 
-  async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades }) {
+  async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades, lugar }) {
     const citas = readStore(KEYS.agendaCitas, []);
     const idx = citas.findIndex((c) => c.id === id);
     if (idx === -1) throw new Error("Cita no encontrada");
@@ -2321,6 +2322,7 @@ export const localBackend = {
       fecha,
       hora: hora || null,
       actividades: actividades?.trim() || null,
+      ...(lugar !== undefined ? { lugar: lugar?.trim() || null } : {}),
       updated_at: new Date().toISOString(),
     };
     writeStore(KEYS.agendaCitas, citas);

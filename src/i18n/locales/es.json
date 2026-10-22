@@ -1592,7 +1592,8 @@
       "modalHint": "Prospectos abiertos cuyo \"qué busca\" coincide con {{title}}, los más avanzados primero.",
       "openProspect": "Abrir",
       "noContact": "Sin teléfono ni correo",
-      "emailSubject": "Una propiedad para ti — ACL Propiedades"
+      "emailSubject": "Una propiedad para ti — ACL Propiedades",
+      "sendTop": "Enviar las primeras {{count}} juntas"
     },
     "templates": {
       "label": "Mensaje rápido",
@@ -2719,7 +2720,52 @@
     "addFile": "Subir expediente",
     "noFiles": "Aún no hay expedientes para esta cita.",
     "fileName": "Archivo",
-    "uploadedAt": "Subido"
+    "uploadedAt": "Subido",
+    "place": "Lugar",
+    "placePlaceholder": "Dirección, colonia o enlace de Google Maps",
+    "placeHint": "Con esto aparece \"Cómo llegar\" y el lugar viaja en el archivo de calendario.",
+    "directions": "Cómo llegar",
+    "addToCalendar": "A mi calendario",
+    "addToCalendarTitle": "Descargar para tu calendario (te avisa 1 hora y 15 minutos antes)",
+    "reminderPlace": "Nos vemos en: {{place}}"
+  },
+  "sendProperty": {
+    "button": "Enviar",
+    "title": "Enviar propiedad",
+    "hint": "Elige a quién se la mandas y revisa el mensaje; se abre WhatsApp con el texto ya escrito.",
+    "search": "Buscar prospecto por nombre o teléfono",
+    "prospects": "Prospectos",
+    "noProspects": "No hay prospectos abiertos que coincidan.",
+    "noPhone": "Sin teléfono",
+    "otherNumber": "Otro número",
+    "phone": "Teléfono (10 dígitos)",
+    "message": "Mensaje",
+    "openWhatsApp": "Abrir WhatsApp",
+    "copy": "Copiar mensaje",
+    "copied": "¡Copiado!",
+    "needRecipient": "Elige un prospecto o escribe un teléfono.",
+    "logTitle": "¿Ya se lo mandaste? Registra el contacto con {{name}}:",
+    "logged": "Contacto registrado."
+  },
+  "quickCapture": {
+    "open": "Prospecto rápido",
+    "title": "Prospecto rápido",
+    "hint": "Lo mínimo para no perderlo; el resto lo completas después.",
+    "name": "Nombre",
+    "phone": "Teléfono",
+    "lookingFor": "Qué busca",
+    "lookingForPlaceholder": "Ej. casa de 3 recámaras en Lerdo, hasta 1.5 millones",
+    "pasted": "Pegar mensaje de WhatsApp (opcional)",
+    "pastedHint": "Si no escribiste el teléfono, se toma del mensaje. El texto queda en las notas.",
+    "save": "Guardar prospecto",
+    "saveError": "No se pudo guardar el prospecto.",
+    "saved": "Guardado: {{name}}",
+    "openProspect": "Ver en prospectos",
+    "addAnother": "Agregar otro",
+    "errors": {
+      "name": "Escribe el nombre.",
+      "phone": "Escribe un teléfono (o pega un mensaje que lo traiga)."
+    }
   },
   "seasons": {
     "anio-nuevo": {

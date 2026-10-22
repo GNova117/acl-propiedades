@@ -8,6 +8,7 @@ import ErrorBoundary from "../../components/ErrorBoundary";
 import AdminGlobalSearch from "../../components/AdminGlobalSearch";
 import InstallAppButton from "../../components/InstallAppButton";
 import NotificationBell from "../../components/NotificationBell";
+import QuickCapture from "../../components/QuickCapture";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
 import "./AdminLayout.css";
@@ -233,6 +234,7 @@ export default function AdminLayout() {
           </ErrorBoundary>
         </main>
       </div>
+      {hasSection("prospectos") && <QuickCapture />}
     </div>
   );
 }

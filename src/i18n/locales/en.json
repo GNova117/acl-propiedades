@@ -1592,7 +1592,8 @@
       "modalHint": "Open prospects whose \"what they are looking for\" matches {{title}}, most advanced first.",
       "openProspect": "Open",
       "noContact": "No phone or email",
-      "emailSubject": "A property for you — ACL Propiedades"
+      "emailSubject": "A property for you — ACL Propiedades",
+      "sendTop": "Send the first {{count}} together"
     },
     "templates": {
       "label": "Quick message",
@@ -2719,7 +2720,52 @@
     "addFile": "Upload case file",
     "noFiles": "No case files for this appointment yet.",
     "fileName": "File",
-    "uploadedAt": "Uploaded"
+    "uploadedAt": "Uploaded",
+    "place": "Place",
+    "placePlaceholder": "Address, neighborhood or Google Maps link",
+    "placeHint": "Adds a \"Directions\" link and the place travels in the calendar file.",
+    "directions": "Directions",
+    "addToCalendar": "To my calendar",
+    "addToCalendarTitle": "Download for your calendar (alerts you 1 hour and 15 minutes before)",
+    "reminderPlace": "Meeting at: {{place}}"
+  },
+  "sendProperty": {
+    "button": "Send",
+    "title": "Send property",
+    "hint": "Pick who gets it and review the message; WhatsApp opens with the text ready.",
+    "search": "Search prospect by name or phone",
+    "prospects": "Prospects",
+    "noProspects": "No open prospects match.",
+    "noPhone": "No phone",
+    "otherNumber": "Other number",
+    "phone": "Phone (10 digits)",
+    "message": "Message",
+    "openWhatsApp": "Open WhatsApp",
+    "copy": "Copy message",
+    "copied": "Copied!",
+    "needRecipient": "Pick a prospect or type a phone number.",
+    "logTitle": "Already sent it? Log the contact with {{name}}:",
+    "logged": "Contact logged."
+  },
+  "quickCapture": {
+    "open": "Quick prospect",
+    "title": "Quick prospect",
+    "hint": "Just enough so you don't lose them; fill in the rest later.",
+    "name": "Name",
+    "phone": "Phone",
+    "lookingFor": "Looking for",
+    "lookingForPlaceholder": "E.g. 3-bedroom house in Lerdo, up to 1.5 million",
+    "pasted": "Paste WhatsApp message (optional)",
+    "pastedHint": "If you didn't type a phone, it is taken from the message. The text is saved in the notes.",
+    "save": "Save prospect",
+    "saveError": "The prospect could not be saved.",
+    "saved": "Saved: {{name}}",
+    "openProspect": "View in prospects",
+    "addAnother": "Add another",
+    "errors": {
+      "name": "Enter the name.",
+      "phone": "Enter a phone (or paste a message that has one)."
+    }
   },
   "seasons": {
     "anio-nuevo": {

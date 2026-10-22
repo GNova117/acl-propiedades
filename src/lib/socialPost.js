@@ -31,7 +31,7 @@ export function propertyUrl(property, origin) {
   return `${origin}/propiedades/${property.id}`;
 }
 
-function specsLine(property) {
+export function specsLine(property) {
   const parts = [];
   if (Number(property.bedrooms) > 0) parts.push(`🛏 ${property.bedrooms} recámara${Number(property.bedrooms) === 1 ? "" : "s"}`);
   if (Number(property.bathrooms) > 0) parts.push(`🛁 ${property.bathrooms} baño${Number(property.bathrooms) === 1 ? "" : "s"}`);

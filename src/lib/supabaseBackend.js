@@ -2214,7 +2214,7 @@ export const supabaseBackend = {
     return data || [];
   },
 
-  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades }) {
+  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades, lugar }) {
     const payload = {
       advisor_id,
       client_id: client_id || null,
@@ -2222,6 +2222,9 @@ export const supabaseBackend = {
       fecha,
       hora: hora || null,
       actividades: actividades?.trim() || null,
+      // Solo se manda si se capturó: así guardar una cita no depende de que la
+      // columna `lugar` ya exista en bases que aún no corren su migración.
+      ...(lugar?.trim() ? { lugar: lugar.trim() } : {}),
     };
     const { data, error } = await supabase.from("agenda_citas").insert(payload).select().single();
     if (error) throw error;
@@ -2234,7 +2237,8 @@ export const supabaseBackend = {
     return data;
   },
 
-  async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades }) {
+  // `lugar`: undefined = no tocarlo; texto vacío = borrarlo.
+  async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades, lugar }) {
     const payload = {
       advisor_id,
       client_id: client_id || null,
@@ -2242,6 +2246,7 @@ export const supabaseBackend = {
       fecha,
       hora: hora || null,
       actividades: actividades?.trim() || null,
+      ...(lugar !== undefined ? { lugar: lugar?.trim() || null } : {}),
       updated_at: new Date().toISOString(),
     };
     const { data, error } = await supabase.from("agenda_citas").update(payload).eq("id", id).select().single();
