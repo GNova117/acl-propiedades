@@ -10,12 +10,15 @@ import ShareButton from "../components/ShareButton";
 import FavoriteButton from "../components/FavoriteButton";
 import CompareButton from "../components/CompareButton";
 import ScheduleVisitCard from "../components/ScheduleVisitCard";
+import MobileContactBar from "../components/MobileContactBar";
+import PropertyFlag from "../components/PropertyFlag";
 import AlertSignupCard from "../components/AlertSignupCard";
 import RecentlyViewed from "../components/RecentlyViewed";
 import RecentViewsBadge from "../components/RecentViewsBadge";
 import { db } from "../lib/dataStore";
 import { recordPropertyView } from "../lib/recentlyViewed";
 import { buildSimilarCriteria } from "../lib/alertMatch";
+import { getPropertyBadge } from "../lib/propertyBadges";
 import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
 import "./PropertyDetail.css";
 
@@ -297,6 +300,9 @@ export default function PropertyDetail() {
   }, [property?.id, property?.type, property?.zone]);
 
   if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  const badge = getPropertyBadge(property);
+  const priceDrop = badge?.kind === "priceDrop" ? badge : null;
+
   if (!property) {
     return (
       <div className="empty-state">
@@ -341,11 +347,17 @@ export default function PropertyDetail() {
                   <span className={`badge badge-${property.status === "disponible" ? "available" : property.status === "apartada" ? "reserved" : "sold"}`}>
                     {t(`propertyStatus.${property.status}`)}
                   </span>
+                  <PropertyFlag property={property} />
                   <FavoriteButton propertyId={property.id} className="favorite-button--inline" />
                   <CompareButton propertyId={property.id} className="compare-button--inline" />
                   <ShareButton title={seoTitle} text={shareText} url={`${window.location.origin}/propiedades/${property.id}`} />
                 </div>
                 <span className="property-detail__price">{formatMXN(property.price)}</span>
+                {priceDrop && (
+                  <p className="property-detail__was-price">
+                    <s>{formatMXN(priceDrop.previousPrice)}</s>
+                  </p>
+                )}
                 <p className="property-detail__credit-notice">{t("detail.creditNotice")}</p>
               </div>
             </div>
@@ -502,6 +514,8 @@ export default function PropertyDetail() {
 
         <RecentlyViewed excludeId={property.id} />
       </div>
+
+      {property.status !== "vendida" && <MobileContactBar property={property} />}
 
       {showPanorama && (
         <Suspense fallback={null}>

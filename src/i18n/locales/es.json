@@ -31,6 +31,35 @@
     "properties": { "title": "Propiedades", "subtitle": "Casas, departamentos y terrenos" },
     "industrial": { "title": "Naves Industriales", "subtitle": "Espacios comerciales e industriales" }
   },
+  "badges": {
+    "new": "Nuevo",
+    "priceDrop": "Bajó de precio",
+    "priceDropPct": "Bajó {{percent}}%",
+    "wasPrice": "Antes {{price}}"
+  },
+  "featured": {
+    "eyebrow": "Lo más reciente",
+    "title": "Propiedades destacadas",
+    "subtitle": "Recién llegadas y con precio rebajado, listas para visitarse.",
+    "cta": "Ver todas las propiedades"
+  },
+  "trust": {
+    "eyebrow": "Resultados que hablan",
+    "title": "Familias y empresas que ya encontraron su lugar con ACL",
+    "sold_one": "propiedad vendida",
+    "sold_other": "propiedades vendidas",
+    "soldLastYear_one": "venta en el último año",
+    "soldLastYear_other": "ventas en el último año",
+    "avgDays": "días en promedio para vender",
+    "available_one": "propiedad disponible hoy",
+    "available_other": "propiedades disponibles hoy",
+    "recentTitle": "Vendidas recientemente"
+  },
+  "mobileBar": {
+    "schedule": "Agendar visita",
+    "whatsapp": "WhatsApp",
+    "whatsappText": "Hola, me interesa {{property}}."
+  },
   "categories": {
     "eyebrow": "Explora por categoría",
     "title": "Encuentra el tipo de propiedad ideal para ti",

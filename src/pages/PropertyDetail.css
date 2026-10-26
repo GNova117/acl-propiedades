@@ -75,6 +75,13 @@
   white-space: nowrap;
 }
 
+.property-detail__was-price {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
 .property-detail__credit-notice {
   margin: 0;
   max-width: 300px;
@@ -91,6 +98,10 @@
 
   .property-detail__price-block {
     align-items: flex-start;
+  }
+
+  .property-detail__was-price {
+    text-align: left;
   }
 
   .property-detail__credit-notice {

@@ -5,12 +5,15 @@ import PropertyTypeIcon from "./PropertyTypeIcon";
 import FavoriteButton from "./FavoriteButton";
 import CompareButton from "./CompareButton";
 import ShareButton from "./ShareButton";
+import PropertyFlag from "./PropertyFlag";
 import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
+import { getPropertyBadge } from "../lib/propertyBadges";
 import "./PropertyCard.css";
 
 export default function PropertyCard({ property }) {
   const { t } = useTranslation();
   const advisor = property.advisors?.[0];
+  const badge = getPropertyBadge(property);
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/propiedades/${property.id}` : "";
   // Mismo formato que el botón de Compartir de la ficha de propiedad, pero
   // sin amenidades (la tarjeta de listado no las trae cargadas) — para que
@@ -29,6 +32,7 @@ export default function PropertyCard({ property }) {
         <span className={`badge badge-${property.status === "disponible" ? "available" : property.status === "apartada" ? "reserved" : "sold"} property-card__badge`}>
           {t(`propertyStatus.${property.status}`)}
         </span>
+        <PropertyFlag property={property} className="property-flag--card" />
         <FavoriteButton propertyId={property.id} className="property-card__favorite" />
         <CompareButton propertyId={property.id} className="property-card__compare" />
       </Link>
@@ -41,7 +45,10 @@ export default function PropertyCard({ property }) {
         <h3 className="property-card__title">
           <Link to={`/propiedades/${property.id}`}>{property.title}</Link>
         </h3>
-        <p className="property-card__price">{formatMXN(property.price)}</p>
+        <p className="property-card__price">
+          {badge?.kind === "priceDrop" && <s className="property-price-was">{formatMXN(badge.previousPrice)}</s>}
+          {formatMXN(property.price)}
+        </p>
         <ul className="property-card__meta">
           <li>{formatArea(property.area_m2)}</li>
           {property.bedrooms != null && <li>{property.bedrooms} {t("properties.bedrooms")}</li>}

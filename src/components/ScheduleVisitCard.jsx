@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
+import { OPEN_SCHEDULE_EVENT, SCHEDULE_TARGET_ID } from "./MobileContactBar";
 import "./ScheduleVisitCard.css";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -35,6 +36,13 @@ export default function ScheduleVisitCard({ property }) {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
+
+  // La barra fija de la ficha en móvil ("Agendar visita") abre el formulario.
+  useEffect(() => {
+    const openForm = () => setOpen(true);
+    window.addEventListener(OPEN_SCHEDULE_EVENT, openForm);
+    return () => window.removeEventListener(OPEN_SCHEDULE_EVENT, openForm);
+  }, []);
 
   const handleChange = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
@@ -85,7 +93,7 @@ export default function ScheduleVisitCard({ property }) {
   };
 
   return (
-    <div className="card schedule-visit-card">
+    <div className="card schedule-visit-card" id={SCHEDULE_TARGET_ID}>
       <h3 className="property-detail__sidebar-title">{t("scheduleVisit.title")}</h3>
 
       {!open ? (
