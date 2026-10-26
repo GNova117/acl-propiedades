@@ -31,3 +31,11 @@
     padding: 1.5rem;
   }
 }
+
+.guide-banner--blog {
+  margin-bottom: 2.5rem;
+}
+
+.guide-banner--post {
+  margin-top: 2.5rem;
+}
