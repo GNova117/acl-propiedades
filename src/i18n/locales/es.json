@@ -60,6 +60,45 @@
     "whatsapp": "WhatsApp",
     "whatsappText": "Hola, me interesa {{property}}."
   },
+  "monthlyEstimate": {
+    "perMonth": "≈ {{amount}}/mes",
+    "fromPerMonth": "Desde ≈ {{amount}} al mes",
+    "hint": "Estimado con {{down}}% de enganche, a {{years}} años y tasa de {{rate}}%. Es solo una referencia, no una oferta ni una aprobación de crédito.",
+    "cta": "Ver opciones de crédito"
+  },
+  "zoneContext": {
+    "title": "La zona",
+    "pricePerM2": "Precio por m²",
+    "thisProperty": "Esta propiedad",
+    "typical": "Típico en {{label}}",
+    "verdict": {
+      "below": "{{pct}}% por debajo del precio típico de {{label}}",
+      "above": "{{pct}}% por encima del precio típico de {{label}}",
+      "similar": "En línea con el precio típico de {{label}}"
+    },
+    "basedOn_one": "Según {{count}} propiedad similar disponible en el sitio.",
+    "basedOn_other": "Según {{count}} propiedades similares disponibles en el sitio.",
+    "nearbyTitle": "A menos de {{distance}}",
+    "categories": {
+      "schools_one": "{{count}} escuela",
+      "schools_other": "{{count}} escuelas",
+      "health_one": "{{count}} hospital o clínica",
+      "health_other": "{{count}} hospitales y clínicas",
+      "shopping_one": "{{count}} supermercado o plaza comercial",
+      "shopping_other": "{{count}} supermercados y plazas comerciales",
+      "parks_one": "{{count}} parque",
+      "parks_other": "{{count}} parques"
+    },
+    "attribution": "Datos de lugares ©"
+  },
+  "zoneStats": {
+    "title": "Mercado en {{city}}",
+    "available_one": "propiedad disponible",
+    "available_other": "propiedades disponibles",
+    "medianPrice": "precio típico",
+    "casaPerM2": "casas, por m²",
+    "departamentoPerM2": "departamentos, por m²"
+  },
   "categories": {
     "eyebrow": "Explora por categoría",
     "title": "Encuentra el tipo de propiedad ideal para ti",

@@ -12,6 +12,7 @@ import CompareButton from "../components/CompareButton";
 import ScheduleVisitCard from "../components/ScheduleVisitCard";
 import MobileContactBar from "../components/MobileContactBar";
 import PropertyFlag from "../components/PropertyFlag";
+import ZoneContext from "../components/ZoneContext";
 import AlertSignupCard from "../components/AlertSignupCard";
 import RecentlyViewed from "../components/RecentlyViewed";
 import RecentViewsBadge from "../components/RecentViewsBadge";
@@ -19,6 +20,7 @@ import { db } from "../lib/dataStore";
 import { recordPropertyView } from "../lib/recentlyViewed";
 import { buildSimilarCriteria } from "../lib/alertMatch";
 import { getPropertyBadge } from "../lib/propertyBadges";
+import { estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
 import "./PropertyDetail.css";
 
@@ -302,6 +304,7 @@ export default function PropertyDetail() {
   if (loading) return <div className="empty-state">{t("common.loading")}</div>;
   const badge = getPropertyBadge(property);
   const priceDrop = badge?.kind === "priceDrop" ? badge : null;
+  const monthly = estimateMonthlyPayment(property);
 
   if (!property) {
     return (
@@ -357,6 +360,13 @@ export default function PropertyDetail() {
                   <p className="property-detail__was-price">
                     <s>{formatMXN(priceDrop.previousPrice)}</s>
                   </p>
+                )}
+                {monthly && (
+                  <div className="property-detail__monthly">
+                    <strong>{t("monthlyEstimate.fromPerMonth", { amount: formatMXN(monthly.payment) })}</strong>
+                    <span>{t("monthlyEstimate.hint", { down: monthly.downPct, years: monthly.years, rate: monthly.rate })}</span>
+                    <Link to={`/comparar-creditos?propiedad=${property.id}`}>{t("monthlyEstimate.cta")}</Link>
+                  </div>
                 )}
                 <p className="property-detail__credit-notice">{t("detail.creditNotice")}</p>
               </div>
@@ -452,6 +462,8 @@ export default function PropertyDetail() {
                 <PropertyMap properties={[property]} height={360} />
               </Suspense>
             </section>
+
+            <ZoneContext property={property} />
 
             {/* Los datos del asesor (teléfono/correo/WhatsApp) ya no se
                 publican en la ficha: aquí el interesado deja su nombre y su

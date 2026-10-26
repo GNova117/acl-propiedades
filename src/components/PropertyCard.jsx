@@ -8,12 +8,14 @@ import ShareButton from "./ShareButton";
 import PropertyFlag from "./PropertyFlag";
 import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
 import { getPropertyBadge } from "../lib/propertyBadges";
+import { estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import "./PropertyCard.css";
 
 export default function PropertyCard({ property }) {
   const { t } = useTranslation();
   const advisor = property.advisors?.[0];
   const badge = getPropertyBadge(property);
+  const monthly = estimateMonthlyPayment(property);
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/propiedades/${property.id}` : "";
   // Mismo formato que el botón de Compartir de la ficha de propiedad, pero
   // sin amenidades (la tarjeta de listado no las trae cargadas) — para que
@@ -49,6 +51,14 @@ export default function PropertyCard({ property }) {
           {badge?.kind === "priceDrop" && <s className="property-price-was">{formatMXN(badge.previousPrice)}</s>}
           {formatMXN(property.price)}
         </p>
+        {monthly && (
+          <p
+            className="property-card__monthly"
+            title={t("monthlyEstimate.hint", { down: monthly.downPct, years: monthly.years, rate: monthly.rate })}
+          >
+            {t("monthlyEstimate.perMonth", { amount: formatMXN(monthly.payment) })}
+          </p>
+        )}
         <ul className="property-card__meta">
           <li>{formatArea(property.area_m2)}</li>
           {property.bedrooms != null && <li>{property.bedrooms} {t("properties.bedrooms")}</li>}

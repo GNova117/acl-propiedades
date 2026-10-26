@@ -122,3 +122,9 @@
   border-radius: 50%;
   object-fit: cover;
 }
+
+.property-card__monthly {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
