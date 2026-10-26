@@ -9,6 +9,8 @@ import { compressImageFile, compressImageFiles } from "./imageCompression";
 import { buildDemoSnapshot } from "./marketDemo";
 import { getOrCreateVisitorId } from "./visitorId";
 import { findDuplicates } from "./duplicates";
+import { applyPriceChange } from "./propertyBadges";
+import { computeSalesStats } from "./trustStats";
 
 function clientExpedientePayload(data) {
   return Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, data[key] || null]));
@@ -234,6 +236,12 @@ export const localBackend = {
     return found ? withAdvisors(found, advisors) : null;
   },
 
+  // Mismo contrato que public_sales_stats() de Supabase, calculado sobre las
+  // ventas y propiedades locales del modo demo.
+  async getPublicSalesStats() {
+    return computeSalesStats(readStore(KEYS.ventas, VENTAS_SEED), readStore(KEYS.properties, PROPERTIES));
+  },
+
   // Espejo de record_property_view (schema.sql): registra como máximo una
   // vista por visitante por propiedad por día y devuelve cuántos visitantes
   // distintos la vieron en los últimos `days` días.
@@ -351,6 +359,8 @@ export const localBackend = {
       type: data.type,
       description: data.description,
       price: Number(data.price),
+      // Espejo del trigger set_price_drop de schema.sql.
+      ...applyPriceChange(properties[idx], data.price),
       area_m2: Number(data.area_m2),
       bedrooms: data.bedrooms === "" ? null : Number(data.bedrooms),
       bathrooms: data.bathrooms === "" ? null : Number(data.bathrooms),

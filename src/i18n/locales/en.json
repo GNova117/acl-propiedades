@@ -1,5 +1,6 @@
 {
   "nav": {
+    "buyerGuide": "Buyer's guide",
     "compareCredits": "Compare credits",
     "sellHome": "Sell your home",
     "blog": "Blog",
@@ -30,6 +31,108 @@
     "comingSoon": "Coming soon",
     "properties": { "title": "Properties", "subtitle": "Houses, apartments and land" },
     "industrial": { "title": "Industrial Warehouses", "subtitle": "Commercial and industrial spaces" }
+  },
+  "badges": {
+    "new": "New",
+    "priceDrop": "Price drop",
+    "priceDropPct": "Down {{percent}}%",
+    "wasPrice": "Was {{price}}"
+  },
+  "featured": {
+    "eyebrow": "Latest listings",
+    "title": "Featured properties",
+    "subtitle": "Just listed and recently reduced, ready to visit.",
+    "cta": "See all properties"
+  },
+  "trust": {
+    "eyebrow": "Results that speak",
+    "title": "Families and companies that already found their place with ACL",
+    "sold_one": "property sold",
+    "sold_other": "properties sold",
+    "soldLastYear_one": "sale in the last year",
+    "soldLastYear_other": "sales in the last year",
+    "avgDays": "average days to sell",
+    "available_one": "property available today",
+    "available_other": "properties available today",
+    "recentTitle": "Recently sold"
+  },
+  "mobileBar": {
+    "schedule": "Schedule a visit",
+    "whatsapp": "WhatsApp",
+    "whatsappText": "Hi, I'm interested in {{property}}."
+  },
+  "monthlyEstimate": {
+    "perMonth": "≈ {{amount}}/mo",
+    "fromPerMonth": "From ≈ {{amount}} per month",
+    "hint": "Estimated with {{down}}% down, {{years}} years and a {{rate}}% rate. For reference only, not a credit offer or approval.",
+    "cta": "See credit options"
+  },
+  "zoneContext": {
+    "title": "The area",
+    "pricePerM2": "Price per m²",
+    "thisProperty": "This property",
+    "typical": "Typical in {{label}}",
+    "verdict": {
+      "below": "{{pct}}% below the typical price in {{label}}",
+      "above": "{{pct}}% above the typical price in {{label}}",
+      "similar": "In line with the typical price in {{label}}"
+    },
+    "basedOn_one": "Based on {{count}} similar available property on the site.",
+    "basedOn_other": "Based on {{count}} similar available properties on the site.",
+    "nearbyTitle": "Within {{distance}}",
+    "categories": {
+      "schools_one": "{{count}} school",
+      "schools_other": "{{count}} schools",
+      "health_one": "{{count}} hospital or clinic",
+      "health_other": "{{count}} hospitals and clinics",
+      "shopping_one": "{{count}} supermarket or mall",
+      "shopping_other": "{{count}} supermarkets and malls",
+      "parks_one": "{{count}} park",
+      "parks_other": "{{count}} parks"
+    },
+    "attribution": "Places data ©"
+  },
+  "zoneStats": {
+    "title": "Market in {{city}}",
+    "available_one": "property available",
+    "available_other": "properties available",
+    "medianPrice": "typical price",
+    "casaPerM2": "houses, per m²",
+    "departamentoPerM2": "apartments, per m²"
+  },
+  "buyerGuide": {
+    "seoTitle": "Home buyer's guide (free PDF)",
+    "title": "Home buyer's guide",
+    "subtitle": "Everything worth knowing and checking before you buy your home, in a free PDF.",
+    "includesTitle": "What's inside",
+    "spanishNote": "The guide is in Spanish.",
+    "formTitle": "Download it for free",
+    "submit": "Download the guide",
+    "preparing": "Preparing your guide...",
+    "success": "Done! Your guide was downloaded. An ACL advisor may contact you to answer your questions.",
+    "pdfError": "We received your details, but we couldn't generate the PDF. Please try again.",
+    "downloadAgain": "Download again",
+    "nextStep": "Next step: compare Infonavit, bank and cash",
+    "bannerEyebrow": "Free guide",
+    "bannerTitle": "Buying your first home?",
+    "bannerText": "Download the buyer's guide: budget, credit options, documents and the step-by-step path to the deed.",
+    "bannerCta": "Download the guide"
+  },
+  "googleReviews": {
+    "eyebrow": "Google reviews",
+    "title": "What people say about us on Google",
+    "total_one": "{{count}} review",
+    "total_other": "{{count}} reviews",
+    "seeAll": "See all reviews on Google",
+    "soon": "Coming soon",
+    "soonText": "Soon you'll see our customers' Google reviews here.",
+    "attribution": "Rating and reviews from Google; shown exactly as each person posted them."
+  },
+  "videoTours": {
+    "eyebrow": "Video tours",
+    "title": "See our properties without leaving home",
+    "play": "Play the video tour of {{title}}",
+    "videoLabel": "Video tour of {{title}}"
   },
   "categories": {
     "eyebrow": "Browse by category",
@@ -266,6 +369,7 @@
     "via_whatsapp": "From WhatsApp",
     "via_simulador": "From the credit simulator",
     "via_estimacion": "Value estimate request",
+    "via_guia": "Downloaded the buyer's guide",
     "estimate": "Estimate value",
     "makeProspect": "Make prospect",
     "isProspect": "Already a prospect",
@@ -500,7 +604,7 @@
     "uploadImages": "Upload images",
     "videos": "Videos",
     "uploadVideos": "Upload videos",
-    "videoHint": "Common video formats (MP4, WebM, MOV). Maximum {{max}} MB per file.",
+    "videoHint": "Common video formats (MP4, WebM, MOV). Maximum {{max}} MB per file. For a Reel-style tour, shoot vertically (9:16), 15 to 60 seconds: it appears on the site home page.",
     "videoTooLarge": "These files are over the {{max}} MB limit and were not added: {{names}}",
     "demoModeTitle": "Demo mode (Supabase not configured)",
     "demoModeBody": "No Supabase credentials were detected. Data is stored locally in this browser for demo purposes.",
@@ -2170,7 +2274,8 @@
       "whatsapp": "WhatsApp",
       "simulador": "Credit simulator",
       "estimacion": "Sell your home",
-      "comparador": "Credit comparison"
+      "comparador": "Credit comparison",
+      "guia": "Buyer's guide"
     },
     "pdf": {
       "title": "Monthly report",

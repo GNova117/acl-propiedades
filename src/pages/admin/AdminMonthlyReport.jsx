@@ -11,7 +11,7 @@ import "./AdminMonthlyReport.css";
 const MONTHS_BACK = 18;
 
 const sourceKeys = ["manual", "visita", "whatsapp", "simulador", "estimacion", "comparador", "alerta", "sitio", "recomendacion", "redes", "otro"];
-const channelKeys = ["formulario", "solicitud", "whatsapp", "simulador", "estimacion", "comparador", "alerta"];
+const channelKeys = ["formulario", "solicitud", "whatsapp", "simulador", "estimacion", "comparador", "alerta", "guia"];
 
 // Reporte mensual: qué pasó en el mes y cómo se compara con el anterior. Solo
 // junta lo que el rol puede ver (cada sección sin acceso se omite, no se pone en

@@ -1,0 +1,100 @@
+.google-reviews__summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.75rem 0 0;
+  color: var(--color-text-muted);
+}
+
+.google-reviews__summary strong {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: var(--color-text);
+}
+
+.google-reviews__more {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0 0;
+}
+
+.google-reviews__attribution {
+  text-align: center;
+  margin: 1rem 0 0;
+}
+
+/* "Próximamente": tarjetas vacías difuminadas con un letrero encima. */
+.google-reviews__teaser {
+  position: relative;
+}
+
+.google-reviews__skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+  filter: blur(5px);
+  opacity: 0.7;
+  pointer-events: none;
+  user-select: none;
+}
+
+.google-reviews__skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1.5rem;
+}
+
+.google-reviews__bar {
+  display: block;
+  height: 0.8rem;
+  border-radius: 999px;
+  background: var(--color-border);
+}
+
+.google-reviews__bar--stars {
+  width: 40%;
+  background: var(--color-warning);
+  opacity: 0.6;
+}
+
+.google-reviews__bar--short {
+  width: 65%;
+}
+
+.google-reviews__bar--name {
+  width: 35%;
+  margin-top: 0.6rem;
+  height: 1rem;
+}
+
+.google-reviews__soon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: min(92%, 420px);
+  padding: 1.25rem 1.5rem;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.google-reviews__soon strong {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  color: var(--color-primary);
+}
+
+.google-reviews__soon span {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}

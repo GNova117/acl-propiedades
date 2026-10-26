@@ -17,7 +17,7 @@
 import { next } from "@vercel/functions";
 
 export const config = {
-  matcher: ["/", "/propiedades", "/propiedades/:id", "/terrenos", "/naves-industriales", "/nosotros", "/contacto"],
+  matcher: ["/", "/propiedades", "/propiedades/:id", "/terrenos", "/naves-industriales", "/nosotros", "/contacto", "/guia-del-comprador"],
 };
 
 const SITE_URL = "https://acl-propiedades.vercel.app";
@@ -59,6 +59,10 @@ const GENERIC_PAGES = {
     title: "Nosotros | ACL Propiedades",
     description:
       "Somos una inmobiliaria especializada en la compra y venta de casas, departamentos, terrenos y naves industriales en La Comarca Lagunera.",
+  },
+  "/guia-del-comprador": {
+    title: "Guía del comprador (PDF gratis) | ACL Propiedades",
+    description: "Presupuesto, créditos, documentos y el paso a paso para comprar tu casa. Descárgala gratis.",
   },
   "/contacto": {
     title: "Contacto | ACL Propiedades",

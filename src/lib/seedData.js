@@ -585,10 +585,22 @@ const PROPERTIES_RAW = [
   },
 ];
 
-export const PROPERTIES = PROPERTIES_RAW.map((p, i) => ({
-  ...p,
-  created_at: daysAgoIso(SEED_PROPERTY_AGE_DAYS[i] ?? 30),
-}));
+// Una casa sembrada ya trae una rebaja reciente para que se vea la etiqueta
+// "Bajó de precio" en modo demo (en Supabase la escribe el trigger).
+const SEED_PRICE_DROPS = { "prop-4": { dropPct: 0.06, daysAgo: 6 } };
+
+export const PROPERTIES = PROPERTIES_RAW.map((p, i) => {
+  const drop = SEED_PRICE_DROPS[p.id];
+  return {
+    ...p,
+    created_at: daysAgoIso(SEED_PROPERTY_AGE_DAYS[i] ?? 30),
+    ...(drop && {
+      price: Math.round((p.price * (1 - drop.dropPct)) / 1000) * 1000,
+      previous_price: p.price,
+      price_changed_at: daysAgoIso(drop.daysAgo),
+    }),
+  };
+});
 
 // La única casa sembrada como "vendida" (prop-6) ya trae su venta registrada.
 export const VENTAS_SEED = [

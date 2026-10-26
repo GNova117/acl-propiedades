@@ -8,8 +8,14 @@ import CategoryCard from "../components/CategoryCard";
 import Reveal from "../components/Reveal";
 import Stars from "../components/Stars";
 import RecentlyViewed from "../components/RecentlyViewed";
+import FeaturedProperties from "../components/FeaturedProperties";
+import TrustStats from "../components/TrustStats";
+import GuideBanner from "../components/GuideBanner";
+import VideoTours from "../components/VideoTours";
+import GoogleReviews from "../components/GoogleReviews";
 import { db } from "../lib/dataStore";
 import { getRecentlyViewedIds } from "../lib/recentlyViewed";
+import { buildTrustSummary } from "../lib/trustStats";
 import "./Home.css";
 import "./Blog.css";
 
@@ -25,6 +31,8 @@ const MAX_HOME_BLOG_POSTS = 3;
 export default function Home() {
   const { t, i18n } = useTranslation();
   const [counts, setCounts] = useState(null);
+  const [properties, setProperties] = useState([]);
+  const [salesStats, setSalesStats] = useState(null);
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
   const [blogPosts, setBlogPosts] = useState([]);
@@ -36,12 +44,19 @@ export default function Home() {
     let active = true;
     db.getProperties({ activeOnly: true }).then((properties) => {
       if (!active) return;
+      setProperties(properties);
       const next = { casa: 0, departamento: 0, nave_industrial: 0, terreno: 0 };
       properties.forEach((p) => {
         if (next[p.type] != null) next[p.type] += 1;
       });
       setCounts(next);
     });
+    // Cifras de ventas: si la función SQL aún no existe, el bloque no se muestra.
+    db.getPublicSalesStats()
+      .then((data) => {
+        if (active) setSalesStats(data);
+      })
+      .catch(() => {});
     db.getPropertyTypes().then((data) => {
       if (active) setPropertyTypes(data);
     });
@@ -59,6 +74,8 @@ export default function Home() {
       active = false;
     };
   }, []);
+
+  const trustSummary = buildTrustSummary(salesStats, properties);
 
   const typeByKey = (key) => propertyTypes.find((pt) => pt.key === key);
 
@@ -92,6 +109,10 @@ export default function Home() {
         </div>
       </section>
 
+      <FeaturedProperties properties={properties} />
+
+      <VideoTours properties={properties} />
+
       <section className="section">
         <div className="container">
           <Reveal className="section-heading">
@@ -115,6 +136,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <TrustStats summary={trustSummary} />
+
+      <GuideBanner />
 
       {hasRecentlyViewed && (
         <section className="section">
@@ -148,6 +173,8 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      <GoogleReviews />
 
       {blogPosts.length > 0 && (
         <section className="section">

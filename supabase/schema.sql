@@ -5537,3 +5537,124 @@ drop policy if exists "Asesor ve y edita su meta" on advisor_goals;
 create policy "Asesor ve y edita su meta" on advisor_goals for all
   using (my_advisor_id() is not null and my_advisor_id() = advisor_id)
   with check (my_advisor_id() is not null and my_advisor_id() = advisor_id);
+
+-- ─────────────────────────────────────────────
+-- Inicio: etiqueta "Bajó de precio" y cifras de confianza (2026-10)
+-- ─────────────────────────────────────────────
+-- 1) properties guarda el precio anterior y cuándo cambió, para la etiqueta
+--    "Bajó de precio" de las tarjetas y la ficha. Lo escribe un trigger (no el
+--    código del admin), igual que property_changes, así queda capturado sin
+--    importar qué pantalla cambió el precio: al bajar guarda el precio de
+--    antes; al subir lo borra. El sitio solo muestra la etiqueta 30 días.
+--    properties ya es legible con la anon key, y estas dos columnas son
+--    justo lo que se quiere publicar.
+-- 2) public_sales_stats() da al inicio el total de ventas, las del último año,
+--    el promedio de días de venta y los ids de las vendidas más recientes.
+--    `ventas` es interna (RLS por apartado reportes), por eso va en una
+--    función security definer que solo devuelve agregados y ids de casas que
+--    ya se ven como "Vendida" en el sitio — nunca asesor, fecha exacta ni
+--    quién la registró. El promedio ignora ventas sin días entre alta y venta
+--    (las casas ya vendidas antes de usar el sistema se registraron el mismo
+--    día). Espejo en JS: computeSalesStats() en src/lib/trustStats.js.
+-- Re-ejecutable. Sin correrlo todo sigue funcionando: sin las columnas no
+-- sale la etiqueta, y sin la función el inicio no muestra el bloque de cifras.
+alter table properties add column if not exists previous_price numeric;
+alter table properties add column if not exists price_changed_at timestamptz;
+
+create or replace function set_price_drop() returns trigger
+language plpgsql
+as $$
+begin
+  if new.price is distinct from old.price then
+    if new.price < old.price then
+      new.previous_price := old.price;
+    else
+      new.previous_price := null;
+    end if;
+    new.price_changed_at := now();
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_set_price_drop on properties;
+create trigger trg_set_price_drop
+before update on properties
+for each row execute function set_price_drop();
+
+create or replace function public_sales_stats() returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'total', count(*),
+    'last_12_months', count(*) filter (where v.fecha_venta >= current_date - 365),
+    'avg_days_to_sell', round(avg(v.fecha_venta - p.created_at::date) filter (where v.fecha_venta - p.created_at::date > 0)),
+    'recent_property_ids', coalesce((
+      select jsonb_agg(r.property_id)
+      from (
+        select v2.property_id
+        from ventas v2
+        join properties p2 on p2.id = v2.property_id
+        where p2.active
+        order by v2.fecha_venta desc
+        limit 6
+      ) r
+    ), '[]'::jsonb)
+  )
+  from ventas v
+  join properties p on p.id = v.property_id;
+$$;
+
+revoke all on function public_sales_stats() from public;
+grant execute on function public_sales_stats() to anon, authenticated;
+
+-- ─────────────────────────────────────────────
+-- Resumen semanal por correo (2026-10)
+-- ─────────────────────────────────────────────
+-- Cada lunes a las 8:00 am (hora de México) los socios reciben UN correo con lo
+-- que pasó los últimos 7 días contra los 7 anteriores: ventas y su valor,
+-- propiedades nuevas, visitas e interés, prospectos nuevos por origen, mensajes,
+-- vistas de fichas y las propiedades más vistas, más lo que está por atender.
+-- Lo manda la Edge Function supabase/functions/reporte-semanal (por Resend),
+-- disparada por pg_cron con las mismas credenciales (Vault) y el mismo
+-- CRON_SECRET que los demás avisos. Va a los correos cuyo rol tiene el apartado
+-- 'reportes' (los mismos que ven /admin/reportes), o a WEEKLY_REPORT_TO si se
+-- define ese secreto (lista separada por comas). No incluye utilidades ni
+-- liquidaciones. reporte_semanal_enviados evita mandarlo dos veces la misma
+-- semana. Requiere los secretos RESEND_API_KEY (y opcional RESEND_FROM,
+-- SITE_URL, WEEKLY_REPORT_TO) de la función; desplegarla con la verificación
+-- de JWT desactivada (valida con x-cron-secret, igual que las otras).
+-- Para probar sin mandar nada: invocarla con el x-cron-secret y {"dryRun": true}.
+-- (bloque re-ejecutable: cron.schedule con un nombre que ya existe actualiza ese job)
+-- ─────────────────────────────────────────────
+
+create table if not exists reporte_semanal_enviados (
+  semana_inicio date primary key,
+  destinatarios int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+alter table reporte_semanal_enviados enable row level security;
+
+drop policy if exists "Rol con apartado reportes lee reportes semanales enviados" on reporte_semanal_enviados;
+create policy "Rol con apartado reportes lee reportes semanales enviados" on reporte_semanal_enviados for select
+  using (has_admin_section('reportes'));
+
+select cron.schedule(
+  'reporte-semanal',
+  '0 14 * * 1', -- lunes 8:00am hora de México (UTC-6 fijo, sin horario de verano)
+  $$
+  select net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/reporte-semanal',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'publishable_key'),
+      'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'agenda_cron_secret')
+    ),
+    body := '{}'::jsonb
+  );
+  $$
+);

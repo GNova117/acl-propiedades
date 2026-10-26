@@ -1,5 +1,6 @@
 {
   "nav": {
+    "buyerGuide": "Guía del comprador",
     "compareCredits": "Comparar créditos",
     "sellHome": "Vende tu casa",
     "blog": "Blog",
@@ -30,6 +31,108 @@
     "comingSoon": "Próximamente",
     "properties": { "title": "Propiedades", "subtitle": "Casas, departamentos y terrenos" },
     "industrial": { "title": "Naves Industriales", "subtitle": "Espacios comerciales e industriales" }
+  },
+  "badges": {
+    "new": "Nuevo",
+    "priceDrop": "Bajó de precio",
+    "priceDropPct": "Bajó {{percent}}%",
+    "wasPrice": "Antes {{price}}"
+  },
+  "featured": {
+    "eyebrow": "Lo más reciente",
+    "title": "Propiedades destacadas",
+    "subtitle": "Recién llegadas y con precio rebajado, listas para visitarse.",
+    "cta": "Ver todas las propiedades"
+  },
+  "trust": {
+    "eyebrow": "Resultados que hablan",
+    "title": "Familias y empresas que ya encontraron su lugar con ACL",
+    "sold_one": "propiedad vendida",
+    "sold_other": "propiedades vendidas",
+    "soldLastYear_one": "venta en el último año",
+    "soldLastYear_other": "ventas en el último año",
+    "avgDays": "días en promedio para vender",
+    "available_one": "propiedad disponible hoy",
+    "available_other": "propiedades disponibles hoy",
+    "recentTitle": "Vendidas recientemente"
+  },
+  "mobileBar": {
+    "schedule": "Agendar visita",
+    "whatsapp": "WhatsApp",
+    "whatsappText": "Hola, me interesa {{property}}."
+  },
+  "monthlyEstimate": {
+    "perMonth": "≈ {{amount}}/mes",
+    "fromPerMonth": "Desde ≈ {{amount}} al mes",
+    "hint": "Estimado con {{down}}% de enganche, a {{years}} años y tasa de {{rate}}%. Es solo una referencia, no una oferta ni una aprobación de crédito.",
+    "cta": "Ver opciones de crédito"
+  },
+  "zoneContext": {
+    "title": "La zona",
+    "pricePerM2": "Precio por m²",
+    "thisProperty": "Esta propiedad",
+    "typical": "Típico en {{label}}",
+    "verdict": {
+      "below": "{{pct}}% por debajo del precio típico de {{label}}",
+      "above": "{{pct}}% por encima del precio típico de {{label}}",
+      "similar": "En línea con el precio típico de {{label}}"
+    },
+    "basedOn_one": "Según {{count}} propiedad similar disponible en el sitio.",
+    "basedOn_other": "Según {{count}} propiedades similares disponibles en el sitio.",
+    "nearbyTitle": "A menos de {{distance}}",
+    "categories": {
+      "schools_one": "{{count}} escuela",
+      "schools_other": "{{count}} escuelas",
+      "health_one": "{{count}} hospital o clínica",
+      "health_other": "{{count}} hospitales y clínicas",
+      "shopping_one": "{{count}} supermercado o plaza comercial",
+      "shopping_other": "{{count}} supermercados y plazas comerciales",
+      "parks_one": "{{count}} parque",
+      "parks_other": "{{count}} parques"
+    },
+    "attribution": "Datos de lugares ©"
+  },
+  "zoneStats": {
+    "title": "Mercado en {{city}}",
+    "available_one": "propiedad disponible",
+    "available_other": "propiedades disponibles",
+    "medianPrice": "precio típico",
+    "casaPerM2": "casas, por m²",
+    "departamentoPerM2": "departamentos, por m²"
+  },
+  "buyerGuide": {
+    "seoTitle": "Guía del comprador (PDF gratis)",
+    "title": "Guía del comprador",
+    "subtitle": "Todo lo que conviene saber y revisar antes de comprar tu casa, en un PDF gratuito.",
+    "includesTitle": "Qué incluye",
+    "spanishNote": "La guía está en español.",
+    "formTitle": "Descárgala gratis",
+    "submit": "Descargar la guía",
+    "preparing": "Preparando tu guía...",
+    "success": "¡Listo! Tu guía se descargó. Un asesor de ACL puede contactarte para resolver tus dudas.",
+    "pdfError": "Recibimos tus datos, pero no pudimos generar el PDF. Inténtalo de nuevo.",
+    "downloadAgain": "Descargar de nuevo",
+    "nextStep": "Siguiente paso: compara Infonavit, banco y contado",
+    "bannerEyebrow": "Guía gratuita",
+    "bannerTitle": "¿Primera vez comprando casa?",
+    "bannerText": "Descarga la Guía del comprador: presupuesto, créditos, documentos y el paso a paso hasta la escritura.",
+    "bannerCta": "Descargar la guía"
+  },
+  "googleReviews": {
+    "eyebrow": "Reseñas de Google",
+    "title": "Lo que dicen de nosotros en Google",
+    "total_one": "{{count}} reseña",
+    "total_other": "{{count}} reseñas",
+    "seeAll": "Ver todas las reseñas en Google",
+    "soon": "Próximamente",
+    "soonText": "Muy pronto verás aquí las reseñas de nuestros clientes en Google.",
+    "attribution": "Calificación y reseñas de Google; se muestran tal como las publicó cada persona."
+  },
+  "videoTours": {
+    "eyebrow": "Recorridos en video",
+    "title": "Conoce las propiedades sin salir de casa",
+    "play": "Reproducir el recorrido de {{title}}",
+    "videoLabel": "Recorrido en video de {{title}}"
   },
   "categories": {
     "eyebrow": "Explora por categoría",
@@ -266,6 +369,7 @@
     "via_whatsapp": "Desde WhatsApp",
     "via_simulador": "Desde el simulador de crédito",
     "via_estimacion": "Solicitud de estimación",
+    "via_guia": "Descargó la Guía del comprador",
     "estimate": "Estimar valor",
     "makeProspect": "Pasar a prospecto",
     "isProspect": "Ya es prospecto",
@@ -500,7 +604,7 @@
     "uploadImages": "Subir imágenes",
     "videos": "Videos",
     "uploadVideos": "Subir videos",
-    "videoHint": "Formatos de video comunes (MP4, WebM, MOV). Máximo {{max}} MB por archivo.",
+    "videoHint": "Formatos de video comunes (MP4, WebM, MOV). Máximo {{max}} MB por archivo. Para un recorrido tipo Reel graba en vertical (9:16), de 15 a 60 segundos: aparece en el inicio del sitio.",
     "videoTooLarge": "Estos archivos superan el máximo de {{max}} MB y no se agregaron: {{names}}",
     "demoModeTitle": "Modo demo (sin Supabase configurado)",
     "demoModeBody": "No se detectaron credenciales de Supabase. Los datos se guardan localmente en este navegador para fines de demostración.",
@@ -2170,7 +2274,8 @@
       "whatsapp": "WhatsApp",
       "simulador": "Simulador de crédito",
       "estimacion": "Vende tu casa",
-      "comparador": "Comparador de créditos"
+      "comparador": "Comparador de créditos",
+      "guia": "Guía del comprador"
     },
     "pdf": {
       "title": "Reporte mensual",

@@ -75,6 +75,35 @@
   white-space: nowrap;
 }
 
+.property-detail__was-price {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+.property-detail__monthly {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  max-width: 300px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+.property-detail__monthly strong {
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+.property-detail__monthly a {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
 .property-detail__credit-notice {
   margin: 0;
   max-width: 300px;
@@ -91,6 +120,16 @@
 
   .property-detail__price-block {
     align-items: flex-start;
+  }
+
+  .property-detail__was-price {
+    text-align: left;
+  }
+
+  .property-detail__monthly {
+    align-items: flex-start;
+    max-width: none;
+    text-align: left;
   }
 
   .property-detail__credit-notice {
@@ -165,6 +204,12 @@
   width: 100%;
   border-radius: var(--radius-md);
   background: #000;
+}
+
+/* Video vertical (tipo Reel): marco 9:16 angosto, no estirado a todo el ancho. */
+.property-detail__videos video.property-detail__video--vertical {
+  max-width: 320px;
+  aspect-ratio: 9 / 16;
 }
 
 .property-detail__ficha-grid {

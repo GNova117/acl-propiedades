@@ -236,6 +236,15 @@ export const supabaseBackend = {
     return data || 0;
   },
 
+  // public_sales_stats (schema.sql, security definer): cifras agregadas de
+  // ventas para el inicio (total, último año, días promedio, vendidas
+  // recientes). `ventas` es interna; la función no revela asesor ni fechas.
+  async getPublicSalesStats() {
+    const { data, error } = await supabase.rpc("public_sales_stats");
+    if (error) throw error;
+    return data;
+  },
+
   async addProperty(data) {
     const uploaded = [];
     const { images, videos, tour_360_images } = await collectMedia(data, uploaded);

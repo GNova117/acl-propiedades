@@ -81,6 +81,8 @@ const NO_EXCLUDED_TYPES = [];
 // `subtitleKey` — lo usan las páginas de aterrizaje por ciudad (ZoneLanding),
 // donde el título depende del nombre de la ciudad y no puede ser una llave
 // fija de i18n.
+// `headerExtra`: contenido opcional bajo el título (ZoneLanding pone ahí la
+// franja de mercado de la ciudad).
 // `cityFilter`: filtro adicional por ciudad (ZoneLanding) aplicado en el
 // cliente sobre zona+dirección. No puede resolverse en queryFilters como el
 // resto de los filtros porque el filtro de `zone` del backend exige
@@ -93,6 +95,7 @@ export default function Properties({
   subtitleKey = "properties.subtitle",
   title,
   subtitle,
+  headerExtra,
   cityFilter,
 }) {
   const { t } = useTranslation();
@@ -265,6 +268,8 @@ export default function Properties({
           <h2>{pageTitle}</h2>
           <p>{pageSubtitle}</p>
         </div>
+
+        {headerExtra}
 
         <div className="properties-page__layout">
           <aside>
