@@ -13,6 +13,7 @@ import ScheduleVisitCard from "../components/ScheduleVisitCard";
 import MobileContactBar from "../components/MobileContactBar";
 import PropertyFlag from "../components/PropertyFlag";
 import ZoneContext from "../components/ZoneContext";
+import PropertyVideo from "../components/PropertyVideo";
 import AlertSignupCard from "../components/AlertSignupCard";
 import RecentlyViewed from "../components/RecentlyViewed";
 import RecentViewsBadge from "../components/RecentViewsBadge";
@@ -408,7 +409,7 @@ export default function PropertyDetail() {
                 <h2>{t("detail.videosTitle")}</h2>
                 <div className="property-detail__videos">
                   {property.videos.map((src) => (
-                    <video key={src} src={src} controls preload="metadata" />
+                    <PropertyVideo key={src} src={src} />
                   ))}
                 </div>
               </section>

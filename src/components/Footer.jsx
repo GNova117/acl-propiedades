@@ -42,6 +42,7 @@ export default function Footer() {
             <li><NavLink to="/propiedades">{t("nav.properties")}</NavLink></li>
             <li><NavLink to="/calculadora">{t("nav.calculator")}</NavLink></li>
             <li><NavLink to="/comparar-creditos">{t("nav.compareCredits")}</NavLink></li>
+            <li><NavLink to="/guia-del-comprador">{t("nav.buyerGuide")}</NavLink></li>
             <li><NavLink to="/vende-tu-casa">{t("nav.sellHome")}</NavLink></li>
             <li><NavLink to="/nosotros">{t("nav.about")}</NavLink></li>
             <li><NavLink to="/contacto">{t("nav.contact")}</NavLink></li>

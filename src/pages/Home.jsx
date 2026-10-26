@@ -10,6 +10,9 @@ import Stars from "../components/Stars";
 import RecentlyViewed from "../components/RecentlyViewed";
 import FeaturedProperties from "../components/FeaturedProperties";
 import TrustStats from "../components/TrustStats";
+import GuideBanner from "../components/GuideBanner";
+import VideoTours from "../components/VideoTours";
+import GoogleReviews from "../components/GoogleReviews";
 import { db } from "../lib/dataStore";
 import { getRecentlyViewedIds } from "../lib/recentlyViewed";
 import { buildTrustSummary } from "../lib/trustStats";
@@ -108,6 +111,8 @@ export default function Home() {
 
       <FeaturedProperties properties={properties} />
 
+      <VideoTours properties={properties} />
+
       <section className="section">
         <div className="container">
           <Reveal className="section-heading">
@@ -133,6 +138,8 @@ export default function Home() {
       </section>
 
       <TrustStats summary={trustSummary} />
+
+      <GuideBanner />
 
       {hasRecentlyViewed && (
         <section className="section">
@@ -166,6 +173,8 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      <GoogleReviews />
 
       {blogPosts.length > 0 && (
         <section className="section">

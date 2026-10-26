@@ -26,6 +26,7 @@ const ZoneLanding = lazy(() => import("./pages/ZoneLanding"));
 const Calculator = lazy(() => import("./pages/Calculator"));
 const SellYourHome = lazy(() => import("./pages/SellYourHome"));
 const CreditCompare = lazy(() => import("./pages/CreditCompare"));
+const BuyerGuide = lazy(() => import("./pages/BuyerGuide"));
 const AlertUnsubscribe = lazy(() => import("./pages/AlertUnsubscribe"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
@@ -181,6 +182,7 @@ export default function App() {
       <Route path="/calculadora" element={<PublicLayout><Calculator /></PublicLayout>} />
       <Route path="/vende-tu-casa" element={<PublicLayout><SellYourHome /></PublicLayout>} />
       <Route path="/comparar-creditos" element={<PublicLayout><CreditCompare /></PublicLayout>} />
+      <Route path="/guia-del-comprador" element={<PublicLayout><BuyerGuide /></PublicLayout>} />
       <Route path="/alertas/baja/:token" element={<PublicLayout><AlertUnsubscribe /></PublicLayout>} />
       <Route path="/nosotros" element={<PublicLayout><About /></PublicLayout>} />
       <Route path="/contacto" element={<PublicLayout><Contact /></PublicLayout>} />

@@ -1,0 +1,26 @@
+.google-reviews__summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.75rem 0 0;
+  color: var(--color-text-muted);
+}
+
+.google-reviews__summary strong {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: var(--color-text);
+}
+
+.google-reviews__more {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0 0;
+}
+
+.google-reviews__attribution {
+  text-align: center;
+  margin: 1rem 0 0;
+}

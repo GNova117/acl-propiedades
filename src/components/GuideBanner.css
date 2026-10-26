@@ -1,0 +1,33 @@
+.guide-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 2rem 2.25rem;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.guide-banner h2 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+}
+
+.guide-banner p {
+  margin: 0;
+  max-width: 560px;
+  color: var(--color-text-muted);
+}
+
+.guide-banner .btn {
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .guide-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.5rem;
+  }
+}

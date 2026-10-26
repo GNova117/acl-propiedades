@@ -1,5 +1,6 @@
 {
   "nav": {
+    "buyerGuide": "Guía del comprador",
     "compareCredits": "Comparar créditos",
     "sellHome": "Vende tu casa",
     "blog": "Blog",
@@ -98,6 +99,38 @@
     "medianPrice": "precio típico",
     "casaPerM2": "casas, por m²",
     "departamentoPerM2": "departamentos, por m²"
+  },
+  "buyerGuide": {
+    "seoTitle": "Guía del comprador (PDF gratis)",
+    "title": "Guía del comprador",
+    "subtitle": "Todo lo que conviene saber y revisar antes de comprar tu casa, en un PDF gratuito.",
+    "includesTitle": "Qué incluye",
+    "spanishNote": "La guía está en español.",
+    "formTitle": "Descárgala gratis",
+    "submit": "Descargar la guía",
+    "preparing": "Preparando tu guía...",
+    "success": "¡Listo! Tu guía se descargó. Un asesor de ACL puede contactarte para resolver tus dudas.",
+    "pdfError": "Recibimos tus datos, pero no pudimos generar el PDF. Inténtalo de nuevo.",
+    "downloadAgain": "Descargar de nuevo",
+    "nextStep": "Siguiente paso: compara Infonavit, banco y contado",
+    "bannerEyebrow": "Guía gratuita",
+    "bannerTitle": "¿Primera vez comprando casa?",
+    "bannerText": "Descarga la Guía del comprador: presupuesto, créditos, documentos y el paso a paso hasta la escritura.",
+    "bannerCta": "Descargar la guía"
+  },
+  "googleReviews": {
+    "eyebrow": "Reseñas de Google",
+    "title": "Lo que dicen de nosotros en Google",
+    "total_one": "{{count}} reseña",
+    "total_other": "{{count}} reseñas",
+    "seeAll": "Ver todas las reseñas en Google",
+    "attribution": "Calificación y reseñas de Google; se muestran tal como las publicó cada persona."
+  },
+  "videoTours": {
+    "eyebrow": "Recorridos en video",
+    "title": "Conoce las propiedades sin salir de casa",
+    "play": "Reproducir el recorrido de {{title}}",
+    "videoLabel": "Recorrido en video de {{title}}"
   },
   "categories": {
     "eyebrow": "Explora por categoría",
@@ -334,6 +367,7 @@
     "via_whatsapp": "Desde WhatsApp",
     "via_simulador": "Desde el simulador de crédito",
     "via_estimacion": "Solicitud de estimación",
+    "via_guia": "Descargó la Guía del comprador",
     "estimate": "Estimar valor",
     "makeProspect": "Pasar a prospecto",
     "isProspect": "Ya es prospecto",
@@ -568,7 +602,7 @@
     "uploadImages": "Subir imágenes",
     "videos": "Videos",
     "uploadVideos": "Subir videos",
-    "videoHint": "Formatos de video comunes (MP4, WebM, MOV). Máximo {{max}} MB por archivo.",
+    "videoHint": "Formatos de video comunes (MP4, WebM, MOV). Máximo {{max}} MB por archivo. Para un recorrido tipo Reel graba en vertical (9:16), de 15 a 60 segundos: aparece en el inicio del sitio.",
     "videoTooLarge": "Estos archivos superan el máximo de {{max}} MB y no se agregaron: {{names}}",
     "demoModeTitle": "Modo demo (sin Supabase configurado)",
     "demoModeBody": "No se detectaron credenciales de Supabase. Los datos se guardan localmente en este navegador para fines de demostración.",
@@ -2238,7 +2272,8 @@
       "whatsapp": "WhatsApp",
       "simulador": "Simulador de crédito",
       "estimacion": "Vende tu casa",
-      "comparador": "Comparador de créditos"
+      "comparador": "Comparador de créditos",
+      "guia": "Guía del comprador"
     },
     "pdf": {
       "title": "Reporte mensual",

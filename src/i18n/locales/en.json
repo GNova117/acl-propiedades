@@ -1,5 +1,6 @@
 {
   "nav": {
+    "buyerGuide": "Buyer's guide",
     "compareCredits": "Compare credits",
     "sellHome": "Sell your home",
     "blog": "Blog",
@@ -98,6 +99,38 @@
     "medianPrice": "typical price",
     "casaPerM2": "houses, per m²",
     "departamentoPerM2": "apartments, per m²"
+  },
+  "buyerGuide": {
+    "seoTitle": "Home buyer's guide (free PDF)",
+    "title": "Home buyer's guide",
+    "subtitle": "Everything worth knowing and checking before you buy your home, in a free PDF.",
+    "includesTitle": "What's inside",
+    "spanishNote": "The guide is in Spanish.",
+    "formTitle": "Download it for free",
+    "submit": "Download the guide",
+    "preparing": "Preparing your guide...",
+    "success": "Done! Your guide was downloaded. An ACL advisor may contact you to answer your questions.",
+    "pdfError": "We received your details, but we couldn't generate the PDF. Please try again.",
+    "downloadAgain": "Download again",
+    "nextStep": "Next step: compare Infonavit, bank and cash",
+    "bannerEyebrow": "Free guide",
+    "bannerTitle": "Buying your first home?",
+    "bannerText": "Download the buyer's guide: budget, credit options, documents and the step-by-step path to the deed.",
+    "bannerCta": "Download the guide"
+  },
+  "googleReviews": {
+    "eyebrow": "Google reviews",
+    "title": "What people say about us on Google",
+    "total_one": "{{count}} review",
+    "total_other": "{{count}} reviews",
+    "seeAll": "See all reviews on Google",
+    "attribution": "Rating and reviews from Google; shown exactly as each person posted them."
+  },
+  "videoTours": {
+    "eyebrow": "Video tours",
+    "title": "See our properties without leaving home",
+    "play": "Play the video tour of {{title}}",
+    "videoLabel": "Video tour of {{title}}"
   },
   "categories": {
     "eyebrow": "Browse by category",
@@ -334,6 +367,7 @@
     "via_whatsapp": "From WhatsApp",
     "via_simulador": "From the credit simulator",
     "via_estimacion": "Value estimate request",
+    "via_guia": "Downloaded the buyer's guide",
     "estimate": "Estimate value",
     "makeProspect": "Make prospect",
     "isProspect": "Already a prospect",
@@ -568,7 +602,7 @@
     "uploadImages": "Upload images",
     "videos": "Videos",
     "uploadVideos": "Upload videos",
-    "videoHint": "Common video formats (MP4, WebM, MOV). Maximum {{max}} MB per file.",
+    "videoHint": "Common video formats (MP4, WebM, MOV). Maximum {{max}} MB per file. For a Reel-style tour, shoot vertically (9:16), 15 to 60 seconds: it appears on the site home page.",
     "videoTooLarge": "These files are over the {{max}} MB limit and were not added: {{names}}",
     "demoModeTitle": "Demo mode (Supabase not configured)",
     "demoModeBody": "No Supabase credentials were detected. Data is stored locally in this browser for demo purposes.",
@@ -2238,7 +2272,8 @@
       "whatsapp": "WhatsApp",
       "simulador": "Credit simulator",
       "estimacion": "Sell your home",
-      "comparador": "Credit comparison"
+      "comparador": "Credit comparison",
+      "guia": "Buyer's guide"
     },
     "pdf": {
       "title": "Monthly report",

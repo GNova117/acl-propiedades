@@ -9,7 +9,7 @@ import { createClient } from "@supabase/supabase-js";
 import { slugify, ZONE_LANDING_CITIES } from "../src/lib/zoneLandingPages.js";
 
 const SITE_URL = "https://acl-propiedades.vercel.app";
-const STATIC_PATHS = ["/", "/propiedades", "/naves-industriales", "/terrenos", "/calculadora", "/nosotros", "/contacto", "/blog"];
+const STATIC_PATHS = ["/", "/propiedades", "/naves-industriales", "/terrenos", "/calculadora", "/guia-del-comprador", "/nosotros", "/contacto", "/blog"];
 const ZONE_PATHS = ZONE_LANDING_CITIES.map((city) => `/propiedades/zona/${slugify(city)}`);
 
 export default async function handler(req, res) {
