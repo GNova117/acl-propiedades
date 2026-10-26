@@ -124,6 +124,8 @@
     "total_one": "{{count}} review",
     "total_other": "{{count}} reviews",
     "seeAll": "See all reviews on Google",
+    "soon": "Coming soon",
+    "soonText": "Soon you'll see our customers' Google reviews here.",
     "attribution": "Rating and reviews from Google; shown exactly as each person posted them."
   },
   "videoTours": {

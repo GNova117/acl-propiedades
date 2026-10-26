@@ -124,6 +124,8 @@
     "total_one": "{{count}} reseña",
     "total_other": "{{count}} reseñas",
     "seeAll": "Ver todas las reseñas en Google",
+    "soon": "Próximamente",
+    "soonText": "Muy pronto verás aquí las reseñas de nuestros clientes en Google.",
     "attribution": "Calificación y reseñas de Google; se muestran tal como las publicó cada persona."
   },
   "videoTours": {
