@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
+import GuideBanner from "../components/GuideBanner";
 import { db } from "../lib/dataStore";
 import "./Blog.css";
 
@@ -63,6 +64,7 @@ export default function BlogPost() {
               <p key={i}>{paragraph}</p>
             ))}
           </div>
+          <GuideBanner className="guide-banner--post" />
         </div>
       </section>
     </>

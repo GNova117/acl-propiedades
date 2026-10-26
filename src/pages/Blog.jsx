@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import Reveal from "../components/Reveal";
+import GuideBanner from "../components/GuideBanner";
 import { db } from "../lib/dataStore";
 import "./Blog.css";
 
@@ -34,6 +35,8 @@ export default function Blog() {
             <h1>{t("blog.title")}</h1>
             <p>{t("blog.subtitle")}</p>
           </Reveal>
+
+          <GuideBanner className="guide-banner--blog" />
 
           {loading ? (
             <p className="form-hint">{t("common.loading")}</p>

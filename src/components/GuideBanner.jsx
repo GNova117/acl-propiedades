@@ -3,23 +3,22 @@ import { useTranslation } from "react-i18next";
 import Reveal from "./Reveal";
 import "./GuideBanner.css";
 
-// Franja del inicio que lleva a la Guía del comprador (/guia-del-comprador).
-export default function GuideBanner() {
+// Franja que lleva a la Guía del comprador (/guia-del-comprador). Vive en el
+// blog (listado y al final de cada artículo), no en el inicio, para no
+// recargar la parte de arriba de la página principal. No trae su propia
+// sección ni contenedor: se coloca dentro del de la página que la usa.
+export default function GuideBanner({ className = "" }) {
   const { t } = useTranslation();
   return (
-    <section className="section">
-      <div className="container">
-        <Reveal>
-          <div className="guide-banner">
-            <div>
-              <span className="section-heading__eyebrow">{t("buyerGuide.bannerEyebrow")}</span>
-              <h2>{t("buyerGuide.bannerTitle")}</h2>
-              <p>{t("buyerGuide.bannerText")}</p>
-            </div>
-            <Link to="/guia-del-comprador" className="btn btn-primary">{t("buyerGuide.bannerCta")}</Link>
-          </div>
-        </Reveal>
+    <Reveal>
+      <div className={`guide-banner ${className}`.trim()}>
+        <div>
+          <span className="section-heading__eyebrow">{t("buyerGuide.bannerEyebrow")}</span>
+          <h2>{t("buyerGuide.bannerTitle")}</h2>
+          <p>{t("buyerGuide.bannerText")}</p>
+        </div>
+        <Link to="/guia-del-comprador" className="btn btn-primary">{t("buyerGuide.bannerCta")}</Link>
       </div>
-    </section>
+    </Reveal>
   );
 }

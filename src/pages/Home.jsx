@@ -10,7 +10,6 @@ import Stars from "../components/Stars";
 import RecentlyViewed from "../components/RecentlyViewed";
 import FeaturedProperties from "../components/FeaturedProperties";
 import TrustStats from "../components/TrustStats";
-import GuideBanner from "../components/GuideBanner";
 import VideoTours from "../components/VideoTours";
 import GoogleReviews from "../components/GoogleReviews";
 import { db } from "../lib/dataStore";
@@ -138,8 +137,6 @@ export default function Home() {
       </section>
 
       <TrustStats summary={trustSummary} />
-
-      <GuideBanner />
 
       {hasRecentlyViewed && (
         <section className="section">
