@@ -6,6 +6,7 @@ import PropertyFilters from "../components/PropertyFilters";
 import PropertyCard from "../components/PropertyCard";
 import Reveal from "../components/Reveal";
 import AlertSignupCard from "../components/AlertSignupCard";
+import DevelopmentCard from "../components/DevelopmentCard";
 import { filtersToCriteria } from "../lib/alertMatch";
 import { propertyMatchesCity } from "../lib/zoneLandingPages";
 import { db } from "../lib/dataStore";
@@ -123,6 +124,7 @@ export default function Properties({
   const [typesLoaded, setTypesLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
+  const [developments, setDevelopments] = useState([]);
 
   // Cualquier cambio de filtro o de orden deja resultados viejos de otra
   // búsqueda en la página 2+; se regresa a la primera página para no
@@ -134,6 +136,9 @@ export default function Properties({
   };
 
   useEffect(() => {
+    // Torres publicadas: salen como una tarjeta cada una arriba del listado
+    // general, no como un departamento por tarjeta (ver DevelopmentCard).
+    db.getDevelopments({ publishedOnly: true }).then(setDevelopments).catch(() => setDevelopments([]));
     db.getZones().then(setZones).catch(() => setZones([]));
     db.getPropertyTypes()
       .then(setPropertyTypes)
@@ -239,6 +244,10 @@ export default function Properties({
     };
   }, [queryFilters, view, page, cityFilter]);
 
+  // Solo en el listado general, sin filtros ni mapa y en la primera página:
+  // con una búsqueda activa las torres estorbarían a lo que la persona pidió.
+  const showDevelopments = !fixedType && !cityFilter && !hasActiveFilters && page === 0 && view === "list" && developments.length > 0;
+
   const pageTitle = title || t(titleKey);
   const pageSubtitle = subtitle || t(subtitleKey);
 
@@ -270,6 +279,20 @@ export default function Properties({
         </div>
 
         {headerExtra}
+
+        {showDevelopments && (
+          <section className="properties-page__developments" aria-labelledby="developments-strip-title">
+            <div className="properties-page__developments-head">
+              <h3 id="developments-strip-title">{t("developments.stripTitle")}</h3>
+              <p>{t("developments.stripSubtitle")}</p>
+            </div>
+            <div className="properties-page__developments-grid">
+              {developments.map((development) => (
+                <DevelopmentCard key={development.id} development={development} />
+              ))}
+            </div>
+          </section>
+        )}
 
         <div className="properties-page__layout">
           <aside>

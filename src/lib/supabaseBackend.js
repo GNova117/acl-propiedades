@@ -10,6 +10,7 @@ import { compressImageFile, compressImageFiles } from "./imageCompression";
 import { generateReportToken, REPORT_TOKEN_PATTERN } from "./visitReport";
 import { generatePortalToken, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS, PortalUploadError, blobToBase64 } from "./clientPortal";
 import { getOrCreateVisitorId } from "./visitorId";
+import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } from "./developments";
 
 // La tabla aún no existe en la base (falta correr su bloque de schema.sql):
 // 42P01 es Postgres directo, PGRST205 es PostgREST ("no está en el schema cache").
@@ -751,6 +752,75 @@ export const supabaseBackend = {
   async deleteBlogPost(id) {
     const { error } = await supabase.from("blog_posts").delete().eq("id", id);
     if (error) throw error;
+  },
+
+  // Desarrollos (torres): ver developments.js. Modelos y departamentos van en
+  // columnas jsonb de la fila; las fotos al bucket público property-images.
+  async getDevelopments({ publishedOnly = false } = {}) {
+    let query = supabase.from("developments").select("*").order("created_at", { ascending: false });
+    if (publishedOnly) query = query.eq("published", true);
+    const { data, error } = await query;
+    // Antes de correr el bloque "Desarrollos" de schema.sql la tabla no existe:
+    // el sitio público sigue funcionando, solo sin la sección.
+    if (isMissingTable(error)) return [];
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getDevelopmentBySlug(slug) {
+    const { data, error } = await supabase.from("developments").select("*").eq("slug", slug).eq("published", true).maybeSingle();
+    if (isMissingTable(error)) return null;
+    if (error) throw error;
+    return data || null;
+  },
+
+  async getDevelopmentById(id) {
+    const { data, error } = await supabase.from("developments").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    return data || null;
+  },
+
+  async saveDevelopment(data, existing) {
+    const uploaded = [];
+    let payload;
+    try {
+      const media = await resolveDevelopmentMedia(data, (files) => uploadFiles("property-images", files, uploaded, "desarrollos/"));
+      payload = buildDevelopmentPayload(data, media);
+    } catch (err) {
+      await discardUploads(uploaded);
+      throw err;
+    }
+    payload.updated_at = new Date().toISOString();
+    let result;
+    if (existing) {
+      result = await supabase.from("developments").update(payload).eq("id", existing.id).select().single();
+    } else {
+      payload.slug = developmentSlug(payload.name);
+      result = await supabase.from("developments").insert(payload).select().single();
+      if (result.error?.code === "23505") {
+        payload.slug = `${payload.slug}-${Math.random().toString(36).slice(2, 6)}`;
+        result = await supabase.from("developments").insert(payload).select().single();
+      }
+    }
+    if (result.error) {
+      await discardUploads(uploaded);
+      throw result.error;
+    }
+    return result.data;
+  },
+
+  async deleteDevelopment(id) {
+    const { error } = await supabase.from("developments").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  async setDevelopmentUnitStatus(id, unitNumber, status) {
+    const current = await this.getDevelopmentById(id);
+    if (!current) throw new Error("Desarrollo no encontrado");
+    const units = current.units.map((u) => (u.number === unitNumber ? { ...u, status } : u));
+    const { data, error } = await supabase.from("developments").update({ units, updated_at: new Date().toISOString() }).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
   },
 
   async getSiteUpdates() {
