@@ -79,3 +79,23 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Torres y desarrollos: franja arriba del listado general */
+.properties-page__developments {
+  margin-bottom: 2.25rem;
+}
+
+.properties-page__developments-head h3 {
+  margin: 0 0 0.2rem;
+  font-size: 1.4rem;
+}
+
+.properties-page__developments-head p {
+  margin-bottom: 1rem;
+}
+
+.properties-page__developments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 380px));
+  gap: 1.25rem;
+}

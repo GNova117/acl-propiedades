@@ -23,6 +23,7 @@ import Home from "./pages/Home";
 const Properties = lazy(() => import("./pages/Properties"));
 const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
 const ZoneLanding = lazy(() => import("./pages/ZoneLanding"));
+const Development = lazy(() => import("./pages/Development"));
 const Calculator = lazy(() => import("./pages/Calculator"));
 const SellYourHome = lazy(() => import("./pages/SellYourHome"));
 const CreditCompare = lazy(() => import("./pages/CreditCompare"));
@@ -48,6 +49,8 @@ const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminProperties = lazy(() => import("./pages/admin/AdminProperties"));
 const AdminPropertyForm = lazy(() => import("./pages/admin/AdminPropertyForm"));
+const AdminDevelopments = lazy(() => import("./pages/admin/AdminDevelopments"));
+const AdminDevelopmentForm = lazy(() => import("./pages/admin/AdminDevelopmentForm"));
 const AdminPropertyLiquidacion = lazy(() => import("./pages/admin/AdminPropertyLiquidacion"));
 const AdminPropertyHistory = lazy(() => import("./pages/admin/AdminPropertyHistory"));
 const AdminAdvisors = lazy(() => import("./pages/admin/AdminAdvisors"));
@@ -163,6 +166,7 @@ export default function App() {
       <Route path="/propiedades" element={<PublicLayout><Properties excludeTypes={SPECIAL_SECTION_KEYS} /></PublicLayout>} />
       <Route path="/propiedades/zona/:zoneSlug" element={<PublicLayout><ZoneLanding /></PublicLayout>} />
       <Route path="/propiedades/:id" element={<PublicLayout><PropertyDetail /></PublicLayout>} />
+      <Route path="/desarrollos/:slug" element={<PublicLayout><Development /></PublicLayout>} />
       <Route
         path="/naves-industriales"
         element={
@@ -218,6 +222,9 @@ export default function App() {
           }
         />
         <Route path="propiedades/nueva" element={<RequireSection section="propiedades"><AdminPropertyForm /></RequireSection>} />
+        <Route path="desarrollos" element={<RequireSection section="propiedades"><AdminDevelopments /></RequireSection>} />
+        <Route path="desarrollos/nuevo" element={<RequireSection section="propiedades"><AdminDevelopmentForm /></RequireSection>} />
+        <Route path="desarrollos/:id" element={<RequireSection section="propiedades"><AdminDevelopmentForm /></RequireSection>} />
         <Route path="propiedades/:id" element={<RequireSection section="propiedades"><AdminPropertyForm /></RequireSection>} />
         <Route path="propiedades/:id/bitacora" element={<RequireSection section="bitacora"><AdminPropertyBitacora /></RequireSection>} />
         <Route

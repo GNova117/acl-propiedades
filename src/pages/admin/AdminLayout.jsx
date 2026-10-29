@@ -28,6 +28,7 @@ const NAV = [
     labelKey: "admin.groups.propiedades",
     items: [
       { section: "propiedades", to: "/admin/propiedades", labelKey: "admin.properties" },
+      { section: "propiedades", to: "/admin/desarrollos", labelKey: "developments.admin.navTitle" },
       { section: "naves_industriales", to: "/admin/naves-industriales", labelKey: "admin.industrialWarehouses" },
       { section: "zonas", to: "/admin/zonas", labelKey: "admin.zones" },
       { section: "asesores", to: "/admin/asesores", labelKey: "admin.advisors" },

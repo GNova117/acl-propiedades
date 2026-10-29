@@ -549,6 +549,198 @@
     "search": "Buscar",
     "exportCsv": "Exportar CSV"
   },
+  "developments": {
+    "eyebrow": "Desarrollos",
+    "stripTitle": "Torres y desarrollos",
+    "stripSubtitle": "Proyectos completos con varios departamentos disponibles, desde un mismo lugar.",
+    "notFound": "No encontramos este desarrollo.",
+    "backToProperties": "Ver todas las propiedades",
+    "card": {
+      "from": "Desde {{price}}",
+      "availability": "{{available}} de {{total}} disponibles",
+      "soldOut": "Todos los departamentos vendidos",
+      "view": "Ver el desarrollo",
+      "badge": "Desarrollo"
+    },
+    "stage": {
+      "preventa": "Preventa",
+      "construccion": "En construcción",
+      "entrega_inmediata": "Entrega inmediata"
+    },
+    "provenance": {
+      "developedBy": "Desarrollo de",
+      "soldBy": "Comercializa",
+      "aria": "Quién desarrolla y quién comercializa este proyecto"
+    },
+    "stats": {
+      "from": "Desde",
+      "available": "Disponibles",
+      "availableOf": "de {{total}}",
+      "bedrooms": "Recámaras",
+      "area": "Superficie",
+      "delivery": "Entrega",
+      "floors": "Niveles"
+    },
+    "range": "{{min}} a {{max}}",
+    "sections": {
+      "models": "Modelos de departamento",
+      "modelsSubtitle": "Cada modelo comparte sus fotos y su plano; abajo ves cuántos quedan de cada uno.",
+      "availability": "Disponibilidad por piso",
+      "availabilitySubtitle": "Toca un departamento para ver su ficha. El piso más alto está arriba, como en el edificio.",
+      "units": "Departamentos",
+      "amenities": "Amenidades del edificio",
+      "location": "Ubicación"
+    },
+    "legend": {
+      "disponible": "Disponible",
+      "apartada": "Apartado",
+      "vendida": "Vendido"
+    },
+    "model": {
+      "available": "{{count}} disponibles",
+      "availableOne": "1 disponible",
+      "none": "Sin disponibilidad",
+      "from": "Desde {{price}}",
+      "see": "Ver deptos de este modelo",
+      "bedrooms": "{{count}} rec.",
+      "bathrooms_one": "{{count}} baño",
+      "bathrooms_other": "{{count}} baños",
+      "parking_one": "{{count}} cajón",
+      "parking_other": "{{count}} cajones"
+    },
+    "floorLabel": "Piso {{floor}}",
+    "filters": {
+      "model": "Modelo",
+      "all": "Todos",
+      "bedrooms": "Recámaras",
+      "bedroomsMin": "{{count}} o más",
+      "status": "Estatus",
+      "onlyAvailable": "Solo disponibles",
+      "floorFrom": "Desde el piso",
+      "maxPrice": "Presupuesto máximo",
+      "anyPrice": "Sin límite",
+      "sortBy": "Ordenar",
+      "clear": "Quitar filtros",
+      "sort": {
+        "floor_desc": "Piso: de arriba hacia abajo",
+        "floor_asc": "Piso: de abajo hacia arriba",
+        "price_asc": "Precio: menor a mayor",
+        "price_desc": "Precio: mayor a menor"
+      }
+    },
+    "results_one": "{{count}} departamento",
+    "results_other": "{{count}} departamentos",
+    "noResults": "Ningún departamento cumple con esos filtros.",
+    "unit": {
+      "title": "Depto. {{number}}",
+      "floor": "Piso {{floor}}",
+      "view": "Vista {{view}}",
+      "details": "Ver ficha",
+      "perMonth": "Desde ≈ {{amount}} al mes"
+    },
+    "dialog": {
+      "photos": "Fotos del modelo",
+      "plan": "Plano",
+      "close": "Cerrar",
+      "copyLink": "Copiar enlace",
+      "copied": "Enlace copiado",
+      "whatsapp": "Preguntar por WhatsApp",
+      "unavailable": "Este departamento ya no está disponible. Pregunta por otros del mismo modelo.",
+      "otherInModel": "Otros disponibles de este modelo",
+      "specs": "Características",
+      "illustrative": "Fotos y plano del modelo; el departamento puede variar en acabados y vista."
+    },
+    "contact": {
+      "title": "¿Te interesa {{name}}?",
+      "text": "Te decimos qué departamentos quedan, te mandamos la lista de precios y agendamos tu visita.",
+      "whatsapp": "Escribir por WhatsApp",
+      "schedule": "Contacto"
+    },
+    "disclaimer": {
+      "title": "Aviso importante",
+      "default": "ACL Propiedades comercializa estas unidades y no es el desarrollador del proyecto. Las imágenes y planos son ilustrativos. Precios, medidas y disponibilidad pueden cambiar sin previo aviso y no constituyen una oferta vinculante hasta la firma del contrato correspondiente."
+    },
+    "map": "Abrir en Google Maps",
+    "admin": {
+      "navTitle": "Desarrollos y torres",
+      "title": "Desarrollos y torres",
+      "subtitle": "Torres con muchos departamentos. Las fotos se suben una vez por torre y por modelo, no por departamento.",
+      "new": "Nuevo desarrollo",
+      "edit": "Editar desarrollo",
+      "empty": "Aún no hay desarrollos.",
+      "published": "Publicado",
+      "draft": "Borrador",
+      "viewPublic": "Ver en el sitio",
+      "unitsSummary": "{{available}} disponibles · {{reserved}} apartados · {{sold}} vendidos",
+      "deleteConfirm": "¿Eliminar este desarrollo y todos sus departamentos?",
+      "statusChange": "Cambiar estatus de un departamento",
+      "sections": {
+        "basics": "Datos del desarrollo",
+        "photos": "Fotos de la torre",
+        "models": "Modelos",
+        "units": "Departamentos",
+        "publish": "Publicación"
+      },
+      "fields": {
+        "name": "Nombre del desarrollo",
+        "tagline": "Frase corta",
+        "description": "Descripción",
+        "zone": "Zona o ciudad",
+        "address": "Dirección",
+        "lat": "Latitud",
+        "lng": "Longitud",
+        "stage": "Etapa",
+        "deliveryDate": "Fecha de entrega",
+        "developer": "Desarrollador (la empresa de la torre)",
+        "developerHint": "Aparece como «Desarrollo de…». ACL siempre aparece como quien comercializa.",
+        "logo": "Logo del desarrollador (opcional)",
+        "hero": "Foto principal",
+        "heroHint": "Si no subes una, se usa la primera de la galería.",
+        "gallery": "Galería de la torre (fachada, amenidades, vistas)",
+        "amenities": "Amenidades (una por línea)",
+        "disclaimer": "Aviso legal (opcional)",
+        "disclaimerHint": "Si lo dejas vacío se usa el aviso estándar.",
+        "published": "Publicado en el sitio",
+        "publishedHint": "Sin marcar, el desarrollo solo lo ves tú aquí."
+      },
+      "model": {
+        "add": "Agregar modelo",
+        "remove": "Quitar modelo",
+        "name": "Nombre del modelo",
+        "area": "m²",
+        "bedrooms": "Recámaras",
+        "bathrooms": "Baños",
+        "parking": "Cajones",
+        "description": "Descripción corta",
+        "photos": "Fotos del modelo",
+        "plan": "Plano",
+        "unitsUsing": "{{count}} deptos con este modelo"
+      },
+      "units": {
+        "hint": "Pega la lista desde Excel o un CSV. Columnas: número, piso, modelo, precio, estatus, vista. El modelo es su nombre (por ejemplo «Modelo A»).",
+        "paste": "Pega aquí los departamentos",
+        "apply": "Cargar departamentos",
+        "replaceWarning": "Esto reemplaza los {{count}} departamentos actuales.",
+        "loaded": "{{count}} departamentos cargados.",
+        "errorsTitle": "Revisa estas filas:",
+        "line": "Línea {{line}}",
+        "download": "Descargar CSV actual",
+        "table": "Departamentos cargados ({{count}})",
+        "number": "Depto.",
+        "floor": "Piso",
+        "model": "Modelo",
+        "price": "Precio",
+        "status": "Estatus"
+      },
+      "errors": {
+        "required": "Este campo es obligatorio.",
+        "modelIncomplete": "Cada modelo necesita nombre.",
+        "modelDuplicate": "Hay dos modelos con el mismo nombre.",
+        "unitModelMissing": "Hay departamentos de un modelo que ya no existe. Vuelve a cargar la lista."
+      },
+      "saveError": "No se pudo guardar el desarrollo."
+    }
+  },
   "admin": {
     "loginTitle": "Acceso administrador",
     "email": "Correo",

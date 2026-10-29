@@ -549,6 +549,198 @@
     "search": "Search",
     "exportCsv": "Export CSV"
   },
+  "developments": {
+    "eyebrow": "Developments",
+    "stripTitle": "Towers and developments",
+    "stripSubtitle": "Full projects with several apartments available, all in one place.",
+    "notFound": "We couldn't find this development.",
+    "backToProperties": "See all properties",
+    "card": {
+      "from": "From {{price}}",
+      "availability": "{{available}} of {{total}} available",
+      "soldOut": "All apartments sold",
+      "view": "View development",
+      "badge": "Development"
+    },
+    "stage": {
+      "preventa": "Pre-sale",
+      "construccion": "Under construction",
+      "entrega_inmediata": "Ready to move in"
+    },
+    "provenance": {
+      "developedBy": "Developed by",
+      "soldBy": "Sold by",
+      "aria": "Who develops and who sells this project"
+    },
+    "stats": {
+      "from": "From",
+      "available": "Available",
+      "availableOf": "of {{total}}",
+      "bedrooms": "Bedrooms",
+      "area": "Size",
+      "delivery": "Delivery",
+      "floors": "Floors"
+    },
+    "range": "{{min}} to {{max}}",
+    "sections": {
+      "models": "Apartment models",
+      "modelsSubtitle": "Each model shares its photos and floor plan; below you can see how many are left of each.",
+      "availability": "Availability by floor",
+      "availabilitySubtitle": "Tap an apartment to see its details. The highest floor is on top, like in the building.",
+      "units": "Apartments",
+      "amenities": "Building amenities",
+      "location": "Location"
+    },
+    "legend": {
+      "disponible": "Available",
+      "apartada": "Reserved",
+      "vendida": "Sold"
+    },
+    "model": {
+      "available": "{{count}} available",
+      "availableOne": "1 available",
+      "none": "None available",
+      "from": "From {{price}}",
+      "see": "See apartments of this model",
+      "bedrooms": "{{count}} bd",
+      "bathrooms_one": "{{count}} ba",
+      "bathrooms_other": "{{count}} ba",
+      "parking_one": "{{count}} parking space",
+      "parking_other": "{{count}} parking spaces"
+    },
+    "floorLabel": "Floor {{floor}}",
+    "filters": {
+      "model": "Model",
+      "all": "All",
+      "bedrooms": "Bedrooms",
+      "bedroomsMin": "{{count}} or more",
+      "status": "Status",
+      "onlyAvailable": "Available only",
+      "floorFrom": "From floor",
+      "maxPrice": "Maximum budget",
+      "anyPrice": "No limit",
+      "sortBy": "Sort",
+      "clear": "Clear filters",
+      "sort": {
+        "floor_desc": "Floor: top to bottom",
+        "floor_asc": "Floor: bottom to top",
+        "price_asc": "Price: low to high",
+        "price_desc": "Price: high to low"
+      }
+    },
+    "results_one": "{{count}} apartment",
+    "results_other": "{{count}} apartments",
+    "noResults": "No apartment matches those filters.",
+    "unit": {
+      "title": "Apt. {{number}}",
+      "floor": "Floor {{floor}}",
+      "view": "{{view}} view",
+      "details": "View details",
+      "perMonth": "From ≈ {{amount}}/month"
+    },
+    "dialog": {
+      "photos": "Model photos",
+      "plan": "Floor plan",
+      "close": "Close",
+      "copyLink": "Copy link",
+      "copied": "Link copied",
+      "whatsapp": "Ask on WhatsApp",
+      "unavailable": "This apartment is no longer available. Ask about others of the same model.",
+      "otherInModel": "Other available apartments of this model",
+      "specs": "Features",
+      "illustrative": "Photos and plan are of the model; the apartment may differ in finishes and view."
+    },
+    "contact": {
+      "title": "Interested in {{name}}?",
+      "text": "We'll tell you which apartments are left, send you the price list and schedule your visit.",
+      "whatsapp": "Write on WhatsApp",
+      "schedule": "Contact"
+    },
+    "disclaimer": {
+      "title": "Important notice",
+      "default": "ACL Propiedades sells these units and is not the developer of the project. Images and plans are illustrative. Prices, sizes and availability may change without notice and are not a binding offer until the corresponding contract is signed."
+    },
+    "map": "Open in Google Maps",
+    "admin": {
+      "navTitle": "Developments and towers",
+      "title": "Developments and towers",
+      "subtitle": "Towers with many apartments. Photos are uploaded once per tower and per model, not per apartment.",
+      "new": "New development",
+      "edit": "Edit development",
+      "empty": "There are no developments yet.",
+      "published": "Published",
+      "draft": "Draft",
+      "viewPublic": "View on site",
+      "unitsSummary": "{{available}} available · {{reserved}} reserved · {{sold}} sold",
+      "deleteConfirm": "Delete this development and all its apartments?",
+      "statusChange": "Change an apartment's status",
+      "sections": {
+        "basics": "Development details",
+        "photos": "Tower photos",
+        "models": "Models",
+        "units": "Apartments",
+        "publish": "Publishing"
+      },
+      "fields": {
+        "name": "Development name",
+        "tagline": "Short tagline",
+        "description": "Description",
+        "zone": "Zone or city",
+        "address": "Address",
+        "lat": "Latitude",
+        "lng": "Longitude",
+        "stage": "Stage",
+        "deliveryDate": "Delivery date",
+        "developer": "Developer (the tower's company)",
+        "developerHint": "Shown as “Developed by…”. ACL always appears as the one selling.",
+        "logo": "Developer logo (optional)",
+        "hero": "Main photo",
+        "heroHint": "If you don't upload one, the first gallery photo is used.",
+        "gallery": "Tower gallery (facade, amenities, views)",
+        "amenities": "Amenities (one per line)",
+        "disclaimer": "Legal notice (optional)",
+        "disclaimerHint": "If left empty the standard notice is used.",
+        "published": "Published on the site",
+        "publishedHint": "Unchecked, only you can see the development here."
+      },
+      "model": {
+        "add": "Add model",
+        "remove": "Remove model",
+        "name": "Model name",
+        "area": "m²",
+        "bedrooms": "Bedrooms",
+        "bathrooms": "Bathrooms",
+        "parking": "Parking",
+        "description": "Short description",
+        "photos": "Model photos",
+        "plan": "Floor plan",
+        "unitsUsing": "{{count}} apartments with this model"
+      },
+      "units": {
+        "hint": "Paste the list from Excel or a CSV. Columns: number, floor, model, price, status, view. The model is its name (for example “Modelo A”).",
+        "paste": "Paste the apartments here",
+        "apply": "Load apartments",
+        "replaceWarning": "This replaces the {{count}} current apartments.",
+        "loaded": "{{count}} apartments loaded.",
+        "errorsTitle": "Check these rows:",
+        "line": "Line {{line}}",
+        "download": "Download current CSV",
+        "table": "Loaded apartments ({{count}})",
+        "number": "Apt.",
+        "floor": "Floor",
+        "model": "Model",
+        "price": "Price",
+        "status": "Status"
+      },
+      "errors": {
+        "required": "This field is required.",
+        "modelIncomplete": "Every model needs a name.",
+        "modelDuplicate": "Two models have the same name.",
+        "unitModelMissing": "Some apartments use a model that no longer exists. Load the list again."
+      },
+      "saveError": "The development could not be saved."
+    }
+  },
   "admin": {
     "loginTitle": "Administrator access",
     "email": "Email",

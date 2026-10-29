@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import "./ImageUploader.css";
 
-export default function ImageUploader({ existingImages, files, mainIndex, onRemoveExisting, onAddFiles, onRemoveNew, onSetMain }) {
+// `showMain={false}`: galerías donde no hay una foto "principal" (p. ej. las fotos
+// de un modelo de departamento), así que no se ofrece el botón de elegirla.
+export default function ImageUploader({ existingImages, files, mainIndex, onRemoveExisting, onAddFiles, onRemoveNew, onSetMain, showMain = true }) {
   const { t } = useTranslation();
   const [previews, setPreviews] = useState([]);
 
@@ -47,13 +49,14 @@ export default function ImageUploader({ existingImages, files, mainIndex, onRemo
               >
                 ×
               </button>
-              {flatIndex === mainIndex ? (
-                <span className="image-uploader__main-badge">★ {t("admin.mainImage")}</span>
-              ) : (
-                <button type="button" className="image-uploader__main-btn" onClick={() => onSetMain(flatIndex)}>
-                  {t("admin.setMain")}
-                </button>
-              )}
+              {showMain &&
+                (flatIndex === mainIndex ? (
+                  <span className="image-uploader__main-badge">★ {t("admin.mainImage")}</span>
+                ) : (
+                  <button type="button" className="image-uploader__main-btn" onClick={() => onSetMain(flatIndex)}>
+                    {t("admin.setMain")}
+                  </button>
+                ))}
             </div>
           ))}
         </div>

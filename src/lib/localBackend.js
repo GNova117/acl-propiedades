@@ -11,6 +11,8 @@ import { getOrCreateVisitorId } from "./visitorId";
 import { findDuplicates } from "./duplicates";
 import { applyPriceChange } from "./propertyBadges";
 import { computeSalesStats } from "./trustStats";
+import { DEVELOPMENTS_SEED } from "./developmentsSeed";
+import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } from "./developments";
 
 function clientExpedientePayload(data) {
   return Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, data[key] || null]));
@@ -69,6 +71,7 @@ const KEYS = {
   documentTemplates: "acl_local_document_templates",
   internalNotes: "acl_local_internal_notes",
   propertyViews: "acl_local_property_views",
+  developments: "acl_local_developments",
 };
 
 // Un par de artículos de muestra para que /blog no se vea vacío en modo
@@ -804,6 +807,62 @@ export const localBackend = {
   async deleteBlogPost(id) {
     const posts = readStore(KEYS.blogPosts, BLOG_POSTS_SEED);
     writeStore(KEYS.blogPosts, posts.filter((p) => p.id !== id));
+  },
+
+  // Desarrollos (torres): ver developments.js. En modo demo viven completos
+  // (modelos y departamentos incluidos) en un solo registro de localStorage.
+  async getDevelopments({ publishedOnly = false } = {}) {
+    const developments = readStore(KEYS.developments, DEVELOPMENTS_SEED);
+    const filtered = publishedOnly ? developments.filter((d) => d.published) : developments;
+    return filtered.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  },
+
+  async getDevelopmentBySlug(slug) {
+    const developments = readStore(KEYS.developments, DEVELOPMENTS_SEED);
+    return developments.find((d) => d.slug === slug && d.published) || null;
+  },
+
+  async getDevelopmentById(id) {
+    const developments = readStore(KEYS.developments, DEVELOPMENTS_SEED);
+    return developments.find((d) => d.id === id) || null;
+  },
+
+  async saveDevelopment(data, existing) {
+    const developments = readStore(KEYS.developments, DEVELOPMENTS_SEED);
+    const media = await resolveDevelopmentMedia(data, async (files) => filesToDataUrls(await compressImageFiles(files)));
+    const payload = buildDevelopmentPayload(data, media);
+    const now = new Date().toISOString();
+    if (existing) {
+      const idx = developments.findIndex((d) => d.id === existing.id);
+      if (idx === -1) throw new Error("Desarrollo no encontrado");
+      developments[idx] = { ...developments[idx], ...payload, updated_at: now };
+      writeStoreOrThrowFriendly(KEYS.developments, developments, FILE_QUOTA_MESSAGE);
+      return developments[idx];
+    }
+    let slug = developmentSlug(payload.name);
+    if (developments.some((d) => d.slug === slug)) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+    const record = { id: uid("dev"), slug, ...payload, created_at: now, updated_at: now };
+    developments.push(record);
+    writeStoreOrThrowFriendly(KEYS.developments, developments, FILE_QUOTA_MESSAGE);
+    return record;
+  },
+
+  async deleteDevelopment(id) {
+    const developments = readStore(KEYS.developments, DEVELOPMENTS_SEED);
+    writeStore(KEYS.developments, developments.filter((d) => d.id !== id));
+  },
+
+  async setDevelopmentUnitStatus(id, unitNumber, status) {
+    const developments = readStore(KEYS.developments, DEVELOPMENTS_SEED);
+    const idx = developments.findIndex((d) => d.id === id);
+    if (idx === -1) throw new Error("Desarrollo no encontrado");
+    developments[idx] = {
+      ...developments[idx],
+      units: developments[idx].units.map((u) => (u.number === unitNumber ? { ...u, status } : u)),
+      updated_at: new Date().toISOString(),
+    };
+    writeStore(KEYS.developments, developments);
+    return developments[idx];
   },
 
   async getSiteUpdates() {

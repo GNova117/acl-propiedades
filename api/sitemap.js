@@ -24,6 +24,11 @@ export default async function handler(req, res) {
       for (const row of data || []) {
         urls.push({ loc: `${SITE_URL}/propiedades/${row.id}`, lastmod: row.updated_at ? row.updated_at.slice(0, 10) : undefined });
       }
+      // Torres publicadas (si la tabla aún no existe, `data` llega nulo y no se agrega nada).
+      const { data: developments } = await supabase.from("developments").select("slug, updated_at").eq("published", true);
+      for (const row of developments || []) {
+        urls.push({ loc: `${SITE_URL}/desarrollos/${row.slug}`, lastmod: row.updated_at ? row.updated_at.slice(0, 10) : undefined });
+      }
       const { data: posts } = await supabase.from("blog_posts").select("slug, updated_at").eq("published", true);
       for (const row of posts || []) {
         urls.push({ loc: `${SITE_URL}/blog/${row.slug}`, lastmod: row.updated_at ? row.updated_at.slice(0, 10) : undefined });
