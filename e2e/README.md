@@ -26,6 +26,10 @@ Además, `e2e/fixtures.js` hace que todas las pruebas:
 - reciban `404` en `/api/*` (lo que ve el sitio en modo demo, sin funciones de servidor);
 - **fallen ante cualquier error de página o de consola** o respuesta propia ≥ 400, aunque la aserción de la prueba pase.
 
+### Las fuentes importan
+
+El ancho del texto depende de las fuentes instaladas. Inter (la del sitio) llega desde Google Fonts, que las pruebas bloquean, así que cada equipo usa su tipografía de respaldo: una máquina con Inter instalada puede mostrar todo bien y el CI (DejaVu Sans) un desborde de unos píxeles. Por eso `responsive.spec.js` fuerza una fuente ancha (DejaVu Sans, o Verdana en Mac/Windows) y prueba el peor caso. Si una prueba de diseño pasa en tu equipo y falla en el CI, sospecha primero de esto.
+
 ## Qué cubre cada archivo
 
 | Archivo | Qué prueba |

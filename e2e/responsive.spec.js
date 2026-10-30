@@ -3,9 +3,26 @@ import { test, expect } from "./fixtures.js";
 // Regresiones de diseño adaptable (móvil/tableta). Cada prueba corresponde a un
 // defecto real que se encontró y corrigió; si vuelve, estas fallan.
 // Solo corren en el proyecto «mobile»: fijan su propio ancho con setViewportSize.
+//
+// Fuente ancha a propósito: el ancho del texto depende de las fuentes instaladas.
+// Inter (la del sitio) llega desde Google Fonts, que aquí se bloquea, y cada equipo
+// cae en su tipografía de respaldo: en una máquina con Inter instalada todo cabía y
+// en el CI (DejaVu Sans) la cabecera de los filtros se desbordaba a 320 px. Se fuerza
+// una fuente ancha para que el resultado no dependa del equipo y se pruebe el peor caso.
+const FUENTE_ANCHA = ':root{--font-body:"DejaVu Sans",Verdana,sans-serif;--font-heading:"DejaVu Sans",Verdana,sans-serif}';
 
 test.describe("Móvil y tableta", () => {
   test.skip(({ isMobile }) => !isMobile, "solo aplica al proyecto móvil");
+
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript((css) => {
+      document.addEventListener("DOMContentLoaded", () => {
+        const estilo = document.createElement("style");
+        estilo.textContent = css;
+        document.head.appendChild(estilo);
+      });
+    }, FUENTE_ANCHA);
+  });
 
   const overflow = (page) => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 

@@ -4,10 +4,15 @@
   top: 90px;
 }
 
+/* flex-wrap: en un celular de 320 px, con la fuente de respaldo (Inter llega
+   desde Google Fonts y puede tardar o no cargar), «Filtros» + «Limpiar» +
+   «Mostrar filtros» no caben en una fila y empujaban la página de lado. */
 .property-filters__header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
   margin-bottom: 1rem;
 }
 
