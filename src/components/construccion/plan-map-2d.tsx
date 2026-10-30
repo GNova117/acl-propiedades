@@ -57,6 +57,9 @@ type Props = {
   pasoImán?: number | null;
   fantasmas?: { huella: Point[]; hueco: Point[]; etiqueta: string }[];
   onSelectAbertura?: (habId: string, id: string) => void;
+  /** Pared resaltada (la última que se tocó) y cómo elegir otra; null la quita. */
+  selectedWall?: { habId: string; index: number } | null;
+  onSelectWall?: (wall: { habId: string; index: number } | null) => void;
   /** Puntos ya puestos del contorno que se está dibujando (herramienta "draw"). */
   draftPoints?: Point[];
   onDrawClick?: (p: Point) => void;
@@ -67,7 +70,7 @@ type Props = {
 };
 
 const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
-  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto, fondo, fondoDraggable, tool = null, draftPoints = [], onDrawClick, splitRoom = null, splitFrom = null, onSplitClick, openingTipo = "puerta", onOpeningClick, medicion = [], onMeasureClick, selectedAbertura = null, onSelectAbertura, fantasmas = [], rises, mostrarMedidas = false, pasoImán = null },
+  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto, fondo, fondoDraggable, tool = null, draftPoints = [], onDrawClick, splitRoom = null, splitFrom = null, onSplitClick, openingTipo = "puerta", onOpeningClick, medicion = [], onMeasureClick, selectedAbertura = null, onSelectAbertura, selectedWall = null, onSelectWall, fantasmas = [], rises, mostrarMedidas = false, pasoImán = null },
   ref,
 ) {
   const [cursor, setCursor] = useState<Point | null>(null);
@@ -212,6 +215,7 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
                   : (e) => {
                       onSelectRoom(hab.id);
                       onSelectObjeto(null);
+                      onSelectWall?.(null);
                       drag.startHabitacion(e, hab.id);
                     }
               }
@@ -249,6 +253,57 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
           </g>
         );
       })}
+
+      {/* Paredes tocables: al tocar una se elige su zona y se resalta (arrastrar sigue moviendo la zona). */}
+      {!blocked &&
+        onSelectWall &&
+        ordenadas.flatMap((hab) =>
+          hab.puntos.length < 3
+            ? []
+            : wallSegmentsFromPolygon(hab.puntos).map((seg, i) => (
+                <line
+                  key={`wall${hab.id}-${i}`}
+                  className="construccion-plan-ui"
+                  x1={seg.start.x}
+                  y1={seg.start.z}
+                  x2={seg.end.x}
+                  y2={seg.end.z}
+                  stroke="transparent"
+                  strokeWidth={hitLine}
+                  onPointerDown={(e) => {
+                    onSelectRoom(hab.id);
+                    onSelectObjeto(null);
+                    onSelectWall({ habId: hab.id, index: i });
+                    drag.startHabitacion(e, hab.id);
+                  }}
+                />
+              )),
+        )}
+
+      {(() => {
+        const hab = selectedWall ? habitaciones.find((h) => h.id === selectedWall.habId) : null;
+        const seg = hab ? wallSegmentsFromPolygon(hab.puntos)[selectedWall!.index] : null;
+        if (!seg) return null;
+        return (
+          <g className="construccion-plan-ui" pointerEvents="none">
+            <line x1={seg.start.x} y1={seg.start.z} x2={seg.end.x} y2={seg.end.z} stroke="#2563eb" strokeOpacity={0.4} strokeWidth={WALL_THICKNESS_M * 2.4} strokeLinecap="round" />
+            <line x1={seg.start.x} y1={seg.start.z} x2={seg.end.x} y2={seg.end.z} stroke="#2563eb" strokeWidth={WALL_THICKNESS_M} strokeLinecap="square" />
+            <text
+              x={seg.center.x}
+              y={seg.center.z - 14 * vp.mpp}
+              fontSize={13 * vp.mpp}
+              fontWeight={700}
+              fill="#1d4ed8"
+              stroke="#ffffff"
+              strokeWidth={3 * vp.mpp}
+              paintOrder="stroke"
+              textAnchor="middle"
+            >
+              {seg.length.toFixed(2)} m
+            </text>
+          </g>
+        );
+      })()}
 
       {!blocked &&
         divisores.map((dv, i) => {

@@ -161,6 +161,9 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   const [plantillaGirar, setPlantillaGirar] = useState(false);
   const [plantillaMsg, setPlantillaMsg] = useState<string | null>(null);
   const [panelTab, setPanelTab] = useState<"zonas" | "muros">("zonas");
+  // Pared que se tocó en el plano: solo vale mientras siga seleccionada su zona.
+  const [selWallState, setSelWall] = useState<{ habId: string; index: number } | null>(null);
+  const selWall = selWallState && selWallState.habId === selectedId ? selWallState : null;
   const [rectAncho, setRectAncho] = useState("");
   const [rectLargo, setRectLargo] = useState("");
   const [corteMuro, setCorteMuro] = useState("0");
@@ -1491,6 +1494,11 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               pasoImán={iman === "auto" ? null : iman}
               rises={rises}
               selectedAbertura={selAbertura}
+              selectedWall={selWall}
+              onSelectWall={(w) => {
+                setSelWall(w);
+                if (w) setPanelTab("muros");
+              }}
               onSelectAbertura={(habId, id) => {
                 setSelAbertura({ habId, id });
                 setSelectedObjetoId(null);
@@ -1585,6 +1593,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
           <MurosTabla
             titulo={`Medidas de los muros de «${selected.nombre}»`}
             muros={wallSegmentsFromPolygon(selected.puntos).map((w) => ({ largoM: Math.round(w.length * 100) / 100, giroDeg: null }))}
+            activo={selWall?.index ?? null}
             onLargo={cambiarLargoMuroZona}
             hint="Al cambiar un largo, las zonas pegadas a esa esquina se mueven con ella y los ángulos rectos se conservan."
           />
