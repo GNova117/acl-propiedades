@@ -71,7 +71,7 @@ export default function Compare() {
                     {properties.map((property) => (
                       <th key={property.id}>
                         <div className="compare-table__column-head">
-                          <img src={property.main_image} alt={property.title} loading="lazy" decoding="async" />
+                          {property.main_image && <img src={property.main_image} alt={property.title} loading="lazy" decoding="async" />}
                           <Link to={`/propiedades/${property.id}`}>{property.title}</Link>
                           {property.code && <span className="compare-table__code">{property.code}</span>}
                           <button type="button" className="btn btn-outline btn-sm" onClick={() => removeFromCompare(property.id)}>

@@ -30,7 +30,7 @@ export default function PropertyCard({ property }) {
   return (
     <article className="property-card card">
       <Link to={`/propiedades/${property.id}`} className="property-card__image-link">
-        <img src={property.main_image} alt={property.title} loading="lazy" decoding="async" />
+        {property.main_image && <img src={property.main_image} alt={property.title} loading="lazy" decoding="async" />}
         <span className={`badge badge-${property.status === "disponible" ? "available" : property.status === "apartada" ? "reserved" : "sold"} property-card__badge`}>
           {t(`propertyStatus.${property.status}`)}
         </span>
@@ -67,7 +67,7 @@ export default function PropertyCard({ property }) {
         <div className="property-card__footer">
           {advisor ? (
             <div className="property-card__advisor">
-              <img src={advisor.photo_url} alt={advisor.name} loading="lazy" decoding="async" />
+              {advisor.photo_url && <img src={advisor.photo_url} alt={advisor.name} loading="lazy" decoding="async" />}
               <span>{advisor.name}</span>
             </div>
           ) : (
