@@ -16,6 +16,7 @@ import { esTipoExterior } from "../../lib/construccion/stats";
 import PlanGrid from "./plan-grid";
 import { OBJ_GRID_M, VERTEX_GRID_M, svgPoint, type usePlanDrag } from "./plan-drag";
 import type { PlanViewport } from "./use-plan-viewport";
+import { useCoarsePointer } from "./use-coarse-pointer";
 
 const WALL_THICKNESS_M = 0.15;
 const CLICK_TOLERANCE_PX = 22;
@@ -75,6 +76,7 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
   ref,
 ) {
   const [cursor, setCursor] = useState<Point | null>(null);
+  const coarse = useCoarsePointer();
   const drawing = !habitacion;
   const points = habitacion ? habitacion.puntos : draftPoints;
   const segments = habitacion ? wallSegmentsFromPolygon(points) : openPolylineSegments(points);
@@ -112,7 +114,7 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
           bestOffset = t * seg.length;
         }
       });
-      if (best >= 0 && bestDist < Math.max(0.15, CLICK_TOLERANCE_PX * mpp)) onWallClick(best, bestOffset);
+      if (best >= 0 && bestDist < Math.max(0.15, CLICK_TOLERANCE_PX * (coarse ? 1.6 : 1) * mpp)) onWallClick(best, bestOffset);
       else onObjetoSelect?.(null);
       return;
     }
@@ -206,7 +208,7 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
                       x2={seg.start.x + (seg.end.x - seg.start.x) * t1}
                       y2={seg.start.z + (seg.end.z - seg.start.z) * t1}
                       stroke="transparent"
-                      strokeWidth={14 * mpp}
+                      strokeWidth={(coarse ? 40 : 14) * mpp}
                       pointerEvents="stroke"
                       style={{ cursor: "grab" }}
                       onPointerDown={(e) => habitacion && drag.startAbertura(e, habitacion.id, ab.id)}
@@ -252,18 +254,20 @@ const PlanCanvas2D = forwardRef<SVGSVGElement, Props>(function PlanCanvas2D(
         !placing &&
         drag &&
         points.map((p, i) => (
-          <circle
-            key={`h${i}`}
-            className="construccion-plan-ui construccion-vertex"
-            cx={p.x}
-            cy={p.z}
-            r={HANDLE_PX * mpp}
-            fill="#ffffff"
-            stroke="#2563eb"
-            strokeWidth={2}
-            vectorEffect="non-scaling-stroke"
-            onPointerDown={(e) => drag.startVertice(e, habitacion.id, i)}
-          />
+          <g key={`h${i}`} className="construccion-plan-ui">
+            {coarse && <circle cx={p.x} cy={p.z} r={24 * mpp} fill="transparent" onPointerDown={(e) => drag.startVertice(e, habitacion.id, i)} />}
+            <circle
+              className="construccion-vertex"
+              cx={p.x}
+              cy={p.z}
+              r={(coarse ? 10 : HANDLE_PX) * mpp}
+              fill="#ffffff"
+              stroke="#2563eb"
+              strokeWidth={2}
+              vectorEffect="non-scaling-stroke"
+              onPointerDown={(e) => drag.startVertice(e, habitacion.id, i)}
+            />
+          </g>
         ))}
 
       {guides.map((g, i) => (

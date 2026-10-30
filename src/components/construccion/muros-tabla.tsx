@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { MuroFila } from "../../lib/construccion/contorno";
 
 type Props = {
@@ -10,6 +11,8 @@ type Props = {
   /** Muro que cierra la figura (último punto → primer punto), solo informativo. */
   cierreM?: number;
   onHover?: (i: number | null) => void;
+  /** Fila resaltada (el muro tocado en el plano). */
+  activo?: number | null;
   hint?: string;
 };
 
@@ -45,9 +48,14 @@ function Celda({ valor, min, step, onCommit, label, onFocusRow, onBlurRow }: { v
 }
 
 /** Tabla de muros: cada fila es un muro con su largo (y su giro) editable; el plano se redibuja al instante. */
-export default function MurosTabla({ titulo, muros, onLargo, onGiro, cierreM, onHover, hint }: Props) {
+export default function MurosTabla({ titulo, muros, onLargo, onGiro, cierreM, onHover, activo = null, hint }: Props) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (activo === null) return;
+    ref.current?.querySelector(".construccion-zonas__row--active")?.scrollIntoView?.({ block: "nearest" });
+  }, [activo]);
   return (
-    <div className="construccion-zonas">
+    <div className="construccion-zonas" ref={ref}>
       <div className="construccion-zonas__titulo">{titulo}</div>
       {muros.length === 0 ? (
         <p className="construccion-panel__hint">{hint ?? "Sin muros todavía."}</p>
@@ -62,7 +70,7 @@ export default function MurosTabla({ titulo, muros, onLargo, onGiro, cierreM, on
           </thead>
           <tbody>
             {muros.map((m, i) => (
-              <tr key={i}>
+              <tr key={i} className={i === activo ? "construccion-zonas__row--active" : undefined}>
                 <td>{i + 1}</td>
                 <td>
                   <Celda valor={m.largoM} min={0.1} step={0.01} label={`Largo del muro ${i + 1}`} onCommit={(v) => v >= 0.1 && onLargo(i, v)} onFocusRow={() => onHover?.(i)} onBlurRow={() => onHover?.(null)} />

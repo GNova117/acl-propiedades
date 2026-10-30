@@ -12,11 +12,16 @@ import PlanGrid from "./plan-grid";
 import { Cota } from "./plan-canvas-2d";
 import { OBJ_GRID_M, VERTEX_GRID_M, svgPoint, type usePlanDrag } from "./plan-drag";
 import type { PlanViewport } from "./use-plan-viewport";
+import { useCoarsePointer } from "./use-coarse-pointer";
 
 const WALL_THICKNESS_M = 0.15;
 const CURSOR_ASA: Record<Asa, string> = { n: "ns-resize", s: "ns-resize", e: "ew-resize", w: "ew-resize", ne: "nesw-resize", sw: "nesw-resize", nw: "nwse-resize", se: "nwse-resize" };
 const ALIGN_TOLERANCE_PX = 10;
 const PICK_TOLERANCE_PX = 24;
+// En pantalla táctil las zonas de agarre crecen: un dedo mide ~40 px, no 12.
+const HIT_LINE_PX = 14;
+const HIT_LINE_TOUCH_PX = 40;
+const HIT_HANDLE_TOUCH_PX = 24;
 
 type Props = {
   vp: PlanViewport;
@@ -52,6 +57,9 @@ type Props = {
   pasoImán?: number | null;
   fantasmas?: { huella: Point[]; hueco: Point[]; etiqueta: string }[];
   onSelectAbertura?: (habId: string, id: string) => void;
+  /** Pared resaltada (la última que se tocó) y cómo elegir otra; null la quita. */
+  selectedWall?: { habId: string; index: number } | null;
+  onSelectWall?: (wall: { habId: string; index: number } | null) => void;
   /** Puntos ya puestos del contorno que se está dibujando (herramienta "draw"). */
   draftPoints?: Point[];
   onDrawClick?: (p: Point) => void;
@@ -62,10 +70,12 @@ type Props = {
 };
 
 const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
-  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto, fondo, fondoDraggable, tool = null, draftPoints = [], onDrawClick, splitRoom = null, splitFrom = null, onSplitClick, openingTipo = "puerta", onOpeningClick, medicion = [], onMeasureClick, selectedAbertura = null, onSelectAbertura, fantasmas = [], rises, mostrarMedidas = false, pasoImán = null },
+  { vp, habitaciones, objetos, selectedId, selectedObjetoId, drag, placing, onPlace, onSelectRoom, onSelectObjeto, fondo, fondoDraggable, tool = null, draftPoints = [], onDrawClick, splitRoom = null, splitFrom = null, onSplitClick, openingTipo = "puerta", onOpeningClick, medicion = [], onMeasureClick, selectedAbertura = null, onSelectAbertura, selectedWall = null, onSelectWall, fantasmas = [], rises, mostrarMedidas = false, pasoImán = null },
   ref,
 ) {
   const [cursor, setCursor] = useState<Point | null>(null);
+  const coarse = useCoarsePointer();
+  const hitLine = (coarse ? HIT_LINE_TOUCH_PX : HIT_LINE_PX) * vp.mpp;
   const selHab = habitaciones.find((h) => h.id === selectedId) ?? null;
   // Con una herramienta activa los cuartos y muebles no se agarran: cada clic es de la herramienta.
   const blocked = placing || tool !== null;
@@ -205,6 +215,7 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
                   : (e) => {
                       onSelectRoom(hab.id);
                       onSelectObjeto(null);
+                      onSelectWall?.(null);
                       drag.startHabitacion(e, hab.id);
                     }
               }
@@ -243,6 +254,57 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
         );
       })}
 
+      {/* Paredes tocables: al tocar una se elige su zona y se resalta (arrastrar sigue moviendo la zona). */}
+      {!blocked &&
+        onSelectWall &&
+        ordenadas.flatMap((hab) =>
+          hab.puntos.length < 3
+            ? []
+            : wallSegmentsFromPolygon(hab.puntos).map((seg, i) => (
+                <line
+                  key={`wall${hab.id}-${i}`}
+                  className="construccion-plan-ui"
+                  x1={seg.start.x}
+                  y1={seg.start.z}
+                  x2={seg.end.x}
+                  y2={seg.end.z}
+                  stroke="transparent"
+                  strokeWidth={hitLine}
+                  onPointerDown={(e) => {
+                    onSelectRoom(hab.id);
+                    onSelectObjeto(null);
+                    onSelectWall({ habId: hab.id, index: i });
+                    drag.startHabitacion(e, hab.id);
+                  }}
+                />
+              )),
+        )}
+
+      {(() => {
+        const hab = selectedWall ? habitaciones.find((h) => h.id === selectedWall.habId) : null;
+        const seg = hab ? wallSegmentsFromPolygon(hab.puntos)[selectedWall!.index] : null;
+        if (!seg) return null;
+        return (
+          <g className="construccion-plan-ui" pointerEvents="none">
+            <line x1={seg.start.x} y1={seg.start.z} x2={seg.end.x} y2={seg.end.z} stroke="#2563eb" strokeOpacity={0.4} strokeWidth={WALL_THICKNESS_M * 2.4} strokeLinecap="round" />
+            <line x1={seg.start.x} y1={seg.start.z} x2={seg.end.x} y2={seg.end.z} stroke="#2563eb" strokeWidth={WALL_THICKNESS_M} strokeLinecap="square" />
+            <text
+              x={seg.center.x}
+              y={seg.center.z - 14 * vp.mpp}
+              fontSize={13 * vp.mpp}
+              fontWeight={700}
+              fill="#1d4ed8"
+              stroke="#ffffff"
+              strokeWidth={3 * vp.mpp}
+              paintOrder="stroke"
+              textAnchor="middle"
+            >
+              {seg.length.toFixed(2)} m
+            </text>
+          </g>
+        );
+      })()}
+
       {!blocked &&
         divisores.map((dv, i) => {
           const vertical = Math.abs(dv.n.x) > 0.5;
@@ -256,14 +318,15 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
                 x2={dv.b.x}
                 y2={dv.b.z}
                 stroke="transparent"
-                strokeWidth={14 * vp.mpp}
+                strokeWidth={hitLine}
                 style={{ cursor: Math.abs(dv.n.x) < 1e-6 ? "row-resize" : Math.abs(dv.n.z) < 1e-6 ? "col-resize" : "move" }}
                 onPointerDown={(e) => drag.startDivisor(e, dv)}
               />
+              {coarse && <circle cx={mx} cy={mz} r={HIT_HANDLE_TOUCH_PX * vp.mpp} fill="transparent" onPointerDown={(e) => drag.startDivisor(e, dv)} />}
               <circle
                 cx={mx}
                 cy={mz}
-                r={6 * vp.mpp}
+                r={(coarse ? 9 : 6) * vp.mpp}
                 fill="#ffffff"
                 stroke="#2563eb"
                 strokeWidth={2}
@@ -312,7 +375,7 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
                     x2={seg.start.x + (seg.end.x - seg.start.x) * t1}
                     y2={seg.start.z + (seg.end.z - seg.start.z) * t1}
                     stroke="transparent"
-                    strokeWidth={14 * vp.mpp}
+                    strokeWidth={hitLine}
                     style={{ cursor: "grab" }}
                     onPointerDown={(e) => {
                       e.stopPropagation();
@@ -375,7 +438,7 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
       )}
 
       {tool === "opening" && cursor && (() => {
-        const muro = muroCercano(habitaciones, cursor, Math.max(0.3, PICK_TOLERANCE_PX * vp.mpp));
+        const muro = muroCercano(habitaciones, cursor, Math.max(0.3, PICK_TOLERANCE_PX * (coarse ? 1.5 : 1) * vp.mpp));
         if (!muro) return null;
         return (
           <g className="construccion-plan-ui" pointerEvents="none">
@@ -413,7 +476,7 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
           {(() => {
             const marcador = (p: Point, color: string) => <circle cx={p.x} cy={p.z} r={7 * vp.mpp} fill={color} stroke="#ffffff" strokeWidth={2} vectorEffect="non-scaling-stroke" />;
             if (!splitFrom) {
-              const cerca = cursor ? puntoEnBorde(splitRoom.puntos, cursor, Math.max(0.3, PICK_TOLERANCE_PX * vp.mpp)) : null;
+              const cerca = cursor ? puntoEnBorde(splitRoom.puntos, cursor, Math.max(0.3, PICK_TOLERANCE_PX * (coarse ? 1.5 : 1) * vp.mpp)) : null;
               return cerca ? marcador(cerca, "#f59e0b") : null;
             }
             const fin = cursor ? puntoDeCorte(splitRoom.puntos, splitFrom, cursor) : null;
@@ -443,13 +506,17 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
       )}
       {!blocked && selHab && selHab.puntos.length >= 3 && (() => {
         const asas = asasDe(selHab);
-        const lado = 9 * vp.mpp;
+        const lado = (coarse ? 15 : 9) * vp.mpp;
+        const ladoHit = HIT_HANDLE_TOUCH_PX * 2 * vp.mpp;
         if (asas.length === 0) {
           // Zona que no es un rectángulo: se mueve vértice por vértice.
           return (
             <g className="construccion-plan-ui">
               {selHab.puntos.map((p, i) => (
-                <circle key={i} cx={p.x} cy={p.z} r={6 * vp.mpp} fill="#ffffff" stroke="#2563eb" strokeWidth={2} vectorEffect="non-scaling-stroke" style={{ cursor: "move" }} onPointerDown={(e) => drag.startVertice(e, selHab.id, i)} />
+                <g key={i}>
+                  {coarse && <circle cx={p.x} cy={p.z} r={HIT_HANDLE_TOUCH_PX * vp.mpp} fill="transparent" onPointerDown={(e) => drag.startVertice(e, selHab.id, i)} />}
+                  <circle cx={p.x} cy={p.z} r={(coarse ? 9 : 6) * vp.mpp} fill="#ffffff" stroke="#2563eb" strokeWidth={2} vectorEffect="non-scaling-stroke" style={{ cursor: "move" }} onPointerDown={(e) => drag.startVertice(e, selHab.id, i)} />
+                </g>
               ))}
             </g>
           );
@@ -465,19 +532,23 @@ const PlanMap2D = forwardRef<SVGSVGElement, Props>(function PlanMap2D(
               {(b.maxZ - b.minZ).toFixed(2)} m
             </text>
             {asas.map((a) => (
-              <rect
-                key={a.asa}
-                x={a.p.x - lado / 2}
-                y={a.p.z - lado / 2}
-                width={lado}
-                height={lado}
-                fill="#ffffff"
-                stroke="#2563eb"
-                strokeWidth={2}
-                vectorEffect="non-scaling-stroke"
-                style={{ cursor: CURSOR_ASA[a.asa] }}
-                onPointerDown={(e) => drag.startLado(e, selHab.id, a.asa)}
-              />
+              <g key={a.asa}>
+                {coarse && (
+                  <rect x={a.p.x - ladoHit / 2} y={a.p.z - ladoHit / 2} width={ladoHit} height={ladoHit} fill="transparent" onPointerDown={(e) => drag.startLado(e, selHab.id, a.asa)} />
+                )}
+                <rect
+                  x={a.p.x - lado / 2}
+                  y={a.p.z - lado / 2}
+                  width={lado}
+                  height={lado}
+                  fill="#ffffff"
+                  stroke="#2563eb"
+                  strokeWidth={2}
+                  vectorEffect="non-scaling-stroke"
+                  style={{ cursor: CURSOR_ASA[a.asa] }}
+                  onPointerDown={(e) => drag.startLado(e, selHab.id, a.asa)}
+                />
+              </g>
             ))}
           </g>
         );

@@ -14,6 +14,7 @@ import { murosDeContorno, moverVerticesLigados, rectanguloPuntos, setGiroContorn
 import { aplicarDivisor, cambiarMedidaZona, redimensionarZona } from "../../lib/construccion/divisores";
 import { usePlanDrag } from "./plan-drag";
 import { gridStep, usePlanViewport } from "./use-plan-viewport";
+import { useCoarsePointer } from "./use-coarse-pointer";
 import {
   appendByMeasure,
   clampOpeningsToWalls,
@@ -107,6 +108,11 @@ type Props = {
 export default function EditorTab({ proyecto, setProyecto, selectedId, setSelectedId, selectedNivelId, setSelectedNivelId }: Props) {
   const currentNivel = proyecto.niveles.find((n) => n.id === selectedNivelId) ?? proyecto.niveles[0];
   const [edificioCompleto, setEdificioCompleto] = useState(false);
+  // En teléfono la barra lateral (herramientas y zonas) va plegada para que el plano ocupe la pantalla.
+  const [panelAbierto, setPanelAbierto] = useState(false);
+  const coarse = useCoarsePointer();
+  // Con el dedo hay que acertar más lejos del punto exacto (cerrar el área en el primer punto, muros, esquinas).
+  const touch = coarse ? 1.6 : 1;
   const [draftPoints, setDraftPoints] = useState<Point[]>([]);
   const [view, setView] = useState<"2d" | "3d">("2d");
   const [mode, setMode] = useState<"cuarto" | "mapa">("mapa");
@@ -155,6 +161,9 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   const [plantillaGirar, setPlantillaGirar] = useState(false);
   const [plantillaMsg, setPlantillaMsg] = useState<string | null>(null);
   const [panelTab, setPanelTab] = useState<"zonas" | "muros">("zonas");
+  // Pared que se tocó en el plano: solo vale mientras siga seleccionada su zona.
+  const [selWallState, setSelWall] = useState<{ habId: string; index: number } | null>(null);
+  const selWall = selWallState && selWallState.habId === selectedId ? selWallState : null;
   const [rectAncho, setRectAncho] = useState("");
   const [rectLargo, setRectLargo] = useState("");
   const [corteMuro, setCorteMuro] = useState("0");
@@ -193,6 +202,10 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
             ? "opening"
             : null
     : null;
+  // Al elegir una herramienta, colocar un mueble o tocar una zona, la barra lateral se pliega (en teléfono): el plano manda.
+  useEffect(() => {
+    if (mapTool || placing || selectedId) setPanelAbierto(false);
+  }, [mapTool, placing, selectedId]);
   // Escaleras que unen un nivel con el siguiente (el hueco del piso de arriba y el desnivel que salvan).
   const conexiones = useMemo(() => conexionesEscaleras(proyecto), [proyecto]);
   const fantasmas = conexiones
@@ -415,7 +428,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   function handleCanvasClick(p: Point) {
     if (draftPoints.length >= 3) {
       const first = draftPoints[0];
-      if (Math.hypot(p.x - first.x, p.z - first.z) <= Math.min(1, Math.max(0.15, CLOSE_TOLERANCE_PX * vp.mpp))) {
+      if (Math.hypot(p.x - first.x, p.z - first.z) <= Math.min(1, Math.max(0.15, CLOSE_TOLERANCE_PX * touch * vp.mpp))) {
         closeDraftRoom();
         return;
       }
@@ -484,7 +497,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
 
   function handleOpeningClick(p: Point) {
     if (herramienta !== "puerta" && herramienta !== "ventana") return;
-    const res = agregarAberturaEnMapa(proyecto, selectedNivelId, p, herramienta, Math.max(0.3, 24 * vp.mpp), herramienta === "puerta" ? estiloPuerta : estiloVentana);
+    const res = agregarAberturaEnMapa(proyecto, selectedNivelId, p, herramienta, Math.max(0.3, 24 * touch * vp.mpp), herramienta === "puerta" ? estiloPuerta : estiloVentana);
     if (!res) {
       setHerrMsg("Haz clic sobre un muro.");
       return;
@@ -531,7 +544,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
   function handleSplitClick(p: Point) {
     if (!selected) return;
     if (!splitFrom) {
-      const inicio = puntoEnBorde(selected.puntos, p, Math.max(0.3, 24 * vp.mpp));
+      const inicio = puntoEnBorde(selected.puntos, p, Math.max(0.3, 24 * touch * vp.mpp));
       if (!inicio) {
         setSplitMsg("Haz el primer clic sobre un muro del cuarto seleccionado.");
         return;
@@ -883,7 +896,10 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
 
   return (
     <div className="construccion-editor">
-      <aside className="construccion-editor__sidebar">
+      <button type="button" className="btn btn-outline btn-sm construccion-editor__panel-toggle" aria-expanded={panelAbierto} onClick={() => setPanelAbierto((v) => !v)}>
+        {panelAbierto ? "Ocultar herramientas ▴" : "Herramientas y zonas ▾"}
+      </button>
+      <aside className={`construccion-editor__sidebar${panelAbierto ? " construccion-editor__sidebar--open" : ""}`}>
         <div className="construccion-niveles">
           <label className="construccion-niveles__field">
             Nivel
@@ -1478,6 +1494,11 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               pasoImán={iman === "auto" ? null : iman}
               rises={rises}
               selectedAbertura={selAbertura}
+              selectedWall={selWall}
+              onSelectWall={(w) => {
+                setSelWall(w);
+                if (w) setPanelTab("muros");
+              }}
               onSelectAbertura={(habId, id) => {
                 setSelAbertura({ habId, id });
                 setSelectedObjetoId(null);
@@ -1572,6 +1593,7 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
           <MurosTabla
             titulo={`Medidas de los muros de «${selected.nombre}»`}
             muros={wallSegmentsFromPolygon(selected.puntos).map((w) => ({ largoM: Math.round(w.length * 100) / 100, giroDeg: null }))}
+            activo={selWall?.index ?? null}
             onLargo={cambiarLargoMuroZona}
             hint="Al cambiar un largo, las zonas pegadas a esa esquina se mueven con ella y los ángulos rectos se conservan."
           />

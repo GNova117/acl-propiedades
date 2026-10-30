@@ -13,6 +13,9 @@ const MAX_W = 250;
 const FIT_MIN_W = 6;
 const FIT_MARGIN_M = 1;
 const PAN_THRESHOLD_PX = 5;
+// Un dedo nunca queda quieto del todo: con el umbral del mouse, casi cada toque se leía como arrastre
+// del plano y su clic se descartaba (no se podía colocar ni seleccionar nada).
+const PAN_THRESHOLD_TOUCH_PX = 12;
 // Tras cambiar de cuarto/modo el diseño de la pantalla todavía se está acomodando (aparece el panel de
 // medidas, etc.): durante este lapso un cambio de tamaño re-ajusta la vista. Después NO, para que el
 // plano no se mueva bajo el cursor a media figura.
@@ -212,7 +215,7 @@ export function usePlanViewport({ box, resetKey }: { box: Bounds | null; resetKe
 
     const dx = e.clientX - g.startPointer.x;
     const dy = e.clientY - g.startPointer.y;
-    if (!g.moved && Math.hypot(dx, dy) < PAN_THRESHOLD_PX) return;
+    if (!g.moved && Math.hypot(dx, dy) < (e.pointerType === "touch" ? PAN_THRESHOLD_TOUCH_PX : PAN_THRESHOLD_PX)) return;
     if (!g.moved) {
       g.moved = true;
       suppressClick.current = true;
