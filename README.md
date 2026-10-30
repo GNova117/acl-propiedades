@@ -41,6 +41,16 @@ npm run test:watch  # las vuelve a correr al guardar un archivo
 
 Usa [Vitest](https://vitest.dev) (mismo motor que Vite, sin configuración aparte). Las pruebas viven junto al archivo que cubren (`src/lib/algo.js` → `src/lib/algo.test.js`) y por ahora solo cubren funciones puras de `src/lib/` — cálculos de dinero y de negocio (liquidaciones, valuación, simulador Infonavit, informe de visitas) que no dependen de React ni de Supabase. Para cubrir una función nueva, crea su `.test.js` junto a ella; no hace falta tocar `vite.config.js`. `.github/workflows/ci.yml` corre `lint` + `test` + `build` en cada push y pull request.
 
+### Pruebas de navegador (PC y móvil)
+
+```bash
+npx playwright install chromium   # una sola vez: descarga el navegador
+npm run test:e2e                  # corre todo en PC (1366 px) y móvil (390 px, con toques)
+npx playwright test e2e/admin.spec.js --project=mobile   # un archivo, solo móvil
+```
+
+Usan [Playwright](https://playwright.dev) y viven en `e2e/` (configuración en `playwright.config.js`): recorren las 84 rutas, prueban las funciones del sitio y del panel como lo haría una persona (formularios, filtros, favoritos, PDFs, altas y bajas…) y vigilan que nada se desborde ni se recorte en celulares de 320–430 px y tabletas. Corren siempre en **modo demo** —construyen la app con las llaves de Supabase vacías y se niegan a arrancar si no es así—, de modo que nunca tocan una base real aunque tengas un `.env`. Detalles, qué cubren y cómo agregar pruebas: [`e2e/README.md`](e2e/README.md). En CI es el job `e2e` de `.github/workflows/ci.yml`.
+
 ### Novedades del sitio: registro automático de cambios
 
 El apartado `/admin/novedades` (solo visible con ese permiso, otorgado por default al rol admin) lleva una bitácora de cada cambio que se le hace al sitio, como un blog interno. No hay que escribir las entradas a mano: `.github/workflows/log-site-update.yml` inserta una automáticamente en la tabla `site_updates` cada vez que un pull request se fusiona a `main`, usando el título y la descripción del PR. (También se puede agregar una entrada a mano desde el panel para algo que no vino de un PR, como un cambio de configuración hecho directo en Supabase o Vercel.)

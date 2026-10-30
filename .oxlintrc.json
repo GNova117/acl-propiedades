@@ -17,5 +17,16 @@
     "react/purity": "off",
     "react/immutability": "off",
     "react/refs": "off"
-  }
+  },
+  "overrides": [
+    {
+      // Pruebas e2e de Playwright: no hay componentes React. Sus fixtures
+      // reciben un callback llamado `use` (convención de Playwright) y la
+      // regla de hooks lo confunde con el hook `use` de React.
+      "files": ["e2e/**"],
+      "rules": {
+        "react/rules-of-hooks": "off"
+      }
+    }
+  ]
 }
