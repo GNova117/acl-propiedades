@@ -111,8 +111,12 @@
     transition: max-height 0.25s ease;
   }
 
+  /* Alto del menú abierto = lo que quepa en pantalla, con scroll si hace falta:
+     con un tope fijo de 320 px el 8.º enlace («Contacto», al publicar un
+     terreno) quedaba recortado y sin poder tocarse. */
   .site-nav--open {
-    max-height: 320px;
+    max-height: calc(100vh - 72px);
+    overflow-y: auto;
   }
 
   .site-nav ul {

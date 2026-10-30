@@ -64,6 +64,7 @@
 
 .property-detail__price-block-top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.6rem;
 }
@@ -115,7 +116,7 @@
 
 @media (max-width: 640px) {
   .property-detail__header {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .property-detail__price-block {

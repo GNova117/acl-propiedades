@@ -70,13 +70,13 @@
 
 .properties-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 1.5rem;
 }
 
 @media (max-width: 980px) {
   .properties-page__layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -96,6 +96,6 @@
 
 .properties-page__developments-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 380px));
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 380px));
   gap: 1.25rem;
 }

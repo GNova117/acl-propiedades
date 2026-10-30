@@ -3,9 +3,12 @@
   color: var(--color-text-muted);
 }
 
+/* minmax(0, 1fr): con 1fr a secas la columna no baja del ancho mínimo de la
+   tarjeta (~350 px) y empujaba la página de lado en celulares de 360 px y en
+   tabletas (1024 px). */
 .featured-properties__grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.5rem;
 }
 
@@ -17,12 +20,12 @@
 
 @media (max-width: 980px) {
   .featured-properties__grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
   .featured-properties__grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }

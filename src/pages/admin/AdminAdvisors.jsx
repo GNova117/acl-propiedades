@@ -55,7 +55,7 @@ export default function AdminAdvisors() {
             ) : (
               advisors.map((advisor) => (
                 <tr key={advisor.id}>
-                  <td><img src={advisor.photo_url} alt="" /></td>
+                  <td>{advisor.photo_url && <img src={advisor.photo_url} alt="" />}</td>
                   <td>{advisor.name}</td>
                   <td>{advisor.phone}</td>
                   <td>{advisor.email}</td>
