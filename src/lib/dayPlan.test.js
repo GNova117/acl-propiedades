@@ -28,6 +28,37 @@ describe("todayAgenda", () => {
   });
 });
 
+describe("todayAgenda con estatus y duración", () => {
+  it("no muestra las canceladas", () => {
+    const items = todayAgenda([cita("ok", "15:00"), { ...cita("no", "16:00"), status: "cancelada" }], now);
+    expect(items.map((i) => i.cita.id)).toEqual(["ok"]);
+  });
+
+  it("una cita marcada como realizada o 'no asistió' cuenta como terminada aunque aún no pase su hora", () => {
+    const items = todayAgenda([{ ...cita("hecha", "15:00"), status: "realizada" }, { ...cita("falto", "16:00"), status: "no_asistio" }, cita("pendiente", "17:00")], now);
+    expect(items.map((i) => i.state)).toEqual(["past", "past", "next"]);
+  });
+
+  it("usa la duración de la cita: una de 2 h que empezó hace 90 min sigue en curso", () => {
+    expect(todayAgenda([{ ...cita("larga", "10:30"), duracion_min: 120 }], now)[0].state).toBe("now");
+    expect(todayAgenda([cita("normal", "10:30")], now)[0].state).toBe("past"); // una hora por omisión
+  });
+});
+
+describe("buildDayPlan: visitas por confirmar", () => {
+  const web = { id: "w", titulo: "Visita: Casa", source: "sitio", status: "confirmada", fecha: addDaysISO(1), hora: "10:00", client_confirmed_at: null };
+
+  it("trae las reservas del sitio sin confirmar y el día deja de estar libre", () => {
+    const plan = buildDayPlan({ citas: [web], prospects: [], now });
+    expect(plan.toConfirm.map((c) => c.id)).toEqual(["w"]);
+    expect(plan.isEmpty).toBe(false);
+  });
+
+  it("sin nada pendiente el día sigue libre", () => {
+    expect(buildDayPlan({ citas: [{ ...web, client_confirmed_at: "2026-11-01T10:00:00Z" }], prospects: [], now }).isEmpty).toBe(true);
+  });
+});
+
 describe("prospectsToContact", () => {
   const base = { stage: "contactado", next_followup_at: null, last_contact_at: hoursAgo(30), created_at: hoursAgo(100) };
   const unattended = (id, hours) => ({ id, name: id, stage: "nuevo", source: "sitio", last_contact_at: null, next_followup_at: null, created_at: hoursAgo(hours) });

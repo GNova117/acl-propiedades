@@ -11,6 +11,7 @@ import { generateReportToken, REPORT_TOKEN_PATTERN } from "./visitReport";
 import { generatePortalToken, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS, PortalUploadError, blobToBase64 } from "./clientPortal";
 import { getOrCreateVisitorId } from "./visitorId";
 import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } from "./developments";
+import { CITA_STATUSES } from "./agendaCitas";
 import { BOOKING_TOKEN_PATTERN, DEFAULT_VISIT_SETTINGS, hhmm, normalizeVisitSchedule } from "./visitSlots";
 
 // La tabla aún no existe en la base (falta correr su bloque de schema.sql):
@@ -2419,6 +2420,27 @@ export const supabaseBackend = {
   async deleteAgendaCita(id) {
     const { error } = await supabase.from("agenda_citas").delete().eq("id", id);
     if (error) throw error;
+  },
+
+  // Cambia el estatus de una cita desde la Agenda (realizada, no asistió,
+  // cancelada o reactivarla como confirmada). Al cancelar queda quién y por qué;
+  // al reactivar se borra la cancelación. Una cita cancelada libera su horario.
+  async setAgendaCitaStatus(id, status, { reason } = {}) {
+    if (!CITA_STATUSES.includes(status)) throw new Error("Estatus de cita no válido");
+    const cancelling = status === "cancelada";
+    const { data, error } = await supabase
+      .from("agenda_citas")
+      .update({
+        status,
+        cancelled_by: cancelling ? "asesor" : null,
+        cancelled_reason: cancelling ? String(reason ?? "").trim().slice(0, 300) || null : null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
   },
 
   async getAgendaExpedientes(citaId) {

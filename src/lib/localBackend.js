@@ -13,6 +13,7 @@ import { applyPriceChange } from "./propertyBadges";
 import { computeSalesStats } from "./trustStats";
 import { DEVELOPMENTS_SEED } from "./developmentsSeed";
 import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } from "./developments";
+import { CITA_STATUSES } from "./agendaCitas";
 import {
   BOOKING_TOKEN_PATTERN,
   DEFAULT_VISIT_SETTINGS,
@@ -2425,6 +2426,8 @@ export const localBackend = {
       hora: hora || null,
       actividades: actividades?.trim() || null,
       lugar: lugar?.trim() || null,
+      status: "confirmada",
+      source: "admin",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -2446,6 +2449,23 @@ export const localBackend = {
       hora: hora || null,
       actividades: actividades?.trim() || null,
       ...(lugar !== undefined ? { lugar: lugar?.trim() || null } : {}),
+      updated_at: new Date().toISOString(),
+    };
+    writeStore(KEYS.agendaCitas, citas);
+    return citas[idx];
+  },
+
+  async setAgendaCitaStatus(id, status, { reason } = {}) {
+    if (!CITA_STATUSES.includes(status)) throw new Error("Estatus de cita no válido");
+    const citas = readStore(KEYS.agendaCitas, []);
+    const idx = citas.findIndex((c) => c.id === id);
+    if (idx === -1) throw new Error("Cita no encontrada");
+    const cancelling = status === "cancelada";
+    citas[idx] = {
+      ...citas[idx],
+      status,
+      cancelled_by: cancelling ? "asesor" : null,
+      cancelled_reason: cancelling ? String(reason ?? "").trim().slice(0, 300) || null : null,
       updated_at: new Date().toISOString(),
     };
     writeStore(KEYS.agendaCitas, citas);

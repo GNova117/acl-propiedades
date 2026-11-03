@@ -2997,6 +2997,38 @@
   },
   "agenda": {
     "viewToggle": "Agenda view",
+    "statusFilter": "Status",
+    "statusFilters": {
+      "active": "Not cancelled",
+      "pending": "To attend",
+      "cancelled": "Cancelled",
+      "all": "All"
+    },
+    "status": {
+      "confirmada": "Confirmed",
+      "realizada": "Done",
+      "no_asistio": "No-show",
+      "cancelada": "Cancelled"
+    },
+    "statusActions": {
+      "confirmada": "Reactivate",
+      "realizada": "Done",
+      "no_asistio": "No-show",
+      "cancelada": "Cancel appointment"
+    },
+    "fromSite": "Website",
+    "clientConfirmed": "Client confirmed",
+    "clientUnconfirmed": "Attendance not confirmed",
+    "rescheduled_one": "Rescheduled {{count}} time",
+    "rescheduled_other": "Rescheduled {{count}} times",
+    "cancelledBy": {
+      "cliente": "Cancelled by the client",
+      "asesor": "Cancelled by the advisor"
+    },
+    "cancelReasonPrompt": "Why is it being cancelled? (optional — saved on the appointment)",
+    "statusError": "The appointment status could not be changed.",
+    "notifyCancelled": "Appointment cancelled. Do you want to let the client know on WhatsApp?",
+    "cancelledText": "Hi {{name}}, this is {{advisor}} from ACL Propiedades. I'm sorry to tell you we had to cancel your appointment \"{{title}}\" on {{when}}. I'd be happy to reschedule: which day and time work for you?",
     "viewList": "List",
     "viewCalendar": "Calendar",
     "prevMonth": "Previous month",
@@ -3101,7 +3133,16 @@
       "allDay": "Today",
       "logVisit": "Log visit"
     },
+    "confirm": {
+      "today": "today",
+      "tomorrow": "tomorrow",
+      "at": "at",
+      "ask": "Ask to confirm",
+      "whatsappText": "Hi {{name}}, this is {{advisor}} from ACL Propiedades. I'm writing to confirm your visit ({{title}}): {{when}}. Can you confirm you'll be able to attend? If you need to change it, let me know in advance and we'll find another time."
+    },
     "sections": {
+      "confirm": "Visits to confirm",
+      "confirmHint": "Bookings made on the website that the client hasn't confirmed yet (today and the next 2 days). A timely message keeps people from not showing up.",
       "agenda": "Today's appointments",
       "agendaHint": "In time order; the next one is highlighted.",
       "urgent": "Reply now",
@@ -3110,6 +3151,47 @@
       "overdueHint": "A contact was due before today; the most overdue first.",
       "today": "Today's follow-ups",
       "todayHint": "Scheduled for today."
+    }
+  },
+  "visitSchedule": {
+    "title": "Hours for receiving visits",
+    "intro": "Set when you are available. Clients who want to visit one of your properties will only see the free times from this calendar, and their visit goes straight into your Agenda.",
+    "enable": "Let clients book visits online",
+    "disabledHint": "Off: your property pages keep the usual form (someone contacts you to arrange the visit).",
+    "slotMinutes": "Length of each visit",
+    "minutes_one": "{{count}} min",
+    "minutes_other": "{{count}} min",
+    "minNotice": "Minimum notice",
+    "noNotice": "No notice needed",
+    "hours_one": "{{count}} hour",
+    "hours_other": "{{count}} hours",
+    "horizon": "How many days ahead can be booked",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "weekTitle": "Weekly hours",
+    "noService": "Not available",
+    "from": "Start time, {{day}}",
+    "to": "End time, {{day}}",
+    "removeWindow": "Remove this time slot",
+    "addWindow": "+ Add hours",
+    "copyMonday": "Copy Monday's hours to Tuesday–Friday",
+    "timeOffTitle": "Days off",
+    "timeOffHint": "Vacation, errands or any day you won't receive visits. No times are offered on those dates.",
+    "offFrom": "First day off",
+    "offTo": "Last day off",
+    "offReason": "Reason (optional)",
+    "removeOff": "Remove this day off",
+    "addTimeOff": "+ Add days off",
+    "enabledWithoutWindows": "You turned on online visits but have no hours set: nobody will be able to book. Tick at least one day.",
+    "preview_one": "With these hours, a client would see {{count}} free time in the next {{days}} days.",
+    "preview_other": "With these hours, a client would see {{count}} free times in the next {{days}} days.",
+    "saved": "Saved.",
+    "saveError": "The hours could not be saved.",
+    "loadError": "The hours could not be loaded.",
+    "issues": {
+      "invalid_window": "The end time must be after the start time.",
+      "overlap": "Some hours overlap on this day.",
+      "invalid_time_off": "Check your days off: each needs a start and end date, and the end can't be before the start."
     }
   },
   "adCopy": {

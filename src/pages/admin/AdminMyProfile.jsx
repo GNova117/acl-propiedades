@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { whatsappDigits } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
+import VisitScheduleEditor from "../../components/VisitScheduleEditor";
 import "./admin.css";
 
 const EMPTY = { name: "", phone: "", email: "", whatsapp: "", bio: "" };
@@ -18,7 +19,7 @@ const EMPTY = { name: "", phone: "", email: "", whatsapp: "", bio: "" };
 // no ofrecer algo que de todos modos no tendría efecto.
 export default function AdminMyProfile() {
   const { t } = useTranslation();
-  const { advisorId } = useAuth();
+  const { advisorId, hasSection } = useAuth();
 
   const [form, setForm] = useState(EMPTY);
   const [existingPhoto, setExistingPhoto] = useState("");
@@ -153,6 +154,9 @@ export default function AdminMyProfile() {
           {saved && <span className="form-hint">Guardado.</span>}
         </div>
       </form>
+
+      {/* Mismo permiso que la Agenda: las políticas de horarios en Supabase piden el apartado 'agenda'. */}
+      {hasSection("agenda") && <VisitScheduleEditor advisorId={advisorId} />}
     </div>
   );
 }

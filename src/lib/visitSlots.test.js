@@ -6,15 +6,19 @@ import {
   addDays,
   bookingPermissions,
   buildBookingMessage,
+  daysToWeekly,
+  findScheduleIssues,
   generateSlots,
   groupSlotsByDate,
   mergeSlots,
   mexicoParts,
   pickAdvisor,
   samePhone,
+  normalizeVisitSchedule,
   toMinutes,
   validateBookingInput,
   weekdayOf,
+  weeklyToDays,
 } from "./visitSlots";
 
 // Lunes 2026-11-02 08:00 en México (UTC-6, sin horario de verano) = 14:00 UTC.
@@ -237,5 +241,61 @@ describe("buildBookingMessage", () => {
   });
   it("sin código ni nota va más corto", () => {
     expect(buildBookingMessage({ title: "Casa", fecha: "2026-11-05", hora: "09:00" })).toBe("Visita agendada — Casa.\nFecha: jueves, 5 de noviembre de 2026 a las 09:00");
+  });
+});
+
+describe("editor de horarios", () => {
+  it("weeklyToDays agrupa por día y ordena las ventanas; daysToWeekly regresa lunes primero", () => {
+    const days = weeklyToDays([
+      { weekday: 1, start_time: "16:00:00", end_time: "18:00:00" },
+      { weekday: 1, start_time: "09:00", end_time: "13:00" },
+      { weekday: 0, start_time: "10:00", end_time: "12:00" },
+    ]);
+    expect(days[1]).toEqual([
+      { start_time: "09:00", end_time: "13:00" },
+      { start_time: "16:00", end_time: "18:00" },
+    ]);
+    expect(days[2]).toEqual([]);
+    expect(daysToWeekly(days).map((w) => `${w.weekday} ${w.start_time}`)).toEqual(["1 09:00", "1 16:00", "0 10:00"]);
+  });
+
+  it("el horario por omisión no tiene problemas", () => {
+    expect(findScheduleIssues({ weekly: DEFAULT_WEEKLY_SCHEDULE })).toEqual([]);
+  });
+
+  it("detecta ventanas al revés, vacías o empalmadas, y descansos mal puestos", () => {
+    const issues = findScheduleIssues({
+      weekly: [
+        { weekday: 1, start_time: "12:00", end_time: "10:00" },
+        { weekday: 2, start_time: "10:00", end_time: "14:00" },
+        { weekday: 2, start_time: "13:00", end_time: "15:00" },
+        { weekday: 3, start_time: "10:00", end_time: "18:00" },
+        { weekday: 3, start_time: "11:00", end_time: "12:00" },
+        { weekday: 3, start_time: "13:00", end_time: "14:00" },
+        { weekday: 4, start_time: "", end_time: "14:00" },
+        { weekday: 5, start_time: "10:00", end_time: "12:00" },
+        { weekday: 5, start_time: "12:00", end_time: "14:00" }, // pegadas pero sin empalme: válido
+      ],
+      timeOff: [{ fecha_inicio: "2026-11-10", fecha_fin: "2026-11-09" }, { fecha_inicio: "", fecha_fin: "2026-11-09" }, { fecha_inicio: "2026-11-10", fecha_fin: "2026-11-10" }],
+    });
+    expect(issues).toEqual([
+      { code: "invalid_window", weekday: 1 },
+      { code: "overlap", weekday: 2 },
+      { code: "overlap", weekday: 3 },
+      { code: "invalid_window", weekday: 4 },
+      { code: "invalid_time_off", index: 0 },
+      { code: "invalid_time_off", index: 1 },
+    ]);
+  });
+
+  it("normalizeVisitSchedule recorta lo inválido y respeta lo válido", () => {
+    const out = normalizeVisitSchedule({
+      settings: { enabled: 1, slot_minutes: 45, min_notice_hours: -5, horizon_days: 0 },
+      weekly: [{ weekday: 9, start_time: "10:00", end_time: "11:00" }, { weekday: 1, start_time: "10:00:00", end_time: "09:00" }, { weekday: 1, start_time: "10:00:00", end_time: "11:00:00" }],
+      timeOff: [{ fecha_inicio: "2026-11-10", fecha_fin: "2026-11-12", motivo: "  Vacaciones " }, { fecha_inicio: "2026-11-10", fecha_fin: "2026-11-01" }],
+    });
+    expect(out.settings).toEqual({ enabled: true, slot_minutes: 45, min_notice_hours: 0, horizon_days: 1 });
+    expect(out.weekly).toEqual([{ weekday: 1, start_time: "10:00", end_time: "11:00" }]);
+    expect(out.timeOff).toEqual([{ fecha_inicio: "2026-11-10", fecha_fin: "2026-11-12", motivo: "Vacaciones" }]);
   });
 });

@@ -2997,6 +2997,38 @@
   },
   "agenda": {
     "viewToggle": "Vista de la agenda",
+    "statusFilter": "Estatus",
+    "statusFilters": {
+      "active": "Sin canceladas",
+      "pending": "Por atender",
+      "cancelled": "Canceladas",
+      "all": "Todas"
+    },
+    "status": {
+      "confirmada": "Confirmada",
+      "realizada": "Realizada",
+      "no_asistio": "No asistió",
+      "cancelada": "Cancelada"
+    },
+    "statusActions": {
+      "confirmada": "Reactivar",
+      "realizada": "Realizada",
+      "no_asistio": "No asistió",
+      "cancelada": "Cancelar cita"
+    },
+    "fromSite": "Sitio web",
+    "clientConfirmed": "Cliente confirmó",
+    "clientUnconfirmed": "Sin confirmar asistencia",
+    "rescheduled_one": "Reprogramada {{count}} vez",
+    "rescheduled_other": "Reprogramada {{count}} veces",
+    "cancelledBy": {
+      "cliente": "Cancelada por el cliente",
+      "asesor": "Cancelada por el asesor"
+    },
+    "cancelReasonPrompt": "¿Por qué se cancela? (opcional — se guarda en la cita)",
+    "statusError": "No se pudo cambiar el estatus de la cita.",
+    "notifyCancelled": "Cita cancelada. ¿Quieres avisarle al cliente por WhatsApp?",
+    "cancelledText": "Hola {{name}}, soy {{advisor}} de ACL Propiedades. Lamento avisarte que tuvimos que cancelar tu cita \"{{title}}\" del {{when}}. Con gusto la reagendamos: ¿qué día y hora te acomodan?",
     "viewList": "Lista",
     "viewCalendar": "Calendario",
     "prevMonth": "Mes anterior",
@@ -3101,7 +3133,16 @@
       "allDay": "Hoy",
       "logVisit": "Registrar visita"
     },
+    "confirm": {
+      "today": "hoy",
+      "tomorrow": "mañana",
+      "at": "a las",
+      "ask": "Pedir confirmación",
+      "whatsappText": "Hola {{name}}, soy {{advisor}} de ACL Propiedades. Te escribo para confirmar tu visita ({{title}}): {{when}}. ¿Me confirmas que podrás asistir? Si necesitas cambiarla, avísame con tiempo y buscamos otro horario."
+    },
     "sections": {
+      "confirm": "Visitas por confirmar",
+      "confirmHint": "Reservas hechas desde el sitio que el cliente aún no confirma (hoy y los próximos 2 días). Un mensaje a tiempo evita que no lleguen.",
       "agenda": "Citas de hoy",
       "agendaHint": "En orden de hora; la próxima va resaltada.",
       "urgent": "Contesta ya",
@@ -3110,6 +3151,47 @@
       "overdueHint": "Les tocaba un contacto antes de hoy; los más atrasados primero.",
       "today": "Seguimientos de hoy",
       "todayHint": "Programados para hoy."
+    }
+  },
+  "visitSchedule": {
+    "title": "Horario para recibir visitas",
+    "intro": "Define cuándo puedes atender. Los clientes que quieran visitar una de tus propiedades verán solo los horarios libres de este calendario y su visita caerá directo en tu Agenda.",
+    "enable": "Permitir que los clientes agenden visitas en línea",
+    "disabledHint": "Apagado: la ficha de tus propiedades sigue con el formulario de siempre (alguien te contacta para acordar la visita).",
+    "slotMinutes": "Duración de cada visita",
+    "minutes_one": "{{count}} min",
+    "minutes_other": "{{count}} min",
+    "minNotice": "Anticipación mínima",
+    "noNotice": "Sin anticipación",
+    "hours_one": "{{count}} hora",
+    "hours_other": "{{count}} horas",
+    "horizon": "Cuántos días adelante se puede agendar",
+    "days_one": "{{count}} día",
+    "days_other": "{{count}} días",
+    "weekTitle": "Horario semanal",
+    "noService": "No atiendo",
+    "from": "Hora de inicio, {{day}}",
+    "to": "Hora de fin, {{day}}",
+    "removeWindow": "Quitar este horario",
+    "addWindow": "+ Agregar horario",
+    "copyMonday": "Copiar el horario del lunes a martes–viernes",
+    "timeOffTitle": "Días de descanso",
+    "timeOffHint": "Vacaciones, trámites o cualquier día en que no recibas visitas. No se ofrecen horarios en esas fechas.",
+    "offFrom": "Primer día de descanso",
+    "offTo": "Último día de descanso",
+    "offReason": "Motivo (opcional)",
+    "removeOff": "Quitar este descanso",
+    "addTimeOff": "+ Agregar días de descanso",
+    "enabledWithoutWindows": "Activaste las visitas en línea pero no tienes ningún horario: nadie podrá agendar. Marca al menos un día.",
+    "preview_one": "Con este horario, un cliente vería {{count}} horario libre en los próximos {{days}} días.",
+    "preview_other": "Con este horario, un cliente vería {{count}} horarios libres en los próximos {{days}} días.",
+    "saved": "Guardado.",
+    "saveError": "No se pudo guardar el horario.",
+    "loadError": "No se pudo cargar el horario.",
+    "issues": {
+      "invalid_window": "La hora de fin debe ser después de la de inicio.",
+      "overlap": "Hay horarios que se empalman en este día.",
+      "invalid_time_off": "Revisa los días de descanso: cada uno necesita fecha de inicio y de fin, y el fin no puede ser antes del inicio."
     }
   },
   "adCopy": {

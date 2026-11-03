@@ -265,6 +265,54 @@ export function bookingPermissions(cita, now = new Date()) {
   };
 }
 
+// ── Editor de horarios del asesor ──
+
+export const WEEK_DISPLAY_ORDER = [1, 2, 3, 4, 5, 6, 0]; // lunes primero
+
+// [{weekday, start_time, end_time}] → { 0: [...], … , 6: [...] } con las ventanas de cada día.
+export function weeklyToDays(weekly = []) {
+  const days = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+  for (const w of weekly) {
+    if (days[w.weekday]) days[w.weekday].push({ start_time: hhmm(w.start_time), end_time: hhmm(w.end_time) });
+  }
+  for (const list of Object.values(days)) list.sort((a, b) => a.start_time.localeCompare(b.start_time));
+  return days;
+}
+
+export function daysToWeekly(days) {
+  return WEEK_DISPLAY_ORDER.flatMap((weekday) => (days[weekday] || []).map((w) => ({ weekday, start_time: w.start_time, end_time: w.end_time })));
+}
+
+/**
+ * Problemas del horario que impiden guardarlo. Cada uno trae `code` y el día:
+ *  - invalid_window: falta una hora o el fin no es después del inicio;
+ *  - overlap: dos ventanas del mismo día se empalman;
+ *  - invalid_time_off: un descanso sin fechas o con el fin antes del inicio.
+ */
+export function findScheduleIssues({ weekly = [], timeOff = [] } = {}) {
+  const issues = [];
+  const days = weeklyToDays(weekly);
+  for (const weekday of WEEK_DISPLAY_ORDER) {
+    const windows = days[weekday];
+    if (windows.some((w) => !(toMinutes(w.end_time) > toMinutes(w.start_time)))) {
+      issues.push({ code: "invalid_window", weekday });
+      continue;
+    }
+    let latestEnd = -1;
+    for (const w of windows) {
+      if (toMinutes(w.start_time) < latestEnd) {
+        issues.push({ code: "overlap", weekday });
+        break;
+      }
+      latestEnd = Math.max(latestEnd, toMinutes(w.end_time));
+    }
+  }
+  timeOff.forEach((o, index) => {
+    if (!o.fecha_inicio || !o.fecha_fin || o.fecha_fin < o.fecha_inicio) issues.push({ code: "invalid_time_off", index });
+  });
+  return issues;
+}
+
 // Texto con el que queda registrada la visita en el inbox de Mensajes.
 export function buildBookingMessage({ title, code, fecha, hora, note }) {
   const label = code ? `${String(title).trim()} (${code})` : String(title).trim();

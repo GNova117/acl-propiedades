@@ -6,6 +6,7 @@ import { formatMXN, propertyTypeLabel } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
 import { isBackupStale } from "../../lib/backup";
 import { OPEN_STAGES } from "../../lib/prospects";
+import { activeCitas } from "../../lib/agendaCitas";
 import PendingToday from "../../components/PendingToday";
 import "./admin.css";
 
@@ -116,7 +117,7 @@ export default function AdminDashboard() {
 
   const todayCitas = useMemo(() => {
     const today = new Date().toLocaleDateString("en-CA");
-    return citas
+    return activeCitas(citas)
       .filter((c) => c.fecha === today)
       .slice()
       .sort((a, b) => (a.hora || "").localeCompare(b.hora || ""));
