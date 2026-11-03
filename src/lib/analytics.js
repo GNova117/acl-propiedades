@@ -43,3 +43,11 @@ export function trackException(error) {
     fatal: true,
   });
 }
+
+// Eventos de conversión (p. ej. "visit_booked" al agendar una visita). Igual que
+// trackPageview: sin GA configurado (demo, desarrollo) no hace nada. Solo se
+// mandan datos que no identifican a la persona (nunca nombre, correo ni teléfono).
+export function trackEvent(name, params = {}) {
+  if (!GA_ID || typeof window.gtag !== "function") return;
+  window.gtag("event", name, params);
+}

@@ -3,3 +3,151 @@
   margin-top: 1.25rem;
   padding: 1.25rem 1.5rem;
 }
+
+/* ── Reserva con horarios reales (VisitBooking) ── */
+.visit-booking {
+  position: relative;
+}
+
+.visit-booking__step {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.visit-booking__step:first-child {
+  margin-top: 0.25rem;
+}
+
+.visit-booking__days {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.4rem;
+  scroll-snap-type: x proximity;
+}
+
+.visit-booking__day {
+  flex: 0 0 auto;
+  min-width: 3.9rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.05rem;
+  padding: 0.5rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+  scroll-snap-align: start;
+}
+
+.visit-booking__day strong {
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.visit-booking__weekday,
+.visit-booking__month {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+}
+
+.visit-booking__times {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.6rem, 1fr));
+  gap: 0.5rem;
+}
+
+.visit-booking__time {
+  padding: 0.55rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.visit-booking__day:hover,
+.visit-booking__time:hover {
+  border-color: var(--color-primary);
+}
+
+.visit-booking__day:focus-visible,
+.visit-booking__time:focus-visible,
+.visit-booking__link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.visit-booking__day.is-selected,
+.visit-booking__time.is-selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.visit-booking__day.is-selected .visit-booking__weekday,
+.visit-booking__day.is-selected .visit-booking__month {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.visit-booking__summary {
+  margin: 0.9rem 0 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-alt);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.visit-booking__alt {
+  margin: 0.75rem 0 0;
+  text-align: center;
+}
+
+.visit-booking__link {
+  background: none;
+  border: 0;
+  padding: 0.25rem;
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.visit-booking__done-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  color: var(--color-success);
+}
+
+.visit-booking__when {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* Solo la primera letra ("Miércoles, 4 de noviembre · 3:00 p. m."): capitalize
+   pondría también "De" y "P. M." en mayúscula. */
+.visit-booking__when::first-letter {
+  text-transform: uppercase;
+}
+
+.visit-booking__done-line {
+  margin: 0 0 0.25rem;
+}
+
+.visit-booking__done-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0 0.75rem;
+}

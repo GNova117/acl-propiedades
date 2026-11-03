@@ -484,14 +484,44 @@
   },
   "scheduleVisit": {
     "title": "¿Quieres visitarla?",
-    "subtitle": "Propón un día y un asesor te confirma la cita.",
+    "subtitle": "Agenda una visita y conoce la propiedad con un asesor de ACL.",
     "cta": "Agendar visita",
     "date": "Fecha preferida",
     "time": "Hora preferida",
     "note": "Nota (opcional)",
     "notePlaceholder": "Ej. Solo puedo por la tarde",
     "submit": "Enviar solicitud",
-    "success": "¡Listo! Un asesor te contactará para confirmar la visita."
+    "success": "¡Listo! Un asesor te contactará para confirmar la visita.",
+    "booking": {
+      "loading": "Buscando horarios disponibles…",
+      "chooseDay": "Elige el día",
+      "chooseTime": "Elige la hora",
+      "selected": "Tu visita: {{when}}",
+      "yourData": "Tus datos",
+      "notePlaceholder": "Ej. Voy con mi esposo y mis dos hijos",
+      "confirm": "Confirmar visita",
+      "confirming": "Agendando…",
+      "pickSlot": "Elige un día y una hora para continuar.",
+      "requestInstead": "¿Prefieres otro día u hora? Envía una solicitud",
+      "backToSlots": "← Ver horarios disponibles",
+      "eventPrefix": "Visita",
+      "doneTitle": "¡Tu visita está agendada!",
+      "withAdvisor": "Te atiende {{name}}.",
+      "addToCalendar": "Agregar a mi calendario",
+      "directions": "Cómo llegar",
+      "whatsapp": "Escribir por WhatsApp",
+      "changeHint": "¿Necesitas cambiarla o cancelarla? Escríbenos por WhatsApp con al menos 2 horas de anticipación.",
+      "whatsappText": "Hola, agendé una visita a {{property}} para {{when}}. Soy {{name}}.",
+      "errors": {
+        "slotTaken": "Ese horario se acaba de ocupar. Elige otro, por favor.",
+        "rateLimited": "Hiciste varios intentos seguidos. Espera un poco e inténtalo de nuevo.",
+        "tooManyActive": "Ya tienes 2 visitas agendadas con este teléfono. Cuando pase una podrás agendar otra, o escríbenos por WhatsApp.",
+        "propertyUnavailable": "Esta propiedad ya no está disponible para visitas.",
+        "invalidPhone": "Escribe un teléfono de 10 dígitos.",
+        "invalidNote": "La nota es demasiado larga (máximo 500 caracteres).",
+        "generic": "No se pudo agendar la visita. Intenta de nuevo."
+      }
+    }
   },
   "compare": {
     "title": "Comparar propiedades",

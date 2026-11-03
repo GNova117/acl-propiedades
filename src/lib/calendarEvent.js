@@ -47,7 +47,7 @@ export const DEFAULT_DURATION_MINUTES = 60;
 // Avisos antes de una cita con hora (minutos); en una cita sin hora, a las 9:00 del mismo día.
 export const ALARM_MINUTES = [60, 15];
 
-// `cita`: fila de agenda_citas ({ id, titulo, fecha "YYYY-MM-DD", hora "HH:MM[:SS]" | null, lugar, actividades }).
+// `cita`: fila de agenda_citas ({ id, titulo, fecha "YYYY-MM-DD", hora "HH:MM[:SS]" | null, duracion_min, lugar, actividades }).
 // `extra`: { clientName, clientPhone, advisorName } para armar la descripción.
 export function citaToIcs(cita, { clientName = "", clientPhone = "", advisorName = "", now = new Date() } = {}) {
   const [y, m, d] = String(cita.fecha).split("-").map(Number);
@@ -65,7 +65,8 @@ export function citaToIcs(cita, { clientName = "", clientPhone = "", advisorName
 
   const lines = ["BEGIN:VEVENT", `UID:${cita.id}@aclpropiedades`, `DTSTAMP:${stamp(now)}`];
   if (timed) {
-    lines.push(`DTSTART:${localStamp(start)}`, `DTEND:${localStamp(new Date(start.getTime() + DEFAULT_DURATION_MINUTES * 60000))}`);
+    const minutes = Number(cita.duracion_min) > 0 ? Number(cita.duracion_min) : DEFAULT_DURATION_MINUTES;
+    lines.push(`DTSTART:${localStamp(start)}`, `DTEND:${localStamp(new Date(start.getTime() + minutes * 60000))}`);
   } else {
     lines.push(`DTSTART;VALUE=DATE:${dateOnly(start)}`, `DTEND;VALUE=DATE:${dateOnly(new Date(y, m - 1, d + 1))}`);
   }

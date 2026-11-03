@@ -220,14 +220,22 @@ export function pickAdvisor(candidateIds, citas, date) {
 
 // Datos que captura el visitante. Devuelve el código de error o null. Los
 // mismos códigos que regresa book_visit() en SQL.
-export function validateBookingInput({ name, email, phone, note } = {}) {
+export function validateBookingInput(input = {}) {
+  const errors = bookingFieldErrors(input);
+  return errors.name || errors.email || errors.phone || errors.note || null;
+}
+
+// Igual que validateBookingInput pero con TODOS los campos inválidos a la vez
+// ({ name?, email?, phone?, note? } → código): la pantalla los marca juntos.
+export function bookingFieldErrors({ name, email, phone, note } = {}) {
+  const errors = {};
   const cleanName = String(name ?? "").trim();
-  if (!cleanName || cleanName.length > 120) return "invalid_name";
-  if (!EMAIL_RE.test(String(email ?? "").trim())) return "invalid_email";
+  if (!cleanName || cleanName.length > 120) errors.name = "invalid_name";
+  if (!EMAIL_RE.test(String(email ?? "").trim())) errors.email = "invalid_email";
   const digits = phoneDigits(phone);
-  if (digits.length < 10 || digits.length > 15) return "invalid_phone";
-  if (String(note ?? "").length > 500) return "invalid_note";
-  return null;
+  if (digits.length < 10 || digits.length > 15) errors.phone = "invalid_phone";
+  if (String(note ?? "").length > 500) errors.note = "invalid_note";
+  return errors;
 }
 
 export function phoneDigits(phone) {

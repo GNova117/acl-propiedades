@@ -508,7 +508,7 @@ export default function PropertyDetail() {
           </div>
 
           <aside className="property-detail__sidebar">
-            <ScheduleVisitCard property={property} />
+            <ScheduleVisitCard key={property.id} property={property} />
           </aside>
         </div>
 

@@ -484,14 +484,44 @@
   },
   "scheduleVisit": {
     "title": "Want to visit it?",
-    "subtitle": "Suggest a day and an advisor will confirm the appointment.",
+    "subtitle": "Book a visit and see the property with an ACL advisor.",
     "cta": "Schedule a visit",
     "date": "Preferred date",
     "time": "Preferred time",
     "note": "Note (optional)",
     "notePlaceholder": "E.g. Afternoons only",
     "submit": "Send request",
-    "success": "Done! An advisor will contact you to confirm the visit."
+    "success": "Done! An advisor will contact you to confirm the visit.",
+    "booking": {
+      "loading": "Looking for available times…",
+      "chooseDay": "Choose the day",
+      "chooseTime": "Choose the time",
+      "selected": "Your visit: {{when}}",
+      "yourData": "Your details",
+      "notePlaceholder": "E.g. I'm coming with my husband and two kids",
+      "confirm": "Confirm visit",
+      "confirming": "Booking…",
+      "pickSlot": "Choose a day and a time to continue.",
+      "requestInstead": "Prefer another day or time? Send a request",
+      "backToSlots": "← See available times",
+      "eventPrefix": "Visit",
+      "doneTitle": "Your visit is booked!",
+      "withAdvisor": "{{name}} will take care of you.",
+      "addToCalendar": "Add to my calendar",
+      "directions": "Get directions",
+      "whatsapp": "Message us on WhatsApp",
+      "changeHint": "Need to change or cancel it? Message us on WhatsApp at least 2 hours ahead.",
+      "whatsappText": "Hi, I booked a visit to {{property}} for {{when}}. I'm {{name}}.",
+      "errors": {
+        "slotTaken": "That time was just taken. Please choose another one.",
+        "rateLimited": "You made several attempts in a row. Please wait a moment and try again.",
+        "tooManyActive": "You already have 2 visits booked with this phone number. Once one has passed you can book another, or message us on WhatsApp.",
+        "propertyUnavailable": "This property is no longer available for visits.",
+        "invalidPhone": "Enter a 10-digit phone number.",
+        "invalidNote": "The note is too long (500 characters maximum).",
+        "generic": "The visit could not be booked. Please try again."
+      }
+    }
   },
   "compare": {
     "title": "Compare properties",

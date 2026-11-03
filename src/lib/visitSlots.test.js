@@ -3,6 +3,7 @@ import {
   DEFAULT_VISIT_SETTINGS,
   DEFAULT_WEEKLY_SCHEDULE,
   activeBookingsForPhone,
+  bookingFieldErrors,
   addDays,
   bookingPermissions,
   buildBookingMessage,
@@ -181,6 +182,19 @@ describe("validateBookingInput", () => {
     expect(validateBookingInput({ ...ok, email: "ana@" })).toBe("invalid_email");
     expect(validateBookingInput({ ...ok, phone: "12345" })).toBe("invalid_phone");
     expect(validateBookingInput({ ...ok, note: "x".repeat(501) })).toBe("invalid_note");
+  });
+});
+
+describe("bookingFieldErrors", () => {
+  it("devuelve todos los campos inválidos juntos y nada si todo está bien", () => {
+    expect(bookingFieldErrors({ name: "", email: "x", phone: "1", note: "x".repeat(501) })).toEqual({
+      name: "invalid_name",
+      email: "invalid_email",
+      phone: "invalid_phone",
+      note: "invalid_note",
+    });
+    expect(bookingFieldErrors({ name: "Ana", email: "a@b.co", phone: "871 123 4567" })).toEqual({});
+    expect(bookingFieldErrors({ name: "Ana", email: "a@b.co", phone: "123" })).toEqual({ phone: "invalid_phone" });
   });
 });
 
