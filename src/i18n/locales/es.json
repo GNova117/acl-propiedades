@@ -3064,6 +3064,7 @@
     "cancelReasonPrompt": "¿Por qué se cancela? (opcional — se guarda en la cita)",
     "statusError": "No se pudo cambiar el estatus de la cita.",
     "notifyCancelled": "Cita cancelada. ¿Quieres avisarle al cliente por WhatsApp?",
+    "notifyCancelledEmailed": "Cita cancelada. Le mandamos un correo al cliente con el aviso. ¿Quieres avisarle también por WhatsApp?",
     "cancelledText": "Hola {{name}}, soy {{advisor}} de ACL Propiedades. Lamento avisarte que tuvimos que cancelar tu cita \"{{title}}\" del {{when}}. Con gusto la reagendamos: ¿qué día y hora te acomodan?",
     "viewList": "Lista",
     "viewCalendar": "Calendario",

@@ -3064,6 +3064,7 @@
     "cancelReasonPrompt": "Why is it being cancelled? (optional — saved on the appointment)",
     "statusError": "The appointment status could not be changed.",
     "notifyCancelled": "Appointment cancelled. Do you want to let the client know on WhatsApp?",
+    "notifyCancelledEmailed": "Appointment cancelled. We emailed the client about it. Do you also want to let them know on WhatsApp?",
     "cancelledText": "Hi {{name}}, this is {{advisor}} from ACL Propiedades. I'm sorry to tell you we had to cancel your appointment \"{{title}}\" on {{when}}. I'd be happy to reschedule: which day and time work for you?",
     "viewList": "List",
     "viewCalendar": "Calendar",

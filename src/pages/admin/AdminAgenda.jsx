@@ -122,7 +122,10 @@ export default function AdminAgenda() {
     setBusyId(null);
     if (status === "cancelada") {
       const contact = contactOf(cita);
-      if (contact.phone && window.confirm(t("agenda.notifyCancelled"))) {
+      // Una visita reservada desde el sitio con correo: el cliente ya recibe el aviso por correo (trigger
+      // notify_visit_email); aquí solo se ofrece, además, avisarle por WhatsApp.
+      const emailed = isFromSite(cita) && contact.email;
+      if (contact.phone && window.confirm(t(emailed ? "agenda.notifyCancelledEmailed" : "agenda.notifyCancelled"))) {
         openWhatsApp(contact.phone, t("agenda.cancelledText", { name: contact.name.split(/\s+/)[0], title: cita.titulo, when: whenLabel(cita), advisor: advisorName(cita.advisor_id) }));
       }
     }
