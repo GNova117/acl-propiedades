@@ -64,7 +64,10 @@ function FitBounds({ properties }) {
   useEffect(() => {
     if (properties.length === 0) return;
     const bounds = L.latLngBounds(properties.map((p) => [p.lat, p.lng]));
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+    // Sin animación: el ajuste inicial no la necesita, y si el mapa se desmonta (p. ej. al volver al
+    // listado) mientras la animación sigue, Leaflet toca un panel ya destruido y lanza
+    // "Cannot read properties of undefined (reading '_leaflet_pos')".
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14, animate: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [properties]);
   return null;
