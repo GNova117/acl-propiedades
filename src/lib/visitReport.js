@@ -50,6 +50,8 @@ export const emptyVisitForm = (overrides = {}) => ({
   potential_client: false,
   prospect_phone: "",
   looking_for: "",
+  // La cita de la Agenda de la que sale esta visita (fase 6); vacío si se registra a mano.
+  cita_id: "",
   ...overrides,
 });
 
@@ -66,6 +68,7 @@ export function visitToForm(visit) {
     potential_client: Boolean(visit.potential_client),
     prospect_phone: visit.prospect_phone || "",
     looking_for: visit.looking_for || "",
+    cita_id: visit.cita_id || "",
   };
 }
 
@@ -120,6 +123,8 @@ export function toVisitFields(form) {
     potential_client: Boolean(form.potential_client),
     prospect_phone: form.potential_client ? form.prospect_phone.trim() || null : null,
     looking_for: form.potential_client ? form.looking_for.trim() || null : null,
+    // Solo si viene de una cita: así guardar una visita no depende de que la columna cita_id ya exista.
+    ...(form.cita_id ? { cita_id: form.cita_id } : {}),
   };
 }
 

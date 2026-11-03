@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
 import { whatsappDigits } from "../../lib/format";
 import { citaToIcs, downloadIcs, mapsUrl } from "../../lib/calendarEvent";
-import { citaContact, citaStatus, isFromSite, isPending, statusActions } from "../../lib/agendaCitas";
+import { canRegisterVisit, citaContact, citaStatus, citaToVisitPrefill, isFromSite, isPending, statusActions } from "../../lib/agendaCitas";
 import { formatIsoDate } from "../../lib/propertyLog";
 import "./admin.css";
 import "./AdminAgenda.css";
@@ -46,7 +46,9 @@ const MAX_CHIPS_PER_DAY = 3;
 // selector de asesor para poder acotar la vista).
 export default function AdminAgenda() {
   const { t, i18n } = useTranslation();
-  const { advisorId } = useAuth();
+  const { advisorId, hasSection } = useAuth();
+  const navigate = useNavigate();
+  const [visits, setVisits] = useState([]);
   const [citas, setCitas] = useState([]);
   const [advisors, setAdvisors] = useState([]);
   const [clients, setClients] = useState([]);
@@ -65,7 +67,9 @@ export default function AdminAgenda() {
 
   const load = () => {
     setLoading(true);
-    Promise.all([db.getAgendaCitas(), db.getAdvisors(), db.getClients(), db.getProperties({}).catch(() => [])]).then(([citasData, advisorData, clientData, propertyData]) => {
+    // Las visitas registradas (para saber qué citas ya tienen la suya) solo se piden con el apartado Visitas.
+    Promise.all([db.getAgendaCitas(), db.getAdvisors(), db.getClients(), db.getProperties({}).catch(() => []), hasSection("visitas") ? db.getVisits().catch(() => []) : []]).then(([citasData, advisorData, clientData, propertyData, visitData]) => {
+      setVisits(visitData);
       setCitas(citasData);
       setAdvisors(advisorData);
       setClients(clientData);
@@ -74,6 +78,7 @@ export default function AdminAgenda() {
     });
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(load, []);
 
   const handleDelete = async (id) => {
@@ -120,6 +125,11 @@ export default function AdminAgenda() {
       return;
     }
     setBusyId(null);
+    // Al cerrar una visita como realizada se ofrece registrarla (así alimenta el informe de la propiedad).
+    if (status === "realizada" && canLogVisits && canRegisterVisit(cita) && !visitByCita.has(cita.id) && window.confirm(t("agenda.registerVisitPrompt"))) {
+      registerVisit(cita);
+      return;
+    }
     if (status === "cancelada") {
       const contact = contactOf(cita);
       // Una visita reservada desde el sitio con correo: el cliente ya recibe el aviso por correo (trigger
@@ -138,6 +148,13 @@ export default function AdminAgenda() {
     const content = citaToIcs(cita, { clientName: client?.name, clientPhone: client?.phone, advisorName: advisorName(cita.advisor_id) });
     downloadIcs(`cita-${cita.fecha}.ics`, content);
   };
+
+  // Visita ya registrada de cada cita (agenda_citas ↔ property_visits.cita_id).
+  const visitByCita = new Map(visits.filter((v) => v.cita_id).map((v) => [v.cita_id, v]));
+  const canLogVisits = hasSection("visitas");
+  // "Registrar visita": abre el formulario ya prellenado con los datos de la cita.
+  const registerVisit = (cita) =>
+    navigate("/admin/visitas/nueva", { state: { from: "/admin/agenda", prefill: citaToVisitPrefill(cita, clients.find((c) => c.id === cita.client_id) || null) } });
 
   const propertyOf = (id) => (id ? properties.find((p) => p.id === id) || null : null);
 
@@ -280,6 +297,15 @@ export default function AdminAgenda() {
                           </a>
                         </div>
                       )}
+                      {(visitByCita.has(cita.id) || (cita.prospecto_id && hasSection("prospectos"))) && (
+                        <div className="form-hint">
+                          {visitByCita.has(cita.id) && (
+                            <Link to={`/admin/visitas/${visitByCita.get(cita.id).id}`}>✔ {t("agenda.visitRegistered")}</Link>
+                          )}
+                          {visitByCita.has(cita.id) && cita.prospecto_id && hasSection("prospectos") && " · "}
+                          {cita.prospecto_id && hasSection("prospectos") && <Link to={`/admin/prospectos/${cita.prospecto_id}`}>{t("agenda.viewProspect")}</Link>}
+                        </div>
+                      )}
                       {cita.lugar && (
                         <div className="form-hint">
                           📍 {cita.lugar} ·{" "}
@@ -308,6 +334,11 @@ export default function AdminAgenda() {
                       {contact.phone && status === "confirmada" && (
                         <button type="button" className="btn btn-outline btn-sm" onClick={() => remind(cita)}>
                           {t("agenda.remindClient")}
+                        </button>
+                      )}
+                      {status === "realizada" && canLogVisits && canRegisterVisit(cita) && !visitByCita.has(cita.id) && (
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => registerVisit(cita)}>
+                          {t("agenda.registerVisit")}
                         </button>
                       )}
                       {statusActions(cita).map((next) => (

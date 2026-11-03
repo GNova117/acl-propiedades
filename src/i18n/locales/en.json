@@ -1567,6 +1567,7 @@
       "onlyPotential": "Potential clients only ({{count}})"
     },
     "form": {
+      "fromCita": "This visit comes from an appointment in the Agenda. Saving it marks the appointment as done and updates the prospect.",
       "newTitle": "Log a visit",
       "editTitle": "Edit visit",
       "property": "Property visited",
@@ -1862,6 +1863,7 @@
       "perdido": "Lost"
     },
     "sources": {
+    "visita_agendada": "Visit booked on the site",
       "alerta": "Property alert",
       "comparador": "Credit comparison",
       "simulador": "Credit simulator",
@@ -2366,6 +2368,28 @@
     }
   },
   "funnel": {
+    "visits": {
+      "title": "Visits booked on the site",
+      "hint": "Bookings made on property pages during the chosen period. Attendance only counts visits that are already closed (done or no-show).",
+      "empty": "There are no website bookings in this period yet.",
+      "booked": "Booked",
+      "upcomingHint_one": "{{count}} upcoming",
+      "upcomingHint_other": "{{count}} upcoming",
+      "attendance": "Attendance",
+      "attendanceHint": "{{attended}} of {{closed}} closed visits",
+      "noClosed": "No closed visits yet",
+      "noShow": "No-shows",
+      "cancelled": "Cancelled",
+      "cancelledHint": "{{pct}} % of bookings · {{client}} client, {{advisor}} advisor",
+      "leadDays": "Days of notice",
+      "rescheduledHint_one": "{{count}} rescheduled",
+      "rescheduledHint_other": "{{count}} rescheduled",
+      "colAttended": "Attended",
+      "toClose_one": "{{count}} visit already took place and nobody closed it: attendance leaves out unclosed visits.",
+      "toClose_other": "{{count}} visits already took place and nobody closed them: attendance leaves out unclosed visits.",
+      "toCloseLink": "Close them in My day",
+      "confirmInsight": "Attendance of those who confirmed: {{confirmed}} % · of those who didn't: {{unconfirmed}} %."
+    },
     "title": "Funnel statistics",
     "subtitle": "How your prospects move from one stage to the next, how long they take to close and why they are lost.",
     "period": "Period",
@@ -3033,6 +3057,10 @@
   },
   "agenda": {
     "viewToggle": "Agenda view",
+    "registerVisit": "Log visit",
+    "visitRegistered": "Visit logged",
+    "viewProspect": "View prospect",
+    "registerVisitPrompt": "Appointment marked as done. Do you want to log the visit now? The form opens already filled in, so it shows up in the property report.",
     "statusFilter": "Status",
     "statusFilters": {
       "active": "Not cancelled",
@@ -3177,7 +3205,15 @@
       "ask": "Ask to confirm",
       "whatsappText": "Hi {{name}}, this is {{advisor}} from ACL Propiedades. I'm writing to confirm your visit ({{title}}): {{when}}. Can you confirm you'll be able to attend? If you need to change it, let me know in advance and we'll find another time."
     },
+    "close": {
+      "done": "Done",
+      "noShow": "No-show",
+      "register": "Log visit",
+      "error": "The appointment could not be updated."
+    },
     "sections": {
+      "close": "Visits to close",
+      "closeHint": "They already took place and nobody marked them (last 7 days). Close them so the attendance metrics add up.",
       "confirm": "Visits to confirm",
       "confirmHint": "Bookings made on the website that the client hasn't confirmed yet (today and the next 2 days). A timely message keeps people from not showing up.",
       "agenda": "Today's appointments",

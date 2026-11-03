@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
 import { computeFunnel } from "../../lib/funnelStats";
+import { computeVisitBookingStats } from "../../lib/visitBookingStats";
 import "./admin.css";
 import "./AdminFunnel.css";
 
@@ -14,8 +16,10 @@ const PERIODS = [30, 90, 365, 0];
 // todo y puede filtrar por asesor. Los números salen de funnelStats.js (pura).
 export default function AdminFunnel() {
   const { t } = useTranslation();
-  const { advisorId } = useAuth();
+  const { advisorId, hasSection } = useAuth();
   const seesAll = advisorId == null;
+  const canAgenda = hasSection("agenda");
+  const [citas, setCitas] = useState([]);
   const [prospects, setProspects] = useState([]);
   const [history, setHistory] = useState([]);
   const [advisors, setAdvisors] = useState([]);
@@ -25,11 +29,13 @@ export default function AdminFunnel() {
   const [advisorFilter, setAdvisorFilter] = useState("");
 
   useEffect(() => {
-    Promise.all([db.getProspects(), db.getProspectStageHistory(), db.getAdvisors().catch(() => [])])
-      .then(([p, h, a]) => {
+    // Las visitas reservadas desde el sitio salen de la Agenda: solo se piden con ese apartado.
+    Promise.all([db.getProspects(), db.getProspectStageHistory(), db.getAdvisors().catch(() => []), canAgenda ? db.getAgendaCitas().catch(() => []) : []])
+      .then(([p, h, a, c]) => {
         setProspects(p);
         setHistory(h);
         setAdvisors(a);
+        setCitas(c);
       })
       .catch((err) => setError(err.message || t("funnel.loadError")))
       .finally(() => setLoading(false));
@@ -40,6 +46,8 @@ export default function AdminFunnel() {
     const filtered = advisorFilter ? prospects.filter((p) => p.advisor_id === advisorFilter) : prospects;
     return computeFunnel({ prospects: filtered, history, periodDays: period || null });
   }, [prospects, history, period, advisorFilter]);
+
+  const visitStats = useMemo(() => computeVisitBookingStats(citas, { periodDays: period || null, advisorId: advisorFilter || null }), [citas, period, advisorFilter]);
 
   const advisorName = (id) => advisors.find((a) => a.id === id)?.name || t("funnel.noAdvisor");
   const num = (n) => new Intl.NumberFormat("es-MX", { maximumFractionDigits: 1 }).format(n);
@@ -234,6 +242,83 @@ export default function AdminFunnel() {
           </div>
           <p className="form-hint">{t("funnel.historyNote")}</p>
         </>
+      )}
+
+      {canAgenda && !loading && (
+        <section className="funnel-visits" aria-labelledby="funnel-visits-title">
+          <h2 id="funnel-visits-title">{t("funnel.visits.title")}</h2>
+          <p className="form-hint">{t("funnel.visits.hint")}</p>
+          {visitStats.booked === 0 ? (
+            <p className="form-hint">{t("funnel.visits.empty")}</p>
+          ) : (
+            <>
+              <div className="funnel-kpis">
+                <div className="card funnel-kpi">
+                  <strong>{visitStats.booked}</strong>
+                  <span>{t("funnel.visits.booked")}</span>
+                  <small>{t("funnel.visits.upcomingHint", { count: visitStats.upcoming })}</small>
+                </div>
+                <div className="card funnel-kpi funnel-kpi--accent">
+                  <strong>{visitStats.attendanceRate == null ? "—" : `${num(visitStats.attendanceRate)} %`}</strong>
+                  <span>{t("funnel.visits.attendance")}</span>
+                  <small>{visitStats.closed === 0 ? t("funnel.visits.noClosed") : t("funnel.visits.attendanceHint", { attended: visitStats.attended, closed: visitStats.closed })}</small>
+                </div>
+                <div className="card funnel-kpi">
+                  <strong>{visitStats.noShow}</strong>
+                  <span>{t("funnel.visits.noShow")}</span>
+                </div>
+                <div className="card funnel-kpi">
+                  <strong>{visitStats.cancelled}</strong>
+                  <span>{t("funnel.visits.cancelled")}</span>
+                  <small>{t("funnel.visits.cancelledHint", { pct: num(visitStats.cancellationRate ?? 0), client: visitStats.cancelledByClient, advisor: visitStats.cancelledByAdvisor })}</small>
+                </div>
+                <div className="card funnel-kpi">
+                  <strong>{visitStats.avgLeadDays == null ? "—" : num(visitStats.avgLeadDays)}</strong>
+                  <span>{t("funnel.visits.leadDays")}</span>
+                  <small>{t("funnel.visits.rescheduledHint", { count: visitStats.rescheduled })}</small>
+                </div>
+              </div>
+
+              {visitStats.toClose > 0 && (
+                <p className="funnel-visits__warn" role="status">
+                  {t("funnel.visits.toClose", { count: visitStats.toClose })} <Link to="/admin/mi-dia">{t("funnel.visits.toCloseLink")}</Link>
+                </p>
+              )}
+              {visitStats.attendanceConfirmed != null && visitStats.attendanceUnconfirmed != null && (
+                <p className="form-hint">{t("funnel.visits.confirmInsight", { confirmed: num(visitStats.attendanceConfirmed), unconfirmed: num(visitStats.attendanceUnconfirmed) })}</p>
+              )}
+
+              {seesAll && !advisorFilter && visitStats.byAdvisor.length > 1 && (
+                <div className="card admin-table-wrapper">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>{t("funnel.advisor")}</th>
+                        <th>{t("funnel.visits.booked")}</th>
+                        <th>{t("funnel.visits.colAttended")}</th>
+                        <th>{t("funnel.visits.noShow")}</th>
+                        <th>{t("funnel.visits.cancelled")}</th>
+                        <th>{t("funnel.visits.attendance")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visitStats.byAdvisor.map((row) => (
+                        <tr key={row.advisorId || "none"}>
+                          <td>{advisorName(row.advisorId)}</td>
+                          <td>{row.booked}</td>
+                          <td>{row.attended}</td>
+                          <td>{row.noShow}</td>
+                          <td>{row.cancelled}</td>
+                          <td>{row.attendanceRate == null ? "—" : `${num(row.attendanceRate)} %`}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
+        </section>
       )}
     </div>
   );

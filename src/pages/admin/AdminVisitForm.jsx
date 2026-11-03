@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams, useSearchParams } from "reac
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
+import { closeLoopAfterVisit } from "../../lib/visitProspect";
 import {
   REJECTION_REASONS,
   VISIT_INTERESTS,
@@ -27,13 +28,18 @@ export default function AdminVisitForm() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { advisorId } = useAuth();
+  const { advisorId, hasSection } = useAuth();
   const isEdit = Boolean(id);
   const presetProperty = searchParams.get("propiedad") || "";
+  // Desde una cita de la Agenda ("Realizada" → "Registrar visita", o "Registrar visita" en Mi día) llega
+  // el formulario ya prellenado: propiedad, asesor, fecha y hora, y nombre y teléfono de quien visitó.
+  const prefill = !isEdit ? location.state?.prefill || null : null;
 
   const [properties, setProperties] = useState([]);
   const [advisors, setAdvisors] = useState([]);
-  const [form, setForm] = useState(() => emptyVisitForm({ property_id: presetProperty, advisor_id: advisorId || "" }));
+  const [form, setForm] = useState(() =>
+    emptyVisitForm({ property_id: presetProperty, advisor_id: advisorId || "", ...(prefill ? { ...prefill, advisor_id: advisorId || prefill.advisor_id || "" } : {}) })
+  );
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -90,7 +96,11 @@ export default function AdminVisitForm() {
     try {
       const fields = toVisitFields(form);
       if (isEdit) await db.updateVisit(id, fields);
-      else await db.addVisit(fields);
+      else {
+        const saved = await db.addVisit(fields);
+        // Si salió de una cita: se marca como realizada y se actualiza al prospecto ligado (mejor esfuerzo).
+        if (form.cita_id) await closeLoopAfterVisit(db, saved, form.cita_id, { agenda: hasSection("agenda"), prospectos: hasSection("prospectos") });
+      }
       // Si se llegó desde el informe de una propiedad se regresa al de la propiedad
       // que quedó guardada (pudo cambiarse en el formulario).
       navigate(location.state?.from || (presetProperty ? `/admin/visitas/propiedad/${form.property_id}` : "/admin/visitas"), { replace: true });
@@ -124,6 +134,7 @@ export default function AdminVisitForm() {
       </div>
 
       <form className="card admin-form visit-form" onSubmit={handleSubmit} noValidate>
+        {form.cita_id && !isEdit && <p className="form-hint visit-form__from-cita">{t("visits.form.fromCita")}</p>}
         <div className="form-field">
           <label htmlFor="visit-property">{t("visits.form.property")}</label>
           <select id="visit-property" value={form.property_id} onChange={setField("property_id")}>

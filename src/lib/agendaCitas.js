@@ -65,3 +65,44 @@ export function visitsToConfirm(citas, now = new Date(), withinDays = 2) {
     )
     .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
 }
+
+// ── Cierre del ciclo (fase 6) ──
+
+// Una visita (cita con propiedad) se puede registrar en Visitas, y solo una vez.
+export const canRegisterVisit = (cita) => Boolean(cita?.property_id) && citaStatus(cita) !== "cancelada";
+
+const localInput = (fecha, hora) => `${fecha}T${String(hora ?? "00:00").slice(0, 5)}`;
+
+/**
+ * Datos con los que se abre el formulario "Registrar visita" desde una cita: propiedad, asesor,
+ * fecha y hora, y el nombre y teléfono de quien visitó. La cita viaja en `cita_id` (queda ligada
+ * a la visita). Las visitas no admiten fecha futura: si la cita es de más tarde, se usa "ahora".
+ */
+export function citaToVisitPrefill(cita, client = null, now = new Date()) {
+  const contact = citaContact(cita, client);
+  const nowInput = `${dateISO(now)}T${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const when = localInput(cita.fecha, cita.hora);
+  return {
+    property_id: cita.property_id || "",
+    advisor_id: cita.advisor_id || "",
+    visited_at: when > nowInput ? nowInput : when,
+    prospect_name: contact.name || "",
+    prospect_phone: contact.phone || "",
+    cita_id: cita.id,
+  };
+}
+
+/**
+ * Visitas que ya pasaron y nadie cerró (siguen "confirmada"): de los últimos `withinDays` días,
+ * sin contar hoy (las de hoy salen en "Citas de hoy"). Las más viejas primero. Son las que hay
+ * que marcar como realizada o "no asistió": sin eso las métricas de asistencia no cuadran.
+ */
+export function visitsToClose(citas, now = new Date(), withinDays = 7) {
+  const today = dateISO(now);
+  const first = new Date(now);
+  first.setDate(first.getDate() - withinDays);
+  const since = dateISO(first);
+  return citas
+    .filter((c) => c.property_id && isPending(c) && c.fecha < today && c.fecha >= since)
+    .sort((a, b) => `${a.fecha}${a.hora || ""}`.localeCompare(`${b.fecha}${b.hora || ""}`));
+}

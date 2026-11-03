@@ -59,6 +59,22 @@ describe("buildDayPlan: visitas por confirmar", () => {
   });
 });
 
+describe("buildDayPlan: visitas por cerrar", () => {
+  const visita = { id: "v", titulo: "Visita: Casa", property_id: "p1", status: "confirmada", fecha: addDaysISO(-2), hora: "10:00" };
+
+  it("trae las visitas de días anteriores que nadie cerró y el día deja de estar libre", () => {
+    const plan = buildDayPlan({ citas: [visita], prospects: [], now });
+    expect(plan.toClose.map((c) => c.id)).toEqual(["v"]);
+    expect(plan.isEmpty).toBe(false);
+  });
+
+  it("una visita ya cerrada, cancelada o sin propiedad no estorba", () => {
+    const plan = buildDayPlan({ citas: [{ ...visita, status: "realizada" }, { ...visita, id: "x", status: "cancelada" }, { ...visita, id: "y", property_id: null }], prospects: [], now });
+    expect(plan.toClose).toEqual([]);
+    expect(plan.isEmpty).toBe(true);
+  });
+});
+
 describe("prospectsToContact", () => {
   const base = { stage: "contactado", next_followup_at: null, last_contact_at: hoursAgo(30), created_at: hoursAgo(100) };
   const unattended = (id, hours) => ({ id, name: id, stage: "nuevo", source: "sitio", last_contact_at: null, next_followup_at: null, created_at: hoursAgo(hours) });

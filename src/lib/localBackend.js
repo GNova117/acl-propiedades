@@ -14,6 +14,7 @@ import { computeSalesStats } from "./trustStats";
 import { DEVELOPMENTS_SEED } from "./developmentsSeed";
 import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } from "./developments";
 import { CITA_STATUSES } from "./agendaCitas";
+import { findOpenProspect, mergeBookingIntoProspect, prospectFieldsFromBooking, syncProspectFollowup } from "./visitProspect";
 import {
   BOOKING_TOKEN_PATTERN,
   DEFAULT_VISIT_SETTINGS,
@@ -2441,6 +2442,7 @@ export const localBackend = {
     const citas = readStore(KEYS.agendaCitas, []);
     const idx = citas.findIndex((c) => c.id === id);
     if (idx === -1) throw new Error("Cita no encontrada");
+    const before = citas[idx];
     citas[idx] = {
       ...citas[idx],
       advisor_id,
@@ -2453,6 +2455,7 @@ export const localBackend = {
       updated_at: new Date().toISOString(),
     };
     writeStore(KEYS.agendaCitas, citas);
+    await this._syncCitaProspect(before, citas[idx]);
     return citas[idx];
   },
 
@@ -2461,6 +2464,7 @@ export const localBackend = {
     const citas = readStore(KEYS.agendaCitas, []);
     const idx = citas.findIndex((c) => c.id === id);
     if (idx === -1) throw new Error("Cita no encontrada");
+    const before = citas[idx];
     const cancelling = status === "cancelada";
     citas[idx] = {
       ...citas[idx],
@@ -2470,6 +2474,7 @@ export const localBackend = {
       updated_at: new Date().toISOString(),
     };
     writeStore(KEYS.agendaCitas, citas);
+    await this._syncCitaProspect(before, citas[idx]);
     return citas[idx];
   },
 
@@ -2546,6 +2551,9 @@ export const localBackend = {
     };
     writeStore(KEYS.messages, [...messages, message]);
 
+    // Quien reserva ya es un prospecto (mismas reglas que visit_promote_prospect en SQL).
+    const prospectId = await this._promoteBookingProspect({ property, advisorId: chosenId, name: name.trim(), phone: phone.trim(), email: email.trim(), fecha, hora: hhmm(hora), messageId: message.id, note });
+
     const now = new Date().toISOString();
     const cita = {
       id: uid("cita"),
@@ -2565,6 +2573,7 @@ export const localBackend = {
       contact_phone: phone.trim(),
       contact_email: email.trim(),
       message_id: message.id,
+      prospecto_id: prospectId,
       reschedule_count: 0,
       client_confirmed_at: null,
       cancelled_reason: null,
@@ -2627,6 +2636,36 @@ export const localBackend = {
     });
   },
 
+  // Prospecto de quien reserva una visita: se crea (interesado, con seguimiento el día después de la
+  // visita) o, si ya hay uno abierto con ese teléfono o correo, se actualiza en vez de duplicarlo.
+  async _promoteBookingProspect({ property, advisorId, name, phone, email, fecha, hora, messageId, note }) {
+    const label = property.code ? `${property.title.trim()} (${property.code})` : property.title.trim();
+    const nowISO = new Date().toISOString();
+    const today = mexicoParts().date;
+    const existing = findOpenProspect(readStore(KEYS.prospects, []), { phone, email });
+    if (existing) {
+      await this.updateProspect(existing.id, mergeBookingIntoProspect(existing, { propertyId: property.id, label, fecha, hora, note, today, nowISO }));
+      return existing.id;
+    }
+    const created = await this.addProspect(prospectFieldsFromBooking({ name, phone, email, advisorId, propertyId: property.id, messageId, label, fecha, hora, note, nowISO }));
+    return created.id;
+  },
+
+  // Mantiene al día el seguimiento del prospecto cuando la cita cambia (como trg_agenda_citas_sync_prospect):
+  // si se mueve, el seguimiento automático se mueve; si se cancela o no asiste, se recontacta mañana.
+  async _syncCitaProspect(before, after) {
+    if (!after?.prospecto_id || after.source !== "sitio") return;
+    const prospect = readStore(KEYS.prospects, []).find((p) => p.id === after.prospecto_id);
+    if (!prospect) return;
+    const today = mexicoParts().date;
+    const was = before.status || "confirmada";
+    const now = after.status || "confirmada";
+    let fields = null;
+    if (now === "confirmada" && after.fecha !== before.fecha) fields = syncProspectFollowup(prospect, { kind: "moved", oldFecha: before.fecha, fecha: after.fecha, today });
+    else if (was === "confirmada" && (now === "cancelada" || now === "no_asistio")) fields = syncProspectFollowup(prospect, { kind: "lost", fecha: after.fecha, today });
+    if (fields) await this.updateProspect(prospect.id, fields);
+  },
+
   // Aviso al asesor (inbox de Mensajes) cuando el cliente mueve o cancela su visita.
   _pushVisitChange(cita, kind, extra) {
     const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === cita.property_id);
@@ -2664,6 +2703,7 @@ export const localBackend = {
     citas[idx] = { ...cita, fecha, hora: hhmm(hora), reschedule_count: (cita.reschedule_count || 0) + 1, client_confirmed_at: null, reminder_sent_at: null, client_reminder_sent_at: null, updated_at: new Date().toISOString() };
     writeStore(KEYS.agendaCitas, citas);
     this._pushVisitChange(citas[idx], "reprogramada", { oldFecha: cita.fecha, oldHora: cita.hora, fecha, hora: hhmm(hora) });
+    await this._syncCitaProspect(cita, citas[idx]);
     return { ok: true, fecha, hora: hhmm(hora), reschedule_count: citas[idx].reschedule_count };
   },
 
@@ -2676,6 +2716,7 @@ export const localBackend = {
     citas[idx] = { ...citas[idx], status: "cancelada", cancelled_by: "cliente", cancelled_reason: String(reason ?? "").trim().slice(0, 300) || null, updated_at: new Date().toISOString() };
     writeStore(KEYS.agendaCitas, citas);
     this._pushVisitChange(citas[idx], "cancelada", { oldFecha: citas[idx].fecha, oldHora: citas[idx].hora, reason });
+    await this._syncCitaProspect({ ...citas[idx], status: "confirmada" }, citas[idx]);
     return { ok: true };
   },
 

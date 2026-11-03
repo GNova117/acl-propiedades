@@ -211,3 +211,104 @@ describe("modo demo: gestión desde /visita/:token", () => {
     expect(await changeMessages()).toHaveLength(1); // solo la primera cancelación
   });
 });
+
+describe("modo demo: cierre del ciclo (prospecto)", () => {
+  const dayAfter = (fecha) => new Date(new Date(`${fecha}T12:00:00Z`).getTime() + 86400000).toISOString().slice(0, 10);
+  const prospectsOf = async () => db.getProspects();
+
+  async function book(slotIndex, who = person) {
+    await activateSchedule();
+    const slots = await db.getVisitSlots(property.id);
+    const slot = slots[slotIndex];
+    const result = await db.bookVisit({ propertyId: property.id, ...slot, ...who, note: "voy con mi esposo" });
+    return { slot, slots, result, cita: (await db.getAgendaCitas()).find((c) => c.booking_token === result.token) };
+  }
+
+  it("reservar crea un prospecto interesado con seguimiento el día después de la visita, ligado a la cita", async () => {
+    const { slot, cita } = await book(10);
+    const prospects = await prospectsOf();
+    expect(prospects).toHaveLength(1);
+    expect(prospects[0]).toMatchObject({
+      name: "Ana Pérez",
+      phone: person.phone,
+      email: person.email,
+      source: "visita_agendada",
+      stage: "interesado",
+      advisor_id: advisorId,
+      property_id: property.id,
+      next_followup_at: dayAfter(slot.fecha),
+    });
+    expect(prospects[0].notes).toContain("Agendó una visita a");
+    expect(prospects[0].notes).toContain("Nota: voy con mi esposo");
+    expect(prospects[0].last_contact_at).toBeTruthy();
+    expect(cita.prospecto_id).toBe(prospects[0].id);
+  });
+
+  it("una segunda reserva con el mismo teléfono (otro formato) reutiliza al prospecto y anota la visita", async () => {
+    const first = await book(10);
+    const slot2 = first.slots[20];
+    const second = await db.bookVisit({ propertyId: property.id, ...slot2, name: "Ana P.", email: "otro@correo.com", phone: "+52 (871) 123-4567" });
+    expect(second.ok).toBe(true);
+    const prospects = await prospectsOf();
+    expect(prospects).toHaveLength(1);
+    expect(prospects[0].notes.split("\n")).toHaveLength(2);
+    expect((await db.getAgendaCitas()).map((c) => c.prospecto_id)).toEqual([prospects[0].id, prospects[0].id]);
+  });
+
+  it("un prospecto abierto con ese correo se actualiza: nuevo → interesado, sin duplicar", async () => {
+    const manual = await db.addProspect({ name: "Ana Manual", email: "ANA@correo.com", phone: null, stage: "nuevo", source: "manual", next_followup_at: "2020-01-01", property_id: null, advisor_id: null, notes: null });
+    const { cita, slot } = await book(10);
+    const prospects = await prospectsOf();
+    expect(prospects).toHaveLength(1);
+    expect(cita.prospecto_id).toBe(manual.id);
+    expect(prospects[0]).toMatchObject({ stage: "interesado", next_followup_at: dayAfter(slot.fecha), property_id: property.id });
+  });
+
+  it("un prospecto ya cerrado no cuenta: se crea uno nuevo", async () => {
+    await db.addProspect({ name: "Ana Cerrada", email: person.email, phone: person.phone, stage: "cerrado", source: "manual", notes: null });
+    await book(10);
+    const prospects = await prospectsOf();
+    expect(prospects).toHaveLength(2);
+    expect(prospects.find((p) => p.name === "Ana Cerrada").stage).toBe("cerrado");
+  });
+
+  it("reprogramar mueve el seguimiento automático, pero no uno que el asesor puso a mano", async () => {
+    const { result, slots, cita } = await book(10);
+    const token = result.token;
+    const moved = slots[40];
+    await db.rescheduleVisitBooking(token, moved.fecha, moved.hora);
+    expect((await prospectsOf())[0].next_followup_at).toBe(dayAfter(moved.fecha));
+
+    await db.updateProspect(cita.prospecto_id, { next_followup_at: "2030-01-01" }); // a mano
+    const again = slots[60];
+    await db.rescheduleVisitBooking(token, again.fecha, again.hora);
+    expect((await prospectsOf())[0].next_followup_at).toBe("2030-01-01");
+  });
+
+  it("si el cliente cancela o no asiste, el seguimiento pasa a mañana (si seguía siendo el automático)", async () => {
+    const { result } = await book(10);
+    await db.cancelVisitBooking(result.token, "imprevisto");
+    const tomorrow = dayAfter(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Mexico_City" }).format(new Date()));
+    expect((await prospectsOf())[0].next_followup_at).toBe(tomorrow);
+
+    // No asistió, marcado por el asesor desde la Agenda.
+    const second = await db.bookVisit({ propertyId: property.id, ...(await db.getVisitSlots(property.id))[30], name: "Luis", email: "luis@correo.com", phone: "871 222 3333" });
+    const cita = (await db.getAgendaCitas()).find((c) => c.booking_token === second.token);
+    await db.setAgendaCitaStatus(cita.id, "no_asistio");
+    const luis = (await prospectsOf()).find((p) => p.name === "Luis");
+    expect(luis.next_followup_at).toBe(tomorrow);
+  });
+
+  it("marcar realizada no mueve el seguimiento (queda para llamar tras la visita)", async () => {
+    const { cita, slot } = await book(10);
+    await db.setAgendaCitaStatus(cita.id, "realizada");
+    expect((await prospectsOf())[0].next_followup_at).toBe(dayAfter(slot.fecha));
+  });
+
+  it("una visita registrada desde la cita conserva el cita_id", async () => {
+    const { cita } = await book(10);
+    const visit = await db.addVisit({ property_id: property.id, advisor_id: advisorId, visited_at: new Date().toISOString(), interest: "interesado", reasons: [], cita_id: cita.id });
+    expect((await db.getVisitById(visit.id)).cita_id).toBe(cita.id);
+  });
+});
+

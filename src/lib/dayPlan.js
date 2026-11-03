@@ -7,7 +7,7 @@
 // solo lo suyo y la oficina todo).
 
 import { DEFAULT_DURATION_MINUTES } from "./calendarEvent";
-import { citaDuration, citaStatus, isCancelled, visitsToConfirm } from "./agendaCitas";
+import { citaDuration, citaStatus, isCancelled, visitsToClose, visitsToConfirm } from "./agendaCitas";
 import { daysSince, followUpState, unattendedState } from "./prospects";
 
 const minutesOfDay = (hora) => {
@@ -72,7 +72,9 @@ export function buildDayPlan({ citas = [], prospects = [], now = new Date() } = 
   const contact = prospectsToContact(prospects, now);
   // Reservas hechas desde el sitio cuyo cliente aún no confirma que va a asistir.
   const toConfirm = visitsToConfirm(citas, now);
+  // Visitas de días anteriores que nadie marcó como realizadas o "no asistió" (fase 6).
+  const toClose = visitsToClose(citas, now);
   const pendingAgenda = agenda.filter((i) => i.state !== "past").length;
   const toContact = contact.urgent.length + contact.overdue.length + contact.today.length;
-  return { agenda, ...contact, toConfirm, pendingAgenda, toContact, isEmpty: agenda.length === 0 && toContact === 0 && toConfirm.length === 0 };
+  return { agenda, ...contact, toConfirm, toClose, pendingAgenda, toContact, isEmpty: agenda.length === 0 && toContact === 0 && toConfirm.length === 0 && toClose.length === 0 };
 }

@@ -6,7 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import { whatsappDigits } from "../../lib/format";
 import { mapsUrl } from "../../lib/calendarEvent";
 import { buildDayPlan } from "../../lib/dayPlan";
-import { citaContact, isFromSite } from "../../lib/agendaCitas";
+import { canRegisterVisit, citaContact, citaToVisitPrefill, isFromSite, isPending } from "../../lib/agendaCitas";
 import { contactFields, isOpenStage, unattendedAge } from "../../lib/prospects";
 import { prospectMessageTemplates } from "../../lib/prospectMessages";
 import QuickReplyButton from "../../components/QuickReplyButton";
@@ -76,6 +76,18 @@ export default function AdminMyDay() {
   }, []);
 
   const plan = useMemo(() => buildDayPlan({ citas, prospects, now }), [citas, prospects, now]);
+
+  // Cerrar una visita pasada: realizada o "no asistió". Vuelve a leer las citas para que salga de la lista.
+  const [closeError, setCloseError] = useState("");
+  const closeCita = async (cita, status) => {
+    setCloseError("");
+    try {
+      await db.setAgendaCitaStatus(cita.id, status);
+      setCitas(await db.getAgendaCitas());
+    } catch (err) {
+      setCloseError(err.message || t("myDay.close.error"));
+    }
+  };
 
   const advisorName = (id) => advisors.find((a) => a.id === id)?.name || "";
   const propertyTitle = (id) => properties.find((p) => p.id === id)?.title || "";
@@ -148,8 +160,48 @@ export default function AdminMyDay() {
               </a>
             )}
             {canVisits && (
-              <Link to="/admin/visitas/nueva" className="btn btn-outline btn-sm">
+              <Link to="/admin/visitas/nueva" state={{ from: "/admin/mi-dia", prefill: citaToVisitPrefill(cita, client(cita.client_id)) }} className="btn btn-outline btn-sm">
                 {t("myDay.agenda.logVisit")}
+              </Link>
+            )}
+            {state === "past" && cita.property_id && isPending(cita) && renderCloseButtons(cita)}
+            <Link to={`/admin/agenda/${cita.id}`} className="btn btn-outline btn-sm">
+              {t("common.edit")}
+            </Link>
+          </div>
+        </div>
+      </li>
+    );
+  };
+
+  // Realizada / No asistió (una visita que ya pasó y nadie ha cerrado).
+  const renderCloseButtons = (cita) => (
+    <>
+      <button type="button" className="btn btn-outline btn-sm" onClick={() => closeCita(cita, "realizada")}>
+        {t("myDay.close.done")}
+      </button>
+      <button type="button" className="btn btn-outline btn-sm" onClick={() => closeCita(cita, "no_asistio")}>
+        {t("myDay.close.noShow")}
+      </button>
+    </>
+  );
+
+  // Visita de un día anterior que nadie cerró: se cierra aquí o se registra directo (que la marca como realizada).
+  const renderToClose = (cita) => {
+    const contact = citaContact(cita, client(cita.client_id));
+    const day = new Date(`${cita.fecha}T00:00:00`).toLocaleDateString(i18n.language?.startsWith("en") ? "en-US" : "es-MX", { weekday: "long", day: "numeric", month: "long" });
+    return (
+      <li key={cita.id} className="card my-day__item my-day__item--prospect">
+        <div className="my-day__body">
+          <div className="my-day__headline">
+            <strong>{cita.titulo}</strong> <span className="prospect-chip prospect-chip--overdue">{`${day} · ${hm(cita.hora)}`}</span>
+          </div>
+          <p className="form-hint">{[contact.name, contact.phone, showAdvisor ? advisorName(cita.advisor_id) : null].filter(Boolean).join(" · ")}</p>
+          <div className="my-day__actions">
+            {renderCloseButtons(cita)}
+            {canVisits && canRegisterVisit(cita) && (
+              <Link to="/admin/visitas/nueva" state={{ from: "/admin/mi-dia", prefill: citaToVisitPrefill(cita, client(cita.client_id)) }} className="btn btn-outline btn-sm">
+                {t("myDay.close.register")}
               </Link>
             )}
             <Link to={`/admin/agenda/${cita.id}`} className="btn btn-outline btn-sm">
@@ -308,6 +360,12 @@ export default function AdminMyDay() {
 
       {canAgenda && section("agenda", plan.agenda, renderCita, plan.pendingAgenda)}
       {canAgenda && section("confirm", plan.toConfirm, renderToConfirm)}
+      {canAgenda && section("close", plan.toClose, renderToClose)}
+      {closeError && (
+        <p className="form-error" role="alert">
+          {closeError}
+        </p>
+      )}
       {canProspects && section("urgent", plan.urgent, (e) => renderProspect(e, unattendedChip(e)))}
       {canProspects &&
         section("overdue", plan.overdue, (e) =>

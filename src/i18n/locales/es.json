@@ -1567,6 +1567,7 @@
       "onlyPotential": "Solo posibles clientes ({{count}})"
     },
     "form": {
+      "fromCita": "Esta visita viene de una cita de la Agenda. Al guardarla, la cita se marca como realizada y se actualiza al prospecto.",
       "newTitle": "Registrar visita",
       "editTitle": "Editar visita",
       "property": "Propiedad visitada",
@@ -1862,6 +1863,7 @@
       "perdido": "Perdido"
     },
     "sources": {
+    "visita_agendada": "Visita agendada en el sitio",
       "alerta": "Alerta de propiedades",
       "comparador": "Comparador de créditos",
       "simulador": "Simulador de crédito",
@@ -2366,6 +2368,28 @@
     }
   },
   "funnel": {
+    "visits": {
+      "title": "Visitas agendadas desde el sitio",
+      "hint": "Reservas hechas en las fichas de propiedades durante el periodo elegido. La asistencia se calcula solo con las visitas ya cerradas (realizadas o 'no asistió').",
+      "empty": "Todavía no hay reservas del sitio en este periodo.",
+      "booked": "Agendadas",
+      "upcomingHint_one": "{{count}} próxima",
+      "upcomingHint_other": "{{count}} próximas",
+      "attendance": "Asistencia",
+      "attendanceHint": "{{attended}} de {{closed}} visitas cerradas",
+      "noClosed": "Aún sin visitas cerradas",
+      "noShow": "No asistieron",
+      "cancelled": "Canceladas",
+      "cancelledHint": "{{pct}} % de las agendadas · {{client}} cliente, {{advisor}} asesor",
+      "leadDays": "Días de anticipación",
+      "rescheduledHint_one": "{{count}} reprogramada",
+      "rescheduledHint_other": "{{count}} reprogramadas",
+      "colAttended": "Asistieron",
+      "toClose_one": "{{count}} visita ya pasó y nadie la cerró: la asistencia no incluye las visitas sin cerrar.",
+      "toClose_other": "{{count}} visitas ya pasaron y nadie las cerró: la asistencia no incluye las visitas sin cerrar.",
+      "toCloseLink": "Cerrarlas en Mi día",
+      "confirmInsight": "Asistencia de quienes confirmaron: {{confirmed}} % · de quienes no confirmaron: {{unconfirmed}} %."
+    },
     "title": "Estadísticas del embudo",
     "subtitle": "Cómo avanzan tus prospectos de una etapa a la siguiente, cuánto tardan en cerrar y por qué se pierden.",
     "period": "Periodo",
@@ -3033,6 +3057,10 @@
   },
   "agenda": {
     "viewToggle": "Vista de la agenda",
+    "registerVisit": "Registrar visita",
+    "visitRegistered": "Visita registrada",
+    "viewProspect": "Ver prospecto",
+    "registerVisitPrompt": "Cita marcada como realizada. ¿Quieres registrar la visita ahora? Se abre el formulario ya prellenado y así queda en el informe de la propiedad.",
     "statusFilter": "Estatus",
     "statusFilters": {
       "active": "Sin canceladas",
@@ -3177,7 +3205,15 @@
       "ask": "Pedir confirmación",
       "whatsappText": "Hola {{name}}, soy {{advisor}} de ACL Propiedades. Te escribo para confirmar tu visita ({{title}}): {{when}}. ¿Me confirmas que podrás asistir? Si necesitas cambiarla, avísame con tiempo y buscamos otro horario."
     },
+    "close": {
+      "done": "Realizada",
+      "noShow": "No asistió",
+      "register": "Registrar visita",
+      "error": "No se pudo actualizar la cita."
+    },
     "sections": {
+      "close": "Visitas por cerrar",
+      "closeHint": "Ya pasaron y nadie las marcó (últimos 7 días). Ciérralas para que las métricas de asistencia cuadren.",
       "confirm": "Visitas por confirmar",
       "confirmHint": "Reservas hechas desde el sitio que el cliente aún no confirma (hoy y los próximos 2 días). Un mensaje a tiempo evita que no lleguen.",
       "agenda": "Citas de hoy",

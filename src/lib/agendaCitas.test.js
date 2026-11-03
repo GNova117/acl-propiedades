@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activeCitas, citaContact, citaDuration, citaStatus, isCancelled, isPending, statusActions, visitsToConfirm } from "./agendaCitas";
+import { activeCitas, canRegisterVisit, citaContact, citaDuration, citaStatus, citaToVisitPrefill, isCancelled, isPending, statusActions, visitsToClose, visitsToConfirm } from "./agendaCitas";
 
 // Hoy a las 12:00 (hora local), construido con partes para no depender de la zona horaria.
 const now = new Date();
@@ -74,5 +74,46 @@ describe("visitsToConfirm", () => {
       now
     );
     expect(list).toEqual([]);
+  });
+});
+
+describe("cierre del ciclo", () => {
+  const visita = { id: "c9", property_id: "p1", advisor_id: "a1", status: "confirmada", source: "sitio", fecha: dayISO(-2), hora: "16:00:00", contact_name: "Ana Pérez", contact_phone: "871 123 4567" };
+
+  it("canRegisterVisit: solo una cita con propiedad y no cancelada", () => {
+    expect(canRegisterVisit(visita)).toBe(true);
+    expect(canRegisterVisit({ ...visita, status: "realizada" })).toBe(true);
+    expect(canRegisterVisit({ ...visita, status: "cancelada" })).toBe(false);
+    expect(canRegisterVisit({ ...visita, property_id: null })).toBe(false);
+  });
+
+  it("citaToVisitPrefill: propiedad, asesor, fecha y hora, nombre y teléfono, y la cita ligada", () => {
+    expect(citaToVisitPrefill(visita, null, now)).toEqual({
+      property_id: "p1",
+      advisor_id: "a1",
+      visited_at: `${dayISO(-2)}T16:00`,
+      prospect_name: "Ana Pérez",
+      prospect_phone: "871 123 4567",
+      cita_id: "c9",
+    });
+  });
+
+  it("si hay cliente ligado usa sus datos; una cita de más tarde se registra con la hora de ahora (no hay visitas futuras)", () => {
+    const prefill = citaToVisitPrefill({ ...visita, fecha: dayISO(0), hora: "20:00" }, { name: "Luis Gómez", phone: "871 222 3333" }, now);
+    expect(prefill).toMatchObject({ prospect_name: "Luis Gómez", prospect_phone: "871 222 3333", visited_at: `${dayISO(0)}T12:00` });
+  });
+
+  it("visitsToClose: visitas de los últimos 7 días, sin cerrar y sin contar hoy, las más viejas primero", () => {
+    const rows = [
+      { ...visita, id: "ayer", fecha: dayISO(-1) },
+      { ...visita, id: "hace5", fecha: dayISO(-5) },
+      { ...visita, id: "hoy", fecha: dayISO(0), hora: "09:00" },
+      { ...visita, id: "hace9", fecha: dayISO(-9) },
+      { ...visita, id: "cerrada", fecha: dayISO(-2), status: "realizada" },
+      { ...visita, id: "cancelada", fecha: dayISO(-2), status: "cancelada" },
+      { ...visita, id: "sin-propiedad", fecha: dayISO(-2), property_id: null },
+      { ...visita, id: "futura", fecha: dayISO(3) },
+    ];
+    expect(visitsToClose(rows, now).map((c) => c.id)).toEqual(["hace5", "ayer"]);
   });
 });
