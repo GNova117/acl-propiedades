@@ -13,6 +13,25 @@ import { applyPriceChange } from "./propertyBadges";
 import { computeSalesStats } from "./trustStats";
 import { DEVELOPMENTS_SEED } from "./developmentsSeed";
 import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } from "./developments";
+import {
+  BOOKING_TOKEN_PATTERN,
+  DEFAULT_VISIT_SETTINGS,
+  MAX_ACTIVE_BOOKINGS_PER_PHONE,
+  activeBookingsForPhone,
+  bookingPermissions,
+  buildBookingMessage,
+  generateBookingToken,
+  generateSlots,
+  hhmm,
+  mergeSlots,
+  mexicoParts,
+  normalizeVisitSchedule,
+  addDays,
+  phoneDigits,
+  pickAdvisor,
+  validateBookingInput,
+  MAX_RESCHEDULES,
+} from "./visitSlots";
 
 function clientExpedientePayload(data) {
   return Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, data[key] || null]));
@@ -72,6 +91,8 @@ const KEYS = {
   internalNotes: "acl_local_internal_notes",
   propertyViews: "acl_local_property_views",
   developments: "acl_local_developments",
+  visitSchedules: "acl_local_visit_schedules",
+  visitAttempts: "acl_local_visit_attempts",
 };
 
 // Un par de artículos de muestra para que /blog no se vea vacío en modo
@@ -2436,6 +2457,189 @@ export const localBackend = {
     writeStore(KEYS.agendaCitas, citas.filter((c) => c.id !== id));
     const expedientes = readStore(KEYS.agendaExpedientes, []);
     writeStore(KEYS.agendaExpedientes, expedientes.filter((e) => e.cita_id !== id));
+  },
+
+  // ── Agendar visita con horarios reales (modo demo) ──
+  // Mismo contrato que las funciones SQL de supabase/schema.sql, apoyado en
+  // src/lib/visitSlots.js. Los horarios se guardan por asesor en un solo objeto:
+  // { [advisorId]: { settings, weekly, timeOff } }.
+  async getVisitSlots(propertyId, { from = null, days = 14 } = {}) {
+    const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === propertyId);
+    if (!property || !property.active || property.status === "vendida") return [];
+    const schedules = readStore(KEYS.visitSchedules, {});
+    const citas = readStore(KEYS.agendaCitas, []);
+    const advisors = readStore(KEYS.advisors, ADVISORS).filter((a) => a.active !== false && (property.advisor_ids || []).includes(a.id));
+    const start = from || mexicoParts().date;
+    const end = addDays(start, Math.min(Math.max(Number(days) || 14, 1), 60));
+    return mergeSlots(
+      advisors.map((a) => {
+        const schedule = schedules[a.id];
+        if (!schedule) return [];
+        return generateSlots({ settings: schedule.settings, availability: schedule.weekly, timeOff: schedule.timeOff, citas, advisorId: a.id, from: start, to: end });
+      })
+    );
+  },
+
+  async bookVisit({ propertyId, fecha, hora, name, email, phone, note }) {
+    const invalid = validateBookingInput({ name, email, phone, note });
+    if (invalid) return { error: invalid };
+    if (!fecha || !hora) return { error: "invalid_slot" };
+
+    const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === propertyId);
+    if (!property || !property.active || property.status === "vendida") return { error: "property_unavailable" };
+
+    // Mismos límites que book_visit: 5 intentos por teléfono por hora, 2 visitas activas.
+    const digits = phoneDigits(phone).slice(-10);
+    const hourAgo = Date.now() - 60 * 60 * 1000;
+    const attempts = readStore(KEYS.visitAttempts, []).filter((a) => a.at > hourAgo);
+    if (attempts.filter((a) => a.phone === digits).length >= 5) return { error: "rate_limited" };
+    writeStore(KEYS.visitAttempts, [...attempts, { phone: digits, at: Date.now() }]);
+
+    const citas = readStore(KEYS.agendaCitas, []);
+    if (activeBookingsForPhone(citas, phone) >= MAX_ACTIVE_BOOKINGS_PER_PHONE) return { error: "too_many_active" };
+
+    const schedules = readStore(KEYS.visitSchedules, {});
+    const advisors = readStore(KEYS.advisors, ADVISORS).filter((a) => a.active !== false && (property.advisor_ids || []).includes(a.id));
+    const free = advisors.filter((a) => {
+      const schedule = schedules[a.id];
+      if (!schedule) return false;
+      return generateSlots({ settings: schedule.settings, availability: schedule.weekly, timeOff: schedule.timeOff, citas, advisorId: a.id, from: fecha, to: fecha }).some((slot) => slot.hora === hhmm(hora));
+    });
+    const chosenId = pickAdvisor(free.map((a) => a.id), citas, fecha);
+    if (!chosenId) return { error: "slot_unavailable" };
+    const advisor = advisors.find((a) => a.id === chosenId);
+
+    const title = property.code ? `${property.title.trim()} (${property.code})` : property.title.trim();
+    const messages = readStore(KEYS.messages, []);
+    const message = {
+      id: uid("msg"),
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      message: buildBookingMessage({ title: property.title, code: property.code, fecha, hora, note }),
+      property_id: propertyId,
+      channel: "visita",
+      details: { fecha, hora: hhmm(hora), advisor_id: chosenId },
+      status: "nuevo",
+      created_at: new Date().toISOString(),
+    };
+    writeStore(KEYS.messages, [...messages, message]);
+
+    const now = new Date().toISOString();
+    const cita = {
+      id: uid("cita"),
+      advisor_id: chosenId,
+      client_id: null,
+      property_id: propertyId,
+      titulo: `Visita: ${title}`,
+      fecha,
+      hora: hhmm(hora),
+      duracion_min: schedules[chosenId].settings.slot_minutes,
+      actividades: note?.trim() || null,
+      lugar: property.address || null,
+      status: "confirmada",
+      source: "sitio",
+      booking_token: generateBookingToken(),
+      contact_name: name.trim(),
+      contact_phone: phone.trim(),
+      contact_email: email.trim(),
+      message_id: message.id,
+      reschedule_count: 0,
+      client_confirmed_at: null,
+      cancelled_reason: null,
+      cancelled_by: null,
+      created_at: now,
+      updated_at: now,
+    };
+    writeStore(KEYS.agendaCitas, [...citas, cita]);
+
+    return {
+      ok: true,
+      token: cita.booking_token,
+      fecha: cita.fecha,
+      hora: cita.hora,
+      duracion_min: cita.duracion_min,
+      advisor: { id: advisor.id, name: advisor.name, phone: advisor.phone, whatsapp: advisor.whatsapp, photo_url: advisor.photo_url },
+      property: { id: property.id, title: property.title, code: property.code, address: property.address },
+    };
+  },
+
+  async getVisitBooking(token) {
+    if (!BOOKING_TOKEN_PATTERN.test(token || "")) return { status: "invalido" };
+    const cita = readStore(KEYS.agendaCitas, []).find((c) => c.booking_token === token);
+    if (!cita) return { status: "invalido" };
+    const advisor = readStore(KEYS.advisors, ADVISORS).find((a) => a.id === cita.advisor_id);
+    const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === cita.property_id);
+    const { canReschedule, canCancel, canConfirm } = bookingPermissions(cita);
+    return {
+      status: cita.status || "confirmada",
+      fecha: cita.fecha,
+      hora: cita.hora,
+      duracion_min: cita.duracion_min,
+      client_name: String(cita.contact_name || "").split(" ")[0],
+      client_confirmed_at: cita.client_confirmed_at,
+      reschedule_count: cita.reschedule_count,
+      can_reschedule: canReschedule,
+      can_cancel: canCancel,
+      can_confirm: canConfirm,
+      advisor: advisor ? { id: advisor.id, name: advisor.name, phone: advisor.phone, whatsapp: advisor.whatsapp, photo_url: advisor.photo_url } : null,
+      property: property ? { id: property.id, title: property.title, code: property.code, address: property.address, main_image: property.main_image, lat: property.lat, lng: property.lng } : null,
+    };
+  },
+
+  async rescheduleVisitBooking(token, fecha, hora) {
+    const citas = readStore(KEYS.agendaCitas, []);
+    const idx = BOOKING_TOKEN_PATTERN.test(token || "") ? citas.findIndex((c) => c.booking_token === token) : -1;
+    if (idx === -1) return { error: "not_found" };
+    const cita = citas[idx];
+    if ((cita.status || "confirmada") !== "confirmada" || !cita.hora) return { error: "not_active" };
+    const { canReschedule } = bookingPermissions(cita);
+    if (!canReschedule) return { error: (cita.reschedule_count || 0) >= MAX_RESCHEDULES ? "limit_reached" : "too_late" };
+
+    const schedule = readStore(KEYS.visitSchedules, {})[cita.advisor_id];
+    const free = schedule && fecha && hora
+      ? generateSlots({ settings: schedule.settings, availability: schedule.weekly, timeOff: schedule.timeOff, citas, advisorId: cita.advisor_id, from: fecha, to: fecha, excludeCitaId: cita.id }).some((slot) => slot.hora === hhmm(hora))
+      : false;
+    if (!free) return { error: "slot_unavailable" };
+
+    citas[idx] = { ...cita, fecha, hora: hhmm(hora), reschedule_count: (cita.reschedule_count || 0) + 1, client_confirmed_at: null, reminder_sent_at: null, client_reminder_sent_at: null, updated_at: new Date().toISOString() };
+    writeStore(KEYS.agendaCitas, citas);
+    return { ok: true, fecha, hora: hhmm(hora), reschedule_count: citas[idx].reschedule_count };
+  },
+
+  async cancelVisitBooking(token, reason) {
+    const citas = readStore(KEYS.agendaCitas, []);
+    const idx = BOOKING_TOKEN_PATTERN.test(token || "") ? citas.findIndex((c) => c.booking_token === token) : -1;
+    if (idx === -1) return { error: "not_found" };
+    if ((citas[idx].status || "confirmada") !== "confirmada") return { error: "not_active" };
+    if (!bookingPermissions(citas[idx]).canCancel) return { error: "too_late" };
+    citas[idx] = { ...citas[idx], status: "cancelada", cancelled_by: "cliente", cancelled_reason: String(reason ?? "").trim().slice(0, 300) || null, updated_at: new Date().toISOString() };
+    writeStore(KEYS.agendaCitas, citas);
+    return { ok: true };
+  },
+
+  async confirmVisitAttendance(token) {
+    const citas = readStore(KEYS.agendaCitas, []);
+    const idx = BOOKING_TOKEN_PATTERN.test(token || "") ? citas.findIndex((c) => c.booking_token === token) : -1;
+    if (idx === -1) return { error: "not_found" };
+    if ((citas[idx].status || "confirmada") !== "confirmada") return { error: "not_active" };
+    if (!bookingPermissions(citas[idx]).canCancel) return { error: "too_late" };
+    citas[idx] = { ...citas[idx], client_confirmed_at: citas[idx].client_confirmed_at || new Date().toISOString(), updated_at: new Date().toISOString() };
+    writeStore(KEYS.agendaCitas, citas);
+    return { ok: true };
+  },
+
+  async getAdvisorVisitSchedule(advisorId) {
+    const saved = readStore(KEYS.visitSchedules, {})[advisorId];
+    return saved || { settings: { ...DEFAULT_VISIT_SETTINGS, enabled: false }, weekly: [], timeOff: [] };
+  },
+
+  async saveAdvisorVisitSchedule(advisorId, input) {
+    const schedules = readStore(KEYS.visitSchedules, {});
+    const normalized = normalizeVisitSchedule(input);
+    schedules[advisorId] = { ...normalized, timeOff: normalized.timeOff.map((o) => ({ id: uid("off"), ...o })) };
+    writeStore(KEYS.visitSchedules, schedules);
+    return schedules[advisorId];
   },
 
   async getAgendaExpedientes(citaId) {

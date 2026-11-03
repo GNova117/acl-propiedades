@@ -114,6 +114,7 @@ async function handler(req: Request): Promise<Response> {
     .from("agenda_citas")
     .select("id, titulo, fecha, hora, clients(name, phone), advisors(name)")
     .eq("fecha", fecha)
+    .neq("status", "cancelada") // citas canceladas por el cliente (ver book_visit / cancel_booking)
     .is("client_reminder_sent_at", null)
     .not("client_id", "is", null);
 

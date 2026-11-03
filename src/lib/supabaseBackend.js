@@ -11,6 +11,7 @@ import { generateReportToken, REPORT_TOKEN_PATTERN } from "./visitReport";
 import { generatePortalToken, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS, PortalUploadError, blobToBase64 } from "./clientPortal";
 import { getOrCreateVisitorId } from "./visitorId";
 import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } from "./developments";
+import { BOOKING_TOKEN_PATTERN, DEFAULT_VISIT_SETTINGS, hhmm, normalizeVisitSchedule } from "./visitSlots";
 
 // La tabla aún no existe en la base (falta correr su bloque de schema.sql):
 // 42P01 es Postgres directo, PGRST205 es PostgREST ("no está en el schema cache").
@@ -2455,6 +2456,106 @@ export const supabaseBackend = {
     }
     const { error } = await supabase.from("agenda_expedientes").delete().eq("id", id);
     if (error) throw error;
+  },
+
+  // ── Agendar visita con horarios reales ──
+  // Las seis primeras son las únicas puertas del navegador sin sesión: funciones
+  // security definer de schema.sql ("Agendar visita con horarios reales"). Las
+  // de reservar / reprogramar / cancelar / confirmar NO lanzan por reglas de
+  // negocio: devuelven { ok: true, ... } o { error: "codigo" } (slot_unavailable,
+  // rate_limited, too_late…) para que la pantalla muestre el mensaje correcto.
+  async getVisitSlots(propertyId, { from = null, days = 14 } = {}) {
+    const { data, error } = await supabase.rpc("get_visit_slots", { p_property_id: propertyId, p_from: from, p_days: days });
+    if (error) throw error;
+    return data?.slots || [];
+  },
+
+  async bookVisit({ propertyId, fecha, hora, name, email, phone, note }) {
+    const { data, error } = await supabase.rpc("book_visit", {
+      p_property_id: propertyId,
+      p_fecha: fecha,
+      p_hora: hora,
+      p_name: name,
+      p_email: email,
+      p_phone: phone,
+      p_note: note || null,
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  async getVisitBooking(token) {
+    if (!BOOKING_TOKEN_PATTERN.test(token || "")) return { status: "invalido" };
+    const { data, error } = await supabase.rpc("get_booking", { p_token: token });
+    if (error) throw error;
+    return data || { status: "invalido" };
+  },
+
+  async rescheduleVisitBooking(token, fecha, hora) {
+    const { data, error } = await supabase.rpc("reschedule_booking", { p_token: token, p_fecha: fecha, p_hora: hora });
+    if (error) throw error;
+    return data;
+  },
+
+  async cancelVisitBooking(token, reason) {
+    const { data, error } = await supabase.rpc("cancel_booking", { p_token: token, p_reason: reason || null });
+    if (error) throw error;
+    return data;
+  },
+
+  async confirmVisitAttendance(token) {
+    const { data, error } = await supabase.rpc("confirm_booking_attendance", { p_token: token });
+    if (error) throw error;
+    return data;
+  },
+
+  // Horario de visitas de un asesor (con sesión; RLS: el suyo, o todos si el
+  // acceso de Agenda no tiene asesor vinculado). Sin fila de ajustes devuelve
+  // la reserva desactivada: nadie ofrece horarios hasta que se active a propósito.
+  async getAdvisorVisitSchedule(advisorId) {
+    const [settingsRes, weeklyRes, timeOffRes] = await Promise.all([
+      supabase.from("advisor_visit_settings").select("*").eq("advisor_id", advisorId).maybeSingle(),
+      supabase.from("advisor_availability").select("*").eq("advisor_id", advisorId).order("weekday").order("start_time"),
+      supabase.from("advisor_time_off").select("*").eq("advisor_id", advisorId).order("fecha_inicio"),
+    ]);
+    for (const res of [settingsRes, weeklyRes, timeOffRes]) if (res.error) throw res.error;
+    const settings = settingsRes.data
+      ? { enabled: settingsRes.data.enabled, slot_minutes: settingsRes.data.slot_minutes, min_notice_hours: settingsRes.data.min_notice_hours, horizon_days: settingsRes.data.horizon_days }
+      : { ...DEFAULT_VISIT_SETTINGS, enabled: false };
+    return {
+      settings,
+      weekly: (weeklyRes.data || []).map((w) => ({ weekday: w.weekday, start_time: hhmm(w.start_time), end_time: hhmm(w.end_time) })),
+      timeOff: (timeOffRes.data || []).map((o) => ({ id: o.id, fecha_inicio: o.fecha_inicio, fecha_fin: o.fecha_fin, motivo: o.motivo })),
+    };
+  },
+
+  // Reemplaza el horario completo. Primero inserta lo nuevo y al final borra lo
+  // viejo (por id): si algo falla a la mitad, el asesor se queda con horario de
+  // más, nunca sin horario.
+  async saveAdvisorVisitSchedule(advisorId, input) {
+    const { settings, weekly, timeOff } = normalizeVisitSchedule(input);
+
+    const { error: settingsError } = await supabase
+      .from("advisor_visit_settings")
+      .upsert({ advisor_id: advisorId, ...settings, updated_at: new Date().toISOString() }, { onConflict: "advisor_id" });
+    if (settingsError) throw settingsError;
+
+    const replaceRows = async (table, rows) => {
+      const { data: old, error: oldError } = await supabase.from(table).select("id").eq("advisor_id", advisorId);
+      if (oldError) throw oldError;
+      if (rows.length > 0) {
+        const { error } = await supabase.from(table).insert(rows.map((row) => ({ ...row, advisor_id: advisorId })));
+        if (error) throw error;
+      }
+      const oldIds = (old || []).map((row) => row.id);
+      if (oldIds.length > 0) {
+        const { error } = await supabase.from(table).delete().in("id", oldIds);
+        if (error) throw error;
+      }
+    };
+    await replaceRows("advisor_availability", weekly);
+    await replaceRows("advisor_time_off", timeOff);
+    return this.getAdvisorVisitSchedule(advisorId);
   },
 
   async signIn(email, password) {
