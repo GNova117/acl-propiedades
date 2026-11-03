@@ -1,11 +1,14 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { trackEvent } from "../lib/analytics";
 import { citaToIcs, downloadIcs, mapsUrl } from "../lib/calendarEvent";
 import { OFFICE_WHATSAPP } from "../lib/office";
-import { bookingFieldErrors, groupSlotsByDate } from "../lib/visitSlots";
-import { bookingErrorField, bookingErrorKey, bookingToCalendarEvent, formatSlotDay, formatSlotTime, slotDayParts } from "../lib/visitBookingUi";
+import { bookingFieldErrors } from "../lib/visitSlots";
+import { bookingErrorField, bookingErrorKey, bookingToCalendarEvent, formatSlotDay, formatSlotTime } from "../lib/visitBookingUi";
+import { useSlotSelection } from "../lib/useSlotSelection";
+import VisitSlotPicker from "./VisitSlotPicker";
 
 const EMPTY = { name: "", email: "", phone: "", note: "", empresa: "" };
 
@@ -18,36 +21,23 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith("en") ? "en-US" : "es-MX";
 
-  const days = useMemo(() => groupSlotsByDate(slots), [slots]);
-  const [pickedDate, setPickedDate] = useState("");
-  const [pickedTime, setPickedTime] = useState("");
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [status, setStatus] = useState("idle"); // idle | sending
   const [booked, setBooked] = useState(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
-  // Lo elegido solo vale si sigue existiendo en la lista (puede cambiar al recargar).
-  const activeDay = days.find((d) => d.fecha === pickedDate) || days[0];
-  const activeDate = activeDay?.fecha || "";
-  const activeTime = activeDay?.horas.includes(pickedTime) ? pickedTime : "";
+  const selection = useSlotSelection(slots, () => {
+    setFormError("");
+    trackEvent("visit_slot_selected", { property_id: property.id });
+  });
+  const { activeDate, activeTime } = selection;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: undefined }));
-  };
-
-  const pickDate = (fecha) => {
-    setPickedDate(fecha);
-    setPickedTime("");
-    setFormError("");
-  };
-
-  const pickTime = (hora) => {
-    setPickedTime(hora);
-    setFormError("");
-    trackEvent("visit_slot_selected", { property_id: property.id });
   };
 
   const fieldMessage = (field, code) => {
@@ -98,7 +88,7 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
       } else {
         setFormError(t(`scheduleVisit.booking.errors.${bookingErrorKey(code)}`));
         if (code === "slot_unavailable" || code === "invalid_slot") {
-          setPickedTime("");
+          selection.clearTime();
           onReload?.();
         }
       }
@@ -116,6 +106,16 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
       const event = bookingToCalendarEvent(booked, { titlePrefix: t("scheduleVisit.booking.eventPrefix"), note: booked.note });
       downloadIcs(`visita-${booked.fecha}.ics`, citaToIcs(event, { advisorName: booked.advisor?.name || "" }));
     };
+    // Con el enlace de su visita el cliente la confirma, la cambia o la cancela (/visita/:token).
+    const manageUrl = `${window.location.origin}/visita/${booked.token}`;
+    const copyLink = async () => {
+      try {
+        await navigator.clipboard.writeText(manageUrl);
+        setLinkCopied(true);
+      } catch {
+        window.prompt(t("scheduleVisit.booking.copyLinkFallback"), manageUrl);
+      }
+    };
     // El WhatsApp es el de la oficina: la ficha no publica los datos de contacto de cada asesor.
     const whatsappText = t("scheduleVisit.booking.whatsappText", { property: label, when, name: form.name.trim() });
     return (
@@ -126,7 +126,10 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
         {booked.advisor?.name && <p className="form-hint">{t("scheduleVisit.booking.withAdvisor", { name: booked.advisor.name })}</p>}
         {booked.property?.address && <p className="form-hint">📍 {booked.property.address}</p>}
         <div className="visit-booking__done-actions">
-          <button type="button" className="btn btn-primary btn-block" onClick={addToCalendar}>
+          <Link className="btn btn-primary btn-block" to={`/visita/${booked.token}`}>
+            {t("scheduleVisit.booking.manage")}
+          </Link>
+          <button type="button" className="btn btn-outline btn-block" onClick={addToCalendar}>
             {t("scheduleVisit.booking.addToCalendar")}
           </button>
           {booked.property?.address && (
@@ -138,46 +141,19 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
             {t("scheduleVisit.booking.whatsapp")}
           </a>
         </div>
-        <p className="form-hint">{t("scheduleVisit.booking.changeHint")}</p>
+        <p className="form-hint">
+          {t("scheduleVisit.booking.changeHint")}{" "}
+          <button type="button" className="visit-booking__link" onClick={copyLink}>
+            {linkCopied ? t("scheduleVisit.booking.linkCopied") : t("scheduleVisit.booking.copyLink")}
+          </button>
+        </p>
       </div>
     );
   }
 
   return (
     <form className="visit-booking" onSubmit={handleSubmit} noValidate>
-      <h4 className="visit-booking__step">{t("scheduleVisit.booking.chooseDay")}</h4>
-      <div className="visit-booking__days" role="group" aria-label={t("scheduleVisit.booking.chooseDay")}>
-        {days.map(({ fecha }) => {
-          const parts = slotDayParts(fecha, locale);
-          const selected = fecha === activeDate;
-          return (
-            <button
-              key={fecha}
-              type="button"
-              className={`visit-booking__day${selected ? " is-selected" : ""}`}
-              aria-pressed={selected}
-              aria-label={formatSlotDay(fecha, locale)}
-              onClick={() => pickDate(fecha)}
-            >
-              <span className="visit-booking__weekday">{parts.weekday}</span>
-              <strong>{parts.day}</strong>
-              <span className="visit-booking__month">{parts.month}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <h4 className="visit-booking__step">{t("scheduleVisit.booking.chooseTime")}</h4>
-      <div className="visit-booking__times" role="group" aria-label={t("scheduleVisit.booking.chooseTime")}>
-        {activeDay?.horas.map((hora) => {
-          const selected = hora === activeTime;
-          return (
-            <button key={hora} type="button" className={`visit-booking__time${selected ? " is-selected" : ""}`} aria-pressed={selected} onClick={() => pickTime(hora)}>
-              {formatSlotTime(hora, locale)}
-            </button>
-          );
-        })}
-      </div>
+      <VisitSlotPicker selection={selection} locale={locale} />
 
       {activeTime && (
         <p className="visit-booking__summary" role="status">

@@ -5738,6 +5738,13 @@ create policy "Rol con apartado propiedades administra desarrollos" on developme
 --   (canal 'visita') para reutilizar el aviso de WhatsApp y el inbox actuales.
 -- · Doble reserva: book_visit toma un candado por asesor y día antes de
 --   revisar el horario, así dos personas no se llevan el mismo.
+-- · Fase 4 (/visita/:token): get_booking_slots da los horarios libres del MISMO
+--   asesor de la cita (reschedule_booking no cambia de asesor, y el listado de
+--   la ficha mezcla a todos). Al reprogramar o cancelar, el cliente le avisa al
+--   asesor con un contact_message canal 'visita_cambio' (visit_notify_change):
+--   el trigger de WhatsApp y el inbox de Mensajes ya existentes hacen el resto,
+--   sin plantillas nuevas. Confirmar asistencia NO avisa: no vale un WhatsApp
+--   por cada confirmación; se ve en la Agenda y en Mi día.
 -- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
 -- ─────────────────────────────────────────────
 
@@ -6107,6 +6114,70 @@ $$;
 revoke all on function get_booking(text) from public;
 grant execute on function get_booking(text) to anon, authenticated;
 
+-- ── Interno: avisar al asesor que el cliente movió o canceló su visita ──
+-- Sin grant: solo lo llaman reschedule_booking / cancel_booking. Texto igual al
+-- de buildBookingChangeMessage() en src/lib/visitSlots.js.
+create or replace function visit_notify_change(p_cita agenda_citas, p_kind text, p_old_fecha date, p_old_hora time, p_detail text default null)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  prop properties;
+  label text;
+  msg text;
+begin
+  select * into prop from properties where id = p_cita.property_id;
+  label := coalesce(case when prop.code is not null then trim(prop.title) || ' (' || prop.code || ')' else trim(prop.title) end, trim(p_cita.titulo));
+
+  if p_kind = 'reprogramada' then
+    msg := 'Visita reprogramada por el cliente — ' || label || E'.\nAntes: ' || to_char(p_old_fecha, 'DD/MM/YYYY') || ' a las ' || to_char(p_old_hora, 'HH24:MI')
+      || E'\nAhora: ' || to_char(p_cita.fecha, 'DD/MM/YYYY') || ' a las ' || to_char(p_cita.hora, 'HH24:MI');
+  else
+    msg := 'Visita cancelada por el cliente — ' || label || E'.\nEra el ' || to_char(p_old_fecha, 'DD/MM/YYYY') || ' a las ' || to_char(p_old_hora, 'HH24:MI')
+      || case when coalesce(trim(p_detail), '') <> '' then E'\nMotivo: ' || trim(p_detail) else '' end;
+  end if;
+
+  insert into contact_messages (name, email, phone, message, property_id, channel, details)
+  values (
+    coalesce(p_cita.contact_name, '(sin nombre)'), coalesce(p_cita.contact_email, ''), p_cita.contact_phone, msg,
+    p_cita.property_id, 'visita_cambio',
+    jsonb_build_object('cita_id', p_cita.id, 'kind', p_kind, 'advisor_id', p_cita.advisor_id)
+  );
+end;
+$$;
+
+revoke all on function visit_notify_change(agenda_citas, text, date, time, text) from public;
+
+-- ── Público (con token): horarios libres del asesor de ESTA visita, para moverla ──
+-- Solo si la visita sigue confirmada. La propia cita no estorba (se puede correr
+-- media hora). Mismo formato que get_visit_slots: { slots: [{fecha, hora}] }.
+create or replace function get_booking_slots(p_token text, p_days int default 14)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  c agenda_citas;
+  today date := (now() at time zone 'America/Mexico_City')::date;
+  result jsonb;
+begin
+  select * into c from agenda_citas where booking_token = p_token and p_token ~ '^[0-9a-f]{32}$';
+  if not found or c.status <> 'confirmada' then return jsonb_build_object('slots', '[]'::jsonb); end if;
+
+  select coalesce(jsonb_agg(jsonb_build_object('fecha', f.fecha, 'hora', to_char(f.hora, 'HH24:MI')) order by f.fecha, f.hora), '[]'::jsonb)
+  into result
+  from visit_free_slots(c.advisor_id, today, today + greatest(least(coalesce(p_days, 14), 60), 1), c.id) f;
+
+  return jsonb_build_object('slots', result);
+end;
+$$;
+
+revoke all on function get_booking_slots(text, int) from public;
+grant execute on function get_booking_slots(text, int) to anon, authenticated;
+
 -- ── Público (con token): mover la visita a otro horario del mismo asesor ──
 -- Errores: not_found, not_active, too_late (menos de 2 h), limit_reached
 -- (2 cambios ya usados), slot_unavailable.
@@ -6120,10 +6191,14 @@ declare
   c agenda_citas;
   now_mx timestamp := (now() at time zone 'America/Mexico_City');
   free boolean;
+  old_fecha date;
+  old_hora time;
 begin
   select * into c from agenda_citas where booking_token = p_token and p_token ~ '^[0-9a-f]{32}$';
   if not found then return jsonb_build_object('error', 'not_found'); end if;
   if c.status <> 'confirmada' or c.hora is null then return jsonb_build_object('error', 'not_active'); end if;
+  old_fecha := c.fecha;
+  old_hora := c.hora;
   if (c.fecha + c.hora) - now_mx < interval '2 hours' then return jsonb_build_object('error', 'too_late'); end if;
   if c.reschedule_count >= 2 then return jsonb_build_object('error', 'limit_reached'); end if;
   if p_fecha is null or p_hora is null then return jsonb_build_object('error', 'slot_unavailable'); end if;
@@ -6140,6 +6215,8 @@ begin
       updated_at = now()
   where id = c.id
   returning * into c;
+
+  perform visit_notify_change(c, 'reprogramada', old_fecha, old_hora);
 
   return jsonb_build_object('ok', true, 'fecha', c.fecha, 'hora', to_char(c.hora, 'HH24:MI'), 'reschedule_count', c.reschedule_count);
 end;
@@ -6167,6 +6244,9 @@ begin
   update agenda_citas
   set status = 'cancelada', cancelled_by = 'cliente', cancelled_reason = nullif(left(trim(coalesce(p_reason, '')), 300), ''), updated_at = now()
   where id = c.id;
+
+  -- c sigue con la fecha y la hora originales (el update no la reasigna).
+  perform visit_notify_change(c, 'cancelada', c.fecha, c.hora, left(trim(coalesce(p_reason, '')), 300));
 
   return jsonb_build_object('ok', true);
 end;

@@ -2513,6 +2513,15 @@ export const supabaseBackend = {
     return data || { status: "invalido" };
   },
 
+  // Horarios libres del MISMO asesor de esta visita, para moverla (la de la ficha
+  // mezcla a todos los asesores de la propiedad y daría horarios que luego se rechazan).
+  async getBookingSlots(token, { days = 14 } = {}) {
+    if (!BOOKING_TOKEN_PATTERN.test(token || "")) return [];
+    const { data, error } = await supabase.rpc("get_booking_slots", { p_token: token, p_days: days });
+    if (error) throw error;
+    return data?.slots || [];
+  },
+
   async rescheduleVisitBooking(token, fecha, hora) {
     const { data, error } = await supabase.rpc("reschedule_booking", { p_token: token, p_fecha: fecha, p_hora: hora });
     if (error) throw error;

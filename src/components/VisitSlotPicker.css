@@ -1,0 +1,88 @@
+/* Selector de día y hora de visita (VisitSlotPicker). */
+.visit-slots__step {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.visit-slots__step:first-child {
+  margin-top: 0.25rem;
+}
+
+.visit-slots__days {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.4rem;
+  scroll-snap-type: x proximity;
+}
+
+.visit-slots__day {
+  flex: 0 0 auto;
+  min-width: 3.9rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.05rem;
+  padding: 0.5rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+  scroll-snap-align: start;
+}
+
+.visit-slots__day strong {
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.visit-slots__weekday,
+.visit-slots__month {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+}
+
+.visit-slots__times {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.6rem, 1fr));
+  gap: 0.5rem;
+}
+
+.visit-slots__time {
+  padding: 0.55rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.visit-slots__day:hover,
+.visit-slots__time:hover {
+  border-color: var(--color-primary);
+}
+
+.visit-slots__day:focus-visible,
+.visit-slots__time:focus-visible,
+.visit-slots__link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.visit-slots__day.is-selected,
+.visit-slots__time.is-selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.visit-slots__day.is-selected .visit-slots__weekday,
+.visit-slots__day.is-selected .visit-slots__month {
+  color: rgba(255, 255, 255, 0.85);
+}

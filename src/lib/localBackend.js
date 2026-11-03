@@ -20,6 +20,7 @@ import {
   MAX_ACTIVE_BOOKINGS_PER_PHONE,
   activeBookingsForPhone,
   bookingPermissions,
+  buildBookingChangeMessage,
   buildBookingMessage,
   generateBookingToken,
   generateSlots,
@@ -2607,6 +2608,44 @@ export const localBackend = {
     };
   },
 
+  async getBookingSlots(token, { days = 14 } = {}) {
+    const citas = readStore(KEYS.agendaCitas, []);
+    const cita = BOOKING_TOKEN_PATTERN.test(token || "") ? citas.find((c) => c.booking_token === token) : null;
+    if (!cita || (cita.status || "confirmada") !== "confirmada") return [];
+    const schedule = readStore(KEYS.visitSchedules, {})[cita.advisor_id];
+    if (!schedule) return [];
+    const today = mexicoParts().date;
+    return generateSlots({
+      settings: schedule.settings,
+      availability: schedule.weekly,
+      timeOff: schedule.timeOff,
+      citas,
+      advisorId: cita.advisor_id,
+      from: today,
+      to: addDays(today, Math.min(Math.max(Number(days) || 14, 1), 60)),
+      excludeCitaId: cita.id,
+    });
+  },
+
+  // Aviso al asesor (inbox de Mensajes) cuando el cliente mueve o cancela su visita.
+  _pushVisitChange(cita, kind, extra) {
+    const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === cita.property_id);
+    const messages = readStore(KEYS.messages, []);
+    messages.push({
+      id: uid("msg"),
+      name: cita.contact_name || "(sin nombre)",
+      email: cita.contact_email || "",
+      phone: cita.contact_phone || null,
+      message: buildBookingChangeMessage({ kind, title: property?.title || cita.titulo, code: property?.code, ...extra }),
+      property_id: cita.property_id,
+      channel: "visita_cambio",
+      details: { cita_id: cita.id, kind, advisor_id: cita.advisor_id },
+      status: "nuevo",
+      created_at: new Date().toISOString(),
+    });
+    writeStore(KEYS.messages, messages);
+  },
+
   async rescheduleVisitBooking(token, fecha, hora) {
     const citas = readStore(KEYS.agendaCitas, []);
     const idx = BOOKING_TOKEN_PATTERN.test(token || "") ? citas.findIndex((c) => c.booking_token === token) : -1;
@@ -2624,6 +2663,7 @@ export const localBackend = {
 
     citas[idx] = { ...cita, fecha, hora: hhmm(hora), reschedule_count: (cita.reschedule_count || 0) + 1, client_confirmed_at: null, reminder_sent_at: null, client_reminder_sent_at: null, updated_at: new Date().toISOString() };
     writeStore(KEYS.agendaCitas, citas);
+    this._pushVisitChange(citas[idx], "reprogramada", { oldFecha: cita.fecha, oldHora: cita.hora, fecha, hora: hhmm(hora) });
     return { ok: true, fecha, hora: hhmm(hora), reschedule_count: citas[idx].reschedule_count };
   },
 
@@ -2635,6 +2675,7 @@ export const localBackend = {
     if (!bookingPermissions(citas[idx]).canCancel) return { error: "too_late" };
     citas[idx] = { ...citas[idx], status: "cancelada", cancelled_by: "cliente", cancelled_reason: String(reason ?? "").trim().slice(0, 300) || null, updated_at: new Date().toISOString() };
     writeStore(KEYS.agendaCitas, citas);
+    this._pushVisitChange(citas[idx], "cancelada", { oldFecha: citas[idx].fecha, oldHora: citas[idx].hora, reason });
     return { ok: true };
   },
 

@@ -321,6 +321,22 @@ export function findScheduleIssues({ weekly = [], timeOff = [] } = {}) {
   return issues;
 }
 
+const dmy = (fecha) => String(fecha).split("-").reverse().join("/");
+
+// Aviso al asesor cuando el cliente mueve o cancela su visita desde /visita/:token
+// (contact_message canal "visita_cambio"). Mismo texto que visit_notify_change() en SQL.
+//   kind "reprogramada": { oldFecha, oldHora, fecha, hora }
+//   kind "cancelada":    { oldFecha, oldHora, reason }
+export function buildBookingChangeMessage({ kind, title, code, oldFecha, oldHora, fecha, hora, reason }) {
+  const label = code ? `${String(title).trim()} (${code})` : String(title).trim();
+  if (kind === "reprogramada") {
+    return `Visita reprogramada por el cliente — ${label}.\nAntes: ${dmy(oldFecha)} a las ${hhmm(oldHora)}\nAhora: ${dmy(fecha)} a las ${hhmm(hora)}`;
+  }
+  let message = `Visita cancelada por el cliente — ${label}.\nEra el ${dmy(oldFecha)} a las ${hhmm(oldHora)}`;
+  if (String(reason ?? "").trim()) message += `\nMotivo: ${String(reason).trim()}`;
+  return message;
+}
+
 // Texto con el que queda registrada la visita en el inbox de Mensajes.
 export function buildBookingMessage({ title, code, fecha, hora, note }) {
   const label = code ? `${String(title).trim()} (${code})` : String(title).trim();

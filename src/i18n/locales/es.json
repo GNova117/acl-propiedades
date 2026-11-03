@@ -370,6 +370,8 @@
     "via_simulador": "Desde el simulador de crédito",
     "via_estimacion": "Solicitud de estimación",
     "via_guia": "Descargó la Guía del comprador",
+    "via_visita": "Agendó una visita en el sitio",
+    "via_visita_cambio": "Cambió o canceló su visita",
     "estimate": "Estimar valor",
     "makeProspect": "Pasar a prospecto",
     "isProspect": "Ya es prospecto",
@@ -510,7 +512,11 @@
       "addToCalendar": "Agregar a mi calendario",
       "directions": "Cómo llegar",
       "whatsapp": "Escribir por WhatsApp",
-      "changeHint": "¿Necesitas cambiarla o cancelarla? Escríbenos por WhatsApp con al menos 2 horas de anticipación.",
+      "changeHint": "Guarda el enlace de tu visita: desde ahí puedes confirmar tu asistencia, cambiar el horario o cancelarla.",
+      "manage": "Ver, cambiar o cancelar mi visita",
+      "copyLink": "Copiar enlace",
+      "copyLinkFallback": "Copia el enlace de tu visita:",
+      "linkCopied": "¡Enlace copiado!",
       "whatsappText": "Hola, agendé una visita a {{property}} para {{when}}. Soy {{name}}.",
       "errors": {
         "slotTaken": "Ese horario se acaba de ocupar. Elige otro, por favor.",
@@ -3222,6 +3228,75 @@
       "invalid_window": "La hora de fin debe ser después de la de inicio.",
       "overlap": "Hay horarios que se empalman en este día.",
       "invalid_time_off": "Revisa los días de descanso: cada uno necesita fecha de inicio y de fin, y el fin no puede ser antes del inicio."
+    }
+  },
+  "visitPage": {
+    "pageTitle": "Tu visita",
+    "invalidTitle": "Enlace no válido",
+    "invalidBody": "Este enlace no corresponde a ninguna visita. Revisa que esté completo o escríbenos por WhatsApp.",
+    "errorTitle": "No pudimos cargar tu visita",
+    "errorBody": "Intenta de nuevo en unos minutos.",
+    "greeting": "Hola, {{name}}",
+    "greetingGeneric": "Tu visita",
+    "status": {
+      "confirmada": "Visita agendada",
+      "cancelada": "Visita cancelada",
+      "realizada": "Visita realizada",
+      "no_asistio": "Visita no realizada"
+    },
+    "statusNote": {
+      "cancelada": "Cancelamos esta visita y liberamos el horario. Si todavía quieres conocer la propiedad, agenda otra cuando gustes.",
+      "realizada": "¡Gracias por visitarnos! Si la propiedad te interesa, escríbenos y te ayudamos con los siguientes pasos.",
+      "no_asistio": "No pudimos registrar tu asistencia a esta visita. Si todavía quieres conocer la propiedad, agenda otra."
+    },
+    "pastNote": "La hora de esta visita ya pasó. Si todavía quieres conocer la propiedad, agenda otra.",
+    "duration_one": "Duración aproximada: {{count}} minuto",
+    "duration_other": "Duración aproximada: {{count}} minutos",
+    "viewProperty": "Ver propiedad",
+    "withAdvisor": "Te atiende {{name}}.",
+    "addToCalendar": "Agregar a mi calendario",
+    "directions": "Cómo llegar",
+    "actionsLabel": "Acciones de tu visita",
+    "confirm": "Confirmo que asistiré",
+    "attendanceConfirmed": "Ya confirmaste tu asistencia. ¡Te esperamos!",
+    "change": "Cambiar horario",
+    "cancelVisit": "Cancelar visita",
+    "changesLeft_one": "Puedes cambiar el horario {{count}} vez más.",
+    "changesLeft_other": "Puedes cambiar el horario {{count}} veces más.",
+    "cannotChange": "Ya no se puede cambiar el horario desde aquí (faltan menos de 2 horas o ya usaste los cambios permitidos). Si lo necesitas,",
+    "whatsapp": "escríbenos por WhatsApp",
+    "whatsappButton": "Escribir por WhatsApp",
+    "whatsappText": "Hola, sobre mi visita a {{property}} ({{when}}): ",
+    "bookAnother": "Agendar otra visita",
+    "back": "Volver",
+    "reschedule": {
+      "title": "Elige tu nuevo horario",
+      "noSlots": "No hay otros horarios disponibles por ahora. Escríbenos por WhatsApp y lo resolvemos.",
+      "selected": "Nuevo horario: {{when}}",
+      "confirm": "Confirmar nuevo horario",
+      "confirming": "Cambiando…"
+    },
+    "cancel": {
+      "title": "¿Cancelar tu visita?",
+      "body": "Liberaremos el horario y avisaremos a tu asesor.",
+      "reasonLabel": "¿Quieres contarnos por qué? (opcional)",
+      "reasonPlaceholder": "Ej. Surgió un imprevisto",
+      "confirm": "Sí, cancelar mi visita",
+      "confirming": "Cancelando…",
+      "keep": "Mejor no"
+    },
+    "done": {
+      "confirmed": "¡Gracias! Registramos tu asistencia.",
+      "rescheduled": "Listo, cambiamos tu visita. Le avisamos a tu asesor y te esperamos en el nuevo horario.",
+      "cancelled": "Cancelamos tu visita y avisamos a tu asesor. Cuando quieras, agenda otra."
+    },
+    "errors": {
+      "slotTaken": "Ese horario se acaba de ocupar. Elige otro, por favor.",
+      "tooLate": "Ya no se puede cambiar el horario: faltan menos de 2 horas para la visita.",
+      "tooLateCancel": "La hora de esta visita ya pasó.",
+      "limitReached": "Ya usaste los 2 cambios de horario permitidos.",
+      "notActive": "Esta visita ya no está activa.",
+      "generic": "No pudimos completar la acción. Intenta de nuevo."
     }
   },
   "adCopy": {

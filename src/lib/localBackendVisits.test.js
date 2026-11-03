@@ -141,3 +141,73 @@ describe("modo demo: reservar, mover y cancelar", () => {
     expect(await db.rescheduleVisitBooking("abc", "2026-11-05", "10:00")).toEqual({ error: "not_found" });
   });
 });
+
+describe("modo demo: gestión desde /visita/:token", () => {
+  async function bookFirst() {
+    await activateSchedule();
+    const slots = await db.getVisitSlots(property.id);
+    const result = await db.bookVisit({ propertyId: property.id, ...slots[0], ...person });
+    return { slots, token: result.token, first: slots[0] };
+  }
+  const changeMessages = async () => (await db.getContactMessages()).filter((m) => m.channel === "visita_cambio");
+
+  it("getBookingSlots trae solo los horarios del asesor de la visita (la ficha mezcla a todos) y libera el propio", async () => {
+    const otherAdvisor = property.advisor_ids.find((id) => id !== advisorId);
+    expect(otherAdvisor, "la propiedad de prueba debe tener dos asesores").toBeTruthy();
+    // El otro asesor solo atiende los domingos; el principal, lun–sáb.
+    await db.saveAdvisorVisitSchedule(otherAdvisor, { settings: { ...DEFAULT_VISIT_SETTINGS, enabled: true }, weekly: [{ weekday: 0, start_time: "10:00", end_time: "12:00" }] });
+    const { token, first } = await bookFirst();
+
+    const own = await db.getBookingSlots(token);
+    const all = await db.getVisitSlots(property.id);
+    const sunday = (slot) => new Date(`${slot.fecha}T12:00:00Z`).getUTCDay() === 0;
+    expect(all.some(sunday), "la unión de la ficha sí trae domingos").toBe(true);
+    expect(own.some(sunday), "los del asesor de la visita no").toBe(false);
+    expect(own).toContainEqual(first); // su propio horario aparece libre
+    expect(all).not.toContainEqual(first); // en la ficha ya está ocupado
+  });
+
+  it("getBookingSlots devuelve vacío con token inválido, inexistente o ya cancelada", async () => {
+    const { token } = await bookFirst();
+    expect(await db.getBookingSlots("abc")).toEqual([]);
+    expect(await db.getBookingSlots("0".repeat(32))).toEqual([]);
+    await db.cancelVisitBooking(token);
+    expect(await db.getBookingSlots(token)).toEqual([]);
+  });
+
+  it("reprogramar le avisa al asesor (mensaje canal visita_cambio con antes y ahora)", async () => {
+    const { token, slots, first } = await bookFirst();
+    const target = slots[5];
+    await db.rescheduleVisitBooking(token, target.fecha, target.hora);
+    const [notice, ...rest] = await changeMessages();
+    expect(rest).toEqual([]);
+    expect(notice).toMatchObject({ name: "Ana Pérez", phone: person.phone, property_id: property.id, status: "nuevo", details: { kind: "reprogramada" } });
+    const dmy = (f) => f.split("-").reverse().join("/");
+    expect(notice.message).toContain("Visita reprogramada por el cliente");
+    expect(notice.message).toContain(`Antes: ${dmy(first.fecha)} a las ${first.hora}`);
+    expect(notice.message).toContain(`Ahora: ${dmy(target.fecha)} a las ${target.hora}`);
+  });
+
+  it("cancelar avisa con el motivo y con la fecha vigente; confirmar asistencia no avisa", async () => {
+    const { token, slots } = await bookFirst();
+    await db.confirmVisitAttendance(token);
+    expect(await changeMessages()).toEqual([]);
+
+    await db.rescheduleVisitBooking(token, slots[4].fecha, slots[4].hora);
+    await db.cancelVisitBooking(token, "Surgió un imprevisto");
+    const notices = await changeMessages();
+    expect(notices.map((n) => n.details.kind).sort()).toEqual(["cancelada", "reprogramada"]);
+    const cancel = notices.find((n) => n.details.kind === "cancelada");
+    expect(cancel.message).toContain(`Era el ${slots[4].fecha.split("-").reverse().join("/")} a las ${slots[4].hora}`);
+    expect(cancel.message).toContain("Motivo: Surgió un imprevisto");
+  });
+
+  it("los intentos rechazados (cancelar dos veces, reprogramar a un horario ocupado) no generan avisos", async () => {
+    const { token, slots } = await bookFirst();
+    await db.bookVisit({ propertyId: property.id, ...slots[3], name: "Luis", email: "l@c.co", phone: "871 000 1111" });
+    expect(await db.rescheduleVisitBooking(token, slots[3].fecha, slots[3].hora)).toEqual({ error: "slot_unavailable" });
+    await db.cancelVisitBooking(token);
+    expect(await db.cancelVisitBooking(token)).toEqual({ error: "not_active" });
+    expect(await changeMessages()).toHaveLength(1); // solo la primera cancelación
+  });
+});

@@ -4,6 +4,7 @@ import {
   DEFAULT_WEEKLY_SCHEDULE,
   activeBookingsForPhone,
   bookingFieldErrors,
+  buildBookingChangeMessage,
   addDays,
   bookingPermissions,
   buildBookingMessage,
@@ -311,5 +312,22 @@ describe("editor de horarios", () => {
     expect(out.settings).toEqual({ enabled: true, slot_minutes: 45, min_notice_hours: 0, horizon_days: 1 });
     expect(out.weekly).toEqual([{ weekday: 1, start_time: "10:00", end_time: "11:00" }]);
     expect(out.timeOff).toEqual([{ fecha_inicio: "2026-11-10", fecha_fin: "2026-11-12", motivo: "Vacaciones" }]);
+  });
+});
+
+describe("buildBookingChangeMessage", () => {
+  it("la reprogramación dice cuándo era y cuándo es ahora", () => {
+    expect(buildBookingChangeMessage({ kind: "reprogramada", title: " Casa Lerdo ", code: "ACL-12", oldFecha: "2026-11-05", oldHora: "16:00:00", fecha: "2026-11-07", hora: "10:30" })).toBe(
+      "Visita reprogramada por el cliente — Casa Lerdo (ACL-12).\nAntes: 05/11/2026 a las 16:00\nAhora: 07/11/2026 a las 10:30"
+    );
+  });
+
+  it("la cancelación lleva el motivo solo si lo hay", () => {
+    expect(buildBookingChangeMessage({ kind: "cancelada", title: "Casa", oldFecha: "2026-11-05", oldHora: "16:00", reason: " Surgió un imprevisto " })).toBe(
+      "Visita cancelada por el cliente — Casa.\nEra el 05/11/2026 a las 16:00\nMotivo: Surgió un imprevisto"
+    );
+    expect(buildBookingChangeMessage({ kind: "cancelada", title: "Casa", code: "ACL-1", oldFecha: "2026-11-05", oldHora: "16:00", reason: "  " })).toBe(
+      "Visita cancelada por el cliente — Casa (ACL-1).\nEra el 05/11/2026 a las 16:00"
+    );
   });
 });

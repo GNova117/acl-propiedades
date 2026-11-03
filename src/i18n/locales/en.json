@@ -370,6 +370,8 @@
     "via_simulador": "From the credit simulator",
     "via_estimacion": "Value estimate request",
     "via_guia": "Downloaded the buyer's guide",
+    "via_visita": "Booked a visit on the site",
+    "via_visita_cambio": "Changed or cancelled their visit",
     "estimate": "Estimate value",
     "makeProspect": "Make prospect",
     "isProspect": "Already a prospect",
@@ -510,7 +512,11 @@
       "addToCalendar": "Add to my calendar",
       "directions": "Get directions",
       "whatsapp": "Message us on WhatsApp",
-      "changeHint": "Need to change or cancel it? Message us on WhatsApp at least 2 hours ahead.",
+      "changeHint": "Keep your visit link: from there you can confirm you'll attend, change the time or cancel.",
+      "manage": "View, change or cancel my visit",
+      "copyLink": "Copy link",
+      "copyLinkFallback": "Copy your visit link:",
+      "linkCopied": "Link copied!",
       "whatsappText": "Hi, I booked a visit to {{property}} for {{when}}. I'm {{name}}.",
       "errors": {
         "slotTaken": "That time was just taken. Please choose another one.",
@@ -3222,6 +3228,75 @@
       "invalid_window": "The end time must be after the start time.",
       "overlap": "Some hours overlap on this day.",
       "invalid_time_off": "Check your days off: each needs a start and end date, and the end can't be before the start."
+    }
+  },
+  "visitPage": {
+    "pageTitle": "Your visit",
+    "invalidTitle": "Invalid link",
+    "invalidBody": "This link doesn't match any visit. Check that it is complete or message us on WhatsApp.",
+    "errorTitle": "We couldn't load your visit",
+    "errorBody": "Please try again in a few minutes.",
+    "greeting": "Hi, {{name}}",
+    "greetingGeneric": "Your visit",
+    "status": {
+      "confirmada": "Visit booked",
+      "cancelada": "Visit cancelled",
+      "realizada": "Visit done",
+      "no_asistio": "Visit not completed"
+    },
+    "statusNote": {
+      "cancelada": "We cancelled this visit and freed the time slot. If you still want to see the property, book another whenever you like.",
+      "realizada": "Thanks for visiting! If you like the property, message us and we'll help with the next steps.",
+      "no_asistio": "We couldn't record your attendance at this visit. If you still want to see the property, book another."
+    },
+    "pastNote": "The time of this visit has passed. If you still want to see the property, book another.",
+    "duration_one": "Approximate length: {{count}} minute",
+    "duration_other": "Approximate length: {{count}} minutes",
+    "viewProperty": "View property",
+    "withAdvisor": "{{name}} will take care of you.",
+    "addToCalendar": "Add to my calendar",
+    "directions": "Get directions",
+    "actionsLabel": "Your visit actions",
+    "confirm": "I confirm I'll attend",
+    "attendanceConfirmed": "You've confirmed your attendance. See you there!",
+    "change": "Change time",
+    "cancelVisit": "Cancel visit",
+    "changesLeft_one": "You can change the time {{count}} more time.",
+    "changesLeft_other": "You can change the time {{count}} more times.",
+    "cannotChange": "The time can no longer be changed from here (less than 2 hours left or you've used the allowed changes). If you need to,",
+    "whatsapp": "message us on WhatsApp",
+    "whatsappButton": "Message us on WhatsApp",
+    "whatsappText": "Hi, about my visit to {{property}} ({{when}}): ",
+    "bookAnother": "Book another visit",
+    "back": "Back",
+    "reschedule": {
+      "title": "Choose your new time",
+      "noSlots": "There are no other times available right now. Message us on WhatsApp and we'll sort it out.",
+      "selected": "New time: {{when}}",
+      "confirm": "Confirm new time",
+      "confirming": "Changing…"
+    },
+    "cancel": {
+      "title": "Cancel your visit?",
+      "body": "We'll free the time slot and let your advisor know.",
+      "reasonLabel": "Want to tell us why? (optional)",
+      "reasonPlaceholder": "E.g. Something came up",
+      "confirm": "Yes, cancel my visit",
+      "confirming": "Cancelling…",
+      "keep": "Keep it"
+    },
+    "done": {
+      "confirmed": "Thanks! We recorded your attendance.",
+      "rescheduled": "Done, we changed your visit. We let your advisor know and we'll see you at the new time.",
+      "cancelled": "We cancelled your visit and let your advisor know. Book another whenever you like."
+    },
+    "errors": {
+      "slotTaken": "That time was just taken. Please choose another one.",
+      "tooLate": "The time can no longer be changed: the visit is less than 2 hours away.",
+      "tooLateCancel": "The time of this visit has already passed.",
+      "limitReached": "You've already used the 2 allowed time changes.",
+      "notActive": "This visit is no longer active.",
+      "generic": "We couldn't complete the action. Please try again."
     }
   },
   "adCopy": {
