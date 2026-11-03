@@ -10,6 +10,10 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+# Pruebas e2e (Playwright): build de prueba y reportes
+dist-e2e
+test-results
+playwright-report
 *.local
 .env
 .env.*

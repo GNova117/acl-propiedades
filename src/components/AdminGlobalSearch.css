@@ -95,6 +95,23 @@
     max-width: none;
   }
 
+  /* En celular los botones de la derecha le dejan al buscador ~60 px (apenas
+     cabe «Bu»): al enfocarlo se extiende sobre toda la barra superior. */
+  .admin-search:focus-within {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    padding: 0 0.75rem;
+    background: var(--color-surface);
+  }
+
+  .admin-search:focus-within .admin-search__panel {
+    left: 0.75rem;
+    right: 0.75rem;
+  }
+
   .admin-search__item {
     min-height: 44px;
   }

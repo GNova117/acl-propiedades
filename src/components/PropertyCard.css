@@ -93,12 +93,18 @@
   color: var(--color-text-muted);
 }
 
+/* Asesor + botones: en una tarjeta angosta (celular de 360 px, tableta) no
+   caben en una sola fila, así que el pie salta de línea en vez de recortar
+   «Ver detalle» contra el borde. El asesor parte de un ancho mínimo (no de su
+   texto completo) para que en tarjetas anchas siga todo en una fila. */
 .property-card__footer {
   margin-top: auto;
   padding-top: 0.75rem;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
   border-top: 1px solid var(--color-border);
 }
 
@@ -106,14 +112,18 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-left: auto;
 }
 
 .property-card__advisor {
   display: flex;
+  flex: 1 1 0;
+  min-width: 5.5rem;
   align-items: center;
   gap: 0.5rem;
   font-size: 0.82rem;
   color: var(--color-text-muted);
+  overflow-wrap: anywhere;
 }
 
 .property-card__advisor img {

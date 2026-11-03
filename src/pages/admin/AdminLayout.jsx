@@ -153,7 +153,9 @@ export default function AdminLayout() {
   };
 
   const renderLink = (item) => (
-    <NavLink key={item.to} to={item.to} end={item.end}>
+    // onClick además del cierre por cambio de ruta: tocar el enlace de la
+    // página donde ya estás no cambia la ruta y el cajón se quedaba abierto.
+    <NavLink key={item.to} to={item.to} end={item.end} onClick={() => setMenuOpen(false)}>
       {item.label || t(item.labelKey)}
       {item.badge && newMessagesCount > 0 && <span className="admin-layout__nav-badge">{newMessagesCount}</span>}
     </NavLink>
