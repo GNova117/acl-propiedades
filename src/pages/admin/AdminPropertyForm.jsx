@@ -437,7 +437,7 @@ export default function AdminPropertyForm({
             {advisors.map((advisor) => (
               <label key={advisor.id}>
                 <input type="checkbox" checked={form.advisor_ids.includes(advisor.id)} onChange={() => toggleAdvisor(advisor.id)} />
-                <img src={advisor.photo_url} alt="" />
+                {advisor.photo_url && <img src={advisor.photo_url} alt="" />}
                 {advisor.name}
               </label>
             ))}

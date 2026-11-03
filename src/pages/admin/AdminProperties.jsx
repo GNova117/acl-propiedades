@@ -327,7 +327,7 @@ export default function AdminProperties({
                         aria-label={t("bulkActions.selectRow")}
                       />
                     </td>
-                    <td><img src={property.main_image} alt="" /></td>
+                    <td>{property.main_image && <img src={property.main_image} alt="" />}</td>
                     <td>{property.code || "—"}</td>
                     <td>{property.title}</td>
                     <td>{propertyTypeLabel(t, property.type)}</td>
