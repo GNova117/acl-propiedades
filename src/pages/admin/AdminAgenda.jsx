@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
 import { whatsappDigits } from "../../lib/format";
 import { citaToIcs, downloadIcs, mapsUrl } from "../../lib/calendarEvent";
+import { canRegisterVisit, citaContact, citaStatus, citaToVisitPrefill, isFromSite, isPending, statusActions } from "../../lib/agendaCitas";
 import { formatIsoDate } from "../../lib/propertyLog";
 import "./admin.css";
 import "./AdminAgenda.css";
@@ -45,12 +46,17 @@ const MAX_CHIPS_PER_DAY = 3;
 // selector de asesor para poder acotar la vista).
 export default function AdminAgenda() {
   const { t, i18n } = useTranslation();
-  const { advisorId } = useAuth();
+  const { advisorId, hasSection } = useAuth();
+  const navigate = useNavigate();
+  const [visits, setVisits] = useState([]);
   const [citas, setCitas] = useState([]);
   const [advisors, setAdvisors] = useState([]);
   const [clients, setClients] = useState([]);
+  const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [advisorFilter, setAdvisorFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("active"); // active | pending | cancelled | all
+  const [busyId, setBusyId] = useState(null);
   const [view, setView] = useState("list");
   const [cursor, setCursor] = useState(() => {
     const now = new Date();
@@ -61,14 +67,18 @@ export default function AdminAgenda() {
 
   const load = () => {
     setLoading(true);
-    Promise.all([db.getAgendaCitas(), db.getAdvisors(), db.getClients()]).then(([citasData, advisorData, clientData]) => {
+    // Las visitas registradas (para saber qué citas ya tienen la suya) solo se piden con el apartado Visitas.
+    Promise.all([db.getAgendaCitas(), db.getAdvisors(), db.getClients(), db.getProperties({}).catch(() => []), hasSection("visitas") ? db.getVisits().catch(() => []) : []]).then(([citasData, advisorData, clientData, propertyData, visitData]) => {
+      setVisits(visitData);
       setCitas(citasData);
       setAdvisors(advisorData);
       setClients(clientData);
+      setProperties(propertyData);
       setLoading(false);
     });
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(load, []);
 
   const handleDelete = async (id) => {
@@ -78,16 +88,58 @@ export default function AdminAgenda() {
   };
 
   const advisorName = (id) => advisors.find((a) => a.id === id)?.name || "—";
+  // Datos de contacto de la cita: el cliente ligado o, si la reservó un visitante desde el sitio, lo que dejó al reservar.
+  const contactOf = (cita) => citaContact(cita, clients.find((c) => c.id === cita.client_id) || null);
+  const whenLabel = (cita) => {
+    const date = new Date(`${cita.fecha}T00:00:00`).toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
+    return cita.hora ? `${date} a las ${cita.hora.slice(0, 5)}` : date;
+  };
+  const openWhatsApp = (phone, text) => {
+    let digits = whatsappDigits(phone);
+    if (digits.length === 10) digits = `52${digits}`;
+    window.open(`https://wa.me/${digits}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+  };
+
   // Recordatorio manual por WhatsApp al cliente (funciona sin esperar el aviso automático).
   const remind = (cita) => {
-    const client = clients.find((c) => c.id === cita.client_id);
-    let digits = whatsappDigits(client?.phone);
-    if (digits.length === 10) digits = `52${digits}`;
-    const date = new Date(`${cita.fecha}T00:00:00`).toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
-    const when = cita.hora ? `${date} a las ${cita.hora.slice(0, 5)}` : date;
+    const contact = contactOf(cita);
     const place = cita.lugar ? `\n${t("agenda.reminderPlace", { place: cita.lugar })}\n${mapsUrl(cita.lugar)}` : "";
-    const text = t("agenda.reminderText", { name: (client?.name || "").split(/\s+/)[0], title: cita.titulo, when, advisor: advisorName(cita.advisor_id) }) + place;
-    window.open(`https://wa.me/${digits}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+    const text = t("agenda.reminderText", { name: contact.name.split(/\s+/)[0], title: cita.titulo, when: whenLabel(cita), advisor: advisorName(cita.advisor_id) }) + place;
+    openWhatsApp(contact.phone, text);
+  };
+
+  // Cerrar una cita (realizada / no asistió), cancelarla o reactivarla. Al cancelar
+  // se pide el motivo (opcional) y se ofrece avisarle al cliente por WhatsApp.
+  const changeStatus = async (cita, status) => {
+    let reason = "";
+    if (status === "cancelada") {
+      reason = window.prompt(t("agenda.cancelReasonPrompt"));
+      if (reason === null) return;
+    }
+    setBusyId(cita.id);
+    try {
+      await db.setAgendaCitaStatus(cita.id, status, { reason });
+    } catch (err) {
+      window.alert(err.message || t("agenda.statusError"));
+      setBusyId(null);
+      return;
+    }
+    setBusyId(null);
+    // Al cerrar una visita como realizada se ofrece registrarla (así alimenta el informe de la propiedad).
+    if (status === "realizada" && canLogVisits && canRegisterVisit(cita) && !visitByCita.has(cita.id) && window.confirm(t("agenda.registerVisitPrompt"))) {
+      registerVisit(cita);
+      return;
+    }
+    if (status === "cancelada") {
+      const contact = contactOf(cita);
+      // Una visita reservada desde el sitio con correo: el cliente ya recibe el aviso por correo (trigger
+      // notify_visit_email); aquí solo se ofrece, además, avisarle por WhatsApp.
+      const emailed = isFromSite(cita) && contact.email;
+      if (contact.phone && window.confirm(t(emailed ? "agenda.notifyCancelledEmailed" : "agenda.notifyCancelled"))) {
+        openWhatsApp(contact.phone, t("agenda.cancelledText", { name: contact.name.split(/\s+/)[0], title: cita.titulo, when: whenLabel(cita), advisor: advisorName(cita.advisor_id) }));
+      }
+    }
+    load();
   };
 
   // Archivo .ics de la cita: se abre en el calendario del teléfono y avisa 1 h y 15 min antes.
@@ -97,12 +149,24 @@ export default function AdminAgenda() {
     downloadIcs(`cita-${cita.fecha}.ics`, content);
   };
 
-  const clientName = (id) => (id ? clients.find((c) => c.id === id)?.name : null) || t("agenda.noClient");
+  // Visita ya registrada de cada cita (agenda_citas ↔ property_visits.cita_id).
+  const visitByCita = new Map(visits.filter((v) => v.cita_id).map((v) => [v.cita_id, v]));
+  const canLogVisits = hasSection("visitas");
+  // "Registrar visita": abre el formulario ya prellenado con los datos de la cita.
+  const registerVisit = (cita) =>
+    navigate("/admin/visitas/nueva", { state: { from: "/admin/agenda", prefill: citaToVisitPrefill(cita, clients.find((c) => c.id === cita.client_id) || null) } });
+
+  const propertyOf = (id) => (id ? properties.find((p) => p.id === id) || null : null);
 
   const visibleCitas = useMemo(() => {
-    if (!seesAll || !advisorFilter) return citas;
-    return citas.filter((c) => c.advisor_id === advisorFilter);
-  }, [citas, seesAll, advisorFilter]);
+    const byStatus = {
+      active: (c) => citaStatus(c) !== "cancelada",
+      pending: (c) => isPending(c),
+      cancelled: (c) => citaStatus(c) === "cancelada",
+      all: () => true,
+    }[statusFilter];
+    return citas.filter((c) => byStatus(c) && (!seesAll || !advisorFilter || c.advisor_id === advisorFilter));
+  }, [citas, seesAll, advisorFilter, statusFilter]);
 
   const citasByDate = useMemo(() => {
     const map = new Map();
@@ -149,19 +213,31 @@ export default function AdminAgenda() {
         </div>
       </div>
 
-      {seesAll && (
-        <div className="form-field" style={{ maxWidth: 320, marginBottom: "1.25rem" }}>
-          <label htmlFor="agenda-advisor-filter">{t("agenda.advisorFilter")}</label>
-          <select id="agenda-advisor-filter" value={advisorFilter} onChange={(e) => setAdvisorFilter(e.target.value)}>
-            <option value="">{t("agenda.allAdvisorsOption")}</option>
-            {advisors.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
+      <div className="agenda-filters">
+        {seesAll && (
+          <div className="form-field">
+            <label htmlFor="agenda-advisor-filter">{t("agenda.advisorFilter")}</label>
+            <select id="agenda-advisor-filter" value={advisorFilter} onChange={(e) => setAdvisorFilter(e.target.value)}>
+              <option value="">{t("agenda.allAdvisorsOption")}</option>
+              {advisors.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        <div className="form-field">
+          <label htmlFor="agenda-status-filter">{t("agenda.statusFilter")}</label>
+          <select id="agenda-status-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            {["active", "pending", "cancelled", "all"].map((key) => (
+              <option key={key} value={key}>
+                {t(`agenda.statusFilters.${key}`)}
               </option>
             ))}
           </select>
         </div>
-      )}
+      </div>
 
       {view === "list" ? (
         <div className="card admin-table-wrapper">
@@ -185,14 +261,51 @@ export default function AdminAgenda() {
                   <td colSpan={seesAll ? 5 : 4}>{t("agenda.noAppointments")}</td>
                 </tr>
               ) : (
-                visibleCitas.map((cita) => (
-                  <tr key={cita.id}>
+                visibleCitas.map((cita) => {
+                  const status = citaStatus(cita);
+                  const contact = contactOf(cita);
+                  const property = propertyOf(cita.property_id);
+                  return (
+                  <tr key={cita.id} className={status === "cancelada" ? "agenda-row--cancelled" : undefined}>
                     <td>
                       {new Date(`${cita.fecha}T00:00:00`).toLocaleDateString()}
                       {cita.hora ? ` · ${cita.hora.slice(0, 5)}` : ""}
                     </td>
-                    <td>
-                      {cita.titulo}
+                    <td className="agenda-cell--wrap">
+                      <span className="agenda-row__title">{cita.titulo}</span>
+                      <div className="agenda-chips">
+                        {status !== "confirmada" && <span className={`agenda-chip agenda-chip--${status}`}>{t(`agenda.status.${status}`)}</span>}
+                        {isFromSite(cita) && <span className="agenda-chip agenda-chip--site">{t("agenda.fromSite")}</span>}
+                        {isFromSite(cita) && isPending(cita) && (
+                          <span className={`agenda-chip ${cita.client_confirmed_at ? "agenda-chip--ok" : "agenda-chip--warn"}`}>
+                            {cita.client_confirmed_at ? t("agenda.clientConfirmed") : t("agenda.clientUnconfirmed")}
+                          </span>
+                        )}
+                        {cita.reschedule_count > 0 && <span className="agenda-chip">{t("agenda.rescheduled", { count: cita.reschedule_count })}</span>}
+                      </div>
+                      {status === "cancelada" && cita.cancelled_by && (
+                        <div className="form-hint">
+                          {t(`agenda.cancelledBy.${cita.cancelled_by}`)}
+                          {cita.cancelled_reason ? ` — ${cita.cancelled_reason}` : ""}
+                        </div>
+                      )}
+                      {property && (
+                        <div className="form-hint">
+                          🏠{" "}
+                          <a href={`/propiedades/${property.id}`} target="_blank" rel="noopener noreferrer">
+                            {property.title}
+                          </a>
+                        </div>
+                      )}
+                      {(visitByCita.has(cita.id) || (cita.prospecto_id && hasSection("prospectos"))) && (
+                        <div className="form-hint">
+                          {visitByCita.has(cita.id) && (
+                            <Link to={`/admin/visitas/${visitByCita.get(cita.id).id}`}>✔ {t("agenda.visitRegistered")}</Link>
+                          )}
+                          {visitByCita.has(cita.id) && cita.prospecto_id && hasSection("prospectos") && " · "}
+                          {cita.prospecto_id && hasSection("prospectos") && <Link to={`/admin/prospectos/${cita.prospecto_id}`}>{t("agenda.viewProspect")}</Link>}
+                        </div>
+                      )}
                       {cita.lugar && (
                         <div className="form-hint">
                           📍 {cita.lugar} ·{" "}
@@ -203,8 +316,12 @@ export default function AdminAgenda() {
                       )}
                     </td>
                     {seesAll && <td>{advisorName(cita.advisor_id)}</td>}
-                    <td>{clientName(cita.client_id)}</td>
-                    <td className="admin-table__actions">
+                    <td>
+                      {contact.name || t("agenda.noClient")}
+                      {contact.phone && <div className="form-hint">{contact.phone}</div>}
+                    </td>
+                    <td>
+                      <div className="agenda-actions">
                       <Link to={`/admin/agenda/${cita.id}`} className="btn btn-outline btn-sm">
                         {t("common.edit")}
                       </Link>
@@ -214,17 +331,35 @@ export default function AdminAgenda() {
                       <button type="button" className="btn btn-outline btn-sm" onClick={() => addToCalendar(cita)} title={t("agenda.addToCalendarTitle")}>
                         {t("agenda.addToCalendar")}
                       </button>
-                      {clients.find((c) => c.id === cita.client_id)?.phone && (
+                      {contact.phone && status === "confirmada" && (
                         <button type="button" className="btn btn-outline btn-sm" onClick={() => remind(cita)}>
                           {t("agenda.remindClient")}
                         </button>
                       )}
+                      {status === "realizada" && canLogVisits && canRegisterVisit(cita) && !visitByCita.has(cita.id) && (
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => registerVisit(cita)}>
+                          {t("agenda.registerVisit")}
+                        </button>
+                      )}
+                      {statusActions(cita).map((next) => (
+                        <button
+                          key={next}
+                          type="button"
+                          className={`btn btn-sm ${next === "cancelada" ? "btn-outline agenda-action--cancel" : "btn-outline"}`}
+                          disabled={busyId === cita.id}
+                          onClick={() => changeStatus(cita, next)}
+                        >
+                          {t(`agenda.statusActions.${next}`)}
+                        </button>
+                      ))}
                       <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(cita.id)}>
                         {t("common.delete")}
                       </button>
+                      </div>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>

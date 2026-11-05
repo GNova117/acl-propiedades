@@ -3,3 +3,72 @@
   margin-top: 1.25rem;
   padding: 1.25rem 1.5rem;
 }
+
+/* ── Reserva con horarios reales (VisitBooking) ── */
+.visit-booking {
+  position: relative;
+}
+
+.visit-booking__step {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.visit-booking__step:first-child {
+  margin-top: 0.25rem;
+}
+
+.visit-booking__summary {
+  margin: 0.9rem 0 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-alt);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.visit-booking__alt {
+  margin: 0.75rem 0 0;
+  text-align: center;
+}
+
+.visit-booking__link {
+  background: none;
+  border: 0;
+  padding: 0.25rem;
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.visit-booking__done-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  color: var(--color-success);
+}
+
+.visit-booking__when {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* Solo la primera letra ("Miércoles, 4 de noviembre · 3:00 p. m."): capitalize
+   pondría también "De" y "P. M." en mayúscula. */
+.visit-booking__when::first-letter {
+  text-transform: uppercase;
+}
+
+.visit-booking__done-line {
+  margin: 0 0 0.25rem;
+}
+
+.visit-booking__done-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0 0.75rem;
+}

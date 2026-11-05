@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { whatsappDigits } from "../../lib/format";
+import { useAuth } from "../../context/AuthContext";
+import VisitScheduleEditor from "../../components/VisitScheduleEditor";
 import "./admin.css";
 
 const EMPTY = { name: "", phone: "", email: "", whatsapp: "", bio: "", active: true, show_in_team: true };
@@ -12,6 +14,7 @@ export default function AdminAdvisorForm() {
   const isEdit = Boolean(id);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { hasSection } = useAuth();
 
   const [form, setForm] = useState(EMPTY);
   const [existingPhoto, setExistingPhoto] = useState("");
@@ -164,6 +167,9 @@ export default function AdminAdvisorForm() {
           </button>
         </div>
       </form>
+
+      {/* Solo al editar (el asesor nuevo todavía no tiene id) y con acceso a la Agenda. */}
+      {isEdit && hasSection("agenda") && <VisitScheduleEditor advisorId={id} />}
     </div>
   );
 }

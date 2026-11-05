@@ -6,6 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import { whatsappDigits } from "../../lib/format";
 import { mapsUrl } from "../../lib/calendarEvent";
 import { buildDayPlan } from "../../lib/dayPlan";
+import { canRegisterVisit, citaContact, citaToVisitPrefill, isFromSite, isPending } from "../../lib/agendaCitas";
 import { contactFields, isOpenStage, unattendedAge } from "../../lib/prospects";
 import { prospectMessageTemplates } from "../../lib/prospectMessages";
 import QuickReplyButton from "../../components/QuickReplyButton";
@@ -76,6 +77,18 @@ export default function AdminMyDay() {
 
   const plan = useMemo(() => buildDayPlan({ citas, prospects, now }), [citas, prospects, now]);
 
+  // Cerrar una visita pasada: realizada o "no asistió". Vuelve a leer las citas para que salga de la lista.
+  const [closeError, setCloseError] = useState("");
+  const closeCita = async (cita, status) => {
+    setCloseError("");
+    try {
+      await db.setAgendaCitaStatus(cita.id, status);
+      setCitas(await db.getAgendaCitas());
+    } catch (err) {
+      setCloseError(err.message || t("myDay.close.error"));
+    }
+  };
+
   const advisorName = (id) => advisors.find((a) => a.id === id)?.name || "";
   const propertyTitle = (id) => properties.find((p) => p.id === id)?.title || "";
   const client = (id) => clients.find((c) => c.id === id) || null;
@@ -121,17 +134,18 @@ export default function AdminMyDay() {
 
   const renderCita = (item) => {
     const { cita, state } = item;
-    const cl = client(cita.client_id);
-    const call = telHref(cl?.phone);
+    const cl = citaContact(cita, client(cita.client_id));
+    const call = telHref(cl.phone);
     return (
       <li key={cita.id} className={`card my-day__item my-day__item--${state}`}>
         <div className="my-day__time">{cita.hora ? hm(cita.hora) : t("myDay.agenda.allDay")}</div>
         <div className="my-day__body">
           <div className="my-day__headline">
             <strong>{cita.titulo}</strong> {citaChip(item)}
+            {isFromSite(cita) && <span className="prospect-chip">{t("agenda.fromSite")}</span>}
           </div>
-          {(cl || showAdvisor) && (
-            <p className="form-hint">{[cl?.name, showAdvisor ? advisorName(cita.advisor_id) : null].filter(Boolean).join(" · ")}</p>
+          {(cl.name || showAdvisor) && (
+            <p className="form-hint">{[cl.name, showAdvisor ? advisorName(cita.advisor_id) : null].filter(Boolean).join(" · ")}</p>
           )}
           {cita.lugar && <p className="form-hint">📍 {cita.lugar}</p>}
           <div className="my-day__actions">
@@ -146,9 +160,93 @@ export default function AdminMyDay() {
               </a>
             )}
             {canVisits && (
-              <Link to="/admin/visitas/nueva" className="btn btn-outline btn-sm">
+              <Link to="/admin/visitas/nueva" state={{ from: "/admin/mi-dia", prefill: citaToVisitPrefill(cita, client(cita.client_id)) }} className="btn btn-outline btn-sm">
                 {t("myDay.agenda.logVisit")}
               </Link>
+            )}
+            {state === "past" && cita.property_id && isPending(cita) && renderCloseButtons(cita)}
+            <Link to={`/admin/agenda/${cita.id}`} className="btn btn-outline btn-sm">
+              {t("common.edit")}
+            </Link>
+          </div>
+        </div>
+      </li>
+    );
+  };
+
+  // Realizada / No asistió (una visita que ya pasó y nadie ha cerrado).
+  const renderCloseButtons = (cita) => (
+    <>
+      <button type="button" className="btn btn-outline btn-sm" onClick={() => closeCita(cita, "realizada")}>
+        {t("myDay.close.done")}
+      </button>
+      <button type="button" className="btn btn-outline btn-sm" onClick={() => closeCita(cita, "no_asistio")}>
+        {t("myDay.close.noShow")}
+      </button>
+    </>
+  );
+
+  // Visita de un día anterior que nadie cerró: se cierra aquí o se registra directo (que la marca como realizada).
+  const renderToClose = (cita) => {
+    const contact = citaContact(cita, client(cita.client_id));
+    const day = new Date(`${cita.fecha}T00:00:00`).toLocaleDateString(i18n.language?.startsWith("en") ? "en-US" : "es-MX", { weekday: "long", day: "numeric", month: "long" });
+    return (
+      <li key={cita.id} className="card my-day__item my-day__item--prospect">
+        <div className="my-day__body">
+          <div className="my-day__headline">
+            <strong>{cita.titulo}</strong> <span className="prospect-chip prospect-chip--overdue">{`${day} · ${hm(cita.hora)}`}</span>
+          </div>
+          <p className="form-hint">{[contact.name, contact.phone, showAdvisor ? advisorName(cita.advisor_id) : null].filter(Boolean).join(" · ")}</p>
+          <div className="my-day__actions">
+            {renderCloseButtons(cita)}
+            {canVisits && canRegisterVisit(cita) && (
+              <Link to="/admin/visitas/nueva" state={{ from: "/admin/mi-dia", prefill: citaToVisitPrefill(cita, client(cita.client_id)) }} className="btn btn-outline btn-sm">
+                {t("myDay.close.register")}
+              </Link>
+            )}
+            <Link to={`/admin/agenda/${cita.id}`} className="btn btn-outline btn-sm">
+              {t("common.edit")}
+            </Link>
+          </div>
+        </div>
+      </li>
+    );
+  };
+
+  // Reserva hecha desde el sitio cuyo cliente aún no confirma que va: se le escribe por WhatsApp o se le llama.
+  const dayLabel = (fecha) => {
+    const today = now.toLocaleDateString("en-CA");
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    if (fecha === today) return t("myDay.confirm.today");
+    if (fecha === tomorrow.toLocaleDateString("en-CA")) return t("myDay.confirm.tomorrow");
+    return new Date(`${fecha}T00:00:00`).toLocaleDateString(i18n.language?.startsWith("en") ? "en-US" : "es-MX", { weekday: "long", day: "numeric", month: "long" });
+  };
+
+  const renderToConfirm = (cita) => {
+    const contact = citaContact(cita, client(cita.client_id));
+    const call = telHref(contact.phone);
+    const digits = whatsappDigits(contact.phone);
+    const waPhone = digits.length === 10 ? `52${digits}` : digits;
+    const when = `${dayLabel(cita.fecha)} ${t("myDay.confirm.at")} ${hm(cita.hora)}`;
+    const text = t("myDay.confirm.whatsappText", { name: contact.name.split(/\s+/)[0], title: cita.titulo, when, advisor: advisorName(cita.advisor_id) });
+    return (
+      <li key={cita.id} className="card my-day__item my-day__item--prospect">
+        <div className="my-day__body">
+          <div className="my-day__headline">
+            <strong>{cita.titulo}</strong> <span className="prospect-chip prospect-chip--today">{when}</span>
+          </div>
+          <p className="form-hint">{[contact.name, contact.phone, showAdvisor ? advisorName(cita.advisor_id) : null].filter(Boolean).join(" · ")}</p>
+          <div className="my-day__actions">
+            {waPhone && (
+              <a className="btn btn-outline btn-sm" href={`https://wa.me/${waPhone}?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer">
+                {t("myDay.confirm.ask")}
+              </a>
+            )}
+            {call && (
+              <a className="btn btn-outline btn-sm" href={call}>
+                {t("myDay.call")}
+              </a>
             )}
             <Link to={`/admin/agenda/${cita.id}`} className="btn btn-outline btn-sm">
               {t("common.edit")}
@@ -261,6 +359,13 @@ export default function AdminMyDay() {
       )}
 
       {canAgenda && section("agenda", plan.agenda, renderCita, plan.pendingAgenda)}
+      {canAgenda && section("confirm", plan.toConfirm, renderToConfirm)}
+      {canAgenda && section("close", plan.toClose, renderToClose)}
+      {closeError && (
+        <p className="form-error" role="alert">
+          {closeError}
+        </p>
+      )}
       {canProspects && section("urgent", plan.urgent, (e) => renderProspect(e, unattendedChip(e)))}
       {canProspects &&
         section("overdue", plan.overdue, (e) =>

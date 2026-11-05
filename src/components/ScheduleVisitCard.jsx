@@ -1,14 +1,20 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { OPEN_SCHEDULE_EVENT, SCHEDULE_TARGET_ID } from "./MobileContactBar";
+import VisitBooking from "./VisitBooking";
 import "./ScheduleVisitCard.css";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const initialForm = { name: "", email: "", phone: "", date: "", time: "", note: "", empresa: "" };
 
-// Reusa la infraestructura de Mensajes de contacto en vez de un módulo
-// propio: la solicitud llega como un contact_message más (misma tabla,
+// La tarjeta tiene dos modos. Si el asesor de la propiedad activó la reserva en
+// línea y tiene horarios libres, el visitante elige uno y la visita queda
+// agendada al momento (VisitBooking). Si no hay horarios — o prefiere proponer
+// otro día —, queda el formulario de solicitud de siempre (VisitRequestForm).
+//
+// El formulario de solicitud reusa la infraestructura de Mensajes de contacto
+// en vez de un módulo propio: la solicitud llega como un contact_message más (misma tabla,
 // mismo inbox en /admin/mensajes, mismo aviso automático por WhatsApp una
 // vez que la plantilla de Meta esté aprobada) — el usuario eligió
 // explícitamente "que llegue como solicitud que alguien revise y agende"
@@ -30,19 +36,11 @@ function buildVisitMessage(property, { date, time, note }) {
   return message;
 }
 
-export default function ScheduleVisitCard({ property }) {
+function VisitRequestForm({ property, onBack }) {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
-
-  // La barra fija de la ficha en móvil ("Agendar visita") abre el formulario.
-  useEffect(() => {
-    const openForm = () => setOpen(true);
-    window.addEventListener(OPEN_SCHEDULE_EVENT, openForm);
-    return () => window.removeEventListener(OPEN_SCHEDULE_EVENT, openForm);
-  }, []);
 
   const handleChange = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
@@ -92,6 +90,99 @@ export default function ScheduleVisitCard({ property }) {
     }
   };
 
+  if (status === "success") return <p className="form-hint" style={{ color: "var(--color-success)" }}>{t("scheduleVisit.success")}</p>;
+
+  return (
+    <form onSubmit={handleSubmit} noValidate>
+      {onBack && (
+        <p className="visit-booking__alt">
+          <button type="button" className="visit-booking__link" onClick={onBack}>
+            {t("scheduleVisit.booking.backToSlots")}
+          </button>
+        </p>
+      )}
+      <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}>
+        <label htmlFor="visit-empresa">Empresa</label>
+        <input id="visit-empresa" name="empresa" value={form.empresa} onChange={handleChange} tabIndex={-1} autoComplete="off" />
+      </div>
+
+      <div className="form-field">
+        <label htmlFor="visit-name">{t("contact.name")}</label>
+        <input id="visit-name" name="name" value={form.name} onChange={handleChange} aria-invalid={Boolean(errors.name)} />
+        {errors.name && <span className="form-error">{errors.name}</span>}
+      </div>
+
+      <div className="form-row">
+        <div className="form-field">
+          <label htmlFor="visit-email">{t("contact.email")}</label>
+          <input id="visit-email" name="email" type="email" value={form.email} onChange={handleChange} aria-invalid={Boolean(errors.email)} />
+          {errors.email && <span className="form-error">{errors.email}</span>}
+        </div>
+        <div className="form-field">
+          <label htmlFor="visit-phone">{t("contact.phone")}</label>
+          <input id="visit-phone" name="phone" type="tel" value={form.phone} onChange={handleChange} aria-invalid={Boolean(errors.phone)} />
+          {errors.phone && <span className="form-error">{errors.phone}</span>}
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-field">
+          <label htmlFor="visit-date">{t("scheduleVisit.date")}</label>
+          <input
+            id="visit-date"
+            name="date"
+            type="date"
+            min={new Date().toISOString().slice(0, 10)}
+            value={form.date}
+            onChange={handleChange}
+            aria-invalid={Boolean(errors.date)}
+          />
+          {errors.date && <span className="form-error">{errors.date}</span>}
+        </div>
+        <div className="form-field">
+          <label htmlFor="visit-time">{t("scheduleVisit.time")}</label>
+          <input id="visit-time" name="time" type="time" value={form.time} onChange={handleChange} />
+        </div>
+      </div>
+
+      <div className="form-field">
+        <label htmlFor="visit-note">{t("scheduleVisit.note")}</label>
+        <textarea id="visit-note" name="note" rows={2} value={form.note} onChange={handleChange} placeholder={t("scheduleVisit.notePlaceholder")} />
+      </div>
+
+      {status === "error" && <p className="form-error">{t("contact.error")}</p>}
+      {status === "rateLimited" && <p className="form-error">{t("contact.rateLimited")}</p>}
+
+      <button type="submit" className="btn btn-primary btn-block" disabled={status === "sending"}>
+        {status === "sending" ? <span className="spinner" /> : null}
+        {status === "sending" ? t("contact.sending") : t("scheduleVisit.submit")}
+      </button>
+    </form>
+  );
+}
+
+export default function ScheduleVisitCard({ property }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  // null = todavía no se piden / cargando; [] = sin horarios (formulario de solicitud).
+  const [slots, setSlots] = useState(null);
+  const [requestMode, setRequestMode] = useState(false);
+
+  // La barra fija de la ficha en móvil ("Agendar visita") abre el formulario.
+  useEffect(() => {
+    const openForm = () => setOpen(true);
+    window.addEventListener(OPEN_SCHEDULE_EVENT, openForm);
+    return () => window.removeEventListener(OPEN_SCHEDULE_EVENT, openForm);
+  }, []);
+
+  // Los horarios libres se piden al abrir la tarjeta (no en cada visita a la
+  // ficha). Si falla, queda el formulario de solicitud: nunca se pierde el contacto.
+  const loadSlots = useCallback(() => db.getVisitSlots(property.id).then(setSlots).catch(() => setSlots([])), [property.id]);
+
+  useEffect(() => {
+    if (open && slots === null) loadSlots();
+  }, [open, slots, loadSlots]);
+
   return (
     <div className="card schedule-visit-card" id={SCHEDULE_TARGET_ID}>
       <h3 className="property-detail__sidebar-title">{t("scheduleVisit.title")}</h3>
@@ -103,67 +194,14 @@ export default function ScheduleVisitCard({ property }) {
             {t("scheduleVisit.cta")}
           </button>
         </>
-      ) : status === "success" ? (
-        <p className="form-hint" style={{ color: "var(--color-success)" }}>{t("scheduleVisit.success")}</p>
+      ) : slots === null ? (
+        <p className="form-hint" role="status">
+          {t("scheduleVisit.booking.loading")}
+        </p>
+      ) : slots.length > 0 && !requestMode ? (
+        <VisitBooking property={property} slots={slots} onReload={loadSlots} onRequestInstead={() => setRequestMode(true)} />
       ) : (
-        <form onSubmit={handleSubmit} noValidate>
-          <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}>
-            <label htmlFor="visit-empresa">Empresa</label>
-            <input id="visit-empresa" name="empresa" value={form.empresa} onChange={handleChange} tabIndex={-1} autoComplete="off" />
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="visit-name">{t("contact.name")}</label>
-            <input id="visit-name" name="name" value={form.name} onChange={handleChange} aria-invalid={Boolean(errors.name)} />
-            {errors.name && <span className="form-error">{errors.name}</span>}
-          </div>
-
-          <div className="form-row">
-            <div className="form-field">
-              <label htmlFor="visit-email">{t("contact.email")}</label>
-              <input id="visit-email" name="email" type="email" value={form.email} onChange={handleChange} aria-invalid={Boolean(errors.email)} />
-              {errors.email && <span className="form-error">{errors.email}</span>}
-            </div>
-            <div className="form-field">
-              <label htmlFor="visit-phone">{t("contact.phone")}</label>
-              <input id="visit-phone" name="phone" type="tel" value={form.phone} onChange={handleChange} aria-invalid={Boolean(errors.phone)} />
-              {errors.phone && <span className="form-error">{errors.phone}</span>}
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-field">
-              <label htmlFor="visit-date">{t("scheduleVisit.date")}</label>
-              <input
-                id="visit-date"
-                name="date"
-                type="date"
-                min={new Date().toISOString().slice(0, 10)}
-                value={form.date}
-                onChange={handleChange}
-                aria-invalid={Boolean(errors.date)}
-              />
-              {errors.date && <span className="form-error">{errors.date}</span>}
-            </div>
-            <div className="form-field">
-              <label htmlFor="visit-time">{t("scheduleVisit.time")}</label>
-              <input id="visit-time" name="time" type="time" value={form.time} onChange={handleChange} />
-            </div>
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="visit-note">{t("scheduleVisit.note")}</label>
-            <textarea id="visit-note" name="note" rows={2} value={form.note} onChange={handleChange} placeholder={t("scheduleVisit.notePlaceholder")} />
-          </div>
-
-          {status === "error" && <p className="form-error">{t("contact.error")}</p>}
-          {status === "rateLimited" && <p className="form-error">{t("contact.rateLimited")}</p>}
-
-          <button type="submit" className="btn btn-primary btn-block" disabled={status === "sending"}>
-            {status === "sending" ? <span className="spinner" /> : null}
-            {status === "sending" ? t("contact.sending") : t("scheduleVisit.submit")}
-          </button>
-        </form>
+        <VisitRequestForm property={property} onBack={slots.length > 0 ? () => setRequestMode(false) : null} />
       )}
     </div>
   );

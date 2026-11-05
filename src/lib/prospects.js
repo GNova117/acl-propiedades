@@ -5,7 +5,7 @@ import { filtersToCriteria } from "./alertMatch";
 
 export const PROSPECT_STAGES = ["nuevo", "contactado", "interesado", "negociacion", "cerrado", "perdido"];
 export const OPEN_STAGES = ["nuevo", "contactado", "interesado", "negociacion"];
-export const PROSPECT_SOURCES = ["manual", "visita", "whatsapp", "chatbot", "simulador", "estimacion", "comparador", "alerta", "sitio", "recomendacion", "redes", "otro"];
+export const PROSPECT_SOURCES = ["manual", "visita", "visita_agendada", "whatsapp", "chatbot", "simulador", "estimacion", "comparador", "alerta", "sitio", "recomendacion", "redes", "otro"];
 
 export const isOpenStage = (stage) => OPEN_STAGES.includes(stage);
 

@@ -126,3 +126,92 @@
     font-size: 0.66rem;
   }
 }
+
+.agenda-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.agenda-filters .form-field {
+  min-width: 200px;
+  max-width: 320px;
+  flex: 1 1 200px;
+}
+
+.agenda-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+
+.agenda-chip {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-alt);
+  color: var(--color-text-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.agenda-chip--site {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: transparent;
+}
+
+.agenda-chip--ok,
+.agenda-chip--realizada {
+  color: var(--color-success);
+  border-color: var(--color-success);
+  background: transparent;
+}
+
+.agenda-chip--warn,
+.agenda-chip--no_asistio {
+  color: var(--color-warning);
+  border-color: var(--color-warning);
+  background: transparent;
+}
+
+.agenda-chip--cancelada {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+  background: transparent;
+}
+
+.agenda-row--cancelled .agenda-row__title {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+.agenda-row--cancelled td {
+  opacity: 0.8;
+}
+
+.agenda-action--cancel {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+/* Los botones de acción envuelven en varias líneas en vez de ensanchar la tabla. */
+.agenda-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 14rem;
+  max-width: 22rem;
+}
+
+/* admin-table fuerza una sola línea por celda; el título (largo en las visitas
+   reservadas desde el sitio) sí puede partirse para que la tabla quepa. */
+.admin-table td.agenda-cell--wrap {
+  white-space: normal;
+  min-width: 14rem;
+}

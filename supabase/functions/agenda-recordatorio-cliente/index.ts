@@ -3,7 +3,10 @@
 // cliente que tiene una cita MAÑANA un recordatorio por WhatsApp con la
 // plantilla "recordatorio_cita_cliente" (hay que crearla y aprobarla en Meta
 // Business Manager; el texto sugerido está en schema.sql). A diferencia de
-// agenda-recordatorio-30min (que avisa al asesor), este va al cliente.
+// agenda-recordatorio-30min (que avisa al asesor), este va al cliente. También cubre a quien
+// reservó una visita desde el sitio sin ser cliente registrado (usa el nombre y el teléfono que
+// dejó al reservar), salvo que ya haya confirmado su asistencia desde su correo o desde
+// /visita/<token>: a esa persona no hace falta insistirle.
 //
 // Igual que las otras funciones de Agenda, "reclama" la cita (marca
 // client_reminder_sent_at) ANTES de mandar el mensaje: si algo falla a medio
@@ -24,6 +27,9 @@ export type CitaRow = {
   hora: string | null; // HH:MM:SS
   clients?: Named | Named[];
   advisors?: { name: string } | { name: string }[] | null;
+  // Visitas reservadas desde el sitio (agenda_citas.source = 'sitio'): sin cliente ligado.
+  contact_name?: string | null;
+  contact_phone?: string | null;
 };
 
 export function tomorrowInMexico(now = new Date()): string {
@@ -50,12 +56,13 @@ export function formatWhen(fecha: string, hora: string | null): string {
 
 const one = <T>(v: T | T[] | null | undefined): T | null => (Array.isArray(v) ? v[0] ?? null : v ?? null);
 
-// Un envío por cita con cliente con teléfono válido.
+// Un envío por cita con cliente (o con datos de contacto de quien reservó) con teléfono válido.
 export function buildReminders(citas: CitaRow[]) {
   const reminders: { citaId: string; to: string; params: { nombre_cliente: string; titulo_cita: string; fecha_hora: string; nombre_asesor: string } }[] = [];
   const skipped: Record<string, string> = {};
   for (const cita of citas) {
-    const client = one(cita.clients);
+    const linked = one(cita.clients);
+    const client: { name: string; phone?: string | null } | null = linked ?? (cita.contact_name || cita.contact_phone ? { name: cita.contact_name ?? "", phone: cita.contact_phone } : null);
     if (!client) {
       skipped[cita.id] = "sin cliente asignado";
       continue;
@@ -69,7 +76,7 @@ export function buildReminders(citas: CitaRow[]) {
       citaId: cita.id,
       to,
       params: {
-        nombre_cliente: client.name.trim().split(/\s+/)[0] || client.name,
+        nombre_cliente: client.name.trim().split(/\s+/)[0] || client.name || "cliente",
         titulo_cita: cita.titulo,
         fecha_hora: formatWhen(cita.fecha, cita.hora),
         nombre_asesor: one(cita.advisors)?.name || "tu asesor de ACL Propiedades",
@@ -112,10 +119,13 @@ async function handler(req: Request): Promise<Response> {
 
   const { data: citas, error } = await supabase
     .from("agenda_citas")
-    .select("id, titulo, fecha, hora, clients(name, phone), advisors(name)")
+    .select("id, titulo, fecha, hora, contact_name, contact_phone, clients(name, phone), advisors(name)")
     .eq("fecha", fecha)
+    .neq("status", "cancelada") // citas canceladas por el cliente (ver book_visit / cancel_booking)
     .is("client_reminder_sent_at", null)
-    .not("client_id", "is", null);
+    .is("client_confirmed_at", null) // quien ya confirmó su asistencia no necesita el recordatorio
+    // Con cliente ligado, o reservada desde el sitio (sin cliente, pero con el teléfono que dejó).
+    .or("client_id.not.is.null,contact_phone.not.is.null");
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });

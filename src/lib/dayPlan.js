@@ -7,6 +7,7 @@
 // solo lo suyo y la oficina todo).
 
 import { DEFAULT_DURATION_MINUTES } from "./calendarEvent";
+import { citaDuration, citaStatus, isCancelled, visitsToClose, visitsToConfirm } from "./agendaCitas";
 import { daysSince, followUpState, unattendedState } from "./prospects";
 
 const minutesOfDay = (hora) => {
@@ -17,19 +18,22 @@ const minutesOfDay = (hora) => {
 const dateISO = (date) => date.toLocaleDateString("en-CA");
 
 // Citas de hoy: con hora primero (por hora) y las de todo el día al final.
+// Las canceladas no salen; las que ya se marcaron como realizadas o como "no
+// asistió" cuentan como terminadas. Una cita dura lo que dice su `duracion_min`
+// (una hora si no lo trae).
 // `state`: "past" (ya terminó), "now" (en curso), "next" (la próxima, con
 // `minutesUntil`), "later" (más tarde) o "allDay" (sin hora).
 export function todayAgenda(citas, now = new Date()) {
   const today = dateISO(now);
   const nowMin = now.getHours() * 60 + now.getMinutes();
-  const todays = citas.filter((c) => c.fecha === today);
+  const todays = citas.filter((c) => c.fecha === today && !isCancelled(c));
   const timed = todays.filter((c) => c.hora).sort((a, b) => minutesOfDay(a.hora) - minutesOfDay(b.hora));
-  const untimed = todays.filter((c) => !c.hora);
+  const untimed = todays.filter((c) => !c.hora && citaStatus(c) === "confirmada");
 
   let nextAssigned = false;
   const items = timed.map((cita) => {
     const start = minutesOfDay(cita.hora);
-    if (start + DEFAULT_DURATION_MINUTES <= nowMin) return { cita, state: "past" };
+    if (citaStatus(cita) !== "confirmada" || start + citaDuration(cita, DEFAULT_DURATION_MINUTES) <= nowMin) return { cita, state: "past" };
     if (start <= nowMin) return { cita, state: "now" };
     if (!nextAssigned) {
       nextAssigned = true;
@@ -66,7 +70,11 @@ export function prospectsToContact(prospects, now = new Date()) {
 export function buildDayPlan({ citas = [], prospects = [], now = new Date() } = {}) {
   const agenda = todayAgenda(citas, now);
   const contact = prospectsToContact(prospects, now);
+  // Reservas hechas desde el sitio cuyo cliente aún no confirma que va a asistir.
+  const toConfirm = visitsToConfirm(citas, now);
+  // Visitas de días anteriores que nadie marcó como realizadas o "no asistió" (fase 6).
+  const toClose = visitsToClose(citas, now);
   const pendingAgenda = agenda.filter((i) => i.state !== "past").length;
   const toContact = contact.urgent.length + contact.overdue.length + contact.today.length;
-  return { agenda, ...contact, pendingAgenda, toContact, isEmpty: agenda.length === 0 && toContact === 0 };
+  return { agenda, ...contact, toConfirm, toClose, pendingAgenda, toContact, isEmpty: agenda.length === 0 && toContact === 0 && toConfirm.length === 0 && toClose.length === 0 };
 }

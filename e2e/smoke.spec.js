@@ -29,6 +29,7 @@ const PUBLIC_ROUTES = [
   "/informe/token-falso",
   "/firmar/token-falso",
   "/documentos/token-falso",
+  "/visita/token-falso",
   "/ruta-que-no-existe",
   "/propiedades/no-existe",
 ];

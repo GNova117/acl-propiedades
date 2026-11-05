@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { db } from "./dataStore";
+import { activeCitas } from "./agendaCitas";
 import { daysSince, followUpState, todayISO, unattendedAge, unattendedState } from "./prospects";
 import { effectiveStatus, signingAgeDays } from "./signing";
 import { postsaleDue } from "./postsale";
@@ -45,7 +46,7 @@ export function usePendingToday() {
       }
 
       if (citas) {
-        const todays = citas.filter((c) => c.fecha === today).sort((a, b) => (a.hora || "").localeCompare(b.hora || ""));
+        const todays = activeCitas(citas).filter((c) => c.fecha === today).sort((a, b) => (a.hora || "").localeCompare(b.hora || ""));
         if (todays.length) list.push({ key: "agenda", count: todays.length, to: "/admin/agenda", lines: todays.slice(0, MAX_LINES).map((c) => [c.hora, c.titulo].filter(Boolean).join(" · ")) });
       }
 

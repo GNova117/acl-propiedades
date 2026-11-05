@@ -24,7 +24,7 @@ const TABLES = [
   "perfilamientos", "perfilamientos_comprador", "remodel_projects", "remodel_progress_entries",
   "materials_catalog", "labor_catalog", "liquidaciones", "ventas", "property_log", "property_budgets",
   "property_changes", "property_visits", "property_report_links", "agenda_citas", "agenda_expedientes",
-  "agenda_resumenes_enviados", "construccion_proyectos", "construccion_habitaciones", "construccion_muros",
+  "agenda_resumenes_enviados", "advisor_visit_settings", "advisor_availability", "advisor_time_off", "construccion_proyectos", "construccion_habitaciones", "construccion_muros",
   "construccion_aberturas", "construccion_catalogo_materiales", "construccion_objetos", "secretaria_llaves",
   "secretaria_documentos", "valuation_estimates", "prospectos", "prospecto_etapas", "prospecto_contactos", "property_alerts", "signing_requests", "audit_log", "admin_roles", "admin_access",
 ];
