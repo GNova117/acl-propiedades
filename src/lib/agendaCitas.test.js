@@ -154,3 +154,12 @@ describe("solicitudes de visita sin asesor", () => {
     expect(openRequests(list, now).map((c) => c.id)).toEqual(["pronto", "tarde"]);
   });
 });
+
+describe("estatus heredado 'pendiente'", () => {
+  it("una cita 'pendiente' (bases anteriores a este modelo) cuenta como confirmada y se puede atender", () => {
+    expect(citaStatus({ status: "pendiente" })).toBe("confirmada");
+    expect(isPending({ status: "pendiente" })).toBe(true);
+    expect(statusActions({ status: "pendiente", advisor_id: "a1" })).toEqual(["realizada", "no_asistio", "cancelada"]);
+    expect(activeCitas([{ status: "pendiente", advisor_id: "a1" }])).toHaveLength(1);
+  });
+});

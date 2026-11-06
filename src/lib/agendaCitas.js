@@ -8,7 +8,8 @@
 
 export const CITA_STATUSES = ["confirmada", "realizada", "no_asistio", "cancelada", "solicitada"];
 
-export const citaStatus = (cita) => cita?.status || "confirmada";
+// 'pendiente' es el estatus que algunas bases ya tenían antes de este modelo: equivale a 'confirmada' (por atender).
+export const citaStatus = (cita) => (cita?.status === "pendiente" ? "confirmada" : cita?.status) || "confirmada";
 export const isCancelled = (cita) => citaStatus(cita) === "cancelada";
 export const isFromSite = (cita) => cita?.source === "sitio";
 
