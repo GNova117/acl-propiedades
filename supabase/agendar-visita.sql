@@ -846,7 +846,12 @@ for each row execute function agenda_citas_sync_prospect();
 
 alter table agenda_citas alter column advisor_id drop not null;
 
+-- Bases anteriores: si agenda_citas ya tenía una columna `status` (con 'pendiente' y sin 'no_asistio' ni
+-- 'solicitada'), el "add column if not exists" de arriba no la tocó. 'pendiente' era "por atender": es
+-- 'confirmada' en este modelo. También el valor por omisión de las citas capturadas a mano.
 alter table agenda_citas drop constraint if exists agenda_citas_status_check;
+update agenda_citas set status = 'confirmada' where status = 'pendiente';
+alter table agenda_citas alter column status set default 'confirmada';
 alter table agenda_citas add constraint agenda_citas_status_check
   check (status in ('confirmada', 'cancelada', 'realizada', 'no_asistio', 'solicitada'));
 

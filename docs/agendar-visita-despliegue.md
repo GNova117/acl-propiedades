@@ -239,6 +239,7 @@ Y los registros de la función: **Dashboard → Edge Functions → `visita-corre
 | `status_code` 404 | `visita-correo` no está desplegada | Paso 2 |
 | El enlace del correo apunta a otro dominio | `SITE_URL` sin poner o mal puesto | Paso 3 |
 | En los logs de Postgres: `notify_visit_email: no se pudo encolar el correo` | Falta un secreto de Vault o `pg_net` apagado | Paso 0. La reserva **no** se afecta |
+| Al correr el SQL: `check constraint "agenda_citas_status_check" ... is violated by some row` | Tu `agenda_citas` ya tenía una columna `status` con el valor `pendiente` (y sin `no_asistio` ni `solicitada`) | Vuelve a pegar el `agendar-visita.sql` actual: pasa las citas `pendiente` a `confirmada`, deja `confirmada` como valor por omisión y amplía la regla |
 | Las funciones de Agenda dan error de columna `status` | Se desplegaron antes que el SQL | Corre el SQL (paso 1) y vuelve a desplegarlas |
 | El visitante no ve horarios en la ficha | Ningún asesor de esa propiedad tiene el horario activado (o no tiene ventanas) | Paso 5 |
 
