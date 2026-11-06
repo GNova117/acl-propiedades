@@ -2506,6 +2506,31 @@ export const supabaseBackend = {
     return data;
   },
 
+  // Solicitud de visita SIN asesor (el visitante propone día y hora; queda en la Agenda de todos hasta que
+  // alguien la toma). Devuelve { ok, token, fecha, hora, property } o { error } como bookVisit.
+  async requestVisit({ propertyId, fecha, hora, name, email, phone, note }) {
+    const { data, error } = await supabase.rpc("request_visit", {
+      p_property_id: propertyId,
+      p_fecha: fecha,
+      p_hora: hora,
+      p_name: name,
+      p_email: email,
+      p_phone: phone,
+      p_note: note || null,
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  // Con sesión: tomar una solicitud sin asesor. Un asesor la toma para sí (el servidor usa su propio id);
+  // administración, que no tiene asesor vinculado, manda el `advisorId` al que se la asigna.
+  // Devuelve { ok } o { error }: already_taken, advisor_required, invalid_advisor, not_authorized, not_found.
+  async claimVisitRequest(citaId, { advisorId = null } = {}) {
+    const { data, error } = await supabase.rpc("claim_visit_request", { p_cita_id: citaId, p_advisor_id: advisorId });
+    if (error) throw error;
+    return data;
+  },
+
   async getVisitBooking(token) {
     if (!BOOKING_TOKEN_PATTERN.test(token || "")) return { status: "invalido" };
     const { data, error } = await supabase.rpc("get_booking", { p_token: token });

@@ -262,6 +262,55 @@ export default function AdminMyDay() {
     );
   };
 
+  // Solicitud de visita sin asesor: la ven todos los asesores; la primera persona que la toma se la queda.
+  const takeRequest = async (cita) => {
+    const whenText = `${dayLabel(cita.fecha)} ${t("myDay.confirm.at")} ${hm(cita.hora)}`;
+    if (!window.confirm(t("agenda.takeConfirm", { when: whenText }))) return;
+    setCloseError("");
+    try {
+      const res = await db.claimVisitRequest(cita.id, { advisorId });
+      if (res?.error) setCloseError(t(res.error === "already_taken" || res.error === "not_found" ? "agenda.alreadyTaken" : "agenda.takeError"));
+    } catch {
+      setCloseError(t("agenda.takeError"));
+    }
+    setCitas(await db.getAgendaCitas());
+  };
+
+  const renderRequest = (cita) => {
+    const contact = citaContact(cita, null);
+    const digits = whatsappDigits(contact.phone);
+    const waPhone = digits.length === 10 ? `52${digits}` : digits;
+    const when = `${dayLabel(cita.fecha)} ${t("myDay.confirm.at")} ${hm(cita.hora)}`;
+    const text = t("agenda.requestText", { name: contact.name.split(/\s+/)[0], title: cita.titulo, when });
+    return (
+      <li key={cita.id} className="card my-day__item my-day__item--prospect">
+        <div className="my-day__body">
+          <div className="my-day__headline">
+            <strong>{cita.titulo}</strong> <span className="prospect-chip prospect-chip--today">{when}</span>
+          </div>
+          <p className="form-hint">{[contact.name, contact.phone].filter(Boolean).join(" · ")}</p>
+          <div className="my-day__actions">
+            {advisorId && (
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => takeRequest(cita)} title={t("agenda.takeTitle")}>
+                {t("agenda.take")}
+              </button>
+            )}
+            {waPhone && (
+              <a className="btn btn-outline btn-sm" href={`https://wa.me/${waPhone}?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer">
+                {t("agenda.writeClient")}
+              </a>
+            )}
+            {!advisorId && (
+              <Link to="/admin/agenda" className="btn btn-outline btn-sm">
+                {t("myDay.fullAgenda")}
+              </Link>
+            )}
+          </div>
+        </div>
+      </li>
+    );
+  };
+
   const renderProspect = (entry, chip) => {
     const p = entry.prospect;
     const call = telHref(p.phone);
@@ -364,6 +413,7 @@ export default function AdminMyDay() {
       )}
 
       {canAgenda && section("agenda", plan.agenda, renderCita, plan.pendingAgenda)}
+      {canAgenda && section("requests", plan.requests, renderRequest)}
       {canAgenda && section("confirm", plan.toConfirm, renderToConfirm)}
       {canAgenda && section("close", plan.toClose, renderToClose)}
       {closeError && (

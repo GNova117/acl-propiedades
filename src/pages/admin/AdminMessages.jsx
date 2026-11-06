@@ -196,7 +196,8 @@ export default function AdminMessages() {
                 const isLong = (message.message || "").length > PREVIEW_LENGTH;
                 // «visita»: reserva hecha desde la ficha (ya está en la Agenda); «visita_cambio»: el cliente
                 // movió o canceló la suya. Ninguna se convierte en cita, y un aviso de cambio tampoco en prospecto.
-                const isVisitBooking = message.channel === "visita";
+                // «visita_solicitud»: pidió una visita sin asesor (ya está en la Agenda de todos hasta que alguien la tome).
+                const isVisitBooking = message.channel === "visita" || message.channel === "visita_solicitud";
                 const isVisitChange = message.channel === "visita_cambio";
                 const shownText = expanded || !isLong ? message.message : `${message.message.slice(0, PREVIEW_LENGTH)}…`;
 
@@ -205,7 +206,7 @@ export default function AdminMessages() {
                     <td>{new Date(message.created_at).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}</td>
                     <td>
                       {message.name}
-                      {["whatsapp", "simulador", "estimacion", "comparador", "alerta", "guia", "visita", "visita_cambio"].includes(message.channel) && <span className="form-hint" style={{ display: "block", margin: 0 }}>{t(`messages.via_${message.channel}`)}</span>}
+                      {["whatsapp", "simulador", "estimacion", "comparador", "alerta", "guia", "visita", "visita_cambio", "visita_solicitud"].includes(message.channel) && <span className="form-hint" style={{ display: "block", margin: 0 }}>{t(`messages.via_${message.channel}`)}</span>}
                     </td>
                     <td>{message.phone || "—"}</td>
                     <td>{message.email || "—"}</td>

@@ -51,6 +51,21 @@ describe("handleVisitEmail", () => {
     expect(d2.sendEmail.mock.calls[0][0].attachments).toEqual([]);
   });
 
+  it("una solicitud sin asesor manda su propio correo; si ya la tomaron (confirmada) no manda el de solicitud", async () => {
+    const d1 = deps({ loadCita: vi.fn(async () => ({ ...cita, status: "solicitada", advisor: null })) });
+    const result = await handleVisitEmail({ cita_id: "c1", kind: "solicitud" }, d1);
+    expect(result.body).toEqual({ ok: true, kind: "solicitud", id: "re_123" });
+    expect(d1.sendEmail.mock.calls[0][0].subject).toContain("Recibimos tu solicitud de visita");
+
+    const d2 = deps(); // ya está confirmada: el correo de solicitud ya no corresponde
+    expect((await handleVisitEmail({ cita_id: "c1", kind: "solicitud" }, d2)).body.skipped).toContain("confirmada");
+    expect(d2.sendEmail).not.toHaveBeenCalled();
+
+    // Al tomarla, el trigger manda la confirmación: pasa de 'solicitada' a 'confirmada'.
+    const d3 = deps();
+    expect((await handleVisitEmail({ cita_id: "c1", kind: "confirmacion" }, d3)).body.ok).toBe(true);
+  });
+
   it("rechaza peticiones sin cita_id o con un tipo desconocido, sin tocar la base ni mandar nada", async () => {
     const d = deps();
     expect((await handleVisitEmail({ kind: "confirmacion" }, d)).status).toBe(400);

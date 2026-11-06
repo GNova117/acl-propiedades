@@ -1,11 +1,11 @@
-// Correo de una visita reservada desde el sitio: confirmación, cambio de horario o
-// cancelación. Lo dispara un trigger de agenda_citas (ver "Agendar visita con horarios
+// Correo de una visita reservada desde el sitio: solicitud recibida (sin asesor), confirmación,
+// cambio de horario o cancelación. Lo dispara un trigger de agenda_citas (ver "Agendar visita con horarios
 // reales, fase 5" en supabase/schema.sql) con { cita_id, kind }. La lógica está aquí, con
 // las dependencias inyectadas (cargar la cita y mandar el correo), para probarla sin Deno.
 
 import { buildVisitEmail, DEFAULT_SITE_URL } from "../_shared/visitEmail.js";
 
-export const KINDS = ["confirmacion", "reprogramada", "cancelacion"];
+export const KINDS = ["solicitud", "confirmacion", "reprogramada", "cancelacion"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Devuelve { status, body }. Lanza solo si falla la carga o el envío (el servidor responde 500).
@@ -20,7 +20,7 @@ export async function handleVisitEmail({ cita_id: citaId, kind } = {}, { loadCit
 
   // El trigger manda el aviso al cambiar la fila; si para cuando corre esto la cita ya cambió otra
   // vez (p. ej. se canceló justo después de reservar), se manda lo que corresponde a su estado actual.
-  const expected = kind === "cancelacion" ? "cancelada" : "confirmada";
+  const expected = kind === "cancelacion" ? "cancelada" : kind === "solicitud" ? "solicitada" : "confirmada";
   if ((cita.status || "confirmada") !== expected) return { status: 200, body: { skipped: `la cita ya está ${cita.status}` } };
 
   const email = buildVisitEmail(kind, cita, { siteUrl, now });

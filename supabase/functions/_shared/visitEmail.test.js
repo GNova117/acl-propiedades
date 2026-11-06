@@ -165,6 +165,17 @@ describe("buildVisitEmail", () => {
     expect(Buffer.from(mail.attachments[0].content, "base64").toString("utf8")).toContain("BEGIN:VEVENT");
   });
 
+  it("solicitud sin asesor: dice que NO está confirmada, sin calendario ni asesor, con enlace para cancelar", () => {
+    const email = buildVisitEmail("solicitud", { ...cita, advisor: null }, { siteUrl: SITE, now: NOW });
+    expect(email.subject).toBe("Recibimos tu solicitud de visita — Casa en Lerdo (ACL-12)");
+    expect(email.html).toContain("Todavía no está confirmada");
+    expect(email.html).toContain("Horario que pediste");
+    expect(email.html).not.toContain("Te atiende");
+    expect(email.html).toContain(`${SITE}/visita/${TOKEN}`);
+    expect(email.text).toContain("Ver o cancelar mi solicitud");
+    expect(email.attachments).toEqual([]);
+  });
+
   it("reprogramada: nuevo horario y .ics con SEQUENCE", () => {
     const mail = buildVisitEmail("reprogramada", { ...cita, fecha: "2026-11-07", hora: "10:00", reschedule_count: 1 }, opts);
     expect(mail.subject).toBe("Cambiamos tu visita — Casa en Lerdo (ACL-12)");

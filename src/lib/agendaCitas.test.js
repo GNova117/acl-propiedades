@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activeCitas, canRegisterVisit, citaContact, citaDuration, citaStatus, citaToVisitPrefill, isCancelled, isPending, statusActions, visitLink, visitsToClose, visitsToConfirm } from "./agendaCitas";
+import { activeCitas, canRegisterVisit, citaContact, citaDuration, citaStatus, citaToVisitPrefill, isCancelled, isOpenRequest, isPending, openRequests, statusActions, visitLink, visitsToClose, visitsToConfirm } from "./agendaCitas";
 
 // Hoy a las 12:00 (hora local), construido con partes para no depender de la zona horaria.
 const now = new Date();
@@ -129,5 +129,28 @@ describe("visitLink", () => {
     expect(visitLink({ source: "sitio" }, "https://acl.mx")).toBe("");
     expect(visitLink({ source: "sitio", booking_token: "abc" }, "https://acl.mx")).toBe("");
     expect(visitLink(null, "https://acl.mx")).toBe("");
+  });
+});
+
+describe("solicitudes de visita sin asesor", () => {
+  const request = (over = {}) => ({ id: "r1", source: "sitio", status: "solicitada", advisor_id: null, fecha: dayISO(2), hora: "16:00", ...over });
+
+  it("isOpenRequest: solicitada y sin asesor", () => {
+    expect(isOpenRequest(request())).toBe(true);
+    expect(isOpenRequest(request({ status: "confirmada", advisor_id: "a1" }))).toBe(false);
+    expect(isOpenRequest(request({ status: "cancelada" }))).toBe(false);
+    expect(isOpenRequest(request({ advisor_id: "a1" }))).toBe(false);
+  });
+
+  it("todavía no es de nadie: no cuenta como cita activa ni se puede cerrar o reactivar", () => {
+    expect(activeCitas([request(), { id: "x", status: "confirmada", advisor_id: "a1" }]).map((c) => c.id)).toEqual(["x"]);
+    expect(statusActions(request())).toEqual(["cancelada"]);
+    expect(statusActions(request({ status: "cancelada" }))).toEqual([]); // cancelada sin asesor: no se reactiva
+    expect(statusActions({ status: "cancelada", advisor_id: "a1" })).toEqual(["confirmada"]);
+  });
+
+  it("openRequests: las abiertas de hoy en adelante, las más próximas primero", () => {
+    const list = [request({ id: "tarde", fecha: dayISO(3), hora: "10:00" }), request({ id: "ayer", fecha: dayISO(-1) }), request({ id: "pronto", fecha: dayISO(1), hora: "09:00" }), request({ id: "tomada", status: "confirmada", advisor_id: "a1" })];
+    expect(openRequests(list, now).map((c) => c.id)).toEqual(["pronto", "tarde"]);
   });
 });

@@ -1,6 +1,6 @@
 # Agendar visita con horarios reales — despliegue y configuración
 
-Todo lo que hay que hacer **una sola vez** para activar el proyecto (fases 1 a 6) en tu Supabase real.
+Todo lo que hay que hacer **una sola vez** para activar el proyecto (fases 1 a 7) en tu Supabase real.
 Ningún valor secreto va en este repo (es público): donde ves `<...>` o `re_xxx...`, pon el tuyo.
 
 > **Nada cambia en el sitio hasta que activas el horario de un asesor** (paso 5). Puedes hacer los pasos 1 a 4
@@ -242,10 +242,40 @@ Y los registros de la función: **Dashboard → Edge Functions → `visita-corre
 | Las funciones de Agenda dan error de columna `status` | Se desplegaron antes que el SQL | Corre el SQL (paso 1) y vuelve a desplegarlas |
 | El visitante no ve horarios en la ficha | Ningún asesor de esa propiedad tiene el horario activado (o no tiene ventanas) | Paso 5 |
 
+## Actualizar a la fase 7 (solicitudes de visita sin asesor)
+
+Si ya tenías las fases 1 a 6 funcionando, para sumar la fase 7 (los horarios muestran qué asesores están libres, y quien
+no encuentra horario deja una **solicitud** que ve todo el equipo hasta que alguien la toma) haz solo esto:
+
+1. **SQL**: pega de nuevo todo `supabase/agendar-visita.sql` en el SQL Editor y pulsa Run (es re-ejecutable). Agrega
+   `request_visit` y `claim_visit_request`, deja `agenda_citas.advisor_id` sin "obligatorio" (con una regla: una cita
+   sin asesor solo puede estar *solicitada* o *cancelada*), el estatus `solicitada`, y las políticas para que cualquier
+   asesor con el apartado Agenda vea las solicitudes sin asesor.
+2. **Funciones** (las 4 que cambiaron; con `--no-verify-jwt`):
+
+   ```bash
+   supabase functions deploy visita-correo              --no-verify-jwt   # correo "recibimos tu solicitud"
+   supabase functions deploy agenda-recordatorio-cliente --no-verify-jwt   # no recuerda solicitudes sin confirmar
+   supabase functions deploy agenda-recordatorio-30min   --no-verify-jwt
+   supabase functions deploy agenda-resumen-diario       --no-verify-jwt
+   ```
+
+3. **Sitio**: publica la versión nueva (merge a `main` y Vercel despliega). Conviene hacer el paso 1 **antes** o al
+   mismo tiempo: si el sitio sale primero, la solicitud cae al camino anterior (un mensaje de contacto) y no se pierde.
+4. **Prueba**: en una propiedad **sin** horario activo (o desde "¿Ningún horario te acomoda?"), deja una solicitud con
+   tu correo. Debe llegar el correo "Recibimos tu solicitud", aparecer en **Agenda → Sin asesor** y en **Mi día** de
+   todos, y al tomarla un asesor (o asignarla la oficina) llega el correo "Tu visita está agendada".
+
+Cómo se comporta: la primera persona que toma la solicitud se la queda (quien llega segundo ve "otro asesor ya la tomó");
+al tomarla queda *confirmada* para el día y la hora que pidió el cliente — si hace falta otro horario, primero se le
+escribe por WhatsApp desde la misma fila. El cliente puede cancelarla desde su enlace mientras nadie la tome. El aviso
+por WhatsApp (plantilla de contactos) sigue yendo a los asesores de la propiedad y a la oficina; **el resto del equipo
+la ve en la Agenda y en Mi día** (y recibe la notificación push).
+
 ## Cómo apagarlo (sin borrar datos)
 
 ```sql
--- Dejar de ofrecer reservas en el sitio (vuelve el formulario de siempre)
+-- Dejar de ofrecer reservas en el sitio (el formulario pasa a ser solo de solicitud)
 update advisor_visit_settings set enabled = false;
 
 -- Dejar de mandar correos de confirmación y cambios
@@ -260,6 +290,7 @@ Volver a ejecutar `supabase/agendar-visita.sql` recrea el trigger y el cron.
 ## Cosas que conviene saber
 
 - Las visitas **reservadas antes** de la fase 6 no tienen prospecto ligado (solo las nuevas).
+- Una solicitud sin asesor **no** cuenta como visita agendada en las métricas ni manda recordatorios hasta que alguien la toma.
 - Los correos van en **español**.
 - Las visitas que el equipo crea a mano en la Agenda **no** mandan correo (solo las reservadas desde el sitio).
 - Cada correo de recordatorio se manda **una sola vez**; si falla el envío, se reintenta en la siguiente corrida (cada 15 min).

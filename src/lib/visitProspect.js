@@ -27,8 +27,9 @@ export const followupAfterVisit = (fecha) => addDays(fecha, 1);
 
 const dmy = (fecha) => String(fecha).split("-").reverse().join("/");
 
-export function bookingProspectNote({ label, fecha, hora, note }) {
-  let line = `Agendó una visita a ${label} el ${dmy(fecha)} a las ${hhmm(hora)}`;
+// `requested`: solicitud de visita sin asesor (request_visit) — el texto dice "Solicitó" y no "Agendó".
+export function bookingProspectNote({ label, fecha, hora, note, requested = false }) {
+  let line = `${requested ? "Solicitó" : "Agendó"} una visita a ${label} el ${dmy(fecha)} a las ${hhmm(hora)}`;
   if (String(note ?? "").trim()) line += `. Nota: ${String(note).trim()}`;
   return line;
 }
@@ -44,7 +45,7 @@ export function findOpenProspect(prospects, { phone, email }) {
 }
 
 // Campos del prospecto nuevo (insert).
-export function prospectFieldsFromBooking({ name, phone, email, advisorId, propertyId, messageId, label, fecha, hora, note, nowISO }) {
+export function prospectFieldsFromBooking({ name, phone, email, advisorId, propertyId, messageId, label, fecha, hora, note, nowISO, requested = false }) {
   return {
     name,
     phone: phone || null,
@@ -54,7 +55,7 @@ export function prospectFieldsFromBooking({ name, phone, email, advisorId, prope
     advisor_id: advisorId || null,
     property_id: propertyId || null,
     message_id: messageId || null,
-    notes: bookingProspectNote({ label, fecha, hora, note }),
+    notes: bookingProspectNote({ label, fecha, hora, note, requested }),
     last_contact_at: nowISO,
     next_followup_at: followupAfterVisit(fecha),
     lost_reason: null,
@@ -62,9 +63,9 @@ export function prospectFieldsFromBooking({ name, phone, email, advisorId, prope
 }
 
 // Campos a actualizar en un prospecto abierto que acaba de reservar otra visita.
-export function mergeBookingIntoProspect(existing, { propertyId, label, fecha, hora, note, today, nowISO }) {
+export function mergeBookingIntoProspect(existing, { propertyId, label, fecha, hora, note, today, nowISO, requested = false }) {
   const follow = followupAfterVisit(fecha);
-  const line = bookingProspectNote({ label, fecha, hora, note });
+  const line = bookingProspectNote({ label, fecha, hora, note, requested });
   const current = existing.next_followup_at;
   return {
     stage: ["nuevo", "contactado"].includes(existing.stage) ? "interesado" : existing.stage,

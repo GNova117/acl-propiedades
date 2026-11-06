@@ -3,6 +3,9 @@ import {
   DEFAULT_VISIT_SETTINGS,
   DEFAULT_WEEKLY_SCHEDULE,
   activeBookingsForPhone,
+  advisorsForSlot,
+  buildRequestMessage,
+  requestSlotError,
   bookingFieldErrors,
   buildBookingChangeMessage,
   addDays,
@@ -329,5 +332,53 @@ describe("buildBookingChangeMessage", () => {
     expect(buildBookingChangeMessage({ kind: "cancelada", title: "Casa", code: "ACL-1", oldFecha: "2026-11-05", oldHora: "16:00", reason: "  " })).toBe(
       "Visita cancelada por el cliente — Casa (ACL-1).\nEra el 05/11/2026 a las 16:00"
     );
+  });
+});
+
+describe("solicitud de visita sin asesor", () => {
+  // Lunes 2026-11-02 08:00 en México.
+  const at = (fecha, hora) => requestSlotError(fecha, hora, MONDAY_8AM);
+
+  it("pide fecha y hora, al menos 1 h adelante y a no más de 90 días (hora de México)", () => {
+    expect(at("2026-11-02", "09:30")).toBe(null); // 1 h 30 min adelante
+    expect(at("2026-11-02", "09:00")).toBe(null); // justo 1 h
+    expect(at("2026-11-02", "08:59")).toBe("invalid_slot"); // falta menos de 1 h
+    expect(at("2026-11-01", "20:00")).toBe("invalid_slot"); // ayer
+    expect(at("2026-11-03", "")).toBe("invalid_slot");
+    expect(at("", "10:00")).toBe("invalid_slot");
+    expect(at("2026-11-03", "no es hora")).toBe("invalid_slot");
+    expect(at("2027-01-31", "10:00")).toBe(null); // 90 días
+    expect(at("2027-02-01", "10:00")).toBe("invalid_slot"); // 91 días
+  });
+
+  it("mergeSlots junta los asesores libres de cada horario, sin repetir y por nombre", () => {
+    const ana = { id: "a1", name: "Ana", photo_url: null };
+    const beto = { id: "a2", name: "Beto", photo_url: null };
+    const merged = mergeSlots([
+      [{ fecha: "2026-11-03", hora: "12:00", advisors: [beto] }, { fecha: "2026-11-03", hora: "10:00", advisors: [beto] }],
+      [{ fecha: "2026-11-03", hora: "12:00", advisors: [ana] }, { fecha: "2026-11-03", hora: "12:00", advisors: [ana] }],
+    ]);
+    expect(merged.map((s) => s.hora)).toEqual(["10:00", "12:00"]);
+    expect(advisorsForSlot(merged, "2026-11-03", "12:00").map((a) => a.name)).toEqual(["Ana", "Beto"]);
+    expect(advisorsForSlot(merged, "2026-11-03", "10:00")).toEqual([beto]);
+    expect(advisorsForSlot(merged, "2026-11-03", "15:00")).toEqual([]);
+  });
+
+  it("mergeSlots sigue funcionando con horarios sin asesores", () => {
+    expect(mergeSlots([[{ fecha: "2026-11-03", hora: "10:00" }], [{ fecha: "2026-11-03", hora: "10:00" }]])).toEqual([{ fecha: "2026-11-03", hora: "10:00" }]);
+  });
+
+  it("una solicitud solo se puede cancelar (no mover ni confirmar) y cuenta como activa del teléfono", () => {
+    const cita = { status: "solicitada", source: "sitio", advisor_id: null, fecha: "2026-11-05", hora: "16:00", contact_phone: "871 300 4000" };
+    expect(bookingPermissions(cita, MONDAY_8AM)).toEqual({ canReschedule: false, canCancel: true, canConfirm: false });
+    expect(bookingPermissions({ ...cita, fecha: "2026-11-01" }, MONDAY_8AM).canCancel).toBe(false); // ya pasó
+    expect(activeBookingsForPhone([cita, { ...cita, status: "cancelada" }], "+52 871 300 4000", MONDAY_8AM)).toBe(1);
+  });
+
+  it("el mensaje de la solicitud (mismo texto que request_visit en SQL)", () => {
+    expect(buildRequestMessage({ title: " Casa en Lerdo ", code: "ACL-12", fecha: "2026-11-05", hora: "19:30:00", note: " por la tarde " })).toBe(
+      "Solicitud de visita sin asesor — Casa en Lerdo (ACL-12).\nFecha preferida: 05/11/2026 a las 19:30\nNota: por la tarde\nEstá en la Agenda de todos hasta que un asesor la tome."
+    );
+    expect(buildRequestMessage({ title: "Casa", fecha: "2026-11-05", hora: "10:00" })).not.toContain("Nota:");
   });
 });

@@ -5,7 +5,7 @@ import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
 import { whatsappDigits } from "../../lib/format";
 import { citaToIcs, downloadIcs, mapsUrl } from "../../lib/calendarEvent";
-import { canRegisterVisit, citaContact, citaStatus, citaToVisitPrefill, isFromSite, isPending, statusActions, visitLink } from "../../lib/agendaCitas";
+import { canRegisterVisit, citaContact, citaStatus, citaToVisitPrefill, isFromSite, isOpenRequest, isPending, statusActions, visitLink } from "../../lib/agendaCitas";
 import { formatIsoDate } from "../../lib/propertyLog";
 import CopyVisitLinkButton from "../../components/CopyVisitLinkButton";
 import "./admin.css";
@@ -56,8 +56,9 @@ export default function AdminAgenda() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [advisorFilter, setAdvisorFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("active"); // active | pending | cancelled | all
+  const [statusFilter, setStatusFilter] = useState("active"); // active | pending | open | cancelled | all
   const [busyId, setBusyId] = useState(null);
+  const [assignPick, setAssignPick] = useState({}); // cita.id → asesor elegido por administración para una solicitud sin asesor
   const [view, setView] = useState("list");
   const [cursor, setCursor] = useState(() => {
     const now = new Date();
@@ -115,6 +116,28 @@ export default function AdminAgenda() {
     openWhatsApp(contact.phone, t("visitLink.whatsappText", { name: contact.name.split(/\s+/)[0], title: cita.titulo, when: whenLabel(cita), advisor: advisorName(cita.advisor_id), link }));
   };
 
+  // Solicitud de visita sin asesor: el cliente pidió un día y una hora y la ven todos los asesores. Un asesor la
+  // toma para sí; administración (sin asesor vinculado) la asigna a quien elija. Gana la primera persona que llega.
+  const takeRequest = async (cita, chosenId) => {
+    if (!chosenId) return;
+    if (!window.confirm(t(seesAll ? "agenda.assignConfirm" : "agenda.takeConfirm", { when: whenLabel(cita), name: advisorName(chosenId) }))) return;
+    setBusyId(cita.id);
+    try {
+      const res = await db.claimVisitRequest(cita.id, { advisorId: chosenId });
+      if (res?.error) window.alert(t(res.error === "already_taken" || res.error === "not_found" ? "agenda.alreadyTaken" : "agenda.takeError"));
+    } catch {
+      window.alert(t("agenda.takeError"));
+    }
+    setBusyId(null);
+    load();
+  };
+
+  // Escribirle al cliente antes de tomar la solicitud (para ponerse de acuerdo en el horario).
+  const writeClient = (cita) => {
+    const contact = contactOf(cita);
+    openWhatsApp(contact.phone, t("agenda.requestText", { name: contact.name.split(/\s+/)[0], title: cita.titulo, when: whenLabel(cita) }));
+  };
+
   // Cerrar una cita (realizada / no asistió), cancelarla o reactivarla. Al cancelar
   // se pide el motivo (opcional) y se ofrece avisarle al cliente por WhatsApp.
   const changeStatus = async (cita, status) => {
@@ -169,6 +192,7 @@ export default function AdminAgenda() {
     const byStatus = {
       active: (c) => citaStatus(c) !== "cancelada",
       pending: (c) => isPending(c),
+      open: (c) => isOpenRequest(c),
       cancelled: (c) => citaStatus(c) === "cancelada",
       all: () => true,
     }[statusFilter];
@@ -237,7 +261,7 @@ export default function AdminAgenda() {
         <div className="form-field">
           <label htmlFor="agenda-status-filter">{t("agenda.statusFilter")}</label>
           <select id="agenda-status-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            {["active", "pending", "cancelled", "all"].map((key) => (
+            {["active", "pending", "open", "cancelled", "all"].map((key) => (
               <option key={key} value={key}>
                 {t(`agenda.statusFilters.${key}`)}
               </option>
@@ -273,8 +297,9 @@ export default function AdminAgenda() {
                   const contact = contactOf(cita);
                   const property = propertyOf(cita.property_id);
                   const link = status === "confirmada" ? visitLink(cita, window.location.origin) : "";
+                  const open = isOpenRequest(cita);
                   return (
-                  <tr key={cita.id} className={status === "cancelada" ? "agenda-row--cancelled" : undefined}>
+                  <tr key={cita.id} className={status === "cancelada" ? "agenda-row--cancelled" : open ? "agenda-row--request" : undefined}>
                     <td>
                       {new Date(`${cita.fecha}T00:00:00`).toLocaleDateString()}
                       {cita.hora ? ` · ${cita.hora.slice(0, 5)}` : ""}
@@ -291,6 +316,7 @@ export default function AdminAgenda() {
                         )}
                         {cita.reschedule_count > 0 && <span className="agenda-chip">{t("agenda.rescheduled", { count: cita.reschedule_count })}</span>}
                       </div>
+                      {open && <div className="form-hint">{t("agenda.requestHint")}</div>}
                       {status === "cancelada" && cita.cancelled_by && (
                         <div className="form-hint">
                           {t(`agenda.cancelledBy.${cita.cancelled_by}`)}
@@ -323,13 +349,40 @@ export default function AdminAgenda() {
                         </div>
                       )}
                     </td>
-                    {seesAll && <td>{advisorName(cita.advisor_id)}</td>}
+                    {seesAll && <td>{open ? t("agenda.noAdvisorChip") : advisorName(cita.advisor_id)}</td>}
                     <td>
                       {contact.name || t("agenda.noClient")}
                       {contact.phone && <div className="form-hint">{contact.phone}</div>}
                     </td>
                     <td>
                       <div className="agenda-actions">
+                      {open && !seesAll && advisorId && (
+                        <button type="button" className="btn btn-primary btn-sm" disabled={busyId === cita.id} onClick={() => takeRequest(cita, advisorId)} title={t("agenda.takeTitle")}>
+                          {t("agenda.take")}
+                        </button>
+                      )}
+                      {open && seesAll && (
+                        <span className="agenda-assign">
+                          <select aria-label={t("agenda.assignLabel")} value={assignPick[cita.id] || ""} onChange={(e) => setAssignPick((prev) => ({ ...prev, [cita.id]: e.target.value }))}>
+                            <option value="">{t("agenda.assignPick")}</option>
+                            {advisors.filter((a) => a.active !== false).map((a) => (
+                              <option key={a.id} value={a.id}>
+                                {a.name}
+                              </option>
+                            ))}
+                          </select>
+                          <button type="button" className="btn btn-primary btn-sm" disabled={busyId === cita.id || !assignPick[cita.id]} onClick={() => takeRequest(cita, assignPick[cita.id])}>
+                            {t("agenda.assign")}
+                          </button>
+                        </span>
+                      )}
+                      {open && contact.phone && (
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => writeClient(cita)}>
+                          {t("agenda.writeClient")}
+                        </button>
+                      )}
+                      {!open && (
+                        <>
                       <Link to={`/admin/agenda/${cita.id}`} className="btn btn-outline btn-sm">
                         {t("common.edit")}
                       </Link>
@@ -339,6 +392,8 @@ export default function AdminAgenda() {
                       <button type="button" className="btn btn-outline btn-sm" onClick={() => addToCalendar(cita)} title={t("agenda.addToCalendarTitle")}>
                         {t("agenda.addToCalendar")}
                       </button>
+                        </>
+                      )}
                       {contact.phone && status === "confirmada" && (
                         <button type="button" className="btn btn-outline btn-sm" onClick={() => remind(cita)}>
                           {t("agenda.remindClient")}

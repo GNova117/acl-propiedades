@@ -120,3 +120,24 @@ describe("computeVisitBookingStats", () => {
     expect(computeVisitBookingStats([old], { now: NOW }).toClose).toBe(1);
   });
 });
+
+describe("computeVisitBookingStats: solicitudes sin asesor", () => {
+  const request = (over = {}) => cita({ status: "solicitada", advisor_id: null, ...over });
+
+  it("no cuentan como visitas agendadas; las abiertas se cuentan aparte", () => {
+    const stats = computeVisitBookingStats([cita(), request(), request({ id: "otra" })], { now: NOW });
+    expect(stats.booked).toBe(1);
+    expect(stats.upcoming).toBe(1);
+    expect(stats.openRequests).toBe(2);
+  });
+
+  it("una solicitud cancelada sin que nadie la tomara no es una cancelación de visita", () => {
+    const stats = computeVisitBookingStats([cita(), request({ status: "cancelada", cancelled_by: "cliente" })], { now: NOW });
+    expect(stats.cancelled).toBe(0);
+    expect(stats.openRequests).toBe(0);
+  });
+
+  it("al filtrar por asesor no hay solicitudes abiertas (no son de nadie)", () => {
+    expect(computeVisitBookingStats([cita(), request()], { advisorId: "a1", now: NOW }).openRequests).toBe(0);
+  });
+});

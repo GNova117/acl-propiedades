@@ -23,6 +23,7 @@ import {
   bookingPermissions,
   buildBookingChangeMessage,
   buildBookingMessage,
+  buildRequestMessage,
   generateBookingToken,
   generateSlots,
   hhmm,
@@ -32,6 +33,7 @@ import {
   addDays,
   phoneDigits,
   pickAdvisor,
+  requestSlotError,
   validateBookingInput,
   MAX_RESCHEDULES,
 } from "./visitSlots";
@@ -2501,7 +2503,9 @@ export const localBackend = {
       advisors.map((a) => {
         const schedule = schedules[a.id];
         if (!schedule) return [];
-        return generateSlots({ settings: schedule.settings, availability: schedule.weekly, timeOff: schedule.timeOff, citas, advisorId: a.id, from: start, to: end });
+        // Cada horario dice quién está libre a esa hora (nombre y foto, sin datos de contacto).
+        const who = { id: a.id, name: a.name, photo_url: a.photo_url || null };
+        return generateSlots({ settings: schedule.settings, availability: schedule.weekly, timeOff: schedule.timeOff, citas, advisorId: a.id, from: start, to: end }).map((slot) => ({ ...slot, advisors: [who] }));
       })
     );
   },
@@ -2594,6 +2598,94 @@ export const localBackend = {
     };
   },
 
+  // Solicitud de visita sin asesor (mismas reglas que request_visit en SQL): queda en la Agenda de todos
+  // hasta que alguien la toma con claimVisitRequest.
+  async requestVisit({ propertyId, fecha, hora, name, email, phone, note }) {
+    const invalid = validateBookingInput({ name, email, phone, note });
+    if (invalid) return { error: invalid };
+    if (requestSlotError(fecha, hora)) return { error: "invalid_slot" };
+
+    const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === propertyId);
+    if (!property || !property.active || property.status === "vendida") return { error: "property_unavailable" };
+
+    const digits = phoneDigits(phone).slice(-10);
+    const hourAgo = Date.now() - 60 * 60 * 1000;
+    const attempts = readStore(KEYS.visitAttempts, []).filter((a) => a.at > hourAgo);
+    if (attempts.filter((a) => a.phone === digits).length >= 5) return { error: "rate_limited" };
+    writeStore(KEYS.visitAttempts, [...attempts, { phone: digits, at: Date.now() }]);
+
+    const citas = readStore(KEYS.agendaCitas, []);
+    if (activeBookingsForPhone(citas, phone) >= MAX_ACTIVE_BOOKINGS_PER_PHONE) return { error: "too_many_active" };
+
+    const title = property.code ? `${property.title.trim()} (${property.code})` : property.title.trim();
+    const message = {
+      id: uid("msg"),
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      message: buildRequestMessage({ title: property.title, code: property.code, fecha, hora, note }),
+      property_id: propertyId,
+      channel: "visita_solicitud",
+      details: { fecha, hora: hhmm(hora), sin_asesor: true },
+      status: "nuevo",
+      created_at: new Date().toISOString(),
+    };
+    writeStore(KEYS.messages, [...readStore(KEYS.messages, []), message]);
+
+    const prospectId = await this._promoteBookingProspect({ property, advisorId: null, name: name.trim(), phone: phone.trim(), email: email.trim(), fecha, hora: hhmm(hora), messageId: message.id, note, requested: true });
+
+    const now = new Date().toISOString();
+    const cita = {
+      id: uid("cita"),
+      advisor_id: null,
+      client_id: null,
+      property_id: propertyId,
+      titulo: `Visita: ${title}`,
+      fecha,
+      hora: hhmm(hora),
+      duracion_min: 60,
+      actividades: note?.trim() || null,
+      lugar: property.address || null,
+      status: "solicitada",
+      source: "sitio",
+      booking_token: generateBookingToken(),
+      contact_name: name.trim(),
+      contact_phone: phone.trim(),
+      contact_email: email.trim(),
+      message_id: message.id,
+      prospecto_id: prospectId,
+      reschedule_count: 0,
+      client_confirmed_at: null,
+      cancelled_reason: null,
+      cancelled_by: null,
+      created_at: now,
+      updated_at: now,
+    };
+    writeStore(KEYS.agendaCitas, [...citas, cita]);
+    return { ok: true, token: cita.booking_token, fecha: cita.fecha, hora: cita.hora, property: { id: property.id, title: property.title, code: property.code, address: property.address } };
+  },
+
+  // Tomar una solicitud sin asesor (claim_visit_request en SQL): la primera persona se la queda y la cita
+  // queda confirmada con su nombre; quien llega después recibe already_taken.
+  async claimVisitRequest(citaId, { advisorId = null } = {}) {
+    if (!advisorId) return { error: "advisor_required" };
+    const advisor = readStore(KEYS.advisors, ADVISORS).find((a) => a.id === advisorId && a.active !== false);
+    if (!advisor) return { error: "invalid_advisor" };
+    const citas = readStore(KEYS.agendaCitas, []);
+    const idx = citas.findIndex((c) => c.id === citaId);
+    if (idx === -1) return { error: "not_found" };
+    const cita = citas[idx];
+    if ((cita.status || "confirmada") !== "solicitada" || cita.advisor_id) return { error: "already_taken" };
+    const minutes = readStore(KEYS.visitSchedules, {})[advisorId]?.settings?.slot_minutes;
+    citas[idx] = { ...cita, advisor_id: advisorId, status: "confirmada", duracion_min: minutes || cita.duracion_min, updated_at: new Date().toISOString() };
+    writeStore(KEYS.agendaCitas, citas);
+    if (cita.prospecto_id) {
+      const prospect = readStore(KEYS.prospects, []).find((p) => p.id === cita.prospecto_id);
+      if (prospect && !prospect.advisor_id) await this.updateProspect(prospect.id, { advisor_id: advisorId });
+    }
+    return { ok: true, cita_id: citaId, advisor_id: advisorId };
+  },
+
   async getVisitBooking(token) {
     if (!BOOKING_TOKEN_PATTERN.test(token || "")) return { status: "invalido" };
     const cita = readStore(KEYS.agendaCitas, []).find((c) => c.booking_token === token);
@@ -2638,16 +2730,16 @@ export const localBackend = {
 
   // Prospecto de quien reserva una visita: se crea (interesado, con seguimiento el día después de la
   // visita) o, si ya hay uno abierto con ese teléfono o correo, se actualiza en vez de duplicarlo.
-  async _promoteBookingProspect({ property, advisorId, name, phone, email, fecha, hora, messageId, note }) {
+  async _promoteBookingProspect({ property, advisorId, name, phone, email, fecha, hora, messageId, note, requested = false }) {
     const label = property.code ? `${property.title.trim()} (${property.code})` : property.title.trim();
     const nowISO = new Date().toISOString();
     const today = mexicoParts().date;
     const existing = findOpenProspect(readStore(KEYS.prospects, []), { phone, email });
     if (existing) {
-      await this.updateProspect(existing.id, mergeBookingIntoProspect(existing, { propertyId: property.id, label, fecha, hora, note, today, nowISO }));
+      await this.updateProspect(existing.id, mergeBookingIntoProspect(existing, { propertyId: property.id, label, fecha, hora, note, today, nowISO, requested }));
       return existing.id;
     }
-    const created = await this.addProspect(prospectFieldsFromBooking({ name, phone, email, advisorId, propertyId: property.id, messageId, label, fecha, hora, note, nowISO }));
+    const created = await this.addProspect(prospectFieldsFromBooking({ name, phone, email, advisorId, propertyId: property.id, messageId, label, fecha, hora, note, nowISO, requested }));
     return created.id;
   },
 
@@ -2662,7 +2754,7 @@ export const localBackend = {
     const now = after.status || "confirmada";
     let fields = null;
     if (now === "confirmada" && after.fecha !== before.fecha) fields = syncProspectFollowup(prospect, { kind: "moved", oldFecha: before.fecha, fecha: after.fecha, today });
-    else if (was === "confirmada" && (now === "cancelada" || now === "no_asistio")) fields = syncProspectFollowup(prospect, { kind: "lost", fecha: after.fecha, today });
+    else if ((was === "confirmada" || was === "solicitada") && (now === "cancelada" || now === "no_asistio")) fields = syncProspectFollowup(prospect, { kind: "lost", fecha: after.fecha, today });
     if (fields) await this.updateProspect(prospect.id, fields);
   },
 
@@ -2711,12 +2803,13 @@ export const localBackend = {
     const citas = readStore(KEYS.agendaCitas, []);
     const idx = BOOKING_TOKEN_PATTERN.test(token || "") ? citas.findIndex((c) => c.booking_token === token) : -1;
     if (idx === -1) return { error: "not_found" };
-    if ((citas[idx].status || "confirmada") !== "confirmada") return { error: "not_active" };
+    if (!["confirmada", "solicitada"].includes(citas[idx].status || "confirmada")) return { error: "not_active" };
     if (!bookingPermissions(citas[idx]).canCancel) return { error: "too_late" };
+    const statusBefore = citas[idx].status || "confirmada";
     citas[idx] = { ...citas[idx], status: "cancelada", cancelled_by: "cliente", cancelled_reason: String(reason ?? "").trim().slice(0, 300) || null, updated_at: new Date().toISOString() };
     writeStore(KEYS.agendaCitas, citas);
     this._pushVisitChange(citas[idx], "cancelada", { oldFecha: citas[idx].fecha, oldHora: citas[idx].hora, reason });
-    await this._syncCitaProspect({ ...citas[idx], status: "confirmada" }, citas[idx]);
+    await this._syncCitaProspect({ ...citas[idx], status: statusBefore }, citas[idx]);
     return { ok: true };
   },
 

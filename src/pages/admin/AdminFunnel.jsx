@@ -248,6 +248,11 @@ export default function AdminFunnel() {
         <section className="funnel-visits" aria-labelledby="funnel-visits-title">
           <h2 id="funnel-visits-title">{t("funnel.visits.title")}</h2>
           <p className="form-hint">{t("funnel.visits.hint")}</p>
+          {visitStats.openRequests > 0 && (
+            <p className="funnel-visits__warn" role="status">
+              {t("funnel.visits.openRequests", { count: visitStats.openRequests })} <Link to="/admin/agenda">{t("funnel.visits.openRequestsLink")}</Link>
+            </p>
+          )}
           {visitStats.booked === 0 ? (
             <p className="form-hint">{t("funnel.visits.empty")}</p>
           ) : (

@@ -372,6 +372,7 @@
     "via_guia": "Descargó la Guía del comprador",
     "via_visita": "Agendó una visita en el sitio",
     "via_visita_cambio": "Cambió o canceló su visita",
+    "via_visita_solicitud": "Solicitó una visita (sin asesor)",
     "estimate": "Estimar valor",
     "makeProspect": "Pasar a prospecto",
     "isProspect": "Ya es prospecto",
@@ -494,6 +495,14 @@
     "notePlaceholder": "Ej. Solo puedo por la tarde",
     "submit": "Enviar solicitud",
     "success": "¡Listo! Un asesor te contactará para confirmar la visita.",
+    "request": {
+      "intro": "Si ningún asesor está disponible a esa hora, tu solicitud le llega a todo el equipo y el primero que pueda la toma y te confirma por correo.",
+      "noSlots": "Por ahora esta propiedad no tiene horarios en línea. Deja el día y la hora que prefieres: tu solicitud le llega a todos nuestros asesores y el primero disponible la toma y te confirma por correo.",
+      "invalidSlot": "Elige una fecha y una hora al menos 1 hora adelante (y a menos de 90 días).",
+      "doneTitle": "¡Recibimos tu solicitud!",
+      "doneBody": "Pediste visitar el {{when}}. Ya está con todos nuestros asesores: el primero que pueda atenderte la toma y te confirma por correo.",
+      "manage": "Ver o cancelar mi solicitud"
+    },
     "booking": {
       "loading": "Buscando horarios disponibles…",
       "chooseDay": "Elige el día",
@@ -505,6 +514,7 @@
       "confirming": "Agendando…",
       "pickSlot": "Elige un día y una hora para continuar.",
       "requestInstead": "¿Prefieres otro día u hora? Envía una solicitud",
+      "advisorsAvailable": "Asesores disponibles a esta hora: {{names}}",
       "backToSlots": "← Ver horarios disponibles",
       "eventPrefix": "Visita",
       "doneTitle": "¡Tu visita está agendada!",
@@ -2388,6 +2398,9 @@
       "toClose_one": "{{count}} visita ya pasó y nadie la cerró: la asistencia no incluye las visitas sin cerrar.",
       "toClose_other": "{{count}} visitas ya pasaron y nadie las cerró: la asistencia no incluye las visitas sin cerrar.",
       "toCloseLink": "Cerrarlas en Mi día",
+      "openRequests_one": "Hay {{count}} solicitud de visita sin asesor.",
+      "openRequests_other": "Hay {{count}} solicitudes de visita sin asesor.",
+      "openRequestsLink": "Verlas en la Agenda",
       "confirmInsight": "Asistencia de quienes confirmaron: {{confirmed}} % · de quienes no confirmaron: {{unconfirmed}} %."
     },
     "title": "Estadísticas del embudo",
@@ -3065,11 +3078,13 @@
     "statusFilters": {
       "active": "Sin canceladas",
       "pending": "Por atender",
+      "open": "Sin asesor",
       "cancelled": "Canceladas",
       "all": "Todas"
     },
     "status": {
       "confirmada": "Confirmada",
+      "solicitada": "Sin asesor",
       "realizada": "Realizada",
       "no_asistio": "No asistió",
       "cancelada": "Cancelada"
@@ -3094,6 +3109,20 @@
     "notifyCancelled": "Cita cancelada. ¿Quieres avisarle al cliente por WhatsApp?",
     "notifyCancelledEmailed": "Cita cancelada. Le mandamos un correo al cliente con el aviso. ¿Quieres avisarle también por WhatsApp?",
     "cancelledText": "Hola {{name}}, soy {{advisor}} de ACL Propiedades. Lamento avisarte que tuvimos que cancelar tu cita \"{{title}}\" del {{when}}. Con gusto la reagendamos: ¿qué día y hora te acomodan?",
+    "take": "Tomar visita",
+    "takeTitle": "Esta solicitud no tiene asesor: aparece en la Agenda de todos hasta que alguien la tome.",
+    "takeConfirm": "¿Tomar esta visita? Se le confirmará al cliente por correo para {{when}}. Si necesitas otro horario, escríbele primero por WhatsApp.",
+    "takeError": "No se pudo tomar la visita. Intenta de nuevo.",
+    "alreadyTaken": "Otro asesor ya tomó esta visita (o el cliente la canceló).",
+    "assignLabel": "Asignar a",
+    "assignPick": "Elige un asesor",
+    "assign": "Asignar",
+    "assignConfirm": "¿Asignar esta visita a {{name}}? Se le confirmará al cliente por correo para {{when}}.",
+    "writeClient": "Escribir al cliente",
+    "requestText": "Hola {{name}}, te escribimos de ACL Propiedades por tu solicitud de visita ({{title}}) para {{when}}. ¿Te queda bien ese horario?",
+    "noAdvisorChip": "Sin asesor",
+    "requestHint": "Nadie la ha tomado todavía: la ven todos los asesores.",
+    "requestFormNote": "Esta solicitud todavía no tiene asesor: tómala desde la Agenda y después podrás editarla.",
     "viewList": "Lista",
     "viewCalendar": "Calendario",
     "prevMonth": "Mes anterior",
@@ -3216,6 +3245,8 @@
       "closeHint": "Ya pasaron y nadie las marcó (últimos 7 días). Ciérralas para que las métricas de asistencia cuadren.",
       "confirm": "Visitas por confirmar",
       "confirmHint": "Reservas hechas desde el sitio que el cliente aún no confirma (hoy y los próximos 2 días). Un mensaje a tiempo evita que no lleguen.",
+      "requests": "Solicitudes de visita sin asesor",
+      "requestsHint": "El cliente pidió un día y una hora y nadie la ha tomado: la ven todos los asesores. La primera persona que la tome se la queda.",
       "agenda": "Citas de hoy",
       "agendaHint": "En orden de hora; la próxima va resaltada.",
       "urgent": "Contesta ya",
@@ -3284,11 +3315,13 @@
     "greetingGeneric": "Tu visita",
     "status": {
       "confirmada": "Visita agendada",
+      "solicitada": "Solicitud recibida",
       "cancelada": "Visita cancelada",
       "realizada": "Visita realizada",
       "no_asistio": "Visita no realizada"
     },
     "statusNote": {
+      "solicitada": "Tu solicitud ya está con todos nuestros asesores. El primero que pueda atenderte la toma y te confirma por correo. Mientras tanto puedes cancelarla aquí.",
       "cancelada": "Cancelamos esta visita y liberamos el horario. Si todavía quieres conocer la propiedad, agenda otra cuando gustes.",
       "realizada": "¡Gracias por visitarnos! Si la propiedad te interesa, escríbenos y te ayudamos con los siguientes pasos.",
       "no_asistio": "No pudimos registrar tu asistencia a esta visita. Si todavía quieres conocer la propiedad, agenda otra."
@@ -3323,6 +3356,7 @@
     "cancel": {
       "title": "¿Cancelar tu visita?",
       "body": "Liberaremos el horario y avisaremos a tu asesor.",
+      "bodyRequest": "Cancelaremos tu solicitud y avisaremos al equipo.",
       "reasonLabel": "¿Quieres contarnos por qué? (opcional)",
       "reasonPlaceholder": "Ej. Surgió un imprevisto",
       "confirm": "Sí, cancelar mi visita",
@@ -3332,6 +3366,7 @@
     "done": {
       "confirmed": "¡Gracias! Registramos tu asistencia.",
       "rescheduled": "Listo, cambiamos tu visita. Le avisamos a tu asesor y te esperamos en el nuevo horario.",
+      "cancelledRequest": "Cancelamos tu solicitud. Cuando quieras, agenda una visita.",
       "cancelled": "Cancelamos tu visita y avisamos a tu asesor. Cuando quieras, agenda otra."
     },
     "errors": {

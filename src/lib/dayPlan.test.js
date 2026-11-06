@@ -121,3 +121,20 @@ describe("buildDayPlan", () => {
     expect(plan.isEmpty).toBe(false);
   });
 });
+
+describe("Mi día: solicitudes de visita sin asesor", () => {
+  const request = (id, fecha = today, hora = "16:00") => ({ id, titulo: `Visita ${id}`, fecha, hora, status: "solicitada", source: "sitio", advisor_id: null });
+
+  it("salen en su propia lista (de todos) y no cuentan como cita de hoy", () => {
+    const plan = buildDayPlan({ citas: [request("a", addDaysISO(1, now)), request("b")], now });
+    expect(plan.requests.map((c) => c.id)).toEqual(["b", "a"]);
+    expect(plan.agenda).toEqual([]);
+    expect(plan.pendingAgenda).toBe(0);
+    expect(plan.isEmpty).toBe(false);
+  });
+
+  it("sin solicitudes ni nada más el día está libre", () => {
+    expect(buildDayPlan({ citas: [], now }).requests).toEqual([]);
+    expect(buildDayPlan({ citas: [], now }).isEmpty).toBe(true);
+  });
+});

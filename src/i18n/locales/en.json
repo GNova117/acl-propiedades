@@ -372,6 +372,7 @@
     "via_guia": "Downloaded the buyer's guide",
     "via_visita": "Booked a visit on the site",
     "via_visita_cambio": "Changed or cancelled their visit",
+    "via_visita_solicitud": "Requested a visit (no advisor)",
     "estimate": "Estimate value",
     "makeProspect": "Make prospect",
     "isProspect": "Already a prospect",
@@ -494,6 +495,14 @@
     "notePlaceholder": "E.g. Afternoons only",
     "submit": "Send request",
     "success": "Done! An advisor will contact you to confirm the visit.",
+    "request": {
+      "intro": "If no advisor is available at that time, your request goes to the whole team and the first one who can takes it and confirms by email.",
+      "noSlots": "This property has no online time slots right now. Leave the day and time you prefer: your request goes to all our advisors and the first one available takes it and confirms by email.",
+      "invalidSlot": "Pick a date and a time at least 1 hour ahead (and within 90 days).",
+      "doneTitle": "We got your request!",
+      "doneBody": "You asked to visit on {{when}}. It is now with all our advisors: the first one who can help you takes it and confirms by email.",
+      "manage": "View or cancel my request"
+    },
     "booking": {
       "loading": "Looking for available times…",
       "chooseDay": "Choose the day",
@@ -505,6 +514,7 @@
       "confirming": "Booking…",
       "pickSlot": "Choose a day and a time to continue.",
       "requestInstead": "Prefer another day or time? Send a request",
+      "advisorsAvailable": "Advisors available at this time: {{names}}",
       "backToSlots": "← See available times",
       "eventPrefix": "Visit",
       "doneTitle": "Your visit is booked!",
@@ -2388,6 +2398,9 @@
       "toClose_one": "{{count}} visit already took place and nobody closed it: attendance leaves out unclosed visits.",
       "toClose_other": "{{count}} visits already took place and nobody closed them: attendance leaves out unclosed visits.",
       "toCloseLink": "Close them in My day",
+      "openRequests_one": "There is {{count}} visit request without an advisor.",
+      "openRequests_other": "There are {{count}} visit requests without an advisor.",
+      "openRequestsLink": "See them in the Agenda",
       "confirmInsight": "Attendance of those who confirmed: {{confirmed}} % · of those who didn't: {{unconfirmed}} %."
     },
     "title": "Funnel statistics",
@@ -3065,11 +3078,13 @@
     "statusFilters": {
       "active": "Not cancelled",
       "pending": "To attend",
+      "open": "No advisor",
       "cancelled": "Cancelled",
       "all": "All"
     },
     "status": {
       "confirmada": "Confirmed",
+      "solicitada": "No advisor",
       "realizada": "Done",
       "no_asistio": "No-show",
       "cancelada": "Cancelled"
@@ -3094,6 +3109,20 @@
     "notifyCancelled": "Appointment cancelled. Do you want to let the client know on WhatsApp?",
     "notifyCancelledEmailed": "Appointment cancelled. We emailed the client about it. Do you also want to let them know on WhatsApp?",
     "cancelledText": "Hi {{name}}, this is {{advisor}} from ACL Propiedades. I'm sorry to tell you we had to cancel your appointment \"{{title}}\" on {{when}}. I'd be happy to reschedule: which day and time work for you?",
+    "take": "Take visit",
+    "takeTitle": "This request has no advisor: it shows up in everyone's agenda until someone takes it.",
+    "takeConfirm": "Take this visit? The client will get a confirmation email for {{when}}. If you need another time, message them on WhatsApp first.",
+    "takeError": "Could not take the visit. Try again.",
+    "alreadyTaken": "Another advisor already took this visit (or the client cancelled it).",
+    "assignLabel": "Assign to",
+    "assignPick": "Pick an advisor",
+    "assign": "Assign",
+    "assignConfirm": "Assign this visit to {{name}}? The client will get a confirmation email for {{when}}.",
+    "writeClient": "Message client",
+    "requestText": "Hi {{name}}, this is ACL Propiedades about your visit request ({{title}}) for {{when}}. Does that time work for you?",
+    "noAdvisorChip": "No advisor",
+    "requestHint": "Nobody has taken it yet: every advisor can see it.",
+    "requestFormNote": "This request has no advisor yet: take it from the Agenda and then you can edit it.",
     "viewList": "List",
     "viewCalendar": "Calendar",
     "prevMonth": "Previous month",
@@ -3216,6 +3245,8 @@
       "closeHint": "They already took place and nobody marked them (last 7 days). Close them so the attendance metrics add up.",
       "confirm": "Visits to confirm",
       "confirmHint": "Bookings made on the website that the client hasn't confirmed yet (today and the next 2 days). A timely message keeps people from not showing up.",
+      "requests": "Visit requests without an advisor",
+      "requestsHint": "The client asked for a day and time and nobody has taken it: every advisor can see it. Whoever takes it first keeps it.",
       "agenda": "Today's appointments",
       "agendaHint": "In time order; the next one is highlighted.",
       "urgent": "Reply now",
@@ -3284,11 +3315,13 @@
     "greetingGeneric": "Your visit",
     "status": {
       "confirmada": "Visit booked",
+      "solicitada": "Request received",
       "cancelada": "Visit cancelled",
       "realizada": "Visit done",
       "no_asistio": "Visit not completed"
     },
     "statusNote": {
+      "solicitada": "Your request is now with all our advisors. The first one who can help you takes it and confirms by email. In the meantime you can cancel it here.",
       "cancelada": "We cancelled this visit and freed the time slot. If you still want to see the property, book another whenever you like.",
       "realizada": "Thanks for visiting! If you like the property, message us and we'll help with the next steps.",
       "no_asistio": "We couldn't record your attendance at this visit. If you still want to see the property, book another."
@@ -3323,6 +3356,7 @@
     "cancel": {
       "title": "Cancel your visit?",
       "body": "We'll free the time slot and let your advisor know.",
+      "bodyRequest": "We'll cancel your request and let the team know.",
       "reasonLabel": "Want to tell us why? (optional)",
       "reasonPlaceholder": "E.g. Something came up",
       "confirm": "Yes, cancel my visit",
@@ -3332,6 +3366,7 @@
     "done": {
       "confirmed": "Thanks! We recorded your attendance.",
       "rescheduled": "Done, we changed your visit. We let your advisor know and we'll see you at the new time.",
+      "cancelledRequest": "We cancelled your request. Book a visit whenever you like.",
       "cancelled": "We cancelled your visit and let your advisor know. Book another whenever you like."
     },
     "errors": {

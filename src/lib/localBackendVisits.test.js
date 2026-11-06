@@ -163,8 +163,9 @@ describe("modo demo: gestión desde /visita/:token", () => {
     const sunday = (slot) => new Date(`${slot.fecha}T12:00:00Z`).getUTCDay() === 0;
     expect(all.some(sunday), "la unión de la ficha sí trae domingos").toBe(true);
     expect(own.some(sunday), "los del asesor de la visita no").toBe(false);
-    expect(own).toContainEqual(first); // su propio horario aparece libre
-    expect(all).not.toContainEqual(first); // en la ficha ya está ocupado
+    const sameSlot = (slot) => slot.fecha === first.fecha && slot.hora === first.hora;
+    expect(own.some(sameSlot)).toBe(true); // su propio horario aparece libre
+    expect(all.some(sameSlot)).toBe(false); // en la ficha ya está ocupado
   });
 
   it("getBookingSlots devuelve vacío con token inválido, inexistente o ya cancelada", async () => {

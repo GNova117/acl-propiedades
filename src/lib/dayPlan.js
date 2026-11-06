@@ -7,7 +7,7 @@
 // solo lo suyo y la oficina todo).
 
 import { DEFAULT_DURATION_MINUTES } from "./calendarEvent";
-import { citaDuration, citaStatus, isCancelled, visitsToClose, visitsToConfirm } from "./agendaCitas";
+import { citaDuration, citaStatus, isCancelled, isOpenRequest, openRequests, visitsToClose, visitsToConfirm } from "./agendaCitas";
 import { daysSince, followUpState, unattendedState } from "./prospects";
 
 const minutesOfDay = (hora) => {
@@ -26,7 +26,7 @@ const dateISO = (date) => date.toLocaleDateString("en-CA");
 export function todayAgenda(citas, now = new Date()) {
   const today = dateISO(now);
   const nowMin = now.getHours() * 60 + now.getMinutes();
-  const todays = citas.filter((c) => c.fecha === today && !isCancelled(c));
+  const todays = citas.filter((c) => c.fecha === today && !isCancelled(c) && !isOpenRequest(c));
   const timed = todays.filter((c) => c.hora).sort((a, b) => minutesOfDay(a.hora) - minutesOfDay(b.hora));
   const untimed = todays.filter((c) => !c.hora && citaStatus(c) === "confirmada");
 
@@ -74,7 +74,9 @@ export function buildDayPlan({ citas = [], prospects = [], now = new Date() } = 
   const toConfirm = visitsToConfirm(citas, now);
   // Visitas de días anteriores que nadie marcó como realizadas o "no asistió" (fase 6).
   const toClose = visitsToClose(citas, now);
+  // Solicitudes de visita sin asesor: de todos hasta que alguien las toma.
+  const requests = openRequests(citas, now);
   const pendingAgenda = agenda.filter((i) => i.state !== "past").length;
   const toContact = contact.urgent.length + contact.overdue.length + contact.today.length;
-  return { agenda, ...contact, toConfirm, toClose, pendingAgenda, toContact, isEmpty: agenda.length === 0 && toContact === 0 && toConfirm.length === 0 && toClose.length === 0 };
+  return { agenda, ...contact, toConfirm, toClose, requests, pendingAgenda, toContact, isEmpty: agenda.length === 0 && toContact === 0 && toConfirm.length === 0 && toClose.length === 0 && requests.length === 0 };
 }

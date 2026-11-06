@@ -108,6 +108,76 @@ test.describe("Agendar visita", () => {
 
   // Cierre del ciclo (fase 6): quien reserva ya es un prospecto; la visita que ya pasó se cierra
   // y se registra con los datos de la cita; las métricas cuentan la asistencia.
+  test("al elegir la hora se ven los asesores disponibles a esa hora", async ({ page, go, press }) => {
+    await page.addInitScript((horario) => localStorage.setItem("acl_local_visit_schedules", JSON.stringify(horario)), HORARIO);
+    await go(PROPIEDAD);
+    const tarjeta = page.locator("#agendar-visita");
+    await press(tarjeta.getByRole("button", { name: "Agendar visita" }));
+    await expect(page.locator(".visit-slots__day").first()).toBeVisible();
+    await expect(tarjeta.locator(".visit-booking__advisors")).toHaveCount(0); // sin hora elegida todavía
+    await press(page.locator(".visit-slots__day").nth(3));
+    await press(page.locator(".visit-slots__time").first());
+    await expect(tarjeta.locator(".visit-booking__advisors")).toContainText("Asesores disponibles a esta hora: Carlos Delgado");
+    // Sin datos de contacto del asesor antes de reservar.
+    await expect(tarjeta.locator(".visit-booking__advisors")).not.toContainText(/\d{3}/);
+  });
+
+  test("solicitud sin asesor: queda en la Agenda de todos y se toma desde el panel", async ({ page, go, press }) => {
+    // (el fixture ya acepta los confirm() del panel)
+    await go(PROPIEDAD);
+    const tarjeta = page.locator("#agendar-visita");
+    await press(tarjeta.getByRole("button", { name: "Agendar visita" }));
+    await expect(tarjeta).toContainText("Por ahora esta propiedad no tiene horarios en línea");
+
+    // Hora obligatoria
+    await page.fill("#visit-name", "Dana Solicitud QA");
+    await page.fill("#visit-email", "dana.qa@correo.com");
+    await page.fill("#visit-phone", "871 444 5566");
+    await page.fill("#visit-date", isoDate(10));
+    await press(tarjeta.locator("button[type=submit]"));
+    await expect(tarjeta).toContainText("Este campo es obligatorio");
+
+    await page.fill("#visit-time", "19:30");
+    await page.fill("#visit-note", "prefiero por la tarde");
+    await press(tarjeta.locator("button[type=submit]"));
+    await expect(tarjeta.locator(".visit-booking__done")).toContainText("¡Recibimos tu solicitud!");
+
+    // El cliente ve su solicitud: sin asesor, solo se puede cancelar.
+    await press(tarjeta.getByRole("link", { name: "Ver o cancelar mi solicitud" }));
+    await page.waitForURL("**/visita/**");
+    const token = new URL(page.url()).pathname.split("/").pop();
+    await expect(page.locator("main")).toContainText("Solicitud recibida");
+    await expect(page.locator("main")).toContainText("El primero que pueda atenderte la toma");
+    await expect(page.getByRole("button", { name: "Cambiar horario" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Cancelar visita" })).toBeVisible();
+
+    // En el panel: Mi día la avisa a todos y la Agenda la marca «Sin asesor».
+    await page.evaluate((email) => localStorage.setItem("acl_local_session", JSON.stringify({ user: { email } })), "admin@aclpropiedades.com");
+    await go("/admin/mi-dia");
+    const solicitudes = page.locator("section[aria-labelledby='my-day-requests']");
+    await expect(solicitudes).toContainText("Solicitudes de visita sin asesor");
+    await expect(solicitudes).toContainText("Dana Solicitud QA");
+
+    await go("/admin/agenda");
+    const fila = page.locator("tbody tr", { hasText: "Dana Solicitud QA" });
+    await expect(fila).toContainText("Sin asesor");
+    await expect(fila).toContainText("Nadie la ha tomado todavía");
+    await expect(fila.getByRole("link", { name: "Editar" })).toHaveCount(0);
+    await press(page.locator("#agenda-status-filter"));
+    await page.selectOption("#agenda-status-filter", "open");
+    await expect(fila).toBeVisible();
+
+    // Administración la asigna a un asesor: queda confirmada y el cliente lo ve.
+    await fila.getByLabel("Asignar a").selectOption({ index: 1 });
+    await press(fila.getByRole("button", { name: "Asignar", exact: true }));
+    await page.selectOption("#agenda-status-filter", "active");
+    await expect(page.locator("tbody tr", { hasText: "Dana Solicitud QA" })).not.toContainText("Sin asesor");
+    await expect(page.locator("tbody tr", { hasText: "Dana Solicitud QA" }).getByRole("button", { name: "Enviar enlace" })).toBeVisible();
+
+    await go(`/visita/${token}`);
+    await expect(page.locator("main")).toContainText("Visita agendada");
+  });
+
   test("el asesor manda el enlace de la visita por WhatsApp o lo copia, sin depender del correo", async ({ page, go, press }) => {
     await page.addInitScript((horario) => localStorage.setItem("acl_local_visit_schedules", JSON.stringify(horario)), HORARIO);
     await page.context().grantPermissions(["clipboard-read", "clipboard-write"]).catch(() => {});
