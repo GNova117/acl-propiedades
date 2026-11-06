@@ -130,3 +130,50 @@ describe("modo demo: horarios con los asesores disponibles", () => {
     expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
   });
 });
+
+describe("modo demo: enlace para las citas que captura el equipo", () => {
+  const manual = (extra = {}) => ({ advisor_id: advisorA, titulo: "Firma de contrato", fecha: fecha(), hora: "12:00", ...extra });
+
+  it("toda cita nueva trae su token y por él el cliente la ve, la confirma y la cancela", async () => {
+    await db.addClient({ name: "Lucía Cliente", type: "comprador", email: "lucia@correo.com", phone: "871 555 0000" }).catch(() => null);
+    const [client] = (await db.getClients()).slice(-1);
+    const cita = await db.addAgendaCita(manual({ client_id: client?.id || "", lugar: "Oficina Centro" }));
+    expect(cita.booking_token).toMatch(/^[0-9a-f]{32}$/);
+
+    const booking = await db.getVisitBooking(cita.booking_token);
+    expect(booking).toMatchObject({ status: "confirmada", titulo: "Firma de contrato", lugar: "Oficina Centro", property: null, can_cancel: true, can_confirm: true });
+    if (client) expect(booking.client_name).toBe("Lucía");
+
+    expect((await db.confirmVisitAttendance(cita.booking_token)).ok).toBe(true);
+    expect((await db.getAgendaCitaById(cita.id)).client_confirmed_at).toBeTruthy();
+
+    expect((await db.cancelVisitBooking(cita.booking_token, "imprevisto")).ok).toBe(true);
+    expect((await db.getAgendaCitaById(cita.id)).status).toBe("cancelada");
+    const [message] = await db.getContactMessages();
+    expect(message).toMatchObject({ channel: "visita_cambio", property_id: null });
+    expect(message.message).toContain("Firma de contrato");
+    if (client) expect(message).toMatchObject({ name: "Lucía Cliente", phone: "871 555 0000" });
+  });
+
+  it("guarda los datos de contacto de quien no es cliente registrado y se los devuelve al editar", async () => {
+    const cita = await db.addAgendaCita(manual({ contact_name: " Pedro Sin Registro ", contact_phone: "871 111 2222", contact_email: "pedro@correo.com" }));
+    expect(cita).toMatchObject({ contact_name: "Pedro Sin Registro", contact_phone: "871 111 2222", contact_email: "pedro@correo.com" });
+    expect((await db.getVisitBooking(cita.booking_token)).client_name).toBe("Pedro");
+
+    const edited = await db.updateAgendaCita(cita.id, manual({ contact_phone: "" })); // texto vacío = borrarlo; lo no enviado no se toca
+    expect(edited).toMatchObject({ contact_phone: null, contact_name: "Pedro Sin Registro" });
+  });
+
+  it("solo se puede mover si el asesor ofrece horarios en línea (las del sitio siempre)", async () => {
+    const cita = await db.addAgendaCita(manual());
+    expect((await db.getVisitBooking(cita.booking_token)).can_reschedule).toBe(false);
+
+    await db.saveAdvisorVisitSchedule(advisorA, { settings: { ...DEFAULT_VISIT_SETTINGS, enabled: true }, weekly: DEFAULT_WEEKLY_SCHEDULE });
+    expect((await db.getVisitBooking(cita.booking_token)).can_reschedule).toBe(true);
+  });
+
+  it("una cita sin hora tiene token pero el cliente no puede cancelarla ni confirmarla", async () => {
+    const cita = await db.addAgendaCita(manual({ hora: "" }));
+    expect(await db.getVisitBooking(cita.booking_token)).toMatchObject({ can_cancel: false, can_confirm: false });
+  });
+});

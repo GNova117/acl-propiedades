@@ -194,7 +194,9 @@ export default function PublicVisit() {
 
   const data = state.data;
   const property = data?.property;
-  const label = property ? (property.code ? `${String(property.title).trim()} (${property.code})` : String(property.title).trim()) : "";
+  // Una cita que capturó el equipo puede no tener propiedad: se muestra su título y su lugar.
+  const label = property ? (property.code ? `${String(property.title).trim()} (${property.code})` : String(property.title).trim()) : String(data?.titulo || "").trim();
+  const address = property?.address || data?.lugar || "";
   const when = data?.fecha ? `${formatSlotDay(data.fecha, locale)} · ${formatSlotTime(data.hora, locale)}` : "";
 
   const confirmAttendance = async () => {
@@ -219,7 +221,7 @@ export default function PublicVisit() {
   };
 
   const addToCalendar = () => {
-    const event = bookingToCalendarEvent({ token, fecha: data.fecha, hora: data.hora, duracion_min: data.duracion_min, property }, { titlePrefix: t("scheduleVisit.booking.eventPrefix") });
+    const event = bookingToCalendarEvent({ token, fecha: data.fecha, hora: data.hora, duracion_min: data.duracion_min, property: property || { title: label, address } }, { titlePrefix: t("scheduleVisit.booking.eventPrefix") });
     downloadIcs(`visita-${data.fecha}.ics`, citaToIcs(event, { advisorName: data.advisor?.name || "" }));
   };
 
@@ -287,6 +289,14 @@ export default function PublicVisit() {
                   </div>
                 </div>
               )}
+              {!property && label && (
+                <div className="visit-page__property">
+                  <div>
+                    <strong>{label}</strong>
+                    {address && <p className="form-hint">📍 {address}</p>}
+                  </div>
+                </div>
+              )}
               {data.advisor?.name && <p className="form-hint">{t("visitPage.withAdvisor", { name: data.advisor.name })}</p>}
 
               {isConfirmed && !isPast && (
@@ -294,8 +304,8 @@ export default function PublicVisit() {
                   <button type="button" className="btn btn-outline btn-sm" onClick={addToCalendar}>
                     {t("visitPage.addToCalendar")}
                   </button>
-                  {property?.address && (
-                    <a className="btn btn-outline btn-sm" href={mapsUrl(property.address)} target="_blank" rel="noopener noreferrer">
+                  {address && (
+                    <a className="btn btn-outline btn-sm" href={mapsUrl(address)} target="_blank" rel="noopener noreferrer">
                       {t("visitPage.directions")}
                     </a>
                   )}

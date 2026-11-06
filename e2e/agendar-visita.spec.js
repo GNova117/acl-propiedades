@@ -178,6 +178,53 @@ test.describe("Agendar visita", () => {
     await expect(page.locator("main")).toContainText("Visita agendada");
   });
 
+  test("una cita que captura el equipo también tiene enlace: se manda por WhatsApp y el cliente la confirma y la cancela", async ({ page, go, press, seedAdminSession }) => {
+    await seedAdminSession();
+    await go("/admin/agenda/nueva");
+    await page.selectOption("#cita-advisor", { index: 1 });
+    await page.fill("#cita-titulo", "Firma de contrato QA");
+    await page.fill("#cita-fecha", isoDate(7));
+    await page.fill("#cita-hora", "12:00");
+    // Sin cliente registrado se capturan los datos de la persona.
+    await page.fill("#cita-contact-name", "Pedro Contacto QA");
+    await page.fill("#cita-contact-phone", "871 111 2222");
+    await press(page.locator("main form button[type=submit]").last());
+
+    // La cita queda guardada y se abre con su enlace arriba.
+    await page.waitForURL(/\/admin\/agenda\/[^/]+$/);
+    await expect(page.locator("main")).toContainText("Cita guardada");
+    const enviar = page.getByRole("link", { name: "Enviar enlace" });
+    const wa = new URL(await enviar.getAttribute("href"));
+    expect(wa.hostname).toBe("wa.me");
+    expect(wa.pathname).toBe("/528711112222");
+    const mensaje = wa.searchParams.get("text");
+    expect(mensaje).toContain("Hola Pedro");
+    expect(mensaje).toContain("Tu cita (Firma de contrato QA)");
+    const token = mensaje.match(/\/visita\/([0-9a-f]{32})/)[1];
+    await expect(page.getByRole("button", { name: "Copiar enlace" })).toBeVisible();
+
+    // En la Agenda también salen sus botones de enlace.
+    await go("/admin/agenda");
+    const fila = page.locator("tbody tr", { hasText: "Firma de contrato QA" });
+    await expect(fila).toContainText("Pedro Contacto QA");
+    await expect(fila.getByRole("button", { name: "Enviar enlace" })).toBeVisible();
+
+    // El cliente abre su enlace: ve su cita, confirma y cancela.
+    await go(`/visita/${token}`);
+    await expect(page.locator("main")).toContainText("Hola, Pedro");
+    await expect(page.locator("main")).toContainText("Firma de contrato QA");
+    await expect(page.getByRole("button", { name: "Cambiar horario" })).toHaveCount(0); // su asesor no ofrece horarios en línea
+    await press(page.getByRole("button", { name: "Confirmo que asistiré" }));
+    await expect(page.locator("main")).toContainText("Ya confirmaste tu asistencia");
+    await press(page.getByRole("button", { name: "Cancelar visita" }));
+    await press(page.getByRole("button", { name: "Sí, cancelar mi visita" }));
+    await expect(page.locator("main")).toContainText("Cancelamos tu visita");
+
+    await go("/admin/agenda");
+    await page.selectOption("#agenda-status-filter", "cancelled");
+    await expect(page.locator("tbody tr", { hasText: "Firma de contrato QA" })).toContainText("Cancelada por el cliente");
+  });
+
   test("el asesor manda el enlace de la visita por WhatsApp o lo copia, sin depender del correo", async ({ page, go, press }) => {
     await page.addInitScript((horario) => localStorage.setItem("acl_local_visit_schedules", JSON.stringify(horario)), HORARIO);
     await page.context().grantPermissions(["clipboard-read", "clipboard-write"]).catch(() => {});
@@ -232,15 +279,6 @@ test.describe("Agendar visita", () => {
     expect(destino.hostname).toBe("wa.me");
     expect(destino.pathname).toBe("/528712223344");
     expect(destino.searchParams.get("text")).toContain(enlace);
-
-    // Una cita capturada a mano en la Agenda no tiene enlace: no hay botones de enlace.
-    await page.evaluate(() => {
-      const citas = JSON.parse(localStorage.getItem("acl_local_agenda_citas"));
-      for (const c of citas) if (c.source === "sitio") c.source = "admin";
-      localStorage.setItem("acl_local_agenda_citas", JSON.stringify(citas));
-    });
-    await go("/admin/agenda");
-    await expect(page.locator("tbody tr", { hasText: "Carla Enlace QA" }).getByRole("button", { name: "Enviar enlace" })).toHaveCount(0);
   });
 
   test("cierre del ciclo: prospecto al reservar, visita por cerrar, registrar con datos de la cita y métricas", async ({ page, go, press }) => {

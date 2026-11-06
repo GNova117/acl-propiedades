@@ -5,7 +5,7 @@ import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
 import { whatsappDigits } from "../../lib/format";
 import { citaToIcs, downloadIcs, mapsUrl } from "../../lib/calendarEvent";
-import { canRegisterVisit, citaContact, citaStatus, citaToVisitPrefill, isFromSite, isOpenRequest, isPending, statusActions, visitLink } from "../../lib/agendaCitas";
+import { canRegisterVisit, citaContact, citaStatus, citaToVisitPrefill, isFromSite, isOpenRequest, isPending, statusActions, visitLink, visitLinkTextKey } from "../../lib/agendaCitas";
 import { formatIsoDate } from "../../lib/propertyLog";
 import CopyVisitLinkButton from "../../components/CopyVisitLinkButton";
 import "./admin.css";
@@ -113,7 +113,7 @@ export default function AdminAgenda() {
   // Manda por WhatsApp el enlace de la visita (confirmar, cambiar o cancelar) sin depender del correo del cliente.
   const sendLink = (cita, link) => {
     const contact = contactOf(cita);
-    openWhatsApp(contact.phone, t("visitLink.whatsappText", { name: contact.name.split(/\s+/)[0], title: cita.titulo, when: whenLabel(cita), advisor: advisorName(cita.advisor_id), link }));
+    openWhatsApp(contact.phone, t(visitLinkTextKey(cita), { name: contact.name.split(/\s+/)[0], title: cita.titulo, when: whenLabel(cita), advisor: advisorName(cita.advisor_id), link }));
   };
 
   // Solicitud de visita sin asesor: el cliente pidió un día y una hora y la ven todos los asesores. Un asesor la

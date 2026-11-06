@@ -35,14 +35,17 @@ export function citaContact(cita, client = null) {
   return { name: cita?.contact_name || "", phone: cita?.contact_phone || "", email: cita?.contact_email || "" };
 }
 
-// Enlace con el que el cliente confirma, cambia o cancela su visita
-// (/visita/<token>). Solo las reservas del sitio lo tienen; las que se
-// capturan a mano en la Agenda no (devuelve ""). `origin` es el del sitio
-// público, que es el mismo desde el que se usa el panel.
+// Enlace con el que el cliente confirma, cambia o cancela su cita (/visita/<token>). Toda cita lo tiene —la
+// reservada en el sitio y la que captura el equipo—, pero solo sirve si tiene hora (sin hora no hay nada que
+// confirmar ni cancelar): sin token válido o sin hora devuelve "". `origin` es el del sitio público, que es
+// el mismo desde el que se usa el panel.
 export function visitLink(cita, origin) {
-  if (!isFromSite(cita) || !/^[0-9a-f]{32}$/.test(cita?.booking_token || "")) return "";
+  if (!cita?.hora || !/^[0-9a-f]{32}$/.test(cita?.booking_token || "")) return "";
   return `${String(origin || "").replace(/\/+$/, "")}/visita/${cita.booking_token}`;
 }
+
+// Clave del texto de WhatsApp con el enlace: "visita" si la cita es de una propiedad, "cita" si no.
+export const visitLinkTextKey = (cita) => (cita?.property_id ? "visitLink.whatsappText" : "visitLink.whatsappTextCita");
 
 // Qué estatus se puede poner desde la Agenda a partir del actual.
 // Una solicitud sin asesor solo se cancela (para tomarla se usa "Tomar visita"); una cita cancelada
