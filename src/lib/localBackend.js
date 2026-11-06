@@ -2419,7 +2419,7 @@ export const localBackend = {
     return citas.find((c) => c.id === id) || null;
   },
 
-  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades, lugar }) {
+  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email }) {
     const citas = readStore(KEYS.agendaCitas, []);
     const record = {
       id: uid("cita"),
@@ -2430,8 +2430,13 @@ export const localBackend = {
       hora: hora || null,
       actividades: actividades?.trim() || null,
       lugar: lugar?.trim() || null,
+      contact_name: contact_name?.trim() || null,
+      contact_phone: contact_phone?.trim() || null,
+      contact_email: contact_email?.trim() || null,
       status: "confirmada",
       source: "admin",
+      // Toda cita tiene su enlace /visita/<token> (en Supabase es el valor por omisión de la columna).
+      booking_token: generateBookingToken(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -2440,7 +2445,7 @@ export const localBackend = {
     return record;
   },
 
-  async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades, lugar }) {
+  async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email }) {
     const citas = readStore(KEYS.agendaCitas, []);
     const idx = citas.findIndex((c) => c.id === id);
     if (idx === -1) throw new Error("Cita no encontrada");
@@ -2454,6 +2459,9 @@ export const localBackend = {
       hora: hora || null,
       actividades: actividades?.trim() || null,
       ...(lugar !== undefined ? { lugar: lugar?.trim() || null } : {}),
+      ...(contact_name !== undefined ? { contact_name: contact_name?.trim() || null } : {}),
+      ...(contact_phone !== undefined ? { contact_phone: contact_phone?.trim() || null } : {}),
+      ...(contact_email !== undefined ? { contact_email: contact_email?.trim() || null } : {}),
       updated_at: new Date().toISOString(),
     };
     writeStore(KEYS.agendaCitas, citas);
@@ -2693,15 +2701,21 @@ export const localBackend = {
     const advisor = readStore(KEYS.advisors, ADVISORS).find((a) => a.id === cita.advisor_id);
     const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === cita.property_id);
     const { canReschedule, canCancel, canConfirm } = bookingPermissions(cita);
+    // Una cita que capturó el equipo también tiene enlace: el nombre sale del cliente ligado, y solo se
+    // puede mover si su asesor ofrece horarios en línea (las del sitio siempre; mismo criterio que get_booking).
+    const linkedClient = cita.client_id ? readStore(KEYS.clients, []).find((c) => c.id === cita.client_id) : null;
+    const advisorOffersSlots = Boolean(readStore(KEYS.visitSchedules, {})[cita.advisor_id]?.settings?.enabled);
     return {
       status: cita.status || "confirmada",
       fecha: cita.fecha,
       hora: cita.hora,
       duracion_min: cita.duracion_min,
-      client_name: String(cita.contact_name || "").split(" ")[0],
+      client_name: String(cita.contact_name?.trim() || linkedClient?.name || "").split(" ")[0],
+      titulo: cita.titulo,
+      lugar: cita.lugar || null,
       client_confirmed_at: cita.client_confirmed_at,
       reschedule_count: cita.reschedule_count,
-      can_reschedule: canReschedule,
+      can_reschedule: canReschedule && (cita.source === "sitio" || advisorOffersSlots),
       can_cancel: canCancel,
       can_confirm: canConfirm,
       advisor: advisor ? { id: advisor.id, name: advisor.name, phone: advisor.phone, whatsapp: advisor.whatsapp, photo_url: advisor.photo_url } : null,
@@ -2762,13 +2776,14 @@ export const localBackend = {
   _pushVisitChange(cita, kind, extra) {
     const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === cita.property_id);
     const messages = readStore(KEYS.messages, []);
+    const linkedClient = cita.client_id ? readStore(KEYS.clients, []).find((c) => c.id === cita.client_id) : null;
     messages.push({
       id: uid("msg"),
-      name: cita.contact_name || "(sin nombre)",
-      email: cita.contact_email || "",
-      phone: cita.contact_phone || null,
+      name: cita.contact_name || linkedClient?.name || "(sin nombre)",
+      email: cita.contact_email || linkedClient?.email || "",
+      phone: cita.contact_phone || linkedClient?.phone || null,
       message: buildBookingChangeMessage({ kind, title: property?.title || cita.titulo, code: property?.code, ...extra }),
-      property_id: cita.property_id,
+      property_id: cita.property_id ?? null,
       channel: "visita_cambio",
       details: { cita_id: cita.id, kind, advisor_id: cita.advisor_id },
       status: "nuevo",

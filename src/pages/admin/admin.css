@@ -392,3 +392,35 @@
   flex: 1;
   min-width: 0;
 }
+
+/* Enlace de una cita (formulario de la Agenda): mensaje de WhatsApp + copiar. */
+.visit-link-panel {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-alt);
+}
+
+.visit-link-panel__title {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+
+.visit-link-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.agenda-contact {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.agenda-contact legend {
+  padding: 0 0.4rem;
+  font-weight: 600;
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activeCitas, canRegisterVisit, citaContact, citaDuration, citaStatus, citaToVisitPrefill, isCancelled, isOpenRequest, isPending, openRequests, statusActions, visitLink, visitsToClose, visitsToConfirm } from "./agendaCitas";
+import { activeCitas, canRegisterVisit, citaContact, citaDuration, citaStatus, citaToVisitPrefill, isCancelled, isOpenRequest, isPending, openRequests, statusActions, visitLink, visitLinkTextKey, visitsToClose, visitsToConfirm } from "./agendaCitas";
 
 // Hoy a las 12:00 (hora local), construido con partes para no depender de la zona horaria.
 const now = new Date();
@@ -120,15 +120,20 @@ describe("cierre del ciclo", () => {
 
 describe("visitLink", () => {
   const token = "0123456789abcdef0123456789abcdef";
-  it("arma el enlace /visita/<token> de una reserva del sitio", () => {
-    expect(visitLink({ source: "sitio", booking_token: token }, "https://acl.mx")).toBe(`https://acl.mx/visita/${token}`);
-    expect(visitLink({ source: "sitio", booking_token: token }, "https://acl.mx/")).toBe(`https://acl.mx/visita/${token}`);
+  it("arma el enlace /visita/<token> de cualquier cita con token y hora (del sitio o capturada a mano)", () => {
+    expect(visitLink({ source: "sitio", booking_token: token, hora: "10:00" }, "https://acl.mx")).toBe(`https://acl.mx/visita/${token}`);
+    expect(visitLink({ source: "sitio", booking_token: token, hora: "10:00" }, "https://acl.mx/")).toBe(`https://acl.mx/visita/${token}`);
+    expect(visitLink({ source: "admin", booking_token: token, hora: "16:30:00" }, "https://acl.mx")).toBe(`https://acl.mx/visita/${token}`);
   });
-  it("no hay enlace en citas capturadas a mano ni con token inválido o ausente", () => {
-    expect(visitLink({ source: "admin", booking_token: token }, "https://acl.mx")).toBe("");
-    expect(visitLink({ source: "sitio" }, "https://acl.mx")).toBe("");
-    expect(visitLink({ source: "sitio", booking_token: "abc" }, "https://acl.mx")).toBe("");
+  it("sin hora (no hay nada que confirmar), con token inválido o ausente, no hay enlace", () => {
+    expect(visitLink({ source: "admin", booking_token: token, hora: null }, "https://acl.mx")).toBe("");
+    expect(visitLink({ source: "sitio", hora: "10:00" }, "https://acl.mx")).toBe("");
+    expect(visitLink({ source: "sitio", booking_token: "abc", hora: "10:00" }, "https://acl.mx")).toBe("");
     expect(visitLink(null, "https://acl.mx")).toBe("");
+  });
+  it("el texto de WhatsApp: 'visita' si es de una propiedad, 'cita' si no", () => {
+    expect(visitLinkTextKey({ property_id: "p1" })).toBe("visitLink.whatsappText");
+    expect(visitLinkTextKey({ property_id: null })).toBe("visitLink.whatsappTextCita");
   });
 });
 
