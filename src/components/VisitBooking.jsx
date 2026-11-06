@@ -5,7 +5,7 @@ import { db } from "../lib/dataStore";
 import { trackEvent } from "../lib/analytics";
 import { citaToIcs, downloadIcs, mapsUrl } from "../lib/calendarEvent";
 import { OFFICE_WHATSAPP } from "../lib/office";
-import { bookingFieldErrors } from "../lib/visitSlots";
+import { advisorsForSlot, bookingFieldErrors } from "../lib/visitSlots";
 import { bookingErrorField, bookingErrorKey, bookingToCalendarEvent, formatSlotDay, formatSlotTime } from "../lib/visitBookingUi";
 import { useSlotSelection } from "../lib/useSlotSelection";
 import VisitSlotPicker from "./VisitSlotPicker";
@@ -33,6 +33,8 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
     trackEvent("visit_slot_selected", { property_id: property.id });
   });
   const { activeDate, activeTime } = selection;
+  // Quiénes están libres a la hora elegida (nombre; el contacto se ve hasta reservar).
+  const availableAdvisors = activeTime ? advisorsForSlot(slots, activeDate, activeTime) : [];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -159,6 +161,9 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
         <p className="visit-booking__summary" role="status">
           {t("scheduleVisit.booking.selected", { when: `${formatSlotDay(activeDate, locale)} · ${formatSlotTime(activeTime, locale)}` })}
         </p>
+      )}
+      {activeTime && availableAdvisors.length > 0 && (
+        <p className="form-hint visit-booking__advisors">{t("scheduleVisit.booking.advisorsAvailable", { names: availableAdvisors.map((a) => a.name).join(", ") })}</p>
       )}
 
       <h4 className="visit-booking__step">{t("scheduleVisit.booking.yourData")}</h4>

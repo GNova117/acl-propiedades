@@ -122,6 +122,7 @@ async function handler(req: Request): Promise<Response> {
     .select("id, titulo, fecha, hora, contact_name, contact_phone, clients(name, phone), advisors(name)")
     .eq("fecha", fecha)
     .neq("status", "cancelada") // citas canceladas por el cliente (ver book_visit / cancel_booking)
+    .neq("status", "solicitada") // una solicitud sin asesor aún no está confirmada: no se le recuerda una visita que no existe
     .is("client_reminder_sent_at", null)
     .is("client_confirmed_at", null) // quien ya confirmó su asistencia no necesita el recordatorio
     // Con cliente ligado, o reservada desde el sitio (sin cliente, pero con el teléfono que dejó).

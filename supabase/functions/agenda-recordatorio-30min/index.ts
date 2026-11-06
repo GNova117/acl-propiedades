@@ -45,6 +45,7 @@ Deno.serve(async (req) => {
     .select("id, titulo, hora, advisors(name, whatsapp), clients(name)")
     .eq("fecha", fecha)
     .neq("status", "cancelada") // citas canceladas por el cliente (ver book_visit / cancel_booking)
+    .neq("status", "solicitada") // solicitudes sin asesor: todavía no son de nadie (ver request_visit)
     .is("reminder_sent_at", null)
     .not("hora", "is", null)
     .gte("hora", windowStart)

@@ -201,8 +201,9 @@ ${lines.map((l) => `<p style="margin:0 0 14px;font-size:15px;color:#12161c;line-
 const stripLines = (lines) => lines.map((l) => l.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&"));
 
 /**
- * Arma el correo de un tipo: "confirmacion", "reprogramada", "cancelacion",
- * "recordatorio24h" o "recordatorio2h". Devuelve { subject, html, text, attachments }.
+ * Arma el correo de un tipo: "solicitud" (pidió una visita sin asesor), "confirmacion",
+ * "reprogramada", "cancelacion", "recordatorio24h" o "recordatorio2h".
+ * Devuelve { subject, html, text, attachments }.
  * Los datos que escribió el visitante (nombre) y los de la propiedad van escapados; el
  * motivo de una cancelación NO se incluye (el asesor puede haber escrito notas internas).
  */
@@ -225,6 +226,18 @@ export function buildVisitEmail(kind, cita, { siteUrl = DEFAULT_SITE_URL, now = 
   let spec;
   let attachments = [];
   switch (kind) {
+    case "solicitud":
+      // Solicitud sin asesor: todavía NO es una visita agendada (no lleva calendario ni "te atiende").
+      spec = {
+        subject: `Recibimos tu solicitud de visita — ${label}`,
+        preheader: `Pediste visitar el ${when}. Un asesor la tomará y te confirmará por correo.`,
+        heading: "¡Recibimos tu solicitud de visita!",
+        lines: ["Pediste visitar la propiedad en el horario de abajo. Ya está con todos nuestros asesores: el primero que pueda atenderte la toma y te confirma por correo. <strong>Todavía no está confirmada.</strong>"],
+        buttons: [{ href: manage, label: "Ver o cancelar mi solicitud", primary: true }, ...mapButton],
+        footnote: "Si cambias de opinión, puedes cancelarla desde el botón de arriba. Te escribiremos pronto.",
+      };
+      details[0] = ["Horario que pediste", esc(when)];
+      break;
     case "confirmacion":
       spec = {
         subject: `Tu visita está agendada — ${label}`,

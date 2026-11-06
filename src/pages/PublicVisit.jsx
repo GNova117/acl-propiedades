@@ -104,7 +104,7 @@ function RescheduleForm({ token, locale, onDone, onClose }) {
   );
 }
 
-function CancelForm({ token, onDone, onClose }) {
+function CancelForm({ token, onDone, onClose, isRequest = false }) {
   const { t } = useTranslation();
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
@@ -116,7 +116,7 @@ function CancelForm({ token, onDone, onClose }) {
     try {
       const result = await db.cancelVisitBooking(token, reason);
       if (result?.ok) {
-        onDone("cancelled");
+        onDone(isRequest ? "cancelledRequest" : "cancelled");
         return;
       }
       if (result?.error === "too_late" || result?.error === "not_active") {
@@ -134,7 +134,7 @@ function CancelForm({ token, onDone, onClose }) {
   return (
     <section className="card visit-page__panel" aria-labelledby="visit-page-cancel">
       <h2 id="visit-page-cancel">{t("visitPage.cancel.title")}</h2>
-      <p className="form-hint">{t("visitPage.cancel.body")}</p>
+      <p className="form-hint">{t(isRequest ? "visitPage.cancel.bodyRequest" : "visitPage.cancel.body")}</p>
       <div className="form-field">
         <label htmlFor="visit-cancel-reason">{t("visitPage.cancel.reasonLabel")}</label>
         <textarea id="visit-cancel-reason" rows={2} maxLength={300} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("visitPage.cancel.reasonPlaceholder")} />
@@ -228,6 +228,8 @@ export default function PublicVisit() {
 
   const status = state.status;
   const isConfirmed = status === "confirmada";
+  // Solicitud sin asesor: el cliente pidió un día y una hora y todavía nadie la toma. Solo puede cancelarla.
+  const isRequested = status === "solicitada";
   const isPast = isConfirmed && !data.can_cancel; // la hora ya pasó y aún nadie la cierra
   const changesLeft = data ? Math.max(0, MAX_RESCHEDULES - (data.reschedule_count || 0)) : 0;
 
@@ -273,7 +275,7 @@ export default function PublicVisit() {
             <section className="card visit-page__card">
               <p className={`visit-page__status visit-page__status--${status}`}>{t(`visitPage.status.${status}`)}</p>
               <p className={`visit-page__when${status === "cancelada" ? " visit-page__when--cancelled" : ""}`}>{when}</p>
-              {Number(data.duracion_min) > 0 && <p className="form-hint">{t("visitPage.duration", { count: Number(data.duracion_min) })}</p>}
+              {Number(data.duracion_min) > 0 && !isRequested && <p className="form-hint">{t("visitPage.duration", { count: Number(data.duracion_min) })}</p>}
 
               {property && (
                 <div className="visit-page__property">
@@ -342,13 +344,26 @@ export default function PublicVisit() {
               </section>
             )}
 
+            {isRequested && data.can_cancel && (
+              <section className="card visit-page__card visit-page__actions" aria-label={t("visitPage.actionsLabel")}>
+                {panel === null && (
+                  <div className="visit-page__buttons">
+                    <button type="button" className="btn btn-outline visit-page__cancel" onClick={() => { setNotice(null); setPanel("cancel"); }}>
+                      {t("visitPage.cancelVisit")}
+                    </button>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {isRequested && data.can_cancel && panel === "cancel" && <CancelForm token={token} isRequest onDone={handlePanelDone} onClose={() => setPanel(null)} />}
             {isConfirmed && !isPast && panel === "reschedule" && <RescheduleForm token={token} locale={locale} onDone={handlePanelDone} onClose={() => setPanel(null)} />}
             {isConfirmed && !isPast && panel === "cancel" && <CancelForm token={token} onDone={handlePanelDone} onClose={() => setPanel(null)} />}
 
             {(isPast || status !== "confirmada") && (
               <section className="card visit-page__card">
                 <p>{t(isPast ? "visitPage.pastNote" : `visitPage.statusNote.${status}`)}</p>
-                {property && (
+                {property && !isRequested && (
                   <Link className="btn btn-primary" to={`/propiedades/${property.id}`}>
                     {t("visitPage.bookAnother")}
                   </Link>

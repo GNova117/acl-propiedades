@@ -187,18 +187,28 @@ export function generateSlots({
   return slots;
 }
 
-// Une los horarios de varios asesores sin repetir (fecha, hora). Es lo que ve
-// el visitante: no sabe ni le importa con cuál asesor se va a agendar.
+// Une los horarios de varios asesores sin repetir (fecha, hora). Cuando los
+// horarios traen `advisors` ([{ id, name, photo_url }], quiénes están libres a
+// esa hora) se juntan los de todos los asesores que coinciden en ese horario.
 export function mergeSlots(listsOfSlots) {
-  const seen = new Set();
-  const merged = [];
+  const byKey = new Map();
   for (const slot of listsOfSlots.flat()) {
     const key = `${slot.fecha} ${slot.hora}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    merged.push(slot);
+    const known = byKey.get(key);
+    if (!known) {
+      byKey.set(key, slot.advisors ? { ...slot, advisors: [...slot.advisors] } : slot);
+    } else if (slot.advisors) {
+      known.advisors = [...(known.advisors || []), ...slot.advisors.filter((a) => !(known.advisors || []).some((k) => k.id === a.id))];
+    }
   }
-  return merged.sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+  return [...byKey.values()]
+    .map((slot) => (slot.advisors ? { ...slot, advisors: [...slot.advisors].sort((a, b) => String(a.name).localeCompare(String(b.name)) || String(a.id).localeCompare(String(b.id))) } : slot))
+    .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+}
+
+// Asesores libres a una hora concreta (nombre y foto), según los horarios de la ficha.
+export function advisorsForSlot(slots, fecha, hora) {
+  return slots.find((slot) => slot.fecha === fecha && slot.hora === hora)?.advisors || [];
 }
 
 // [{fecha, hora}] → [{ fecha, horas: ["10:00", …] }] para pintar día por día.
@@ -223,6 +233,19 @@ export function pickAdvisor(candidateIds, citas, date) {
 export function validateBookingInput(input = {}) {
   const errors = bookingFieldErrors(input);
   return errors.name || errors.email || errors.phone || errors.note || null;
+}
+
+// Solicitud de visita sin asesor: el visitante propone día y hora libremente. Mismas
+// reglas que request_visit() en SQL: con fecha y hora, al menos 1 h adelante y a no más de 90 días.
+export const REQUEST_MIN_NOTICE_HOURS = 1;
+export const REQUEST_MAX_DAYS = 90;
+
+export function requestSlotError(fecha, hora, now = new Date()) {
+  if (!fecha || !hora || !/^\d{4}-\d{2}-\d{2}$/.test(fecha) || !Number.isFinite(toMinutes(hora))) return "invalid_slot";
+  const nowMx = mexicoParts(now);
+  if (fecha > addDays(nowMx.date, REQUEST_MAX_DAYS)) return "invalid_slot";
+  if (wallMinutes(fecha, toMinutes(hora)) < wallMinutes(nowMx.date, nowMx.minutes) + REQUEST_MIN_NOTICE_HOURS * 60) return "invalid_slot";
+  return null;
 }
 
 // Igual que validateBookingInput pero con TODOS los campos inválidos a la vez
@@ -251,7 +274,7 @@ export function samePhone(a, b) {
 // ¿Cuántas citas futuras sigue teniendo activas este teléfono desde el sitio?
 export function activeBookingsForPhone(citas, phone, now = new Date()) {
   const today = mexicoParts(now).date;
-  return citas.filter((c) => c.source === "sitio" && isActive(c) && (c.status || "confirmada") === "confirmada" && c.fecha >= today && samePhone(c.contact_phone, phone)).length;
+  return citas.filter((c) => c.source === "sitio" && ["confirmada", "solicitada"].includes(c.status || "confirmada") && c.fecha >= today && samePhone(c.contact_phone, phone)).length;
 }
 
 /**
@@ -260,12 +283,15 @@ export function activeBookingsForPhone(citas, phone, now = new Date()) {
  * máximo 2 cambios; cancelar se puede hasta el momento de la cita.
  */
 export function bookingPermissions(cita, now = new Date()) {
-  if (!cita || (cita.status || "confirmada") !== "confirmada" || !cita.hora) {
+  const status = cita?.status || "confirmada";
+  if (!cita || !["confirmada", "solicitada"].includes(status) || !cita.hora) {
     return { canReschedule: false, canCancel: false, canConfirm: false };
   }
   const nowMx = mexicoParts(now);
   const minutesUntil = wallMinutes(cita.fecha, toMinutes(cita.hora)) - wallMinutes(nowMx.date, nowMx.minutes);
   const upcoming = minutesUntil > 0;
+  // Una solicitud sin asesor solo se puede cancelar: aún no hay horario que mover ni asistencia que confirmar.
+  if (status === "solicitada") return { canReschedule: false, canCancel: upcoming, canConfirm: false };
   return {
     canReschedule: minutesUntil >= MIN_HOURS_TO_RESCHEDULE * 60 && (Number(cita.reschedule_count) || 0) < MAX_RESCHEDULES,
     canCancel: upcoming,
@@ -350,4 +376,12 @@ export function buildBookingMessage({ title, code, fecha, hora, note }) {
   let message = `Visita agendada — ${label}.\nFecha: ${date} a las ${hhmm(hora)}`;
   if (String(note ?? "").trim()) message += `\nNota: ${String(note).trim()}`;
   return message;
+}
+
+// Texto de la solicitud de visita sin asesor en el inbox de Mensajes. Mismo texto que request_visit() en SQL.
+export function buildRequestMessage({ title, code, fecha, hora, note }) {
+  const label = code ? `${String(title).trim()} (${code})` : String(title).trim();
+  let message = `Solicitud de visita sin asesor — ${label}.\nFecha preferida: ${dmy(fecha)} a las ${hhmm(hora)}`;
+  if (String(note ?? "").trim()) message += `\nNota: ${String(note).trim()}`;
+  return `${message}\nEstá en la Agenda de todos hasta que un asesor la tome.`;
 }

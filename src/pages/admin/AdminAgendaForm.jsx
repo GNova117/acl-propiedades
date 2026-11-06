@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
+import { isOpenRequest } from "../../lib/agendaCitas";
 import { useAuth } from "../../context/AuthContext";
 import "./admin.css";
 
@@ -29,6 +30,8 @@ export default function AdminAgendaForm() {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  // Solicitud de visita sin asesor: no se edita hasta que alguien la toma (desde la Agenda o Mi día).
+  const [openRequest, setOpenRequest] = useState(false);
   // ¿La cita ya tenía lugar guardado? Solo entonces se manda vacío para borrarlo;
   // si nunca tuvo y sigue sin nada, el campo ni se envía (ver supabaseBackend).
   const hadLugar = useRef(false);
@@ -39,6 +42,7 @@ export default function AdminAgendaForm() {
         setAdvisors(advisorData);
         setClients(clientData);
         if (cita) {
+          setOpenRequest(isOpenRequest(cita));
           hadLugar.current = Boolean(cita.lugar);
           setForm({
             advisor_id: cita.advisor_id,
@@ -92,6 +96,22 @@ export default function AdminAgendaForm() {
   };
 
   if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+
+  if (openRequest) {
+    return (
+      <div>
+        <div className="admin-header">
+          <h1>{t("agenda.editAppointment")}</h1>
+        </div>
+        <div className="card">
+          <p>{t("agenda.requestFormNote")}</p>
+          <Link to="/admin/agenda" className="btn btn-outline">
+            {t("myDay.fullAgenda")}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

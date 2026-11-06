@@ -7,7 +7,7 @@
 // La tasa de asistencia se calcula solo sobre las CERRADAS (realizada + no asistió): lo próximo y lo
 // que está por cerrar todavía no dice nada, y contarlo como inasistencia la falsearía.
 
-import { citaDuration, citaStatus, isFromSite } from "./agendaCitas";
+import { citaDuration, citaStatus, isFromSite, isOpenRequest } from "./agendaCitas";
 
 const DAY_MS = 86400000;
 const round1 = (n) => Math.round(n * 10) / 10;
@@ -29,7 +29,11 @@ const emptyCounts = () => ({ booked: 0, attended: 0, noShow: 0, cancelled: 0 });
  */
 export function computeVisitBookingStats(citas, { periodDays = null, advisorId = null, now = new Date() } = {}) {
   const since = periodDays ? now.getTime() - periodDays * DAY_MS : null;
-  const rows = citas.filter((c) => isFromSite(c) && (!advisorId || c.advisor_id === advisorId) && (since == null || new Date(c.created_at).getTime() >= since));
+  const inPeriod = (c) => since == null || new Date(c.created_at).getTime() >= since;
+  // Una solicitud sin asesor (abierta, o cancelada sin que nadie la tomara) todavía no es una visita
+  // agendada: no entra a las cifras de asistencia. Las abiertas se cuentan aparte (`openRequests`).
+  const rows = citas.filter((c) => isFromSite(c) && c.advisor_id && (!advisorId || c.advisor_id === advisorId) && inPeriod(c));
+  const openRequests = advisorId ? 0 : citas.filter((c) => isFromSite(c) && isOpenRequest(c) && inPeriod(c)).length;
 
   const total = emptyCounts();
   const byAdvisor = new Map();
@@ -73,6 +77,7 @@ export function computeVisitBookingStats(citas, { periodDays = null, advisorId =
   const closed = total.attended + total.noShow;
   return {
     booked: total.booked,
+    openRequests,
     upcoming,
     toClose,
     attended: total.attended,

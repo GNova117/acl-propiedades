@@ -24,7 +24,7 @@ describe("supabase/agendar-visita.sql", () => {
   });
 
   it("contiene lo que hay que desplegar: funciones, triggers y el job de recordatorios", () => {
-    for (const name of ["get_visit_slots", "book_visit", "get_booking", "reschedule_booking", "cancel_booking", "confirm_booking_attendance", "get_booking_slots", "visit_promote_prospect", "notify_visit_email"]) {
+    for (const name of ["get_visit_slots", "book_visit", "get_booking", "reschedule_booking", "cancel_booking", "confirm_booking_attendance", "get_booking_slots", "visit_promote_prospect", "notify_visit_email", "request_visit", "claim_visit_request"]) {
       expect(standalone).toContain(`create or replace function ${name}(`);
     }
     for (const trigger of ["trg_notify_visit_email", "trg_agenda_citas_reset_reminders", "trg_agenda_citas_sync_prospect"]) expect(standalone).toContain(`create trigger ${trigger}`);

@@ -6,17 +6,22 @@
 // enlace de gestión). Las citas anteriores a "Agendar visita con horarios
 // reales" no tienen `status`: cuentan como confirmadas.
 
-export const CITA_STATUSES = ["confirmada", "realizada", "no_asistio", "cancelada"];
+export const CITA_STATUSES = ["confirmada", "realizada", "no_asistio", "cancelada", "solicitada"];
 
 export const citaStatus = (cita) => cita?.status || "confirmada";
 export const isCancelled = (cita) => citaStatus(cita) === "cancelada";
 export const isFromSite = (cita) => cita?.source === "sitio";
 
+// Solicitud de visita sin asesor: el cliente pidió un día y una hora y nadie la ha tomado todavía
+// (estatus "solicitada", sin asesor). Aparece en la Agenda de todos hasta que alguien la toma.
+export const isOpenRequest = (cita) => citaStatus(cita) === "solicitada" && !cita?.advisor_id;
+
 // Lo que sigue pendiente de atender (ni cancelada ni ya cerrada).
 export const isPending = (cita) => citaStatus(cita) === "confirmada";
 
 // Citas que cuentan para el día a día (pendientes de hoy, panel, Mi día).
-export const activeCitas = (citas) => citas.filter((c) => !isCancelled(c));
+// Una solicitud sin asesor todavía no es de nadie: no cuenta como cita del día.
+export const activeCitas = (citas) => citas.filter((c) => !isCancelled(c) && !isOpenRequest(c));
 
 export function citaDuration(cita, fallback = 60) {
   return Number(cita?.duracion_min) > 0 ? Number(cita.duracion_min) : fallback;
@@ -29,9 +34,22 @@ export function citaContact(cita, client = null) {
   return { name: cita?.contact_name || "", phone: cita?.contact_phone || "", email: cita?.contact_email || "" };
 }
 
+// Enlace con el que el cliente confirma, cambia o cancela su visita
+// (/visita/<token>). Solo las reservas del sitio lo tienen; las que se
+// capturan a mano en la Agenda no (devuelve ""). `origin` es el del sitio
+// público, que es el mismo desde el que se usa el panel.
+export function visitLink(cita, origin) {
+  if (!isFromSite(cita) || !/^[0-9a-f]{32}$/.test(cita?.booking_token || "")) return "";
+  return `${String(origin || "").replace(/\/+$/, "")}/visita/${cita.booking_token}`;
+}
+
 // Qué estatus se puede poner desde la Agenda a partir del actual.
+// Una solicitud sin asesor solo se cancela (para tomarla se usa "Tomar visita"); una cita cancelada
+// que nunca tuvo asesor tampoco se reactiva: quedaría confirmada sin nadie que la atienda.
 export function statusActions(cita) {
-  return isPending(cita) ? ["realizada", "no_asistio", "cancelada"] : ["confirmada"];
+  if (citaStatus(cita) === "solicitada") return ["cancelada"];
+  if (isPending(cita)) return ["realizada", "no_asistio", "cancelada"];
+  return cita?.advisor_id === null ? [] : ["confirmada"];
 }
 
 const dateISO = (date) => date.toLocaleDateString("en-CA");
@@ -64,6 +82,15 @@ export function visitsToConfirm(citas, now = new Date(), withinDays = 2) {
         (c.fecha > today || minutesOfDay(c.hora) > nowMin)
     )
     .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+}
+
+/**
+ * Solicitudes de visita sin asesor que siguen abiertas (de hoy en adelante), las más próximas primero.
+ * `Mi día` las muestra a todos los asesores con el botón "Tomar visita".
+ */
+export function openRequests(citas, now = new Date()) {
+  const today = dateISO(now);
+  return citas.filter((c) => isOpenRequest(c) && c.fecha >= today).sort((a, b) => (a.fecha + (a.hora || "")).localeCompare(b.fecha + (b.hora || "")));
 }
 
 // ── Cierre del ciclo (fase 6) ──

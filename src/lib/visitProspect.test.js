@@ -196,3 +196,10 @@ describe("closeLoopAfterVisit", () => {
     expect(db.updateProspect).not.toHaveBeenCalled();
   });
 });
+
+describe("solicitud sin asesor", () => {
+  it("el texto de las notas dice «Solicitó» y no «Agendó»", () => {
+    expect(bookingProspectNote({ label: "Casa (ACL-1)", fecha: "2026-11-10", hora: "16:00", requested: true })).toBe("Solicitó una visita a Casa (ACL-1) el 10/11/2026 a las 16:00");
+    expect(bookingProspectNote({ label: "Casa (ACL-1)", fecha: "2026-11-10", hora: "16:00" })).toMatch(/^Agendó una visita/);
+  });
+});
