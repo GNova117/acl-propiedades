@@ -108,6 +108,71 @@ test.describe("Agendar visita", () => {
 
   // Cierre del ciclo (fase 6): quien reserva ya es un prospecto; la visita que ya pasó se cierra
   // y se registra con los datos de la cita; las métricas cuentan la asistencia.
+  test("el asesor manda el enlace de la visita por WhatsApp o lo copia, sin depender del correo", async ({ page, go, press }) => {
+    await page.addInitScript((horario) => localStorage.setItem("acl_local_visit_schedules", JSON.stringify(horario)), HORARIO);
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"]).catch(() => {});
+
+    await go(PROPIEDAD);
+    const tarjeta = page.locator("#agendar-visita");
+    await press(tarjeta.getByRole("button", { name: "Agendar visita" }));
+    await expect(page.locator(".visit-slots__day").first()).toBeVisible();
+    await press(page.locator(".visit-slots__day").nth(3));
+    await press(page.locator(".visit-slots__time").first());
+    await page.fill("#booking-name", "Carla Enlace QA");
+    await page.fill("#booking-email", "carla.qa@correo.com");
+    await page.fill("#booking-phone", "871 222 3344");
+    await press(tarjeta.getByRole("button", { name: "Confirmar visita" }));
+    await expect(tarjeta.locator(".visit-booking__done")).toBeVisible();
+
+    // La visita es mañana: aparece en «Visitas por confirmar» de Mi día.
+    const token = await page.evaluate((fecha) => {
+      const citas = JSON.parse(localStorage.getItem("acl_local_agenda_citas"));
+      const cita = citas.find((c) => c.source === "sitio");
+      cita.fecha = fecha;
+      cita.hora = "17:00";
+      localStorage.setItem("acl_local_agenda_citas", JSON.stringify(citas));
+      return cita.booking_token;
+    }, isoDate(1));
+    await page.evaluate((email) => localStorage.setItem("acl_local_session", JSON.stringify({ user: { email } })), "admin@aclpropiedades.com");
+    const enlace = new URL(`/visita/${token}`, page.url()).href;
+
+    // ── Mi día: «Pedir confirmación» ya lleva el enlace ──
+    await go("/admin/mi-dia");
+    const porConfirmar = page.locator("section[aria-labelledby='my-day-confirm']");
+    await expect(porConfirmar).toContainText("Carla Enlace QA");
+    const pedir = porConfirmar.getByRole("link", { name: "Pedir confirmación" });
+    expect(decodeURIComponent(await pedir.getAttribute("href"))).toContain(enlace);
+    await press(porConfirmar.getByRole("button", { name: "Copiar enlace" }));
+    await expect(porConfirmar.getByRole("button", { name: "¡Enlace copiado!" })).toBeVisible();
+
+    // ── Agenda: «Enviar enlace» abre WhatsApp con el enlace en el mensaje ──
+    await go("/admin/agenda");
+    const fila = page.locator("tbody tr", { hasText: "Carla Enlace QA" });
+    await expect(fila.getByRole("button", { name: "Copiar enlace" })).toBeVisible();
+    await page.evaluate(() => {
+      window.__abiertas = [];
+      window.open = (url) => {
+        window.__abiertas.push(String(url));
+        return null;
+      };
+    });
+    await press(fila.getByRole("button", { name: "Enviar enlace" }));
+    const [abierta] = await page.evaluate(() => window.__abiertas);
+    const destino = new URL(abierta);
+    expect(destino.hostname).toBe("wa.me");
+    expect(destino.pathname).toBe("/528712223344");
+    expect(destino.searchParams.get("text")).toContain(enlace);
+
+    // Una cita capturada a mano en la Agenda no tiene enlace: no hay botones de enlace.
+    await page.evaluate(() => {
+      const citas = JSON.parse(localStorage.getItem("acl_local_agenda_citas"));
+      for (const c of citas) if (c.source === "sitio") c.source = "admin";
+      localStorage.setItem("acl_local_agenda_citas", JSON.stringify(citas));
+    });
+    await go("/admin/agenda");
+    await expect(page.locator("tbody tr", { hasText: "Carla Enlace QA" }).getByRole("button", { name: "Enviar enlace" })).toHaveCount(0);
+  });
+
   test("cierre del ciclo: prospecto al reservar, visita por cerrar, registrar con datos de la cita y métricas", async ({ page, go, press }) => {
     await page.addInitScript((horario) => localStorage.setItem("acl_local_visit_schedules", JSON.stringify(horario)), HORARIO);
 

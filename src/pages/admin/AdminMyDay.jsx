@@ -6,10 +6,11 @@ import { useAuth } from "../../context/AuthContext";
 import { whatsappDigits } from "../../lib/format";
 import { mapsUrl } from "../../lib/calendarEvent";
 import { buildDayPlan } from "../../lib/dayPlan";
-import { canRegisterVisit, citaContact, citaToVisitPrefill, isFromSite, isPending } from "../../lib/agendaCitas";
+import { canRegisterVisit, citaContact, citaToVisitPrefill, isFromSite, isPending, visitLink } from "../../lib/agendaCitas";
 import { contactFields, isOpenStage, unattendedAge } from "../../lib/prospects";
 import { prospectMessageTemplates } from "../../lib/prospectMessages";
 import QuickReplyButton from "../../components/QuickReplyButton";
+import CopyVisitLinkButton from "../../components/CopyVisitLinkButton";
 import ProspectContactForm from "../../components/ProspectContactForm";
 import MonthGoals from "../../components/MonthGoals";
 import "./admin.css";
@@ -229,7 +230,10 @@ export default function AdminMyDay() {
     const digits = whatsappDigits(contact.phone);
     const waPhone = digits.length === 10 ? `52${digits}` : digits;
     const when = `${dayLabel(cita.fecha)} ${t("myDay.confirm.at")} ${hm(cita.hora)}`;
-    const text = t("myDay.confirm.whatsappText", { name: contact.name.split(/\s+/)[0], title: cita.titulo, when, advisor: advisorName(cita.advisor_id) });
+    const link = visitLink(cita, window.location.origin);
+    const textParams = { name: contact.name.split(/\s+/)[0], title: cita.titulo, when, advisor: advisorName(cita.advisor_id) };
+    // Con el enlace de la visita el cliente confirma con un toque, sin depender del correo.
+    const text = link ? t("visitLink.whatsappText", { ...textParams, link }) : t("myDay.confirm.whatsappText", textParams);
     return (
       <li key={cita.id} className="card my-day__item my-day__item--prospect">
         <div className="my-day__body">
@@ -243,6 +247,7 @@ export default function AdminMyDay() {
                 {t("myDay.confirm.ask")}
               </a>
             )}
+            {link && <CopyVisitLinkButton link={link} />}
             {call && (
               <a className="btn btn-outline btn-sm" href={call}>
                 {t("myDay.call")}

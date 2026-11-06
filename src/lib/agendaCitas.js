@@ -29,6 +29,15 @@ export function citaContact(cita, client = null) {
   return { name: cita?.contact_name || "", phone: cita?.contact_phone || "", email: cita?.contact_email || "" };
 }
 
+// Enlace con el que el cliente confirma, cambia o cancela su visita
+// (/visita/<token>). Solo las reservas del sitio lo tienen; las que se
+// capturan a mano en la Agenda no (devuelve ""). `origin` es el del sitio
+// público, que es el mismo desde el que se usa el panel.
+export function visitLink(cita, origin) {
+  if (!isFromSite(cita) || !/^[0-9a-f]{32}$/.test(cita?.booking_token || "")) return "";
+  return `${String(origin || "").replace(/\/+$/, "")}/visita/${cita.booking_token}`;
+}
+
 // Qué estatus se puede poner desde la Agenda a partir del actual.
 export function statusActions(cita) {
   return isPending(cita) ? ["realizada", "no_asistio", "cancelada"] : ["confirmada"];

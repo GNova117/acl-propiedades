@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activeCitas, canRegisterVisit, citaContact, citaDuration, citaStatus, citaToVisitPrefill, isCancelled, isPending, statusActions, visitsToClose, visitsToConfirm } from "./agendaCitas";
+import { activeCitas, canRegisterVisit, citaContact, citaDuration, citaStatus, citaToVisitPrefill, isCancelled, isPending, statusActions, visitLink, visitsToClose, visitsToConfirm } from "./agendaCitas";
 
 // Hoy a las 12:00 (hora local), construido con partes para no depender de la zona horaria.
 const now = new Date();
@@ -115,5 +115,19 @@ describe("cierre del ciclo", () => {
       { ...visita, id: "futura", fecha: dayISO(3) },
     ];
     expect(visitsToClose(rows, now).map((c) => c.id)).toEqual(["hace5", "ayer"]);
+  });
+});
+
+describe("visitLink", () => {
+  const token = "0123456789abcdef0123456789abcdef";
+  it("arma el enlace /visita/<token> de una reserva del sitio", () => {
+    expect(visitLink({ source: "sitio", booking_token: token }, "https://acl.mx")).toBe(`https://acl.mx/visita/${token}`);
+    expect(visitLink({ source: "sitio", booking_token: token }, "https://acl.mx/")).toBe(`https://acl.mx/visita/${token}`);
+  });
+  it("no hay enlace en citas capturadas a mano ni con token inválido o ausente", () => {
+    expect(visitLink({ source: "admin", booking_token: token }, "https://acl.mx")).toBe("");
+    expect(visitLink({ source: "sitio" }, "https://acl.mx")).toBe("");
+    expect(visitLink({ source: "sitio", booking_token: "abc" }, "https://acl.mx")).toBe("");
+    expect(visitLink(null, "https://acl.mx")).toBe("");
   });
 });

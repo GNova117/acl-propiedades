@@ -5,8 +5,9 @@ import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
 import { whatsappDigits } from "../../lib/format";
 import { citaToIcs, downloadIcs, mapsUrl } from "../../lib/calendarEvent";
-import { canRegisterVisit, citaContact, citaStatus, citaToVisitPrefill, isFromSite, isPending, statusActions } from "../../lib/agendaCitas";
+import { canRegisterVisit, citaContact, citaStatus, citaToVisitPrefill, isFromSite, isPending, statusActions, visitLink } from "../../lib/agendaCitas";
 import { formatIsoDate } from "../../lib/propertyLog";
+import CopyVisitLinkButton from "../../components/CopyVisitLinkButton";
 import "./admin.css";
 import "./AdminAgenda.css";
 
@@ -106,6 +107,12 @@ export default function AdminAgenda() {
     const place = cita.lugar ? `\n${t("agenda.reminderPlace", { place: cita.lugar })}\n${mapsUrl(cita.lugar)}` : "";
     const text = t("agenda.reminderText", { name: contact.name.split(/\s+/)[0], title: cita.titulo, when: whenLabel(cita), advisor: advisorName(cita.advisor_id) }) + place;
     openWhatsApp(contact.phone, text);
+  };
+
+  // Manda por WhatsApp el enlace de la visita (confirmar, cambiar o cancelar) sin depender del correo del cliente.
+  const sendLink = (cita, link) => {
+    const contact = contactOf(cita);
+    openWhatsApp(contact.phone, t("visitLink.whatsappText", { name: contact.name.split(/\s+/)[0], title: cita.titulo, when: whenLabel(cita), advisor: advisorName(cita.advisor_id), link }));
   };
 
   // Cerrar una cita (realizada / no asistió), cancelarla o reactivarla. Al cancelar
@@ -265,6 +272,7 @@ export default function AdminAgenda() {
                   const status = citaStatus(cita);
                   const contact = contactOf(cita);
                   const property = propertyOf(cita.property_id);
+                  const link = status === "confirmada" ? visitLink(cita, window.location.origin) : "";
                   return (
                   <tr key={cita.id} className={status === "cancelada" ? "agenda-row--cancelled" : undefined}>
                     <td>
@@ -336,6 +344,12 @@ export default function AdminAgenda() {
                           {t("agenda.remindClient")}
                         </button>
                       )}
+                      {link && contact.phone && (
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => sendLink(cita, link)}>
+                          {t("visitLink.send")}
+                        </button>
+                      )}
+                      {link && <CopyVisitLinkButton link={link} />}
                       {status === "realizada" && canLogVisits && canRegisterVisit(cita) && !visitByCita.has(cita.id) && (
                         <button type="button" className="btn btn-outline btn-sm" onClick={() => registerVisit(cita)}>
                           {t("agenda.registerVisit")}

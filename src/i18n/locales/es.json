@@ -3267,6 +3267,13 @@
       "invalid_time_off": "Revisa los días de descanso: cada uno necesita fecha de inicio y de fin, y el fin no puede ser antes del inicio."
     }
   },
+  "visitLink": {
+    "copy": "Copiar enlace",
+    "copied": "¡Enlace copiado!",
+    "copyFallback": "Copia el enlace de la visita:",
+    "send": "Enviar enlace",
+    "whatsappText": "Hola {{name}}, soy {{advisor}} de ACL Propiedades. Tu visita ({{title}}) quedó para el {{when}}. En este enlace puedes confirmar que asistirás, cambiar el horario o cancelarla: {{link}}"
+  },
   "visitPage": {
     "pageTitle": "Tu visita",
     "invalidTitle": "Enlace no válido",

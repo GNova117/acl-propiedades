@@ -3267,6 +3267,13 @@
       "invalid_time_off": "Check your days off: each needs a start and end date, and the end can't be before the start."
     }
   },
+  "visitLink": {
+    "copy": "Copy link",
+    "copied": "Link copied!",
+    "copyFallback": "Copy the visit link:",
+    "send": "Send link",
+    "whatsappText": "Hi {{name}}, this is {{advisor}} from ACL Propiedades. Your visit ({{title}}) is set for {{when}}. Use this link to confirm you'll attend, change the time or cancel: {{link}}"
+  },
   "visitPage": {
     "pageTitle": "Your visit",
     "invalidTitle": "Invalid link",
