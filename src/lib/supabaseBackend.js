@@ -1114,6 +1114,30 @@ export const supabaseBackend = {
     if (error) throw error;
   },
 
+  // Estatus del trámite y documentos que se le piden al cliente en el
+  // portal (client_tramites, una fila por cliente). null si nunca se ha
+  // guardado: la pantalla usa entonces los valores por omisión.
+  async getClientTramite(clientId) {
+    const { data, error } = await supabase.from("client_tramites").select("*").eq("client_id", clientId).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async saveClientTramite(clientId, { stage, note, requestedDocs }) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = {
+      client_id: clientId,
+      stage,
+      note: note?.trim() ? note.trim() : null,
+      requested_docs: requestedDocs,
+      updated_by: sessionData?.session?.user?.email || null,
+      updated_at: new Date().toISOString(),
+    };
+    const { data, error } = await supabase.from("client_tramites").upsert(row, { onConflict: "client_id" }).select().single();
+    if (error) throw error;
+    return data;
+  },
+
   // Aprobar/rechazar un documento subido por el portal. clientId se pide
   // aparte (en vez de volver a consultar el documento) porque quien llama
   // ya lo tiene a la mano en la lista que está mostrando.

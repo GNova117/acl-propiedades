@@ -424,3 +424,58 @@
   padding: 0 0.4rem;
   font-weight: 600;
 }
+
+/* Portal del cliente: etapa del trámite y documentos que se le piden. */
+.admin-portal-tramite {
+  padding: 1.1rem;
+  margin-bottom: 1.25rem;
+}
+
+.admin-portal-tramite__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+}
+
+.admin-portal-tramite__header h2 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.admin-portal-tramite__docs {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  margin: 0.75rem 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: 0.35rem 1rem;
+}
+
+.admin-portal-tramite__docs legend {
+  font-weight: 600;
+  padding: 0 0.3rem;
+}
+
+.admin-portal-tramite__doc {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 400;
+  min-width: 0;
+}
+
+.admin-portal-tramite__doc span:first-of-type {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-portal-tramite__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}

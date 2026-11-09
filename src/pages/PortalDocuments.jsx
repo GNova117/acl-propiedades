@@ -6,16 +6,20 @@ import ThemeToggle from "../components/ThemeToggle";
 import LanguageToggle from "../components/LanguageToggle";
 import PortalPrivacyConsent from "../components/portal/PortalPrivacyConsent";
 import PortalDocumentCard from "../components/portal/PortalDocumentCard";
+import PortalChecklist from "../components/portal/PortalChecklist";
+import PortalTramiteStatus from "../components/portal/PortalTramiteStatus";
 import { db } from "../lib/dataStore";
 import { OFFICE_WHATSAPP } from "../lib/office";
-import { PORTAL_DOC_TYPES, PORTAL_OFFICIAL_URLS, PORTAL_CONSENT_VERSION, latestPortalDoc } from "../lib/clientPortal";
+import { PORTAL_OFFICIAL_LINKS, PORTAL_CONSENT_VERSION, checklistSummary, clientTodo, latestPortalDoc, portalChecklist, requestedDocsFor } from "../lib/clientPortal";
 import "./PortalDocuments.css";
 
 const CONSENT_KEY_PREFIX = "acl_portal_consent_";
 
-// Página pública /documentos/<token>: el cliente descarga él mismo su
-// Constancia de Situación Fiscal y su Acta de Nacimiento en los portales
-// oficiales (nunca en este sitio) y sube el PDF aquí. Sin login — el token
+// Página pública /documentos/<token>: el portal del cliente. Arriba ve en qué
+// etapa va su trámite y su lista de pendientes; abajo, una tarjeta por cada
+// documento que su asesor le pidió (constancia y acta las descarga él mismo
+// de los portales oficiales, nunca en este sitio; INE, recibos o escrituras
+// los sube en PDF o foto). Sin login — el token
 // del enlace (que solo genera el asesor desde /admin/clientes/:id/documentos)
 // es lo único que da acceso, igual patrón que /informe/<token> y /firmar/<token>.
 export default function PortalDocuments() {
@@ -64,10 +68,18 @@ export default function PortalDocuments() {
     setConsentDone(true);
   };
 
-  const documents = state.payload?.documents || [];
-  const allConfirmedAndValid = PORTAL_DOC_TYPES.every((docType) => {
-    const doc = latestPortalDoc(documents, docType);
-    return doc && doc.review_status !== "rechazado";
+  const payload = state.payload || {};
+  const documents = payload.documents || [];
+  const requestedDocs = requestedDocsFor(payload.tramite, payload.client_type);
+  const checklist = portalChecklist(requestedDocs, documents, payload.office_documents || []);
+  const summary = checklistSummary(checklist);
+  // Primero lo que le toca hacer (corregir, luego pendientes) y al final lo
+  // que ya mandó o entregó: así lo siguiente siempre está arriba.
+  const todo = clientTodo(checklist);
+  const orderedItems = [...todo, ...checklist.filter((i) => !todo.includes(i))];
+  const allSent = summary.total > 0 && summary.todo === 0;
+  const notifyText = t("portal.summary.whatsappText", {
+    docs: checklist.map((i) => t(`documentCapture.docTypes.${i.docType}`)).join(", "),
   });
 
   return (
@@ -112,29 +124,33 @@ export default function PortalDocuments() {
 
         {state.status === "activo" && consentDone && (
           <>
-            <h1>{state.payload.client_name ? t("portal.greeting", { name: state.payload.client_name }) : t("portal.greetingGeneric")}</h1>
+            <h1>{payload.client_name ? t("portal.greeting", { name: payload.client_name }) : t("portal.greetingGeneric")}</h1>
             <p className="portal-page__intro">{t("portal.intro")}</p>
 
+            <PortalTramiteStatus clientType={payload.client_type} financiamiento={payload.financiamiento} tramite={payload.tramite} />
+
+            <PortalChecklist items={checklist} />
+
+            <h2 className="portal-page__section-title">{t("portal.documentsTitle")}</h2>
             <div className="portal-page__cards">
-              {PORTAL_DOC_TYPES.map((docType) => (
+              {orderedItems.map((item) => (
                 <PortalDocumentCard
-                  key={docType}
+                  key={`${item.docType}-${item.doc?.id || item.doc?.captured_at || "none"}`}
                   token={token}
-                  docType={docType}
-                  officialUrl={PORTAL_OFFICIAL_URLS[docType]}
-                  doc={latestPortalDoc(documents, docType)}
-                  backupDoc={latestPortalDoc(documents, docType, "backup_image")}
+                  item={item}
+                  officialUrl={PORTAL_OFFICIAL_LINKS[item.docType]}
+                  backupDoc={latestPortalDoc(documents, item.docType, "backup_image")}
                   onChanged={load}
                 />
               ))}
             </div>
 
-            {allConfirmedAndValid && (
+            {allSent && (
               <div className="card portal-page__summary">
-                <p>{t("portal.summary.done")}</p>
+                <p>{summary.inReview > 0 ? t("portal.summary.done") : t("portal.summary.allApproved")}</p>
                 <a
                   className="btn btn-primary"
-                  href={`https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(t("portal.summary.whatsappText"))}`}
+                  href={`https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(notifyText)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

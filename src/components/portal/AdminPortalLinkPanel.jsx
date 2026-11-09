@@ -7,7 +7,9 @@ import { portalLinkPath } from "../../lib/clientPortal";
 // regenera el token de /documentos/<token> y lo comparte por WhatsApp — el
 // asesor es quien decide a quién se lo manda, el cliente nunca se
 // autoregistra (ver supabase/schema.sql, bloque "Portal de documentos").
-export default function AdminPortalLinkPanel({ clientId }) {
+// `requestedDocs` (opcional): los documentos que se le piden, para que el
+// mensaje de WhatsApp los nombre en vez de un texto genérico.
+export default function AdminPortalLinkPanel({ clientId, requestedDocs }) {
   const { t } = useTranslation();
   const [tokenRow, setTokenRow] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -78,7 +80,12 @@ export default function AdminPortalLinkPanel({ clientId }) {
           </button>
           <a
             className="btn btn-outline btn-sm"
-            href={`https://wa.me/?text=${encodeURIComponent(t("adminPortal.whatsappText", { url }))}`}
+            href={`https://wa.me/?text=${encodeURIComponent(
+              t("adminPortal.whatsappText", {
+                url,
+                docs: (requestedDocs || []).map((d) => t(`documentCapture.docTypes.${d}`)).join(", ") || t("adminPortal.yourDocuments"),
+              })
+            )}`}
             target="_blank"
             rel="noopener noreferrer"
           >

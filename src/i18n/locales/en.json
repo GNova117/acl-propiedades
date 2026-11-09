@@ -1113,7 +1113,7 @@
     "pageTitle": "Your documents",
     "greeting": "Hi, {{name}}",
     "greetingGeneric": "Hi",
-    "intro": "Download your Tax Status Certificate (Constancia de Situación Fiscal) and your Birth Certificate from the official government portals and upload them here as a PDF. We never ask for your SAT password — that password stays on the official site, never here.",
+    "intro": "Here you can see how your process is going and which documents are still missing. Download your Tax Status Certificate (Constancia de Situación Fiscal) and Birth Certificate yourself from the official government portals; your voter ID, utility bills or deeds can be uploaded as a PDF or a photo. We never ask for your SAT password or any government password.",
     "invalidTitle": "Invalid link",
     "invalidBody": "This link doesn't exist or is no longer available. Ask your advisor for a new one.",
     "revokedTitle": "Link disabled",
@@ -1148,9 +1148,63 @@
           "Come back here and upload it with the \"Upload PDF\" button."
         ],
         "officialUrlLabel": "Go to gob.mx/actas"
+      },
+      "ine": {
+        "steps": [
+          "Have your current voter ID (INE) at hand.",
+          "Take a photo of the front on a table, in good light and without glare; every field must be readable.",
+          "Upload it with the button below and then add the back with “Upload back side”. You can also upload a PDF with both sides."
+        ],
+        "backupLabel": "Upload back side"
+      },
+      "curp": {
+        "steps": [
+          "Go to gob.mx/curp (button below).",
+          "Enter your CURP or your details and download the PDF.",
+          "Come back here and upload it."
+        ],
+        "officialUrlLabel": "Go to gob.mx/curp"
+      },
+      "escrituras": {
+        "steps": [
+          "Scan or photograph the property deeds page by page, in good light.",
+          "If there are several pages, it's best to combine them into one PDF (a phone scanner app works).",
+          "Upload it here. If it's larger than 3 MB, ask your advisor for help on WhatsApp."
+        ]
+      },
+      "predial": {
+        "steps": [
+          "Find your latest property tax (predial) receipt.",
+          "Take a complete, clear photo (or upload the PDF if you paid online).",
+          "Upload it here."
+        ]
+      },
+      "agua": {
+        "steps": [
+          "Find your latest water bill.",
+          "Take a complete, clear photo (or upload the PDF of the digital bill).",
+          "Upload it here."
+        ]
+      },
+      "luz": {
+        "steps": [
+          "Find your latest electricity bill (CFE).",
+          "Take a complete, clear photo (or upload the PDF of the digital bill).",
+          "Upload it here."
+        ]
+      },
+      "cuenta_bancaria": {
+        "steps": [
+          "Download from your online banking the cover page of your bank statement (the page with your name and CLABE).",
+          "You can cover the transactions: we only need the account holder, the bank and the CLABE.",
+          "Upload it here."
+        ]
       }
     },
-    "guide": { "show": "Show instructions again", "hide": "Hide instructions" },
+    "guide": {
+      "show": "Show instructions again",
+      "hide": "Hide instructions"
+    },
     "fields": {
       "rfc": "RFC",
       "nombre": "Name / Company name",
@@ -1174,7 +1228,9 @@
       "replace": "Replace",
       "backupAdded": "Backup photo added ✓",
       "helpWhatsapp": "Ask for help on WhatsApp",
-      "helpWhatsappText": "Hi, I need help getting my {{doc}} for my transaction with ACL Propiedades."
+      "helpWhatsappText": "Hi, I need help getting my {{doc}} for my transaction with ACL Propiedades.",
+      "selectPdfOrPhoto": "Upload PDF or photo",
+      "sendNew": "Send a new one"
     },
     "status": {
       "pendiente": "Under review",
@@ -1195,9 +1251,68 @@
       "server_error": "Something went wrong. Please try again."
     },
     "summary": {
-      "done": "Done! You've uploaded both documents. Your advisor will review them.",
+      "done": "Done! You've sent all your documents. Your advisor will review them.",
       "notifyAdvisor": "Notify my advisor on WhatsApp",
-      "whatsappText": "Hi, I already uploaded my documents (Tax Certificate and Birth Certificate) to the portal."
+      "whatsappText": "Hi, I already uploaded my documents to the portal ({{docs}}).",
+      "allApproved": "Done! Your advisor has approved all your documents."
+    },
+    "documentsTitle": "Your documents",
+    "checklist": {
+      "title": "Your to-do list",
+      "progress": "{{done}} of {{total}} ready",
+      "todo_one": "You have {{count}} document left to send.",
+      "todo_other": "You have {{count}} documents left to send.",
+      "allSentInReview_one": "You've sent everything. Your advisor is reviewing {{count}} document.",
+      "allSentInReview_other": "You've sent everything. Your advisor is reviewing {{count}} documents.",
+      "allDone": "All set! Your advisor has reviewed all your documents.",
+      "receivedHint": "We already have it: you delivered it at the office.",
+      "states": {
+        "pendiente": "Missing",
+        "corregir": "Fix",
+        "en_revision": "In review",
+        "aprobado": "Approved",
+        "recibido": "Received"
+      }
+    },
+    "tramite": {
+      "title": "How is your process going?",
+      "stepOf": "Step {{step}} of {{total}}",
+      "noteFromAdvisor": "Message from your advisor",
+      "updatedAt": "Updated on {{date}}",
+      "stages": {
+        "documentos": {
+          "title": "Documents",
+          "body": "We're gathering your documents. Check your to-do list below."
+        },
+        "revision": {
+          "title": "Review",
+          "body": "Your advisor is reviewing your documents and your file."
+        },
+        "promocion": {
+          "title": "Marketing",
+          "body": "Your property is being advertised and shown to buyers."
+        },
+        "oferta": {
+          "title": "Offer",
+          "body": "There's an offer on your property and we're negotiating the terms."
+        },
+        "avaluo": {
+          "title": "Appraisal",
+          "body": "The appraisal required by the loan is being done."
+        },
+        "credito": {
+          "title": "Loan approval",
+          "body": "Your loan is being processed by the lender; we'll let you know as soon as it's approved."
+        },
+        "firma": {
+          "title": "Signing",
+          "body": "We're preparing the signing of the deed. Your advisor will confirm the date and notary."
+        },
+        "entrega": {
+          "title": "Handover",
+          "body": "Last step! Key handover and closing."
+        }
+      }
     }
   },
   "adminPortal": {
@@ -1208,7 +1323,7 @@
     "copied": "Copied!",
     "copyPrompt": "Copy this link:",
     "shareWhatsapp": "Share on WhatsApp",
-    "whatsappText": "Hi, to continue your process we need you to upload your Tax Status Certificate and your Birth Certificate through this link: {{url}}",
+    "whatsappText": "Hi, to continue your process we need these documents: {{docs}}. You can upload them and see how your process is going through this link: {{url}}",
     "linkReady": "Link valid until {{date}}.",
     "expired": "The link expired — generate a new one.",
     "revoked": "The link is disabled.",
@@ -1223,7 +1338,22 @@
     "reject": "Reject",
     "reasonRequired": "Write the reason before rejecting.",
     "rejectedReason": "Rejection reason: {{reason}}",
-    "backupImage": "Backup photo (no automatic review)."
+    "backupImage": "Backup photo (no automatic review).",
+    "yourDocuments": "your documents",
+    "manualReview": "No automatic reading: review it and approve or reject it.",
+    "tramite": {
+      "title": "Client portal: process and to-dos",
+      "hint": "What the client sees in their documents link: the stage of their process, your note and the documents you request.",
+      "stage": "Process stage",
+      "note": "Note for the client (optional)",
+      "notePlaceholder": "E.g.: The appraisal is set for Thursday at 10.",
+      "requestedDocs": "Documents you request",
+      "save": "Save",
+      "saved": "Saved. The client can see it in their portal.",
+      "saveError": "Could not save.",
+      "needOneDoc": "Select at least one document.",
+      "lastUpdate": "Last update: {{date}}"
+    }
   },
   "expedienteAvaluo": {
     "title": "Appraisal file",

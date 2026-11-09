@@ -1113,7 +1113,7 @@
     "pageTitle": "Tus documentos",
     "greeting": "Hola, {{name}}",
     "greetingGeneric": "Hola",
-    "intro": "Descarga tu Constancia de Situación Fiscal y tu Acta de Nacimiento desde los portales oficiales del gobierno y súbelas aquí en PDF. Nunca te pedimos tu contraseña del SAT ni de ningún trámite de gobierno — esa contraseña se queda siempre en el sitio oficial, nunca aquí.",
+    "intro": "Aquí ves en qué va tu trámite y qué documentos te faltan. La Constancia de Situación Fiscal y el Acta de Nacimiento descárgalas tú mismo de los portales oficiales del gobierno; la INE, los recibos o las escrituras puedes subirlos en PDF o como foto. Nunca te pedimos tu contraseña del SAT ni de ningún trámite de gobierno.",
     "invalidTitle": "Enlace no válido",
     "invalidBody": "Este enlace no existe o ya no está disponible. Pide a tu asesor que te comparta uno nuevo.",
     "revokedTitle": "Enlace desactivado",
@@ -1148,9 +1148,63 @@
           "Regresa aquí y súbela con el botón \"Subir PDF\"."
         ],
         "officialUrlLabel": "Ir a gob.mx/actas"
+      },
+      "ine": {
+        "steps": [
+          "Ten a la mano tu credencial para votar vigente.",
+          "Toma una foto del frente sobre una mesa, con buena luz y sin reflejos; que se lean todos los datos.",
+          "Súbela con el botón de abajo y después agrega el reverso con «Subir reverso». También puedes subir un PDF con los dos lados."
+        ],
+        "backupLabel": "Subir reverso"
+      },
+      "curp": {
+        "steps": [
+          "Entra a gob.mx/curp (botón de abajo).",
+          "Escribe tu CURP o tus datos y descarga el PDF.",
+          "Regresa aquí y súbelo."
+        ],
+        "officialUrlLabel": "Ir a gob.mx/curp"
+      },
+      "escrituras": {
+        "steps": [
+          "Escanea o fotografía las escrituras de la propiedad, hoja por hoja, con buena luz.",
+          "Si son varias hojas, lo mejor es juntarlas en un solo PDF (puedes usar una app de escáner del celular).",
+          "Súbelo aquí. Si pesa más de 3 MB, pide ayuda a tu asesor por WhatsApp."
+        ]
+      },
+      "predial": {
+        "steps": [
+          "Busca tu último recibo de pago del predial.",
+          "Tómale una foto completa y clara (o sube el PDF si lo pagaste en línea).",
+          "Súbelo aquí."
+        ]
+      },
+      "agua": {
+        "steps": [
+          "Busca tu último recibo del agua.",
+          "Tómale una foto completa y clara (o sube el PDF del recibo digital).",
+          "Súbelo aquí."
+        ]
+      },
+      "luz": {
+        "steps": [
+          "Busca tu último recibo de luz (CFE).",
+          "Tómale una foto completa y clara (o sube el PDF del recibo digital).",
+          "Súbelo aquí."
+        ]
+      },
+      "cuenta_bancaria": {
+        "steps": [
+          "Descarga de tu banca en línea la carátula de tu estado de cuenta (la hoja con tu nombre y la CLABE).",
+          "Puedes tapar los movimientos: solo necesitamos el nombre del titular, el banco y la CLABE.",
+          "Súbela aquí."
+        ]
       }
     },
-    "guide": { "show": "Ver instrucciones de nuevo", "hide": "Ocultar instrucciones" },
+    "guide": {
+      "show": "Ver instrucciones de nuevo",
+      "hide": "Ocultar instrucciones"
+    },
     "fields": {
       "rfc": "RFC",
       "nombre": "Nombre / Razón social",
@@ -1174,7 +1228,9 @@
       "replace": "Reemplazar",
       "backupAdded": "Foto de respaldo agregada ✓",
       "helpWhatsapp": "Pedir ayuda por WhatsApp",
-      "helpWhatsappText": "Hola, necesito ayuda para obtener mi {{doc}} para mi trámite con ACL Propiedades."
+      "helpWhatsappText": "Hola, necesito ayuda para obtener mi {{doc}} para mi trámite con ACL Propiedades.",
+      "selectPdfOrPhoto": "Subir PDF o foto",
+      "sendNew": "Enviar uno nuevo"
     },
     "status": {
       "pendiente": "En revisión",
@@ -1195,9 +1251,68 @@
       "server_error": "Ocurrió un problema. Intenta de nuevo."
     },
     "summary": {
-      "done": "¡Listo! Ya subiste tus dos documentos. Tu asesor los revisará.",
+      "done": "¡Listo! Ya enviaste todos tus documentos. Tu asesor los revisará.",
       "notifyAdvisor": "Avisar a mi asesor por WhatsApp",
-      "whatsappText": "Hola, ya subí mis documentos (Constancia Fiscal y Acta de Nacimiento) al portal."
+      "whatsappText": "Hola, ya subí mis documentos al portal ({{docs}}).",
+      "allApproved": "¡Listo! Tu asesor ya aprobó todos tus documentos."
+    },
+    "documentsTitle": "Tus documentos",
+    "checklist": {
+      "title": "Tus pendientes",
+      "progress": "{{done}} de {{total}} listos",
+      "todo_one": "Te falta {{count}} documento por enviar.",
+      "todo_other": "Te faltan {{count}} documentos por enviar.",
+      "allSentInReview_one": "Ya enviaste todo. Tu asesor está revisando {{count}} documento.",
+      "allSentInReview_other": "Ya enviaste todo. Tu asesor está revisando {{count}} documentos.",
+      "allDone": "¡Todo listo! Tu asesor ya revisó todos tus documentos.",
+      "receivedHint": "Ya lo tenemos: lo entregaste en la oficina.",
+      "states": {
+        "pendiente": "Falta",
+        "corregir": "Corregir",
+        "en_revision": "En revisión",
+        "aprobado": "Aprobado",
+        "recibido": "Recibido"
+      }
+    },
+    "tramite": {
+      "title": "¿En qué va tu trámite?",
+      "stepOf": "Paso {{step}} de {{total}}",
+      "noteFromAdvisor": "Mensaje de tu asesor",
+      "updatedAt": "Actualizado el {{date}}",
+      "stages": {
+        "documentos": {
+          "title": "Documentos",
+          "body": "Estamos reuniendo tus documentos. Revisa tus pendientes abajo."
+        },
+        "revision": {
+          "title": "Revisión",
+          "body": "Tu asesor está revisando tus documentos y tu expediente."
+        },
+        "promocion": {
+          "title": "Promoción",
+          "body": "Tu propiedad ya se está anunciando y mostrando a compradores."
+        },
+        "oferta": {
+          "title": "Oferta",
+          "body": "Hay una oferta por tu propiedad y estamos negociando las condiciones."
+        },
+        "avaluo": {
+          "title": "Avalúo",
+          "body": "Se está haciendo el avalúo de la propiedad que pide el crédito."
+        },
+        "credito": {
+          "title": "Autorización del crédito",
+          "body": "Tu crédito está en trámite con la institución; te avisamos en cuanto lo autoricen."
+        },
+        "firma": {
+          "title": "Firma",
+          "body": "Estamos preparando la firma de escrituras. Tu asesor te confirmará el día y la notaría."
+        },
+        "entrega": {
+          "title": "Entrega",
+          "body": "¡Último paso! Entrega de llaves y cierre del trámite."
+        }
+      }
     }
   },
   "adminPortal": {
@@ -1208,7 +1323,7 @@
     "copied": "¡Copiado!",
     "copyPrompt": "Copia este enlace:",
     "shareWhatsapp": "Compartir por WhatsApp",
-    "whatsappText": "Hola, para continuar tu trámite necesitamos que subas tu Constancia de Situación Fiscal y tu Acta de Nacimiento desde este enlace: {{url}}",
+    "whatsappText": "Hola, para continuar tu trámite necesitamos estos documentos: {{docs}}. Puedes subirlos y ver en qué va tu trámite desde este enlace: {{url}}",
     "linkReady": "Enlace vigente hasta el {{date}}.",
     "expired": "El enlace venció — genera uno nuevo.",
     "revoked": "El enlace está desactivado.",
@@ -1223,7 +1338,22 @@
     "reject": "Rechazar",
     "reasonRequired": "Escribe el motivo antes de rechazar.",
     "rejectedReason": "Motivo del rechazo: {{reason}}",
-    "backupImage": "Foto de respaldo (sin revisión automática)."
+    "backupImage": "Foto de respaldo (sin revisión automática).",
+    "yourDocuments": "tus documentos",
+    "manualReview": "Sin lectura automática: revísalo y apruébalo o recházalo.",
+    "tramite": {
+      "title": "Portal del cliente: trámite y pendientes",
+      "hint": "Lo que el cliente ve en su enlace de documentos: la etapa de su trámite, tu nota y los documentos que le pides.",
+      "stage": "Etapa del trámite",
+      "note": "Nota para el cliente (opcional)",
+      "notePlaceholder": "Ej.: El avalúo quedó para el jueves a las 10.",
+      "requestedDocs": "Documentos que le pides",
+      "save": "Guardar",
+      "saved": "Guardado. El cliente ya lo ve en su portal.",
+      "saveError": "No se pudo guardar.",
+      "needOneDoc": "Marca al menos un documento.",
+      "lastUpdate": "Última actualización: {{date}}"
+    }
   },
   "expedienteAvaluo": {
     "title": "Expediente para avalúos",
