@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { prospectMessageTemplates, sendLink, suggestPropertyMessage } from "./prospectMessages";
+import { STAGE_TEMPLATE_KEYS, prospectMessageTemplates, sendLink, suggestPropertyMessage } from "./prospectMessages";
 
 const keys = (templates) => templates.map((t) => t.key);
 const text = (templates, key) => templates.find((t) => t.key === key).text;
@@ -39,6 +39,56 @@ describe("prospectMessageTemplates", () => {
   it("el primer contacto se presenta con el nombre del asesor si se conoce", () => {
     expect(text(prospectMessageTemplates({ name: "Ana" }, { advisorName: "Luis Pérez" }), "firstContact")).toContain("soy Luis Pérez de ACL Propiedades");
     expect(text(prospectMessageTemplates({ name: "Ana" }), "firstContact")).toContain("te escribo de ACL Propiedades");
+  });
+});
+
+describe("plantillas por etapa del prospecto", () => {
+  const options = { propertyTitle: "Casa en Lerdo", propertyUrl: "https://acl.mx/propiedades/42", advisorName: "Luis" };
+  const recommended = (templates) => templates.filter((t) => t.recommended).map((t) => t.key);
+
+  it("cada etapa sugiere primero sus plantillas, en el orden definido", () => {
+    for (const [stage, expected] of Object.entries(STAGE_TEMPLATE_KEYS)) {
+      const templates = prospectMessageTemplates({ name: "Ana", stage }, options);
+      expect(recommended(templates), stage).toEqual(expected);
+      expect(keys(templates).slice(0, expected.length), stage).toEqual(expected);
+    }
+  });
+
+  it("en una etapa abierta, después de las sugeridas van las generales sin repetir", () => {
+    const templates = prospectMessageTemplates({ name: "Ana", stage: "interesado" }, options);
+    expect(new Set(keys(templates)).size).toBe(templates.length);
+    expect(templates.filter((t) => t.recommended === false).map((t) => t.key)).toEqual(["firstContact", "checkIn", "scheduleVisit"]);
+  });
+
+  it("a un prospecto cerrado o perdido no le ofrece «primer contacto» ni las generales", () => {
+    for (const stage of ["cerrado", "perdido"]) {
+      const templates = prospectMessageTemplates({ name: "Ana", stage }, options);
+      expect(keys(templates)).not.toContain("firstContact");
+      expect(templates.every((t) => t.recommended)).toBe(true);
+    }
+  });
+
+  it("sin enlace de la propiedad no sugiere enviarla, aunque la etapa la incluya", () => {
+    const templates = prospectMessageTemplates({ name: "Ana", stage: "nuevo" }, { propertyTitle: "Casa en Lerdo" });
+    expect(keys(templates)).not.toContain("sendProperty");
+    expect(recommended(templates)).toEqual(["firstContact", "scheduleVisit"]);
+  });
+
+  it("todas las plantillas de etapa saludan por el primer nombre y no dejan huecos", () => {
+    for (const stage of Object.keys(STAGE_TEMPLATE_KEYS)) {
+      for (const withProperty of [options, {}]) {
+        for (const t of prospectMessageTemplates({ name: "María Fernanda", stage }, withProperty)) {
+          expect(t.text.startsWith("Hola María,"), `${stage}/${t.key}`).toBe(true);
+          expect(t.text, `${stage}/${t.key}`).not.toMatch(/undefined|null|\s,|\s{2}/);
+        }
+      }
+    }
+  });
+
+  it("las de negociación mencionan la propiedad cuando la hay", () => {
+    const templates = prospectMessageTemplates({ name: "Ana", stage: "negociacion" }, options);
+    expect(text(templates, "offerFollowUp")).toContain("Casa en Lerdo");
+    expect(text(templates, "requestDocuments")).toContain("Casa en Lerdo");
   });
 });
 

@@ -13,12 +13,18 @@
 // y nunca pide ni toca credenciales del SAT/gob.mx — el cliente ya descargó
 // el PDF él mismo antes de llegar aquí.
 import { createClient } from "@supabase/supabase-js";
-import { isAllowedDocumentFile, isAllowedBackupImageFile, detectFileType } from "../server/documentValidation/fileSignature.js";
+import { isAllowedDocumentFile, isAllowedBackupImageFile, detectFileType, hasSuspiciousPdfObjects } from "../server/documentValidation/fileSignature.js";
 import { DocumentValidationError } from "../server/documentValidation/index.js";
 import { getDocumentProvider } from "../server/documentProviders/index.js";
 
 const TOKEN_PATTERN = /^[0-9a-f]{32}$/;
-const DOC_TYPES = new Set(["cedula_fiscal", "acta_nacimiento"]);
+// Mismas listas que PORTAL_UPLOADABLE_DOC_TYPES / PORTAL_EXTRACTED_DOC_TYPES
+// en src/lib/clientPortal.js (y el check de client_tramites.requested_docs
+// en schema.sql). Solo los "extraídos" pasan por la lectura automática de
+// texto + QR y exigen el PDF oficial; los demás (INE, recibos, escrituras)
+// se aceptan también como foto y quedan "pendiente" para revisión humana.
+const DOC_TYPES = new Set(["ine", "curp", "acta_nacimiento", "cedula_fiscal", "escrituras", "predial", "agua", "luz", "cuenta_bancaria"]);
+const EXTRACTED_DOC_TYPES = new Set(["cedula_fiscal", "acta_nacimiento"]);
 const FILE_KINDS = new Set(["document", "backup_image"]);
 
 // Topes deliberadamente bajos: una Constancia de Situación Fiscal o un acta
@@ -140,9 +146,19 @@ export default async function handler(req, res) {
   await supabase.from("portal_upload_attempts").insert({ token_id: tokenRow.id });
 
   const detectedType = detectFileType(buffer);
-  const validType = fileKind === "backup_image" ? isAllowedBackupImageFile(buffer) : isAllowedDocumentFile(buffer);
+  const extracted = EXTRACTED_DOC_TYPES.has(docType);
+  const validType =
+    fileKind === "backup_image"
+      ? isAllowedBackupImageFile(buffer)
+      : isAllowedDocumentFile(buffer) || (!extracted && isAllowedBackupImageFile(buffer));
   if (!validType) {
     res.status(422).json({ error: "invalid_file_type", detected: detectedType });
+    return;
+  }
+  // Los extraídos revisan esto dentro del validador; para el resto se hace
+  // aquí, antes de guardar nada.
+  if (!extracted && detectedType === "pdf" && hasSuspiciousPdfObjects(buffer)) {
+    res.status(422).json({ error: "suspicious_pdf" });
     return;
   }
 
@@ -162,7 +178,7 @@ export default async function handler(req, res) {
   let qrValidated = null;
   let reviewStatus = "pendiente";
 
-  if (fileKind === "document") {
+  if (fileKind === "document" && extracted) {
     try {
       const provider = await getDocumentProvider();
       const maxAgeMonths = Number(process.env.CSF_MAX_AGE_MONTHS) || 3;

@@ -10,6 +10,8 @@ import ExpedienteAvaluoModal from "../../components/ExpedienteAvaluoModal";
 import ClientValuations from "../../components/ClientValuations";
 import AdminPortalLinkPanel from "../../components/portal/AdminPortalLinkPanel";
 import AdminPortalDocumentReview from "../../components/portal/AdminPortalDocumentReview";
+import AdminPortalTramitePanel from "../../components/portal/AdminPortalTramitePanel";
+import { requestedDocsFor } from "../../lib/clientPortal";
 import "./admin.css";
 
 // Tope de Supabase Storage para el bucket client-documents: arriba de esto
@@ -35,6 +37,7 @@ export default function AdminClientDocuments() {
   const [uploadErrorDetail, setUploadErrorDetail] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
+  const [tramite, setTramite] = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -46,6 +49,10 @@ export default function AdminClientDocuments() {
   };
 
   useEffect(load, [id]);
+
+  useEffect(() => {
+    db.getClientTramite(id).then(setTramite).catch(() => setTramite(null));
+  }, [id]);
 
   // El cliente vinculado (expediente conjunto) solo se usa para
   // preseleccionarlo al armar el expediente para avalúos.
@@ -128,6 +135,12 @@ export default function AdminClientDocuments() {
     });
   }, [documents, monthFilter, yearFilter]);
 
+  // Los del tipo de cliente y, además, cualquier otro que haya llegado (p. ej.
+  // el asesor le pidió por el portal un estado de cuenta a un comprador): si
+  // no, lo que subió el cliente no aparecería aquí para revisarlo.
+  const baseDocTypes = docTypesForClientType(client?.type);
+  const gridDocTypes = [...baseDocTypes, ...[...new Set(documents.map((d) => d.doc_type))].filter((d) => !baseDocTypes.includes(d))];
+
   if (loading) return <div className="empty-state">{t("common.loading")}</div>;
 
   return (
@@ -147,7 +160,8 @@ export default function AdminClientDocuments() {
         </div>
       </div>
 
-      <AdminPortalLinkPanel clientId={id} />
+      <AdminPortalLinkPanel clientId={id} requestedDocs={client ? requestedDocsFor(tramite, client.type) : []} />
+      {client && <AdminPortalTramitePanel key={client.id} client={client} documents={documents} onSaved={setTramite} />}
 
       <div className="form-row" style={{ maxWidth: 480, marginBottom: "1.25rem" }}>
         <div className="form-field">
@@ -173,7 +187,7 @@ export default function AdminClientDocuments() {
       <ClientValuations clientId={id} />
 
       <div className="admin-doc-grid">
-        {docTypesForClientType(client?.type).map((docType) => {
+        {gridDocTypes.map((docType) => {
           const docsOfType = filteredDocuments.filter((d) => d.doc_type === docType);
           return (
             <div className="card admin-doc-card" key={docType}>

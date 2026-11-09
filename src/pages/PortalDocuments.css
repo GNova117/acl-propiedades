@@ -148,3 +148,168 @@
   background: var(--color-border);
   color: var(--color-text-muted);
 }
+
+/* ── Estatus del trámite y lista de pendientes ── */
+.portal-page__section-title {
+  font-size: 1.15rem;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.portal-tramite,
+.portal-checklist {
+  padding: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.portal-tramite__header,
+.portal-checklist__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.portal-tramite__header h2,
+.portal-checklist__header h2 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Pasos en columna: en un teléfono de 320 px seis etiquetas en fila no caben. */
+.portal-tramite__steps {
+  list-style: none;
+  margin: 0 0 0.9rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.portal-tramite__step {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  color: var(--color-text-muted);
+  position: relative;
+  padding: 0.2rem 0;
+}
+
+.portal-tramite__dot {
+  flex: none;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--color-bg);
+}
+
+.portal-tramite__label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.portal-tramite__step--hecha {
+  color: var(--color-text);
+}
+
+.portal-tramite__step--hecha .portal-tramite__dot {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: #fff;
+}
+
+.portal-tramite__step--actual {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.portal-tramite__step--actual .portal-tramite__dot {
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 4px var(--color-primary);
+}
+
+.portal-tramite__current {
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.75rem;
+}
+
+.portal-tramite__current p {
+  margin: 0.25rem 0 0.5rem;
+}
+
+.portal-tramite__note {
+  margin: 0.5rem 0;
+  padding: 0.6rem 0.8rem;
+  border-left: 3px solid var(--color-primary);
+  background: var(--color-bg-alt);
+  border-radius: 0 6px 6px 0;
+}
+
+.portal-tramite__note p {
+  margin: 0.15rem 0 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.portal-checklist__count {
+  font-weight: 700;
+}
+
+.portal-checklist__bar {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.portal-checklist__bar span {
+  display: block;
+  height: 100%;
+  background: var(--color-success);
+  transition: width 0.3s ease;
+}
+
+.portal-checklist__summary {
+  margin: 0.5rem 0 0.25rem;
+}
+
+.portal-checklist__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.portal-checklist__list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.portal-checklist__list li:last-child {
+  border-bottom: 0;
+}
+
+.portal-checklist__list a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.portal-doc-card--aprobado,
+.portal-doc-card--recibido {
+  opacity: 0.92;
+}
+
+.portal-doc-card--corregir {
+  border-color: var(--color-danger);
+}

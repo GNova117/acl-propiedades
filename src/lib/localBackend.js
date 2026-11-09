@@ -1,6 +1,6 @@
 import { ZONES, ADVISORS, PROPERTIES, VENTAS_SEED, VISITS_SEED, PROPERTY_TYPES_SEED, AMENITIES_SEED, DEMO_ADMIN, ADMIN_ROLES_SEED, ADMIN_ACCESS_SEED } from "./seedData";
 import { generateReportToken, REPORT_TOKEN_PATTERN } from "./visitReport";
-import { generatePortalToken, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS } from "./clientPortal";
+import { generatePortalToken, isExtractedDocType, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS } from "./clientPortal";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "./perfilamientoComprador";
 import { slugify, numOrNull } from "./format";
@@ -90,6 +90,7 @@ const KEYS = {
   siteUpdates: "acl_local_site_updates",
   blogPosts: "acl_local_blog_posts",
   clientPortalTokens: "acl_local_client_portal_tokens",
+  clientTramites: "acl_local_client_tramites",
   documentAccessLog: "acl_local_document_access_log",
   privacyConsents: "acl_local_privacy_consents",
   documentTemplates: "acl_local_document_templates",
@@ -1044,6 +1045,7 @@ export const localBackend = {
     const docs = readStore(KEYS.clientDocuments, []);
     writeStore(KEYS.clientDocuments, docs.filter((d) => d.client_id !== id));
     writeStore(KEYS.clientPortalTokens, readStore(KEYS.clientPortalTokens, []).filter((t) => t.client_id !== id));
+    writeStore(KEYS.clientTramites, readStore(KEYS.clientTramites, []).filter((t) => t.client_id !== id));
   },
 
   async getClientDocuments(clientId) {
@@ -1151,6 +1153,23 @@ export const localBackend = {
     );
   },
 
+  async getClientTramite(clientId) {
+    return readStore(KEYS.clientTramites, []).find((t) => t.client_id === clientId) || null;
+  },
+
+  async saveClientTramite(clientId, { stage, note, requestedDocs }) {
+    const record = {
+      client_id: clientId,
+      stage,
+      note: note?.trim() ? note.trim() : null,
+      requested_docs: requestedDocs,
+      updated_by: DEMO_ADMIN.email,
+      updated_at: new Date().toISOString(),
+    };
+    writeStore(KEYS.clientTramites, [...readStore(KEYS.clientTramites, []).filter((t) => t.client_id !== clientId), record]);
+    return record;
+  },
+
   async reviewClientDocument(documentId, clientId, { reviewStatus, reviewNotes }) {
     const docs = readStore(KEYS.clientDocuments, []);
     writeStore(
@@ -1184,10 +1203,23 @@ export const localBackend = {
     if (!t.active) return { status: "desactivado" };
     if (new Date(t.expires_at).getTime() < Date.now()) return { status: "expirado" };
     const client = await this.getClientById(t.client_id);
-    const docs = readStore(KEYS.clientDocuments, [])
-      .filter((d) => d.client_id === t.client_id && d.source === "client_portal")
+    const allDocs = readStore(KEYS.clientDocuments, [])
+      .filter((d) => d.client_id === t.client_id)
       .sort((a, b) => new Date(b.captured_at) - new Date(a.captured_at));
-    return { status: "activo", client_name: (client?.name || "").split(" ")[0], documents: docs };
+    const tramite = readStore(KEYS.clientTramites, []).find((x) => x.client_id === t.client_id) || null;
+    // Misma forma que portal_token_status() en schema.sql: de lo capturado
+    // en la oficina solo va el tipo y la fecha.
+    return {
+      status: "activo",
+      client_name: (client?.name || "").split(" ")[0],
+      client_type: client?.type || null,
+      financiamiento: client?.financiamiento || null,
+      tramite: tramite && { stage: tramite.stage, note: tramite.note, requested_docs: tramite.requested_docs, updated_at: tramite.updated_at },
+      documents: allDocs.filter((d) => d.source === "client_portal"),
+      office_documents: allDocs
+        .filter((d) => (d.source || "admin_capture") === "admin_capture")
+        .map((d) => ({ doc_type: d.doc_type, captured_at: d.captured_at })),
+    };
   },
 
   async registerPortalConsent(token, consentVersion) {
@@ -1225,9 +1257,9 @@ export const localBackend = {
       source: "client_portal",
       file_kind: fileKind,
       quality_metrics: {},
-      extracted_data: fileKind === "document" ? { nota: "Modo demo: sin validación automática (sin servidor)." } : {},
+      extracted_data: fileKind === "document" && isExtractedDocType(docType) ? { nota: "Modo demo: sin validación automática (sin servidor)." } : {},
       qr_validated: null,
-      review_status: fileKind === "document" ? "requiere_revision" : "pendiente",
+      review_status: fileKind === "document" && isExtractedDocType(docType) ? "requiere_revision" : "pendiente",
       client_confirmed: false,
       captured_at: new Date().toISOString(),
     };

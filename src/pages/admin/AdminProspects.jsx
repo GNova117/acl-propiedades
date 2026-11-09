@@ -5,7 +5,7 @@ import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
 import { formatMXN, whatsappDigits } from "../../lib/format";
-import { PROSPECT_STAGES, contactFields, daysSince, followUpState, isOpenStage, unattendedAge, unattendedState, visitToProspectFields } from "../../lib/prospects";
+import { PROSPECT_STAGES, contactFields, daysSince, followUpState, unattendedAge, unattendedState, visitToProspectFields } from "../../lib/prospects";
 import { POSTSALE_STEPS, postsaleDue, postsaleMessage } from "../../lib/postsale";
 import { prospectMessageTemplates, sendLink, suggestPropertyMessage } from "../../lib/prospectMessages";
 import { criteriaSummary, matchingProperties } from "../../lib/prospectMatch";
@@ -461,16 +461,16 @@ export default function AdminProspects() {
                         <button type="button" className="btn btn-outline btn-sm" onClick={() => openContact(p)} aria-expanded={contactFor?.id === p.id} disabled={busyId === p.id}>
                           {t("prospects.logContact")}
                         </button>
-                        {isOpenStage(p.stage) && (
-                          <QuickReplyButton
-                            templates={templatesFor(p)}
-                            phone={p.phone}
-                            email={p.email}
-                            emailSubject="ACL Propiedades"
-                            label={t("prospects.templates.label")}
-                            onSend={(_template, channel) => openContact(p, channel, true)}
-                          />
-                        )}
+                        <QuickReplyButton
+                          templates={templatesFor(p)}
+                          phone={p.phone}
+                          email={p.email}
+                          emailSubject="ACL Propiedades"
+                          label={t("prospects.templates.label")}
+                          recommendedLabel={t("prospects.templates.forStage", { stage: t(`prospects.stages.${p.stage}`) })}
+                          othersLabel={t("prospects.templates.others")}
+                          onSend={(_template, channel) => openContact(p, channel, true)}
+                        />
                         {p.client_id ? (
                           <Link to={`/admin/clientes/${p.client_id}`} className="btn btn-outline btn-sm">
                             {t("prospects.viewClient")}

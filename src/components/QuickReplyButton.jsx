@@ -13,7 +13,9 @@ import "./QuickReplyButton.css";
 // `onSend` (opcional): se llama justo después de abrir WhatsApp o el correo,
 // con la plantilla elegida y el canal usado ("whatsapp" | "correo"). Prospectos
 // lo usa para ofrecer registrar el contacto en cuanto el asesor regresa.
-export default function QuickReplyButton({ templates, phone, email, emailSubject, label, onSend }) {
+// Si las plantillas traen `recommended` (las de etapa del prospecto), se
+// agrupan: `recommendedLabel` arriba con las sugeridas y `othersLabel` abajo.
+export default function QuickReplyButton({ templates, phone, email, emailSubject, label, onSend, recommendedLabel, othersLabel }) {
   const { t } = useTranslation();
   const selectLabel = label || t("messages.quickReply");
   let digits = whatsappDigits(phone);
@@ -33,16 +35,28 @@ export default function QuickReplyButton({ templates, phone, email, emailSubject
     onSend?.(template, digits ? "whatsapp" : "correo");
   };
 
+  const option = (tpl) => (
+    <option key={tpl.key} value={tpl.key}>
+      {tpl.label}
+    </option>
+  );
+  const recommended = templates.filter((tpl) => tpl.recommended);
+  const others = templates.filter((tpl) => !tpl.recommended);
+  const grouped = Boolean(recommendedLabel) && recommended.length > 0;
+
   return (
     <select className="quick-reply-select btn btn-outline btn-sm" value="" onChange={handleChange} aria-label={selectLabel}>
       <option value="" disabled>
         {selectLabel}
       </option>
-      {templates.map((tpl) => (
-        <option key={tpl.key} value={tpl.key}>
-          {tpl.label}
-        </option>
-      ))}
+      {grouped ? (
+        <>
+          <optgroup label={recommendedLabel}>{recommended.map(option)}</optgroup>
+          {others.length > 0 && <optgroup label={othersLabel}>{others.map(option)}</optgroup>}
+        </>
+      ) : (
+        templates.map(option)
+      )}
     </select>
   );
 }

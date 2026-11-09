@@ -167,6 +167,12 @@
   flex: 1;
 }
 
+/* Barra de abajo del teléfono (ver mobileTabs en lib/adminHome.js): no
+   existe en pantallas grandes, donde el menú lateral siempre está a la vista. */
+.admin-tabbar {
+  display: none;
+}
+
 @media (max-width: 860px) {
   .admin-layout {
     grid-template-columns: 1fr;
@@ -254,7 +260,87 @@
     min-height: 44px;
   }
 
+  /* Deja libre lo que tapan la barra de abajo y el botón + de captura rápida. */
   .admin-layout__content {
-    padding: 1rem 1rem 5.5rem;
+    padding: 1rem 1rem calc(var(--admin-tabbar-height) + 5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .admin-layout {
+    --admin-tabbar-height: 60px;
+  }
+
+  .admin-tabbar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 950;
+    min-height: var(--admin-tabbar-height);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .admin-tabbar__item {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: var(--admin-tabbar-height);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    padding: 0.35rem 0.15rem;
+    border: 0;
+    background: transparent;
+    color: var(--color-text-muted);
+    font: inherit;
+    font-size: 0.72rem;
+    line-height: 1.1;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .admin-tabbar__item.active {
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+
+  .admin-tabbar__item.active::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 25%;
+    right: 25%;
+    height: 3px;
+    border-radius: 0 0 3px 3px;
+    background: var(--color-primary);
+  }
+
+  .admin-tabbar__icon {
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  .admin-tabbar__label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .admin-tabbar__badge {
+    position: absolute;
+    top: 0.3rem;
+    right: calc(50% - 1.4rem);
+    margin: 0;
+  }
+
+  /* El botón + de captura rápida sube por encima de la barra. */
+  .quick-capture__fab {
+    bottom: calc(var(--admin-tabbar-height) + 0.75rem + env(safe-area-inset-bottom, 0px));
   }
 }

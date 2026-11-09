@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { PORTAL_FIELD_DEFS } from "../../lib/clientPortal";
+import { PORTAL_FIELD_DEFS, isExtractedDocType } from "../../lib/clientPortal";
 import PortalStatusBadge from "./PortalStatusBadge";
 
 // Mini-panel de revisión que aparece junto a un documento subido por el
@@ -37,7 +37,7 @@ export default function AdminPortalDocumentReview({ doc, clientId, onChanged }) 
     <div className="admin-doc-card__portal-review">
       <div>
         <PortalStatusBadge status={doc.review_status} /> <span className="form-hint">{t("adminPortal.fromPortal")}</span>
-        {doc.client_confirmed ? null : <span className="form-hint"> · {t("adminPortal.notConfirmed")}</span>}
+        {isExtractedDocType(doc.doc_type) && !doc.client_confirmed && <span className="form-hint"> · {t("adminPortal.notConfirmed")}</span>}
       </div>
 
       <div className="admin-doc-card__portal-fields">
@@ -47,8 +47,9 @@ export default function AdminPortalDocumentReview({ doc, clientId, onChanged }) 
           </div>
         ))}
         {doc.extracted_data?.alertaVigencia && <div className="form-error">{t("portal.ageWarning")}</div>}
-        {doc.qr_validated === false && <div className="form-error">{t("adminPortal.qrMismatch")}</div>}
-        {doc.qr_validated === null && <div>{t("adminPortal.qrUnread")}</div>}
+        {isExtractedDocType(doc.doc_type) && doc.qr_validated === false && <div className="form-error">{t("adminPortal.qrMismatch")}</div>}
+        {isExtractedDocType(doc.doc_type) && doc.qr_validated === null && <div>{t("adminPortal.qrUnread")}</div>}
+        {!isExtractedDocType(doc.doc_type) && <div className="form-hint">{t("adminPortal.manualReview")}</div>}
       </div>
 
       {doc.review_status !== "valido" && doc.review_status !== "rechazado" && (

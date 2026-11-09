@@ -13,6 +13,8 @@ import QuickReplyButton from "../../components/QuickReplyButton";
 import CopyVisitLinkButton from "../../components/CopyVisitLinkButton";
 import ProspectContactForm from "../../components/ProspectContactForm";
 import MonthGoals from "../../components/MonthGoals";
+import { HOME_MY_DAY, HOME_PANEL } from "../../lib/adminHome";
+import { useAdminHome } from "../../lib/useAdminHome";
 import "./admin.css";
 import "./AdminProspects.css";
 import "./AdminMyDay.css";
@@ -35,6 +37,7 @@ export default function AdminMyDay() {
   const canAgenda = hasSection("agenda");
   const canProspects = hasSection("prospectos");
   const canVisits = hasSection("visitas");
+  const { home, setHome } = useAdminHome();
 
   const [citas, setCitas] = useState([]);
   const [prospects, setProspects] = useState([]);
@@ -333,6 +336,8 @@ export default function AdminMyDay() {
                 email={p.email}
                 emailSubject="ACL Propiedades"
                 label={t("prospects.templates.label")}
+                recommendedLabel={t("prospects.templates.forStage", { stage: t(`prospects.stages.${p.stage}`) })}
+                othersLabel={t("prospects.templates.others")}
                 onSend={(_template, channel) => openContact(p, channel, true)}
               />
             )}
@@ -389,6 +394,10 @@ export default function AdminMyDay() {
         <div>
           <h1>{t("myDay.title")}</h1>
           <p className="form-hint my-day__date">{dateTitle}</p>
+          <label className="my-day__home-toggle">
+            <input type="checkbox" checked={home === HOME_MY_DAY} onChange={(e) => setHome(e.target.checked ? HOME_MY_DAY : HOME_PANEL)} />
+            {t("myDay.homeToggle")}
+          </label>
         </div>
         <div className="admin-header__actions">
           {canAgenda && (

@@ -82,3 +82,143 @@ export function blobToBase64(blob) {
     reader.readAsDataURL(blob);
   });
 }
+
+// ── Más documentos, lista de pendientes y estatus del trámite (2026-11) ──
+
+// Lo que el cliente puede subir desde el portal. Solo la constancia y el
+// acta tienen lectura automática (texto + QR, ver api/portal-upload.js); el
+// resto queda "En revisión" hasta que el asesor lo apruebe. Todos son tipos
+// que ya existían en client_documents (no cambia el check de doc_type).
+export const PORTAL_UPLOADABLE_DOC_TYPES = [
+  "ine",
+  "curp",
+  "acta_nacimiento",
+  "cedula_fiscal",
+  "escrituras",
+  "predial",
+  "agua",
+  "luz",
+  "cuenta_bancaria",
+];
+
+export const PORTAL_EXTRACTED_DOC_TYPES = ["cedula_fiscal", "acta_nacimiento"];
+
+export const isExtractedDocType = (docType) => PORTAL_EXTRACTED_DOC_TYPES.includes(docType);
+
+// Los que se leen automáticamente tienen que ser el PDF oficial; el resto
+// (INE, recibos, escrituras escaneadas) también se acepta como foto.
+export const portalAcceptsImage = (docType) => !isExtractedDocType(docType);
+
+// Enlaces oficiales para los documentos que se descargan de un portal de
+// gobierno. Los demás (INE, recibos, escrituras) los tiene el cliente en
+// papel: no hay enlace, solo instrucciones de cómo fotografiarlos.
+export const PORTAL_OFFICIAL_LINKS = {
+  ...PORTAL_OFFICIAL_URLS,
+  curp: "https://www.gob.mx/curp/",
+};
+
+// Qué se le pide por omisión según el tipo de cliente, hasta que el asesor
+// marque otra cosa en la ficha. Sigue el orden de PORTAL_UPLOADABLE_DOC_TYPES.
+const DEFAULT_DOCS_BY_CLIENT_TYPE = {
+  comprador: ["ine", "curp", "acta_nacimiento", "cedula_fiscal"],
+  vendedor: ["ine", "curp", "acta_nacimiento", "cedula_fiscal", "escrituras", "predial", "agua", "luz"],
+};
+
+export function defaultRequestedDocs(clientType) {
+  if (clientType === "ambos") {
+    const union = new Set([...DEFAULT_DOCS_BY_CLIENT_TYPE.comprador, ...DEFAULT_DOCS_BY_CLIENT_TYPE.vendedor]);
+    return PORTAL_UPLOADABLE_DOC_TYPES.filter((d) => union.has(d));
+  }
+  return DEFAULT_DOCS_BY_CLIENT_TYPE[clientType] || DEFAULT_DOCS_BY_CLIENT_TYPE.comprador;
+}
+
+// Lista final de documentos pedidos: la que guardó el asesor (limpia de
+// tipos que el portal no admite y en el orden de siempre) o la de omisión.
+export function requestedDocsFor(tramite, clientType) {
+  const saved = Array.isArray(tramite?.requested_docs) ? tramite.requested_docs : null;
+  if (!saved || saved.length === 0) return defaultRequestedDocs(clientType);
+  return PORTAL_UPLOADABLE_DOC_TYPES.filter((d) => saved.includes(d));
+}
+
+// Estado de un documento en la lista de pendientes del cliente:
+//  · "pendiente"  — no ha subido nada;
+//  · "en_revision" — ya lo subió y el asesor no lo ha revisado;
+//  · "corregir"   — el asesor lo rechazó (con motivo): hay que volver a subirlo;
+//  · "aprobado"   — el asesor lo aprobó;
+//  · "recibido"   — lo entregó en la oficina (lo capturó el asesor).
+export const CHECKLIST_STATES = ["pendiente", "corregir", "en_revision", "aprobado", "recibido"];
+const DONE_STATES = new Set(["aprobado", "recibido"]);
+
+function checklistState(doc) {
+  if (!doc) return "pendiente";
+  if (doc.source && doc.source !== "client_portal") return "recibido";
+  if (doc.review_status === "valido") return "aprobado";
+  if (doc.review_status === "rechazado") return "corregir";
+  return "en_revision";
+}
+
+// `documents`: los del portal (con review_status); `officeDocuments`: los
+// que capturó el asesor (solo doc_type y captured_at). Manda el más
+// reciente de los dos: si el cliente volvió a subir uno después de
+// entregarlo en oficina, lo que importa es la revisión del nuevo.
+export function portalChecklist(requestedDocs, documents = [], officeDocuments = []) {
+  return requestedDocs.map((docType) => {
+    const portalDoc = latestPortalDoc(documents, docType);
+    const officeDoc =
+      (officeDocuments || [])
+        .filter((d) => d.doc_type === docType)
+        .map((d) => ({ ...d, source: d.source || "admin_capture" }))
+        .sort((a, b) => new Date(b.captured_at) - new Date(a.captured_at))[0] || null;
+    let doc = portalDoc || officeDoc;
+    if (portalDoc && officeDoc && new Date(officeDoc.captured_at) > new Date(portalDoc.captured_at)) doc = officeDoc;
+    return { docType, state: checklistState(doc), doc };
+  });
+}
+
+// Resumen para la barra de avance: cuántos ya están listos (aprobados o
+// entregados), cuántos esperan revisión y cuántos le toca hacer al cliente.
+export function checklistSummary(items) {
+  const count = (pred) => items.filter(pred).length;
+  return {
+    total: items.length,
+    done: count((i) => DONE_STATES.has(i.state)),
+    inReview: count((i) => i.state === "en_revision"),
+    todo: count((i) => i.state === "pendiente" || i.state === "corregir"),
+  };
+}
+
+// Lo que todavía le toca hacer al cliente, primero lo que hay que corregir.
+export function clientTodo(items) {
+  return [...items.filter((i) => i.state === "corregir"), ...items.filter((i) => i.state === "pendiente")];
+}
+
+// Etapas del trámite que ve el cliente. Dependen de qué está haciendo: si
+// compra con crédito pasa por avalúo y autorización; de contado, no; si
+// vende, por promoción y oferta. Las claves se guardan en
+// client_tramites.stage — si se agrega una, también va en el check de
+// schema.sql (bloque "Portal del cliente: pendientes y estatus del trámite").
+export const TRAMITE_STAGE_KEYS = ["documentos", "revision", "promocion", "oferta", "avaluo", "credito", "firma", "entrega"];
+
+const TRAMITE_FLOWS = {
+  compra_credito: ["documentos", "revision", "avaluo", "credito", "firma", "entrega"],
+  compra_contado: ["documentos", "revision", "firma", "entrega"],
+  venta: ["documentos", "revision", "promocion", "oferta", "firma", "entrega"],
+};
+
+export function tramiteFlowFor({ type, financiamiento } = {}) {
+  if (type === "vendedor") return "venta";
+  if (type === "ambos" && !financiamiento) return "venta";
+  return financiamiento === "contado" ? "compra_contado" : "compra_credito";
+}
+
+export function tramiteStagesFor(client) {
+  return TRAMITE_FLOWS[tramiteFlowFor(client)];
+}
+
+// Pasos para dibujar el avance: cada etapa como "hecha", "actual" o
+// "siguiente". Una etapa guardada que no está en este flujo (p. ej. se
+// cambió el tipo de cliente) o sin etapa todavía cuenta como la primera.
+export function tramiteSteps(stages, currentStage) {
+  const index = Math.max(0, stages.indexOf(currentStage));
+  return stages.map((key, i) => ({ key, status: i < index ? "hecha" : i === index ? "actual" : "siguiente" }));
+}

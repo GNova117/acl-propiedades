@@ -8,10 +8,42 @@ import { formatMXN, whatsappUrl } from "./format";
 
 const firstName = (name) => String(name || "").trim().split(/\s+/)[0] || "";
 
+// Plantillas de seguimiento por etapa del prospecto: las que conviene mandar
+// en cada momento, en el orden en que se sugieren. Las cuatro etapas abiertas
+// además ofrecen después las generales (ver BASE_KEYS); las cerradas solo las
+// suyas — a quien ya compró no se le manda un "primer contacto".
+export const STAGE_TEMPLATE_KEYS = {
+  nuevo: ["firstContact", "scheduleVisit", "sendProperty"],
+  contactado: ["checkIn", "scheduleVisit", "sendOptions", "sendProperty"],
+  interesado: ["thanksVisit", "secondVisit", "creditHelp", "sendProperty"],
+  negociacion: ["offerFollowUp", "requestDocuments", "creditHelp"],
+  cerrado: ["thanksClosing", "askReferral", "askReview"],
+  perdido: ["reactivate", "sendOptions"],
+};
+
+const BASE_KEYS = ["firstContact", "thanksVisit", "checkIn", "scheduleVisit", "sendProperty"];
+const CLOSED_STAGES = ["cerrado", "perdido"];
+
 // `propertyTitle`: título de la propiedad de interés (si tiene una).
 // `propertyUrl`: enlace público a esa propiedad; sin él no se ofrece "enviar la propiedad".
 // `advisorName`: asesor responsable, para presentarse en el primer contacto.
-export function prospectMessageTemplates(prospect, { propertyTitle, propertyUrl, advisorName } = {}) {
+//
+// Con la etapa del prospecto (prospect.stage), primero van las sugeridas para
+// esa etapa (`recommended: true`) y luego las demás generales; sin etapa, las
+// cinco generales de siempre.
+export function prospectMessageTemplates(prospect, options = {}) {
+  const all = allTemplates(prospect, options);
+  const byKey = new Map(all.map((tpl) => [tpl.key, tpl]));
+  const stageKeys = STAGE_TEMPLATE_KEYS[prospect.stage];
+  if (!stageKeys) return BASE_KEYS.filter((key) => byKey.has(key)).map((key) => byKey.get(key));
+
+  const recommended = stageKeys.filter((key) => byKey.has(key)).map((key) => ({ ...byKey.get(key), recommended: true }));
+  if (CLOSED_STAGES.includes(prospect.stage)) return recommended;
+  const others = BASE_KEYS.filter((key) => byKey.has(key) && !stageKeys.includes(key)).map((key) => ({ ...byKey.get(key), recommended: false }));
+  return [...recommended, ...others];
+}
+
+function allTemplates(prospect, { propertyTitle, propertyUrl, advisorName } = {}) {
   const name = firstName(prospect.name);
   const hello = name ? `Hola ${name}` : "Hola";
   const property = String(propertyTitle || "").trim();
@@ -50,6 +82,53 @@ export function prospectMessageTemplates(prospect, { propertyTitle, propertyUrl,
       text: `${hello}, te comparto la información${property ? ` de ${property}` : " de la propiedad"}: ${propertyUrl}\nCualquier duda, con gusto te ayudo.`,
     });
   }
+
+  // Las de etapas más avanzadas: segunda visita, crédito, oferta, papeles y,
+  // ya cerrado, agradecer, pedir recomendación y reseña; si se perdió, retomar.
+  templates.push(
+    {
+      key: "sendOptions",
+      text: `${hello}, ¿sigues buscando propiedad? Tengo opciones nuevas que van con lo que me comentaste. ¿Te las comparto?`,
+    },
+    {
+      key: "secondVisit",
+      text: property
+        ? `${hello}, si quieres volver a ver ${property} con calma, o con tu familia, con gusto agendamos otra visita. ¿Qué día te acomoda?`
+        : `${hello}, si quieres volver a ver la propiedad con calma, o con tu familia, con gusto agendamos otra visita. ¿Qué día te acomoda?`,
+    },
+    {
+      key: "creditHelp",
+      text: `${hello}, si vas a usar crédito (Infonavit, Fovissste o bancario), te ayudo sin costo a revisar cuánto te prestan y qué documentos se necesitan. ¿Lo vemos?`,
+    },
+    {
+      key: "offerFollowUp",
+      text: property
+        ? `${hello}, ¿cómo vas con la propuesta para ${property}? Si tienes dudas del precio o de las condiciones, lo platicamos y vemos cómo avanzar.`
+        : `${hello}, ¿cómo vas con la propuesta? Si tienes dudas del precio o de las condiciones, lo platicamos y vemos cómo avanzar.`,
+    },
+    {
+      key: "requestDocuments",
+      text: `${hello}, para avanzar${property ? ` con ${property}` : " con el trámite"} vamos a necesitar algunos documentos (INE, CURP, acta de nacimiento y constancia de situación fiscal). Si quieres, te mando un enlace para subirlos desde tu celular.`,
+    },
+    {
+      key: "thanksClosing",
+      text: `${hello}, ¡muchas felicidades por tu nueva propiedad! Gracias por confiar en ACL Propiedades. Cualquier cosa que necesites, aquí estoy.`,
+    },
+    {
+      key: "askReferral",
+      text: `${hello}, ¿cómo te ha ido? Si conoces a alguien que esté buscando comprar o vender, con gusto le ayudo igual que a ti.`,
+    },
+    {
+      key: "askReview",
+      text: `${hello}, ¿nos ayudarías con una reseña en Google sobre tu experiencia con ACL Propiedades? Nos ayuda mucho a que más familias nos conozcan. ¡Gracias!`,
+    },
+    {
+      key: "reactivate",
+      text: property
+        ? `${hello}, hace un tiempo platicamos sobre ${property}. ¿Sigues buscando propiedad? Tengo opciones nuevas y con gusto te las comparto.`
+        : `${hello}, hace un tiempo platicamos sobre tu búsqueda de propiedad. ¿Sigues buscando? Tengo opciones nuevas y con gusto te las comparto.`,
+    }
+  );
 
   return templates;
 }

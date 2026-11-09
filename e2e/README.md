@@ -34,11 +34,12 @@ El ancho del texto depende de las fuentes instaladas. Inter (la del sitio) llega
 
 | Archivo | Qué prueba |
 |---|---|
-| `smoke.spec.js` | Cada una de las 84 rutas (públicas y del panel) carga sin errores, con contenido, sin el aviso de error, sin desbordarse de lado y sin `<img src="">`. |
+| `smoke.spec.js` | Cada una de las 85 rutas (públicas y del panel) carga sin errores, con contenido, sin el aviso de error, sin desbordarse de lado y sin `<img src="">`. |
 | `responsive.spec.js` | Regresiones de diseño adaptable (solo móvil): sin desborde horizontal a 320/360/390/768/1024 px, botones de la tarjeta sin recortar, menú móvil con 8 enlaces, propiedad/asesor sin foto, cajón del panel y buscador global. Cada una corresponde a un defecto real ya corregido. |
 | `public.spec.js` | Sitio público: menú, tema, idioma, búsqueda y filtros, mapa, favoritos, comparador, galería, ficha, calculadoras, formularios (contacto, vende tu casa, guía del comprador con PDF), blog, torre/desarrollo, chat. |
 | `admin.spec.js` | Panel: login y rutas protegidas, menú lateral/cajón en todos los apartados, búsqueda global, ciclo completo de una propiedad (crear → publicar → editar → filtrar → exportar → eliminar), mensajes de contacto, cerrar sesión. |
 | `crud.spec.js` | Alta → listado → baja de 11 formularios del panel, rellenados con datos genéricos según el tipo de campo. |
+| `flujos-criticos.spec.js` | Flujos de punta a punta: portal del cliente (el asesor pide documentos y mueve la etapa → el cliente acepta el aviso, ve su trámite y pendientes y sube su INE → el asesor la aprueba → el cliente ve el avance; enlace desactivado), «Mi día» como inicio y la barra de abajo del teléfono, y el seguimiento de un prospecto con la plantilla de su etapa hasta registrar el contacto. |
 | `features.spec.js` | Funciones con reglas propias: captura rápida, valuación, simulador Infonavit, zonas → calculadora pública, visitas (no admiten fecha futura), inspección, modales Enviar/QR/Redes, PDF de la ficha. |
 
 ## Cómo agregar una prueba
