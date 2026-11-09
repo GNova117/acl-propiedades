@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { isOpenRequest } from "../../lib/agendaCitas";
+import { citaContact, citaStatus, isOpenRequest, visitLink, visitLinkTextKey } from "../../lib/agendaCitas";
+import VisitLinkPanel from "../../components/VisitLinkPanel";
 import { useAuth } from "../../context/AuthContext";
 import "./admin.css";
 
-const EMPTY = { advisor_id: "", client_id: "", titulo: "", fecha: "", hora: "", actividades: "", lugar: "" };
+const EMPTY = { advisor_id: "", client_id: "", titulo: "", fecha: "", hora: "", actividades: "", lugar: "", contact_name: "", contact_phone: "", contact_email: "" };
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function AdminAgendaForm() {
   const { id } = useParams();
@@ -32,6 +34,7 @@ export default function AdminAgendaForm() {
   const [loading, setLoading] = useState(true);
   // Solicitud de visita sin asesor: no se edita hasta que alguien la toma (desde la Agenda o Mi día).
   const [openRequest, setOpenRequest] = useState(false);
+  const [citaRow, setCitaRow] = useState(null); // la cita guardada (para su enlace)
   // ¿La cita ya tenía lugar guardado? Solo entonces se manda vacío para borrarlo;
   // si nunca tuvo y sigue sin nada, el campo ni se envía (ver supabaseBackend).
   const hadLugar = useRef(false);
@@ -43,6 +46,7 @@ export default function AdminAgendaForm() {
         setClients(clientData);
         if (cita) {
           setOpenRequest(isOpenRequest(cita));
+          setCitaRow(cita);
           hadLugar.current = Boolean(cita.lugar);
           setForm({
             advisor_id: cita.advisor_id,
@@ -52,6 +56,9 @@ export default function AdminAgendaForm() {
             hora: cita.hora ? cita.hora.slice(0, 5) : "",
             actividades: cita.actividades || "",
             lugar: cita.lugar || "",
+            contact_name: cita.contact_name || "",
+            contact_phone: cita.contact_phone || "",
+            contact_email: cita.contact_email || "",
           });
         } else if (advisorId) {
           // Agenda propia: el asesor no elige, la cita siempre se crea para sí mismo.
@@ -71,6 +78,11 @@ export default function AdminAgendaForm() {
     if (!form.advisor_id) next.advisor_id = t("contact.required");
     if (!form.titulo.trim()) next.titulo = t("contact.required");
     if (!form.fecha) next.fecha = t("contact.required");
+    if (!form.client_id) {
+      if (form.contact_email.trim() && !EMAIL_RE.test(form.contact_email.trim())) next.contact_email = t("agenda.contactEmailInvalid");
+      const digits = form.contact_phone.replace(/\D/g, "");
+      if (form.contact_phone.trim() && (digits.length < 10 || digits.length > 15)) next.contact_phone = t("agenda.contactPhoneInvalid");
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -81,18 +93,44 @@ export default function AdminAgendaForm() {
     setSaving(true);
     try {
       const { lugar, ...rest } = form;
-      const payload = lugar.trim() || hadLugar.current ? { ...rest, lugar } : rest;
+      // Con un cliente registrado los datos de contacto salen de él: no se guardan aparte.
+      const contact = form.client_id ? { contact_name: "", contact_phone: "", contact_email: "" } : {};
+      const payload = lugar.trim() || hadLugar.current ? { ...rest, ...contact, lugar } : { ...rest, ...contact };
       if (isEdit) {
         await db.updateAgendaCita(id, payload);
+        navigate("/admin/agenda");
       } else {
-        await db.addAgendaCita(payload);
+        // Al crear se abre la cita ya guardada, con su enlace arriba para mandárselo al cliente.
+        const created = await db.addAgendaCita(payload);
+        navigate(`/admin/agenda/${created.id}`, { state: { saved: true } });
       }
-      navigate("/admin/agenda");
     } catch (err) {
       window.alert(err.message || "Error al guardar");
     } finally {
       setSaving(false);
     }
+  };
+
+  // Enlace de una cita ya guardada y el mensaje de WhatsApp para mandárselo (con el cliente ligado o los datos de contacto).
+  const linkInfo = (cita) => {
+    const link = cita.status === undefined || citaStatus(cita) === "confirmada" ? visitLink(cita, window.location.origin) : "";
+    if (!link) return null;
+    const contact = citaContact(cita, clients.find((c) => c.id === cita.client_id) || null);
+    const date = new Date(`${cita.fecha}T00:00:00`).toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
+    const text = t(visitLinkTextKey(cita), {
+      name: contact.name.split(/\s+/)[0],
+      advisor: advisors.find((a) => a.id === cita.advisor_id)?.name || "",
+      title: cita.titulo,
+      when: `${date} a las ${String(cita.hora).slice(0, 5)}`,
+      link,
+    });
+    return { link, phone: contact.phone, text };
+  };
+
+  const justSaved = Boolean(isEdit && location.state?.saved && citaRow);
+  const linkPanel = (fallback) => {
+    const info = citaRow ? linkInfo(citaRow) : null;
+    return info ? <VisitLinkPanel link={info.link} phone={info.phone} text={info.text} /> : fallback;
   };
 
   if (loading) return <div className="empty-state">{t("common.loading")}</div>;
@@ -118,6 +156,13 @@ export default function AdminAgendaForm() {
       <div className="admin-header">
         <h1>{isEdit ? t("agenda.editAppointment") : t("agenda.newAppointment")}</h1>
       </div>
+
+      {justSaved && (
+        <div className="card" role="status">
+          <strong>{t("agenda.saved")}</strong> <span className="form-hint">{t("agenda.savedBody")}</span>
+          {linkPanel(<p className="form-hint">{t("visitLink.needsTime")}</p>)}
+        </div>
+      )}
 
       <form className="card admin-form" onSubmit={handleSubmit} noValidate>
         {!advisorId && (
@@ -165,6 +210,29 @@ export default function AdminAgendaForm() {
           </select>
         </div>
 
+        {!form.client_id && (
+          <fieldset className="form-field agenda-contact">
+            <legend>{t("agenda.contactTitle")}</legend>
+            <span className="form-hint">{t("agenda.contactHint")}</span>
+            <div className="form-field">
+              <label htmlFor="cita-contact-name">{t("agenda.contactName")}</label>
+              <input id="cita-contact-name" value={form.contact_name} onChange={handleChange("contact_name")} autoComplete="off" />
+            </div>
+            <div className="form-row">
+              <div className="form-field">
+                <label htmlFor="cita-contact-phone">{t("agenda.contactPhone")}</label>
+                <input id="cita-contact-phone" type="tel" value={form.contact_phone} onChange={handleChange("contact_phone")} autoComplete="off" aria-invalid={Boolean(errors.contact_phone)} />
+                {errors.contact_phone && <span className="form-error">{errors.contact_phone}</span>}
+              </div>
+              <div className="form-field">
+                <label htmlFor="cita-contact-email">{t("agenda.contactEmail")}</label>
+                <input id="cita-contact-email" type="email" value={form.contact_email} onChange={handleChange("contact_email")} autoComplete="off" aria-invalid={Boolean(errors.contact_email)} />
+                {errors.contact_email && <span className="form-error">{errors.contact_email}</span>}
+              </div>
+            </div>
+          </fieldset>
+        )}
+
         <div className="form-field">
           <label htmlFor="cita-lugar">{t("agenda.place")}</label>
           <input id="cita-lugar" value={form.lugar} onChange={handleChange("lugar")} placeholder={t("agenda.placePlaceholder")} />
@@ -192,6 +260,8 @@ export default function AdminAgendaForm() {
           </button>
         </div>
       </form>
+
+      {isEdit && !justSaved && linkPanel(null)}
     </div>
   );
 }

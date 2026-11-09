@@ -2377,7 +2377,9 @@ export const supabaseBackend = {
     return data || [];
   },
 
-  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades, lugar }) {
+  // `contact_*`: datos de quien no es un cliente registrado (para mandarle el enlace de la cita). Como `lugar`,
+  // solo se mandan si se capturaron. La cita trae su `booking_token` por omisión (ver "fase 8" en schema.sql).
+  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email }) {
     const payload = {
       advisor_id,
       client_id: client_id || null,
@@ -2388,6 +2390,9 @@ export const supabaseBackend = {
       // Solo se manda si se capturó: así guardar una cita no depende de que la
       // columna `lugar` ya exista en bases que aún no corren su migración.
       ...(lugar?.trim() ? { lugar: lugar.trim() } : {}),
+      ...(contact_name?.trim() ? { contact_name: contact_name.trim() } : {}),
+      ...(contact_phone?.trim() ? { contact_phone: contact_phone.trim() } : {}),
+      ...(contact_email?.trim() ? { contact_email: contact_email.trim() } : {}),
     };
     const { data, error } = await supabase.from("agenda_citas").insert(payload).select().single();
     if (error) throw error;
@@ -2401,7 +2406,7 @@ export const supabaseBackend = {
   },
 
   // `lugar`: undefined = no tocarlo; texto vacío = borrarlo.
-  async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades, lugar }) {
+  async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email }) {
     const payload = {
       advisor_id,
       client_id: client_id || null,
@@ -2410,6 +2415,10 @@ export const supabaseBackend = {
       hora: hora || null,
       actividades: actividades?.trim() || null,
       ...(lugar !== undefined ? { lugar: lugar?.trim() || null } : {}),
+      // Los datos de contacto: undefined = no tocarlos; texto vacío = borrarlos.
+      ...(contact_name !== undefined ? { contact_name: contact_name?.trim() || null } : {}),
+      ...(contact_phone !== undefined ? { contact_phone: contact_phone?.trim() || null } : {}),
+      ...(contact_email !== undefined ? { contact_email: contact_email?.trim() || null } : {}),
       updated_at: new Date().toISOString(),
     };
     const { data, error } = await supabase.from("agenda_citas").update(payload).eq("id", id).select().single();

@@ -1,6 +1,6 @@
 # Agendar visita con horarios reales — despliegue y configuración
 
-Todo lo que hay que hacer **una sola vez** para activar el proyecto (fases 1 a 7) en tu Supabase real.
+Todo lo que hay que hacer **una sola vez** para activar el proyecto (fases 1 a 8) en tu Supabase real.
 Ningún valor secreto va en este repo (es público): donde ves `<...>` o `re_xxx...`, pon el tuyo.
 
 > **Nada cambia en el sitio hasta que activas el horario de un asesor** (paso 5). Puedes hacer los pasos 1 a 4
@@ -272,6 +272,25 @@ al tomarla queda *confirmada* para el día y la hora que pidió el cliente — s
 escribe por WhatsApp desde la misma fila. El cliente puede cancelarla desde su enlace mientras nadie la tome. El aviso
 por WhatsApp (plantilla de contactos) sigue yendo a los asesores de la propiedad y a la oficina; **el resto del equipo
 la ve en la Agenda y en Mi día** (y recibe la notificación push).
+
+## Actualizar a la fase 8 (enlace para todas las citas)
+
+Con la fase 8, **toda** cita de la Agenda tiene su enlace `/visita/<token>`, también las que captura el equipo, para
+mandárselo al cliente por WhatsApp (o copiarlo) y que confirme su asistencia o cancele. Solo hace falta:
+
+1. **SQL**: pega de nuevo `supabase/agendar-visita.sql` (re-ejecutable). Le pone su enlace a cada cita que ya
+   existía y a las nuevas (valor por omisión de `agenda_citas.booking_token`), hace que el enlace funcione para citas sin
+   propiedad (muestra el título y el lugar; el nombre sale del cliente ligado) y avisa por WhatsApp también al
+   asesor **de la cita** cuando el cliente la cancela o la mueve.
+2. **Sitio**: merge a `main` (Vercel despliega). **No hay funciones nuevas que desplegar.**
+
+Cómo se usa: en **Agenda → Nueva cita**, si la persona no es un cliente registrado, capturas su nombre y teléfono
+(sección "Datos de contacto"); al guardar, la cita se abre con **Enviar enlace** (WhatsApp con el mensaje ya escrito) y
+**Copiar enlace**. Lo mismo está en cada fila de la Agenda. Notas:
+
+- La cita necesita **hora**: sin hora no hay nada que confirmar ni cancelar, y no se ofrece enlace.
+- El cliente puede **cambiar el horario** solo si su asesor ofrece horarios en línea; si no, solo confirma o cancela.
+- Las citas capturadas a mano **no** mandan correo automático: el enlace lo manda el asesor.
 
 ## Cómo apagarlo (sin borrar datos)
 
