@@ -36,6 +36,7 @@ const PUBLIC_ROUTES = [
 
 const ADMIN_ROUTES = [
   "/admin",
+  "/admin/panel",
   "/admin/propiedades",
   "/admin/propiedades/nueva",
   "/admin/propiedades/prop-1",
