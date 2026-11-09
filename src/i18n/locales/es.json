@@ -2003,7 +2003,7 @@
       "perdido": "Perdido"
     },
     "sources": {
-    "visita_agendada": "Visita agendada en el sitio",
+      "visita_agendada": "Visita agendada en el sitio",
       "alerta": "Alerta de propiedades",
       "comparador": "Comparador de créditos",
       "simulador": "Simulador de crédito",
@@ -2081,7 +2081,18 @@
       "thanksVisit": "Gracias por la visita",
       "checkIn": "¿Pudo revisar la propiedad?",
       "scheduleVisit": "Proponer una visita",
-      "sendProperty": "Enviar la propiedad"
+      "sendProperty": "Enviar la propiedad",
+      "forStage": "Sugeridas para «{{stage}}»",
+      "others": "Otras",
+      "sendOptions": "Compartir opciones nuevas",
+      "secondVisit": "Proponer otra visita",
+      "creditHelp": "Ofrecer ayuda con el crédito",
+      "offerFollowUp": "¿Cómo va la propuesta?",
+      "requestDocuments": "Pedir documentos",
+      "thanksClosing": "Felicitar por la compra",
+      "askReferral": "Pedir una recomendación",
+      "askReview": "Pedir una reseña",
+      "reactivate": "Retomar la plática"
     },
     "confirmDelete": "¿Eliminar a {{name}} de los prospectos?",
     "saveError": "No se pudo guardar el prospecto",
@@ -3349,6 +3360,16 @@
     "hint": "Si es otra persona, guárdalo de todos modos; si es la misma, ábrelo para no duplicar el seguimiento.",
     "saveAnyway": "Guardar de todos modos"
   },
+  "adminTabs": {
+    "label": "Accesos rápidos",
+    "home": "Inicio",
+    "prospects": "Prospectos",
+    "agenda": "Agenda",
+    "clients": "Clientes",
+    "properties": "Propiedades",
+    "messages": "Mensajes",
+    "more": "Más"
+  },
   "myDay": {
     "title": "Mi día",
     "summary": "Hoy: {{appointments}} citas por atender y {{contacts}} contactos por hacer.",
@@ -3394,7 +3415,8 @@
       "overdueHint": "Les tocaba un contacto antes de hoy; los más atrasados primero.",
       "today": "Seguimientos de hoy",
       "todayHint": "Programados para hoy."
-    }
+    },
+    "homeToggle": "Abrir el panel en Mi día (en este dispositivo)"
   },
   "visitSchedule": {
     "title": "Horario para recibir visitas",

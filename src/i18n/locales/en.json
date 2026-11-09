@@ -2003,7 +2003,7 @@
       "perdido": "Lost"
     },
     "sources": {
-    "visita_agendada": "Visit booked on the site",
+      "visita_agendada": "Visit booked on the site",
       "alerta": "Property alert",
       "comparador": "Credit comparison",
       "simulador": "Credit simulator",
@@ -2081,7 +2081,18 @@
       "thanksVisit": "Thanks for the visit",
       "checkIn": "Did they review the property?",
       "scheduleVisit": "Propose a visit",
-      "sendProperty": "Send the property"
+      "sendProperty": "Send the property",
+      "forStage": "Suggested for “{{stage}}”",
+      "others": "Others",
+      "sendOptions": "Share new options",
+      "secondVisit": "Offer another visit",
+      "creditHelp": "Offer help with the loan",
+      "offerFollowUp": "How is the offer going?",
+      "requestDocuments": "Request documents",
+      "thanksClosing": "Congratulate on the purchase",
+      "askReferral": "Ask for a referral",
+      "askReview": "Ask for a review",
+      "reactivate": "Pick the conversation back up"
     },
     "confirmDelete": "Remove {{name}} from prospects?",
     "saveError": "Could not save the prospect",
@@ -3349,6 +3360,16 @@
     "hint": "If it's a different person, save anyway; if it's the same one, open it so follow-up isn't duplicated.",
     "saveAnyway": "Save anyway"
   },
+  "adminTabs": {
+    "label": "Quick access",
+    "home": "Home",
+    "prospects": "Leads",
+    "agenda": "Calendar",
+    "clients": "Clients",
+    "properties": "Properties",
+    "messages": "Messages",
+    "more": "More"
+  },
   "myDay": {
     "title": "My day",
     "summary": "Today: {{appointments}} appointments to attend and {{contacts}} contacts to make.",
@@ -3394,7 +3415,8 @@
       "overdueHint": "A contact was due before today; the most overdue first.",
       "today": "Today's follow-ups",
       "todayHint": "Scheduled for today."
-    }
+    },
+    "homeToggle": "Open the panel on My day (on this device)"
   },
   "visitSchedule": {
     "title": "Hours for receiving visits",
