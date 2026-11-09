@@ -47,6 +47,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminHome = lazy(() => import("./pages/admin/AdminHome"));
 const AdminProperties = lazy(() => import("./pages/admin/AdminProperties"));
 const AdminPropertyForm = lazy(() => import("./pages/admin/AdminPropertyForm"));
 const AdminDevelopments = lazy(() => import("./pages/admin/AdminDevelopments"));
@@ -214,7 +215,8 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<AdminDashboard />} />
+        <Route index element={<AdminHome />} />
+        <Route path="panel" element={<AdminDashboard />} />
         <Route
           path="propiedades"
           element={

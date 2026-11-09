@@ -11,6 +11,8 @@ import NotificationBell from "../../components/NotificationBell";
 import QuickCapture from "../../components/QuickCapture";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
+import { HOME_MY_DAY, mobileTabs } from "../../lib/adminHome";
+import { useAdminHome } from "../../lib/useAdminHome";
 import "./AdminLayout.css";
 
 // Menú por carpetas. Cada item se muestra solo si el rol tiene ese apartado;
@@ -107,6 +109,8 @@ export default function AdminLayout() {
   const [openGroups, setOpenGroups] = useState(readOpen);
   // En pantallas chicas el menú es un cajón que se abre con el botón ☰.
   const [menuOpen, setMenuOpen] = useState(false);
+  const { home } = useAdminHome();
+  const myDayIsHome = home === HOME_MY_DAY;
 
   useEffect(() => {
     setMenuOpen(false);
@@ -123,7 +127,17 @@ export default function AdminLayout() {
     };
   }, [menuOpen]);
 
-  const visibleNav = NAV.map((entry) =>
+  // Con "Mi día" como inicio, va primero y el Panel principal se mueve a
+  // /admin/panel (/admin redirige a Mi día, ver AdminHome.jsx).
+  const nav = myDayIsHome
+    ? [
+        NAV[1],
+        { ...NAV[0], to: "/admin/panel" },
+        ...NAV.slice(2),
+      ]
+    : NAV;
+
+  const visibleNav = nav.map((entry) =>
     entry.items ? { ...entry, items: entry.items.filter((item) => hasSection(item.section)) } : entry
   ).filter((entry) => {
     if (entry.items) return entry.items.length > 0;
@@ -240,6 +254,26 @@ export default function AdminLayout() {
           </ErrorBoundary>
         </main>
       </div>
+      {/* Teléfono: lo del día a día a un toque; «Más» abre el menú completo. */}
+      <nav className="admin-tabbar" aria-label={t("adminTabs.label")}>
+        {mobileTabs({ hasSection, home }).map((tab) => (
+          <NavLink key={tab.key} to={tab.to} end={tab.end} className="admin-tabbar__item">
+            <span className="admin-tabbar__icon" aria-hidden="true">{tab.icon}</span>
+            <span className="admin-tabbar__label">{t(tab.labelKey)}</span>
+          </NavLink>
+        ))}
+        <button
+          type="button"
+          className={`admin-tabbar__item admin-tabbar__more${menuOpen ? " active" : ""}`}
+          aria-expanded={menuOpen}
+          aria-controls="admin-sidebar"
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          <span className="admin-tabbar__icon" aria-hidden="true">☰</span>
+          <span className="admin-tabbar__label">{t("adminTabs.more")}</span>
+          {newMessagesCount > 0 && <span className="admin-layout__nav-badge admin-tabbar__badge">{newMessagesCount}</span>}
+        </button>
+      </nav>
       {hasSection("prospectos") && <QuickCapture />}
     </div>
   );
