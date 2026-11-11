@@ -16,7 +16,7 @@ const FORMULARIOS = [
   { nombre: "Prospectos", lista: "/admin/prospectos", nuevo: "/admin/prospectos/nuevo" },
   { nombre: "Blog", lista: "/admin/blog", nuevo: "/admin/blog/nuevo" },
   { nombre: "Novedades", lista: "/admin/novedades", nuevo: "/admin/novedades/nueva" },
-  { nombre: "Agenda", lista: "/admin/agenda", nuevo: "/admin/agenda/nueva" },
+  { nombre: "Agenda", lista: "/admin/agenda?vista=lista", nuevo: "/admin/agenda/nueva" },
   { nombre: "Remodelaciones", lista: "/admin/remodelaciones", nuevo: "/admin/remodelaciones/nuevo" },
   { nombre: "Materiales", lista: "/admin/materiales", nuevo: "/admin/materiales/nuevo" },
   { nombre: "Plantillas de documentos", lista: "/admin/plantillas-documentos", nuevo: "/admin/plantillas-documentos/nueva" },

@@ -3,8 +3,12 @@
   gap: 0.4rem;
 }
 
+/* minmax(0, 1fr) y min-width: 0 en todo el calendario: un título de cita largo ya no
+   ensancha su columna (con 1fr a secas la rejilla crecía y en el teléfono toda la
+   página se corría de lado). El texto se corta con «…» dentro de su cuadro. */
 .agenda-calendar {
   padding: 1rem 1.1rem 1.25rem;
+  min-width: 0;
 }
 
 .agenda-calendar__nav {
@@ -16,6 +20,7 @@
 
 .agenda-calendar__title {
   flex: 1;
+  min-width: 0;
   text-transform: capitalize;
 }
 
@@ -25,7 +30,7 @@
 
 .agenda-calendar__weekdays {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.4rem;
   margin-bottom: 0.4rem;
   font-size: 0.78rem;
@@ -46,11 +51,12 @@
 
 .agenda-calendar__week {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.4rem;
 }
 
 .agenda-calendar__day {
+  min-width: 0;
   min-height: 92px;
   padding: 0.35rem;
   border: 1px solid var(--color-border);
@@ -58,6 +64,61 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  overflow: hidden;
+}
+
+.agenda-calendar__day--selected {
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+
+/* Número del día (y puntitos en el teléfono): se toca para ver las citas de ese día abajo. */
+.agenda-calendar__day-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* En pantalla grande cada cita ya se ve como etiqueta; los puntitos son para el teléfono. */
+.agenda-calendar__dots {
+  display: none;
+}
+
+.agenda-calendar__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.agenda-calendar__dot--solicitada,
+.agenda-calendar__dot--no_asistio {
+  background: var(--color-warning);
+}
+
+.agenda-calendar__dot--realizada {
+  background: var(--color-success);
+}
+
+.agenda-calendar__dot--cancelada {
+  background: var(--color-danger);
+}
+
+.agenda-calendar__dots-more {
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-text-muted);
 }
 
 .agenda-calendar__day--out {
@@ -82,11 +143,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  min-width: 0;
   overflow: hidden;
 }
 
 .agenda-calendar__chip {
   display: block;
+  min-width: 0;
+  max-width: 100%;
   padding: 0.15rem 0.35rem;
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--color-primary) 12%, transparent);
@@ -113,17 +177,129 @@
   cursor: pointer;
 }
 
+/* Citas del día elegido, debajo del calendario. */
+.agenda-day {
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.agenda-day__title {
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+}
+
+.agenda-day__title::first-letter {
+  text-transform: uppercase;
+}
+
+.agenda-day__list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.agenda-day__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.agenda-day__item:hover {
+  border-color: var(--color-primary);
+}
+
+.agenda-day__time {
+  flex-shrink: 0;
+  min-width: 2.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.agenda-day__info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.agenda-day__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.agenda-day__name--cancelled {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+/* Teléfono: cuadros compactos con el número y un puntito por cita (no se lee
+   el título en 50 px de ancho); las citas se ven completas abajo al tocar el día. */
 @media (max-width: 720px) {
+  .agenda-calendar {
+    padding: 0.75rem 0.6rem 1rem;
+  }
+
+  .agenda-calendar__nav {
+    gap: 0.4rem;
+  }
+
+  .agenda-calendar__title {
+    font-size: 0.95rem;
+  }
+
+  .agenda-calendar__weekdays,
+  .agenda-calendar__week {
+    gap: 0.25rem;
+  }
+
+  .agenda-calendar__grid {
+    gap: 0.25rem;
+  }
+
   .agenda-calendar__weekdays span:nth-child(n) {
-    font-size: 0.68rem;
+    font-size: 0.62rem;
   }
 
   .agenda-calendar__day {
-    min-height: 68px;
+    min-height: 0;
+    padding: 0;
   }
 
-  .agenda-calendar__chip {
-    font-size: 0.66rem;
+  .agenda-calendar__day-btn {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0.25rem;
+    min-height: 2.9rem;
+    padding: 0.35rem 0.15rem;
+  }
+
+  .agenda-calendar__day-number {
+    font-size: 0.85rem;
+  }
+
+  .agenda-calendar__dots {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .agenda-calendar__chips {
+    display: none;
   }
 }
 
@@ -241,4 +417,17 @@
   color: inherit;
   font: inherit;
   font-size: 0.85rem;
+}
+
+/* Teléfono: los dos filtros lado a lado para que el calendario quede más arriba. */
+@media (max-width: 720px) {
+  .agenda-filters {
+    gap: 0.6rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .agenda-filters .form-field {
+    min-width: 0;
+    flex: 1 1 9rem;
+  }
 }

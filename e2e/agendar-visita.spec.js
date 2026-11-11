@@ -88,7 +88,7 @@ test.describe("Agendar visita", () => {
       (email) => localStorage.setItem("acl_local_session", JSON.stringify({ user: { email } })),
       "admin@aclpropiedades.com",
     );
-    await go("/admin/agenda");
+    await go("/admin/agenda?vista=lista");
     await page.selectOption("#agenda-status-filter", "cancelled");
     const fila = page.locator("tbody tr", { hasText: "Ana Pérez QA" });
     await expect(fila).toContainText("Cancelada por el cliente — Surgió un imprevisto QA");
@@ -158,7 +158,7 @@ test.describe("Agendar visita", () => {
     await expect(solicitudes).toContainText("Solicitudes de visita sin asesor");
     await expect(solicitudes).toContainText("Dana Solicitud QA");
 
-    await go("/admin/agenda");
+    await go("/admin/agenda?vista=lista");
     const fila = page.locator("tbody tr", { hasText: "Dana Solicitud QA" });
     await expect(fila).toContainText("Sin asesor");
     await expect(fila).toContainText("Nadie la ha tomado todavía");
@@ -204,7 +204,7 @@ test.describe("Agendar visita", () => {
     await expect(page.getByRole("button", { name: "Copiar enlace" })).toBeVisible();
 
     // En la Agenda también salen sus botones de enlace.
-    await go("/admin/agenda");
+    await go("/admin/agenda?vista=lista");
     const fila = page.locator("tbody tr", { hasText: "Firma de contrato QA" });
     await expect(fila).toContainText("Pedro Contacto QA");
     await expect(fila.getByRole("button", { name: "Enviar enlace" })).toBeVisible();
@@ -220,7 +220,7 @@ test.describe("Agendar visita", () => {
     await press(page.getByRole("button", { name: "Sí, cancelar mi visita" }));
     await expect(page.locator("main")).toContainText("Cancelamos tu visita");
 
-    await go("/admin/agenda");
+    await go("/admin/agenda?vista=lista");
     await page.selectOption("#agenda-status-filter", "cancelled");
     await expect(page.locator("tbody tr", { hasText: "Firma de contrato QA" })).toContainText("Cancelada por el cliente");
   });
@@ -263,7 +263,7 @@ test.describe("Agendar visita", () => {
     await expect(porConfirmar.getByRole("button", { name: "¡Enlace copiado!" })).toBeVisible();
 
     // ── Agenda: «Enviar enlace» abre WhatsApp con el enlace en el mensaje ──
-    await go("/admin/agenda");
+    await go("/admin/agenda?vista=lista");
     const fila = page.locator("tbody tr", { hasText: "Carla Enlace QA" });
     await expect(fila.getByRole("button", { name: "Copiar enlace" })).toBeVisible();
     await page.evaluate(() => {
@@ -336,7 +336,7 @@ test.describe("Agendar visita", () => {
     await expect(page.locator("main")).not.toContainText("Visitas por cerrar");
 
     // ── La cita quedó realizada y ligada a su visita, y el prospecto a su cita ──
-    await go("/admin/agenda");
+    await go("/admin/agenda?vista=lista");
     const fila = page.locator("tbody tr", { hasText: "Beto Cierre QA" });
     await expect(fila).toContainText("Realizada");
     await expect(fila).toContainText("Visita registrada");
