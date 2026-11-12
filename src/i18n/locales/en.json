@@ -580,6 +580,7 @@
     "someFailed": "Some records couldn't be updated — try again."
   },
   "common": {
+    "more": "More",
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",
@@ -3361,6 +3362,9 @@
     "logged": "Contact logged."
   },
   "quickCapture": {
+    "menu": "Quick actions",
+    "newAppointment": "New appointment",
+    "logVisit": "Log visit",
     "open": "Quick prospect",
     "title": "Quick prospect",
     "hint": "Just enough so you don't lose them; fill in the rest later.",

@@ -1,4 +1,4 @@
-import { test, expect, isoDate } from "./fixtures.js";
+import { test, expect, isoDate, abrirMas } from "./fixtures.js";
 
 // Lo que el asesor hace a diario con un prospecto, sin cambiar de pantalla ni volver a teclear datos:
 //  - «Agendar» abre la cita ya llena (título, propiedad, contacto, prospecto) y solo falta fecha y hora;
@@ -34,12 +34,6 @@ async function sembrar(page, go, rows, ruta) {
 }
 
 const leer = (page, clave) => page.evaluate((k) => JSON.parse(localStorage.getItem(k) || "[]"), clave);
-
-async function abrirMas(tarjeta, press) {
-  const mas = tarjeta.locator("details.prospect-more");
-  if (!(await mas.evaluate((el) => el.open))) await press(mas.locator("summary"));
-  await expect(mas).toHaveJSProperty("open", true);
-}
 
 test.describe("Prospectos: acciones del día a día", () => {
   test.beforeEach(async ({ seedAdminSession }) => {
@@ -216,6 +210,40 @@ test.describe("Prospectos: acciones del día a día", () => {
       await expect(t.getByRole("button", { name: "Eliminar" })).toBeHidden();
       await abrirMas(t, press);
       await expect(t.getByRole("button", { name: "Eliminar" })).toBeVisible();
+    });
+  });
+
+  test("el botón «+» ofrece prospecto, cita y visita; la cita y la visita regresan a donde se estaba al cancelar", async ({ page, go, press }) => {
+    await go("/admin/mi-dia");
+    const mas = page.getByRole("button", { name: "Acciones rápidas" });
+    const menu = page.getByRole("menu", { name: "Acciones rápidas" });
+
+    await test.step("el menú trae las tres acciones y se cierra con Escape o tocando fuera", async () => {
+      await press(mas);
+      await expect(mas).toHaveAttribute("aria-expanded", "true");
+      await expect(menu.getByRole("menuitem")).toHaveText(["Prospecto rápido", "Nueva cita", "Registrar visita"]);
+      await page.keyboard.press("Escape");
+      await expect(menu).toBeHidden();
+      await press(mas);
+      await page.mouse.click(5, 120);
+      await expect(menu).toBeHidden();
+    });
+
+    await test.step("«Nueva cita» abre el formulario y «Cancelar» regresa a Mi día", async () => {
+      await press(mas);
+      await press(menu.getByRole("menuitem", { name: "Nueva cita" }));
+      await page.waitForURL("**/admin/agenda/nueva");
+      await expect(menu).toBeHidden();
+      await press(page.getByRole("button", { name: "Cancelar" }));
+      await page.waitForURL("**/admin/mi-dia");
+    });
+
+    await test.step("«Registrar visita» abre el formulario de visitas", async () => {
+      await press(mas);
+      await press(menu.getByRole("menuitem", { name: "Registrar visita" }));
+      await page.waitForURL("**/admin/visitas/nueva");
+      await press(page.getByRole("link", { name: "Cancelar" }));
+      await page.waitForURL("**/admin/mi-dia");
     });
   });
 });

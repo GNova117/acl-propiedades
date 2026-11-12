@@ -580,6 +580,7 @@
     "someFailed": "Algunos registros no se pudieron actualizar — vuelve a intentar."
   },
   "common": {
+    "more": "Más",
     "loading": "Cargando...",
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -3361,6 +3362,9 @@
     "logged": "Contacto registrado."
   },
   "quickCapture": {
+    "menu": "Acciones rápidas",
+    "newAppointment": "Nueva cita",
+    "logVisit": "Registrar visita",
     "open": "Prospecto rápido",
     "title": "Prospecto rápido",
     "hint": "Lo mínimo para no perderlo; el resto lo completas después.",

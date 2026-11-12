@@ -1,5 +1,5 @@
 import { statSync } from "node:fs";
-import { test, expect, isoDate } from "./fixtures.js";
+import { test, expect, isoDate, abrirMas } from "./fixtures.js";
 
 // Funciones puntuales del panel con reglas propias (cálculos, PDFs, modales,
 // validaciones de negocio). En PC y en móvil.
@@ -12,7 +12,8 @@ test.describe("Panel: funciones", () => {
   test("captura rápida (botón +): guarda un prospecto y aparece en Prospectos", async ({ page, go, press }) => {
     const marca = `RapidoQA ${Date.now() % 10000}`;
     await go("/admin");
-    await press(page.getByRole("button", { name: /Prospecto rápido/ }));
+    await press(page.getByRole("button", { name: "Acciones rápidas" }));
+    await press(page.getByRole("menuitem", { name: "Prospecto rápido" }));
     const panel = page.locator(".quick-capture__sheet");
     await expect(panel).toBeVisible();
     const caja = await panel.boundingBox();
@@ -119,6 +120,8 @@ test.describe("Panel: funciones", () => {
     await expect(fila).toBeVisible();
 
     for (const etiqueta of [/^Enviar|Send/, /QR/, /Redes|Publicar|Social/]) {
+      // «Enviar» está a la vista; QR y Redes, tras «Más».
+      if (!/Enviar/.test(String(etiqueta))) await abrirMas(fila, press);
       const boton = fila.locator("button", { hasText: etiqueta }).first();
       await boton.scrollIntoViewIfNeeded();
       await press(boton);
@@ -137,7 +140,9 @@ test.describe("Panel: funciones", () => {
 
   test("propiedades: «Ficha» descarga un PDF", async ({ page, go, press }) => {
     await go("/admin/propiedades");
-    const boton = page.locator(".admin-table tbody tr").first().locator("button", { hasText: /Ficha|PDF/ }).first();
+    const fila = page.locator(".admin-table tbody tr").first();
+    await abrirMas(fila, press);
+    const boton = fila.locator("button", { hasText: /Ficha|PDF/ }).first();
     await boton.scrollIntoViewIfNeeded();
     const [descarga] = await Promise.all([page.waitForEvent("download", { timeout: 20_000 }), press(boton)]);
     expect(descarga.suggestedFilename()).toMatch(/\.pdf$/);

@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures.js";
+import { test, expect, abrirMas } from "./fixtures.js";
 
 // Panel de administración, en PC y en móvil. Entra por el login demo
 // (admin@aclpropiedades.com / Admin123!); las pruebas que no son del login usan
@@ -149,6 +149,7 @@ test.describe("Propiedades", () => {
     await test.step("eliminar y desaparece del sitio", async () => {
       await go("/admin/propiedades");
       await fila().scrollIntoViewIfNeeded();
+      await abrirMas(fila(), press);
       await press(fila().locator("button.btn-danger"));
       await expect(fila()).toHaveCount(0);
       await go("/propiedades");

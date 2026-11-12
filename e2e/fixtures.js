@@ -96,3 +96,11 @@ export async function expectHealthyPage(page) {
   expect(info.emptySrc, "hay <img src=\"\"> (propiedad o asesor sin foto)").toBe(0);
   expect(info.brokenOwnImages, "imágenes propias rotas").toEqual([]);
 }
+
+// Abre el «Más» de una tarjeta o fila de lista (prospectos, propiedades, clientes) si estaba cerrado:
+// lo menos frecuente —y lo destructivo, como Eliminar— va ahí dentro.
+export async function abrirMas(contenedor, press) {
+  const mas = contenedor.locator("details.prospect-more, details.row-more");
+  if (!(await mas.evaluate((el) => el.open))) await press(mas.locator("summary"));
+  await expect(mas).toHaveJSProperty("open", true);
+}

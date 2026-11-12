@@ -274,7 +274,7 @@ export default function AdminLayout() {
           {newMessagesCount > 0 && <span className="admin-layout__nav-badge admin-tabbar__badge">{newMessagesCount}</span>}
         </button>
       </nav>
-      {hasSection("prospectos") && <QuickCapture />}
+      <QuickCapture />
     </div>
   );
 }

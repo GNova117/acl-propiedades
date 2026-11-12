@@ -343,4 +343,8 @@
   .quick-capture__fab {
     bottom: calc(var(--admin-tabbar-height) + 0.75rem + env(safe-area-inset-bottom, 0px));
   }
+
+  .quick-capture__menu {
+    bottom: calc(var(--admin-tabbar-height) + 0.75rem + 3.5rem + 0.6rem + env(safe-area-inset-bottom, 0px));
+  }
 }

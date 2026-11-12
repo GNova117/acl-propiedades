@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures.js";
+import { test, expect, abrirMas } from "./fixtures.js";
 
 // Flujos críticos de punta a punta, como los vive cada persona:
 //  - el cliente en su portal (pendientes, subir un documento, ver el avance)
@@ -30,14 +30,6 @@ async function crearCliente(page, go, press, { nombre, tipo = "comprador", finan
   );
   expect(id, "el cliente quedó guardado").toBeTruthy();
   return id;
-}
-
-// Lo menos frecuente de una tarjeta de prospecto (etapa, agendar, ficha, convertir,
-// eliminar) está tras «Más»: se abre si no lo estaba.
-async function abrirMas(tarjeta, press) {
-  const mas = tarjeta.locator("details.prospect-more");
-  if (!(await mas.evaluate((el) => el.open))) await press(mas.locator("summary"));
-  await expect(mas).toHaveJSProperty("open", true);
 }
 
 // Captura WhatsApp en vez de abrir otra pestaña: guarda las URL que se abrirían.
@@ -200,7 +192,7 @@ test.describe("Mi día como inicio y barra de abajo en el teléfono", () => {
     await expect(barra.getByRole("link", { name: /Agenda/ })).toHaveClass(/active/);
 
     // El botón + de captura rápida no queda tapado por la barra.
-    const fab = await page.getByRole("button", { name: /Prospecto rápido/ }).boundingBox();
+    const fab = await page.getByRole("button", { name: "Acciones rápidas" }).boundingBox();
     const caja = await barra.boundingBox();
     expect(fab.y + fab.height, "el botón + queda encima de la barra").toBeLessThanOrEqual(caja.y + 1);
 
@@ -230,7 +222,8 @@ test.describe("Seguimiento de un prospecto con la plantilla de su etapa", () => 
 
     await test.step("captura rápida", async () => {
       await go("/admin/prospectos");
-      await press(page.getByRole("button", { name: /Prospecto rápido/ }));
+      await press(page.getByRole("button", { name: "Acciones rápidas" }));
+      await press(page.getByRole("menuitem", { name: "Prospecto rápido" }));
       const panel = page.locator(".quick-capture__sheet");
       await panel.locator("#qc-name").fill(nombre);
       await panel.locator("#qc-phone").fill("8715550202");
