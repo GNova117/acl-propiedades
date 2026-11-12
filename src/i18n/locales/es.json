@@ -3409,6 +3409,38 @@
     "logTitle": "¿Ya se lo mandaste? Registra el contacto con {{name}}:",
     "logged": "Contacto registrado."
   },
+  "offline": {
+    "banner": {
+      "label": "Estado de la conexión",
+      "offline": "Sin conexión. Lo que captures se guarda en este dispositivo y se envía solo al volver la señal.",
+      "offlinePending_one": "Sin conexión. {{count}} cambio por enviar: saldrá al volver la señal.",
+      "offlinePending_other": "Sin conexión. {{count}} cambios por enviar: saldrán al volver la señal.",
+      "pending_one": "{{count}} cambio por enviar.",
+      "pending_other": "{{count}} cambios por enviar.",
+      "sending": "Enviando…",
+      "sent_one": "Se envió {{count}} cambio.",
+      "sent_other": "Se enviaron {{count}} cambios.",
+      "failed_one": "{{count}} no se pudo enviar.",
+      "failed_other": "{{count}} no se pudieron enviar.",
+      "sendNow": "Enviar ahora",
+      "view": "Ver",
+      "hide": "Ocultar"
+    },
+    "op": {
+      "prospect": "Prospecto nuevo: {{name}}",
+      "contact": "Contacto con {{name}} ({{channel}})",
+      "when": "Capturado {{when}}",
+      "failed": "No se pudo enviar: {{error}}",
+      "retry": "Reintentar",
+      "discard": "Descartar",
+      "confirmDiscard": "¿Descartar este cambio? Se perderá y no se enviará."
+    },
+    "quickSaved": "Guardado en este dispositivo: {{name}}. Se enviará cuando haya señal.",
+    "saveFailed": "No se pudo guardar sin conexión en este dispositivo. Intenta de nuevo con señal.",
+    "noteSuffix": "(registrado sin conexión: {{when}})",
+    "logoutConfirm_one": "Tienes {{count}} cambio sin enviar. Si cierras sesión se queda en este dispositivo hasta que vuelvas a entrar con tu cuenta. ¿Cerrar sesión?",
+    "logoutConfirm_other": "Tienes {{count}} cambios sin enviar. Si cierras sesión se quedan en este dispositivo hasta que vuelvas a entrar con tu cuenta. ¿Cerrar sesión?"
+  },
   "quickCapture": {
     "menu": "Acciones rápidas",
     "newAppointment": "Nueva cita",

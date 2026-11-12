@@ -9,6 +9,8 @@ import AdminGlobalSearch from "../../components/AdminGlobalSearch";
 import InstallAppButton from "../../components/InstallAppButton";
 import NotificationBell from "../../components/NotificationBell";
 import QuickCapture from "../../components/QuickCapture";
+import OfflineBanner from "../../components/OfflineBanner";
+import { getQueue } from "../../lib/offlineQueue";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
 import { HOME_MY_DAY, mobileTabs } from "../../lib/adminHome";
@@ -102,7 +104,7 @@ const isInside = (pathname, to) => pathname === to || pathname.startsWith(`${to}
 
 export default function AdminLayout() {
   const { t } = useTranslation();
-  const { logout, hasSection, advisorId } = useAuth();
+  const { logout, hasSection, advisorId, session } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [newMessagesCount, setNewMessagesCount] = useState(0);
@@ -189,6 +191,9 @@ export default function AdminLayout() {
   }, [pathname]);
 
   const handleLogout = async () => {
+    // Lo que se capturó sin señal y aún no se envía se queda en este dispositivo: se avisa antes de salir.
+    const waiting = getQueue(session?.user?.email).length;
+    if (waiting > 0 && !window.confirm(t("offline.logoutConfirm", { count: waiting }))) return;
     await logout();
     navigate("/admin/login", { replace: true });
   };
@@ -249,6 +254,7 @@ export default function AdminLayout() {
           </div>
         </header>
         <main className="admin-layout__content">
+          <OfflineBanner />
           <ErrorBoundary key={pathname} homePath="/admin">
             <Outlet />
           </ErrorBoundary>

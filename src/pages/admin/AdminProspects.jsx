@@ -47,7 +47,8 @@ export default function AdminProspects() {
   const visits = visitsQ.data ?? NONE;
   const history = historyQ.data ?? NONE;
   const loading = prospectsQ.loading;
-  const loadError = [prospectsQ, advisorsQ, propertiesQ].find((q) => q.error)?.error.message || "";
+  // Sin señal la lista que ya estaba cargada sigue a la vista: el error de red solo se muestra si no hay nada que mostrar.
+  const loadError = prospectsQ.data ? "" : [prospectsQ, advisorsQ, propertiesQ].find((q) => q.error)?.error.message || "";
   const setProspects = prospectsQ.mutate;
   const [busyId, setBusyId] = useState(null);
   const [importing, setImporting] = useState(false);

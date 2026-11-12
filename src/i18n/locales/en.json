@@ -3409,6 +3409,38 @@
     "logTitle": "Already sent it? Log the contact with {{name}}:",
     "logged": "Contact logged."
   },
+  "offline": {
+    "banner": {
+      "label": "Connection status",
+      "offline": "No connection. What you capture is saved on this device and sent when the signal returns.",
+      "offlinePending_one": "No connection. {{count}} change waiting to be sent: it will go out when the signal returns.",
+      "offlinePending_other": "No connection. {{count}} changes waiting to be sent: they will go out when the signal returns.",
+      "pending_one": "{{count}} change waiting to be sent.",
+      "pending_other": "{{count}} changes waiting to be sent.",
+      "sending": "Sending…",
+      "sent_one": "{{count}} change was sent.",
+      "sent_other": "{{count}} changes were sent.",
+      "failed_one": "{{count}} could not be sent.",
+      "failed_other": "{{count}} could not be sent.",
+      "sendNow": "Send now",
+      "view": "View",
+      "hide": "Hide"
+    },
+    "op": {
+      "prospect": "New prospect: {{name}}",
+      "contact": "Contact with {{name}} ({{channel}})",
+      "when": "Captured {{when}}",
+      "failed": "Could not be sent: {{error}}",
+      "retry": "Retry",
+      "discard": "Discard",
+      "confirmDiscard": "Discard this change? It will be lost and will not be sent."
+    },
+    "quickSaved": "Saved on this device: {{name}}. It will be sent when there is signal.",
+    "saveFailed": "Could not save on this device while offline. Try again with signal.",
+    "noteSuffix": "(logged offline: {{when}})",
+    "logoutConfirm_one": "You have {{count}} unsent change. If you log out it stays on this device until you log back in with your account. Log out?",
+    "logoutConfirm_other": "You have {{count}} unsent changes. If you log out they stay on this device until you log back in with your account. Log out?"
+  },
   "quickCapture": {
     "menu": "Quick actions",
     "newAppointment": "New appointment",

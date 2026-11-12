@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/dataStore";
 import { quickProspectFields, validateQuickProspect } from "../lib/quickProspect";
 import { mutate } from "../lib/dataCache";
+import { enqueueProspect, isOfflineError, isOnline, newId, withTimeout } from "../lib/offlineQueue";
 import { queries } from "../lib/queries";
 import DuplicateWarning from "./DuplicateWarning";
 import "./QuickCapture.css";
@@ -25,7 +26,8 @@ const EMPTY = { name: "", phone: "", lookingFor: "", pasted: "" };
 // la pantalla donde estabas (`state.from`).
 export default function QuickCapture() {
   const { t } = useTranslation();
-  const { advisorId, hasSection } = useAuth();
+  const { advisorId, hasSection, session } = useAuth();
+  const email = session?.user?.email || "";
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -89,21 +91,33 @@ export default function QuickCapture() {
     if (Object.keys(found).length > 0) return;
     setSaving(true);
     setSaveError("");
+    // Con su propio id desde el primer intento: si la petición llegó pero se perdió la respuesta, el reenvío
+    // desde la cola choca con ese id y no duplica al prospecto (ver lib/offlineQueue.js).
+    const fields = { ...quickProspectFields(form, { advisorId }), id: newId() };
+    // Sin señal: se guarda en este dispositivo y se envía solo al volver la conexión.
+    const saveOffline = () => {
+      if (enqueueProspect(email, fields)) setSaved({ ...fields, offline: true });
+      else setSaveError(t("offline.saveFailed"));
+    };
     try {
-      const fields = quickProspectFields(form, { advisorId });
+      if (!isOnline()) {
+        saveOffline();
+        return;
+      }
       if (duplicates.length === 0) {
-        const found = await db.findContactDuplicates({ phone: fields.phone, email: fields.email });
+        const found = await withTimeout(db.findContactDuplicates({ phone: fields.phone, email: fields.email }));
         if (found.length > 0) {
           setDuplicates(found);
           return;
         }
       }
-      const record = await db.addProspect(fields);
+      const record = await withTimeout(db.addProspect(fields));
       // Si la lista de prospectos ya está cargada, el nuevo aparece en ella sin esperar a pedirla otra vez.
       mutate(queries.prospects.key, (prev) => [record, ...prev]);
       setSaved(record);
     } catch (err) {
-      setSaveError(err.message || t("quickCapture.saveError"));
+      if (isOfflineError(err)) saveOffline();
+      else setSaveError(err.message || t("quickCapture.saveError"));
     } finally {
       setSaving(false);
     }
@@ -181,12 +195,14 @@ export default function QuickCapture() {
             {saved ? (
               <div className="quick-capture__done" role="status">
                 <p>
-                  <strong>{t("quickCapture.saved", { name: saved.name })}</strong>
+                  <strong>{t(saved.offline ? "offline.quickSaved" : "quickCapture.saved", { name: saved.name })}</strong>
                 </p>
                 <div className="quick-capture__actions">
-                  <Link to={`/admin/prospectos/${saved.id}`} className="btn btn-primary" onClick={close}>
-                    {t("quickCapture.openProspect")}
-                  </Link>
+                  {!saved.offline && (
+                    <Link to={`/admin/prospectos/${saved.id}`} className="btn btn-primary" onClick={close}>
+                      {t("quickCapture.openProspect")}
+                    </Link>
+                  )}
                   <button type="button" className="btn btn-outline" onClick={reset}>
                     {t("quickCapture.addAnother")}
                   </button>
