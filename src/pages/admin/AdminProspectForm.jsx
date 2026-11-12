@@ -18,6 +18,8 @@ import InternalNotes from "../../components/InternalNotes";
 import ProspectContactHistory from "../../components/ProspectContactHistory";
 import ProspectProfile from "../../components/ProspectProfile";
 import DuplicateWarning from "../../components/DuplicateWarning";
+import { queries } from "../../lib/queries";
+import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
 import "./AdminProspects.css";
 
@@ -26,6 +28,8 @@ import "./AdminProspects.css";
 // Al abrir uno que ya existe se ve primero su ficha (resumen y acciones, ver
 // ProspectProfile), luego el historial y las notas; el formulario de edición
 // queda plegado al final. Al dar de alta solo está el formulario.
+const NONE = [];
+
 export default function AdminProspectForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -33,10 +37,12 @@ export default function AdminProspectForm() {
   const { advisorId } = useAuth();
   const isEdit = Boolean(id);
 
-  const [properties, setProperties] = useState([]);
-  const [advisors, setAdvisors] = useState([]);
-  const [zones, setZones] = useState([]);
-  const [propertyTypes, setPropertyTypes] = useState([]);
+  // Las listas salen del caché (ver dataCache.js): si ya se pidieron en otra pantalla, el formulario abre
+  // al instante; si no, se llenan en cuanto llegan (no hace falta esperarlas para empezar a escribir).
+  const properties = useQuery(queries.properties).data ?? NONE;
+  const advisors = useQuery(queries.advisors).data ?? NONE;
+  const zones = useQuery(queries.zones).data ?? NONE;
+  const propertyTypes = useQuery(queries.propertyTypes).data ?? NONE;
   // ¿Ya tenía "qué busca" guardado? Solo entonces se manda null al vaciarlo.
   const hadCriteria = useRef(false);
   const [prospect, setProspect] = useState(null); // el prospecto guardado (solo al editar)
@@ -44,7 +50,8 @@ export default function AdminProspectForm() {
   const [historyKey, setHistoryKey] = useState(0);
   const [form, setForm] = useState(() => emptyProspectForm({ advisor_id: advisorId || "" }));
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(true);
+  // Solo al editar hay algo que esperar: el prospecto guardado.
+  const [loading, setLoading] = useState(isEdit);
   const [notFound, setNotFound] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -53,27 +60,16 @@ export default function AdminProspectForm() {
   const [duplicates, setDuplicates] = useState([]);
 
   useEffect(() => {
+    if (!isEdit) return undefined;
     let cancelled = false;
-    Promise.all([
-      db.getProperties({}),
-      db.getAdvisors(),
-      isEdit ? db.getProspectById(id) : Promise.resolve(null),
-      db.getZones().catch(() => []),
-      db.getPropertyTypes().catch(() => []),
-    ])
-      .then(([propertyData, advisorData, saved, zoneData, typeData]) => {
+    db.getProspectById(id)
+      .then((saved) => {
         if (cancelled) return;
-        setProperties(propertyData);
-        setAdvisors(advisorData);
-        setZones(zoneData);
-        setPropertyTypes(typeData);
-        if (isEdit) {
-          if (saved) {
-            hadCriteria.current = Object.keys(saved.search_criteria || {}).length > 0;
-            setProspect(saved);
-            setForm(prospectToForm(saved));
-          } else setNotFound(true);
-        }
+        if (saved) {
+          hadCriteria.current = Object.keys(saved.search_criteria || {}).length > 0;
+          setProspect(saved);
+          setForm(prospectToForm(saved));
+        } else setNotFound(true);
       })
       .catch((err) => !cancelled && setSaveError(err.message || t("prospects.saveError")))
       .finally(() => !cancelled && setLoading(false));

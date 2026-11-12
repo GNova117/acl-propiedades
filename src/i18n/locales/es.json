@@ -2060,6 +2060,13 @@
       "days_one": "Sin atender: {{count}} día",
       "days_other": "Sin atender: {{count}} días"
     },
+    "outcomes": {
+      "legend": "Resultado rápido",
+      "hint": "Un toque lo guarda y programa el seguimiento: mañana, o en 3 días si le interesó.",
+      "noAnswer": "No contestó",
+      "callLater": "Pidió que le llame más tarde",
+      "interested": "Interesado"
+    },
     "contact": {
       "channel": "¿Cómo lo contactaste?",
       "channels": {
@@ -3237,6 +3244,11 @@
     "cancelAdd": "Cancelar"
   },
   "agenda": {
+    "quick": {
+      "label": "Fecha y hora rápidas",
+      "today": "Hoy",
+      "tomorrow": "Mañana"
+    },
     "property": "Propiedad (opcional)",
     "noProperty": "— (sin propiedad)",
     "linkedProspect": "Esta cita está ligada a un prospecto.",

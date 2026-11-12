@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures.js";
+import { test, expect, abrirMas } from "./fixtures.js";
 
 // Dos mejoras para que el asesor trabaje más rápido:
 //  - Carga entre pantallas: lo ya cargado se reutiliza (caché en memoria, «mostrar lo último y refrescar
@@ -176,6 +176,151 @@ test.describe("Mi día: encabezado compacto y la primera cita a la vista", () =>
       const barra = await page.locator(".admin-tabbar").boundingBox();
       expect(caja.y, "la cita empieza en la primera pantalla").toBeGreaterThan(0);
       expect(caja.y + caja.height, "y termina antes de la barra de abajo").toBeLessThanOrEqual(barra.y);
+    });
+  });
+});
+
+// ── Registro de contacto y agenda en pocos toques ──
+const enDias = (dias) => new Date(Date.now() + dias * 864e5).toLocaleDateString("en-CA");
+
+async function sembrar(page, go, rows, ruta) {
+  await go("/admin/prospectos");
+  await page.evaluate((r) => localStorage.setItem("acl_local_prospectos", JSON.stringify(r)), rows);
+  await go(ruta);
+}
+
+test.describe("Resultado de un toque al registrar un contacto", () => {
+  test.beforeEach(async ({ seedAdminSession }) => {
+    await seedAdminSession();
+  });
+
+  test("«No contestó»: registra la llamada y deja el seguimiento para mañana, sin llenar nada más", async ({ page, go, press }) => {
+    const p = prospecto("o1", "Sin Respuesta QA");
+    await sembrar(page, go, [p], "/admin/prospectos");
+    const tarjeta = page.locator(".prospect-card", { hasText: p.name });
+    await abrirMas(tarjeta, press);
+    await press(tarjeta.getByRole("button", { name: "Registrar contacto" }));
+    const formulario = tarjeta.locator("form.contact-form");
+    await expect(formulario.getByText("Resultado rápido")).toBeVisible();
+
+    await press(formulario.getByRole("button", { name: "No contestó" }));
+    await expect(formulario).toHaveCount(0);
+
+    const [guardado] = await leer(page, "acl_local_prospectos");
+    expect(guardado).toMatchObject({ stage: "contactado", next_followup_at: enDias(1) });
+    expect(guardado.last_contact_at).toBeTruthy();
+    const contactos = await leer(page, "acl_local_prospect_contacts");
+    expect(contactos).toHaveLength(1);
+    expect(contactos[0]).toMatchObject({ prospecto_id: "o1", channel: "llamada", note: "No contestó" });
+  });
+
+  test("«Interesado» (desde la ficha): seguimiento en 3 días y avanza a «interesado»; no hace retroceder a quien está más adelante", async ({ page, go, press }) => {
+    const filas = [prospecto("o2", "Interesa QA", { stage: "contactado", last_contact_at: ahora() }), prospecto("o3", "Negocia QA", { stage: "negociacion", last_contact_at: ahora() })];
+    await sembrar(page, go, filas, "/admin/prospectos/o2");
+    const ficha = page.locator(".prospect-profile");
+    await press(ficha.getByRole("button", { name: "Registrar contacto" }));
+    await press(ficha.locator("form.contact-form").getByRole("button", { name: "Interesado", exact: true }));
+    await expect(ficha.locator("form.contact-form")).toHaveCount(0);
+    await expect(ficha.locator("select[aria-label='Etapa']")).toHaveValue("interesado");
+    await expect(page.locator(".contact-history__item")).toHaveCount(1);
+    let guardados = await leer(page, "acl_local_prospectos");
+    expect(guardados.find((x) => x.id === "o2")).toMatchObject({ stage: "interesado", next_followup_at: enDias(3) });
+
+    await go("/admin/prospectos/o3");
+    await press(page.locator(".prospect-profile").getByRole("button", { name: "Registrar contacto" }));
+    await press(page.locator(".prospect-profile form.contact-form").getByRole("button", { name: "Interesado", exact: true }));
+    await expect(page.locator(".contact-history__item")).toHaveCount(1);
+    guardados = await leer(page, "acl_local_prospectos");
+    expect(guardados.find((x) => x.id === "o3")).toMatchObject({ stage: "negociacion", next_followup_at: enDias(3) });
+  });
+
+  test("en un prospecto cerrado no hay resultados rápidos (no tiene seguimiento)", async ({ page, go, press }) => {
+    const p = prospecto("o4", "Cerrado QA", { stage: "cerrado", last_contact_at: ahora() });
+    await sembrar(page, go, [p], "/admin/prospectos");
+    const tarjeta = page.locator(".prospect-card", { hasText: p.name });
+    await abrirMas(tarjeta, press);
+    await press(tarjeta.getByRole("button", { name: "Registrar contacto" }));
+    await expect(tarjeta.locator("form.contact-form")).toBeVisible();
+    await expect(tarjeta.getByText("Resultado rápido")).toHaveCount(0);
+  });
+});
+
+test.describe("Agendar: fecha y hora rápidas", () => {
+  test.beforeEach(async ({ seedAdminSession }) => {
+    await seedAdminSession();
+  });
+
+  test("«Mañana», un sábado y las horas más comunes llenan la fecha y la hora con un toque", async ({ page, go, press }) => {
+    await go("/admin/agenda/nueva");
+    const atajos = page.getByRole("group", { name: "Fecha y hora rápidas" });
+    await expect(atajos).toBeVisible();
+
+    await press(atajos.getByRole("button", { name: "Mañana" }));
+    await expect(page.locator("#cita-fecha")).toHaveValue(enDias(1));
+    await expect(atajos.getByRole("button", { name: "Mañana" })).toHaveAttribute("aria-pressed", "true");
+    await expect(atajos.getByRole("button", { name: "Hoy" })).toHaveAttribute("aria-pressed", "false");
+
+    await press(atajos.getByRole("button", { name: "Hoy" }));
+    await expect(page.locator("#cita-fecha")).toHaveValue(enDias(0));
+
+    // El tercer atajo es el próximo sábado.
+    const sabado = atajos.locator(".quick-chip").nth(2);
+    await press(sabado);
+    const valor = await page.inputValue("#cita-fecha");
+    expect(new Date(`${valor}T00:00:00`).getDay(), "el tercer atajo cae en sábado").toBe(6);
+
+    await press(atajos.getByRole("button", { name: "10:00" }));
+    await expect(page.locator("#cita-hora")).toHaveValue("10:00");
+    await press(atajos.getByRole("button", { name: "16:00" }));
+    await expect(page.locator("#cita-hora")).toHaveValue("16:00");
+    await expect(atajos.getByRole("button", { name: "10:00" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  test("desde un prospecto: «Agendar» → «Mañana» → «12:00» → Guardar son cuatro toques y la cita queda completa", async ({ page, go, press }) => {
+    test.setTimeout(60_000);
+    const p = prospecto("a1", "Dos Toques QA", { property_id: "prop-1" });
+    await sembrar(page, go, [p], "/admin/prospectos");
+    const tarjeta = page.locator(".prospect-card", { hasText: p.name });
+    await abrirMas(tarjeta, press);
+    await press(tarjeta.getByRole("link", { name: "Agendar", exact: true }));
+    await page.waitForURL("**/admin/agenda/nueva");
+    await press(page.getByRole("button", { name: "Mañana" }));
+    await press(page.getByRole("button", { name: "12:00" }));
+    await press(page.locator("form button[type=submit]"));
+    await page.waitForURL(/\/admin\/agenda\/(?!nueva)[^/]+$/);
+    const [guardada] = await leer(page, "acl_local_agenda_citas");
+    expect(guardada).toMatchObject({ prospecto_id: "a1", property_id: "prop-1", fecha: enDias(1), hora: "12:00" });
+  });
+});
+
+test.describe("Refrescar al volver a la app", () => {
+  test.beforeEach(async ({ seedAdminSession }) => {
+    await seedAdminSession();
+  });
+
+  test("al volver a la app, un prospecto nuevo del sitio aparece sin cambiar de pantalla; si se acaba de cargar, no se repite la consulta", async ({ page, go }) => {
+    await go("/admin/prospectos");
+    await page.evaluate((rows) => localStorage.setItem("acl_local_prospectos", JSON.stringify(rows)), [prospecto("f1", "Ya Estaba QA")]);
+    await go("/admin/prospectos");
+    await expect(page.locator(".prospect-card", { hasText: "Ya Estaba QA" })).toBeVisible();
+
+    const alVolver = () => page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    const filas = await leer(page, "acl_local_prospectos");
+    await page.evaluate((rows) => localStorage.setItem("acl_local_prospectos", JSON.stringify(rows)), [...filas, prospecto("f2", "Llegó Del Sitio QA", { source: "sitio" })]);
+
+    await test.step("recién cargado (menos de 20 s): volver a la app no vuelve a pedir la lista", async () => {
+      await alVolver();
+      await page.waitForTimeout(400);
+      await expect(page.locator(".prospect-card", { hasText: "Llegó Del Sitio QA" })).toHaveCount(0);
+    });
+
+    await test.step("pasados 20 s, al volver aparece solo", async () => {
+      await page.clock.install();
+      await page.clock.fastForward(30_000);
+      await page.clock.resume();
+      await alVolver();
+      await expect(page.locator(".prospect-card", { hasText: "Llegó Del Sitio QA" })).toBeVisible();
+      await expect(page.locator(".prospect-card", { hasText: "Ya Estaba QA" })).toBeVisible();
     });
   });
 });

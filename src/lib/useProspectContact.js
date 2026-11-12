@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "./dataStore";
-import { contactFields } from "./prospects";
+import { contactUpdate } from "./prospectContacts";
 
 // Estado del formulario "Registrar contacto" de un prospecto (el que se abre
 // bajo su tarjeta o su ficha). Lo comparten Prospectos, Mi día y la ficha:
@@ -9,7 +9,8 @@ import { contactFields } from "./prospects";
 //     estaba abierto en ese prospecto; `forzar` lo deja abierto, para cuando
 //     el asesor acaba de mandar un WhatsApp o llamar y el canal ya se sabe);
 //   save(prospecto, valores) — guarda el contacto en el historial, actualiza
-//     al prospecto (último contacto, etapa, siguiente seguimiento) y avisa con
+//     al prospecto (último contacto, etapa, siguiente seguimiento; `stage` opcional
+//     avanza la etapa) y avisa con
 //     `onUpdated(prospectoActualizado)`.
 export function useProspectContact({ onUpdated } = {}) {
   const { t } = useTranslation();
@@ -24,11 +25,11 @@ export function useProspectContact({ onUpdated } = {}) {
 
   const close = () => setTarget(null);
 
-  const save = async (prospect, { channel, note, nextFollowup }) => {
+  const save = async (prospect, { channel, note, nextFollowup, stage }) => {
     setSaving(true);
     setError("");
     try {
-      const updated = await db.logProspectContact(prospect.id, contactFields(prospect, nextFollowup), { channel, note });
+      const updated = await db.logProspectContact(prospect.id, contactUpdate(prospect, { nextFollowup, stage }), { channel, note });
       onUpdated?.(updated);
       setTarget(null);
     } catch (err) {

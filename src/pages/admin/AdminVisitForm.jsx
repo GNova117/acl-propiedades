@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
 import { closeLoopAfterVisit } from "../../lib/visitProspect";
+import { queries } from "../../lib/queries";
+import { useQuery } from "../../lib/useQuery";
 import {
   REJECTION_REASONS,
   VISIT_INTERESTS,
@@ -22,6 +24,8 @@ import "./AdminVisits.css";
 // propiedad ya elegida). El asesor con un login vinculado a su perfil siempre
 // registra a su nombre; el correo de oficina (sin asesor vinculado) elige quién
 // hizo el recorrido.
+const NONE = [];
+
 export default function AdminVisitForm() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -35,28 +39,28 @@ export default function AdminVisitForm() {
   // el formulario ya prellenado: propiedad, asesor, fecha y hora, y nombre y teléfono de quien visitó.
   const prefill = !isEdit ? location.state?.prefill || null : null;
 
-  const [properties, setProperties] = useState([]);
-  const [advisors, setAdvisors] = useState([]);
+  // Las listas salen del caché (ver dataCache.js): si ya se pidieron en otra pantalla, el formulario abre
+  // al instante; si no, se llenan en cuanto llegan (no hace falta esperarlas para empezar a escribir).
+  const properties = useQuery(queries.properties).data ?? NONE;
+  const advisors = useQuery(queries.advisors).data ?? NONE;
   const [form, setForm] = useState(() =>
     emptyVisitForm({ property_id: presetProperty, advisor_id: advisorId || "", ...(prefill ? { ...prefill, advisor_id: advisorId || prefill.advisor_id || "" } : {}) })
   );
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(true);
+  // Solo al editar hay algo que esperar: la visita guardada.
+  const [loading, setLoading] = useState(isEdit);
   const [notFound, setNotFound] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
+    if (!isEdit) return undefined;
     let cancelled = false;
-    Promise.all([db.getProperties({}), db.getAdvisors(), isEdit ? db.getVisitById(id) : Promise.resolve(null)])
-      .then(([propertyData, advisorData, visit]) => {
+    db.getVisitById(id)
+      .then((visit) => {
         if (cancelled) return;
-        setProperties(propertyData);
-        setAdvisors(advisorData);
-        if (isEdit) {
-          if (visit) setForm(visitToForm(visit));
-          else setNotFound(true);
-        }
+        if (visit) setForm(visitToForm(visit));
+        else setNotFound(true);
       })
       .catch((err) => !cancelled && setSaveError(err.message || t("visits.form.saveError")))
       .finally(() => !cancelled && setLoading(false));

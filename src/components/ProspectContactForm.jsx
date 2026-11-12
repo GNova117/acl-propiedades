@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CONTACT_CHANNELS, FOLLOWUP_KEEP, FOLLOWUP_NONE, followupArg, validateContact } from "../lib/prospectContacts";
+import { CONTACT_CHANNELS, CONTACT_OUTCOMES, FOLLOWUP_KEEP, FOLLOWUP_NONE, followupArg, outcomeValues, validateContact } from "../lib/prospectContacts";
 import { FOLLOWUP_OPTIONS, addDaysISO, isOpenStage, todayISO } from "../lib/prospects";
 import "./ProspectContactForm.css";
 
@@ -11,6 +11,9 @@ import "./ProspectContactForm.css";
 // No preselecciona un canal por su cuenta (se guardaría un dato equivocado sin
 // que nadie lo note); solo cuando el asesor acaba de mandar un WhatsApp o un
 // correo desde los mensajes rápidos, `defaultChannel` ya lo trae elegido.
+// Arriba, en una etapa abierta, el resultado de un toque («No contestó», «Pidió que
+// le llame más tarde», «Interesado»): guarda el contacto y programa el seguimiento
+// sin llenar lo demás, que es lo que casi siempre se hace tras llamar.
 export default function ProspectContactForm({ prospect, defaultChannel = "", saving = false, error = "", onSave, onCancel }) {
   const { t } = useTranslation();
   const [channel, setChannel] = useState(defaultChannel);
@@ -43,8 +46,25 @@ export default function ProspectContactForm({ prospect, defaultChannel = "", sav
     </button>
   );
 
+  // Un toque: registra el contacto con ese resultado y programa el seguimiento (la nota es su texto).
+  const quickOutcome = (outcome) => onSave(outcomeValues(outcome, { channel, note: t(`prospects.outcomes.${outcome.key}`) }));
+
   return (
     <form className="contact-form" onSubmit={handleSubmit} noValidate aria-label={t("prospects.logContact")}>
+      {askFollowup && (
+        <fieldset className="contact-form__group contact-form__outcomes">
+          <legend>{t("prospects.outcomes.legend")}</legend>
+          <div className="contact-form__chips">
+            {CONTACT_OUTCOMES.map((outcome) => (
+              <button key={outcome.key} type="button" className="contact-form__chip" disabled={saving} onClick={() => quickOutcome(outcome)}>
+                {t(`prospects.outcomes.${outcome.key}`)}
+              </button>
+            ))}
+          </div>
+          <span className="form-hint">{t("prospects.outcomes.hint")}</span>
+        </fieldset>
+      )}
+
       <fieldset className="contact-form__group">
         <legend>{t("prospects.contact.channel")}</legend>
         <div className="contact-form__chips">

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
-import { mutate, revalidate, snapshot, subscribe } from "./dataCache";
+import { mutate, refreshIfStale, revalidate, snapshot, subscribe } from "./dataCache";
 
 const noop = () => {};
 
@@ -12,6 +12,7 @@ const noop = () => {};
 //   error    — el último error al pedirla (conserva `data` si ya la había)
 //   reload() — vuelve a pedirla y espera a que quede aplicada (tras guardar algo)
 //   mutate(f)— cambia la lista ya cargada sin volver a pedirla (f recibe la actual)
+// Además se refresca sola al volver a la app (visibilitychange) si lleva más de FOCUS_REFRESH_MS cargada.
 export function useQuery(query, { enabled = true } = {}) {
   const key = enabled && query ? query.key : null;
   const fetchRef = useRef(query?.fetch);
@@ -26,6 +27,17 @@ export function useQuery(query, { enabled = true } = {}) {
   // Al entrar (y si cambia la lista): se vuelve a pedir aunque ya haya algo en el caché.
   useEffect(() => {
     if (key) revalidate(key, () => fetchRef.current()).catch(noop);
+  }, [key]);
+
+  // Al volver a la app (de WhatsApp, de una llamada, de otra pestaña) se refresca lo que ya llevaba
+  // un rato cargado: los prospectos nuevos del sitio aparecen sin tener que cambiar de pantalla.
+  useEffect(() => {
+    if (!key) return undefined;
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refreshIfStale(key, () => fetchRef.current());
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
   }, [key]);
 
   const reload = useCallback(() => (key ? revalidate(key, () => fetchRef.current(), { force: true }) : Promise.resolve()), [key]);

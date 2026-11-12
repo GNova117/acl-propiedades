@@ -2060,6 +2060,13 @@
       "days_one": "Unattended: {{count}} day",
       "days_other": "Unattended: {{count}} days"
     },
+    "outcomes": {
+      "legend": "Quick result",
+      "hint": "One tap saves it and schedules the follow-up: tomorrow, or in 3 days if interested.",
+      "noAnswer": "No answer",
+      "callLater": "Asked to be called later",
+      "interested": "Interested"
+    },
     "contact": {
       "channel": "How did you reach them?",
       "channels": {
@@ -3237,6 +3244,11 @@
     "cancelAdd": "Cancel"
   },
   "agenda": {
+    "quick": {
+      "label": "Quick date and time",
+      "today": "Today",
+      "tomorrow": "Tomorrow"
+    },
     "property": "Property (optional)",
     "noProperty": "— (no property)",
     "linkedProspect": "This appointment is linked to a prospect.",

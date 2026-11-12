@@ -9,6 +9,13 @@ export const PROSPECT_SOURCES = ["manual", "visita", "visita_agendada", "whatsap
 
 export const isOpenStage = (stage) => OPEN_STAGES.includes(stage);
 
+// La etapa con la que se abre el tablero en el teléfono: la primera abierta que tiene prospectos y, si
+// todos están cerrados o perdidos, la primera que tenga alguno (no abrir en una pestaña vacía).
+export const firstStageWithProspects = (prospects) =>
+  OPEN_STAGES.find((stage) => prospects.some((p) => p.stage === stage)) ||
+  PROSPECT_STAGES.find((stage) => prospects.some((p) => p.stage === stage)) ||
+  PROSPECT_STAGES[0];
+
 export const todayISO = () => new Date().toLocaleDateString("en-CA");
 
 // Días enteros desde una fecha/hora ISO (0 = hoy). null si no hay fecha.

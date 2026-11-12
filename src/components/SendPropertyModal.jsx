@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/dataStore";
 import { whatsappDigits, whatsappUrl } from "../lib/format";
 import { propertyShareMessage } from "../lib/propertyShare";
-import { contactFields } from "../lib/prospects";
+import { contactUpdate } from "../lib/prospectContacts";
 import ProspectContactForm from "./ProspectContactForm";
 import "./PropertyProspectsModal.css";
 import "./SendPropertyModal.css";
@@ -93,11 +93,11 @@ export default function SendPropertyModal({ property, prospects, onClose, onLogg
     }
   };
 
-  const saveContact = async ({ channel, note, nextFollowup }) => {
+  const saveContact = async ({ channel, note, nextFollowup, stage }) => {
     setLogging(true);
     setLogError("");
     try {
-      const updated = await db.logProspectContact(prospect.id, contactFields(prospect, nextFollowup), { channel, note });
+      const updated = await db.logProspectContact(prospect.id, contactUpdate(prospect, { nextFollowup, stage }), { channel, note });
       onLogged?.(updated);
       setLogged(true);
     } catch (err) {

@@ -4,11 +4,15 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { citaContact, citaStatus, isOpenRequest, visitLink, visitLinkTextKey } from "../../lib/agendaCitas";
 import VisitLinkPanel from "../../components/VisitLinkPanel";
+import { QUICK_TIMES, quickDates } from "../../lib/quickSchedule";
+import { queries } from "../../lib/queries";
+import { useQuery } from "../../lib/useQuery";
 import { useAuth } from "../../context/AuthContext";
 import "./admin.css";
 
 const EMPTY = { advisor_id: "", client_id: "", property_id: "", prospecto_id: "", titulo: "", fecha: "", hora: "", actividades: "", lugar: "", contact_name: "", contact_phone: "", contact_email: "" };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const NONE = [];
 
 export default function AdminAgendaForm() {
   const { id } = useParams();
@@ -29,13 +33,20 @@ export default function AdminAgendaForm() {
   // "Agendar" desde un prospecto (Prospectos, Mi día o su ficha) llega igual, con
   // título, propiedad, contacto y prospecto ya puestos: solo falta fecha y hora.
   // `state.from` es la pantalla a la que se regresa al cancelar o terminar.
-  const [form, setForm] = useState(() => (!isEdit && location.state?.prefill ? { ...EMPTY, ...location.state.prefill } : EMPTY));
-  const [advisors, setAdvisors] = useState([]);
-  const [clients, setClients] = useState([]);
-  const [properties, setProperties] = useState([]);
+  // Agenda propia: el asesor no elige, la cita siempre se crea para sí mismo (desde el primer pintado).
+  const [form, setForm] = useState(() => ({
+    ...(!isEdit && location.state?.prefill ? { ...EMPTY, ...location.state.prefill } : EMPTY),
+    ...(advisorId ? { advisor_id: advisorId } : {}),
+  }));
+  // Las listas salen del caché (ver dataCache.js): si ya se pidieron en otra pantalla, el formulario
+  // abre al instante; si no, se llenan en cuanto llegan (no hace falta esperarlas para empezar a escribir).
+  const advisors = useQuery(queries.advisors).data ?? NONE;
+  const clients = useQuery(queries.clients()).data ?? NONE;
+  const properties = useQuery(queries.properties).data ?? NONE;
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
+  // Solo al editar hay algo que esperar: la cita guardada.
+  const [loading, setLoading] = useState(isEdit);
   // Solicitud de visita sin asesor: no se edita hasta que alguien la toma (desde la Agenda o Mi día).
   const [openRequest, setOpenRequest] = useState(false);
   const [citaRow, setCitaRow] = useState(null); // la cita guardada (para su enlace)
@@ -47,47 +58,48 @@ export default function AdminAgendaForm() {
   const backTo = location.state?.from || "/admin/agenda";
 
   useEffect(() => {
-    Promise.all([
-      db.getAdvisors(),
-      db.getClients(),
-      isEdit ? db.getAgendaCitaById(id) : Promise.resolve(null),
-      db.getProperties({}).catch(() => []),
-    ]).then(
-      ([advisorData, clientData, cita, propertyData]) => {
-        setAdvisors(advisorData);
-        setClients(clientData);
-        setProperties(propertyData);
-        if (cita) {
-          setOpenRequest(isOpenRequest(cita));
-          setCitaRow(cita);
-          hadLugar.current = Boolean(cita.lugar);
-          hadProperty.current = Boolean(cita.property_id);
-          setForm({
-            advisor_id: cita.advisor_id,
-            client_id: cita.client_id || "",
-            property_id: cita.property_id || "",
-            prospecto_id: cita.prospecto_id || "",
-            titulo: cita.titulo,
-            fecha: cita.fecha,
-            hora: cita.hora ? cita.hora.slice(0, 5) : "",
-            actividades: cita.actividades || "",
-            lugar: cita.lugar || "",
-            contact_name: cita.contact_name || "",
-            contact_phone: cita.contact_phone || "",
-            contact_email: cita.contact_email || "",
-          });
-        } else if (advisorId) {
-          // Agenda propia: el asesor no elige, la cita siempre se crea para sí mismo.
-          setForm((prev) => ({ ...prev, advisor_id: advisorId }));
-        }
-        setLoading(false);
+    if (!isEdit) return undefined;
+    let cancelled = false;
+    db.getAgendaCitaById(id).then((cita) => {
+      if (cancelled) return;
+      if (cita) {
+        setOpenRequest(isOpenRequest(cita));
+        setCitaRow(cita);
+        hadLugar.current = Boolean(cita.lugar);
+        hadProperty.current = Boolean(cita.property_id);
+        setForm({
+          advisor_id: cita.advisor_id,
+          client_id: cita.client_id || "",
+          property_id: cita.property_id || "",
+          prospecto_id: cita.prospecto_id || "",
+          titulo: cita.titulo,
+          fecha: cita.fecha,
+          hora: cita.hora ? cita.hora.slice(0, 5) : "",
+          actividades: cita.actividades || "",
+          lugar: cita.lugar || "",
+          contact_name: cita.contact_name || "",
+          contact_phone: cita.contact_phone || "",
+          contact_email: cita.contact_email || "",
+        });
       }
-    );
-  }, [id, isEdit, advisorId]);
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [id, isEdit]);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
+
+  // Atajos de fecha y hora: un toque en vez de abrir el calendario del teléfono.
+  const pick = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
+  const shortcuts = useMemo(() => quickDates(), []);
+  const dateLabel = (key, iso) =>
+    key === "saturday"
+      ? new Date(`${iso}T00:00:00`).toLocaleDateString("es-MX", { weekday: "short", day: "numeric", month: "short" })
+      : t(`agenda.quick.${key}`);
 
   const sortedProperties = useMemo(
     () => properties.slice().sort((a, b) => `${a.code || ""} ${a.title}`.localeCompare(`${b.code || ""} ${b.title}`, "es")),
@@ -228,6 +240,35 @@ export default function AdminAgendaForm() {
           <div className="form-field">
             <label htmlFor="cita-hora">{t("agenda.time")}</label>
             <input id="cita-hora" type="time" value={form.hora} onChange={handleChange("hora")} />
+          </div>
+        </div>
+
+        <div className="quick-chips" role="group" aria-label={t("agenda.quick.label")}>
+          <div className="quick-chips__row">
+            {shortcuts.map(({ key, iso }) => (
+              <button
+                key={key}
+                type="button"
+                className={`quick-chip${form.fecha === iso ? " is-active" : ""}`}
+                aria-pressed={form.fecha === iso}
+                onClick={() => pick("fecha", iso)}
+              >
+                {dateLabel(key, iso)}
+              </button>
+            ))}
+          </div>
+          <div className="quick-chips__row">
+            {QUICK_TIMES.map((hora) => (
+              <button
+                key={hora}
+                type="button"
+                className={`quick-chip${form.hora === hora ? " is-active" : ""}`}
+                aria-pressed={form.hora === hora}
+                onClick={() => pick("hora", hora)}
+              >
+                {hora}
+              </button>
+            ))}
           </div>
         </div>
 

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
-import { OPEN_STAGES, PROSPECT_STAGES, followUpState, unattendedState, visitToProspectFields } from "../../lib/prospects";
+import { PROSPECT_STAGES, firstStageWithProspects, followUpState, unattendedState, visitToProspectFields } from "../../lib/prospects";
 import { convertProspectToClient } from "../../lib/prospectActions";
 import { matchingProperties } from "../../lib/prospectMatch";
 import { useProspectContact } from "../../lib/useProspectContact";
@@ -25,9 +25,6 @@ import "./AdminProspects.css";
 const NONE = [];
 
 const normalize = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-
-// La etapa con la que se abre el teléfono: la primera abierta que tiene prospectos.
-const firstStageWithProspects = (prospects) => OPEN_STAGES.find((stage) => prospects.some((p) => p.stage === stage)) || PROSPECT_STAGES[0];
 
 export default function AdminProspects() {
   const { t } = useTranslation();

@@ -78,6 +78,16 @@ export function revalidate(key, fetcher, { force = false } = {}) {
   return promise;
 }
 
+// Vuelve a pedir `key` solo si lo que hay tiene más de `minAge` ms (o no hay nada): para refrescar
+// al volver a la app sin pedir de nuevo, una y otra vez, lo que se acaba de cargar.
+export const FOCUS_REFRESH_MS = 20 * 1000;
+
+export function refreshIfStale(key, fetcher, minAge = FOCUS_REFRESH_MS) {
+  const entry = snapshot(key);
+  if (entry && !entry.error && Date.now() - entry.at < minAge) return Promise.resolve();
+  return revalidate(key, fetcher).catch(() => {});
+}
+
 // Cambia el valor ya cargado (`updater` recibe el actual). No hace nada si la
 // lista todavía no se ha cargado: no hay a qué aplicarle el cambio.
 export function mutate(key, updater) {

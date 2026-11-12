@@ -13,6 +13,7 @@ export const queries = {
   visits: { key: "visits", fetch: orEmpty(() => db.getVisits()) },
   citas: { key: "agenda-citas", fetch: () => db.getAgendaCitas() },
   zones: { key: "zones", fetch: orEmpty(() => db.getZones()) },
+  propertyTypes: { key: "property-types", fetch: orEmpty(() => db.getPropertyTypes()) },
   remodelProjects: { key: "remodel-projects", fetch: () => db.getRemodelProjects({}) },
   // `type`: comprador | vendedor | ambos; sin él, todos.
   clients: (type = "") => ({ key: `clients:${type || "all"}`, fetch: () => db.getClients(type ? { type } : {}) }),

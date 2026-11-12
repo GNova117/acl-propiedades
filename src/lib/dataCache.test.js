@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { MAX_AGE, clearDataCache, mutate, peek, revalidate, snapshot, subscribe } from "./dataCache";
+import { FOCUS_REFRESH_MS, MAX_AGE, clearDataCache, mutate, peek, refreshIfStale, revalidate, snapshot, subscribe } from "./dataCache";
 
 const deferred = () => {
   let resolve;
@@ -115,5 +115,47 @@ describe("caducidad y limpieza", () => {
     slow.resolve(["de la otra cuenta"]);
     await pending;
     expect(peek("k")).toBeUndefined();
+  });
+});
+
+describe("refreshIfStale (al volver a la app)", () => {
+  it("si no hay nada cargado, lo pide", async () => {
+    const fetcher = vi.fn(async () => [1]);
+    await refreshIfStale("k", fetcher);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(peek("k")).toEqual([1]);
+  });
+
+  it("si se cargó hace poco, no lo vuelve a pedir", async () => {
+    vi.useFakeTimers();
+    await revalidate("k", async () => [1]);
+    vi.advanceTimersByTime(FOCUS_REFRESH_MS - 1000);
+    const fetcher = vi.fn(async () => [2]);
+    await refreshIfStale("k", fetcher);
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(peek("k")).toEqual([1]);
+  });
+
+  it("si ya lleva un rato cargado, lo refresca", async () => {
+    vi.useFakeTimers();
+    await revalidate("k", async () => [1]);
+    vi.advanceTimersByTime(FOCUS_REFRESH_MS + 1000);
+    await refreshIfStale("k", async () => [2]);
+    expect(peek("k")).toEqual([2]);
+  });
+
+  it("si la última consulta falló, vuelve a intentar aunque sea reciente", async () => {
+    await revalidate("k", async () => Promise.reject(new Error("sin red"))).catch(() => {});
+    const fetcher = vi.fn(async () => [3]);
+    await refreshIfStale("k", fetcher);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it("un fallo al refrescar no lanza (deja el error en la entrada y conserva lo que había)", async () => {
+    vi.useFakeTimers();
+    await revalidate("k", async () => ["ya estaba"]);
+    vi.advanceTimersByTime(FOCUS_REFRESH_MS + 1000);
+    await expect(refreshIfStale("k", async () => Promise.reject(new Error("mal")))).resolves.toBeUndefined();
+    expect(peek("k")).toEqual(["ya estaba"]);
   });
 });
