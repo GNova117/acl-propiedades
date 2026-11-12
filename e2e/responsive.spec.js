@@ -146,6 +146,55 @@ test.describe("Móvil y tableta", () => {
       await expect(page.locator(".admin-layout__menu-btn")).toHaveAttribute("aria-expanded", "false");
     });
 
+    // La Agenda abría en la lista y, en el calendario, el título largo de una cita
+    // ensanchaba su columna: toda la pantalla del panel se corría de lado.
+    test("la Agenda abre en el calendario, cabe a lo ancho y lista las citas del día tocado", async ({ page, go, press }) => {
+      await page.setViewportSize({ width: 360, height: 800 });
+      const hoy = new Date();
+      const iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+      await page.addInitScript((fecha) => {
+        if (localStorage.getItem("acl_qa_cita")) return;
+        localStorage.setItem("acl_qa_cita", "1");
+        const citas = JSON.parse(localStorage.getItem("acl_local_agenda_citas") || "[]");
+        citas.push({
+          id: "cita-qa-larga",
+          advisor_id: null,
+          client_id: null,
+          titulo: "Visita: Local comercial sobre Av. Juárez esquina con calle muy larga (ACL-1012)",
+          fecha,
+          hora: "11:00",
+          status: "confirmada",
+          source: "admin",
+          contact_name: "Lucía Calendario QA",
+        });
+        localStorage.setItem("acl_local_agenda_citas", JSON.stringify(citas));
+      }, iso);
+      await go("/admin/agenda");
+
+      await expect(page.locator(".agenda-calendar")).toBeVisible();
+      await expect(page.locator(".admin-table")).toHaveCount(0);
+      const desborde = await page.evaluate(() => {
+        const content = document.querySelector(".admin-layout__content");
+        return Math.max(content.scrollWidth - content.clientWidth, document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      });
+      expect(desborde, "píxeles de desborde horizontal en la Agenda").toBeLessThanOrEqual(1);
+
+      // Hoy viene elegido: su cita se lee completa debajo del calendario.
+      const dia = page.locator(".agenda-day");
+      await expect(dia).toContainText("Lucía Calendario QA");
+      // Otro día sin citas, y de regreso a hoy con «Hoy».
+      const otro = page.locator(".agenda-calendar__day:not(.agenda-calendar__day--today):not(.agenda-calendar__day--out) .agenda-calendar__day-btn").first();
+      await press(otro);
+      await expect(dia).toContainText("No hay citas este día.");
+      await press(page.getByRole("button", { name: "Hoy" }));
+      await expect(dia).toContainText("Lucía Calendario QA");
+
+      // La lista sigue a un toque y se recuerda en la dirección.
+      await press(page.getByRole("button", { name: "Lista", exact: true }));
+      await expect(page).toHaveURL(/vista=lista/);
+      await expect(page.locator("tbody tr", { hasText: "Lucía Calendario QA" })).toBeVisible();
+    });
+
     // Los botones de la barra le dejaban al buscador ~60 px (se leía «Bu»).
     test("el buscador global se extiende al enfocarlo y encuentra resultados", async ({ page, go, press }) => {
       await go("/admin");

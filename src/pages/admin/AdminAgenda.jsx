@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
@@ -59,11 +59,26 @@ export default function AdminAgenda() {
   const [statusFilter, setStatusFilter] = useState("active"); // active | pending | open | cancelled | all
   const [busyId, setBusyId] = useState(null);
   const [assignPick, setAssignPick] = useState({}); // cita.id → asesor elegido por administración para una solicitud sin asesor
-  const [view, setView] = useState("list");
+  // El calendario es la vista de entrada; la lista (con todas las acciones) queda a un toque y se recuerda en
+  // la dirección (?vista=lista) para que «atrás» desde una cita regrese a la misma vista.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const view = searchParams.get("vista") === "lista" ? "list" : "calendar";
+  const setView = (next) =>
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev);
+        if (next === "list") params.set("vista", "lista");
+        else params.delete("vista");
+        return params;
+      },
+      { replace: true },
+    );
   const [cursor, setCursor] = useState(() => {
     const now = new Date();
     return { year: now.getFullYear(), month: now.getMonth() };
   });
+  // Día elegido en el calendario: sus citas se listan debajo (en el teléfono los cuadros solo llevan puntitos).
+  const [selectedIso, setSelectedIso] = useState(() => isoOf(new Date()));
 
   const seesAll = advisorId == null;
 
@@ -223,7 +238,14 @@ export default function AdminAgenda() {
   const goToday = () => {
     const now = new Date();
     setCursor({ year: now.getFullYear(), month: now.getMonth() });
+    setSelectedIso(isoOf(now));
   };
+  const selectDay = (date) => {
+    setSelectedIso(isoOf(date));
+    if (date.getMonth() !== cursor.month || date.getFullYear() !== cursor.year) setCursor({ year: date.getFullYear(), month: date.getMonth() });
+  };
+  const selectedCitas = citasByDate.get(selectedIso) || [];
+  const selectedTitle = formatIsoDate(selectedIso, i18n.language, { weekday: "long", day: "numeric", month: "long" });
 
   return (
     <div>
@@ -231,11 +253,11 @@ export default function AdminAgenda() {
         <h1>{seesAll ? t("agenda.allAgendas") : t("agenda.myAgenda")}</h1>
         <div className="admin-header__actions">
           <div className="agenda-view-toggle" role="group" aria-label={t("agenda.viewToggle")}>
-            <button type="button" className={`btn btn-sm ${view === "list" ? "btn-primary" : "btn-outline"}`} onClick={() => setView("list")}>
-              {t("agenda.viewList")}
-            </button>
-            <button type="button" className={`btn btn-sm ${view === "calendar" ? "btn-primary" : "btn-outline"}`} onClick={() => setView("calendar")}>
+            <button type="button" className={`btn btn-sm ${view === "calendar" ? "btn-primary" : "btn-outline"}`} aria-pressed={view === "calendar"} onClick={() => setView("calendar")}>
               {t("agenda.viewCalendar")}
+            </button>
+            <button type="button" className={`btn btn-sm ${view === "list" ? "btn-primary" : "btn-outline"}`} aria-pressed={view === "list"} onClick={() => setView("list")}>
+              {t("agenda.viewList")}
             </button>
           </div>
           <Link to="/admin/agenda/nueva" className="btn btn-primary">
@@ -462,9 +484,29 @@ export default function AdminAgenda() {
                   const inMonth = date.getMonth() === cursor.month;
                   const dayCitas = citasByDate.get(iso) || [];
                   const shown = dayCitas.slice(0, MAX_CHIPS_PER_DAY);
+                  const selected = iso === selectedIso;
                   return (
-                    <div key={iso} className={`agenda-calendar__day${inMonth ? "" : " agenda-calendar__day--out"}${iso === todayIso ? " agenda-calendar__day--today" : ""}`}>
-                      <span className="agenda-calendar__day-number">{date.getDate()}</span>
+                    <div
+                      key={iso}
+                      className={`agenda-calendar__day${inMonth ? "" : " agenda-calendar__day--out"}${iso === todayIso ? " agenda-calendar__day--today" : ""}${selected ? " agenda-calendar__day--selected" : ""}`}
+                    >
+                      <button
+                        type="button"
+                        className="agenda-calendar__day-btn"
+                        aria-pressed={selected}
+                        aria-label={`${formatIsoDate(iso, i18n.language, { weekday: "long", day: "numeric", month: "long" })}${dayCitas.length ? ` · ${t("agenda.dayCount", { count: dayCitas.length })}` : ""}`}
+                        onClick={() => selectDay(date)}
+                      >
+                        <span className="agenda-calendar__day-number">{date.getDate()}</span>
+                        {dayCitas.length > 0 && (
+                          <span className="agenda-calendar__dots" aria-hidden="true">
+                            {dayCitas.slice(0, MAX_CHIPS_PER_DAY).map((cita) => (
+                              <span key={cita.id} className={`agenda-calendar__dot agenda-calendar__dot--${citaStatus(cita)}`} />
+                            ))}
+                            {dayCitas.length > MAX_CHIPS_PER_DAY && <span className="agenda-calendar__dots-more">+{dayCitas.length - MAX_CHIPS_PER_DAY}</span>}
+                          </span>
+                        )}
+                      </button>
                       <div className="agenda-calendar__chips">
                         {shown.map((cita) => (
                           <Link key={cita.id} to={`/admin/agenda/${cita.id}`} className="agenda-calendar__chip" title={cita.titulo}>
@@ -473,7 +515,7 @@ export default function AdminAgenda() {
                           </Link>
                         ))}
                         {dayCitas.length > shown.length && (
-                          <button type="button" className="agenda-calendar__more" onClick={() => setView("list")}>
+                          <button type="button" className="agenda-calendar__more" onClick={() => selectDay(date)}>
                             {t("agenda.moreAppointments", { count: dayCitas.length - shown.length })}
                           </button>
                         )}
@@ -484,6 +526,52 @@ export default function AdminAgenda() {
               </div>
             ))}
           </div>
+
+          <section className="agenda-day" aria-live="polite">
+            <h2 className="agenda-day__title">{selectedTitle}</h2>
+            {loading ? (
+              <p className="form-hint">{t("common.loading")}</p>
+            ) : selectedCitas.length === 0 ? (
+              <p className="form-hint">{t("agenda.noAppointmentsDay")}</p>
+            ) : (
+              <ul className="agenda-day__list">
+                {selectedCitas.map((cita) => {
+                  const status = citaStatus(cita);
+                  const open = isOpenRequest(cita);
+                  const contact = contactOf(cita);
+                  const body = (
+                    <>
+                      <span className="agenda-day__time">{cita.hora ? cita.hora.slice(0, 5) : "—"}</span>
+                      <span className="agenda-day__info">
+                        <span className={`agenda-day__name${status === "cancelada" ? " agenda-day__name--cancelled" : ""}`}>{cita.titulo}</span>
+                        <span className="form-hint">
+                          {contact.name || t("agenda.noClient")}
+                          {seesAll && ` · ${open ? t("agenda.noAdvisorChip") : advisorName(cita.advisor_id)}`}
+                        </span>
+                        {status !== "confirmada" && <span className={`agenda-chip agenda-chip--${status}`}>{t(`agenda.status.${status}`)}</span>}
+                      </span>
+                    </>
+                  );
+                  return (
+                    <li key={cita.id}>
+                      {open ? (
+                        <button type="button" className="agenda-day__item" onClick={() => setView("list")}>
+                          {body}
+                        </button>
+                      ) : (
+                        <Link to={`/admin/agenda/${cita.id}`} className="agenda-day__item">
+                          {body}
+                        </Link>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <button type="button" className="btn btn-outline btn-sm agenda-day__all" onClick={() => setView("list")}>
+              {t("agenda.seeActions")}
+            </button>
+          </section>
         </div>
       )}
     </div>
