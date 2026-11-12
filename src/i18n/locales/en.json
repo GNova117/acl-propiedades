@@ -1982,6 +1982,22 @@
     "reminderLink": "Go to Roles & access"
   },
   "prospects": {
+    "bulk": {
+      "label": "Bulk actions",
+      "select": "Select",
+      "exit": "Exit selection",
+      "hint": "Tap the prospects you want to change at once.",
+      "pick": "Select {{name}}",
+      "selectAll": "Select all ({{count}})",
+      "actions": "Actions",
+      "stageLabel": "Move to stage",
+      "followupLabel": "Follow-up",
+      "advisorLabel": "Reassign to",
+      "choose": "Choose…",
+      "nothing": "Nothing to change: already like that or not applicable.",
+      "skipped_one": "{{count}} unchanged (already that way or not applicable).",
+      "skipped_other": "{{count}} unchanged (already that way or not applicable)."
+    },
     "more": "More",
     "schedule": "Schedule",
     "openProfile": "Open profile",

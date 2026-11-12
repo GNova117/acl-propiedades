@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
-import { PROSPECT_STAGES, firstStageWithProspects, followUpState, unattendedState, visitToProspectFields } from "../../lib/prospects";
+import { FOLLOWUP_OPTIONS, PROSPECT_STAGES, firstStageWithProspects, followUpState, unattendedState, visitToProspectFields } from "../../lib/prospects";
+import { applyBulk, followupDate } from "../../lib/prospectBulk";
 import { convertProspectToClient } from "../../lib/prospectActions";
 import { matchingProperties } from "../../lib/prospectMatch";
 import { useProspectContact } from "../../lib/useProspectContact";
@@ -65,6 +66,16 @@ export default function AdminProspects() {
       setActiveStage(firstStageWithProspects(prospectsQ.data));
     }
   }, [prospectsQ.data]);
+
+  // Modo «Seleccionar»: casillas en las tarjetas y una barra para cambiar de etapa, poner el seguimiento o
+  // (la oficina) reasignar a varios prospectos a la vez.
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState(() => new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkMessage, setBulkMessage] = useState("");
+  const [bulkStage, setBulkStage] = useState("");
+  const [bulkAdvisor, setBulkAdvisor] = useState("");
 
   // El formulario "Registrar contacto" de una tarjeta: al guardar el contacto
   // el prospecto se actualiza aquí (último contacto, etapa y seguimiento).
@@ -159,6 +170,57 @@ export default function AdminProspects() {
     }
   };
 
+  // Los elegidos que siguen a la vista (un filtro nuevo no deja acciones sobre prospectos escondidos).
+  const picked = useMemo(() => filtered.filter((p) => selected.has(p.id)), [filtered, selected]);
+
+  const toggleOne = (id) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  // Todos los de una etapa: los marca, o los desmarca si ya estaban todos marcados.
+  const toggleColumn = (items) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      const all = items.every((p) => next.has(p.id));
+      items.forEach((p) => (all ? next.delete(p.id) : next.add(p.id)));
+      return next;
+    });
+
+  const toggleSelecting = () => {
+    setSelecting((on) => !on);
+    setSelected(new Set());
+    setBulkOpen(false);
+    setBulkMessage("");
+  };
+
+  // Aplica la acción a los elegidos, uno por uno (ver applyBulk), y avisa qué pasó.
+  const runBulk = async (kind, value) => {
+    if (picked.length === 0) return;
+    setBulkBusy(true);
+    setBulkMessage("");
+    try {
+      const { updated, skipped, failed } = await applyBulk(db, picked, kind, value);
+      if (updated.length > 0) {
+        const byId = new Map(updated.map((r) => [r.id, r]));
+        setProspects((prev) => prev.map((p) => byId.get(p.id) ?? p));
+        // En el teléfono las tarjetas se van a la pestaña de su nueva etapa: se sigue viendo.
+        if (kind === "stage") setActiveStage(value);
+      }
+      const parts = [];
+      if (updated.length > 0) parts.push(t("bulkActions.done", { count: updated.length }));
+      else if (failed === 0) parts.push(t("prospects.bulk.nothing"));
+      if (skipped > 0 && updated.length > 0) parts.push(t("prospects.bulk.skipped", { count: skipped }));
+      if (failed > 0) parts.push(t("bulkActions.someFailed"));
+      setBulkMessage(parts.join(" "));
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
   const handleImport = async () => {
     setImporting(true);
     try {
@@ -182,6 +244,9 @@ export default function AdminProspects() {
           <Link to="/admin/prospectos/nuevo" className="btn btn-primary">
             {t("prospects.new")}
           </Link>
+          <button type="button" className={`btn btn-outline${selecting ? " is-active" : ""}`} onClick={toggleSelecting} aria-pressed={selecting}>
+            {selecting ? t("prospects.bulk.exit") : t("prospects.bulk.select")}
+          </button>
           {canImport && importable.length > 0 && (
             <button type="button" className="btn btn-outline" onClick={handleImport} disabled={importing}>
               {importing ? <span className="spinner" /> : null}
@@ -257,6 +322,12 @@ export default function AdminProspects() {
                     <span className="prospect-col__count">{items.length}</span>
                   </h2>
                   {items.length === 0 && <p className="form-hint prospect-col__empty">{t("prospects.emptyColumn")}</p>}
+                  {selecting && items.length > 0 && (
+                    <label className="prospect-col__select-all">
+                      <input type="checkbox" checked={items.every((p) => selected.has(p.id))} onChange={() => toggleColumn(items)} />
+                      {t("prospects.bulk.selectAll", { count: items.length })}
+                    </label>
+                  )}
                   {items.map((p) => (
                     <ProspectCard
                       key={p.id}
@@ -274,12 +345,105 @@ export default function AdminProspects() {
                       onConvert={handleConvert}
                       onDelete={handleDelete}
                       onPostsaleDone={markPostsaleDone}
+                      selectable={selecting}
+                      selected={selected.has(p.id)}
+                      onToggleSelect={toggleOne}
                     />
                   ))}
                 </section>
               );
             })}
           </div>
+
+          {selecting && (
+            <div className="prospect-bulk" role="region" aria-label={t("prospects.bulk.label")}>
+              {picked.length > 0 && bulkOpen && (
+                <div className="prospect-bulk__panel card">
+                  <div className="prospect-bulk__group">
+                    <span className="prospect-bulk__label">{t("prospects.bulk.stageLabel")}</span>
+                    <div className="prospect-bulk__row">
+                      <select value={bulkStage} onChange={(e) => setBulkStage(e.target.value)} disabled={bulkBusy} aria-label={t("prospects.bulk.stageLabel")}>
+                        <option value="">{t("prospects.bulk.choose")}</option>
+                        {PROSPECT_STAGES.map((stage) => (
+                          <option key={stage} value={stage}>
+                            {t(`prospects.stages.${stage}`)}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        aria-label={`${t("bulkActions.applyStatus")}: ${t("prospects.bulk.stageLabel")}`}
+                        onClick={() => runBulk("stage", bulkStage)}
+                        disabled={bulkBusy || !bulkStage}
+                      >
+                        {t("bulkActions.applyStatus")}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="prospect-bulk__group">
+                    <span className="prospect-bulk__label">{t("prospects.bulk.followupLabel")}</span>
+                    <div className="prospect-bulk__row">
+                      {FOLLOWUP_OPTIONS.map((option) => (
+                        <button key={option.key} type="button" className="btn btn-outline btn-sm" onClick={() => runBulk("followup", followupDate(option.days))} disabled={bulkBusy}>
+                          {t(`prospects.followupOptions.${option.key}`)}
+                        </button>
+                      ))}
+                      <button type="button" className="btn btn-outline btn-sm" onClick={() => runBulk("followup", followupDate(null))} disabled={bulkBusy}>
+                        {t("prospects.noFollowup")}
+                      </button>
+                    </div>
+                  </div>
+
+                  {seesAll && (
+                    <div className="prospect-bulk__group">
+                      <span className="prospect-bulk__label">{t("prospects.bulk.advisorLabel")}</span>
+                      <div className="prospect-bulk__row">
+                        <select value={bulkAdvisor} onChange={(e) => setBulkAdvisor(e.target.value)} disabled={bulkBusy} aria-label={t("prospects.bulk.advisorLabel")}>
+                          <option value="">{t("prospects.bulk.choose")}</option>
+                          {advisors
+                            .filter((a) => a.active !== false)
+                            .map((a) => (
+                              <option key={a.id} value={a.id}>
+                                {a.name}
+                              </option>
+                            ))}
+                        </select>
+                        <button
+                          type="button"
+                          className="btn btn-outline btn-sm"
+                          aria-label={`${t("bulkActions.applyStatus")}: ${t("prospects.bulk.advisorLabel")}`}
+                          onClick={() => runBulk("advisor", bulkAdvisor)}
+                          disabled={bulkBusy || !bulkAdvisor}
+                        >
+                          {t("bulkActions.applyStatus")}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              {bulkMessage && (
+                <p className="prospect-bulk__message card" role="status">
+                  {bulkMessage}
+                </p>
+              )}
+              <div className="prospect-bulk__bar card">
+                <span className="prospect-bulk__count">{picked.length > 0 ? t("bulkActions.selectedCount", { count: picked.length }) : t("prospects.bulk.hint")}</span>
+                {picked.length > 0 && (
+                  <>
+                    <button type="button" className="btn btn-primary btn-sm" aria-expanded={bulkOpen} onClick={() => setBulkOpen((open) => !open)}>
+                      {t("prospects.bulk.actions")} {bulkOpen ? "▾" : "▴"}
+                    </button>
+                    <button type="button" className="btn btn-outline btn-sm" onClick={() => setSelected(new Set())} disabled={bulkBusy}>
+                      {t("bulkActions.clearSelection")}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

@@ -1982,6 +1982,22 @@
     "reminderLink": "Ir a Roles y accesos"
   },
   "prospects": {
+    "bulk": {
+      "label": "Acciones en lote",
+      "select": "Seleccionar",
+      "exit": "Salir de selección",
+      "hint": "Toca los prospectos que quieras cambiar a la vez.",
+      "pick": "Elegir a {{name}}",
+      "selectAll": "Seleccionar todos ({{count}})",
+      "actions": "Acciones",
+      "stageLabel": "Mover a etapa",
+      "followupLabel": "Seguimiento",
+      "advisorLabel": "Reasignar a",
+      "choose": "Elegir…",
+      "nothing": "Nada que cambiar: ya estaban así o no aplica.",
+      "skipped_one": "{{count}} sin cambios (ya estaba así o no aplica).",
+      "skipped_other": "{{count}} sin cambios (ya estaban así o no aplica)."
+    },
     "more": "Más",
     "schedule": "Agendar",
     "openProfile": "Abrir ficha",

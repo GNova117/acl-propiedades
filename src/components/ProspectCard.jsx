@@ -15,7 +15,8 @@ import { FollowChip, UnattendedChip } from "./ProspectChips";
 // "Registrar contacto" con el canal ya elegido— y lo demás (cambiar de etapa,
 // agendar, ficha, convertir en cliente, eliminar) va tras «Más», para que en el
 // teléfono cada tarjeta ocupe poco y lo destructivo no quede junto a lo de
-// todos los días. `contact`: el estado de useProspectContact del tablero.
+// todos los días. `contact`: el estado de useProspectContact del tablero. En modo
+// «Seleccionar» (`selectable`) la tarjeta trae su casilla para las acciones en lote.
 export default function ProspectCard({
   prospect: p,
   seesAll,
@@ -31,6 +32,9 @@ export default function ProspectCard({
   onConvert,
   onDelete,
   onPostsaleDone,
+  selectable = false,
+  selected = false,
+  onToggleSelect,
 }) {
   const { t } = useTranslation();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -40,8 +44,17 @@ export default function ProspectCard({
   const step = due ? POSTSALE_STEPS.find((s) => s.key === due.key) : null;
 
   return (
-    <article className="card prospect-card">
+    <article className={`card prospect-card${selected ? " is-selected" : ""}`}>
       <div className="prospect-card__head">
+        {selectable && (
+          <input
+            type="checkbox"
+            className="prospect-card__pick"
+            checked={selected}
+            onChange={() => onToggleSelect(p.id)}
+            aria-label={t("prospects.bulk.pick", { name: p.name })}
+          />
+        )}
         <Link to={`/admin/prospectos/${p.id}`} className="prospect-card__name">
           {p.name}
         </Link>
