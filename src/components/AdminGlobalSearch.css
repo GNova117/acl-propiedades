@@ -54,11 +54,24 @@
   color: var(--color-text-muted, #6b7688);
 }
 
+/* Un resultado: el renglón principal (que abre la pantalla) y, si trae teléfono, «Llamar» y «WhatsApp». */
+.admin-search__row {
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+}
+
+.admin-search__row:hover,
+.admin-search__row.is-active {
+  background: var(--color-bg-alt);
+}
+
 .admin-search__item {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 0.1rem;
-  width: 100%;
+  min-width: 0;
   padding: 0.5rem 0.6rem;
   border: 0;
   border-radius: var(--radius-sm);
@@ -69,9 +82,32 @@
   cursor: pointer;
 }
 
-.admin-search__item:hover,
-.admin-search__item.is-active {
-  background: var(--color-bg-alt);
+.admin-search__actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.3rem;
+  padding-right: 0.4rem;
+}
+
+.admin-search__action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.admin-search__action:hover,
+.admin-search__action:focus-visible {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .admin-search__title {
@@ -114,5 +150,20 @@
 
   .admin-search__item {
     min-height: 44px;
+  }
+
+  /* Con poco ancho, «Llamar» y «WhatsApp» bajan debajo del nombre para no apretarlo. */
+  .admin-search__row {
+    flex-wrap: wrap;
+  }
+
+  .admin-search__actions {
+    flex: 1 1 100%;
+    padding: 0 0.6rem 0.5rem;
+  }
+
+  .admin-search__action {
+    min-height: 2.4rem;
+    padding: 0.2rem 0.9rem;
   }
 }

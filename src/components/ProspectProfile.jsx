@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { useAuth } from "../context/AuthContext";
@@ -22,10 +22,21 @@ import { FollowChip, UnattendedChip } from "./ProspectChips";
 export default function ProspectProfile({ prospect: p, properties, advisors, onUpdated }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { advisorId, hasSection } = useAuth();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const contact = useProspectContact({ onUpdated });
+
+  // Al llegar desde «Llamar» o «WhatsApp» de la búsqueda (state.logContact = canal), «Registrar contacto» ya
+  // queda abierto con ese canal: al regresar de la llamada o del chat solo falta el resultado.
+  useEffect(() => {
+    const channel = location.state?.logContact;
+    if (!channel) return;
+    contact.open(p, channel, true);
+    navigate(location.pathname, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const property = properties.find((x) => x.id === p.property_id) || null;
   const advisorName = advisors.find((a) => a.id === p.advisor_id)?.name || "";

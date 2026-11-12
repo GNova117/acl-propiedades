@@ -2210,6 +2210,9 @@
     }
   },
   "search": {
+    "call": "Llamar",
+    "callTo": "Llamar a {{name}}",
+    "whatsappTo": "WhatsApp a {{name}}",
     "placeholder": "Buscar cliente, propiedad, teléfono…  ( / )",
     "loading": "Buscando…",
     "noResults": "Sin resultados para \"{{query}}\".",
