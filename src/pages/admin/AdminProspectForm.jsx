@@ -15,7 +15,7 @@ import {
   validateProspectForm,
 } from "../../lib/prospects";
 import InternalNotes from "../../components/InternalNotes";
-import ProspectContactHistory from "../../components/ProspectContactHistory";
+import ProspectTimeline from "../../components/ProspectTimeline";
 import ProspectProfile from "../../components/ProspectProfile";
 import DuplicateWarning from "../../components/DuplicateWarning";
 import { queries } from "../../lib/queries";
@@ -26,7 +26,7 @@ import "./AdminProspects.css";
 // Alta y edición de un prospecto. El asesor con login vinculado siempre queda
 // como responsable; el correo de oficina (sin asesor vinculado) elige quién lo lleva.
 // Al abrir uno que ya existe se ve primero su ficha (resumen y acciones, ver
-// ProspectProfile), luego el historial y las notas; el formulario de edición
+// ProspectProfile), luego su línea de tiempo (ProspectTimeline) y las notas; el formulario de edición
 // queda plegado al final. Al dar de alta solo está el formulario.
 const NONE = [];
 
@@ -46,7 +46,7 @@ export default function AdminProspectForm() {
   // ¿Ya tenía "qué busca" guardado? Solo entonces se manda null al vaciarlo.
   const hadCriteria = useRef(false);
   const [prospect, setProspect] = useState(null); // el prospecto guardado (solo al editar)
-  // Sube cada vez que la ficha registra un contacto, para recargar el historial.
+  // Sube cada vez que la ficha registra un contacto, cambia la etapa o se agrega una nota, para recargar la línea de tiempo.
   const [historyKey, setHistoryKey] = useState(0);
   const [form, setForm] = useState(() => emptyProspectForm({ advisor_id: advisorId || "" }));
   const [errors, setErrors] = useState({});
@@ -326,9 +326,9 @@ export default function AdminProspectForm() {
           }}
         />
 
-        <ProspectContactHistory key={historyKey} prospectId={id} />
+        <ProspectTimeline prospect={prospect} properties={properties} refreshKey={historyKey} />
 
-        <InternalNotes entityType="prospect" entityId={id} />
+        <InternalNotes entityType="prospect" entityId={id} onChange={() => setHistoryKey((k) => k + 1)} />
 
         <details className="prospect-edit">
           <summary>{t("prospects.profile.edit")}</summary>

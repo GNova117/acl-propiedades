@@ -222,14 +222,14 @@ test.describe("Resultado de un toque al registrar un contacto", () => {
     await press(ficha.locator("form.contact-form").getByRole("button", { name: "Interesado", exact: true }));
     await expect(ficha.locator("form.contact-form")).toHaveCount(0);
     await expect(ficha.locator("select[aria-label='Etapa']")).toHaveValue("interesado");
-    await expect(page.locator(".contact-history__item")).toHaveCount(1);
+    await expect(page.locator(".prospect-timeline__item[data-kind=contact]")).toHaveCount(1);
     let guardados = await leer(page, "acl_local_prospectos");
     expect(guardados.find((x) => x.id === "o2")).toMatchObject({ stage: "interesado", next_followup_at: enDias(3) });
 
     await go("/admin/prospectos/o3");
     await press(page.locator(".prospect-profile").getByRole("button", { name: "Registrar contacto" }));
     await press(page.locator(".prospect-profile form.contact-form").getByRole("button", { name: "Interesado", exact: true }));
-    await expect(page.locator(".contact-history__item")).toHaveCount(1);
+    await expect(page.locator(".prospect-timeline__item[data-kind=contact]")).toHaveCount(1);
     guardados = await leer(page, "acl_local_prospectos");
     expect(guardados.find((x) => x.id === "o3")).toMatchObject({ stage: "negociacion", next_followup_at: enDias(3) });
   });

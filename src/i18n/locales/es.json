@@ -1993,6 +1993,23 @@
       "meeting": "Cita con {{name}}",
       "lookingFor": "Busca: {{text}}"
     },
+    "timeline": {
+      "title": "Línea de tiempo",
+      "kinds": {
+        "created": "Alta",
+        "contact": "Contacto",
+        "stage": "Etapa",
+        "appointment": "Cita",
+        "visit": "Visita",
+        "note": "Nota"
+      },
+      "upcoming": "Próxima",
+      "created": "Origen: {{source}}",
+      "stageTo": "Pasó a «{{stage}}»",
+      "visitTo": "Visita a {{property}}",
+      "showMore": "Ver {{count}} más",
+      "showLess": "Ver menos"
+    },
     "profile": {
       "phone": "Teléfono",
       "email": "Correo",

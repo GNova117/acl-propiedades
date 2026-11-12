@@ -1993,6 +1993,23 @@
       "meeting": "Meeting with {{name}}",
       "lookingFor": "Looking for: {{text}}"
     },
+    "timeline": {
+      "title": "Timeline",
+      "kinds": {
+        "created": "Added",
+        "contact": "Contact",
+        "stage": "Stage",
+        "appointment": "Appointment",
+        "visit": "Visit",
+        "note": "Note"
+      },
+      "upcoming": "Upcoming",
+      "created": "Source: {{source}}",
+      "stageTo": "Moved to «{{stage}}»",
+      "visitTo": "Visit to {{property}}",
+      "showMore": "Show {{count}} more",
+      "showLess": "Show less"
+    },
     "profile": {
       "phone": "Phone",
       "email": "Email",

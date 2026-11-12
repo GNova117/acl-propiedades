@@ -10,8 +10,9 @@ import "./InternalNotes.css";
 // etiquetar a compañeros específicos ("Notificar a:") para que quede claro
 // quién debería verla. No manda un push de verdad (eso requiere el backend
 // real de notificaciones, no disponible en modo demo) — por ahora es un
-// tablón compartido dentro de la ficha.
-export default function InternalNotes({ entityType, entityId }) {
+// tablón compartido dentro de la ficha. `onChange` (opcional): se llama al agregar o borrar una nota
+// (la línea de tiempo del prospecto la usa para volver a leerlas).
+export default function InternalNotes({ entityType, entityId, onChange }) {
   const { t, i18n } = useTranslation();
   const { session } = useAuth();
   const myEmail = session?.user?.email || "";
@@ -51,6 +52,7 @@ export default function InternalNotes({ entityType, entityId }) {
       setBody("");
       setMentions([]);
       load();
+      onChange?.();
     } catch (err) {
       window.alert(err.message || t("internalNotes.saveError"));
     } finally {
@@ -64,6 +66,7 @@ export default function InternalNotes({ entityType, entityId }) {
     try {
       await db.deleteInternalNote(note.id);
       load();
+      onChange?.();
     } catch (err) {
       window.alert(err.message || t("internalNotes.deleteError"));
     } finally {

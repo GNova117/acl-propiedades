@@ -137,7 +137,7 @@ test.describe("Prospectos: acciones del día a día", () => {
       await expect(ficha).toContainText("Último contacto: hoy");
       await expect(ficha.locator(".prospect-chip", { hasText: /Sin atender/ })).toHaveCount(0);
       await expect(ficha.locator("select[aria-label='Etapa']")).toHaveValue("contactado");
-      await expect(page.locator(".contact-history__item")).toHaveCount(1);
+      await expect(page.locator(".prospect-timeline__item[data-kind=contact]")).toHaveCount(1);
       const [guardado] = await leer(page, "acl_local_prospectos");
       expect(guardado).toMatchObject({ stage: "contactado" });
       expect(guardado.next_followup_at).toBeTruthy();
