@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
@@ -9,6 +9,8 @@ import AdminFilters from "../../components/AdminFilters";
 import RowMore from "../../components/RowMore";
 import { FINANCIAMIENTO_TYPES } from "../../lib/format";
 import { telHref, whatsappLink } from "../../lib/prospectActions";
+import { queries } from "../../lib/queries";
+import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
 
 function clientTypeLabel(t, type) {
@@ -19,28 +21,25 @@ function financiamientoLabel(t, value) {
   return value ? t(`clients.financiamientoOptions.${value}`) : "—";
 }
 
+const NONE = [];
+
 export default function AdminClients() {
   const { t } = useTranslation();
-  const [clients, setClients] = useState([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [financiamientoFilter, setFinanciamientoFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
-  const [loading, setLoading] = useState(true);
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [selected, setSelected] = useState(() => new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
 
-  const load = () => {
-    setLoading(true);
-    db.getClients(typeFilter ? { type: typeFilter } : {}).then((data) => {
-      setClients(data);
-      setLoading(false);
-    });
-  };
-
-  useEffect(load, [typeFilter]);
+  // La lista sale del caché (ver dataCache.js): si ya se pidió en otra pantalla, se pinta al instante
+  // y se actualiza al llegar lo nuevo. Cada filtro de tipo tiene su propia entrada.
+  const clientsQ = useQuery(queries.clients(typeFilter));
+  const clients = clientsQ.data ?? NONE;
+  const loading = clientsQ.loading;
+  const load = () => clientsQ.reload().catch(() => {});
 
   const months = t("dateFilter.months", { returnObjects: true });
 

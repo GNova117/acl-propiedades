@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/dataStore";
 import { quickProspectFields, validateQuickProspect } from "../lib/quickProspect";
+import { mutate } from "../lib/dataCache";
+import { queries } from "../lib/queries";
 import DuplicateWarning from "./DuplicateWarning";
 import "./QuickCapture.css";
 
@@ -97,6 +99,8 @@ export default function QuickCapture() {
         }
       }
       const record = await db.addProspect(fields);
+      // Si la lista de prospectos ya está cargada, el nuevo aparece en ella sin esperar a pedirla otra vez.
+      mutate(queries.prospects.key, (prev) => [record, ...prev]);
       setSaved(record);
     } catch (err) {
       setSaveError(err.message || t("quickCapture.saveError"));

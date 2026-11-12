@@ -2,6 +2,17 @@
   margin: 0;
 }
 
+/* Encabezado en un renglón: «Mi día · jueves, 12 de noviembre» y, a la derecha, los enlaces. */
+.my-day__header {
+  align-items: baseline;
+  gap: 0.15rem 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.my-day__links {
+  margin-left: auto;
+}
+
 /* Solo la primera letra ("jueves, 22 de octubre" → "Jueves…"): capitalize pondría "De" en mayúscula. */
 .my-day__date::first-letter {
   text-transform: uppercase;
@@ -100,12 +111,40 @@
 
 /* "Abrir el panel en Mi día": preferencia de este dispositivo (lib/adminHome.js). */
 .my-day__home-toggle {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.4rem;
-  margin-top: 0.35rem;
+  margin-top: 0.5rem;
   font-size: 0.85rem;
   font-weight: 400;
   color: var(--color-text-muted);
   cursor: pointer;
+}
+
+/* Teléfono: lo que hay que atender hoy va primero. Los enlaces a Agenda y Prospectos ya
+   están en la barra de abajo, y «Mi mes» (las metas) pasa tras las listas del día. */
+@media (max-width: 860px) {
+  .my-day {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .my-day .my-day__links {
+    display: none;
+  }
+
+  .my-day__summary {
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+  }
+
+  .my-day__goals {
+    order: 90;
+  }
+
+  .my-day__home-toggle {
+    order: 99;
+  }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
@@ -8,6 +8,8 @@ import { citaToIcs, downloadIcs, mapsUrl } from "../../lib/calendarEvent";
 import { canRegisterVisit, citaContact, citaStatus, citaToVisitPrefill, isFromSite, isOpenRequest, isPending, statusActions, visitLink, visitLinkTextKey } from "../../lib/agendaCitas";
 import { formatIsoDate } from "../../lib/propertyLog";
 import CopyVisitLinkButton from "../../components/CopyVisitLinkButton";
+import { queries } from "../../lib/queries";
+import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
 import "./AdminAgenda.css";
 
@@ -40,6 +42,7 @@ function monthMatrix(year, month) {
 
 const WEEKDAY_SAMPLE = [new Date(2024, 0, 1), new Date(2024, 0, 2), new Date(2024, 0, 3), new Date(2024, 0, 4), new Date(2024, 0, 5), new Date(2024, 0, 6), new Date(2024, 0, 7)];
 const MAX_CHIPS_PER_DAY = 3;
+const NONE = [];
 
 // advisorId es null tanto en modo demo como para cualquier correo sin
 // asesor vinculado desde /admin/roles — en ambos casos se ven TODAS las
@@ -49,12 +52,20 @@ export default function AdminAgenda() {
   const { t, i18n } = useTranslation();
   const { advisorId, hasSection } = useAuth();
   const navigate = useNavigate();
-  const [visits, setVisits] = useState([]);
-  const [citas, setCitas] = useState([]);
-  const [advisors, setAdvisors] = useState([]);
-  const [clients, setClients] = useState([]);
-  const [properties, setProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Las listas salen del caché (ver dataCache.js): si ya se pidieron en otra pantalla, la Agenda se
+  // pinta al instante y se actualiza al llegar lo nuevo. Las visitas registradas (para saber qué citas
+  // ya tienen la suya) solo se piden con el apartado Visitas.
+  const citasQ = useQuery(queries.citas);
+  const advisorsQ = useQuery(queries.advisors);
+  const clientsQ = useQuery(queries.clients());
+  const propertiesQ = useQuery(queries.properties);
+  const visitsQ = useQuery(queries.visits, { enabled: hasSection("visitas") });
+  const citas = citasQ.data ?? NONE;
+  const advisors = advisorsQ.data ?? NONE;
+  const clients = clientsQ.data ?? NONE;
+  const properties = propertiesQ.data ?? NONE;
+  const visits = visitsQ.data ?? NONE;
+  const loading = citasQ.loading;
   const [advisorFilter, setAdvisorFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("active"); // active | pending | open | cancelled | all
   const [busyId, setBusyId] = useState(null);
@@ -82,21 +93,8 @@ export default function AdminAgenda() {
 
   const seesAll = advisorId == null;
 
-  const load = () => {
-    setLoading(true);
-    // Las visitas registradas (para saber qué citas ya tienen la suya) solo se piden con el apartado Visitas.
-    Promise.all([db.getAgendaCitas(), db.getAdvisors(), db.getClients(), db.getProperties({}).catch(() => []), hasSection("visitas") ? db.getVisits().catch(() => []) : []]).then(([citasData, advisorData, clientData, propertyData, visitData]) => {
-      setVisits(visitData);
-      setCitas(citasData);
-      setAdvisors(advisorData);
-      setClients(clientData);
-      setProperties(propertyData);
-      setLoading(false);
-    });
-  };
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(load, []);
+  // Tras cambiar una cita se vuelve a pedir la lista de citas (lo demás no cambia).
+  const load = () => citasQ.reload().catch(() => {});
 
   const handleDelete = async (id) => {
     if (!window.confirm(t("common.confirmDelete"))) return;

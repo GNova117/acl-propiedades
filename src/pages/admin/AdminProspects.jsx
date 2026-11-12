@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
@@ -8,6 +8,9 @@ import { OPEN_STAGES, PROSPECT_STAGES, followUpState, unattendedState, visitToPr
 import { convertProspectToClient } from "../../lib/prospectActions";
 import { matchingProperties } from "../../lib/prospectMatch";
 import { useProspectContact } from "../../lib/useProspectContact";
+import { peek } from "../../lib/dataCache";
+import { queries } from "../../lib/queries";
+import { useQuery } from "../../lib/useQuery";
 import ProspectCard from "../../components/ProspectCard";
 import "./admin.css";
 import "./AdminProspects.css";
@@ -18,6 +21,8 @@ import "./AdminProspects.css";
 // teléfono se ve una etapa a la vez, con pestañas arriba (cada una con su
 // contador). Cambiar de etapa es un selector en la tarjeta (sin arrastrar:
 // funciona igual con el dedo en el celular).
+
+const NONE = [];
 
 const normalize = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
@@ -31,51 +36,44 @@ export default function AdminProspects() {
   const seesAll = advisorId == null;
   const canImport = hasSection("visitas");
 
-  const [prospects, setProspects] = useState([]);
-  const [advisors, setAdvisors] = useState([]);
-  const [properties, setProperties] = useState([]);
-  const [visits, setVisits] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
+  // Las listas salen del caché (ver dataCache.js): si ya se pidieron en otra pantalla, esta se
+  // pinta al instante y se actualiza al llegar lo nuevo.
+  const prospectsQ = useQuery(queries.prospects);
+  const advisorsQ = useQuery(queries.advisors);
+  const propertiesQ = useQuery(queries.properties);
+  const visitsQ = useQuery(queries.visits, { enabled: canImport });
+  const historyQ = useQuery(queries.stageHistory);
+  const prospects = prospectsQ.data ?? NONE;
+  const advisors = advisorsQ.data ?? NONE;
+  const properties = propertiesQ.data ?? NONE;
+  const visits = visitsQ.data ?? NONE;
+  const history = historyQ.data ?? NONE;
+  const loading = prospectsQ.loading;
+  const loadError = [prospectsQ, advisorsQ, propertiesQ].find((q) => q.error)?.error.message || "";
+  const setProspects = prospectsQ.mutate;
   const [busyId, setBusyId] = useState(null);
   const [importing, setImporting] = useState(false);
   const [query, setQuery] = useState("");
   const [advisorFilter, setAdvisorFilter] = useState("");
   const [overdueOnly, setOverdueOnly] = useState(false);
   const [unattendedOnly, setUnattendedOnly] = useState(false);
-  // Etapa visible en el teléfono (en pantalla ancha se ven todas).
-  const [activeStage, setActiveStage] = useState(PROSPECT_STAGES[0]);
+  // Etapa visible en el teléfono (en pantalla ancha se ven todas). Abre en la primera
+  // etapa abierta que tenga prospectos: con la lista ya en el caché, desde el primer pintado.
+  const cachedProspects = peek(queries.prospects.key);
+  const [activeStage, setActiveStage] = useState(() => firstStageWithProspects(cachedProspects || []));
+  const stageChosen = useRef(Boolean(cachedProspects));
+  useEffect(() => {
+    if (!stageChosen.current && prospectsQ.data) {
+      stageChosen.current = true;
+      setActiveStage(firstStageWithProspects(prospectsQ.data));
+    }
+  }, [prospectsQ.data]);
 
   // El formulario "Registrar contacto" de una tarjeta: al guardar el contacto
   // el prospecto se actualiza aquí (último contacto, etapa y seguimiento).
   const contact = useProspectContact({
     onUpdated: (updated) => setProspects((prev) => prev.map((p) => (p.id === updated.id ? updated : p))),
   });
-
-  const load = () => {
-    setLoading(true);
-    Promise.all([
-      db.getProspects(),
-      db.getAdvisors(),
-      db.getProperties({}),
-      canImport ? db.getVisits().catch(() => []) : Promise.resolve([]),
-      db.getProspectStageHistory().catch(() => []),
-    ])
-      .then(([prospectData, advisorData, propertyData, visitData, historyData]) => {
-        setHistory(historyData);
-        setProspects(prospectData);
-        setAdvisors(advisorData);
-        setProperties(propertyData);
-        setVisits(visitData);
-        setActiveStage(firstStageWithProspects(prospectData));
-        setLoadError("");
-      })
-      .catch((err) => setLoadError(err.message || "Error"))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(load, []);
 
   const advisorName = (id) => advisors.find((a) => a.id === id)?.name || "";
   const propertyTitle = (id) => properties.find((p) => p.id === id)?.title || "";

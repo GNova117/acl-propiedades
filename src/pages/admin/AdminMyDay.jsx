@@ -11,6 +11,8 @@ import { isOpenStage, unattendedAge } from "../../lib/prospects";
 import { quickTemplates, telHref } from "../../lib/prospectActions";
 import { prospectToCitaPrefill } from "../../lib/prospectAgenda";
 import { useProspectContact } from "../../lib/useProspectContact";
+import { queries } from "../../lib/queries";
+import { useQuery } from "../../lib/useQuery";
 import QuickReplyButton from "../../components/QuickReplyButton";
 import CopyVisitLinkButton from "../../components/CopyVisitLinkButton";
 import ProspectContactForm from "../../components/ProspectContactForm";
@@ -22,6 +24,7 @@ import "./AdminProspects.css";
 import "./AdminMyDay.css";
 
 const hm = (hora) => String(hora).slice(0, 5);
+const NONE = [];
 
 // "Mi día": una sola pantalla con lo de hoy en el orden en que conviene
 // atenderlo (ver lib/dayPlan.js): citas con su hora y, abajo, los prospectos a
@@ -36,41 +39,25 @@ export default function AdminMyDay() {
   const canVisits = hasSection("visitas");
   const { home, setHome } = useAdminHome();
 
-  const [citas, setCitas] = useState([]);
-  const [prospects, setProspects] = useState([]);
-  const [clients, setClients] = useState([]);
-  const [properties, setProperties] = useState([]);
-  const [advisors, setAdvisors] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Las listas salen del caché (ver dataCache.js): si ya se pidieron en otra pantalla, Mi día se
+  // pinta al instante y se actualiza al llegar lo nuevo. Cada una solo con el apartado que el rol tiene.
+  const citasQ = useQuery(queries.citas, { enabled: canAgenda });
+  const prospectsQ = useQuery(queries.prospects, { enabled: canProspects });
+  const clientsQ = useQuery(queries.clients(), { enabled: canAgenda });
+  const propertiesQ = useQuery(queries.properties, { enabled: canProspects });
+  const advisorsQ = useQuery(queries.advisors);
+  const citas = citasQ.data ?? NONE;
+  const prospects = prospectsQ.data ?? NONE;
+  const clients = clientsQ.data ?? NONE;
+  const properties = propertiesQ.data ?? NONE;
+  const advisors = advisorsQ.data ?? NONE;
+  const loading = (canAgenda && citasQ.loading) || (canProspects && prospectsQ.loading);
   const [now, setNow] = useState(() => new Date());
   // "Registrar contacto" bajo la tarjeta: al guardar, el prospecto deja de estar
   // pendiente (cambia su seguimiento) y sale de esta lista solo.
   const prospectContact = useProspectContact({
-    onUpdated: (updated) => setProspects((prev) => prev.map((p) => (p.id === updated.id ? updated : p))),
+    onUpdated: (updated) => prospectsQ.mutate((prev) => prev.map((p) => (p.id === updated.id ? updated : p))),
   });
-
-  useEffect(() => {
-    let cancelled = false;
-    const safe = (load, fallback = []) => load().catch(() => fallback);
-    Promise.all([
-      canAgenda ? safe(() => db.getAgendaCitas()) : [],
-      canProspects ? safe(() => db.getProspects()) : [],
-      canAgenda ? safe(() => db.getClients()) : [],
-      canProspects ? safe(() => db.getProperties({})) : [],
-      safe(() => db.getAdvisors()),
-    ]).then(([citaData, prospectData, clientData, propertyData, advisorData]) => {
-      if (cancelled) return;
-      setCitas(citaData);
-      setProspects(prospectData);
-      setClients(clientData);
-      setProperties(propertyData);
-      setAdvisors(advisorData);
-      setLoading(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [canAgenda, canProspects]);
 
   // La cita "próxima" y los minutos que faltan se recalculan cada minuto.
   useEffect(() => {
@@ -86,7 +73,7 @@ export default function AdminMyDay() {
     setCloseError("");
     try {
       await db.setAgendaCitaStatus(cita.id, status);
-      setCitas(await db.getAgendaCitas());
+      await citasQ.reload();
     } catch (err) {
       setCloseError(err.message || t("myDay.close.error"));
     }
@@ -250,7 +237,7 @@ export default function AdminMyDay() {
     } catch {
       setCloseError(t("agenda.takeError"));
     }
-    setCitas(await db.getAgendaCitas());
+    await citasQ.reload().catch(() => {});
   };
 
   const renderRequest = (cita) => {
@@ -373,16 +360,12 @@ export default function AdminMyDay() {
 
   return (
     <div className="my-day">
-      <div className="admin-header">
-        <div>
-          <h1>{t("myDay.title")}</h1>
-          <p className="form-hint my-day__date">{dateTitle}</p>
-          <label className="my-day__home-toggle">
-            <input type="checkbox" checked={home === HOME_MY_DAY} onChange={(e) => setHome(e.target.checked ? HOME_MY_DAY : HOME_PANEL)} />
-            {t("myDay.homeToggle")}
-          </label>
-        </div>
-        <div className="admin-header__actions">
+      {/* Título y fecha en un renglón; los enlaces a Agenda y Prospectos solo en pantalla ancha
+          (en el teléfono ya están en la barra de abajo). */}
+      <div className="admin-header my-day__header">
+        <h1>{t("myDay.title")}</h1>
+        <p className="form-hint my-day__date">{dateTitle}</p>
+        <div className="admin-header__actions my-day__links">
           {canAgenda && (
             <Link to="/admin/agenda" className="btn btn-outline">
               {t("myDay.fullAgenda")}
@@ -396,7 +379,11 @@ export default function AdminMyDay() {
         </div>
       </div>
 
-      {advisorId && <MonthGoals advisorId={advisorId} />}
+      {advisorId && (
+        <div className="my-day__goals">
+          <MonthGoals advisorId={advisorId} />
+        </div>
+      )}
 
       {plan.isEmpty ? (
         <p className="card my-day__clear">{t("myDay.allClear")}</p>
@@ -419,6 +406,12 @@ export default function AdminMyDay() {
           renderProspect(e, <span className="prospect-chip prospect-chip--overdue">{t("myDay.daysLate", { count: e.daysLate })}</span>)
         )}
       {canProspects && section("today", plan.today, (e) => renderProspect(e, <span className="prospect-chip prospect-chip--today">{t("prospects.followToday")}</span>))}
+
+      {/* Preferencia de este dispositivo: va al final, para que la primera cita se vea sin deslizar. */}
+      <label className="my-day__home-toggle">
+        <input type="checkbox" checked={home === HOME_MY_DAY} onChange={(e) => setHome(e.target.checked ? HOME_MY_DAY : HOME_PANEL)} />
+        {t("myDay.homeToggle")}
+      </label>
     </div>
   );
 }

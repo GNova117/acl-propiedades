@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
@@ -15,6 +15,8 @@ import { isOpenStage } from "../../lib/prospects";
 import BulkActionsBar from "../../components/BulkActionsBar";
 import AdminFilters from "../../components/AdminFilters";
 import RowMore from "../../components/RowMore";
+import { queries } from "../../lib/queries";
+import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
 
 // updateProperty espera el registro casi completo (no hace un merge parcial
@@ -22,6 +24,8 @@ import "./admin.css";
 // pasan explícitos — así que un cambio en lote de un solo campo (estatus,
 // activo) tiene que ir con todo lo demás de la propiedad, incluyendo los
 // tres arreglos de medios ya existentes, para no perderlos.
+const NONE = [];
+
 function mediaPreservingPatch(property, patch) {
   return {
     ...property,
@@ -48,11 +52,6 @@ export default function AdminProperties({
 }) {
   const { t } = useTranslation();
   const { hasSection } = useAuth();
-  const [properties, setProperties] = useState([]);
-  const [remodelProjects, setRemodelProjects] = useState([]);
-  const [zones, setZones] = useState([]);
-  const [prospects, setProspects] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [busyFichaId, setBusyFichaId] = useState(null);
   const [socialProperty, setSocialProperty] = useState(null);
   const [matchProperty, setMatchProperty] = useState(null);
@@ -68,27 +67,24 @@ export default function AdminProperties({
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkStatus, setBulkStatus] = useState("disponible");
 
-  const load = () => {
-    setLoading(true);
-    Promise.all([
-      db.getProperties({}),
-      db.getRemodelProjects({}),
-      db.getZones().catch(() => []),
-      // Los prospectos solo se piden a quien tiene el apartado (RLS: un asesor recibe solo los suyos).
-      hasSection("prospectos") ? db.getProspects().catch(() => []) : Promise.resolve([]),
-    ]).then(([propertyData, remodelData, zoneData, prospectData]) => {
-      const filtered = fixedType
-        ? propertyData.filter((p) => p.type === fixedType)
-        : propertyData.filter((p) => !excludeTypes.includes(p.type));
-      setProperties(filtered);
-      setRemodelProjects(remodelData);
-      setZones(zoneData);
-      setProspects(prospectData);
-      setLoading(false);
-    });
-  };
-
-  useEffect(load, [fixedType]);
+  // Las listas salen del caché (ver dataCache.js): si ya se pidieron en otra pantalla, esta se pinta
+  // al instante y se actualiza al llegar lo nuevo. Los prospectos solo se piden a quien tiene el apartado
+  // (RLS: un asesor recibe solo los suyos).
+  const propertiesQ = useQuery(queries.properties);
+  const remodelQ = useQuery(queries.remodelProjects);
+  const zonesQ = useQuery(queries.zones);
+  const prospectsQ = useQuery(queries.prospects, { enabled: hasSection("prospectos") });
+  const remodelProjects = remodelQ.data ?? NONE;
+  const zones = zonesQ.data ?? NONE;
+  const prospects = prospectsQ.data ?? NONE;
+  const loading = propertiesQ.loading;
+  const properties = useMemo(() => {
+    const all = propertiesQ.data ?? NONE;
+    return fixedType ? all.filter((p) => p.type === fixedType) : all.filter((p) => !excludeTypes.includes(p.type));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [propertiesQ.data, fixedType]);
+  // Tras cambiar una propiedad se vuelve a pedir la lista de propiedades.
+  const load = () => propertiesQ.reload().catch(() => {});
 
   // A qué prospectos abiertos les encaja cada propiedad disponible.
   const prospectsByProperty = useMemo(() => new Map(properties.map((p) => [p.id, matchingProspects(p, prospects)])), [properties, prospects]);
@@ -429,7 +425,7 @@ export default function AdminProperties({
           property={sendProperty}
           prospects={openProspects}
           onClose={() => setSendProperty(null)}
-          onLogged={(updated) => setProspects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))}
+          onLogged={(updated) => prospectsQ.mutate((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))}
         />
       )}
       {matchProperty && (
