@@ -32,6 +32,14 @@ async function crearCliente(page, go, press, { nombre, tipo = "comprador", finan
   return id;
 }
 
+// Lo menos frecuente de una tarjeta de prospecto (etapa, agendar, ficha, convertir,
+// eliminar) está tras «Más»: se abre si no lo estaba.
+async function abrirMas(tarjeta, press) {
+  const mas = tarjeta.locator("details.prospect-more");
+  if (!(await mas.evaluate((el) => el.open))) await press(mas.locator("summary"));
+  await expect(mas).toHaveJSProperty("open", true);
+}
+
 // Captura WhatsApp en vez de abrir otra pestaña: guarda las URL que se abrirían.
 async function capturarWhatsapp(page) {
   await page.evaluate(() => {
@@ -240,6 +248,7 @@ test.describe("Seguimiento de un prospecto con la plantilla de su etapa", () => 
     });
 
     await test.step("al pasar a negociación cambian las sugeridas", async () => {
+      await abrirMas(tarjeta, press);
       await tarjeta.getByLabel("Etapa").selectOption("negociacion");
       await expect(mensaje.locator("optgroup").first()).toHaveAttribute("label", "Sugeridas para «En negociación»");
       await expect(mensaje.locator("optgroup").first().locator("option")).toHaveText(["¿Cómo va la propuesta?", "Pedir documentos", "Ofrecer ayuda con el crédito"]);
@@ -274,6 +283,7 @@ test.describe("Seguimiento de un prospecto con la plantilla de su etapa", () => 
     });
 
     await test.step("ya cerrado, sugiere felicitar, pedir recomendación y reseña", async () => {
+      await abrirMas(tarjeta, press);
       await tarjeta.getByLabel("Etapa").selectOption("cerrado");
       await expect(mensaje.locator("optgroup")).toHaveCount(1);
       await expect(mensaje.locator("option:not([disabled])")).toHaveText(["Felicitar por la compra", "Pedir una recomendación", "Pedir una reseña"]);

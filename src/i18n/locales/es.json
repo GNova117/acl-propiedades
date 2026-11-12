@@ -1981,6 +1981,32 @@
     "reminderLink": "Ir a Roles y accesos"
   },
   "prospects": {
+    "more": "Más",
+    "schedule": "Agendar",
+    "openProfile": "Abrir ficha",
+    "tabs": {
+      "label": "Etapas del embudo"
+    },
+    "schedulePrefill": {
+      "visit": "Visita: {{property}}",
+      "meeting": "Cita con {{name}}",
+      "lookingFor": "Busca: {{text}}"
+    },
+    "profile": {
+      "phone": "Teléfono",
+      "email": "Correo",
+      "property": "Propiedad",
+      "lookingFor": "Busca",
+      "nextFollowup": "Seguimiento",
+      "advisor": "Asesor",
+      "lostReason": "Motivo",
+      "notes": "Notas",
+      "summary": "Resumen del prospecto",
+      "back": "Volver a Prospectos",
+      "edit": "Editar datos del prospecto",
+      "lastContact": "Último contacto",
+      "created": "Capturado"
+    },
     "postsale": {
       "step30": "Posventa: 1 mes (hace {{days}} d)",
       "step180": "Posventa: 6 meses (hace {{days}} d)",
@@ -3210,6 +3236,9 @@
     "cancelAdd": "Cancelar"
   },
   "agenda": {
+    "property": "Propiedad (opcional)",
+    "noProperty": "— (sin propiedad)",
+    "linkedProspect": "Esta cita está ligada a un prospecto.",
     "viewToggle": "Vista de la agenda",
     "registerVisit": "Registrar visita",
     "visitRegistered": "Visita registrada",

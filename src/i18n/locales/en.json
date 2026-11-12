@@ -1981,6 +1981,32 @@
     "reminderLink": "Go to Roles & access"
   },
   "prospects": {
+    "more": "More",
+    "schedule": "Schedule",
+    "openProfile": "Open profile",
+    "tabs": {
+      "label": "Funnel stages"
+    },
+    "schedulePrefill": {
+      "visit": "Visit: {{property}}",
+      "meeting": "Meeting with {{name}}",
+      "lookingFor": "Looking for: {{text}}"
+    },
+    "profile": {
+      "phone": "Phone",
+      "email": "Email",
+      "property": "Property",
+      "lookingFor": "Looking for",
+      "nextFollowup": "Follow-up",
+      "advisor": "Advisor",
+      "lostReason": "Reason",
+      "notes": "Notes",
+      "summary": "Prospect summary",
+      "back": "Back to Prospects",
+      "edit": "Edit prospect details",
+      "lastContact": "Last contact",
+      "created": "Added"
+    },
     "postsale": {
       "step30": "After-sale: 1 month ({{days}} d ago)",
       "step180": "After-sale: 6 months ({{days}} d ago)",
@@ -3210,6 +3236,9 @@
     "cancelAdd": "Cancel"
   },
   "agenda": {
+    "property": "Property (optional)",
+    "noProperty": "— (no property)",
+    "linkedProspect": "This appointment is linked to a prospect.",
     "viewToggle": "Agenda view",
     "registerVisit": "Log visit",
     "visitRegistered": "Visit logged",

@@ -7,8 +7,10 @@ import { whatsappDigits } from "../../lib/format";
 import { mapsUrl } from "../../lib/calendarEvent";
 import { buildDayPlan } from "../../lib/dayPlan";
 import { canRegisterVisit, citaContact, citaToVisitPrefill, isFromSite, isPending, visitLink } from "../../lib/agendaCitas";
-import { contactFields, isOpenStage, unattendedAge } from "../../lib/prospects";
-import { prospectMessageTemplates } from "../../lib/prospectMessages";
+import { isOpenStage, unattendedAge } from "../../lib/prospects";
+import { quickTemplates, telHref } from "../../lib/prospectActions";
+import { prospectToCitaPrefill } from "../../lib/prospectAgenda";
+import { useProspectContact } from "../../lib/useProspectContact";
 import QuickReplyButton from "../../components/QuickReplyButton";
 import CopyVisitLinkButton from "../../components/CopyVisitLinkButton";
 import ProspectContactForm from "../../components/ProspectContactForm";
@@ -18,11 +20,6 @@ import { useAdminHome } from "../../lib/useAdminHome";
 import "./admin.css";
 import "./AdminProspects.css";
 import "./AdminMyDay.css";
-
-const telHref = (phone) => {
-  const digits = whatsappDigits(phone);
-  return digits ? `tel:${digits.length === 10 ? `+52${digits}` : `+${digits}`}` : null;
-};
 
 const hm = (hora) => String(hora).slice(0, 5);
 
@@ -46,9 +43,11 @@ export default function AdminMyDay() {
   const [advisors, setAdvisors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(() => new Date());
-  const [contactFor, setContactFor] = useState(null); // { id, channel }
-  const [contactSaving, setContactSaving] = useState(false);
-  const [contactError, setContactError] = useState("");
+  // "Registrar contacto" bajo la tarjeta: al guardar, el prospecto deja de estar
+  // pendiente (cambia su seguimiento) y sale de esta lista solo.
+  const prospectContact = useProspectContact({
+    onUpdated: (updated) => setProspects((prev) => prev.map((p) => (p.id === updated.id ? updated : p))),
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -100,32 +99,7 @@ export default function AdminMyDay() {
   const showAdvisor = advisorId == null;
 
   const templatesFor = (p) =>
-    prospectMessageTemplates(p, {
-      propertyTitle: propertyTitle(p.property_id),
-      propertyUrl: p.property_id ? `${window.location.origin}/propiedades/${p.property_id}` : "",
-      advisorName: advisorName(p.advisor_id),
-    }).map((tpl) => ({ ...tpl, label: t(`prospects.templates.${tpl.key}`) }));
-
-  const openContact = (prospect, channel = "", force = false) => {
-    setContactError("");
-    setContactFor((current) => (!force && current?.id === prospect.id ? null : { id: prospect.id, channel }));
-  };
-
-  // Igual que en Prospectos: al guardar el contacto el prospecto deja de estar
-  // pendiente (cambia su seguimiento) y sale de esta lista solo.
-  const saveContact = async (prospect, { channel, note, nextFollowup }) => {
-    setContactSaving(true);
-    setContactError("");
-    try {
-      const updated = await db.logProspectContact(prospect.id, contactFields(prospect, nextFollowup), { channel, note });
-      setProspects((prev) => prev.map((p) => (p.id === prospect.id ? updated : p)));
-      setContactFor(null);
-    } catch (err) {
-      setContactError(err.message || t("prospects.saveError"));
-    } finally {
-      setContactSaving(false);
-    }
-  };
+    quickTemplates(p, { propertyTitle: propertyTitle(p.property_id), advisorName: advisorName(p.advisor_id), origin: window.location.origin, t });
 
   const dateTitle = now.toLocaleDateString(i18n.language?.startsWith("en") ? "en-US" : "es-MX", { weekday: "long", day: "numeric", month: "long" });
 
@@ -338,30 +312,39 @@ export default function AdminMyDay() {
                 label={t("prospects.templates.label")}
                 recommendedLabel={t("prospects.templates.forStage", { stage: t(`prospects.stages.${p.stage}`) })}
                 othersLabel={t("prospects.templates.others")}
-                onSend={(_template, channel) => openContact(p, channel, true)}
+                onSend={(_template, channel) => prospectContact.open(p, channel, true)}
               />
             )}
             {call && (
-              <a className="btn btn-outline btn-sm" href={call} onClick={() => openContact(p, "llamada", true)}>
+              <a className="btn btn-outline btn-sm" href={call} onClick={() => prospectContact.open(p, "llamada", true)}>
                 {t("myDay.call")}
               </a>
             )}
-            <button type="button" className="btn btn-outline btn-sm" onClick={() => openContact(p)} aria-expanded={contactFor?.id === p.id}>
+            <button type="button" className="btn btn-outline btn-sm" onClick={() => prospectContact.open(p)} aria-expanded={prospectContact.isOpenFor(p.id)}>
               {t("prospects.logContact")}
             </button>
+            {canAgenda && (
+              <Link
+                to="/admin/agenda/nueva"
+                state={{ from: "/admin/mi-dia", prefill: prospectToCitaPrefill(p, { propertyTitle: propertyTitle(p.property_id), t }) }}
+                className="btn btn-outline btn-sm"
+              >
+                {t("prospects.schedule")}
+              </Link>
+            )}
             <Link to={`/admin/prospectos/${p.id}`} className="btn btn-outline btn-sm">
               {t("prospects.match.openProspect")}
             </Link>
           </div>
-          {contactFor?.id === p.id && (
+          {prospectContact.isOpenFor(p.id) && (
             <ProspectContactForm
-              key={`${p.id}-${contactFor.channel}`}
+              key={`${p.id}-${prospectContact.target.channel}`}
               prospect={p}
-              defaultChannel={contactFor.channel}
-              saving={contactSaving}
-              error={contactError}
-              onSave={(values) => saveContact(p, values)}
-              onCancel={() => setContactFor(null)}
+              defaultChannel={prospectContact.target.channel}
+              saving={prospectContact.saving}
+              error={prospectContact.error}
+              onSave={(values) => prospectContact.save(p, values)}
+              onCancel={prospectContact.close}
             />
           )}
         </div>
