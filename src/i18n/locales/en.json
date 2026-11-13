@@ -3410,6 +3410,7 @@
     "logged": "Contact logged."
   },
   "offline": {
+    "loadFailed": "No connection: this screen needs a signal to load. Anything you capture with «+» is saved on this device and sent automatically when the signal returns.",
     "banner": {
       "label": "Connection status",
       "offline": "No connection. What you capture is saved on this device and sent when the signal returns.",

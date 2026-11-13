@@ -11,6 +11,7 @@ import NotificationBell from "../../components/NotificationBell";
 import QuickCapture from "../../components/QuickCapture";
 import OfflineBanner from "../../components/OfflineBanner";
 import { getQueue } from "../../lib/offlineQueue";
+import { startPrecache } from "../../lib/offlineShell";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
 import { HOME_MY_DAY, mobileTabs } from "../../lib/adminHome";
@@ -117,6 +118,9 @@ export default function AdminLayout() {
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
+
+  // Con señal, el panel se guarda en el dispositivo para que abra aunque se recargue sin conexión (lib/offlineShell.js).
+  useEffect(() => startPrecache(), []);
 
   useEffect(() => {
     if (!menuOpen) return undefined;

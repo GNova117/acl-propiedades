@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { db } from "../lib/dataStore";
 import { clearDataCache } from "../lib/dataCache";
+import { resolveAccess, resolveSession } from "../lib/authStartup";
+import { forgetAccess } from "../lib/offlineAccess";
 import { isSupabaseConfigured } from "../lib/supabaseClient";
 import { SECTION_KEYS, ADMIN_ROLE_SLUG } from "../lib/accessControl";
 
@@ -19,6 +21,11 @@ export function AuthProvider({ children }) {
 
   // El caché de listas (ver dataCache.js) es de una cuenta: al cerrar sesión o entrar con otra se vacía.
   const cacheOwner = useRef(undefined);
+  // Sin señal el panel abre con lo último que se sabía de esta cuenta (lib/offlineAccess.js): `offlineSession` = la
+  // sesión es solo el correo recordado (la real caducó y no se pudo renovar); `savedAccess` = el rol es el recordado.
+  // Al volver la señal se vuelve a preguntar (ver el listener de «online» más abajo).
+  const offlineSession = useRef(false);
+  const savedAccess = useRef(false);
 
   const loadRole = async (newSession) => {
     const email = newSession?.user?.email;
@@ -38,24 +45,67 @@ export function AuthProvider({ children }) {
       setAdvisorId(null);
       return;
     }
-    const access = await db.getMyAccess(email);
-    setRole(access?.role || null);
-    setAdvisorId(access?.advisor_id || null);
+    const access = await resolveAccess(db, email);
+    savedAccess.current = access.saved;
+    setRole(access.role);
+    setAdvisorId(access.advisorId);
   };
 
   useEffect(() => {
     let unsub = () => {};
     (async () => {
-      const current = await db.getCurrentSession();
+      // Sin red al abrir y con la sesión ya caducada no se puede renovar: se abre con la última cuenta de este
+      // dispositivo (para ver el panel y capturar sin señal) y la sesión real se renueva sola al volver la señal.
+      const { session: current, offline } = await resolveSession(db);
+      offlineSession.current = offline;
       setSession(current);
-      await loadRole(current);
+      try {
+        await loadRole(current);
+      } catch {
+        // Sin rol conocido (y sin poder preguntarlo): el panel muestra «sin acceso» en vez de quedarse cargando.
+      }
       setLoading(false);
     })();
-    unsub = db.onAuthStateChange(async (newSession) => {
+    unsub = db.onAuthStateChange(async (newSession, event) => {
+      // «INITIAL_SESSION» sin sesión: el estado inicial ya lo resolvió la lectura de arriba, y sin red (no pudo renovar la
+      // caducada) tampoco es un cierre de sesión.
+      if (!newSession && event === "INITIAL_SESSION") return;
+      offlineSession.current = false;
+      if (!newSession) forgetAccess();
       setSession(newSession);
-      await loadRole(newSession);
+      try {
+        await loadRole(newSession);
+      } catch {
+        /* igual que arriba */
+      }
     });
     return () => unsub();
+  }, []);
+
+  // Al volver la señal con la sesión o el rol recordados, se pregunta de nuevo (sesión renovada y rol vigente). Si ya no
+  // hay sesión válida, se cierra.
+  useEffect(() => {
+    const onOnline = async () => {
+      if (!offlineSession.current && !savedAccess.current) return;
+      try {
+        const current = await db.getCurrentSession();
+        if (!current) {
+          offlineSession.current = false;
+          forgetAccess();
+          setSession(null);
+          setRole(null);
+          setAdvisorId(null);
+          return;
+        }
+        offlineSession.current = false;
+        setSession(current);
+        await loadRole(current);
+      } catch {
+        /* sigue sin red de verdad: se reintenta la próxima vez que vuelva */
+      }
+    };
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
   }, []);
 
   const login = async (email, password) => {
@@ -66,6 +116,8 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+    forgetAccess();
+    offlineSession.current = false;
     await db.signOut();
     setSession(null);
     setRole(null);

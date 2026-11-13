@@ -2659,15 +2659,24 @@ export const supabaseBackend = {
   },
 
   async signOut() {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    // Sin señal el cierre en el servidor falla y la sesión seguiría guardada: se cierra al menos en este dispositivo.
+    if (error) await supabase.auth.signOut({ scope: "local" });
   },
 
-  getCurrentSession() {
-    return supabase.auth.getSession().then(({ data }) => data.session);
+  // Sin sesión guardada devuelve null. Si la guardada caducó y no se pudo renovar por falta de red, NO es lo mismo que no
+  // haber iniciado sesión: se rechaza con un error de red (isOfflineError) para que el panel pueda abrir sin señal.
+  async getCurrentSession() {
+    const { data, error } = await supabase.auth.getSession();
+    if (!data.session && error?.name === "AuthRetryableFetchError") {
+      throw Object.assign(new Error("network request failed"), { cause: error });
+    }
+    return data.session;
   },
 
+  // El callback recibe (sesión, evento): el evento distingue, p. ej., INITIAL_SESSION de SIGNED_OUT.
   onAuthStateChange(callback) {
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => callback(session));
+    const { data } = supabase.auth.onAuthStateChange((event, session) => callback(session, event));
     return () => data.subscription.unsubscribe();
   },
 

@@ -3410,6 +3410,7 @@
     "logged": "Contacto registrado."
   },
   "offline": {
+    "loadFailed": "Sin conexión: esta pantalla necesita señal para cargar. Lo que captures con «+» se guarda en este dispositivo y se envía solo al volver la señal.",
     "banner": {
       "label": "Estado de la conexión",
       "offline": "Sin conexión. Lo que captures se guarda en este dispositivo y se envía solo al volver la señal.",

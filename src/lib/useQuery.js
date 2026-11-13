@@ -1,7 +1,15 @@
-import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import i18next from "i18next";
 import { mutate, refreshIfStale, revalidate, snapshot, subscribe } from "./dataCache";
+import { isOfflineError } from "./offlineQueue";
 
 const noop = () => {};
+
+// Sin señal, «TypeError: Failed to fetch» no le dice nada al asesor: el error de red se cambia por un aviso claro (el original queda en `cause`).
+function friendlyError(error) {
+  if (!error || !isOfflineError(error)) return error || null;
+  return Object.assign(new Error(i18next.t("offline.loadFailed")), { cause: error, offline: true });
+}
 
 // Una lista del panel con «mostrar lo último y refrescar por detrás» (ver dataCache.js).
 // `query`: { key, fetch } de queries.js. Con `enabled: false` no pide nada (p. ej. una
@@ -40,8 +48,9 @@ export function useQuery(query, { enabled = true } = {}) {
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [key]);
 
+  const error = useMemo(() => friendlyError(entry?.error), [entry?.error]);
   const reload = useCallback(() => (key ? revalidate(key, () => fetchRef.current(), { force: true }) : Promise.resolve()), [key]);
   const change = useCallback((updater) => key && mutate(key, updater), [key]);
 
-  return { data: entry?.value, loading: Boolean(key) && !entry, error: entry?.error || null, reload, mutate: change };
+  return { data: entry?.value, loading: Boolean(key) && !entry, error, reload, mutate: change };
 }

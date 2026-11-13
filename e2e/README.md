@@ -25,6 +25,7 @@ Además, `e2e/fixtures.js` hace que todas las pruebas:
 - no tengan red externa (Unsplash, mapas, fuentes, Google Analytics se bloquean), para ser rápidas y no depender de internet;
 - reciban `404` en `/api/*` (lo que ve el sitio en modo demo, sin funciones de servidor);
 - **fallen ante cualquier error de página o de consola** o respuesta propia ≥ 400, aunque la aserción de la prueba pase.
+- corran **sin service worker** (`serviceWorkers: "block"` en la configuración); solo `abre-sin-senal.spec.js` lo activa, porque prueba justo eso: que el panel abra sin señal aunque se recargue.
 
 ### Las fuentes importan
 
