@@ -28,6 +28,8 @@ const NAV = [
   // Sin apartado: se muestra por tener un login vinculado a un asesor
   // (advisorId), no por un permiso de rol — ver AdminMyProfile.jsx.
   { section: null, to: "/admin/mi-perfil", labelKey: "admin.myProfile", requiresAdvisor: true },
+  // Igual que Mi perfil: lo ve quien tiene un login vinculado a un asesor (sus ventas y la comisión que la oficina le publicó).
+  { section: null, to: "/admin/mis-ventas", labelKey: "mySales.navTitle", requiresAdvisor: true },
   {
     key: "propiedades",
     labelKey: "admin.groups.propiedades",

@@ -57,6 +57,7 @@ const AdminPropertyHistory = lazy(() => import("./pages/admin/AdminPropertyHisto
 const AdminAdvisors = lazy(() => import("./pages/admin/AdminAdvisors"));
 const AdminAdvisorForm = lazy(() => import("./pages/admin/AdminAdvisorForm"));
 const AdminMyProfile = lazy(() => import("./pages/admin/AdminMyProfile"));
+const AdminMySales = lazy(() => import("./pages/admin/AdminMySales"));
 const AdminMyDay = lazy(() => import("./pages/admin/AdminMyDay"));
 const AdminZones = lazy(() => import("./pages/admin/AdminZones"));
 const AdminClients = lazy(() => import("./pages/admin/AdminClients"));
@@ -302,6 +303,7 @@ export default function App() {
         <Route path="asesores/nuevo" element={<RequireSection section="asesores"><AdminAdvisorForm /></RequireSection>} />
         <Route path="asesores/:id" element={<RequireSection section="asesores"><AdminAdvisorForm /></RequireSection>} />
         <Route path="mi-perfil" element={<AdminMyProfile />} />
+        <Route path="mis-ventas" element={<AdminMySales />} />
         <Route path="mi-dia" element={<AdminMyDay />} />
         <Route path="zonas" element={<RequireSection section="zonas"><AdminZones /></RequireSection>} />
         <Route path="clientes" element={<RequireSection section="clientes"><AdminClients /></RequireSection>} />

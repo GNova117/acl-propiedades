@@ -52,3 +52,15 @@ describe("propertiesShareMessage", () => {
     expect(propertiesShareMessage([], { origin })).toBe("");
   });
 });
+
+describe("propertyShareMessage con rebaja", () => {
+  it("avisa que bajó de precio y de cuánto", () => {
+    const text = propertyShareMessage(casa, { origin, recipientName: "Ana", priceDrop: { percent: 8, previousPrice: 1630000 } });
+    expect(text).toContain("acaba de bajar de precio (8 % menos)");
+    expect(text).toContain("https://acl.mx/propiedades/7");
+  });
+  it("sin rebaja el texto es el de siempre", () => {
+    expect(propertyShareMessage(casa, { origin })).toContain("te comparto esta propiedad:");
+    expect(propertyShareMessage(casa, { origin, priceDrop: null })).not.toMatch(/bajar de precio/);
+  });
+});

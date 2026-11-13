@@ -41,8 +41,11 @@ export function AuthProvider({ children }) {
     if (!isSupabaseConfigured) {
       // Modo demo: siempre "ve todas las agendas" (sin asesor vinculado),
       // igual que el resto de secciones se tratan como administrador aquí.
+      // Salvo que el correo tenga un asesor vinculado en los accesos guardados del demo (Roles → Accesos): así se puede
+      // probar el panel como asesor (Mi mes, Mis ventas…). No filtra datos: el demo no tiene RLS.
       setRole(DEMO_ROLE);
-      setAdvisorId(null);
+      const linked = await db.getMyAccess(email).catch(() => null);
+      setAdvisorId(linked?.advisor_id || null);
       return;
     }
     const access = await resolveAccess(db, email);

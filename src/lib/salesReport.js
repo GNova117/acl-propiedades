@@ -73,8 +73,8 @@ export function buildSaleRows({ ventas, properties, advisors, liquidaciones = []
       // Quién cobra qué sale de la liquidación (captador / vendedor), no de
       // quién quedó registrado en la venta: es el dinero real de cada asesor.
       const comisiones = [];
-      if (liq.captador_id) comisiones.push({ advisorId: liq.captador_id, amount: b.montoCaptador });
-      if (!b.mismaPersona && liq.vendedor_id) comisiones.push({ advisorId: liq.vendedor_id, amount: b.comisionVenta });
+      if (liq.captador_id) comisiones.push({ advisorId: liq.captador_id, role: "captacion", amount: b.montoCaptador });
+      if (!b.mismaPersona && liq.vendedor_id) comisiones.push({ advisorId: liq.vendedor_id, role: "venta", amount: b.comisionVenta });
       profit = {
         utilidadOficina: b.utilidadOficina,
         utilidadNeta: b.utilidadNeta,
@@ -239,4 +239,20 @@ export function availableYears(properties, ventas, now = new Date()) {
   for (const v of ventas) years.add(dateParts(v.fecha_venta).year);
   for (const p of properties) if (p.created_at) years.add(new Date(p.created_at).getFullYear());
   return [...years].sort((a, b) => b - a);
+}
+
+// Lo que se publica a los asesores (ver lib/mySales.js y «Publicar comisiones» en Reportes): una fila por comisión de cada venta que
+// ya tiene liquidación, con el monto que le toca a esa persona. Las ventas sin liquidación no se publican (aún no hay cifra), y una
+// comisión de cero o negativa tampoco (una utilidad en pérdida no es dinero para el asesor). Es una foto de este momento:
+// si después cambia la liquidación, se vuelve a publicar.
+export function commissionSnapshot(rows) {
+  const out = [];
+  for (const row of rows) {
+    for (const c of row.profit?.comisiones || []) {
+      const amount = Math.round(Number(c.amount) * 100) / 100;
+      if (!c.advisorId || !c.role || !(amount > 0)) continue;
+      out.push({ property_id: row.propertyId, advisor_id: c.advisorId, role: c.role, amount, fecha_venta: row.fecha });
+    }
+  }
+  return out;
 }

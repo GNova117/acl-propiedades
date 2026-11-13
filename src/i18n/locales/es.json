@@ -822,6 +822,7 @@
     "analyticsUsers": "Usuarios",
     "analyticsPageViews": "Vistas de página",
     "analyticsNotConfigured": "Google Analytics todavía no está conectado con el panel.",
+    "myVentasMore": "Ver mis ventas y comisiones",
     "myVentasTitle": "Mis ventas",
     "myVentasCount": "Vendidas en {{year}}",
     "myVentasVolume": "Volumen vendido",
@@ -1443,6 +1444,19 @@
       "captureLiquidation": "Capturar utilidad",
       "mismatch": "El asesor de la venta es distinto al que marca la utilidad de esta propiedad.",
       "disclaimer": "Las ganancias se calculan con la misma cuenta de la pantalla \"Utilidad\" de cada propiedad; solo se suman las ventas que ya tienen su utilidad capturada."
+    },
+    "publish": {
+      "title": "Comisiones para los asesores",
+      "hint": "La liquidación es confidencial. Aquí publicas a cada asesor solo su comisión de cada casa vendida, para que la vea en «Mis ventas». Es una foto de este momento: si cambias una liquidación, vuelve a publicar. Nada se publica solo.",
+      "button": "Publicar comisiones",
+      "busy": "Publicando…",
+      "confirm_one": "Se publicará {{count}} comisión a los asesores y se retirarán {{removed}} que ya no aplican. ¿Continuar?",
+      "confirm_other": "Se publicarán {{count}} comisiones a los asesores y se retirarán {{removed}} que ya no aplican. ¿Continuar?",
+      "nothing": "No hay comisiones por publicar ni por retirar.",
+      "done": "Listo: {{published}} publicadas, {{removed}} retiradas.",
+      "last": "Última publicación: {{date}} · {{count}} comisiones vigentes.",
+      "never": "Aún no has publicado comisiones.",
+      "error": "No se pudo publicar: {{message}}"
     },
     "pending": {
       "banner": "{{count}} propiedad(es) marcadas como vendidas aún no tienen asesor ni fecha de venta.",
@@ -2224,6 +2238,7 @@
     "unattendedLate_one": "{{count}} lleva más de 4 horas sin atenderse",
     "unattendedLate_other": "{{count}} llevan más de 4 horas sin atenderse",
     "items": {
+      "matches": "Propiedades que le encajan a tus prospectos",
       "postsale": "Posventa por hacer",
       "signatures": "Firmas sin completar (3 días o más)",
       "messages": "Mensajes sin contestar",
@@ -3709,6 +3724,8 @@
       "error": "No se pudo actualizar la cita."
     },
     "sections": {
+      "matches": "Le encaja a tus prospectos",
+      "matchesHint": "Propiedades nuevas o que bajaron de precio esta semana y van con lo que busca alguno de tus prospectos. Mándasela y registra el contacto.",
       "close": "Visitas por cerrar",
       "closeHint": "Ya pasaron y nadie las marcó (últimos 7 días). Ciérralas para que las métricas de asistencia cuadren.",
       "confirm": "Visitas por confirmar",
@@ -3891,6 +3908,72 @@
       "timeout": "La redacción tardó demasiado. Inténtalo de nuevo.",
       "upstream": "No se pudo redactar el texto. Inténtalo de nuevo."
     }
+  },
+  "matchAlerts": {
+    "new": "Nueva",
+    "drop": "Bajó {{percent}} %",
+    "was": "antes {{price}}",
+    "looking": "Busca: {{summary}}",
+    "whatsapp": "WhatsApp",
+    "noPhone": "Sin teléfono",
+    "viewProperty": "Ver propiedad",
+    "viewProspect": "Ver ficha",
+    "writtenTo": "Ya le escribí",
+    "showMore_one": "Ver {{count}} prospecto más",
+    "showMore_other": "Ver {{count}} prospectos más",
+    "showLess": "Ver menos",
+    "done": "Listo, ya la revisé",
+    "doneHint": "Se quita de esta lista en este dispositivo."
+  },
+  "dayRoute": {
+    "title": "Ruta de hoy",
+    "hint": "Las citas que te faltan, en orden de hora. La ruta abre en Google Maps desde donde estés.",
+    "stops_one": "{{count}} parada",
+    "stops_other": "{{count}} paradas",
+    "open": "Abrir ruta en Maps",
+    "totalKm": "≈ {{km}} km en total",
+    "leg": "{{km}} km · ≈ {{minutes}} min en auto",
+    "overlap": "Se empalman: la siguiente cita empieza antes de que termine esta.",
+    "late": "No alcanzas: hay {{gap}} min entre las dos citas y el trayecto es de ≈ {{minutes}} min.",
+    "tight": "Va justo: {{gap}} min entre las dos citas para un trayecto de ≈ {{minutes}} min.",
+    "allDay": "Todo el día",
+    "unplaced_one": "{{count}} cita sin lugar no entra en la ruta: {{titles}}. Agrégale el lugar o la propiedad.",
+    "unplaced_other": "{{count}} citas sin lugar no entran en la ruta: {{titles}}. Agrégales el lugar o la propiedad.",
+    "truncated": "Maps abre hasta {{max}} paradas: se incluyen las primeras {{max}}.",
+    "estimate": "Distancias y tiempos aproximados (en línea recta, ajustados a la calle). Maps calcula el recorrido real.",
+    "mapLabel": "Mapa de la ruta de hoy",
+    "stop": "Parada {{number}}"
+  },
+  "mySales": {
+    "navTitle": "Mis ventas",
+    "title": "Mis ventas y comisiones",
+    "hint": "Lo que has vendido y la comisión que la oficina ha publicado de cada casa.",
+    "year": "Año",
+    "kpi": {
+      "count": "Ventas cerradas",
+      "volume": "Volumen vendido",
+      "commission": "Comisiones publicadas",
+      "pending": "Por publicar"
+    },
+    "pendingNote_one": "{{count}} de tus ventas de {{year}} aún no tiene comisión publicada. La oficina la publica cuando liquida la casa.",
+    "pendingNote_other": "{{count}} de tus ventas de {{year}} aún no tienen comisión publicada. La oficina la publica cuando liquida la casa.",
+    "byMonth": "Por mes",
+    "monthChart": "Ventas y comisión por mes",
+    "monthLinePending": "{{count}} venta(s) · comisión pendiente",
+    "monthLine": "{{count}} venta(s) · {{commission}}",
+    "table": {
+      "date": "Fecha",
+      "property": "Propiedad",
+      "price": "Precio",
+      "concept": "Concepto",
+      "commission": "Comisión"
+    },
+    "sold": "Vendiste",
+    "captured": "Captaste",
+    "pending": "Pendiente",
+    "empty": "Todavía no hay ventas ni comisiones en {{year}}.",
+    "loadError": "No se pudieron cargar tus ventas.",
+    "disclaimer": "La comisión es la que tu oficina publicó: una foto del momento en que se liquidó la casa. Si algo no cuadra, pregúntalo en la oficina."
   },
   "goals": {
     "title": "Mi mes: {{month}}",

@@ -5,10 +5,12 @@ import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { formatMXN, propertyTypeLabel } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
+import { commissionKey } from "../../lib/mySales";
 import {
   availableYears,
   advisorPerformance,
   buildSaleRows,
+  commissionSnapshot,
   currentInventory,
   filterRows,
   inventorySeries,
@@ -174,7 +176,7 @@ export default function AdminSalesReports() {
   const [searchParams, setSearchParams] = useSearchParams();
   const monthLabels = useMonthLabels(i18n.language);
 
-  const [data, setData] = useState({ properties: [], advisors: [], ventas: [], propertyTypes: [], liquidaciones: [], remodelProjects: [], expenses: [] });
+  const [data, setData] = useState({ properties: [], advisors: [], ventas: [], propertyTypes: [], liquidaciones: [], remodelProjects: [], expenses: [], published: [] });
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
@@ -189,6 +191,8 @@ export default function AdminSalesReports() {
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedNote, setSavedNote] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishNote, setPublishNote] = useState("");
 
   const load = () => {
     setLoading(true);
@@ -200,9 +204,11 @@ export default function AdminSalesReports() {
       canSeeProfit ? db.getLiquidaciones().catch(() => []) : [],
       canSeeProfit ? db.getRemodelProjects({}).catch(() => []) : [],
       canSeeProfit ? db.getExpenses().catch(() => []) : [],
+      // Sin la tabla de comisiones publicadas (SQL sin correr) el reporte funciona igual; publicar sí avisa del error.
+      canSeeProfit ? db.getAdvisorCommissions().catch(() => []) : [],
     ])
-      .then(([properties, advisors, ventas, propertyTypes, liquidaciones, remodelProjects, expenses]) => {
-        setData({ properties, advisors, ventas, propertyTypes, liquidaciones, remodelProjects, expenses });
+      .then(([properties, advisors, ventas, propertyTypes, liquidaciones, remodelProjects, expenses, published]) => {
+        setData({ properties, advisors, ventas, propertyTypes, liquidaciones, remodelProjects, expenses, published });
         setLoadError("");
       })
       .catch((err) => setLoadError(err.message || "Error"))
@@ -211,7 +217,7 @@ export default function AdminSalesReports() {
 
   useEffect(load, [canSeeProfit]);
 
-  const { properties, advisors, ventas, propertyTypes, liquidaciones, remodelProjects, expenses } = data;
+  const { properties, advisors, ventas, propertyTypes, liquidaciones, remodelProjects, expenses, published } = data;
   const soldIds = useMemo(() => new Set(ventas.map((v) => v.property_id)), [ventas]);
 
   // "Registrar venta" desde la lista de Propiedades llega con ?vender=<id>.
@@ -247,6 +253,43 @@ export default function AdminSalesReports() {
   const maxMatrixCell = Math.max(1, ...matrix.lines.flatMap((l) => l.months));
 
   const visibleTabs = TABS.filter((key) => key !== "profit" || canSeeProfit);
+
+  // «Publicar comisiones»: deja a cada asesor su comisión de cada casa vendida (Mis ventas). Se calcula con datos recién traídos y SIN
+  // tragarse errores: publicar con una lista incompleta retiraría comisiones que sí aplican.
+  const publishCommissions = async () => {
+    setPublishNote("");
+    setPublishing(true);
+    try {
+      const [ventasNow, propertiesNow, advisorsNow, liquidacionesNow, remodelNow, expensesNow, existing] = await Promise.all([
+        db.getVentas(),
+        db.getProperties({}),
+        db.getAdvisors(),
+        db.getLiquidaciones(),
+        db.getRemodelProjects({}),
+        db.getExpenses(),
+        db.getAdvisorCommissions(),
+      ]);
+      const snapshot = commissionSnapshot(
+        buildSaleRows({ ventas: ventasNow, properties: propertiesNow, advisors: advisorsNow, liquidaciones: liquidacionesNow, remodelProjects: remodelNow, expenses: expensesNow })
+      );
+      const keep = new Set(snapshot.map(commissionKey));
+      const removed = existing.filter((e) => !keep.has(commissionKey(e))).length;
+      if (snapshot.length === 0 && removed === 0) {
+        setPublishNote(t("salesReports.publish.nothing"));
+        return;
+      }
+      if (!window.confirm(t("salesReports.publish.confirm", { count: snapshot.length, removed }))) return;
+      const result = await db.syncAdvisorCommissions(snapshot);
+      const fresh = await db.getAdvisorCommissions();
+      setData((prev) => ({ ...prev, published: fresh }));
+      setPublishNote(t("salesReports.publish.done", { published: result.published, removed: result.removed }));
+    } catch (err) {
+      setPublishNote(t("salesReports.publish.error", { message: err.message || "Error" }));
+    } finally {
+      setPublishing(false);
+    }
+  };
+  const lastPublishedAt = published.reduce((latest, c) => (String(c.published_at) > latest ? String(c.published_at) : latest), "");
 
   function startRegister(property) {
     const advisorId = (property.advisor_ids || []).find((id) => advisors.some((a) => a.id === id)) || "";
@@ -700,6 +743,26 @@ export default function AdminSalesReports() {
               </div>
             )}
             <p className="form-hint">{t("salesReports.profit.disclaimer")}</p>
+          </div>
+
+          <div className="card sr-panel">
+            <div className="sr-panel__header">
+              <h2>{t("salesReports.publish.title")}</h2>
+              <button type="button" className="btn btn-primary btn-sm" onClick={publishCommissions} disabled={publishing}>
+                {publishing ? t("salesReports.publish.busy") : t("salesReports.publish.button")}
+              </button>
+            </div>
+            <p className="form-hint">{t("salesReports.publish.hint")}</p>
+            <p className="form-hint">
+              {lastPublishedAt
+                ? t("salesReports.publish.last", { date: formatDate(lastPublishedAt.slice(0, 10), i18n.language), count: published.length })
+                : t("salesReports.publish.never")}
+            </p>
+            {publishNote && (
+              <p className="form-hint" role="status">
+                {publishNote}
+              </p>
+            )}
           </div>
         </>
       )}

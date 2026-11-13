@@ -210,6 +210,9 @@ export default function AdminDashboard() {
             <div className="card admin-dashboard-panel">
               <div className="admin-dashboard-panel__header">
                 <h2>{t("admin.myVentasTitle")}</h2>
+                <Link to="/admin/mis-ventas" className="btn btn-outline btn-sm">
+                  {t("admin.myVentasMore")}
+                </Link>
               </div>
               <div className="admin-dashboard-panel__analytics-totals">
                 <div>

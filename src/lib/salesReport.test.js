@@ -3,6 +3,7 @@ import {
   advisorPerformance,
   availableYears,
   buildSaleRows,
+  commissionSnapshot,
   currentInventory,
   dateParts,
   filterRows,
@@ -57,7 +58,7 @@ describe("buildSaleRows", () => {
 
     expect(row.profit.utilidadOficina).toBe(600000); // 1,000,000 * (1 - 40%)
     expect(row.profit.utilidadNeta).toBe(540000); // 600,000 * (1 - 10%)
-    expect(row.profit.comisiones).toEqual([{ advisorId: "a1", amount: 400000 }]);
+    expect(row.profit.comisiones).toEqual([{ advisorId: "a1", role: "captacion", amount: 400000 }]);
     expect(row.profit.totalComisiones).toBe(400000);
     expect(row.profit.advisorMismatch).toBe(false);
   });
@@ -315,5 +316,37 @@ describe("availableYears", () => {
   it("incluye el año actual aunque no haya ventas ni altas registradas", () => {
     const years = availableYears([], [], new Date("2026-05-01T00:00:00.000Z"));
     expect(years).toContain(2026);
+  });
+});
+
+describe("commissionSnapshot", () => {
+  const row = (over = {}) => ({
+    propertyId: "p1",
+    fecha: "2026-02-01",
+    profit: { comisiones: [{ advisorId: "a1", role: "captacion", amount: 280000.456 }, { advisorId: "a2", role: "venta", amount: 120000 }] },
+    ...over,
+  });
+
+  it("una fila por comisión con el monto de cada persona, redondeado a centavos", () => {
+    expect(commissionSnapshot([row()])).toEqual([
+      { property_id: "p1", advisor_id: "a1", role: "captacion", amount: 280000.46, fecha_venta: "2026-02-01" },
+      { property_id: "p1", advisor_id: "a2", role: "venta", amount: 120000, fecha_venta: "2026-02-01" },
+    ]);
+  });
+
+  it("no publica ventas sin liquidación ni comisiones en cero o negativas", () => {
+    expect(commissionSnapshot([row({ profit: null })])).toEqual([]);
+    expect(commissionSnapshot([row({ profit: { comisiones: [{ advisorId: "a1", role: "captacion", amount: 0 }, { advisorId: "a2", role: "venta", amount: -50 }] } })])).toEqual([]);
+  });
+
+  it("de punta a punta con buildSaleRows: lo que cobra cada quien sale de la liquidación, no de la venta", () => {
+    const properties = [{ id: "p1", price: 1000000, created_at: "2026-01-01T00:00:00.000Z" }];
+    const ventas = [{ id: "v1", property_id: "p1", advisor_id: "a2", fecha_venta: "2026-02-01" }];
+    const liquidaciones = [{ property_id: "p1", captador_id: "a1", vendedor_id: "a2", tasa_comision_captacion: 40, tasa_comision_venta: 30, tasa_gastos_admin: 10, costo_total: 0, devolucion_vendedor: 0, inversion_servicios: 0 }];
+    const snapshot = commissionSnapshot(buildSaleRows({ ventas, properties, advisors: [], liquidaciones }));
+    expect(snapshot).toEqual([
+      { property_id: "p1", advisor_id: "a1", role: "captacion", amount: 280000, fecha_venta: "2026-02-01" },
+      { property_id: "p1", advisor_id: "a2", role: "venta", amount: 120000, fecha_venta: "2026-02-01" },
+    ]);
   });
 });

@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { db } from "./dataStore";
+import { revalidate } from "./dataCache";
+import { queries } from "./queries";
+import { matchAlerts, readSeen } from "./matchAlerts";
 import { activeCitas } from "./agendaCitas";
 import { daysSince, followUpState, todayISO, unattendedAge, unattendedState } from "./prospects";
 import { effectiveStatus, signingAgeDays } from "./signing";
@@ -18,7 +21,8 @@ const MAX_LINES = 3;
 // arriesgar que se desincronicen los criterios de cada aviso.
 export function usePendingToday() {
   const { t, i18n } = useTranslation();
-  const { hasSection, advisorId } = useAuth();
+  const { hasSection, advisorId, session } = useAuth();
+  const email = session?.user?.email || "";
   const [items, setItems] = useState(null);
   const sectionsKey = ["mensajes", "agenda", "visitas", "secretaria", "prospectos", "propiedades", "documentos_legales"].map((s) => hasSection(s)).join();
 
@@ -36,7 +40,9 @@ export function usePendingToday() {
       settle("propiedades", () => db.getProperties({})),
       settle("documentos_legales", () => db.getSigningRequests()),
       settle("prospectos", () => db.getProspectStageHistory()),
-    ]).then(([messages, citas, visits, keys, prospects, properties, signings, stageHistory]) => {
+      // Para «le encaja a tus prospectos»: por el caché compartido, así no se repite la petición que ya hace Mi día.
+      settle("prospectos", () => revalidate(queries.properties.key, queries.properties.fetch)),
+    ]).then(([messages, citas, visits, keys, prospects, properties, signings, stageHistory, matchProperties]) => {
       if (cancelled) return;
       const list = [];
 
@@ -101,6 +107,11 @@ export function usePendingToday() {
             to: "/admin/prospectos",
             lines: postsale.slice(0, MAX_LINES).map(({ p, due }) => `${p.name} — ${t("pending.daysOut", { count: due.since })}`),
           });
+        }
+        // Propiedades nuevas o con rebaja que le encajan a algún prospecto y que aún no se revisan (se resuelven en Mi día).
+        if (matchProperties) {
+          const found = matchAlerts({ properties: matchProperties, prospects, seen: readSeen(email) });
+          if (found.length) list.push({ key: "matches", count: found.length, to: "/admin/mi-dia", tone: "info", lines: found.slice(0, MAX_LINES).map((a) => a.property.title) });
         }
         // Los que llegaron solos y llevan más de 4 h sin contacto ("late") ponen el
         // aviso en rojo; los más viejos van primero porque son los más urgentes.

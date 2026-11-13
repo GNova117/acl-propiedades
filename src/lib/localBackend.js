@@ -16,6 +16,7 @@ import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } fro
 import { CITA_STATUSES } from "./agendaCitas";
 import { findOpenProspect, mergeBookingIntoProspect, prospectFieldsFromBooking, syncProspectFollowup } from "./visitProspect";
 import { SELECTION_VALID_DAYS, cleanSelectionInput } from "./selections";
+import { commissionKey } from "./mySales";
 import {
   BOOKING_TOKEN_PATTERN,
   DEFAULT_VISIT_SETTINGS,
@@ -61,6 +62,7 @@ const KEYS = {
   perfilamientosComprador: "acl_local_perfilamientos_comprador",
   liquidaciones: "acl_local_liquidaciones",
   ventas: "acl_local_ventas",
+  advisorCommissions: "acl_local_advisor_commissions",
   propertyLog: "acl_local_property_log",
   propertyBudgets: "acl_local_property_budgets",
   visits: "acl_local_visits",
@@ -1636,6 +1638,26 @@ export const localBackend = {
     const items = readStore(KEYS.ventas, VENTAS_SEED);
     writeStore(KEYS.ventas, items.filter((v) => v.id !== id));
     await this.setPropertyStatus(propertyId, "disponible");
+  },
+
+  // Comisiones que la oficina publicó para cada asesor (ver «Publicar comisiones» en Reportes y «Mis ventas»). En Supabase cada
+  // asesor lee solo las suyas (RLS); el modo demo no tiene RLS y la pantalla filtra por asesor.
+  async getAdvisorCommissions() {
+    return readStore(KEYS.advisorCommissions, []);
+  },
+
+  // Deja publicado exactamente `rows` ({ property_id, advisor_id, role, amount, fecha_venta }): agrega o actualiza lo que viene y
+  // retira lo que ya no (una venta deshecha o una liquidación que dejó de dar comisión).
+  async syncAdvisorCommissions(rows) {
+    const existing = readStore(KEYS.advisorCommissions, []);
+    const publishedAt = new Date().toISOString();
+    const next = rows.map((row) => {
+      const before = existing.find((e) => commissionKey(e) === commissionKey(row));
+      return { id: before?.id || uid("comision"), ...row, published_by: DEMO_ADMIN.email, published_at: publishedAt };
+    });
+    writeStore(KEYS.advisorCommissions, next);
+    const keep = new Set(next.map(commissionKey));
+    return { published: next.length, removed: existing.filter((e) => !keep.has(commissionKey(e))).length };
   },
 
   // Bitácora y gastos por propiedad (modo demo: el comprobante vive como

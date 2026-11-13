@@ -26,10 +26,12 @@ function propertyBlock(property, origin) {
     .join("\n");
 }
 
-// `recipientName`: a quién va (puede ir vacío: "Hola,"). `advisorName`: firma opcional.
-export function propertyShareMessage(property, { origin, recipientName = "", advisorName = "" } = {}) {
+// `recipientName`: a quién va (puede ir vacío: "Hola,"). `advisorName`: firma opcional. `priceDrop`: { percent, previousPrice }
+// cuando la propiedad acaba de bajar de precio (el aviso «le encaja a tu prospecto»): lo dice en la frase de arriba.
+export function propertyShareMessage(property, { origin, recipientName = "", advisorName = "", priceDrop = null } = {}) {
   const sign = advisorName ? `\n— ${advisorName}, ACL Propiedades` : "";
-  return `${hello(recipientName)}, te comparto esta propiedad:\n\n${propertyBlock(property, origin)}\n\n¿Te gustaría visitarla? Con gusto coordino el recorrido.${sign}`;
+  const intro = priceDrop?.percent > 0 ? `te comparto esta propiedad que acaba de bajar de precio (${priceDrop.percent} % menos):` : "te comparto esta propiedad:";
+  return `${hello(recipientName)}, ${intro}\n\n${propertyBlock(property, origin)}\n\n¿Te gustaría visitarla? Con gusto coordino el recorrido.${sign}`;
 }
 
 // Varias propiedades en un solo mensaje (máximo `limit`, para que no sea eterno).

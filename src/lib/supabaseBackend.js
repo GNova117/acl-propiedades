@@ -14,6 +14,7 @@ import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } fro
 import { CITA_STATUSES } from "./agendaCitas";
 import { BOOKING_TOKEN_PATTERN, DEFAULT_VISIT_SETTINGS, hhmm, normalizeVisitSchedule } from "./visitSlots";
 import { cleanSelectionInput } from "./selections";
+import { commissionKey } from "./mySales";
 
 // La tabla aún no existe en la base (falta correr su bloque de schema.sql):
 // 42P01 es Postgres directo, PGRST205 es PostgREST ("no está en el schema cache").
@@ -1539,6 +1540,35 @@ export const supabaseBackend = {
     const { error } = await supabase.from("ventas").delete().eq("id", id);
     if (error) throw error;
     await this.setPropertyStatus(propertyId, "disponible");
+  },
+
+  // Comisiones que la oficina publicó para cada asesor (tabla advisor_commissions; ver «Mis ventas y comisiones» en schema.sql).
+  // RLS: cada asesor lee solo las suyas; quien tiene el apartado 'liquidaciones' lee y escribe todas.
+  async getAdvisorCommissions() {
+    const { data, error } = await supabase.from("advisor_commissions").select("*").order("fecha_venta", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Deja publicado exactamente `rows` ({ property_id, advisor_id, role, amount, fecha_venta }): agrega o actualiza lo que viene y
+  // retira lo que ya no (una venta deshecha o una liquidación que dejó de dar comisión).
+  async syncAdvisorCommissions(rows) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const publishedAt = new Date().toISOString();
+    const publishedBy = sessionData?.session?.user?.email || null;
+    const existing = await this.getAdvisorCommissions();
+    if (rows.length > 0) {
+      const payload = rows.map((row) => ({ ...row, published_by: publishedBy, published_at: publishedAt }));
+      const { error } = await supabase.from("advisor_commissions").upsert(payload, { onConflict: "property_id,advisor_id,role" });
+      if (error) throw error;
+    }
+    const keep = new Set(rows.map(commissionKey));
+    const stale = existing.filter((e) => !keep.has(commissionKey(e))).map((e) => e.id);
+    if (stale.length > 0) {
+      const { error } = await supabase.from("advisor_commissions").delete().in("id", stale);
+      if (error) throw error;
+    }
+    return { published: rows.length, removed: stale.length };
   },
 
   // Bitácora y gastos por propiedad. Tablas property_log / property_budgets y

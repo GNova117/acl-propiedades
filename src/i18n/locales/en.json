@@ -822,6 +822,7 @@
     "analyticsUsers": "Users",
     "analyticsPageViews": "Page views",
     "analyticsNotConfigured": "Google Analytics isn't connected to the admin panel yet.",
+    "myVentasMore": "See my sales and commissions",
     "myVentasTitle": "My sales",
     "myVentasCount": "Sold in {{year}}",
     "myVentasVolume": "Volume sold",
@@ -1443,6 +1444,19 @@
       "captureLiquidation": "Enter profit",
       "mismatch": "The sale's advisor differs from the one on this property's profit record.",
       "disclaimer": "Profit uses the same calculation as each property's \"Profit\" screen; only sales that already have their profit entered are added up."
+    },
+    "publish": {
+      "title": "Commissions for advisors",
+      "hint": "The settlement is confidential. Here you publish to each advisor only their commission on each sold home, so they see it in \"My sales\". It's a snapshot of this moment: if you change a settlement, publish again. Nothing is published on its own.",
+      "button": "Publish commissions",
+      "busy": "Publishing…",
+      "confirm_one": "{{count}} commission will be published to advisors and {{removed}} that no longer apply will be withdrawn. Continue?",
+      "confirm_other": "{{count}} commissions will be published to advisors and {{removed}} that no longer apply will be withdrawn. Continue?",
+      "nothing": "There are no commissions to publish or withdraw.",
+      "done": "Done: {{published}} published, {{removed}} withdrawn.",
+      "last": "Last published: {{date}} · {{count}} commissions in effect.",
+      "never": "You haven't published commissions yet.",
+      "error": "Couldn't publish: {{message}}"
     },
     "pending": {
       "banner": "{{count}} propert(ies) marked as sold still have no advisor or sale date.",
@@ -2224,6 +2238,7 @@
     "unattendedLate_one": "{{count}} has gone over 4 hours without a reply",
     "unattendedLate_other": "{{count}} have gone over 4 hours without a reply",
     "items": {
+      "matches": "Properties that fit your prospects",
       "postsale": "After-sale follow-ups",
       "signatures": "Unfinished signatures (3 days or more)",
       "messages": "Unanswered messages",
@@ -3709,6 +3724,8 @@
       "error": "The appointment could not be updated."
     },
     "sections": {
+      "matches": "Fits your prospects",
+      "matchesHint": "Properties that are new or dropped in price this week and match what one of your prospects is looking for. Send it and log the contact.",
       "close": "Visits to close",
       "closeHint": "They already took place and nobody marked them (last 7 days). Close them so the attendance metrics add up.",
       "confirm": "Visits to confirm",
@@ -3891,6 +3908,72 @@
       "timeout": "Writing took too long. Try again.",
       "upstream": "The text couldn't be written. Try again."
     }
+  },
+  "matchAlerts": {
+    "new": "New",
+    "drop": "Down {{percent}} %",
+    "was": "was {{price}}",
+    "looking": "Looking for: {{summary}}",
+    "whatsapp": "WhatsApp",
+    "noPhone": "No phone",
+    "viewProperty": "View property",
+    "viewProspect": "Open profile",
+    "writtenTo": "Already messaged",
+    "showMore_one": "Show {{count}} more prospect",
+    "showMore_other": "Show {{count}} more prospects",
+    "showLess": "Show less",
+    "done": "Done, I've reviewed it",
+    "doneHint": "It leaves this list on this device."
+  },
+  "dayRoute": {
+    "title": "Today's route",
+    "hint": "Your remaining appointments, in time order. The route opens in Google Maps from wherever you are.",
+    "stops_one": "{{count}} stop",
+    "stops_other": "{{count}} stops",
+    "open": "Open route in Maps",
+    "totalKm": "≈ {{km}} km in total",
+    "leg": "{{km}} km · ≈ {{minutes}} min by car",
+    "overlap": "They overlap: the next appointment starts before this one ends.",
+    "late": "You won't make it: there are {{gap}} min between the two appointments and the drive is ≈ {{minutes}} min.",
+    "tight": "It's tight: {{gap}} min between the two appointments for a ≈ {{minutes}} min drive.",
+    "allDay": "All day",
+    "unplaced_one": "{{count}} appointment without a place isn't in the route: {{titles}}. Add its place or property.",
+    "unplaced_other": "{{count}} appointments without a place aren't in the route: {{titles}}. Add their place or property.",
+    "truncated": "Maps opens up to {{max}} stops: the first {{max}} are included.",
+    "estimate": "Distances and times are approximate (straight line, adjusted for streets). Maps calculates the real route.",
+    "mapLabel": "Map of today's route",
+    "stop": "Stop {{number}}"
+  },
+  "mySales": {
+    "navTitle": "My sales",
+    "title": "My sales and commissions",
+    "hint": "What you've sold and the commission your office has published for each home.",
+    "year": "Year",
+    "kpi": {
+      "count": "Closed sales",
+      "volume": "Volume sold",
+      "commission": "Published commissions",
+      "pending": "To be published"
+    },
+    "pendingNote_one": "{{count}} of your {{year}} sales doesn't have a published commission yet. The office publishes it when the home is settled.",
+    "pendingNote_other": "{{count}} of your {{year}} sales don't have a published commission yet. The office publishes it when the home is settled.",
+    "byMonth": "By month",
+    "monthChart": "Sales and commission by month",
+    "monthLinePending": "{{count}} sale(s) · commission pending",
+    "monthLine": "{{count}} sale(s) · {{commission}}",
+    "table": {
+      "date": "Date",
+      "property": "Property",
+      "price": "Price",
+      "concept": "Role",
+      "commission": "Commission"
+    },
+    "sold": "You sold",
+    "captured": "You listed",
+    "pending": "Pending",
+    "empty": "There are no sales or commissions in {{year}} yet.",
+    "loadError": "Your sales couldn't be loaded.",
+    "disclaimer": "The commission is the one your office published: a snapshot from when the home was settled. If something doesn't add up, ask the office."
   },
   "goals": {
     "title": "My month: {{month}}",

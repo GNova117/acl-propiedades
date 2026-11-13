@@ -7010,3 +7010,78 @@ $$;
 
 revoke all on function selection_open(text, boolean) from public;
 grant execute on function selection_open(text, boolean) to anon, authenticated;
+
+-- ─────────────────────────────────────────────
+-- «Le encaja a tu prospecto» (aviso push) y «Mis ventas y comisiones» del asesor (2026-11)
+--
+-- 1) Le encaja a tu prospecto. La Edge Function `prospecto-coincidencias` corre cada hora (solo de 8 am a 8 pm, hora de México) y
+--    avisa por push al asesor cuando entra una propiedad nueva —o baja de precio— que le encaja a alguno de sus prospectos
+--    abiertos (los criterios de «qué busca» del prospecto; la coincidencia es la misma de la pantalla Prospectos). Los prospectos
+--    sin asesor van a la oficina. `property_match_pushes` recuerda qué novedad ya se avisó para no repetirla. La pantalla (Mi día
+--    y la campana) funciona sin esto: el push solo es el aviso al teléfono; sin el bloque, o sin activar las notificaciones en el
+--    dispositivo, el asesor ve la lista dentro del panel.
+--    ⚠️ ORDEN: desplegar la función `prospecto-coincidencias` (sin verificar JWT, como las demás de cron) ANTES de correr el cron,
+--    y tener ya desplegada la versión actual de `enviar-push` (la que entiende advisorId y office).
+--
+-- 2) Mis ventas y comisiones. La liquidación (utilidad, gastos, lo de cada socio) es confidencial y solo la ve quien tiene el
+--    apartado 'liquidaciones'. Para que cada asesor vea SU comisión sin abrir eso, la oficina la PUBLICA desde Reportes → Utilidad
+--    («Publicar comisiones»): se guarda una fila por persona, casa y concepto (captación o venta) con solo su monto. Es una foto
+--    de ese momento —si cambia la liquidación, se vuelve a publicar— y nada se publica solo: mientras la oficina no lo haga, el
+--    asesor ve «pendiente». Cada asesor lee únicamente las suyas (my_advisor_id()); escribir es de quien tiene 'liquidaciones'.
+--    Las ventas propias ya eran legibles por el asesor (política «Asesor ve sus propias ventas», más arriba).
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+create table if not exists property_match_pushes (
+  property_id uuid not null references properties(id) on delete cascade,
+  kind text not null check (kind in ('new', 'priceDrop')),
+  event_at timestamptz not null,
+  created_at timestamptz not null default now(),
+  primary key (property_id, kind, event_at)
+);
+
+-- Solo la usa la función con la service role key (se salta RLS): con RLS activa y sin políticas, nadie más la lee ni la escribe.
+alter table property_match_pushes enable row level security;
+
+create table if not exists advisor_commissions (
+  id uuid primary key default gen_random_uuid(),
+  property_id uuid not null references properties(id) on delete cascade,
+  advisor_id uuid not null references advisors(id) on delete cascade,
+  role text not null check (role in ('captacion', 'venta')),
+  amount numeric not null check (amount >= 0),
+  fecha_venta date,
+  published_by text,
+  published_at timestamptz not null default now(),
+  unique (property_id, advisor_id, role)
+);
+
+create index if not exists idx_advisor_commissions_advisor on advisor_commissions(advisor_id);
+create index if not exists idx_advisor_commissions_fecha on advisor_commissions(fecha_venta);
+
+alter table advisor_commissions enable row level security;
+
+drop policy if exists "Asesor ve sus comisiones publicadas" on advisor_commissions;
+create policy "Asesor ve sus comisiones publicadas" on advisor_commissions for select
+  using (my_advisor_id() is not null and my_advisor_id() = advisor_id);
+
+drop policy if exists "Rol con apartado liquidaciones maneja comisiones publicadas" on advisor_commissions;
+create policy "Rol con apartado liquidaciones maneja comisiones publicadas" on advisor_commissions for all
+  using (has_admin_section('liquidaciones'))
+  with check (has_admin_section('liquidaciones'));
+
+-- Cron de «Le encaja a tu prospecto»: cada hora en el minuto 15 (la función misma descarta lo que cae fuera de 8 am a 8 pm).
+select cron.schedule(
+  'prospecto-coincidencias',
+  '15 * * * *',
+  $$
+  select net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/prospecto-coincidencias',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'publishable_key'),
+      'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'agenda_cron_secret')
+    ),
+    body := '{}'::jsonb
+  );
+  $$
+);
