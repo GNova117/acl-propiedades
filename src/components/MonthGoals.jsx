@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
+import { revalidate } from "../lib/dataCache";
+import { queries } from "../lib/queries";
 import { useAuth } from "../context/AuthContext";
 import { GOAL_METRICS, MAX_GOAL, countMonth, formToGoalColumns, goalProgress, goalsToForm, monthStartISO, validateGoals } from "../lib/goals";
 import "./MonthGoals.css";
@@ -38,8 +40,9 @@ export default function MonthGoals({ advisorId }) {
     Promise.all([
       safe(() => db.getAdvisorGoals(advisorId), null),
       metrics.includes("contacts") ? safe(() => db.countProspectContactsSince(monthStartISO(now)), 0) : 0,
-      metrics.includes("visits") ? safe(() => db.getVisits(), []) : [],
-      metrics.includes("newProspects") ? safe(() => db.getProspects(), []) : [],
+      // Las mismas listas que pide Mi día (caché compartido): si ya van en camino, no se repiten.
+      metrics.includes("visits") ? safe(() => revalidate(queries.visits.key, queries.visits.fetch), []) : [],
+      metrics.includes("newProspects") ? safe(() => revalidate(queries.prospects.key, queries.prospects.fetch), []) : [],
       metrics.includes("sales") ? safe(() => db.getVentas(), []) : [],
     ]).then(([goalRow, contacts, visits, prospects, ventas]) => {
       if (cancelled) return;

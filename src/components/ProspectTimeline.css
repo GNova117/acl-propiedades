@@ -1,0 +1,90 @@
+.prospect-timeline {
+  margin-top: 1.25rem;
+  padding: 1rem;
+}
+
+.prospect-timeline__title {
+  margin: 0 0 0.9rem;
+  font-size: 1rem;
+}
+
+/* Una línea vertical con un punto por evento; el color del punto dice de qué tipo es. */
+.prospect-timeline__list {
+  list-style: none;
+  margin: 0 0 0.6rem;
+  padding: 0 0 0 0.35rem;
+  border-left: 2px solid var(--color-border);
+}
+
+.prospect-timeline__item {
+  --tl-color: var(--color-text-muted);
+  position: relative;
+  padding: 0 0 1rem 1rem;
+}
+
+.prospect-timeline__item:last-child {
+  padding-bottom: 0.25rem;
+}
+
+.prospect-timeline__item--contact {
+  --tl-color: var(--color-primary);
+}
+
+.prospect-timeline__item--stage {
+  --tl-color: #f0a500;
+}
+
+.prospect-timeline__item--appointment {
+  --tl-color: var(--color-success);
+}
+
+.prospect-timeline__item--visit {
+  --tl-color: #00897b;
+}
+
+.prospect-timeline__item--note {
+  --tl-color: #7b5ea7;
+}
+
+.prospect-timeline__dot {
+  position: absolute;
+  left: -0.78rem;
+  top: 0.3rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--tl-color);
+  box-shadow: 0 0 0 3px var(--color-surface, var(--color-bg));
+}
+
+.prospect-timeline__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.45rem;
+}
+
+.prospect-timeline__when {
+  margin-left: auto;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.prospect-timeline__text {
+  margin: 0.25rem 0 0;
+  word-break: break-word;
+}
+
+.prospect-timeline__detail {
+  margin: 0.1rem 0 0;
+  word-break: break-word;
+}
+
+/* La cita que viene: resaltada, para que lo próximo sea lo primero que se ve. */
+.prospect-timeline__item.is-upcoming .prospect-timeline__body {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--color-success);
+  border-radius: 8px;
+  background: var(--color-bg-alt);
+}

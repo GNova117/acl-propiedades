@@ -2451,7 +2451,7 @@ export const localBackend = {
     return citas.find((c) => c.id === id) || null;
   },
 
-  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email }) {
+  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email, property_id, prospecto_id }) {
     const citas = readStore(KEYS.agendaCitas, []);
     const record = {
       id: uid("cita"),
@@ -2465,6 +2465,9 @@ export const localBackend = {
       contact_name: contact_name?.trim() || null,
       contact_phone: contact_phone?.trim() || null,
       contact_email: contact_email?.trim() || null,
+      // La propiedad que se enseña y el prospecto del que sale la cita (opcionales).
+      property_id: property_id || null,
+      prospecto_id: prospecto_id || null,
       status: "confirmada",
       source: "admin",
       // Toda cita tiene su enlace /visita/<token> (en Supabase es el valor por omisión de la columna).
@@ -2477,7 +2480,7 @@ export const localBackend = {
     return record;
   },
 
-  async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email }) {
+  async updateAgendaCita(id, { advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email, property_id }) {
     const citas = readStore(KEYS.agendaCitas, []);
     const idx = citas.findIndex((c) => c.id === id);
     if (idx === -1) throw new Error("Cita no encontrada");
@@ -2494,6 +2497,7 @@ export const localBackend = {
       ...(contact_name !== undefined ? { contact_name: contact_name?.trim() || null } : {}),
       ...(contact_phone !== undefined ? { contact_phone: contact_phone?.trim() || null } : {}),
       ...(contact_email !== undefined ? { contact_email: contact_email?.trim() || null } : {}),
+      ...(property_id !== undefined ? { property_id: property_id || null } : {}),
       updated_at: new Date().toISOString(),
     };
     writeStore(KEYS.agendaCitas, citas);

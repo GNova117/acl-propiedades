@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures.js";
+import { test, expect, abrirMas } from "./fixtures.js";
 
 // Flujos críticos de punta a punta, como los vive cada persona:
 //  - el cliente en su portal (pendientes, subir un documento, ver el avance)
@@ -192,7 +192,7 @@ test.describe("Mi día como inicio y barra de abajo en el teléfono", () => {
     await expect(barra.getByRole("link", { name: /Agenda/ })).toHaveClass(/active/);
 
     // El botón + de captura rápida no queda tapado por la barra.
-    const fab = await page.getByRole("button", { name: /Prospecto rápido/ }).boundingBox();
+    const fab = await page.getByRole("button", { name: "Acciones rápidas" }).boundingBox();
     const caja = await barra.boundingBox();
     expect(fab.y + fab.height, "el botón + queda encima de la barra").toBeLessThanOrEqual(caja.y + 1);
 
@@ -222,7 +222,8 @@ test.describe("Seguimiento de un prospecto con la plantilla de su etapa", () => 
 
     await test.step("captura rápida", async () => {
       await go("/admin/prospectos");
-      await press(page.getByRole("button", { name: /Prospecto rápido/ }));
+      await press(page.getByRole("button", { name: "Acciones rápidas" }));
+      await press(page.getByRole("menuitem", { name: "Prospecto rápido" }));
       const panel = page.locator(".quick-capture__sheet");
       await panel.locator("#qc-name").fill(nombre);
       await panel.locator("#qc-phone").fill("8715550202");
@@ -240,6 +241,7 @@ test.describe("Seguimiento de un prospecto con la plantilla de su etapa", () => 
     });
 
     await test.step("al pasar a negociación cambian las sugeridas", async () => {
+      await abrirMas(tarjeta, press);
       await tarjeta.getByLabel("Etapa").selectOption("negociacion");
       await expect(mensaje.locator("optgroup").first()).toHaveAttribute("label", "Sugeridas para «En negociación»");
       await expect(mensaje.locator("optgroup").first().locator("option")).toHaveText(["¿Cómo va la propuesta?", "Pedir documentos", "Ofrecer ayuda con el crédito"]);
@@ -274,6 +276,7 @@ test.describe("Seguimiento de un prospecto con la plantilla de su etapa", () => 
     });
 
     await test.step("ya cerrado, sugiere felicitar, pedir recomendación y reseña", async () => {
+      await abrirMas(tarjeta, press);
       await tarjeta.getByLabel("Etapa").selectOption("cerrado");
       await expect(mensaje.locator("optgroup")).toHaveCount(1);
       await expect(mensaje.locator("option:not([disabled])")).toHaveText(["Felicitar por la compra", "Pedir una recomendación", "Pedir una reseña"]);

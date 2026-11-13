@@ -1,35 +1,31 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
-import { formatMXN, whatsappDigits } from "../../lib/format";
-import { PROSPECT_STAGES, contactFields, daysSince, followUpState, unattendedAge, unattendedState, visitToProspectFields } from "../../lib/prospects";
-import { POSTSALE_STEPS, postsaleDue, postsaleMessage } from "../../lib/postsale";
-import { prospectMessageTemplates, sendLink, suggestPropertyMessage } from "../../lib/prospectMessages";
-import { criteriaSummary, matchingProperties } from "../../lib/prospectMatch";
-import { propertiesShareMessage } from "../../lib/propertyShare";
-import QuickReplyButton from "../../components/QuickReplyButton";
-import ProspectContactForm from "../../components/ProspectContactForm";
+import { FOLLOWUP_OPTIONS, PROSPECT_STAGES, firstStageWithProspects, followUpState, unattendedState, visitToProspectFields } from "../../lib/prospects";
+import { applyBulk, followupDate } from "../../lib/prospectBulk";
+import { convertProspectToClient } from "../../lib/prospectActions";
+import { matchingProperties } from "../../lib/prospectMatch";
+import { useProspectContact } from "../../lib/useProspectContact";
+import { peek } from "../../lib/dataCache";
+import { queries } from "../../lib/queries";
+import { useQuery } from "../../lib/useQuery";
+import ProspectCard from "../../components/ProspectCard";
 import "./admin.css";
 import "./AdminProspects.css";
 
 // Embudo de prospectos por etapas. RLS recorta del lado de Supabase: un asesor
 // con login vinculado ve solo los suyos; un correo sin asesor vinculado ve todos
-// y puede filtrar por asesor. Cambiar de etapa es un selector en cada tarjeta
-// (sin arrastrar: funciona igual con el dedo en el celular).
-// Cuántas propiedades que le encajan se listan en la tarjeta (el resto se cuenta).
-const MAX_MATCHES = 5;
-const MAX_SENT_TOGETHER = 3; // propiedades en un mismo mensaje de "enviar juntas"
+// y puede filtrar por asesor. En pantalla ancha cada etapa es una columna; en el
+// teléfono se ve una etapa a la vez, con pestañas arriba (cada una con su
+// contador). Cambiar de etapa es un selector en la tarjeta (sin arrastrar:
+// funciona igual con el dedo en el celular).
+
+const NONE = [];
 
 const normalize = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-
-function whatsappLink(phone) {
-  let digits = whatsappDigits(phone);
-  if (digits.length === 10) digits = `52${digits}`;
-  return digits ? `https://wa.me/${digits}` : null;
-}
 
 export default function AdminProspects() {
   const { t } = useTranslation();
@@ -38,52 +34,58 @@ export default function AdminProspects() {
   const seesAll = advisorId == null;
   const canImport = hasSection("visitas");
 
-  const [prospects, setProspects] = useState([]);
-  const [advisors, setAdvisors] = useState([]);
-  const [properties, setProperties] = useState([]);
-  const [visits, setVisits] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
+  // Las listas salen del caché (ver dataCache.js): si ya se pidieron en otra pantalla, esta se
+  // pinta al instante y se actualiza al llegar lo nuevo.
+  const prospectsQ = useQuery(queries.prospects);
+  const advisorsQ = useQuery(queries.advisors);
+  const propertiesQ = useQuery(queries.properties);
+  const visitsQ = useQuery(queries.visits, { enabled: canImport });
+  const historyQ = useQuery(queries.stageHistory);
+  const prospects = prospectsQ.data ?? NONE;
+  const advisors = advisorsQ.data ?? NONE;
+  const properties = propertiesQ.data ?? NONE;
+  const visits = visitsQ.data ?? NONE;
+  const history = historyQ.data ?? NONE;
+  const loading = prospectsQ.loading;
+  // Sin señal la lista que ya estaba cargada sigue a la vista: el error de red solo se muestra si no hay nada que mostrar.
+  const loadError = prospectsQ.data ? "" : [prospectsQ, advisorsQ, propertiesQ].find((q) => q.error)?.error.message || "";
+  const setProspects = prospectsQ.mutate;
   const [busyId, setBusyId] = useState(null);
   const [importing, setImporting] = useState(false);
   const [query, setQuery] = useState("");
   const [advisorFilter, setAdvisorFilter] = useState("");
   const [overdueOnly, setOverdueOnly] = useState(false);
   const [unattendedOnly, setUnattendedOnly] = useState(false);
-  // Tarjeta con el formulario de "Registrar contacto" abierto: { id, channel }.
-  const [contactFor, setContactFor] = useState(null);
-  const [contactSaving, setContactSaving] = useState(false);
-  const [contactError, setContactError] = useState("");
-  // Tarjeta con la lista de "propiedades que le encajan" desplegada.
-  const [matchesOpenId, setMatchesOpenId] = useState(null);
+  // Etapa visible en el teléfono (en pantalla ancha se ven todas). Abre en la primera
+  // etapa abierta que tenga prospectos: con la lista ya en el caché, desde el primer pintado.
+  const cachedProspects = peek(queries.prospects.key);
+  const [activeStage, setActiveStage] = useState(() => firstStageWithProspects(cachedProspects || []));
+  const stageChosen = useRef(Boolean(cachedProspects));
+  useEffect(() => {
+    if (!stageChosen.current && prospectsQ.data) {
+      stageChosen.current = true;
+      setActiveStage(firstStageWithProspects(prospectsQ.data));
+    }
+  }, [prospectsQ.data]);
 
-  const load = () => {
-    setLoading(true);
-    Promise.all([
-      db.getProspects(),
-      db.getAdvisors(),
-      db.getProperties({}),
-      canImport ? db.getVisits().catch(() => []) : Promise.resolve([]),
-      db.getProspectStageHistory().catch(() => []),
-    ])
-      .then(([prospectData, advisorData, propertyData, visitData, historyData]) => {
-        setHistory(historyData);
-        setProspects(prospectData);
-        setAdvisors(advisorData);
-        setProperties(propertyData);
-        setVisits(visitData);
-        setLoadError("");
-      })
-      .catch((err) => setLoadError(err.message || "Error"))
-      .finally(() => setLoading(false));
-  };
+  // Modo «Seleccionar»: casillas en las tarjetas y una barra para cambiar de etapa, poner el seguimiento o
+  // (la oficina) reasignar a varios prospectos a la vez.
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState(() => new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkMessage, setBulkMessage] = useState("");
+  const [bulkStage, setBulkStage] = useState("");
+  const [bulkAdvisor, setBulkAdvisor] = useState("");
 
-  useEffect(load, []);
+  // El formulario "Registrar contacto" de una tarjeta: al guardar el contacto
+  // el prospecto se actualiza aquí (último contacto, etapa y seguimiento).
+  const contact = useProspectContact({
+    onUpdated: (updated) => setProspects((prev) => prev.map((p) => (p.id === updated.id ? updated : p))),
+  });
 
   const advisorName = (id) => advisors.find((a) => a.id === id)?.name || "";
-  const propertyOf = (id) => properties.find((p) => p.id === id) || null;
-  const propertyTitle = (id) => propertyOf(id)?.title || "";
+  const propertyTitle = (id) => properties.find((p) => p.id === id)?.title || "";
 
   // Visitas marcadas como "posible cliente" que aún no son prospecto.
   const importable = useMemo(() => {
@@ -134,52 +136,11 @@ export default function AdminProspects() {
   // Posventa: marca el paso (30 días / 6 meses) como atendido.
   const markPostsaleDone = (prospect, step) => patch(prospect, { [step.column]: new Date().toISOString() });
 
-  const changeStage = (prospect, stage) => patch(prospect, { stage, ...(stage === "perdido" ? {} : { lost_reason: null }) });
-
-  // Abre (o cierra, si ya estaba abierto) el formulario de contacto de una
-  // tarjeta. `channel` llega ya elegido cuando se acaba de mandar un mensaje
-  // desde las plantillas; `force` evita cerrarlo en ese caso.
-  const openContact = (prospect, channel = "", force = false) => {
-    setContactError("");
-    setContactFor((current) => (!force && current?.id === prospect.id ? null : { id: prospect.id, channel }));
+  // En el teléfono la tarjeta se va a la pestaña de su nueva etapa: se sigue viendo.
+  const changeStage = (prospect, stage) => {
+    setActiveStage(stage);
+    return patch(prospect, { stage, ...(stage === "perdido" ? {} : { lost_reason: null }) });
   };
-
-  // Guarda el contacto en el historial y actualiza al prospecto (último
-  // contacto, etapa nuevo → contactado y próximo seguimiento). `nextFollowup`:
-  // fecha elegida, null (sin fecha) o undefined (no tocar una fecha futura) —
-  // ver contactFields.
-  const saveContact = async (prospect, { channel, note, nextFollowup }) => {
-    setContactSaving(true);
-    setContactError("");
-    try {
-      const updated = await db.logProspectContact(prospect.id, contactFields(prospect, nextFollowup), { channel, note });
-      setProspects((prev) => prev.map((p) => (p.id === prospect.id ? updated : p)));
-      setContactFor(null);
-    } catch (err) {
-      setContactError(err.message || t("prospects.saveError"));
-    } finally {
-      setContactSaving(false);
-    }
-  };
-
-  const suggestionLink = (p, property) =>
-    sendLink(p, suggestPropertyMessage(p, property, `${window.location.origin}/propiedades/${property.id}`), t("prospects.match.emailSubject"));
-
-  // Las primeras coincidencias en un solo mensaje (una sola ida a WhatsApp en
-  // vez de una por propiedad). null si el prospecto no tiene teléfono ni correo.
-  const bundleLink = (p, matches) =>
-    sendLink(
-      p,
-      propertiesShareMessage(matches, { origin: window.location.origin, recipientName: p.name, advisorName: advisorName(p.advisor_id), limit: MAX_SENT_TOGETHER }),
-      t("prospects.match.emailSubject")
-    );
-
-  const templatesFor = (p) =>
-    prospectMessageTemplates(p, {
-      propertyTitle: propertyTitle(p.property_id),
-      propertyUrl: p.property_id ? `${window.location.origin}/propiedades/${p.property_id}` : "",
-      advisorName: advisorName(p.advisor_id),
-    }).map((tpl) => ({ ...tpl, label: t(`prospects.templates.${tpl.key}`) }));
 
   const handleDelete = async (prospect) => {
     if (!window.confirm(t("prospects.confirmDelete", { name: prospect.name }))) return;
@@ -201,32 +162,63 @@ export default function AdminProspects() {
   const handleConvert = async (prospect) => {
     setBusyId(prospect.id);
     try {
-      const digits = whatsappDigits(prospect.phone);
-      const email = String(prospect.email || "").trim().toLowerCase();
-      const existing = (await db.getClients()).find(
-        (c) => (digits.length >= 10 && whatsappDigits(c.phone).endsWith(digits.slice(-10))) || (email && String(c.email || "").toLowerCase() === email)
-      );
-      let clientId;
-      if (existing) {
-        if (!window.confirm(t("prospects.convertExisting", { name: existing.name }))) return;
-        clientId = existing.id;
-      } else {
-        const created = await db.addClient({
-          name: prospect.name,
-          type: "comprador",
-          email: prospect.email || null,
-          phone: prospect.phone || null,
-          notes: [prospect.looking_for && `Busca: ${prospect.looking_for}`, prospect.notes].filter(Boolean).join("\n") || null,
-          active: true,
-        });
-        clientId = created.id;
-      }
-      await db.updateProspect(prospect.id, { client_id: clientId });
-      navigate(`/admin/clientes/${clientId}`);
+      const clientId = await convertProspectToClient(db, prospect, (existing) => window.confirm(t("prospects.convertExisting", { name: existing.name })));
+      if (clientId) navigate(`/admin/clientes/${clientId}`);
     } catch (err) {
       window.alert(err.message || t("prospects.convertError"));
     } finally {
       setBusyId(null);
+    }
+  };
+
+  // Los elegidos que siguen a la vista (un filtro nuevo no deja acciones sobre prospectos escondidos).
+  const picked = useMemo(() => filtered.filter((p) => selected.has(p.id)), [filtered, selected]);
+
+  const toggleOne = (id) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  // Todos los de una etapa: los marca, o los desmarca si ya estaban todos marcados.
+  const toggleColumn = (items) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      const all = items.every((p) => next.has(p.id));
+      items.forEach((p) => (all ? next.delete(p.id) : next.add(p.id)));
+      return next;
+    });
+
+  const toggleSelecting = () => {
+    setSelecting((on) => !on);
+    setSelected(new Set());
+    setBulkOpen(false);
+    setBulkMessage("");
+  };
+
+  // Aplica la acción a los elegidos, uno por uno (ver applyBulk), y avisa qué pasó.
+  const runBulk = async (kind, value) => {
+    if (picked.length === 0) return;
+    setBulkBusy(true);
+    setBulkMessage("");
+    try {
+      const { updated, skipped, failed } = await applyBulk(db, picked, kind, value);
+      if (updated.length > 0) {
+        const byId = new Map(updated.map((r) => [r.id, r]));
+        setProspects((prev) => prev.map((p) => byId.get(p.id) ?? p));
+        // En el teléfono las tarjetas se van a la pestaña de su nueva etapa: se sigue viendo.
+        if (kind === "stage") setActiveStage(value);
+      }
+      const parts = [];
+      if (updated.length > 0) parts.push(t("bulkActions.done", { count: updated.length }));
+      else if (failed === 0) parts.push(t("prospects.bulk.nothing"));
+      if (skipped > 0 && updated.length > 0) parts.push(t("prospects.bulk.skipped", { count: skipped }));
+      if (failed > 0) parts.push(t("bulkActions.someFailed"));
+      setBulkMessage(parts.join(" "));
+    } finally {
+      setBulkBusy(false);
     }
   };
 
@@ -242,36 +234,6 @@ export default function AdminProspects() {
     }
   };
 
-  const contactText = (p) => {
-    const days = daysSince(p.last_contact_at);
-    if (days == null) return t("prospects.noContact");
-    if (days <= 0) return t("prospects.contactToday");
-    return t("prospects.contactAgo", { count: days });
-  };
-
-  // Prospecto que llegó solo y nadie ha contactado: amarillo desde la primera
-  // hora, rojo desde las 4.
-  const unattendedChip = (p) => {
-    const state = unattendedState(p);
-    if (!state) return null;
-    const age = unattendedAge(state.hours);
-    return <span className={`prospect-chip prospect-chip--${state.level === "late" ? "overdue" : "today"}`}>{t(`prospects.unattended.${age.unit}`, { count: age.count })}</span>;
-  };
-
-  const followChip = (p) => {
-    const state = followUpState(p);
-    if (state === "overdue") return <span className="prospect-chip prospect-chip--overdue">{t("prospects.followOverdue")}</span>;
-    if (state === "today") return <span className="prospect-chip prospect-chip--today">{t("prospects.followToday")}</span>;
-    if (p.next_followup_at && p.stage !== "cerrado" && p.stage !== "perdido") {
-      return (
-        <span className="prospect-chip">
-          {t("prospects.followOn", { date: new Date(`${p.next_followup_at}T00:00:00`).toLocaleDateString("es-MX", { day: "numeric", month: "short" }) })}
-        </span>
-      );
-    }
-    return null;
-  };
-
   return (
     <div>
       <div className="admin-header">
@@ -280,8 +242,11 @@ export default function AdminProspects() {
           <p className="form-hint">{t("prospects.subtitle")}</p>
         </div>
         <div className="admin-header__actions">
-          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={filtered.length === 0}>
-            {t("common.exportCsv")}
+          <Link to="/admin/prospectos/nuevo" className="btn btn-primary">
+            {t("prospects.new")}
+          </Link>
+          <button type="button" className={`btn btn-outline${selecting ? " is-active" : ""}`} onClick={toggleSelecting} aria-pressed={selecting}>
+            {selecting ? t("prospects.bulk.exit") : t("prospects.bulk.select")}
           </button>
           {canImport && importable.length > 0 && (
             <button type="button" className="btn btn-outline" onClick={handleImport} disabled={importing}>
@@ -289,9 +254,9 @@ export default function AdminProspects() {
               {t("prospects.import", { count: importable.length })}
             </button>
           )}
-          <Link to="/admin/prospectos/nuevo" className="btn btn-primary">
-            {t("prospects.new")}
-          </Link>
+          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={filtered.length === 0}>
+            {t("common.exportCsv")}
+          </button>
         </div>
       </div>
 
@@ -327,183 +292,160 @@ export default function AdminProspects() {
       {loading ? (
         <p className="form-hint">…</p>
       ) : (
-        <div className="prospect-board">
-          {PROSPECT_STAGES.map((stage) => {
-            const items = filtered.filter((p) => p.stage === stage);
-            return (
-              <section key={stage} className={`prospect-col prospect-col--${stage}`} aria-label={t(`prospects.stages.${stage}`)}>
-                <h2 className="prospect-col__title">
-                  {t(`prospects.stages.${stage}`)}
-                  <span className="prospect-col__count">{items.length}</span>
-                </h2>
-                {items.length === 0 && <p className="form-hint prospect-col__empty">{t("prospects.emptyColumn")}</p>}
-                {items.map((p) => {
-                  const wa = whatsappLink(p.phone);
-                  return (
-                    <article key={p.id} className="card prospect-card">
-                      <div className="prospect-card__head">
-                        <Link to={`/admin/prospectos/${p.id}`} className="prospect-card__name">
-                          {p.name}
-                        </Link>
-                        {p.source && p.source !== "manual" && <span className="prospect-chip">{t(`prospects.sources.${p.source}`)}</span>}
-                      </div>
-                      {p.phone && (
-                        <p className="prospect-card__line">
-                          <a href={`tel:${whatsappDigits(p.phone)}`}>{p.phone}</a>
-                          {wa && (
-                            <>
-                              {" · "}
-                              <a href={wa} target="_blank" rel="noopener noreferrer">
-                                WhatsApp
-                              </a>
-                            </>
-                          )}
-                        </p>
-                      )}
-                      {p.property_id && propertyTitle(p.property_id) && <p className="prospect-card__line">{propertyTitle(p.property_id)}</p>}
-                      {p.looking_for && <p className="prospect-card__line form-hint">{p.looking_for}</p>}
-                      {stage === "perdido" && p.lost_reason && <p className="prospect-card__line form-hint">{p.lost_reason}</p>}
-                      <p className="prospect-card__meta">
-                        {contactText(p)}
-                        {seesAll && advisorName(p.advisor_id) ? ` · ${advisorName(p.advisor_id)}` : ""}
-                      </p>
-                      {unattendedChip(p)}
-                      {followChip(p)}
-                      {(() => {
-                        const due = stage === "cerrado" ? postsaleDue(p, history) : null;
-                        if (!due) return null;
-                        const step = POSTSALE_STEPS.find((s) => s.key === due.key);
-                        const wa = whatsappLink(p.phone);
-                        return (
-                          <div className="prospect-postsale">
-                            <span className="prospect-chip prospect-chip--today">{t(`prospects.postsale.step${due.key}`, { days: due.since })}</span>
-                            {wa && (
-                              <a className="btn btn-outline btn-sm" target="_blank" rel="noopener noreferrer" href={`${wa}?text=${encodeURIComponent(postsaleMessage(p, due.key, propertyTitle(p.property_id)))}`}>
-                                {t("prospects.postsale.write")}
-                              </a>
-                            )}
-                            <button type="button" className="btn btn-outline btn-sm" onClick={() => markPostsaleDone(p, step)} disabled={busyId === p.id}>
-                              {t("prospects.postsale.done")}
-                            </button>
-                          </div>
-                        );
-                      })()}
-                      {(() => {
-                        const matches = matchesByProspect.get(p.id) || [];
-                        if (matches.length === 0) return null;
-                        const open = matchesOpenId === p.id;
-                        return (
-                          <div className="prospect-matches">
-                            <button
-                              type="button"
-                              className="prospect-chip prospect-chip--match"
-                              onClick={() => setMatchesOpenId(open ? null : p.id)}
-                              aria-expanded={open}
-                            >
-                              {t("prospects.match.count", { count: matches.length })} {open ? "▴" : "▾"}
-                            </button>
-                            {open && (
-                              <>
-                                <p className="form-hint">{t("prospects.match.looking", { text: criteriaSummary(p.search_criteria, t) })}</p>
-                                <ul className="prospect-matches__list">
-                                  {matches.slice(0, MAX_MATCHES).map((property) => {
-                                    const link = suggestionLink(p, property);
-                                    return (
-                                      <li key={property.id} className="prospect-matches__item">
-                                        <a href={`/propiedades/${property.id}`} target="_blank" rel="noopener noreferrer" className="prospect-matches__title">
-                                          {property.title}
-                                        </a>
-                                        <span className="form-hint">{[property.zone, formatMXN(property.price)].filter(Boolean).join(" · ")}</span>
-                                        {link && (
-                                          <a className="btn btn-outline btn-sm" href={link} target={link.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">
-                                            {t("prospects.match.send")}
-                                          </a>
-                                        )}
-                                      </li>
-                                    );
-                                  })}
-                                </ul>
-                                {matches.length > MAX_MATCHES && <p className="form-hint">{t("prospects.match.more", { count: matches.length - MAX_MATCHES })}</p>}
-                                {matches.length > 1 &&
-                                  (() => {
-                                    const link = bundleLink(p, matches);
-                                    if (!link) return null;
-                                    return (
-                                      <a
-                                        className="btn btn-primary btn-sm"
-                                        href={link}
-                                        target={link.startsWith("http") ? "_blank" : undefined}
-                                        rel="noopener noreferrer"
-                                        onClick={() => openContact(p, link.startsWith("http") ? "whatsapp" : "correo", true)}
-                                      >
-                                        {t("prospects.match.sendTop", { count: Math.min(matches.length, MAX_SENT_TOGETHER) })}
-                                      </a>
-                                    );
-                                  })()}
-                              </>
-                            )}
-                          </div>
-                        );
-                      })()}
-                      <div className="prospect-card__actions">
-                        <select
-                          value={p.stage}
-                          onChange={(e) => changeStage(p, e.target.value)}
-                          disabled={busyId === p.id}
-                          aria-label={t("prospects.form.stage")}
-                        >
-                          {PROSPECT_STAGES.map((s) => (
-                            <option key={s} value={s}>
-                              {t(`prospects.stages.${s}`)}
-                            </option>
-                          ))}
+        <>
+          {/* Solo en el teléfono: una etapa a la vez en vez de seis columnas apiladas. */}
+          <div className="prospect-tabs" role="group" aria-label={t("prospects.tabs.label")}>
+            {PROSPECT_STAGES.map((stage) => (
+              <button
+                key={stage}
+                type="button"
+                className={`prospect-tabs__tab prospect-tabs__tab--${stage}${stage === activeStage ? " is-active" : ""}`}
+                aria-pressed={stage === activeStage}
+                onClick={() => setActiveStage(stage)}
+              >
+                {t(`prospects.stages.${stage}`)}
+                <span className="prospect-tabs__count">{filtered.filter((p) => p.stage === stage).length}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="prospect-board">
+            {PROSPECT_STAGES.map((stage) => {
+              const items = filtered.filter((p) => p.stage === stage);
+              return (
+                <section
+                  key={stage}
+                  className={`prospect-col prospect-col--${stage}${stage === activeStage ? " is-active" : ""}`}
+                  aria-label={t(`prospects.stages.${stage}`)}
+                >
+                  <h2 className="prospect-col__title">
+                    {t(`prospects.stages.${stage}`)}
+                    <span className="prospect-col__count">{items.length}</span>
+                  </h2>
+                  {items.length === 0 && <p className="form-hint prospect-col__empty">{t("prospects.emptyColumn")}</p>}
+                  {selecting && items.length > 0 && (
+                    <label className="prospect-col__select-all">
+                      <input type="checkbox" checked={items.every((p) => selected.has(p.id))} onChange={() => toggleColumn(items)} />
+                      {t("prospects.bulk.selectAll", { count: items.length })}
+                    </label>
+                  )}
+                  {items.map((p) => (
+                    <ProspectCard
+                      key={p.id}
+                      prospect={p}
+                      seesAll={seesAll}
+                      advisorName={advisorName(p.advisor_id)}
+                      propertyTitle={propertyTitle(p.property_id)}
+                      matches={matchesByProspect.get(p.id) || []}
+                      history={history}
+                      busy={busyId === p.id}
+                      canClients={hasSection("clientes")}
+                      canAgenda={hasSection("agenda")}
+                      contact={contact}
+                      onStage={changeStage}
+                      onConvert={handleConvert}
+                      onDelete={handleDelete}
+                      onPostsaleDone={markPostsaleDone}
+                      selectable={selecting}
+                      selected={selected.has(p.id)}
+                      onToggleSelect={toggleOne}
+                    />
+                  ))}
+                </section>
+              );
+            })}
+          </div>
+
+          {selecting && (
+            <div className="prospect-bulk" role="region" aria-label={t("prospects.bulk.label")}>
+              {picked.length > 0 && bulkOpen && (
+                <div className="prospect-bulk__panel card">
+                  <div className="prospect-bulk__group">
+                    <span className="prospect-bulk__label">{t("prospects.bulk.stageLabel")}</span>
+                    <div className="prospect-bulk__row">
+                      <select value={bulkStage} onChange={(e) => setBulkStage(e.target.value)} disabled={bulkBusy} aria-label={t("prospects.bulk.stageLabel")}>
+                        <option value="">{t("prospects.bulk.choose")}</option>
+                        {PROSPECT_STAGES.map((stage) => (
+                          <option key={stage} value={stage}>
+                            {t(`prospects.stages.${stage}`)}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        aria-label={`${t("bulkActions.applyStatus")}: ${t("prospects.bulk.stageLabel")}`}
+                        onClick={() => runBulk("stage", bulkStage)}
+                        disabled={bulkBusy || !bulkStage}
+                      >
+                        {t("bulkActions.applyStatus")}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="prospect-bulk__group">
+                    <span className="prospect-bulk__label">{t("prospects.bulk.followupLabel")}</span>
+                    <div className="prospect-bulk__row">
+                      {FOLLOWUP_OPTIONS.map((option) => (
+                        <button key={option.key} type="button" className="btn btn-outline btn-sm" onClick={() => runBulk("followup", followupDate(option.days))} disabled={bulkBusy}>
+                          {t(`prospects.followupOptions.${option.key}`)}
+                        </button>
+                      ))}
+                      <button type="button" className="btn btn-outline btn-sm" onClick={() => runBulk("followup", followupDate(null))} disabled={bulkBusy}>
+                        {t("prospects.noFollowup")}
+                      </button>
+                    </div>
+                  </div>
+
+                  {seesAll && (
+                    <div className="prospect-bulk__group">
+                      <span className="prospect-bulk__label">{t("prospects.bulk.advisorLabel")}</span>
+                      <div className="prospect-bulk__row">
+                        <select value={bulkAdvisor} onChange={(e) => setBulkAdvisor(e.target.value)} disabled={bulkBusy} aria-label={t("prospects.bulk.advisorLabel")}>
+                          <option value="">{t("prospects.bulk.choose")}</option>
+                          {advisors
+                            .filter((a) => a.active !== false)
+                            .map((a) => (
+                              <option key={a.id} value={a.id}>
+                                {a.name}
+                              </option>
+                            ))}
                         </select>
-                        <button type="button" className="btn btn-outline btn-sm" onClick={() => openContact(p)} aria-expanded={contactFor?.id === p.id} disabled={busyId === p.id}>
-                          {t("prospects.logContact")}
-                        </button>
-                        <QuickReplyButton
-                          templates={templatesFor(p)}
-                          phone={p.phone}
-                          email={p.email}
-                          emailSubject="ACL Propiedades"
-                          label={t("prospects.templates.label")}
-                          recommendedLabel={t("prospects.templates.forStage", { stage: t(`prospects.stages.${p.stage}`) })}
-                          othersLabel={t("prospects.templates.others")}
-                          onSend={(_template, channel) => openContact(p, channel, true)}
-                        />
-                        {p.client_id ? (
-                          <Link to={`/admin/clientes/${p.client_id}`} className="btn btn-outline btn-sm">
-                            {t("prospects.viewClient")}
-                          </Link>
-                        ) : (
-                          hasSection("clientes") && (
-                            <button type="button" className="btn btn-outline btn-sm" onClick={() => handleConvert(p)} disabled={busyId === p.id}>
-                              {t("prospects.convert")}
-                            </button>
-                          )
-                        )}
-                        <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(p)} disabled={busyId === p.id}>
-                          {t("common.delete")}
+                        <button
+                          type="button"
+                          className="btn btn-outline btn-sm"
+                          aria-label={`${t("bulkActions.applyStatus")}: ${t("prospects.bulk.advisorLabel")}`}
+                          onClick={() => runBulk("advisor", bulkAdvisor)}
+                          disabled={bulkBusy || !bulkAdvisor}
+                        >
+                          {t("bulkActions.applyStatus")}
                         </button>
                       </div>
-                      {contactFor?.id === p.id && (
-                        <ProspectContactForm
-                          key={`${p.id}-${contactFor.channel}`}
-                          prospect={p}
-                          defaultChannel={contactFor.channel}
-                          saving={contactSaving}
-                          error={contactError}
-                          onSave={(values) => saveContact(p, values)}
-                          onCancel={() => setContactFor(null)}
-                        />
-                      )}
-                    </article>
-                  );
-                })}
-              </section>
-            );
-          })}
-        </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              {bulkMessage && (
+                <p className="prospect-bulk__message card" role="status">
+                  {bulkMessage}
+                </p>
+              )}
+              <div className="prospect-bulk__bar card">
+                <span className="prospect-bulk__count">{picked.length > 0 ? t("bulkActions.selectedCount", { count: picked.length }) : t("prospects.bulk.hint")}</span>
+                {picked.length > 0 && (
+                  <>
+                    <button type="button" className="btn btn-primary btn-sm" aria-expanded={bulkOpen} onClick={() => setBulkOpen((open) => !open)}>
+                      {t("prospects.bulk.actions")} {bulkOpen ? "▾" : "▴"}
+                    </button>
+                    <button type="button" className="btn btn-outline btn-sm" onClick={() => setSelected(new Set())} disabled={bulkBusy}>
+                      {t("bulkActions.clearSelection")}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

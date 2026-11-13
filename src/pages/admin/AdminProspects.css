@@ -144,11 +144,194 @@
   color: #1a1a1a;
 }
 
+/* Pestañas de etapa: solo en el teléfono (en pantalla ancha se ven todas las columnas). */
+.prospect-tabs {
+  display: none;
+}
+
+.prospect-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  padding: 0.35rem 0.4rem 0.35rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.prospect-tabs__tab.is-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.prospect-tabs__count {
+  min-width: 1.4rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.4rem;
+}
+
+.prospect-tabs__tab.is-active .prospect-tabs__count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
 @media (max-width: 860px) {
   .prospect-board {
     grid-auto-flow: row;
     grid-auto-columns: auto;
     overflow-x: visible;
+  }
+
+  .prospect-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.9rem;
+  }
+
+  /* Una sola etapa a la vez: la de la pestaña elegida, sin el marco de columna. */
+  .prospect-col:not(.is-active) {
+    display: none;
+  }
+
+  .prospect-col {
+    background: none;
+    border: 0;
+    padding: 0;
+  }
+
+  .prospect-col__title {
+    display: none;
+  }
+}
+
+/* «Más»: lo menos frecuente de una tarjeta (etapa, agendar, ficha, convertir, eliminar). */
+.prospect-more {
+  flex: 0 0 auto;
+}
+
+.prospect-more[open] {
+  flex: 1 1 100%;
+}
+
+.prospect-more > summary {
+  list-style: none;
+  user-select: none;
+}
+
+.prospect-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.prospect-more > summary::after {
+  content: "▾";
+}
+
+.prospect-more[open] > summary::after {
+  content: "▴";
+}
+
+.prospect-more__panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.prospect-more__panel select {
+  flex: 1 1 100%;
+}
+
+/* Ficha del prospecto: resumen y acciones arriba, edición plegada abajo. */
+.prospect-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.prospect-profile__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.prospect-profile__head h1 {
+  margin: 0 0 0.4rem;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.prospect-profile__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.prospect-profile__facts {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 0.3rem 0.75rem;
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.prospect-profile__facts dt {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.prospect-profile__facts dd {
+  margin: 0;
+  word-break: break-word;
+}
+
+.prospect-profile__notes {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border-left: 3px solid var(--color-primary);
+  background: var(--color-bg-alt);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.prospect-profile__actions select {
+  flex: 1 1 100%;
+}
+
+.prospect-edit {
+  margin-top: 1.25rem;
+}
+
+.prospect-edit > summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.6rem 0;
+}
+
+@media (max-width: 520px) {
+  .prospect-profile__facts {
+    grid-template-columns: 5.6rem 1fr;
+    gap: 0.35rem 0.6rem;
   }
 }
 
@@ -217,4 +400,119 @@
 .prospect-matches__title {
   font-weight: 600;
   font-size: 0.85rem;
+}
+
+/* Acciones en lote («Seleccionar»): casilla en cada tarjeta y una barra pegada abajo. */
+.prospect-card.is-selected {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.prospect-card__pick {
+  flex: 0 0 auto;
+  width: 1.3rem;
+  height: 1.3rem;
+  margin: 0.1rem 0.5rem 0 0;
+  cursor: pointer;
+}
+
+.prospect-card__head:has(.prospect-card__pick) {
+  align-items: center;
+}
+
+.prospect-card__head:has(.prospect-card__pick) .prospect-card__name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.prospect-col__select-all {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn.is-active {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.prospect-bulk {
+  max-width: 46rem;
+  position: sticky;
+  bottom: calc(var(--admin-tabbar-height, 0px) + 0.5rem + env(safe-area-inset-bottom, 0px));
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.prospect-bulk__bar,
+.prospect-bulk__panel,
+.prospect-bulk__message {
+  margin: 0;
+  border: 1px solid var(--color-primary);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.prospect-bulk__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.6rem 0.9rem;
+}
+
+.prospect-bulk__count {
+  flex: 1 1 auto;
+  font-weight: 600;
+}
+
+.prospect-bulk__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.8rem 0.9rem;
+}
+
+.prospect-bulk__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.prospect-bulk__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.prospect-bulk__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.prospect-bulk__row select {
+  flex: 1 1 10rem;
+  max-width: 20rem;
+  min-width: 0;
+}
+
+.prospect-bulk__message {
+  padding: 0.5rem 0.9rem;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 860px) {
+  /* El botón «+» flota a la derecha: la barra le deja su lugar. */
+  .prospect-bulk__bar {
+    padding-right: 4.8rem;
+  }
 }

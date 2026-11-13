@@ -93,6 +93,9 @@ test.describe("Alta, listado y baja de formularios del panel", () => {
         }
       }
       expect(borrar, "el registro no tiene botón de eliminar").not.toBeNull();
+      // Lo menos frecuente de una tarjeta (Prospectos) va tras «Más»: se abre antes de pulsarlo.
+      const plegado = borrar.locator("xpath=ancestor::details[not(@open)]");
+      if (await plegado.count()) await press(plegado.first().locator("summary"));
       await borrar.scrollIntoViewIfNeeded();
       await press(borrar);
       await expect(principal).not.toContainText(marca);

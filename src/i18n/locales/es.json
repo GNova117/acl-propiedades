@@ -580,6 +580,7 @@
     "someFailed": "Algunos registros no se pudieron actualizar — vuelve a intentar."
   },
   "common": {
+    "more": "Más",
     "loading": "Cargando...",
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -1981,6 +1982,65 @@
     "reminderLink": "Ir a Roles y accesos"
   },
   "prospects": {
+    "bulk": {
+      "label": "Acciones en lote",
+      "select": "Seleccionar",
+      "exit": "Salir de selección",
+      "hint": "Toca los prospectos que quieras cambiar a la vez.",
+      "pick": "Elegir a {{name}}",
+      "selectAll": "Seleccionar todos ({{count}})",
+      "actions": "Acciones",
+      "stageLabel": "Mover a etapa",
+      "followupLabel": "Seguimiento",
+      "advisorLabel": "Reasignar a",
+      "choose": "Elegir…",
+      "nothing": "Nada que cambiar: ya estaban así o no aplica.",
+      "skipped_one": "{{count}} sin cambios (ya estaba así o no aplica).",
+      "skipped_other": "{{count}} sin cambios (ya estaban así o no aplica)."
+    },
+    "more": "Más",
+    "schedule": "Agendar",
+    "openProfile": "Abrir ficha",
+    "tabs": {
+      "label": "Etapas del embudo"
+    },
+    "schedulePrefill": {
+      "visit": "Visita: {{property}}",
+      "meeting": "Cita con {{name}}",
+      "lookingFor": "Busca: {{text}}"
+    },
+    "timeline": {
+      "title": "Línea de tiempo",
+      "kinds": {
+        "created": "Alta",
+        "contact": "Contacto",
+        "stage": "Etapa",
+        "appointment": "Cita",
+        "visit": "Visita",
+        "note": "Nota"
+      },
+      "upcoming": "Próxima",
+      "created": "Origen: {{source}}",
+      "stageTo": "Pasó a «{{stage}}»",
+      "visitTo": "Visita a {{property}}",
+      "showMore": "Ver {{count}} más",
+      "showLess": "Ver menos"
+    },
+    "profile": {
+      "phone": "Teléfono",
+      "email": "Correo",
+      "property": "Propiedad",
+      "lookingFor": "Busca",
+      "nextFollowup": "Seguimiento",
+      "advisor": "Asesor",
+      "lostReason": "Motivo",
+      "notes": "Notas",
+      "summary": "Resumen del prospecto",
+      "back": "Volver a Prospectos",
+      "edit": "Editar datos del prospecto",
+      "lastContact": "Último contacto",
+      "created": "Capturado"
+    },
     "postsale": {
       "step30": "Posventa: 1 mes (hace {{days}} d)",
       "step180": "Posventa: 6 meses (hace {{days}} d)",
@@ -2032,6 +2092,13 @@
       "hours_other": "Sin atender: {{count}} h",
       "days_one": "Sin atender: {{count}} día",
       "days_other": "Sin atender: {{count}} días"
+    },
+    "outcomes": {
+      "legend": "Resultado rápido",
+      "hint": "Un toque lo guarda y programa el seguimiento: mañana, o en 3 días si le interesó.",
+      "noAnswer": "No contestó",
+      "callLater": "Pidió que le llame más tarde",
+      "interested": "Interesado"
     },
     "contact": {
       "channel": "¿Cómo lo contactaste?",
@@ -2159,6 +2226,9 @@
     }
   },
   "search": {
+    "call": "Llamar",
+    "callTo": "Llamar a {{name}}",
+    "whatsappTo": "WhatsApp a {{name}}",
     "placeholder": "Buscar cliente, propiedad, teléfono…  ( / )",
     "loading": "Buscando…",
     "noResults": "Sin resultados para \"{{query}}\".",
@@ -3210,6 +3280,14 @@
     "cancelAdd": "Cancelar"
   },
   "agenda": {
+    "quick": {
+      "label": "Fecha y hora rápidas",
+      "today": "Hoy",
+      "tomorrow": "Mañana"
+    },
+    "property": "Propiedad (opcional)",
+    "noProperty": "— (sin propiedad)",
+    "linkedProspect": "Esta cita está ligada a un prospecto.",
     "viewToggle": "Vista de la agenda",
     "registerVisit": "Registrar visita",
     "visitRegistered": "Visita registrada",
@@ -3331,7 +3409,42 @@
     "logTitle": "¿Ya se lo mandaste? Registra el contacto con {{name}}:",
     "logged": "Contacto registrado."
   },
+  "offline": {
+    "banner": {
+      "label": "Estado de la conexión",
+      "offline": "Sin conexión. Lo que captures se guarda en este dispositivo y se envía solo al volver la señal.",
+      "offlinePending_one": "Sin conexión. {{count}} cambio por enviar: saldrá al volver la señal.",
+      "offlinePending_other": "Sin conexión. {{count}} cambios por enviar: saldrán al volver la señal.",
+      "pending_one": "{{count}} cambio por enviar.",
+      "pending_other": "{{count}} cambios por enviar.",
+      "sending": "Enviando…",
+      "sent_one": "Se envió {{count}} cambio.",
+      "sent_other": "Se enviaron {{count}} cambios.",
+      "failed_one": "{{count}} no se pudo enviar.",
+      "failed_other": "{{count}} no se pudieron enviar.",
+      "sendNow": "Enviar ahora",
+      "view": "Ver",
+      "hide": "Ocultar"
+    },
+    "op": {
+      "prospect": "Prospecto nuevo: {{name}}",
+      "contact": "Contacto con {{name}} ({{channel}})",
+      "when": "Capturado {{when}}",
+      "failed": "No se pudo enviar: {{error}}",
+      "retry": "Reintentar",
+      "discard": "Descartar",
+      "confirmDiscard": "¿Descartar este cambio? Se perderá y no se enviará."
+    },
+    "quickSaved": "Guardado en este dispositivo: {{name}}. Se enviará cuando haya señal.",
+    "saveFailed": "No se pudo guardar sin conexión en este dispositivo. Intenta de nuevo con señal.",
+    "noteSuffix": "(registrado sin conexión: {{when}})",
+    "logoutConfirm_one": "Tienes {{count}} cambio sin enviar. Si cierras sesión se queda en este dispositivo hasta que vuelvas a entrar con tu cuenta. ¿Cerrar sesión?",
+    "logoutConfirm_other": "Tienes {{count}} cambios sin enviar. Si cierras sesión se quedan en este dispositivo hasta que vuelvas a entrar con tu cuenta. ¿Cerrar sesión?"
+  },
   "quickCapture": {
+    "menu": "Acciones rápidas",
+    "newAppointment": "Nueva cita",
+    "logVisit": "Registrar visita",
     "open": "Prospecto rápido",
     "title": "Prospecto rápido",
     "hint": "Lo mínimo para no perderlo; el resto lo completas después.",

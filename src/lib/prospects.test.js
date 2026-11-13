@@ -8,6 +8,7 @@ import {
   INBOUND_SOURCES,
   daysSince,
   emptyProspectForm,
+  firstStageWithProspects,
   followUpState,
   messageToProspectFields,
   prospectToForm,
@@ -263,5 +264,23 @@ describe("unattendedAge", () => {
     expect(unattendedAge(47)).toEqual({ unit: "hours", count: 47 });
     expect(unattendedAge(48)).toEqual({ unit: "days", count: 2 });
     expect(unattendedAge(75)).toEqual({ unit: "days", count: 3 });
+  });
+});
+
+describe("firstStageWithProspects", () => {
+  const con = (...stages) => stages.map((stage) => ({ stage }));
+
+  it("la primera etapa abierta que tiene prospectos", () => {
+    expect(firstStageWithProspects(con("interesado", "contactado", "cerrado"))).toBe("contactado");
+    expect(firstStageWithProspects(con("negociacion"))).toBe("negociacion");
+  });
+
+  it("si todos están cerrados o perdidos, la primera etapa que tenga alguno (no una pestaña vacía)", () => {
+    expect(firstStageWithProspects(con("perdido", "cerrado"))).toBe("cerrado");
+    expect(firstStageWithProspects(con("perdido"))).toBe("perdido");
+  });
+
+  it("sin prospectos, la primera etapa", () => {
+    expect(firstStageWithProspects([])).toBe("nuevo");
   });
 });

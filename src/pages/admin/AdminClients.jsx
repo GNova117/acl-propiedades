@@ -1,11 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import ClientPdfModal from "../../components/ClientPdfModal";
 import BulkActionsBar from "../../components/BulkActionsBar";
+import AdminFilters from "../../components/AdminFilters";
+import RowMore from "../../components/RowMore";
 import { FINANCIAMIENTO_TYPES } from "../../lib/format";
+import { telHref, whatsappLink } from "../../lib/prospectActions";
+import { queries } from "../../lib/queries";
+import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
 
 function clientTypeLabel(t, type) {
@@ -16,28 +21,25 @@ function financiamientoLabel(t, value) {
   return value ? t(`clients.financiamientoOptions.${value}`) : "—";
 }
 
+const NONE = [];
+
 export default function AdminClients() {
   const { t } = useTranslation();
-  const [clients, setClients] = useState([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [financiamientoFilter, setFinanciamientoFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
-  const [loading, setLoading] = useState(true);
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [selected, setSelected] = useState(() => new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
 
-  const load = () => {
-    setLoading(true);
-    db.getClients(typeFilter ? { type: typeFilter } : {}).then((data) => {
-      setClients(data);
-      setLoading(false);
-    });
-  };
-
-  useEffect(load, [typeFilter]);
+  // La lista sale del caché (ver dataCache.js): si ya se pidió en otra pantalla, se pinta al instante
+  // y se actualiza al llegar lo nuevo. Cada filtro de tipo tiene su propia entrada.
+  const clientsQ = useQuery(queries.clients(typeFilter));
+  const clients = clientsQ.data ?? NONE;
+  const loading = clientsQ.loading;
+  const load = () => clientsQ.reload().catch(() => {});
 
   const months = t("dateFilter.months", { returnObjects: true });
 
@@ -122,36 +124,42 @@ export default function AdminClients() {
     ]);
   };
 
+  const activeFilters = [typeFilter, financiamientoFilter, monthFilter, yearFilter].filter(Boolean).length;
+
   return (
     <div>
       <div className="admin-header">
         <h1>{t("clients.title")}</h1>
         <div className="admin-header__actions">
+          <Link to="/admin/clientes/nuevo" className="btn btn-primary">
+            {t("admin.newClient")}
+          </Link>
           <button type="button" className="btn btn-outline" onClick={handleExport} disabled={filteredClients.length === 0}>
             {t("common.exportCsv")}
           </button>
           <button type="button" className="btn btn-outline" onClick={() => setShowPdfModal(true)}>
             {t("clients.downloadPdf")}
           </button>
-          <Link to="/admin/clientes/nuevo" className="btn btn-primary">
-            {t("admin.newClient")}
-          </Link>
         </div>
       </div>
 
       {showPdfModal && <ClientPdfModal initialTypeFilter={typeFilter} onClose={() => setShowPdfModal(false)} />}
 
-      <div className="form-row" style={{ maxWidth: 820, marginBottom: "1.25rem" }}>
-        <div className="form-field">
-          <label htmlFor="client-search">{t("common.search")}</label>
-          <input
-            id="client-search"
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t("clients.searchPlaceholder")}
-          />
-        </div>
+      <AdminFilters
+        activeCount={activeFilters}
+        search={
+          <div className="form-field">
+            <label htmlFor="client-search">{t("common.search")}</label>
+            <input
+              id="client-search"
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t("clients.searchPlaceholder")}
+            />
+          </div>
+        }
+      >
         <div className="form-field">
           <label htmlFor="client-type-filter">{t("clients.type")}</label>
           <select id="client-type-filter" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
@@ -194,7 +202,7 @@ export default function AdminClients() {
             ))}
           </select>
         </div>
-      </div>
+      </AdminFilters>
 
       <BulkActionsBar count={selected.size} onClear={() => setSelected(new Set())} busy={bulkBusy}>
         <button type="button" className="btn btn-danger btn-sm" onClick={handleBulkDelete} disabled={bulkBusy}>
@@ -202,11 +210,12 @@ export default function AdminClients() {
         </button>
       </BulkActionsBar>
 
-      <div className="card admin-table-wrapper">
-        <table className="admin-table">
+      {/* En el teléfono cada fila es una tarjeta (ver admin-table--cards en admin.css). */}
+      <div className="card admin-table-wrapper admin-table-wrapper--cards">
+        <table className="admin-table admin-table--cards admin-table--clients">
           <thead>
             <tr>
-              <th>
+              <th className="cell-select" data-label={t("bulkActions.selectAll")}>
                 <input
                   type="checkbox"
                   checked={allVisibleSelected}
@@ -232,40 +241,60 @@ export default function AdminClients() {
                 <td colSpan={7}>{t("clients.noResults")}</td>
               </tr>
             ) : (
-              filteredClients.map((client) => (
-                <tr key={client.id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selected.has(client.id)}
-                      onChange={() => toggleOne(client.id)}
-                      aria-label={t("bulkActions.selectRow")}
-                    />
-                  </td>
-                  <td>{client.name}</td>
-                  <td>{clientTypeLabel(t, client.type)}</td>
-                  <td>{financiamientoLabel(t, client.financiamiento)}</td>
-                  <td>{client.phone}</td>
-                  <td>{client.email}</td>
-                  <td className="admin-table__actions">
-                    <Link to={`/admin/clientes/${client.id}`} className="btn btn-outline btn-sm">
-                      {t("common.edit")}
-                    </Link>
-                    <Link to={`/admin/clientes/${client.id}/historial`} className="btn btn-outline btn-sm">
-                      {t("clientHistory.button")}
-                    </Link>
-                    <Link to={`/admin/clientes/${client.id}/perfilamiento`} className="btn btn-outline btn-sm">
-                      {t("profiling.title")}
-                    </Link>
-                    <Link to={`/admin/clientes/${client.id}/documentos`} className="btn btn-outline btn-sm">
-                      {t("clients.viewDocuments")}
-                    </Link>
-                    <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(client.id)}>
-                      {t("common.delete")}
-                    </button>
-                  </td>
-                </tr>
-              ))
+              filteredClients.map((client) => {
+                const call = telHref(client.phone);
+                const wa = whatsappLink(client.phone);
+                return (
+                  <tr key={client.id} className="admin-row">
+                    <td className="cell-select">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(client.id)}
+                        onChange={() => toggleOne(client.id)}
+                        aria-label={t("bulkActions.selectRow")}
+                      />
+                    </td>
+                    <td className="cell-name">{client.name}</td>
+                    <td className="cell-type">{clientTypeLabel(t, client.type)}</td>
+                    <td className={`cell-fin${client.financiamiento ? "" : " cell-empty"}`} data-label={t("clients.financiamiento")}>
+                      {financiamientoLabel(t, client.financiamiento)}
+                    </td>
+                    <td className="cell-phone">{call ? <a href={call}>{client.phone}</a> : client.phone}</td>
+                    <td className={`cell-email${client.email ? "" : " cell-empty"}`}>
+                      {client.email ? <a href={`mailto:${client.email}`}>{client.email}</a> : null}
+                    </td>
+                    <td className="admin-table__actions cell-actions">
+                      {call && (
+                        <a href={call} className="btn btn-outline btn-sm show-on-phone">
+                          {t("myDay.call")}
+                        </a>
+                      )}
+                      {wa && (
+                        <a href={wa} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-sm">
+                          WhatsApp
+                        </a>
+                      )}
+                      <Link to={`/admin/clientes/${client.id}`} className="btn btn-outline btn-sm">
+                        {t("common.edit")}
+                      </Link>
+                      <RowMore>
+                        <Link to={`/admin/clientes/${client.id}/historial`} className="btn btn-outline btn-sm">
+                          {t("clientHistory.button")}
+                        </Link>
+                        <Link to={`/admin/clientes/${client.id}/perfilamiento`} className="btn btn-outline btn-sm">
+                          {t("profiling.title")}
+                        </Link>
+                        <Link to={`/admin/clientes/${client.id}/documentos`} className="btn btn-outline btn-sm">
+                          {t("clients.viewDocuments")}
+                        </Link>
+                        <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(client.id)}>
+                          {t("common.delete")}
+                        </button>
+                      </RowMore>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

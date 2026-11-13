@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
@@ -13,6 +13,10 @@ import PropertyQrModal from "../../components/PropertyQrModal";
 import { matchingProspects } from "../../lib/prospectMatch";
 import { isOpenStage } from "../../lib/prospects";
 import BulkActionsBar from "../../components/BulkActionsBar";
+import AdminFilters from "../../components/AdminFilters";
+import RowMore from "../../components/RowMore";
+import { queries } from "../../lib/queries";
+import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
 
 // updateProperty espera el registro casi completo (no hace un merge parcial
@@ -20,6 +24,8 @@ import "./admin.css";
 // pasan explícitos — así que un cambio en lote de un solo campo (estatus,
 // activo) tiene que ir con todo lo demás de la propiedad, incluyendo los
 // tres arreglos de medios ya existentes, para no perderlos.
+const NONE = [];
+
 function mediaPreservingPatch(property, patch) {
   return {
     ...property,
@@ -46,11 +52,6 @@ export default function AdminProperties({
 }) {
   const { t } = useTranslation();
   const { hasSection } = useAuth();
-  const [properties, setProperties] = useState([]);
-  const [remodelProjects, setRemodelProjects] = useState([]);
-  const [zones, setZones] = useState([]);
-  const [prospects, setProspects] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [busyFichaId, setBusyFichaId] = useState(null);
   const [socialProperty, setSocialProperty] = useState(null);
   const [matchProperty, setMatchProperty] = useState(null);
@@ -66,27 +67,24 @@ export default function AdminProperties({
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkStatus, setBulkStatus] = useState("disponible");
 
-  const load = () => {
-    setLoading(true);
-    Promise.all([
-      db.getProperties({}),
-      db.getRemodelProjects({}),
-      db.getZones().catch(() => []),
-      // Los prospectos solo se piden a quien tiene el apartado (RLS: un asesor recibe solo los suyos).
-      hasSection("prospectos") ? db.getProspects().catch(() => []) : Promise.resolve([]),
-    ]).then(([propertyData, remodelData, zoneData, prospectData]) => {
-      const filtered = fixedType
-        ? propertyData.filter((p) => p.type === fixedType)
-        : propertyData.filter((p) => !excludeTypes.includes(p.type));
-      setProperties(filtered);
-      setRemodelProjects(remodelData);
-      setZones(zoneData);
-      setProspects(prospectData);
-      setLoading(false);
-    });
-  };
-
-  useEffect(load, [fixedType]);
+  // Las listas salen del caché (ver dataCache.js): si ya se pidieron en otra pantalla, esta se pinta
+  // al instante y se actualiza al llegar lo nuevo. Los prospectos solo se piden a quien tiene el apartado
+  // (RLS: un asesor recibe solo los suyos).
+  const propertiesQ = useQuery(queries.properties);
+  const remodelQ = useQuery(queries.remodelProjects);
+  const zonesQ = useQuery(queries.zones);
+  const prospectsQ = useQuery(queries.prospects, { enabled: hasSection("prospectos") });
+  const remodelProjects = remodelQ.data ?? NONE;
+  const zones = zonesQ.data ?? NONE;
+  const prospects = prospectsQ.data ?? NONE;
+  const loading = propertiesQ.loading;
+  const properties = useMemo(() => {
+    const all = propertiesQ.data ?? NONE;
+    return fixedType ? all.filter((p) => p.type === fixedType) : all.filter((p) => !excludeTypes.includes(p.type));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [propertiesQ.data, fixedType]);
+  // Tras cambiar una propiedad se vuelve a pedir la lista de propiedades.
+  const load = () => propertiesQ.reload().catch(() => {});
 
   // A qué prospectos abiertos les encaja cada propiedad disponible.
   const prospectsByProperty = useMemo(() => new Map(properties.map((p) => [p.id, matchingProspects(p, prospects)])), [properties, prospects]);
@@ -216,20 +214,24 @@ export default function AdminProperties({
       <div className="admin-header">
         <h1>{t(titleKey)}</h1>
         <div className="admin-header__actions">
-          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={visibleProperties.length === 0}>
-            {t("common.exportCsv")}
-          </button>
           <Link to={`${basePath}/nueva`} className="btn btn-primary">
             {t(newLabelKey)}
           </Link>
+          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={visibleProperties.length === 0}>
+            {t("common.exportCsv")}
+          </button>
         </div>
       </div>
 
-      <div className="card" style={{ padding: "1rem", marginBottom: "1.25rem", display: "grid", gap: "0.75rem", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
-        <div className="form-field">
-          <label htmlFor="ap-search">{t("common.search")}</label>
-          <input id="ap-search" type="search" value={search} onChange={(e) => setSearch(e.target.value)} />
-        </div>
+      <AdminFilters
+        activeCount={[zoneFilter, operationFilter, statusFilter, minPrice, maxPrice].filter(Boolean).length}
+        search={
+          <div className="form-field">
+            <label htmlFor="ap-search">{t("common.search")}</label>
+            <input id="ap-search" type="search" value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+        }
+      >
         <div className="form-field">
           <label htmlFor="ap-zone">{t("properties.zone")}</label>
           <select id="ap-zone" value={zoneFilter} onChange={(e) => setZoneFilter(e.target.value)}>
@@ -266,7 +268,7 @@ export default function AdminProperties({
           <label htmlFor="ap-max-price">{t("properties.maxPrice")}</label>
           <input id="ap-max-price" type="number" min="0" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
         </div>
-      </div>
+      </AdminFilters>
 
       <BulkActionsBar count={selected.size} onClear={() => setSelected(new Set())} busy={bulkBusy}>
         <select value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)} disabled={bulkBusy} aria-label={t("common.status")}>
@@ -288,18 +290,19 @@ export default function AdminProperties({
         </button>
       </BulkActionsBar>
 
-      <div className="card admin-table-wrapper">
-        <table className="admin-table">
+      {/* En el teléfono cada fila es una tarjeta (ver admin-table--cards en admin.css). */}
+      <div className="card admin-table-wrapper admin-table-wrapper--cards">
+        <table className="admin-table admin-table--cards admin-table--properties">
           <thead>
             <tr>
-              <th>
+              <th className="cell-select" data-label={t("bulkActions.selectAll")}>
                 <input type="checkbox" checked={allVisibleSelected} onChange={toggleAll} aria-label={t("bulkActions.selectAll")} />
               </th>
               <th></th>
               <th>{t("detail.code")}</th>
               <th>Título</th>
-              <th>{t("properties.type")}</th>
-              {fixedType === "nave_industrial" && <th>{t("properties.naveTipo")}</th>}
+              <th className="cell-type">{t("properties.type")}</th>
+              {fixedType === "nave_industrial" && <th className="cell-tipo">{t("properties.naveTipo")}</th>}
               <th>{t("properties.zone")}</th>
               <th>Precio</th>
               <th>{t("properties.area")}</th>
@@ -318,8 +321,8 @@ export default function AdminProperties({
                 const remodelProject = remodelProjects.find((r) => r.property_id === property.id);
                 const matchedProspects = prospectsByProperty.get(property.id) || [];
                 return (
-                  <tr key={property.id}>
-                    <td>
+                  <tr key={property.id} className="admin-row">
+                    <td className="cell-select">
                       <input
                         type="checkbox"
                         checked={selected.has(property.id)}
@@ -327,83 +330,85 @@ export default function AdminProperties({
                         aria-label={t("bulkActions.selectRow")}
                       />
                     </td>
-                    <td>{property.main_image && <img src={property.main_image} alt="" />}</td>
-                    <td>{property.code || "—"}</td>
-                    <td>{property.title}</td>
-                    <td>{propertyTypeLabel(t, property.type)}</td>
-                    {fixedType === "nave_industrial" && <td>{property.tipo_nave ? t(`naveTipo.${property.tipo_nave}`) : "—"}</td>}
-                    <td>{property.zone}</td>
-                    <td>{formatMXN(property.price)}</td>
-                    <td>{formatArea(property.area_m2)}</td>
-                    <td>{t(`propertyStatus.${property.status}`)}</td>
-                    <td>
+                    <td className="cell-thumb">{property.main_image && <img src={property.main_image} alt="" />}</td>
+                    <td className="cell-code">{property.code || "—"}</td>
+                    <td className="cell-title">{property.title}</td>
+                    <td className="cell-type">{propertyTypeLabel(t, property.type)}</td>
+                    {fixedType === "nave_industrial" && <td className="cell-tipo">{property.tipo_nave ? t(`naveTipo.${property.tipo_nave}`) : "—"}</td>}
+                    <td className="cell-zone">{property.zone}</td>
+                    <td className="cell-price">{formatMXN(property.price)}</td>
+                    <td className="cell-area">{formatArea(property.area_m2)}</td>
+                    <td className="cell-status">{t(`propertyStatus.${property.status}`)}</td>
+                    <td className="cell-active">
                       <button type="button" className={`badge ${property.active ? "badge-available" : "badge-sold"}`} onClick={() => toggleActive(property)}>
                         {property.active ? t("common.active") : t("common.inactive")}
                       </button>
                     </td>
-                    <td className="admin-table__actions">
+                    <td className="admin-table__actions cell-actions">
                       <Link to={`${basePath}/${property.id}`} className="btn btn-outline btn-sm">
                         {t("common.edit")}
                       </Link>
-                      <Link to={`${basePath}/${property.id}/historial`} className="btn btn-outline btn-sm">
-                        {t("propertyHistory.button")}
-                      </Link>
-                      <button
-                        type="button"
-                        className="btn btn-outline btn-sm"
-                        onClick={() => handleDownloadFicha(property)}
-                        disabled={busyFichaId === property.id}
-                      >
-                        {busyFichaId === property.id ? <span className="spinner" /> : null}
-                        {t("admin.technicalSheet")}
-                      </button>
                       <button type="button" className="btn btn-primary btn-sm" onClick={() => setSendProperty(property)}>
                         {t("sendProperty.button")}
                       </button>
-                      <button type="button" className="btn btn-outline btn-sm" onClick={() => setQrProperty(property)}>
-                        {t("propertyQr.button")}
-                      </button>
-                      <button type="button" className="btn btn-outline btn-sm" onClick={() => setSocialProperty(property)}>
-                        {t("socialPost.button")}
-                      </button>
-                      {matchedProspects.length > 0 && (
-                        <button type="button" className="btn btn-outline btn-sm" onClick={() => setMatchProperty(property)}>
-                          {t("prospects.match.propertyButton", { count: matchedProspects.length })}
+                      <RowMore>
+                        <Link to={`${basePath}/${property.id}/historial`} className="btn btn-outline btn-sm">
+                          {t("propertyHistory.button")}
+                        </Link>
+                        <button
+                          type="button"
+                          className="btn btn-outline btn-sm"
+                          onClick={() => handleDownloadFicha(property)}
+                          disabled={busyFichaId === property.id}
+                        >
+                          {busyFichaId === property.id ? <span className="spinner" /> : null}
+                          {t("admin.technicalSheet")}
                         </button>
-                      )}
-                      {remodelProject && hasSection("remodelaciones") && (
-                        <Link to={`/admin/remodelaciones/${remodelProject.id}`} className="btn btn-outline btn-sm">
-                          {t("remodelCalculator.button")}
-                        </Link>
-                      )}
-                      {hasSection("liquidaciones") && (
-                        <Link to={`/admin/propiedades/${property.id}/liquidacion`} className="btn btn-outline btn-sm">
-                          {t("liquidacion.button")}
-                        </Link>
-                      )}
-                      {hasSection("bitacora") && (
-                        <Link to={`${basePath}/${property.id}/bitacora`} className="btn btn-outline btn-sm">
-                          {t("propertyLog.button")}
-                        </Link>
-                      )}
-                      {hasSection("visitas") && (
-                        <Link to={`/admin/visitas/propiedad/${property.id}`} className="btn btn-outline btn-sm">
-                          {t("visits.button")}
-                        </Link>
-                      )}
-                      {hasSection("inspecciones") && (
-                        <Link to={`/admin/inspecciones/nueva?propiedad=${property.id}`} className="btn btn-outline btn-sm">
-                          {t("inspections.button")}
-                        </Link>
-                      )}
-                      {hasSection("reportes") && property.status !== "vendida" && (
-                        <Link to={`/admin/reportes?vender=${property.id}`} className="btn btn-outline btn-sm">
-                          {t("salesReports.registerSale")}
-                        </Link>
-                      )}
-                      <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(property.id)}>
-                        {t("common.delete")}
-                      </button>
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => setQrProperty(property)}>
+                          {t("propertyQr.button")}
+                        </button>
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => setSocialProperty(property)}>
+                          {t("socialPost.button")}
+                        </button>
+                        {matchedProspects.length > 0 && (
+                          <button type="button" className="btn btn-outline btn-sm" onClick={() => setMatchProperty(property)}>
+                            {t("prospects.match.propertyButton", { count: matchedProspects.length })}
+                          </button>
+                        )}
+                        {remodelProject && hasSection("remodelaciones") && (
+                          <Link to={`/admin/remodelaciones/${remodelProject.id}`} className="btn btn-outline btn-sm">
+                            {t("remodelCalculator.button")}
+                          </Link>
+                        )}
+                        {hasSection("liquidaciones") && (
+                          <Link to={`/admin/propiedades/${property.id}/liquidacion`} className="btn btn-outline btn-sm">
+                            {t("liquidacion.button")}
+                          </Link>
+                        )}
+                        {hasSection("bitacora") && (
+                          <Link to={`${basePath}/${property.id}/bitacora`} className="btn btn-outline btn-sm">
+                            {t("propertyLog.button")}
+                          </Link>
+                        )}
+                        {hasSection("visitas") && (
+                          <Link to={`/admin/visitas/propiedad/${property.id}`} className="btn btn-outline btn-sm">
+                            {t("visits.button")}
+                          </Link>
+                        )}
+                        {hasSection("inspecciones") && (
+                          <Link to={`/admin/inspecciones/nueva?propiedad=${property.id}`} className="btn btn-outline btn-sm">
+                            {t("inspections.button")}
+                          </Link>
+                        )}
+                        {hasSection("reportes") && property.status !== "vendida" && (
+                          <Link to={`/admin/reportes?vender=${property.id}`} className="btn btn-outline btn-sm">
+                            {t("salesReports.registerSale")}
+                          </Link>
+                        )}
+                        <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(property.id)}>
+                          {t("common.delete")}
+                        </button>
+                      </RowMore>
                     </td>
                   </tr>
                 );
@@ -420,7 +425,7 @@ export default function AdminProperties({
           property={sendProperty}
           prospects={openProspects}
           onClose={() => setSendProperty(null)}
-          onLogged={(updated) => setProspects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))}
+          onLogged={(updated) => prospectsQ.mutate((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))}
         />
       )}
       {matchProperty && (

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/dataStore";
+import { phoneActions } from "../lib/searchActions";
 import "./AdminGlobalSearch.css";
 
 // Búsqueda global del panel: una caja en la barra superior que encuentra
@@ -10,6 +11,9 @@ import "./AdminGlobalSearch.css";
 // registros de Secretaría, y lleva directo a la pantalla. Solo consulta los
 // apartados que el rol tiene (y RLS recorta lo demás). Los datos se cargan la
 // primera vez que se usa y se refrescan si pasó más de un minuto.
+// Los resultados que traen teléfono ofrecen además «Llamar» y «WhatsApp» directo, sin abrir
+// la ficha; en un prospecto, además, se abre su ficha con «Registrar contacto» ya listo
+// (canal elegido) para cuando el asesor regrese de la llamada o del chat.
 const CACHE_MS = 60_000;
 const MAX_PER_GROUP = 5;
 
@@ -53,6 +57,8 @@ const SOURCES = [
       sub: [p.stage, p.phone].filter(Boolean).join(" · "),
       text: [p.name, p.email, p.looking_for],
       phones: [p.phone],
+      // Al llamar o escribirle desde aquí, su ficha abre «Registrar contacto» con el canal ya elegido.
+      logContact: true,
       to: `/admin/prospectos/${p.id}`,
     }),
   },
@@ -198,6 +204,14 @@ export default function AdminGlobalSearch() {
     navigate(item.to);
   };
 
+  // Llamar o escribir desde un resultado: se cierra el panel y, si es un prospecto, se abre su ficha con
+  // «Registrar contacto» listo (el enlace tel: o de WhatsApp sigue su curso).
+  const contactFrom = (item, channel) => {
+    setOpen(false);
+    document.activeElement?.blur?.();
+    if (item.logContact) navigate(item.to, { state: { logContact: channel } });
+  };
+
   const onKeyDown = (e) => {
     if (e.key === "Escape") {
       setOpen(false);
@@ -252,19 +266,38 @@ export default function AdminGlobalSearch() {
               {group.items.map((item) => {
                 flatIndex += 1;
                 const isActive = flatIndex === active;
+                const quick = phoneActions(item.phones);
                 return (
-                  <button
-                    type="button"
-                    key={`${group.key}-${item.id}`}
-                    role="option"
-                    aria-selected={isActive}
-                    className={`admin-search__item${isActive ? " is-active" : ""}`}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => go(item)}
-                  >
-                    <span className="admin-search__title">{item.title}</span>
-                    {item.sub && <span className="admin-search__sub">{item.sub}</span>}
-                  </button>
+                  <div key={`${group.key}-${item.id}`} className={`admin-search__row${isActive ? " is-active" : ""}`}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={isActive}
+                      className="admin-search__item"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => go(item)}
+                    >
+                      <span className="admin-search__title">{item.title}</span>
+                      {item.sub && <span className="admin-search__sub">{item.sub}</span>}
+                    </button>
+                    {quick && (
+                      <div className="admin-search__actions">
+                        <a className="admin-search__action" href={quick.call} aria-label={t("search.callTo", { name: item.title })} onClick={() => contactFrom(item, "llamada")}>
+                          {t("search.call")}
+                        </a>
+                        <a
+                          className="admin-search__action"
+                          href={quick.whatsapp}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={t("search.whatsappTo", { name: item.title })}
+                          onClick={() => contactFrom(item, "whatsapp")}
+                        >
+                          WhatsApp
+                        </a>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>

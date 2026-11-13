@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { db } from "../lib/dataStore";
+import { clearDataCache } from "../lib/dataCache";
 import { isSupabaseConfigured } from "../lib/supabaseClient";
 import { SECTION_KEYS, ADMIN_ROLE_SLUG } from "../lib/accessControl";
 
@@ -16,8 +17,15 @@ export function AuthProvider({ children }) {
   const [advisorId, setAdvisorId] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // El caché de listas (ver dataCache.js) es de una cuenta: al cerrar sesión o entrar con otra se vacía.
+  const cacheOwner = useRef(undefined);
+
   const loadRole = async (newSession) => {
     const email = newSession?.user?.email;
+    if (cacheOwner.current !== email) {
+      clearDataCache();
+      cacheOwner.current = email;
+    }
     if (!email) {
       setRole(null);
       setAdvisorId(null);

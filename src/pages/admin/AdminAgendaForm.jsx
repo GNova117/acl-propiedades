@@ -1,14 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { citaContact, citaStatus, isOpenRequest, visitLink, visitLinkTextKey } from "../../lib/agendaCitas";
 import VisitLinkPanel from "../../components/VisitLinkPanel";
+import { QUICK_TIMES, quickDates } from "../../lib/quickSchedule";
+import { queries } from "../../lib/queries";
+import { useQuery } from "../../lib/useQuery";
 import { useAuth } from "../../context/AuthContext";
 import "./admin.css";
 
-const EMPTY = { advisor_id: "", client_id: "", titulo: "", fecha: "", hora: "", actividades: "", lugar: "", contact_name: "", contact_phone: "", contact_email: "" };
+const EMPTY = { advisor_id: "", client_id: "", property_id: "", prospecto_id: "", titulo: "", fecha: "", hora: "", actividades: "", lugar: "", contact_name: "", contact_phone: "", contact_email: "" };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const NONE = [];
 
 export default function AdminAgendaForm() {
   const { id } = useParams();
@@ -16,7 +20,7 @@ export default function AdminAgendaForm() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { advisorId } = useAuth();
+  const { advisorId, hasSection } = useAuth();
 
   // "Agendar cita" desde un mensaje de contacto (/admin/mensajes) llega
   // aquí con state.prefill (título + actividades con el teléfono/correo/
@@ -26,51 +30,87 @@ export default function AdminAgendaForm() {
   // del equipo decidiendo agendarla. Fecha/hora se dejan en blanco a
   // propósito: parsear una fecha en texto libre del mensaje no vale el
   // riesgo de adivinar mal, es más rápido que quien agenda la escriba.
-  const [form, setForm] = useState(() => (!isEdit && location.state?.prefill ? { ...EMPTY, ...location.state.prefill } : EMPTY));
-  const [advisors, setAdvisors] = useState([]);
-  const [clients, setClients] = useState([]);
+  // "Agendar" desde un prospecto (Prospectos, Mi día o su ficha) llega igual, con
+  // título, propiedad, contacto y prospecto ya puestos: solo falta fecha y hora.
+  // `state.from` es la pantalla a la que se regresa al cancelar o terminar.
+  // Agenda propia: el asesor no elige, la cita siempre se crea para sí mismo (desde el primer pintado).
+  const [form, setForm] = useState(() => ({
+    ...(!isEdit && location.state?.prefill ? { ...EMPTY, ...location.state.prefill } : EMPTY),
+    ...(advisorId ? { advisor_id: advisorId } : {}),
+  }));
+  // Las listas salen del caché (ver dataCache.js): si ya se pidieron en otra pantalla, el formulario
+  // abre al instante; si no, se llenan en cuanto llegan (no hace falta esperarlas para empezar a escribir).
+  const advisors = useQuery(queries.advisors).data ?? NONE;
+  const clients = useQuery(queries.clients()).data ?? NONE;
+  const properties = useQuery(queries.properties).data ?? NONE;
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
+  // Solo al editar hay algo que esperar: la cita guardada.
+  const [loading, setLoading] = useState(isEdit);
   // Solicitud de visita sin asesor: no se edita hasta que alguien la toma (desde la Agenda o Mi día).
   const [openRequest, setOpenRequest] = useState(false);
   const [citaRow, setCitaRow] = useState(null); // la cita guardada (para su enlace)
   // ¿La cita ya tenía lugar guardado? Solo entonces se manda vacío para borrarlo;
   // si nunca tuvo y sigue sin nada, el campo ni se envía (ver supabaseBackend).
   const hadLugar = useRef(false);
+  // Igual con la propiedad: solo se manda vacía para quitarla si ya tenía una.
+  const hadProperty = useRef(false);
+  const backTo = location.state?.from || "/admin/agenda";
 
   useEffect(() => {
-    Promise.all([db.getAdvisors(), db.getClients(), isEdit ? db.getAgendaCitaById(id) : Promise.resolve(null)]).then(
-      ([advisorData, clientData, cita]) => {
-        setAdvisors(advisorData);
-        setClients(clientData);
-        if (cita) {
-          setOpenRequest(isOpenRequest(cita));
-          setCitaRow(cita);
-          hadLugar.current = Boolean(cita.lugar);
-          setForm({
-            advisor_id: cita.advisor_id,
-            client_id: cita.client_id || "",
-            titulo: cita.titulo,
-            fecha: cita.fecha,
-            hora: cita.hora ? cita.hora.slice(0, 5) : "",
-            actividades: cita.actividades || "",
-            lugar: cita.lugar || "",
-            contact_name: cita.contact_name || "",
-            contact_phone: cita.contact_phone || "",
-            contact_email: cita.contact_email || "",
-          });
-        } else if (advisorId) {
-          // Agenda propia: el asesor no elige, la cita siempre se crea para sí mismo.
-          setForm((prev) => ({ ...prev, advisor_id: advisorId }));
-        }
-        setLoading(false);
+    if (!isEdit) return undefined;
+    let cancelled = false;
+    db.getAgendaCitaById(id).then((cita) => {
+      if (cancelled) return;
+      if (cita) {
+        setOpenRequest(isOpenRequest(cita));
+        setCitaRow(cita);
+        hadLugar.current = Boolean(cita.lugar);
+        hadProperty.current = Boolean(cita.property_id);
+        setForm({
+          advisor_id: cita.advisor_id,
+          client_id: cita.client_id || "",
+          property_id: cita.property_id || "",
+          prospecto_id: cita.prospecto_id || "",
+          titulo: cita.titulo,
+          fecha: cita.fecha,
+          hora: cita.hora ? cita.hora.slice(0, 5) : "",
+          actividades: cita.actividades || "",
+          lugar: cita.lugar || "",
+          contact_name: cita.contact_name || "",
+          contact_phone: cita.contact_phone || "",
+          contact_email: cita.contact_email || "",
+        });
       }
-    );
-  }, [id, isEdit, advisorId]);
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [id, isEdit]);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  };
+
+  // Atajos de fecha y hora: un toque en vez de abrir el calendario del teléfono.
+  const pick = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
+  const shortcuts = useMemo(() => quickDates(), []);
+  const dateLabel = (key, iso) =>
+    key === "saturday"
+      ? new Date(`${iso}T00:00:00`).toLocaleDateString("es-MX", { weekday: "short", day: "numeric", month: "short" })
+      : t(`agenda.quick.${key}`);
+
+  const sortedProperties = useMemo(
+    () => properties.slice().sort((a, b) => `${a.code || ""} ${a.title}`.localeCompare(`${b.code || ""} ${b.title}`, "es")),
+    [properties]
+  );
+
+  // Al elegir la propiedad, si todavía no hay título se propone «Visita: …».
+  const handlePropertyChange = (e) => {
+    const value = e.target.value;
+    const title = properties.find((p) => p.id === value)?.title;
+    setForm((prev) => ({ ...prev, property_id: value, titulo: !prev.titulo.trim() && title ? t("prospects.schedulePrefill.visit", { property: title }) : prev.titulo }));
   };
 
   const validate = () => {
@@ -92,17 +132,22 @@ export default function AdminAgendaForm() {
     if (!validate()) return;
     setSaving(true);
     try {
-      const { lugar, ...rest } = form;
+      const { lugar, property_id, prospecto_id, ...rest } = form;
       // Con un cliente registrado los datos de contacto salen de él: no se guardan aparte.
       const contact = form.client_id ? { contact_name: "", contact_phone: "", contact_email: "" } : {};
-      const payload = lugar.trim() || hadLugar.current ? { ...rest, ...contact, lugar } : { ...rest, ...contact };
+      const optional = {
+        ...(lugar.trim() || hadLugar.current ? { lugar } : {}),
+        ...(property_id || hadProperty.current ? { property_id } : {}),
+      };
+      const payload = { ...rest, ...contact, ...optional };
       if (isEdit) {
+        // El prospecto ligado no se edita aquí: no se manda y se conserva.
         await db.updateAgendaCita(id, payload);
-        navigate("/admin/agenda");
+        navigate(backTo);
       } else {
         // Al crear se abre la cita ya guardada, con su enlace arriba para mandárselo al cliente.
-        const created = await db.addAgendaCita(payload);
-        navigate(`/admin/agenda/${created.id}`, { state: { saved: true } });
+        const created = await db.addAgendaCita({ ...payload, ...(prospecto_id ? { prospecto_id } : {}) });
+        navigate(`/admin/agenda/${created.id}`, { state: { saved: true, from: location.state?.from } });
       }
     } catch (err) {
       window.alert(err.message || "Error al guardar");
@@ -198,6 +243,54 @@ export default function AdminAgendaForm() {
           </div>
         </div>
 
+        <div className="quick-chips" role="group" aria-label={t("agenda.quick.label")}>
+          <div className="quick-chips__row">
+            {shortcuts.map(({ key, iso }) => (
+              <button
+                key={key}
+                type="button"
+                className={`quick-chip${form.fecha === iso ? " is-active" : ""}`}
+                aria-pressed={form.fecha === iso}
+                onClick={() => pick("fecha", iso)}
+              >
+                {dateLabel(key, iso)}
+              </button>
+            ))}
+          </div>
+          <div className="quick-chips__row">
+            {QUICK_TIMES.map((hora) => (
+              <button
+                key={hora}
+                type="button"
+                className={`quick-chip${form.hora === hora ? " is-active" : ""}`}
+                aria-pressed={form.hora === hora}
+                onClick={() => pick("hora", hora)}
+              >
+                {hora}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-field">
+          <label htmlFor="cita-propiedad">{t("agenda.property")}</label>
+          <select id="cita-propiedad" value={form.property_id} onChange={handlePropertyChange}>
+            <option value="">{t("agenda.noProperty")}</option>
+            {sortedProperties.map((p) => (
+              <option key={p.id} value={p.id}>
+                {[p.code, p.title].filter(Boolean).join(" · ")}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {form.prospecto_id && (
+          <p className="form-hint" data-testid="cita-prospecto">
+            {t("agenda.linkedProspect")}{" "}
+            {hasSection("prospectos") && <Link to={`/admin/prospectos/${form.prospecto_id}`}>{t("agenda.viewProspect")}</Link>}
+          </p>
+        )}
+
         <div className="form-field">
           <label htmlFor="cita-cliente">{t("agenda.client")}</label>
           <select id="cita-cliente" value={form.client_id} onChange={handleChange("client_id")}>
@@ -255,7 +348,7 @@ export default function AdminAgendaForm() {
             {saving ? <span className="spinner" /> : null}
             {t("common.save")}
           </button>
-          <button type="button" className="btn btn-outline" onClick={() => navigate("/admin/agenda")}>
+          <button type="button" className="btn btn-outline" onClick={() => navigate(backTo)}>
             {t("common.cancel")}
           </button>
         </div>

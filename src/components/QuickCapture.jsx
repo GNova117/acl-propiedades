@@ -1,23 +1,36 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/dataStore";
 import { quickProspectFields, validateQuickProspect } from "../lib/quickProspect";
+import { mutate } from "../lib/dataCache";
+import { enqueueProspect, isOfflineError, isOnline, newId, withTimeout } from "../lib/offlineQueue";
+import { queries } from "../lib/queries";
 import DuplicateWarning from "./DuplicateWarning";
 import "./QuickCapture.css";
 
 const EMPTY = { name: "", phone: "", lookingFor: "", pasted: "" };
 
-// Botón flotante "+" del panel: captura un prospecto en segundos desde
-// cualquier pantalla (típico: el cliente que acabas de conocer en la calle o en
-// una visita). Pide solo nombre y teléfono; "qué busca" y un campo para pegar
-// el mensaje de WhatsApp (de ahí se saca el teléfono si falta) son opcionales.
-// El prospecto queda en "Nuevo" y con el asesor que lo capturó; el resto se
-// completa después en su ficha.
+// Botón flotante "+" del panel: lo que un asesor crea todo el día, a un toque
+// desde cualquier pantalla. Abre un menú con lo que el rol puede hacer —un
+// prospecto rápido, una cita nueva o registrar una visita—; con una sola opción
+// no hay menú y el botón va directo a ella.
+//
+// El prospecto rápido (la hoja de abajo) captura a alguien en segundos (típico:
+// el cliente que acabas de conocer en la calle o en una visita). Pide solo
+// nombre y teléfono; "qué busca" y un campo para pegar el mensaje de WhatsApp
+// (de ahí se saca el teléfono si falta) son opcionales. El prospecto queda en
+// "Nuevo" y con el asesor que lo capturó; el resto se completa después en su
+// ficha. La cita y la visita abren sus formularios y, al cancelar, regresan a
+// la pantalla donde estabas (`state.from`).
 export default function QuickCapture() {
   const { t } = useTranslation();
-  const { advisorId } = useAuth();
+  const { advisorId, hasSection, session } = useAuth();
+  const email = session?.user?.email || "";
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
@@ -35,6 +48,18 @@ export default function QuickCapture() {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onKey = (e) => e.key === "Escape" && setMenuOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  // Cambiar de pantalla (también desde la barra de abajo) cierra el menú.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (open && !saved) nameRef.current?.focus();
@@ -66,29 +91,95 @@ export default function QuickCapture() {
     if (Object.keys(found).length > 0) return;
     setSaving(true);
     setSaveError("");
+    // Con su propio id desde el primer intento: si la petición llegó pero se perdió la respuesta, el reenvío
+    // desde la cola choca con ese id y no duplica al prospecto (ver lib/offlineQueue.js).
+    const fields = { ...quickProspectFields(form, { advisorId }), id: newId() };
+    // Sin señal: se guarda en este dispositivo y se envía solo al volver la conexión.
+    const saveOffline = () => {
+      if (enqueueProspect(email, fields)) setSaved({ ...fields, offline: true });
+      else setSaveError(t("offline.saveFailed"));
+    };
     try {
-      const fields = quickProspectFields(form, { advisorId });
+      if (!isOnline()) {
+        saveOffline();
+        return;
+      }
       if (duplicates.length === 0) {
-        const found = await db.findContactDuplicates({ phone: fields.phone, email: fields.email });
+        const found = await withTimeout(db.findContactDuplicates({ phone: fields.phone, email: fields.email }));
         if (found.length > 0) {
           setDuplicates(found);
           return;
         }
       }
-      const record = await db.addProspect(fields);
+      const record = await withTimeout(db.addProspect(fields));
+      // Si la lista de prospectos ya está cargada, el nuevo aparece en ella sin esperar a pedirla otra vez.
+      mutate(queries.prospects.key, (prev) => [record, ...prev]);
       setSaved(record);
     } catch (err) {
-      setSaveError(err.message || t("quickCapture.saveError"));
+      if (isOfflineError(err)) saveOffline();
+      else setSaveError(err.message || t("quickCapture.saveError"));
     } finally {
       setSaving(false);
     }
   };
 
+  // Lo que este rol puede crear (cada apartado, con el mismo permiso que su pantalla).
+  const actions = [
+    hasSection("prospectos") && { key: "prospect", label: t("quickCapture.open") },
+    hasSection("agenda") && { key: "appointment", label: t("quickCapture.newAppointment"), to: "/admin/agenda/nueva" },
+    hasSection("visitas") && { key: "visit", label: t("quickCapture.logVisit"), to: "/admin/visitas/nueva" },
+  ].filter(Boolean);
+  if (actions.length === 0) return null;
+
+  const single = actions.length === 1 ? actions[0] : null;
+  const fabLabel = single ? single.label : t("quickCapture.menu");
+  const handleFab = () => {
+    if (!single) setMenuOpen((v) => !v);
+    else if (single.to) navigate(single.to, { state: { from: pathname } });
+    else setOpen(true);
+  };
+
   return (
     <>
-      <button type="button" className="quick-capture__fab" onClick={() => setOpen(true)} aria-label={t("quickCapture.open")} title={t("quickCapture.open")}>
+      <button
+        type="button"
+        className="quick-capture__fab"
+        onClick={handleFab}
+        aria-label={fabLabel}
+        title={fabLabel}
+        aria-haspopup={single ? undefined : "menu"}
+        aria-expanded={single ? undefined : menuOpen}
+      >
         <span aria-hidden="true">+</span>
       </button>
+
+      {menuOpen && (
+        <>
+          <div className="quick-capture__scrim" onClick={() => setMenuOpen(false)} aria-hidden="true" />
+          <div className="quick-capture__menu" role="menu" aria-label={t("quickCapture.menu")}>
+            {actions.map((action) =>
+              action.to ? (
+                <Link key={action.key} role="menuitem" className="quick-capture__menu-item" to={action.to} state={{ from: pathname }} onClick={() => setMenuOpen(false)}>
+                  {action.label}
+                </Link>
+              ) : (
+                <button
+                  key={action.key}
+                  type="button"
+                  role="menuitem"
+                  className="quick-capture__menu-item"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setOpen(true);
+                  }}
+                >
+                  {action.label}
+                </button>
+              )
+            )}
+          </div>
+        </>
+      )}
 
       {open && (
         <div className="quick-capture" role="dialog" aria-modal="true" aria-label={t("quickCapture.title")}>
@@ -104,12 +195,14 @@ export default function QuickCapture() {
             {saved ? (
               <div className="quick-capture__done" role="status">
                 <p>
-                  <strong>{t("quickCapture.saved", { name: saved.name })}</strong>
+                  <strong>{t(saved.offline ? "offline.quickSaved" : "quickCapture.saved", { name: saved.name })}</strong>
                 </p>
                 <div className="quick-capture__actions">
-                  <Link to={`/admin/prospectos/${saved.id}`} className="btn btn-primary" onClick={close}>
-                    {t("quickCapture.openProspect")}
-                  </Link>
+                  {!saved.offline && (
+                    <Link to={`/admin/prospectos/${saved.id}`} className="btn btn-primary" onClick={close}>
+                      {t("quickCapture.openProspect")}
+                    </Link>
+                  )}
                   <button type="button" className="btn btn-outline" onClick={reset}>
                     {t("quickCapture.addAnother")}
                   </button>

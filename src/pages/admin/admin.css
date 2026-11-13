@@ -479,3 +479,359 @@
   align-items: center;
   gap: 0.75rem;
 }
+
+/* ── Filtros plegables de una lista (AdminFilters) ──
+   En pantalla ancha: tarjeta con todos los campos en una rejilla (los campos
+   plegados participan en ella con display: contents). En el teléfono: búsqueda
+   y botón «Filtros»; el resto se despliega al tocarlo. */
+.admin-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.admin-filters__toggle {
+  display: none;
+}
+
+.admin-filters__more {
+  display: contents;
+}
+
+/* ── «Más» de una fila (RowMore) ── */
+.row-more {
+  flex: 0 0 auto;
+  white-space: normal;
+}
+
+.row-more[open] {
+  flex: 1 1 100%;
+}
+
+.row-more > summary {
+  list-style: none;
+  user-select: none;
+}
+
+.row-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.row-more > summary::after {
+  content: "▾";
+}
+
+.row-more[open] > summary::after {
+  content: "▴";
+}
+
+.row-more__panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  max-width: 24rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+  white-space: normal;
+}
+
+/* Las acciones de una fila de lista (Editar, Enviar, Más…) se acomodan en renglones. */
+.admin-table--cards .admin-table__actions {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.4rem;
+  min-width: 15.5rem;
+}
+
+/* Relleno más compacto: con tantas columnas la tabla cabe sin deslizar de lado. */
+.admin-table--cards th,
+.admin-table--cards td {
+  padding: 0.75rem 0.5rem;
+}
+
+/* En laptops la tabla de propiedades no cabe con todas sus columnas: «Tipo» ya lo dice el título. */
+@media (max-width: 1500px) {
+  .admin-table--properties .cell-type {
+    display: none;
+  }
+}
+
+/* Un título largo baja de línea en vez de ensanchar toda la tabla. */
+.admin-table--properties .cell-title,
+.admin-table--clients .cell-name {
+  white-space: normal;
+  min-width: 10rem;
+}
+
+/* Solo en el teléfono (p. ej. «Llamar»: en la computadora no hay a dónde marcar). */
+.btn.show-on-phone {
+  display: none;
+}
+
+/* ── Lista como tarjetas en pantallas chicas ──
+   La misma tabla (mismas filas, mismas pruebas) se dibuja como una tarjeta por
+   registro: lo principal arriba, las acciones abajo y, de cabecera, solo el
+   «seleccionar todos». Cada celda lleva su clase (cell-*) y cada tabla su
+   distribución en áreas (--properties, --clients). */
+@media (max-width: 860px) {
+  .admin-filters {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .admin-filters__toggle {
+    display: inline-flex;
+  }
+
+  .admin-filters__more {
+    display: none;
+  }
+
+  .admin-filters.is-open .admin-filters__more {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .btn.show-on-phone {
+    display: inline-flex;
+  }
+
+  .admin-table-wrapper--cards {
+    overflow-x: visible;
+  }
+
+  .admin-table--cards,
+  .admin-table--cards thead,
+  .admin-table--cards tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-table--cards thead tr {
+    display: flex;
+    align-items: center;
+    padding: 0.55rem 0.9rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .admin-table--cards thead th {
+    display: none;
+    padding: 0;
+    border: 0;
+  }
+
+  .admin-table--cards thead th.cell-select {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--color-text);
+  }
+
+  .admin-table--cards thead th.cell-select::after {
+    content: attr(data-label);
+  }
+
+  .admin-table--cards tbody tr {
+    display: grid;
+    align-items: center;
+    column-gap: 0.75rem;
+    row-gap: 0.2rem;
+    padding: 0.9rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .admin-table--cards tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .admin-table--cards tbody td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-table--cards input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .admin-table--cards td.cell-select {
+    grid-area: select;
+    align-self: start;
+  }
+
+  .admin-table--cards td.cell-actions {
+    grid-area: actions;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin-top: 0.55rem;
+  }
+
+  /* Propiedades: foto a la izquierda, datos a la derecha. */
+  .admin-table--properties tbody tr.admin-row {
+    grid-template-columns: auto 4.5rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      "select thumb code code"
+      "select thumb title title"
+      "select thumb price price"
+      "select thumb zone area"
+      "select thumb status active"
+      "actions actions actions actions";
+  }
+
+  .admin-table--properties .cell-thumb {
+    grid-area: thumb;
+    align-self: start;
+  }
+
+  .admin-table--properties .cell-thumb img {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+
+  .admin-table--properties .cell-code {
+    grid-area: code;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+  }
+
+  .admin-table--properties .cell-title {
+    grid-area: title;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .admin-table--properties .cell-price {
+    grid-area: price;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  .admin-table--properties .cell-zone {
+    grid-area: zone;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .admin-table--properties .cell-area {
+    grid-area: area;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .admin-table--properties .cell-status {
+    grid-area: status;
+    font-size: 0.85rem;
+  }
+
+  .admin-table--properties .cell-active {
+    grid-area: active;
+    justify-self: end;
+  }
+
+  .admin-table--properties .cell-type,
+  .admin-table--properties .cell-tipo {
+    display: none;
+  }
+
+  /* Clientes: nombre y tipo arriba; teléfono y correo tocables. */
+  .admin-table--clients tbody tr.admin-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "select name type"
+      "select phone phone"
+      "select email email"
+      "select fin fin"
+      "actions actions actions";
+  }
+
+  .admin-table--clients .cell-name {
+    grid-area: name;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .admin-table--clients .cell-type {
+    grid-area: type;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  .admin-table--clients .cell-phone {
+    grid-area: phone;
+  }
+
+  .admin-table--clients .cell-email {
+    grid-area: email;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .admin-table--clients .cell-fin {
+    grid-area: fin;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .admin-table--clients .cell-fin::before {
+    content: attr(data-label) ": ";
+  }
+
+  .admin-table--clients .cell-empty {
+    display: none;
+  }
+}
+
+/* Atajos de un toque (fecha y hora al agendar): chips que se marcan al elegirlos. */
+.quick-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: -0.25rem 0 1rem;
+}
+
+.quick-chips__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.quick-chip {
+  min-height: 2.25rem;
+  padding: 0.25rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.quick-chip:hover {
+  border-color: var(--color-primary);
+}
+
+.quick-chip.is-active {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
