@@ -133,6 +133,30 @@ async function propertyPreviewResponse(id) {
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
 }
 
+// Tarjeta digital de un asesor (/asesor/<slug>): vista previa con su nombre, su descripción y su foto. Solo de quien está activo y
+// se muestra en el equipo; si no existe (o no hay base configurada) se sirve el sitio normal.
+async function advisorPreviewResponse(slug) {
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseKey) return null;
+
+  const res = await fetch(
+    `${supabaseUrl}/rest/v1/advisors?slug=eq.${encodeURIComponent(slug)}&active=eq.true&show_in_team=eq.true&select=name,bio,photo_url`,
+    { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
+  );
+  if (!res.ok) return null;
+  const [advisor] = await res.json();
+  if (!advisor) return null;
+
+  const html = renderPreviewHtml({
+    title: `${advisor.name} — Asesor en ACL Propiedades`,
+    description: (advisor.bio || "Mis propiedades disponibles y cómo contactarme.").replace(/\s+/g, " ").trim().slice(0, 200),
+    url: `${SITE_URL}/asesor/${slug}`,
+    image: advisor.photo_url || DEFAULT_IMAGE,
+  });
+  return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
+}
+
 export default async function middleware(request) {
   const userAgent = request.headers.get("user-agent") || "";
   if (!PREVIEW_BOT_PATTERN.test(userAgent)) return next();
@@ -143,6 +167,12 @@ export default async function middleware(request) {
   try {
     if (match) {
       const response = await propertyPreviewResponse(match[1]);
+      return response || next();
+    }
+
+    const advisorMatch = pathname.match(/^\/asesor\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/);
+    if (advisorMatch) {
+      const response = await advisorPreviewResponse(advisorMatch[1]);
       return response || next();
     }
 

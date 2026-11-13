@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { whatsappDigits } from "../../lib/format";
 import { messageToProspectFields } from "../../lib/prospects";
+import { absentAdvisorIds, todayISO } from "../../lib/absences";
 import { quickReplyTemplates } from "../../lib/messageTemplates";
 import { useAuth } from "../../context/AuthContext";
 import QuickReplyButton from "../../components/QuickReplyButton";
@@ -50,6 +51,7 @@ export default function AdminMessages() {
   const [expandedId, setExpandedId] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [allAdvisors, setAllAdvisors] = useState([]);
   const [prospects, setProspects] = useState([]);
   const [promotingId, setPromotingId] = useState(null);
 
@@ -61,9 +63,11 @@ export default function AdminMessages() {
     // copiado: si mañana se reasigna la propiedad a otro asesor, los
     // mensajes viejos apuntan al asesor que la lleva hoy, que es a quien
     // hay que buscar para darles seguimiento.
-    Promise.all([db.getContactMessages(), db.getProperties({})]).then(([messageData, propertyData]) => {
+    // Los asesores aparte: un mensaje que llegó por la página de un asesor (message.advisor_id) es de él aunque no traiga propiedad.
+    Promise.all([db.getContactMessages(), db.getProperties({}), db.getAdvisors().catch(() => [])]).then(([messageData, propertyData, advisorData]) => {
       setMessages(messageData);
       setProperties(propertyData);
+      setAllAdvisors(advisorData);
       setLoading(false);
     });
   };
@@ -80,7 +84,9 @@ export default function AdminMessages() {
   const handleMakeProspect = async (message) => {
     setPromotingId(message.id);
     try {
-      const created = await db.addProspect(messageToProspectFields(message, propertyById.get(message.property_id)));
+      // Los asesores ausentes hoy se saltan al asignar (lib/absences.js); sin el dato, se asigna como siempre.
+      const [timeOff, advisors] = await Promise.all([db.getAllAdvisorTimeOff().catch(() => []), db.getAdvisors().catch(() => [])]);
+      const created = await db.addProspect(messageToProspectFields(message, propertyById.get(message.property_id), { absentIds: absentAdvisorIds(timeOff, todayISO()), advisors }));
       setProspects((prev) => [created, ...prev]);
     } catch (err) {
       window.alert(err.message || t("messages.makeProspectError"));
@@ -91,19 +97,29 @@ export default function AdminMessages() {
 
   const propertyById = useMemo(() => new Map(properties.map((p) => [p.id, p])), [properties]);
 
+  // A quién le toca un mensaje: los asesores de su propiedad y, si llegó por la página de un asesor, ese asesor.
+  const messageAdvisors = (message) => {
+    const fromProperty = propertyById.get(message.property_id)?.advisors || [];
+    const direct = message.advisor_id ? allAdvisors.find((a) => a.id === message.advisor_id) : null;
+    return direct && !fromProperty.some((a) => a.id === direct.id) ? [...fromProperty, direct] : fromProperty;
+  };
+
   const advisorOptions = useMemo(() => {
     const byId = new Map();
     properties.forEach((p) => (p.advisors || []).forEach((a) => byId.set(a.id, a)));
+    messages.forEach((m) => {
+      const direct = m.advisor_id ? allAdvisors.find((a) => a.id === m.advisor_id) : null;
+      if (direct) byId.set(direct.id, direct);
+    });
     return Array.from(byId.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [properties]);
-
-  const messageAdvisors = (message) => propertyById.get(message.property_id)?.advisors || [];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [properties, messages, allAdvisors]);
 
   const filtered = useMemo(() => {
     return messages.filter((m) => {
       if (statusFilter && (m.status || "nuevo") !== statusFilter) return false;
       if (advisorFilter) {
-        const advisors = propertyById.get(m.property_id)?.advisors || [];
+        const advisors = messageAdvisors(m);
         // "Sin asesor": mensajes del formulario de Contacto (sin propiedad)
         // y propiedades que todavía no tienen a nadie asignado — son los
         // que nadie está viendo como propios, así que conviene poder
@@ -113,7 +129,8 @@ export default function AdminMessages() {
       }
       return true;
     });
-  }, [messages, statusFilter, advisorFilter, propertyById]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, statusFilter, advisorFilter, propertyById, allAdvisors]);
 
   const handleToggleStatus = async (message) => {
     const next = (message.status || "nuevo") === "nuevo" ? "atendido" : "nuevo";
@@ -198,7 +215,7 @@ export default function AdminMessages() {
                 // movió o canceló la suya. Ninguna se convierte en cita, y un aviso de cambio tampoco en prospecto.
                 // «visita_solicitud»: pidió una visita sin asesor (ya está en la Agenda de todos hasta que alguien la tome).
                 const isVisitBooking = message.channel === "visita" || message.channel === "visita_solicitud";
-                const isVisitChange = message.channel === "visita_cambio";
+                const isVisitChange = message.channel === "visita_cambio" || message.channel === "visita_opinion"; // avisos del cliente sobre una visita (cambio u opinión): ni prospecto ni cita nuevos
                 const shownText = expanded || !isLong ? message.message : `${message.message.slice(0, PREVIEW_LENGTH)}…`;
 
                 return (
@@ -206,7 +223,7 @@ export default function AdminMessages() {
                     <td>{new Date(message.created_at).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}</td>
                     <td>
                       {message.name}
-                      {["whatsapp", "simulador", "estimacion", "comparador", "alerta", "guia", "visita", "visita_cambio", "visita_solicitud"].includes(message.channel) && <span className="form-hint" style={{ display: "block", margin: 0 }}>{t(`messages.via_${message.channel}`)}</span>}
+                      {["whatsapp", "simulador", "estimacion", "comparador", "alerta", "guia", "visita", "visita_cambio", "visita_opinion", "visita_solicitud", "asesor"].includes(message.channel) && <span className="form-hint" style={{ display: "block", margin: 0 }}>{t(`messages.via_${message.channel}`)}</span>}
                     </td>
                     <td>{message.phone || "—"}</td>
                     <td>{message.email || "—"}</td>

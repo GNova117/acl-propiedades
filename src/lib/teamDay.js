@@ -3,6 +3,7 @@
 // visitas por cerrar o confirmar—, más lo que no tiene dueño (prospectos sin asesor y solicitudes de visita sin tomar).
 // Funciones puras que reutilizan las reglas de Mi día (dayPlan.js): lo que aquí cuenta es lo mismo que cada asesor ve en su día.
 
+import { absentUntil, todayISO } from "./absences";
 import { openRequests, visitsToClose, visitsToConfirm } from "./agendaCitas";
 import { prospectsToContact, todayAgenda } from "./dayPlan";
 import { isForgotten, isOpenStage } from "./prospects";
@@ -38,19 +39,20 @@ const TOTAL_KEYS = ["open", "late", "unattended", "overdue", "dueToday", "forgot
 
 /**
  * → { rows, unassigned, requests, totals }
- *   rows       — un renglón por asesor activo: { advisor, open, late, unattended (incluye los late), overdue, dueToday,
+ *   rows       — un renglón por asesor activo: { advisor, absentUntil, open, late, unattended (incluye los late), overdue, dueToday,
  *                forgotten, agendaToday, toClose, toConfirm, attention }, el que más atención pide primero (y por nombre);
  *   unassigned — lo mismo para los prospectos sin asesor (o de un asesor que ya no está): { open, unattended, overdue, … };
  *   requests   — solicitudes de visita del sitio que nadie ha tomado;
  *   totals     — la suma de rows + unassigned.
  */
-export function buildTeamDay({ prospects = [], citas = [], advisors = [], now = new Date() } = {}) {
+export function buildTeamDay({ prospects = [], citas = [], advisors = [], timeOff = [], now = new Date() } = {}) {
   const active = advisors.filter((a) => a.active !== false);
   // Los prospectos de un asesor dado de baja necesitan dueño igual que los que nunca lo tuvieron.
   const known = new Set(active.map((a) => a.id));
   const rows = active
     .map((advisor) =>
-      ({ advisor, ...summarize(prospects.filter((p) => p.advisor_id === advisor.id), citas.filter((c) => c.advisor_id === advisor.id), now) })
+      // `absentUntil`: hasta cuándo está ausente hoy (null si no lo está); ver lib/absences.js.
+      ({ advisor, absentUntil: absentUntil(timeOff, advisor.id, todayISO(now)), ...summarize(prospects.filter((p) => p.advisor_id === advisor.id), citas.filter((c) => c.advisor_id === advisor.id), now) })
     )
     .sort((a, b) => b.attention - a.attention || String(a.advisor.name).localeCompare(String(b.advisor.name), "es"));
   const orphans = prospects.filter((p) => !p.advisor_id || !known.has(p.advisor_id));

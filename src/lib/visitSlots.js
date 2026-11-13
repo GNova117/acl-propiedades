@@ -363,6 +363,38 @@ export function buildBookingChangeMessage({ kind, title, code, oldFecha, oldHora
   return message;
 }
 
+// ── Opinión del cliente después de la visita (/visita/<token>) ──
+export const FEEDBACK_WINDOW_DAYS = 30;
+export const FEEDBACK_MAX_COMMENT = 500;
+export const FEEDBACK_RATINGS = [1, 2, 3, 4, 5];
+
+/**
+ * ¿Puede el cliente dejar su opinión de esta visita? Mismas reglas que submit_booking_feedback() en SQL: la visita ya empezó
+ * (se confirmó o se marcó como realizada: quien no llegó o canceló no opina), pasaron máximo FEEDBACK_WINDOW_DAYS días y aún no
+ * la había dejado. → { ok: true } o { ok: false, reason: "not_active" | "too_early" | "too_late" | "already_sent" }.
+ */
+export function canGiveFeedback(cita, now = new Date()) {
+  const status = cita?.status || "confirmada";
+  if (!cita || !["confirmada", "realizada"].includes(status)) return { ok: false, reason: "not_active" };
+  const nowMx = mexicoParts(now);
+  const minutesSince = wallMinutes(nowMx.date, nowMx.minutes) - wallMinutes(cita.fecha, cita.hora ? toMinutes(cita.hora) : 0);
+  if (minutesSince < 0) return { ok: false, reason: "too_early" };
+  if (minutesSince > FEEDBACK_WINDOW_DAYS * 1440) return { ok: false, reason: "too_late" };
+  if (cita.feedback_at) return { ok: false, reason: "already_sent" };
+  return { ok: true };
+}
+
+// Texto del aviso al asesor cuando el cliente deja su opinión (contact_message canal "visita_opinion"). Mismo texto que
+// submit_booking_feedback() en SQL.
+export function buildFeedbackMessage({ title, code, rating, comment, moreOptions }) {
+  const label = code ? `${String(title).trim()} (${code})` : String(title).trim();
+  const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
+  let message = `Opinión de la visita — ${label}.\nCalificación: ${stars} (${rating} de 5)`;
+  if (String(comment ?? "").trim()) message += `\nComentario: ${String(comment).trim()}`;
+  if (moreOptions) message += "\nQuiere ver más opciones: propónle un día para mostrarle otras propiedades.";
+  return message;
+}
+
 // Texto con el que queda registrada la visita en el inbox de Mensajes.
 export function buildBookingMessage({ title, code, fecha, hora, note }) {
   const label = code ? `${String(title).trim()} (${code})` : String(title).trim();

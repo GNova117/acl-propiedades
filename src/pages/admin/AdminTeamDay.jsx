@@ -23,6 +23,7 @@ export default function AdminTeamDay() {
   const prospectsQ = useQuery(queries.prospects);
   const citasQ = useQuery(queries.citas, { enabled: canAgenda });
   const advisorsQ = useQuery(queries.advisors);
+  const timeOffQ = useQuery(queries.timeOff, { enabled: canAgenda });
   const [now, setNow] = useState(() => new Date());
 
   // El resumen se recalcula cada minuto (las horas de las citas y «sin atender» avanzan solas).
@@ -32,8 +33,8 @@ export default function AdminTeamDay() {
   }, []);
 
   const day = useMemo(
-    () => buildTeamDay({ prospects: prospectsQ.data ?? NONE, citas: citasQ.data ?? NONE, advisors: advisorsQ.data ?? NONE, now }),
-    [prospectsQ.data, citasQ.data, advisorsQ.data, now]
+    () => buildTeamDay({ prospects: prospectsQ.data ?? NONE, citas: citasQ.data ?? NONE, advisors: advisorsQ.data ?? NONE, timeOff: timeOffQ.data ?? NONE, now }),
+    [prospectsQ.data, citasQ.data, advisorsQ.data, timeOffQ.data, now]
   );
 
   if (advisorId != null) return <div className="empty-state">{t("team.officeOnly")}</div>;
@@ -73,6 +74,11 @@ export default function AdminTeamDay() {
         <div className="team-card__head">
           <div>
             <h2>{advisor ? advisor.name : t("team.unassigned.title")}</h2>
+            {row.absentUntil && (
+              <p className="team-card__away" data-away="1">
+                {t("absences.awayUntil", { date: new Date(`${row.absentUntil}T00:00:00`).toLocaleDateString(i18n.language === "en" ? "en-US" : "es-MX", { day: "numeric", month: "short" }) })}
+              </p>
+            )}
             {unassigned && <p className="form-hint">{t("team.unassigned.hint")}</p>}
           </div>
           <span className={`team-state team-state--${state}`}>{t(`team.state.${state}`)}</span>
@@ -92,7 +98,12 @@ export default function AdminTeamDay() {
               {t("team.viewProspects", { count: row.open })}
             </Link>
           )}
-          {row.attention > 0 && row.open > 0 && (
+          {row.absentUntil && row.open > 0 && (
+            <Link to={link(advisor, { seleccionar: "1" })} className="btn btn-outline btn-sm">
+              {t("team.reassignAway")}
+            </Link>
+          )}
+          {!row.absentUntil && row.attention > 0 && row.open > 0 && (
             <Link to={link(advisor, { filtro: firstProblem, seleccionar: "1" })} className="btn btn-outline btn-sm">
               {t("team.reassign")}
             </Link>

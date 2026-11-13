@@ -11,6 +11,8 @@ import {
   addDays,
   bookingPermissions,
   buildBookingMessage,
+  buildFeedbackMessage,
+  canGiveFeedback,
   daysToWeekly,
   findScheduleIssues,
   generateSlots,
@@ -380,5 +382,48 @@ describe("solicitud de visita sin asesor", () => {
       "Solicitud de visita sin asesor — Casa en Lerdo (ACL-12).\nFecha preferida: 05/11/2026 a las 19:30\nNota: por la tarde\nEstá en la Agenda de todos hasta que un asesor la tome."
     );
     expect(buildRequestMessage({ title: "Casa", fecha: "2026-11-05", hora: "10:00" })).not.toContain("Nota:");
+  });
+});
+
+describe("canGiveFeedback", () => {
+  // Las horas de pared son de México (UTC−6): 16:00Z = 10:00 allá.
+  const now = new Date("2026-11-20T16:00:00Z");
+  const cita = (over = {}) => ({ status: "confirmada", fecha: "2026-11-20", hora: "09:00", feedback_at: null, ...over });
+
+  it("se puede una vez que la visita ya empezó", () => {
+    expect(canGiveFeedback(cita(), now)).toEqual({ ok: true });
+    expect(canGiveFeedback(cita({ status: "realizada" }), now)).toEqual({ ok: true });
+  });
+
+  it("antes de la hora todavía no", () => {
+    expect(canGiveFeedback(cita({ hora: "11:00" }), now)).toEqual({ ok: false, reason: "too_early" });
+    expect(canGiveFeedback(cita({ fecha: "2026-11-21" }), now)).toEqual({ ok: false, reason: "too_early" });
+  });
+
+  it("quien canceló, no llegó o solo solicitó no opina", () => {
+    for (const status of ["cancelada", "no_asistio", "solicitada"]) expect(canGiveFeedback(cita({ status }), now)).toEqual({ ok: false, reason: "not_active" });
+    expect(canGiveFeedback(null, now)).toEqual({ ok: false, reason: "not_active" });
+  });
+
+  it("pasados 30 días ya no, y solo una vez", () => {
+    expect(canGiveFeedback(cita({ fecha: "2026-10-25" }), now)).toEqual({ ok: true });
+    expect(canGiveFeedback(cita({ fecha: "2026-10-20" }), now)).toEqual({ ok: false, reason: "too_late" });
+    expect(canGiveFeedback(cita({ feedback_at: "2026-11-20T17:00:00Z" }), now)).toEqual({ ok: false, reason: "already_sent" });
+  });
+
+  it("una cita sin hora cuenta desde el inicio de su día", () => {
+    expect(canGiveFeedback(cita({ hora: null }), now)).toEqual({ ok: true });
+  });
+});
+
+describe("buildFeedbackMessage", () => {
+  it("lleva las estrellas, el comentario y el aviso de que quiere ver más", () => {
+    const text = buildFeedbackMessage({ title: "Casa Lerdo", code: "ACL-1", rating: 4, comment: "  Muy bonita pero lejos  ", moreOptions: true });
+    expect(text).toBe(
+      "Opinión de la visita — Casa Lerdo (ACL-1).\nCalificación: ★★★★☆ (4 de 5)\nComentario: Muy bonita pero lejos\nQuiere ver más opciones: propónle un día para mostrarle otras propiedades."
+    );
+  });
+  it("sin comentario ni «más opciones» solo trae la calificación", () => {
+    expect(buildFeedbackMessage({ title: "Casa", rating: 1, comment: "", moreOptions: false })).toBe("Opinión de la visita — Casa.\nCalificación: ★☆☆☆☆ (1 de 5)");
   });
 });

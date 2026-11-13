@@ -21,6 +21,7 @@ import MatchAlerts from "../../components/MatchAlerts";
 import DayRoute from "../../components/DayRoute";
 import { markSeen, matchAlerts, readSeen } from "../../lib/matchAlerts";
 import { planDayRoute } from "../../lib/dayRoute";
+import { absentUntil, todayISO } from "../../lib/absences";
 import { HOME_MY_DAY, HOME_PANEL } from "../../lib/adminHome";
 import { useAdminHome } from "../../lib/useAdminHome";
 import "./admin.css";
@@ -52,6 +53,8 @@ export default function AdminMyDay() {
   // Las propiedades sirven para los mensajes, para «le encaja a tus prospectos» y para ubicar las citas en la ruta del día.
   const propertiesQ = useQuery(queries.properties, { enabled: canProspects || canAgenda });
   const advisorsQ = useQuery(queries.advisors);
+  // Mis ausencias (solo con un login de asesor): si hoy estoy ausente, Mi día lo recuerda.
+  const timeOffQ = useQuery(queries.timeOff, { enabled: advisorId != null && canAgenda });
   const citas = citasQ.data ?? NONE;
   const prospects = prospectsQ.data ?? NONE;
   const clients = clientsQ.data ?? NONE;
@@ -102,6 +105,7 @@ export default function AdminMyDay() {
   const templatesFor = (p) =>
     quickTemplates(p, { propertyTitle: propertyTitle(p.property_id), advisorName: advisorName(p.advisor_id), origin: window.location.origin, t });
 
+  const awayUntil = advisorId != null ? absentUntil(timeOffQ.data ?? NONE, advisorId, todayISO(now)) : null;
   const dateTitle = now.toLocaleDateString(i18n.language?.startsWith("en") ? "en-US" : "es-MX", { weekday: "long", day: "numeric", month: "long" });
 
   const citaChip = ({ state, minutesUntil }) => {
@@ -397,6 +401,13 @@ export default function AdminMyDay() {
           )}
         </div>
       </div>
+
+      {awayUntil && (
+        <p className="card my-day__away" role="status">
+          <span>{t("absences.banner", { date: new Date(`${awayUntil}T00:00:00`).toLocaleDateString(i18n.language?.startsWith("en") ? "en-US" : "es-MX", { day: "numeric", month: "long" }) })}</span>
+          <Link to="/admin/mi-perfil">{t("absences.bannerChange")}</Link>
+        </p>
+      )}
 
       {advisorId && (
         <div className="my-day__goals">

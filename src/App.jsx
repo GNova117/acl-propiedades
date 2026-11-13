@@ -30,6 +30,7 @@ const CreditCompare = lazy(() => import("./pages/CreditCompare"));
 const BuyerGuide = lazy(() => import("./pages/BuyerGuide"));
 const AlertUnsubscribe = lazy(() => import("./pages/AlertUnsubscribe"));
 const About = lazy(() => import("./pages/About"));
+const AdvisorPage = lazy(() => import("./pages/AdvisorPage"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Favorites = lazy(() => import("./pages/Favorites"));
 const Compare = lazy(() => import("./pages/Compare"));
@@ -194,6 +195,7 @@ export default function App() {
       <Route path="/guia-del-comprador" element={<PublicLayout><BuyerGuide /></PublicLayout>} />
       <Route path="/alertas/baja/:token" element={<PublicLayout><AlertUnsubscribe /></PublicLayout>} />
       <Route path="/nosotros" element={<PublicLayout><About /></PublicLayout>} />
+      <Route path="/asesor/:slug" element={<PublicLayout><AdvisorPage /></PublicLayout>} />
       <Route path="/contacto" element={<PublicLayout><Contact /></PublicLayout>} />
       <Route path="/favoritos" element={<PublicLayout><Favorites /></PublicLayout>} />
       <Route path="/comparar" element={<PublicLayout><Compare /></PublicLayout>} />

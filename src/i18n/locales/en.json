@@ -372,6 +372,8 @@
     "via_guia": "Downloaded the buyer's guide",
     "via_visita": "Booked a visit on the site",
     "via_visita_cambio": "Changed or cancelled their visit",
+    "via_visita_opinion": "Visit feedback",
+    "via_asesor": "Advisor page",
     "via_visita_solicitud": "Requested a visit (no advisor)",
     "estimate": "Estimate value",
     "makeProspect": "Make prospect",
@@ -2033,9 +2035,12 @@
         "visit": "Visit",
         "note": "Note",
         "selection": "Selection sent",
-        "selectionOpened": "Selection opened"
+        "selectionOpened": "Selection opened",
+        "feedback": "Visit feedback"
       },
       "upcoming": "Upcoming",
+      "feedbackText": "{{stars}} ({{rating}} of 5) · {{title}}",
+      "feedbackMore": "Wants to see more options",
       "created": "Source: {{source}}",
       "stageTo": "Moved to «{{stage}}»",
       "visitTo": "Visit to {{property}}",
@@ -3340,6 +3345,8 @@
       "no_asistio": "No-show",
       "cancelada": "Cancel appointment"
     },
+    "feedbackChip": "★ {{rating}}/5 from the client",
+    "feedbackMore": "wants to see more",
     "fromSite": "Website",
     "clientConfirmed": "Client confirmed",
     "clientUnconfirmed": "Attendance not confirmed",
@@ -3604,6 +3611,7 @@
     "requestsOpen": "See them in My day",
     "viewProspects_one": "View {{count}} open prospect",
     "viewProspects_other": "View {{count}} open prospects",
+    "reassignAway": "Reassign their prospects…",
     "reassign": "Reassign…"
   },
   "offline": {
@@ -3744,6 +3752,7 @@
     "homeToggle": "Open the panel on My day (on this device)"
   },
   "visitSchedule": {
+    "absencesNote": "Your time off is entered in the \"Time off and vacations\" card above: it is respected here when offering times.",
     "title": "Hours for receiving visits",
     "intro": "Set when you are available. Clients who want to visit one of your properties will only see the free times from this calendar, and their visit goes straight into your Agenda.",
     "enable": "Let clients book visits online",
@@ -3765,13 +3774,6 @@
     "removeWindow": "Remove this time slot",
     "addWindow": "+ Add hours",
     "copyMonday": "Copy Monday's hours to Tuesday–Friday",
-    "timeOffTitle": "Days off",
-    "timeOffHint": "Vacation, errands or any day you won't receive visits. No times are offered on those dates.",
-    "offFrom": "First day off",
-    "offTo": "Last day off",
-    "offReason": "Reason (optional)",
-    "removeOff": "Remove this day off",
-    "addTimeOff": "+ Add days off",
     "enabledWithoutWindows": "You turned on online visits but have no hours set: nobody will be able to book. Tick at least one day.",
     "preview_one": "With these hours, a client would see {{count}} free time in the next {{days}} days.",
     "preview_other": "With these hours, a client would see {{count}} free times in the next {{days}} days.",
@@ -3780,8 +3782,7 @@
     "loadError": "The hours could not be loaded.",
     "issues": {
       "invalid_window": "The end time must be after the start time.",
-      "overlap": "Some hours overlap on this day.",
-      "invalid_time_off": "Check your days off: each needs a start and end date, and the end can't be before the start."
+      "overlap": "Some hours overlap on this day."
     }
   },
   "visitLink": {
@@ -3859,6 +3860,24 @@
       "rescheduled": "Done, we changed your visit. We let your advisor know and we'll see you at the new time.",
       "cancelledRequest": "We cancelled your request. Book a visit whenever you like.",
       "cancelled": "We cancelled your visit and let your advisor know. Book another whenever you like."
+    },
+    "feedback": {
+      "title": "How was the visit?",
+      "hint": "Your feedback helps us find you better options. Your advisor and the ACL Propiedades office can see it.",
+      "stars_one": "{{count}} star out of 5",
+      "stars_other": "{{count}} stars out of 5",
+      "commentLabel": "Comment (optional)",
+      "commentPlaceholder": "What did you like? What would you change?",
+      "more": "I'd like to see more options.",
+      "moreHint": "Your advisor will suggest other properties.",
+      "send": "Send feedback",
+      "sending": "Sending…",
+      "ratingRequired": "Choose 1 to 5 stars.",
+      "closed": "It's no longer possible to leave feedback for this visit.",
+      "thanksTitle": "Thank you for your feedback!",
+      "thanksBody": "Your advisor has received it.",
+      "thanksMore": "They'll get in touch with other options.",
+      "viewMore": "See more properties"
     },
     "errors": {
       "slotTaken": "That time was just taken. Please choose another one.",
@@ -3974,6 +3993,81 @@
     "empty": "There are no sales or commissions in {{year}} yet.",
     "loadError": "Your sales couldn't be loaded.",
     "disclaimer": "The commission is the one your office published: a snapshot from when the home was settled. If something doesn't add up, ask the office."
+  },
+  "absences": {
+    "title": "Time off and vacations",
+    "intro": "Let the team know when you're away. Those days you aren't offered visit times, new prospects for your properties go to another advisor, and the office sees it in \"Team today\".",
+    "empty": "No time off scheduled.",
+    "from": "From",
+    "to": "To",
+    "reason": "Reason (optional)",
+    "reasonPlaceholder": "Vacation, errand, trip…",
+    "add": "Add time off",
+    "range": "{{from}} – {{to}}",
+    "now": "Away now",
+    "removeShort": "Remove",
+    "remove": "Remove the time off from {{from}} to {{to}}",
+    "banner": "You're marked as away until {{date}}: you aren't offered visit times and new prospects aren't assigned to you.",
+    "bannerChange": "Change",
+    "awayUntil": "Away until {{date}}",
+    "errors": {
+      "required": "Enter the start and end dates.",
+      "order": "The end can't be before the start.",
+      "past": "That time off has already ended.",
+      "save": "The time off couldn't be saved.",
+      "load": "The time off couldn't be loaded."
+    }
+  },
+  "advisorPage": {
+    "defaultRole": "Real estate advisor",
+    "seoDescription": "Meet {{name}}, an ACL Propiedades advisor: available properties and how to get in touch.",
+    "viewProfile": "View profile",
+    "whatsapp": "WhatsApp",
+    "call": "Call",
+    "email": "Email",
+    "saveContact": "Save contact",
+    "share": "Share",
+    "copied": "Link copied",
+    "copyManual": "Copy the link:",
+    "propertiesTitle": "{{name}}'s properties",
+    "noProperties": "There are no properties listed under this name right now. Send a message and they'll help you find the right one.",
+    "viewAll": "See all properties",
+    "seeTeam": "See the team",
+    "notFoundTitle": "We couldn't find this page",
+    "notFoundBody": "The link may be misspelled or the person is no longer on the team.",
+    "errorTitle": "We couldn't load the page",
+    "errorBody": "Try again in a moment.",
+    "form": {
+      "title": "Message {{name}}",
+      "name": "Your name",
+      "phone": "Your phone",
+      "message": "How can they help?",
+      "messagePlaceholder": "I'm looking for a house in Torreón up to $1,800,000…",
+      "send": "Send message",
+      "sending": "Sending…",
+      "required": "This field is required.",
+      "invalidPhone": "Enter a 10-digit phone number.",
+      "success": "Done! {{name}} received your message and will contact you soon.",
+      "another": "Send another message",
+      "rateLimited": "You just sent a message. Wait a minute before sending another.",
+      "error": "The message couldn't be sent. Try again."
+    }
+  },
+  "advisorShare": {
+    "title": "Your digital card",
+    "intro": "Your public page with your photo, details and properties. Visitors can message you, call you or save your contact, and what they write reaches you. Send it on WhatsApp or put the QR on your business card or signature.",
+    "unavailable": "Your link will be available once the advisor page is enabled in the database.",
+    "link": "Your link",
+    "copy": "Copy link",
+    "copied": "Copied",
+    "copyManual": "Copy the link:",
+    "whatsapp": "Send on WhatsApp",
+    "share": "Share…",
+    "view": "View my page",
+    "noWhatsapp": "Add your WhatsApp or phone in your profile so the WhatsApp button on your page works.",
+    "downloadQr": "Download QR",
+    "qrLabel": "QR code of your digital card",
+    "qrError": "The QR image couldn't be generated."
   },
   "goals": {
     "title": "My month: {{month}}",

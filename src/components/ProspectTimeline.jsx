@@ -90,6 +90,12 @@ export default function ProspectTimeline({ prospect, properties = NONE, refreshK
           detail: item.place ? `📍 ${item.place}` : "",
           to: canAgenda ? `/admin/agenda/${item.citaId}` : null,
         };
+      case "feedback":
+        return {
+          text: t("prospects.timeline.feedbackText", { stars: "★".repeat(item.rating) + "☆".repeat(5 - item.rating), rating: item.rating, title: item.title }),
+          detail: [item.comment, item.moreOptions ? t("prospects.timeline.feedbackMore") : ""].filter(Boolean).join(" · "),
+          to: canAgenda ? `/admin/agenda/${item.citaId}` : null,
+        };
       case "visit":
         return {
           chip: t(`visits.interest.${item.interest}`, { defaultValue: "" }),

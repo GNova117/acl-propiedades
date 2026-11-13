@@ -15,7 +15,8 @@ export const MIN_PHONE_DIGITS = 10;
 export const isValidPhone = (value) => String(value || "").replace(/\D/g, "").length >= MIN_PHONE_DIGITS;
 
 // Devuelve "success" | "rateLimited" | "error".
-export async function sendLead({ rateKey, honeypot, name, phone, message, channel, details }) {
+// `advisorId`: el mensaje es para ese asesor (lo escribieron desde su página): se guarda en contact_messages.advisor_id.
+export async function sendLead({ rateKey, honeypot, name, phone, message, channel, details, advisorId = null }) {
   // Campo trampa lleno: éxito falso, sin escribir nada.
   if (String(honeypot || "").trim()) return "success";
 
@@ -34,6 +35,7 @@ export async function sendLead({ rateKey, honeypot, name, phone, message, channe
       message,
       channel,
       details: details || null,
+      ...(advisorId ? { advisor_id: advisorId } : {}),
     });
     try {
       window.localStorage.setItem(rateKey, String(Date.now()));

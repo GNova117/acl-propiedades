@@ -4,6 +4,8 @@ import { db } from "../../lib/dataStore";
 import { whatsappDigits } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
 import VisitScheduleEditor from "../../components/VisitScheduleEditor";
+import AbsenceCard from "../../components/AbsenceCard";
+import AdvisorShareCard from "../../components/AdvisorShareCard";
 import "./admin.css";
 
 const EMPTY = { name: "", phone: "", email: "", whatsapp: "", bio: "" };
@@ -22,6 +24,7 @@ export default function AdminMyProfile() {
   const { advisorId, hasSection } = useAuth();
 
   const [form, setForm] = useState(EMPTY);
+  const [advisor, setAdvisor] = useState(null);
   const [existingPhoto, setExistingPhoto] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
   const [preview, setPreview] = useState("");
@@ -42,6 +45,7 @@ export default function AdminMyProfile() {
         setLoading(false);
         return;
       }
+      setAdvisor(advisor);
       setForm({
         name: advisor.name || "",
         phone: advisor.phone || "",
@@ -109,6 +113,8 @@ export default function AdminMyProfile() {
         <h1>Mi perfil</h1>
       </div>
 
+      {advisor && <AdvisorShareCard advisor={advisor} />}
+
       <form className="card admin-form" onSubmit={handleSubmit} noValidate>
         <div className="form-field">
           <label htmlFor="mp-name">Nombre</label>
@@ -156,6 +162,7 @@ export default function AdminMyProfile() {
       </form>
 
       {/* Mismo permiso que la Agenda: las políticas de horarios en Supabase piden el apartado 'agenda'. */}
+      {hasSection("agenda") && <AbsenceCard advisorId={advisorId} />}
       {hasSection("agenda") && <VisitScheduleEditor advisorId={advisorId} />}
     </div>
   );

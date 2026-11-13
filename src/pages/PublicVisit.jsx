@@ -8,7 +8,7 @@ import VisitSlotPicker from "../components/VisitSlotPicker";
 import { db } from "../lib/dataStore";
 import { OFFICE_WHATSAPP } from "../lib/office";
 import { citaToIcs, downloadIcs, mapsUrl } from "../lib/calendarEvent";
-import { MAX_RESCHEDULES } from "../lib/visitSlots";
+import { FEEDBACK_MAX_COMMENT, FEEDBACK_RATINGS, MAX_RESCHEDULES } from "../lib/visitSlots";
 import { useSlotSelection } from "../lib/useSlotSelection";
 import { bookingToCalendarEvent, formatSlotDay, formatSlotTime } from "../lib/visitBookingUi";
 import "./PublicVisit.css";
@@ -153,6 +153,94 @@ function CancelForm({ token, onDone, onClose, isRequest = false }) {
           {t("visitPage.cancel.keep")}
         </button>
       </div>
+    </section>
+  );
+}
+
+// Opinión después de la visita: de 1 a 5 estrellas, un comentario opcional y «quiero ver más opciones». Se deja una sola vez
+// (submit_booking_feedback) y le llega al asesor como mensaje; también queda en la línea de tiempo del prospecto.
+function FeedbackCard({ token, feedback, onDone }) {
+  const { t } = useTranslation();
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [moreOptions, setMoreOptions] = useState(false);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  if (feedback) {
+    return (
+      <section className="card visit-page__card visit-page__feedback" aria-labelledby="visit-page-feedback-thanks">
+        <h2 id="visit-page-feedback-thanks">{t("visitPage.feedback.thanksTitle")}</h2>
+        <p className="visit-page__stars" aria-label={t("visitPage.feedback.stars", { count: feedback.rating })}>
+          {"★".repeat(feedback.rating) + "☆".repeat(5 - feedback.rating)}
+        </p>
+        <p>{t("visitPage.feedback.thanksBody")}</p>
+        {feedback.more_options && <p>{t("visitPage.feedback.thanksMore")}</p>}
+        <Link className="btn btn-outline" to="/propiedades">
+          {t("visitPage.feedback.viewMore")}
+        </Link>
+      </section>
+    );
+  }
+
+  const send = async (e) => {
+    e.preventDefault();
+    if (!rating) {
+      setError(t("visitPage.feedback.ratingRequired"));
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      const result = await db.submitVisitFeedback(token, { rating, comment, moreOptions });
+      if (result?.ok || result?.error === "already_sent") {
+        await onDone();
+        return;
+      }
+      setError(t(["not_active", "too_early", "too_late"].includes(result?.error) ? "visitPage.feedback.closed" : "visitPage.errors.generic"));
+    } catch {
+      setError(t("visitPage.errors.generic"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <section className="card visit-page__card visit-page__feedback" aria-labelledby="visit-page-feedback">
+      <h2 id="visit-page-feedback">{t("visitPage.feedback.title")}</h2>
+      <p className="form-hint">{t("visitPage.feedback.hint")}</p>
+      <form onSubmit={send} noValidate>
+        <fieldset className="visit-page__rating">
+          <legend className="visually-hidden">{t("visitPage.feedback.title")}</legend>
+          {FEEDBACK_RATINGS.map((n) => (
+            <label key={n} className={`visit-page__star${n <= rating ? " is-on" : ""}`} title={t("visitPage.feedback.stars", { count: n })}>
+              <input type="radio" name="visit-rating" value={n} checked={rating === n} onChange={() => setRating(n)} />
+              <span aria-hidden="true">{n <= rating ? "★" : "☆"}</span>
+              <span className="visually-hidden">{t("visitPage.feedback.stars", { count: n })}</span>
+            </label>
+          ))}
+        </fieldset>
+        <div className="form-field">
+          <label htmlFor="visit-feedback-comment">{t("visitPage.feedback.commentLabel")}</label>
+          <textarea id="visit-feedback-comment" rows={3} maxLength={FEEDBACK_MAX_COMMENT} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t("visitPage.feedback.commentPlaceholder")} />
+        </div>
+        <label className="visit-page__more">
+          <input type="checkbox" checked={moreOptions} onChange={(e) => setMoreOptions(e.target.checked)} />
+          <span>
+            {t("visitPage.feedback.more")}
+            <span className="form-hint"> {t("visitPage.feedback.moreHint")}</span>
+          </span>
+        </label>
+        {error && (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        )}
+        <button type="submit" className="btn btn-primary btn-block" disabled={saving}>
+          {saving ? <span className="spinner" /> : null}
+          {saving ? t("visitPage.feedback.sending") : t("visitPage.feedback.send")}
+        </button>
+      </form>
     </section>
   );
 }
@@ -369,6 +457,8 @@ export default function PublicVisit() {
             {isRequested && data.can_cancel && panel === "cancel" && <CancelForm token={token} isRequest onDone={handlePanelDone} onClose={() => setPanel(null)} />}
             {isConfirmed && !isPast && panel === "reschedule" && <RescheduleForm token={token} locale={locale} onDone={handlePanelDone} onClose={() => setPanel(null)} />}
             {isConfirmed && !isPast && panel === "cancel" && <CancelForm token={token} onDone={handlePanelDone} onClose={() => setPanel(null)} />}
+
+            {(data.can_feedback || data.feedback) && <FeedbackCard token={token} feedback={data.feedback} onDone={load} />}
 
             {(isPast || status !== "confirmada") && (
               <section className="card visit-page__card">

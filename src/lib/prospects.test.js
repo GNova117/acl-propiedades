@@ -85,6 +85,18 @@ describe("messageToProspectFields", () => {
     expect(withNone.advisor_id).toBeNull();
   });
 
+  it("salta al asesor ausente hoy y asigna al siguiente; si todos están ausentes, al primero", () => {
+    const property = { advisors: [{ id: "a1" }, { id: "a2" }] };
+    expect(messageToProspectFields({ name: "Ana" }, property, { absentIds: new Set(["a1"]) }).advisor_id).toBe("a2");
+    expect(messageToProspectFields({ name: "Ana" }, property, { absentIds: new Set(["a1", "a2"]) }).advisor_id).toBe("a1");
+  });
+
+  it("un mensaje que llegó por la página de un asesor es de ese asesor, aunque la propiedad tenga otros o él esté ausente", () => {
+    const property = { advisors: [{ id: "a1" }] };
+    expect(messageToProspectFields({ name: "Ana", advisor_id: "a9" }, property, { absentIds: new Set(["a9"]) }).advisor_id).toBe("a9");
+    expect(messageToProspectFields({ name: "Ana", advisor_id: "a9" }, undefined).advisor_id).toBe("a9");
+  });
+
   it("usa el canal del mensaje como fuente si está en la lista reconocida, y 'sitio' si no", () => {
     expect(messageToProspectFields({ name: "Ana", channel: "whatsapp" }, {}).source).toBe("whatsapp");
     expect(messageToProspectFields({ name: "Ana", channel: "formulario" }, {}).source).toBe("sitio");

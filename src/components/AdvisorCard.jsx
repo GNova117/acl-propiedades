@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { whatsappDigits } from "../lib/format";
 import "./AdvisorCard.css";
@@ -25,6 +26,11 @@ export default function AdvisorCard({ advisor, property }) {
       {advisor.photo_url && <img src={advisor.photo_url} alt={advisor.name} className="advisor-card__photo" loading="lazy" decoding="async" />}
       <h4>{advisor.name}</h4>
       {advisor.bio && <p className="advisor-card__bio">{advisor.bio}</p>}
+      {advisor.slug && advisor.active !== false && advisor.show_in_team !== false && (
+        <p className="advisor-card__profile">
+          <Link to={`/asesor/${advisor.slug}`}>{t("advisorPage.viewProfile")}</Link>
+        </p>
+      )}
       <div className="advisor-card__actions">
         <a href={`tel:${whatsappDigits(advisor.phone)}`} className="btn btn-outline btn-sm btn-block">
           {t("detail.call")}

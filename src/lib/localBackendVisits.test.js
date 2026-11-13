@@ -313,3 +313,93 @@ describe("modo demo: cierre del ciclo (prospecto)", () => {
   });
 });
 
+
+describe("modo demo: ausencias del asesor", () => {
+  const off = (fecha_inicio, fecha_fin, motivo) => ({ fecha_inicio, fecha_fin, motivo });
+
+  it("se guardan aparte del horario, recortadas y en orden; se leen por asesor y todas juntas", async () => {
+    await db.saveAdvisorTimeOff(advisorId, [off("2026-12-10", "2026-12-12", "  Viaje "), off("2026-12-01", "2026-12-02"), off("2026-12-09", "2026-12-08")]);
+    const mine = await db.getAdvisorTimeOff(advisorId);
+    expect(mine.map((o) => [o.fecha_inicio, o.fecha_fin, o.motivo])).toEqual([["2026-12-01", "2026-12-02", null], ["2026-12-10", "2026-12-12", "Viaje"]]);
+    expect(mine.every((o) => o.advisor_id === advisorId)).toBe(true);
+    await db.saveAdvisorTimeOff("advisor-otro", [off("2026-12-20", "2026-12-21")]);
+    expect((await db.getAllAdvisorTimeOff()).map((o) => o.advisor_id).sort()).toEqual([advisorId, advisorId, "advisor-otro"].sort());
+  });
+
+  it("guardar el horario SIN mandar las ausencias no las toca; mandándolas, las reemplaza", async () => {
+    await db.saveAdvisorTimeOff(advisorId, [off("2026-12-10", "2026-12-12", "Viaje")]);
+    await db.saveAdvisorVisitSchedule(advisorId, { settings: { ...DEFAULT_VISIT_SETTINGS, enabled: true }, weekly: DEFAULT_WEEKLY_SCHEDULE });
+    expect(await db.getAdvisorTimeOff(advisorId)).toHaveLength(1);
+    expect((await db.getAdvisorVisitSchedule(advisorId)).settings.enabled).toBe(true);
+    await db.saveAdvisorVisitSchedule(advisorId, { settings: { ...DEFAULT_VISIT_SETTINGS, enabled: true }, weekly: DEFAULT_WEEKLY_SCHEDULE, timeOff: [] });
+    expect(await db.getAdvisorTimeOff(advisorId)).toEqual([]);
+  });
+
+  it("guardar ausencias a un asesor sin horario no activa la reserva ni borra nada", async () => {
+    await db.saveAdvisorTimeOff(advisorId, [off("2026-12-10", "2026-12-12")]);
+    const schedule = await db.getAdvisorVisitSchedule(advisorId);
+    expect(schedule.settings.enabled).toBe(false);
+    expect(schedule.weekly).toEqual([]);
+  });
+});
+
+describe("modo demo: opinión de la visita", () => {
+  const token = "a".repeat(32);
+  const yesterday = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10); // dos días atrás: ya pasó, dentro de los 30 días
+  const seedCita = (over = {}) =>
+    store.set(
+      "acl_local_agenda_citas",
+      JSON.stringify([{ id: "c1", advisor_id: advisorId, property_id: property.id, titulo: "Visita", fecha: yesterday, hora: "10:00", status: "confirmada", source: "sitio", booking_token: token, contact_name: "Ana Pérez", contact_phone: "8711234567", ...over }])
+    );
+
+  it("el enlace ofrece la opinión cuando la visita ya empezó, y la guarda con aviso al asesor", async () => {
+    seedCita();
+    expect((await db.getVisitBooking(token)).can_feedback).toBe(true);
+    expect(await db.submitVisitFeedback(token, { rating: 4, comment: "  Bonita pero lejos ", moreOptions: true })).toEqual({ ok: true });
+
+    const booking = await db.getVisitBooking(token);
+    expect(booking.can_feedback).toBe(false);
+    expect(booking.feedback).toMatchObject({ rating: 4, comment: "Bonita pero lejos", more_options: true });
+    const [message] = (await db.getContactMessages()).filter((m) => m.channel === "visita_opinion");
+    expect(message).toMatchObject({ name: "Ana Pérez", property_id: property.id });
+    expect(message.message).toContain("★★★★☆ (4 de 5)");
+    expect(message.message).toContain("Comentario: Bonita pero lejos");
+    expect(message.details).toMatchObject({ advisor_id: advisorId, rating: 4, more_options: true });
+  });
+
+  it("solo una vez, y no antes de la visita, ni en una cancelada, ni con calificación inválida", async () => {
+    seedCita();
+    expect(await db.submitVisitFeedback(token, { rating: 0 })).toEqual({ error: "invalid_rating" });
+    expect(await db.submitVisitFeedback(token, { rating: 6 })).toEqual({ error: "invalid_rating" });
+    expect(await db.submitVisitFeedback(token, { rating: 5 })).toEqual({ ok: true });
+    expect(await db.submitVisitFeedback(token, { rating: 1 })).toEqual({ error: "already_sent" });
+    seedCita({ fecha: "2999-01-01" });
+    expect(await db.submitVisitFeedback(token, { rating: 5 })).toEqual({ error: "too_early" });
+    seedCita({ status: "cancelada" });
+    expect(await db.submitVisitFeedback(token, { rating: 5 })).toEqual({ error: "not_active" });
+    seedCita({ fecha: "2020-01-01" });
+    expect(await db.submitVisitFeedback(token, { rating: 5 })).toEqual({ error: "too_late" });
+    expect(await db.submitVisitFeedback("zzz", { rating: 5 })).toEqual({ error: "not_found" });
+  });
+});
+
+describe("modo demo: mensajes de la página de un asesor", () => {
+  it("se vuelven un prospecto nuevo asignado a ese asesor; un mensaje normal no", async () => {
+    await db.submitContactMessage({ name: "Luis Ruiz", email: "", phone: "8711112222", message: "Busco casa", channel: "asesor", details: { advisor_slug: "x" }, advisor_id: advisorId });
+    await db.submitContactMessage({ name: "Otra", email: "o@o.com", phone: "", message: "Hola" });
+    const prospects = await db.getProspects();
+    expect(prospects).toHaveLength(1);
+    expect(prospects[0]).toMatchObject({ name: "Luis Ruiz", phone: "8711112222", advisor_id: advisorId, stage: "nuevo", notes: "Busco casa" });
+    const [message] = (await db.getContactMessages()).filter((m) => m.channel === "asesor");
+    expect(prospects[0].message_id).toBe(message.id);
+  });
+
+  it("los asesores del demo tienen su slug y se encuentran por él", async () => {
+    const advisors = await db.getAdvisors();
+    expect(advisors.every((a) => /^[a-z0-9]+(-[a-z0-9]+)*$/.test(a.slug))).toBe(true);
+    expect(new Set(advisors.map((a) => a.slug)).size).toBe(advisors.length);
+    const first = advisors[0];
+    expect((await db.getAdvisorBySlug(first.slug)).id).toBe(first.id);
+    expect(await db.getAdvisorBySlug("no-existe")).toBeNull();
+  });
+});

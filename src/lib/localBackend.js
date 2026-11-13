@@ -17,12 +17,18 @@ import { CITA_STATUSES } from "./agendaCitas";
 import { findOpenProspect, mergeBookingIntoProspect, prospectFieldsFromBooking, syncProspectFollowup } from "./visitProspect";
 import { SELECTION_VALID_DAYS, cleanSelectionInput } from "./selections";
 import { commissionKey } from "./mySales";
+import { cleanAbsences } from "./absences";
+import { assignSlugs } from "./advisorPage";
+import { messageToProspectFields } from "./prospects";
 import {
   BOOKING_TOKEN_PATTERN,
   DEFAULT_VISIT_SETTINGS,
   MAX_ACTIVE_BOOKINGS_PER_PHONE,
   activeBookingsForPhone,
   bookingPermissions,
+  buildFeedbackMessage,
+  canGiveFeedback,
+  FEEDBACK_MAX_COMMENT,
   buildBookingChangeMessage,
   buildBookingMessage,
   buildRequestMessage,
@@ -491,13 +497,17 @@ export const localBackend = {
     writeStore(KEYS.reportLinks, readStore(KEYS.reportLinks, []).filter((l) => l.property_id !== id));
   },
 
+  // El modo demo no tiene el trigger que pone el `slug` de la página del asesor: se calcula al leer (lib/advisorPage.js, misma regla).
   async getAdvisors() {
-    return readStore(KEYS.advisors, ADVISORS);
+    return assignSlugs(readStore(KEYS.advisors, ADVISORS));
   },
 
   async getAdvisorById(id) {
-    const advisors = readStore(KEYS.advisors, ADVISORS);
-    return advisors.find((a) => a.id === id) || null;
+    return assignSlugs(readStore(KEYS.advisors, ADVISORS)).find((a) => a.id === id) || null;
+  },
+
+  async getAdvisorBySlug(slug) {
+    return assignSlugs(readStore(KEYS.advisors, ADVISORS)).find((a) => a.slug === slug) || null;
   },
 
   async addAdvisor(data) {
@@ -968,8 +978,12 @@ export const localBackend = {
 
   async submitContactMessage(data) {
     const messages = readStore(KEYS.messages, []);
-    messages.push({ id: uid("msg"), ...data, status: "nuevo", created_at: new Date().toISOString() });
+    const message = { id: uid("msg"), ...data, status: "nuevo", created_at: new Date().toISOString() };
+    messages.push(message);
     writeStore(KEYS.messages, messages);
+    // Lo que escriben en la página de un asesor se vuelve, de una vez, un prospecto nuevo asignado a él (en Supabase lo hace el
+    // trigger advisor_message_to_prospect).
+    if (message.channel === "asesor" && message.advisor_id) await this.addProspect(messageToProspectFields(message, null));
     return true;
   },
 
@@ -2844,6 +2858,8 @@ export const localBackend = {
       can_reschedule: canReschedule && (cita.source === "sitio" || advisorOffersSlots),
       can_cancel: canCancel,
       can_confirm: canConfirm,
+      can_feedback: canGiveFeedback(cita).ok,
+      feedback: cita.feedback_at ? { rating: cita.feedback_rating, comment: cita.feedback_comment || null, more_options: Boolean(cita.feedback_more_options), at: cita.feedback_at } : null,
       advisor: advisor ? { id: advisor.id, name: advisor.name, phone: advisor.phone, whatsapp: advisor.whatsapp, photo_url: advisor.photo_url } : null,
       property: property ? { id: property.id, title: property.title, code: property.code, address: property.address, main_image: property.main_image, lat: property.lat, lng: property.lng } : null,
     };
@@ -2965,6 +2981,41 @@ export const localBackend = {
     return { ok: true };
   },
 
+  // Opinión del cliente después de la visita (desde /visita/:token). Mismas reglas que submit_booking_feedback() en SQL; avisa al
+  // asesor con un mensaje (canal «visita_opinion»).
+  async submitVisitFeedback(token, { rating, comment = "", moreOptions = false } = {}) {
+    const citas = readStore(KEYS.agendaCitas, []);
+    const idx = BOOKING_TOKEN_PATTERN.test(token || "") ? citas.findIndex((c) => c.booking_token === token) : -1;
+    if (idx === -1) return { error: "not_found" };
+    const allowed = canGiveFeedback(citas[idx]);
+    if (!allowed.ok) return { error: allowed.reason };
+    const stars = Number(rating);
+    if (!Number.isInteger(stars) || stars < 1 || stars > 5) return { error: "invalid_rating" };
+    const text = String(comment ?? "").trim().slice(0, FEEDBACK_MAX_COMMENT) || null;
+    const now = new Date().toISOString();
+    citas[idx] = { ...citas[idx], feedback_rating: stars, feedback_comment: text, feedback_more_options: Boolean(moreOptions), feedback_at: now, updated_at: now };
+    writeStore(KEYS.agendaCitas, citas);
+
+    const cita = citas[idx];
+    const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === cita.property_id);
+    const linkedClient = cita.client_id ? readStore(KEYS.clients, []).find((c) => c.id === cita.client_id) : null;
+    const messages = readStore(KEYS.messages, []);
+    messages.push({
+      id: uid("msg"),
+      name: cita.contact_name || linkedClient?.name || "(sin nombre)",
+      email: cita.contact_email || linkedClient?.email || "",
+      phone: cita.contact_phone || linkedClient?.phone || null,
+      message: buildFeedbackMessage({ title: property?.title || cita.titulo, code: property?.code, rating: stars, comment: text, moreOptions: Boolean(moreOptions) }),
+      property_id: cita.property_id ?? null,
+      channel: "visita_opinion",
+      details: { cita_id: cita.id, advisor_id: cita.advisor_id, rating: stars, more_options: Boolean(moreOptions) },
+      status: "nuevo",
+      created_at: now,
+    });
+    writeStore(KEYS.messages, messages);
+    return { ok: true };
+  },
+
   async getAdvisorVisitSchedule(advisorId) {
     const saved = readStore(KEYS.visitSchedules, {})[advisorId];
     return saved || { settings: { ...DEFAULT_VISIT_SETTINGS, enabled: false }, weekly: [], timeOff: [] };
@@ -2973,9 +3024,28 @@ export const localBackend = {
   async saveAdvisorVisitSchedule(advisorId, input) {
     const schedules = readStore(KEYS.visitSchedules, {});
     const normalized = normalizeVisitSchedule(input);
-    schedules[advisorId] = { ...normalized, timeOff: normalized.timeOff.map((o) => ({ id: uid("off"), ...o })) };
+    // Las ausencias se editan aparte (saveAdvisorTimeOff): si quien guarda el horario no las manda, se conservan.
+    const timeOff = input.timeOff === undefined ? schedules[advisorId]?.timeOff || [] : normalized.timeOff.map((o) => ({ id: uid("off"), ...o }));
+    schedules[advisorId] = { ...normalized, timeOff };
     writeStore(KEYS.visitSchedules, schedules);
     return schedules[advisorId];
+  },
+
+  // Ausencias del asesor (los días de descanso de su horario de visitas). Ver supabaseBackend.getAdvisorTimeOff.
+  async getAdvisorTimeOff(advisorId) {
+    return (readStore(KEYS.visitSchedules, {})[advisorId]?.timeOff || []).map((o) => ({ ...o, advisor_id: advisorId }));
+  },
+
+  async getAllAdvisorTimeOff() {
+    return Object.entries(readStore(KEYS.visitSchedules, {})).flatMap(([advisorId, schedule]) => (schedule.timeOff || []).map((o) => ({ ...o, advisor_id: advisorId })));
+  },
+
+  async saveAdvisorTimeOff(advisorId, rows) {
+    const schedules = readStore(KEYS.visitSchedules, {});
+    const current = schedules[advisorId] || { settings: { ...DEFAULT_VISIT_SETTINGS, enabled: false }, weekly: [] };
+    schedules[advisorId] = { ...current, timeOff: cleanAbsences(rows).map((o) => ({ id: uid("off"), ...o })) };
+    writeStore(KEYS.visitSchedules, schedules);
+    return schedules[advisorId].timeOff.map((o) => ({ ...o, advisor_id: advisorId }));
   },
 
   async getAgendaExpedientes(citaId) {

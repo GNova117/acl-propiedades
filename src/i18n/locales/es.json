@@ -372,6 +372,8 @@
     "via_guia": "Descargó la Guía del comprador",
     "via_visita": "Agendó una visita en el sitio",
     "via_visita_cambio": "Cambió o canceló su visita",
+    "via_visita_opinion": "Opinión de una visita",
+    "via_asesor": "Página de un asesor",
     "via_visita_solicitud": "Solicitó una visita (sin asesor)",
     "estimate": "Estimar valor",
     "makeProspect": "Pasar a prospecto",
@@ -2033,9 +2035,12 @@
         "visit": "Visita",
         "note": "Nota",
         "selection": "Selección enviada",
-        "selectionOpened": "Selección abierta"
+        "selectionOpened": "Selección abierta",
+        "feedback": "Opinión de la visita"
       },
       "upcoming": "Próxima",
+      "feedbackText": "{{stars}} ({{rating}} de 5) · {{title}}",
+      "feedbackMore": "Quiere ver más opciones",
       "created": "Origen: {{source}}",
       "stageTo": "Pasó a «{{stage}}»",
       "visitTo": "Visita a {{property}}",
@@ -3340,6 +3345,8 @@
       "no_asistio": "No asistió",
       "cancelada": "Cancelar cita"
     },
+    "feedbackChip": "★ {{rating}}/5 del cliente",
+    "feedbackMore": "quiere ver más",
     "fromSite": "Sitio web",
     "clientConfirmed": "Cliente confirmó",
     "clientUnconfirmed": "Sin confirmar asistencia",
@@ -3604,6 +3611,7 @@
     "requestsOpen": "Verlas en Mi día",
     "viewProspects_one": "Ver {{count}} prospecto abierto",
     "viewProspects_other": "Ver {{count}} prospectos abiertos",
+    "reassignAway": "Reasignar sus prospectos…",
     "reassign": "Reasignar…"
   },
   "offline": {
@@ -3744,6 +3752,7 @@
     "homeToggle": "Abrir el panel en Mi día (en este dispositivo)"
   },
   "visitSchedule": {
+    "absencesNote": "Tus ausencias y vacaciones se capturan en la tarjeta «Ausencias y vacaciones», más arriba: aquí se respetan al ofrecer horarios.",
     "title": "Horario para recibir visitas",
     "intro": "Define cuándo puedes atender. Los clientes que quieran visitar una de tus propiedades verán solo los horarios libres de este calendario y su visita caerá directo en tu Agenda.",
     "enable": "Permitir que los clientes agenden visitas en línea",
@@ -3765,13 +3774,6 @@
     "removeWindow": "Quitar este horario",
     "addWindow": "+ Agregar horario",
     "copyMonday": "Copiar el horario del lunes a martes–viernes",
-    "timeOffTitle": "Días de descanso",
-    "timeOffHint": "Vacaciones, trámites o cualquier día en que no recibas visitas. No se ofrecen horarios en esas fechas.",
-    "offFrom": "Primer día de descanso",
-    "offTo": "Último día de descanso",
-    "offReason": "Motivo (opcional)",
-    "removeOff": "Quitar este descanso",
-    "addTimeOff": "+ Agregar días de descanso",
     "enabledWithoutWindows": "Activaste las visitas en línea pero no tienes ningún horario: nadie podrá agendar. Marca al menos un día.",
     "preview_one": "Con este horario, un cliente vería {{count}} horario libre en los próximos {{days}} días.",
     "preview_other": "Con este horario, un cliente vería {{count}} horarios libres en los próximos {{days}} días.",
@@ -3780,8 +3782,7 @@
     "loadError": "No se pudo cargar el horario.",
     "issues": {
       "invalid_window": "La hora de fin debe ser después de la de inicio.",
-      "overlap": "Hay horarios que se empalman en este día.",
-      "invalid_time_off": "Revisa los días de descanso: cada uno necesita fecha de inicio y de fin, y el fin no puede ser antes del inicio."
+      "overlap": "Hay horarios que se empalman en este día."
     }
   },
   "visitLink": {
@@ -3859,6 +3860,24 @@
       "rescheduled": "Listo, cambiamos tu visita. Le avisamos a tu asesor y te esperamos en el nuevo horario.",
       "cancelledRequest": "Cancelamos tu solicitud. Cuando quieras, agenda una visita.",
       "cancelled": "Cancelamos tu visita y avisamos a tu asesor. Cuando quieras, agenda otra."
+    },
+    "feedback": {
+      "title": "¿Qué te pareció la visita?",
+      "hint": "Tu opinión nos ayuda a buscarte mejores opciones. La ven tu asesor y la oficina de ACL Propiedades.",
+      "stars_one": "{{count}} estrella de 5",
+      "stars_other": "{{count}} estrellas de 5",
+      "commentLabel": "Comentario (opcional)",
+      "commentPlaceholder": "¿Qué te gustó? ¿Qué cambiarías?",
+      "more": "Quiero ver más opciones.",
+      "moreHint": "Tu asesor te propondrá otras propiedades.",
+      "send": "Enviar opinión",
+      "sending": "Enviando…",
+      "ratingRequired": "Elige de 1 a 5 estrellas.",
+      "closed": "Ya no es posible dejar la opinión de esta visita.",
+      "thanksTitle": "¡Gracias por tu opinión!",
+      "thanksBody": "Tu asesor ya la recibió.",
+      "thanksMore": "Te contactará con otras opciones.",
+      "viewMore": "Ver más propiedades"
     },
     "errors": {
       "slotTaken": "Ese horario se acaba de ocupar. Elige otro, por favor.",
@@ -3974,6 +3993,81 @@
     "empty": "Todavía no hay ventas ni comisiones en {{year}}.",
     "loadError": "No se pudieron cargar tus ventas.",
     "disclaimer": "La comisión es la que tu oficina publicó: una foto del momento en que se liquidó la casa. Si algo no cuadra, pregúntalo en la oficina."
+  },
+  "absences": {
+    "title": "Ausencias y vacaciones",
+    "intro": "Avisa cuándo no estás. Esos días no se te ofrecen horarios de visita, los prospectos nuevos de tus propiedades se asignan a otro asesor y la oficina lo ve en «Equipo hoy».",
+    "empty": "No hay ausencias programadas.",
+    "from": "Desde",
+    "to": "Hasta",
+    "reason": "Motivo (opcional)",
+    "reasonPlaceholder": "Vacaciones, trámite, viaje…",
+    "add": "Agregar ausencia",
+    "range": "{{from}} – {{to}}",
+    "now": "Ausente ahora",
+    "removeShort": "Quitar",
+    "remove": "Quitar la ausencia del {{from}} al {{to}}",
+    "banner": "Estás marcado como ausente hasta el {{date}}: no se te ofrecen horarios de visita ni se te asignan prospectos nuevos.",
+    "bannerChange": "Cambiar",
+    "awayUntil": "Ausente hasta el {{date}}",
+    "errors": {
+      "required": "Pon la fecha de inicio y la de fin.",
+      "order": "El fin no puede ser antes del inicio.",
+      "past": "Esa ausencia ya terminó.",
+      "save": "No se pudo guardar la ausencia.",
+      "load": "No se pudieron cargar las ausencias."
+    }
+  },
+  "advisorPage": {
+    "defaultRole": "Asesor inmobiliario",
+    "seoDescription": "Conoce a {{name}}, asesor de ACL Propiedades: sus propiedades disponibles y cómo contactarle.",
+    "viewProfile": "Ver perfil",
+    "whatsapp": "WhatsApp",
+    "call": "Llamar",
+    "email": "Correo",
+    "saveContact": "Guardar contacto",
+    "share": "Compartir",
+    "copied": "Enlace copiado",
+    "copyManual": "Copia el enlace:",
+    "propertiesTitle": "Propiedades de {{name}}",
+    "noProperties": "Por ahora no hay propiedades publicadas a su nombre. Escríbele y te ayuda a encontrar la ideal.",
+    "viewAll": "Ver todas las propiedades",
+    "seeTeam": "Ver al equipo",
+    "notFoundTitle": "No encontramos esta página",
+    "notFoundBody": "El enlace puede estar mal escrito o la persona ya no está en el equipo.",
+    "errorTitle": "No pudimos cargar la página",
+    "errorBody": "Intenta de nuevo en un momento.",
+    "form": {
+      "title": "Escríbele a {{name}}",
+      "name": "Tu nombre",
+      "phone": "Tu teléfono",
+      "message": "¿En qué te ayuda?",
+      "messagePlaceholder": "Busco una casa en Torreón de hasta $1,800,000…",
+      "send": "Enviar mensaje",
+      "sending": "Enviando…",
+      "required": "Este campo es obligatorio.",
+      "invalidPhone": "Escribe un teléfono de 10 dígitos.",
+      "success": "¡Listo! {{name}} recibió tu mensaje y te contactará pronto.",
+      "another": "Enviar otro mensaje",
+      "rateLimited": "Ya enviaste un mensaje hace un momento. Espera un minuto para mandar otro.",
+      "error": "No se pudo enviar el mensaje. Intenta de nuevo."
+    }
+  },
+  "advisorShare": {
+    "title": "Tu tarjeta digital",
+    "intro": "Tu página pública con tu foto, tus datos y tus propiedades. Quien entre puede escribirte, llamarte o guardar tu contacto, y lo que te escriba llega a ti. Mándala por WhatsApp o pon el QR en tu tarjeta o firma.",
+    "unavailable": "Tu enlace estará disponible en cuanto se active la página del asesor en la base de datos.",
+    "link": "Tu enlace",
+    "copy": "Copiar enlace",
+    "copied": "Copiado",
+    "copyManual": "Copia el enlace:",
+    "whatsapp": "Mandar por WhatsApp",
+    "share": "Compartir…",
+    "view": "Ver mi página",
+    "noWhatsapp": "Agrega tu WhatsApp o teléfono en tu perfil para que el botón de WhatsApp de tu página funcione.",
+    "downloadQr": "Descargar QR",
+    "qrLabel": "Código QR de tu tarjeta digital",
+    "qrError": "No se pudo generar la imagen del QR."
   },
   "goals": {
     "title": "Mi mes: {{month}}",
