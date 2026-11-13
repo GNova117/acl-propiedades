@@ -45,6 +45,7 @@ const NAV = [
     items: [
       { section: "clientes", to: "/admin/clientes", labelKey: "admin.clients" },
       { section: "prospectos", to: "/admin/prospectos", labelKey: "accessControl.sections.prospectos" },
+      { section: "prospectos", to: "/admin/equipo", labelKey: "team.navTitle", officeOnly: true },
       { section: "prospectos", to: "/admin/estadisticas", labelKey: "funnel.title" },
       { section: "prospectos", to: "/admin/alertas", labelKey: "alerts.admin.title" },
       { section: "mensajes", to: "/admin/mensajes", labelKey: "admin.messages", badge: true },
@@ -144,7 +145,7 @@ export default function AdminLayout() {
     : NAV;
 
   const visibleNav = nav.map((entry) =>
-    entry.items ? { ...entry, items: entry.items.filter((item) => hasSection(item.section)) } : entry
+    entry.items ? { ...entry, items: entry.items.filter((item) => hasSection(item.section) && (!item.officeOnly || advisorId == null)) } : entry
   ).filter((entry) => {
     if (entry.items) return entry.items.length > 0;
     if (entry.requiresAdvisor) return advisorId != null;

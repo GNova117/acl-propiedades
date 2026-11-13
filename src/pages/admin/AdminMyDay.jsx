@@ -376,6 +376,11 @@ export default function AdminMyDay() {
               {t("myDay.allProspects")}
             </Link>
           )}
+          {canProspects && advisorId == null && (
+            <Link to="/admin/equipo" className="btn btn-outline">
+              {t("team.navTitle")}
+            </Link>
+          )}
         </div>
       </div>
 

@@ -2095,6 +2095,8 @@
     "followToday": "Follow-up today",
     "followOn": "Follow-up: {{date}}",
     "logContact": "Log contact",
+    "noAdvisor": "No advisor",
+    "forgottenOnly": "Only with no follow-up (7+ days)",
     "unattendedOnly": "Unattended only",
     "unattended": {
       "hours_one": "Unattended: {{count}} h",
@@ -3554,6 +3556,40 @@
     "done_other": "{{count}} prospects imported.",
     "doneHint": "They are in the «New» stage, with source «Imported».",
     "finish": "Done"
+  },
+  "team": {
+    "navTitle": "Team today",
+    "title": "Team today",
+    "subtitle": "what each advisor has pending (same rules as their “My day”)",
+    "totals": "Team totals",
+    "officeOnly": "This summary is for the office: your day is in “My day”.",
+    "empty": "There are no advisors or prospects to show yet.",
+    "tiles": {
+      "unattended": "Unattended",
+      "urgentSome_one": "{{count}} urgent",
+      "urgentSome_other": "{{count}} urgent",
+      "overdue": "Overdue follow-ups",
+      "dueToday": "Follow-up today",
+      "forgotten": "No follow-up (7+ days)",
+      "agendaToday": "Appointments left today",
+      "toClose": "Visits to close",
+      "toConfirm": "To confirm"
+    },
+    "state": {
+      "ok": "Up to date",
+      "attention": "Needs attention",
+      "urgent": "Urgent"
+    },
+    "unassigned": {
+      "title": "No advisor",
+      "hint": "Prospects with no advisor, or with one who is no longer active: nobody is following them up."
+    },
+    "requests_one": "{{count}} website visit request not taken yet.",
+    "requests_other": "{{count}} website visit requests not taken yet.",
+    "requestsOpen": "See them in My day",
+    "viewProspects_one": "View {{count}} open prospect",
+    "viewProspects_other": "View {{count}} open prospects",
+    "reassign": "Reassign…"
   },
   "offline": {
     "loadFailed": "No connection: this screen needs a signal to load. Anything you capture with «+» is saved on this device and sent automatically when the signal returns.",

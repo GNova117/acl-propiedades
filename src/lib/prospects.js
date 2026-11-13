@@ -42,6 +42,16 @@ export function addDaysISO(days, from = new Date()) {
   return new Date(from.getFullYear(), from.getMonth(), from.getDate() + days).toLocaleDateString("en-CA");
 }
 
+// «Olvidado»: un prospecto abierto sin seguimiento programado al que nadie ha contactado en FORGOTTEN_DAYS días (cuenta desde su
+// último contacto o, si nunca se le contactó, desde que se capturó). Los entrantes sin atender ya tienen su propio aviso.
+export const FORGOTTEN_DAYS = 7;
+export function isForgotten(prospect, now = new Date(), days = FORGOTTEN_DAYS) {
+  if (!isOpenStage(prospect.stage) || prospect.next_followup_at || unattendedState(prospect, now)) return false;
+  const since = new Date(prospect.last_contact_at || prospect.created_at);
+  if (Number.isNaN(since.getTime())) return false;
+  return now - since >= days * 86400000;
+}
+
 // Atajos al registrar un contacto: cuándo dar el siguiente seguimiento.
 export const FOLLOWUP_OPTIONS = [
   { key: "tomorrow", days: 1 },

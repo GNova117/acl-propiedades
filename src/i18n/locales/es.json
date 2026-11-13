@@ -2095,6 +2095,8 @@
     "followToday": "Seguimiento hoy",
     "followOn": "Seguimiento: {{date}}",
     "logContact": "Registrar contacto",
+    "noAdvisor": "Sin asesor",
+    "forgottenOnly": "Solo sin seguimiento (7+ días)",
     "unattendedOnly": "Solo sin atender",
     "unattended": {
       "hours_one": "Sin atender: {{count}} h",
@@ -3554,6 +3556,40 @@
     "done_other": "Se importaron {{count}} prospectos.",
     "doneHint": "Quedaron en la etapa «Nuevo», con origen «Importado».",
     "finish": "Listo"
+  },
+  "team": {
+    "navTitle": "Equipo hoy",
+    "title": "Equipo hoy",
+    "subtitle": "lo que cada asesor tiene pendiente (mismas reglas que su «Mi día»)",
+    "totals": "Totales del equipo",
+    "officeOnly": "Este resumen es para la oficina: tu día está en «Mi día».",
+    "empty": "Todavía no hay asesores ni prospectos que mostrar.",
+    "tiles": {
+      "unattended": "Sin atender",
+      "urgentSome_one": "{{count}} urgente",
+      "urgentSome_other": "{{count}} urgentes",
+      "overdue": "Seguimientos vencidos",
+      "dueToday": "Seguimiento hoy",
+      "forgotten": "Sin seguimiento (7+ días)",
+      "agendaToday": "Citas por atender hoy",
+      "toClose": "Visitas por cerrar",
+      "toConfirm": "Por confirmar"
+    },
+    "state": {
+      "ok": "Al día",
+      "attention": "Pide atención",
+      "urgent": "Urgente"
+    },
+    "unassigned": {
+      "title": "Sin asesor",
+      "hint": "Prospectos sin asesor, o de uno que ya no está activo: nadie les da seguimiento."
+    },
+    "requests_one": "{{count}} solicitud de visita del sitio sin tomar.",
+    "requests_other": "{{count}} solicitudes de visita del sitio sin tomar.",
+    "requestsOpen": "Verlas en Mi día",
+    "viewProspects_one": "Ver {{count}} prospecto abierto",
+    "viewProspects_other": "Ver {{count}} prospectos abiertos",
+    "reassign": "Reasignar…"
   },
   "offline": {
     "loadFailed": "Sin conexión: esta pantalla necesita señal para cargar. Lo que captures con «+» se guarda en este dispositivo y se envía solo al volver la señal.",

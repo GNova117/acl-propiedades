@@ -91,6 +91,7 @@ const AdminSalesReports = lazy(() => import("./pages/admin/AdminSalesReports"));
 const AdminPropertyBitacora = lazy(() => import("./pages/admin/AdminPropertyBitacora"));
 const AdminSecretaria = lazy(() => import("./pages/admin/AdminSecretaria"));
 const AdminProspects = lazy(() => import("./pages/admin/AdminProspects"));
+const AdminTeamDay = lazy(() => import("./pages/admin/AdminTeamDay"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
 const AdminClientHistory = lazy(() => import("./pages/admin/AdminClientHistory"));
 const AdminProspectForm = lazy(() => import("./pages/admin/AdminProspectForm"));
@@ -352,6 +353,7 @@ export default function App() {
         <Route path="blog/nuevo" element={<RequireSection section="blog"><AdminBlogForm /></RequireSection>} />
         <Route path="blog/:id" element={<RequireSection section="blog"><AdminBlogForm /></RequireSection>} />
         <Route path="prospectos" element={<RequireSection section="prospectos"><AdminProspects /></RequireSection>} />
+        <Route path="equipo" element={<RequireSection section="prospectos"><AdminTeamDay /></RequireSection>} />
         <Route path="prospectos/nuevo" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />
         <Route path="prospectos/:id" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />
         <Route path="gastos" element={<RequireSection section="gastos"><AdminExpenses /></RequireSection>} />
