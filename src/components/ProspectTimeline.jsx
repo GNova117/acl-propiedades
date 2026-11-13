@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { queries } from "../lib/queries";
 import { useQuery } from "../lib/useQuery";
 import { buildTimeline } from "../lib/prospectTimeline";
+import { agoText } from "../lib/selections";
 import "./ProspectTimeline.css";
 
 const NONE = [];
@@ -24,13 +25,14 @@ function formatWhen(ms) {
 // que el rol tiene; las listas salen del caché compartido (ver dataCache.js). `refreshKey`: sube cuando la
 // ficha registra un contacto, cambia la etapa o se agrega una nota, para volver a leer lo que cambió.
 export default function ProspectTimeline({ prospect, properties = NONE, refreshKey = 0 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { hasSection } = useAuth();
   const canAgenda = hasSection("agenda");
   const canVisits = hasSection("visitas");
   const citasQ = useQuery(queries.citas, { enabled: canAgenda });
   const visitsQ = useQuery(queries.visits, { enabled: canVisits });
   const stagesQ = useQuery(queries.stageHistory);
+  const selectionsQ = useQuery(queries.selections);
   const [contacts, setContacts] = useState(null);
   const [notes, setNotes] = useState(NONE);
   const [error, setError] = useState("");
@@ -63,8 +65,8 @@ export default function ProspectTimeline({ prospect, properties = NONE, refreshK
   }, [refreshKey, reloadStages]);
 
   const items = useMemo(
-    () => buildTimeline({ prospect, contacts: contacts ?? NONE, stages: stagesQ.data ?? NONE, citas: citasQ.data ?? NONE, visits: visitsQ.data ?? NONE, notes }),
-    [prospect, contacts, stagesQ.data, citasQ.data, visitsQ.data, notes]
+    () => buildTimeline({ prospect, contacts: contacts ?? NONE, stages: stagesQ.data ?? NONE, citas: citasQ.data ?? NONE, visits: visitsQ.data ?? NONE, notes, selections: selectionsQ.data ?? NONE }),
+    [prospect, contacts, stagesQ.data, citasQ.data, visitsQ.data, notes, selectionsQ.data]
   );
   const shown = showAll ? items : items.slice(0, FIRST_PAGE);
   const propertyTitle = (id) => properties.find((p) => p.id === id)?.title || "";
@@ -94,6 +96,16 @@ export default function ProspectTimeline({ prospect, properties = NONE, refreshK
           text: t("prospects.timeline.visitTo", { property: propertyTitle(item.propertyId) || "—" }),
           detail: item.comments,
           to: canVisits ? `/admin/visitas/${item.visitId}` : null,
+        };
+      case "selection":
+        return {
+          text: t("prospects.timeline.selectionSent", { count: item.count, title: item.title || t("selection.public.defaultTitle") }),
+          detail: item.revoked ? t("prospects.timeline.selectionRevoked") : "",
+        };
+      case "selectionOpened":
+        return {
+          text: t("prospects.timeline.selectionOpenedText", { title: item.title || t("selection.public.defaultTitle") }),
+          detail: item.opens > 1 ? t("prospects.timeline.selectionOpenedTimes", { count: item.opens, ago: agoText(item.lastAt, i18n.language) }) : "",
         };
       default:
         return { text: item.body, detail: item.author };

@@ -45,10 +45,13 @@ const INITIAL_STAGE_WINDOW_MS = 60 * 1000;
  *   appointment — { title, status, place, upcoming, citaId }
  *   visit       — { propertyId, interest, comments, visitId }
  *   note        — { body, author }
+ *   selection        — { selectionId, title, count, revoked } (se le mandó una selección de propiedades)
+ *   selectionOpened  — { selectionId, title, opens, lastAt } (el cliente abrió su enlace por primera vez)
+ * `selections`: las selecciones de propiedades (de todos; se filtran aquí por las de este prospecto).
  * `stages`: el historial de etapas (de todos o de este prospecto); `citas`, `visits`: las listas completas
  * (se filtran aquí por las que son suyas); `notes`: las notas internas del prospecto.
  */
-export function buildTimeline({ prospect, contacts = [], stages = [], citas = [], visits = [], notes = [], now = new Date() }) {
+export function buildTimeline({ prospect, contacts = [], stages = [], citas = [], visits = [], notes = [], selections = [], now = new Date() }) {
   const items = [];
   const created = ms(prospect.created_at);
   if (created != null) items.push({ id: "created", kind: "created", at: created, source: prospect.source });
@@ -86,6 +89,14 @@ export function buildTimeline({ prospect, contacts = [], stages = [], citas = []
   for (const note of notes) {
     const at = ms(note.created_at);
     if (at != null) items.push({ id: `note-${note.id}`, kind: "note", at, body: note.body, author: note.author_email || "" });
+  }
+
+  for (const s of selections) {
+    if (s.prospecto_id !== prospect.id) continue;
+    const sent = ms(s.created_at);
+    if (sent != null) items.push({ id: `selection-${s.id}`, kind: "selection", at: sent, selectionId: s.id, title: s.title || "", count: (s.property_ids || []).length, revoked: Boolean(s.revoked_at) });
+    const opened = ms(s.first_opened_at);
+    if (opened != null) items.push({ id: `selection-opened-${s.id}`, kind: "selectionOpened", at: opened, selectionId: s.id, title: s.title || "", opens: Number(s.open_count) || 1, lastAt: ms(s.last_opened_at) });
   }
 
   // Más reciente (o más próximo) primero; a la misma hora, un orden fijo para que no «baile».

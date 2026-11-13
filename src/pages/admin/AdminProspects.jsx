@@ -41,6 +41,7 @@ export default function AdminProspects() {
   const propertiesQ = useQuery(queries.properties);
   const visitsQ = useQuery(queries.visits, { enabled: canImport });
   const historyQ = useQuery(queries.stageHistory);
+  const selectionsQ = useQuery(queries.selections);
   const prospects = prospectsQ.data ?? NONE;
   const advisors = advisorsQ.data ?? NONE;
   const properties = propertiesQ.data ?? NONE;
@@ -349,6 +350,7 @@ export default function AdminProspects() {
                       selectable={selecting}
                       selected={selected.has(p.id)}
                       onToggleSelect={toggleOne}
+                      selections={selectionsQ.data}
                     />
                   ))}
                 </section>

@@ -109,6 +109,7 @@ const PublicSign = lazy(() => import("./pages/PublicSign"));
 // ruta /documentos/:token más abajo, igual patrón que /informe/:token y /firmar/:token.
 const PortalDocuments = lazy(() => import("./pages/PortalDocuments"));
 const PublicVisit = lazy(() => import("./pages/PublicVisit"));
+const PublicSelection = lazy(() => import("./pages/PublicSelection"));
 const AdminSignatures = lazy(() => import("./pages/admin/AdminSignatures"));
 const AdminFunnel = lazy(() => import("./pages/admin/AdminFunnel"));
 const AdminMonthlyReport = lazy(() => import("./pages/admin/AdminMonthlyReport"));
@@ -205,6 +206,7 @@ export default function App() {
       <Route path="/firmar/:token" element={<ErrorBoundary><PublicSign /></ErrorBoundary>} />
       <Route path="/documentos/:token" element={<ErrorBoundary><PortalDocuments /></ErrorBoundary>} />
       <Route path="/visita/:token" element={<ErrorBoundary><PublicVisit /></ErrorBoundary>} />
+      <Route path="/seleccion/:token" element={<ErrorBoundary><PublicSelection /></ErrorBoundary>} />
 
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route

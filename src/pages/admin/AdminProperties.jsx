@@ -9,6 +9,7 @@ import { useAuth } from "../../context/AuthContext";
 import SocialPostModal from "../../components/SocialPostModal";
 import PropertyProspectsModal from "../../components/PropertyProspectsModal";
 import SendPropertyModal from "../../components/SendPropertyModal";
+import SelectionBuilder from "../../components/SelectionBuilder";
 import PropertyQrModal from "../../components/PropertyQrModal";
 import { matchingProspects } from "../../lib/prospectMatch";
 import { isOpenStage } from "../../lib/prospects";
@@ -56,6 +57,7 @@ export default function AdminProperties({
   const [socialProperty, setSocialProperty] = useState(null);
   const [matchProperty, setMatchProperty] = useState(null);
   const [sendProperty, setSendProperty] = useState(null);
+  const [buildingSelection, setBuildingSelection] = useState(false);
   const [qrProperty, setQrProperty] = useState(null);
   const [search, setSearch] = useState("");
   const [zoneFilter, setZoneFilter] = useState("");
@@ -217,6 +219,9 @@ export default function AdminProperties({
           <Link to={`${basePath}/nueva`} className="btn btn-primary">
             {t(newLabelKey)}
           </Link>
+          <button type="button" className="btn btn-outline" onClick={() => setBuildingSelection(true)}>
+            {t("selection.list.new")}
+          </button>
           <button type="button" className="btn btn-outline" onClick={handleExport} disabled={visibleProperties.length === 0}>
             {t("common.exportCsv")}
           </button>
@@ -420,6 +425,7 @@ export default function AdminProperties({
 
       {socialProperty && <SocialPostModal property={socialProperty} onClose={() => setSocialProperty(null)} />}
       {qrProperty && <PropertyQrModal property={qrProperty} onClose={() => setQrProperty(null)} />}
+      {buildingSelection && <SelectionBuilder onClose={() => setBuildingSelection(false)} />}
       {sendProperty && (
         <SendPropertyModal
           property={sendProperty}

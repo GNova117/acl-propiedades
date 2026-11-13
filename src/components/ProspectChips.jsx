@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { followUpState, unattendedAge, unattendedState } from "../lib/prospects";
+import { agoText, openedSelection } from "../lib/selections";
 
 // Prospecto que llegó solo y nadie ha contactado: amarillo desde la primera
 // hora, rojo desde las 4.
@@ -25,4 +26,13 @@ export function FollowChip({ prospect }) {
     );
   }
   return null;
+}
+
+// El prospecto abrió la selección de propiedades que se le mandó y nadie le ha escrito desde entonces: es el momento de
+// darle seguimiento (ver lib/selections.js → openedSelection). `selections`: la lista de selecciones (queries.selections).
+export function SelectionChip({ prospect, selections }) {
+  const { t, i18n } = useTranslation();
+  const selection = openedSelection(prospect, selections || []);
+  if (!selection) return null;
+  return <span className="prospect-chip prospect-chip--today">{t("selection.chip.opened", { ago: agoText(selection.last_opened_at, i18n.language) })}</span>;
 }

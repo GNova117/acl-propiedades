@@ -7,18 +7,24 @@ const schema = readFileSync(new URL("./schema.sql", import.meta.url), "utf8");
 const standalone = readFileSync(new URL("./agendar-visita.sql", import.meta.url), "utf8");
 
 const START = "-- Agendar visita con horarios reales (2026-11-03)";
+// Bloques que se agregaron DESPUÉS en schema.sql (cada uno con su cabecera): el bloque de visitas termina donde empieza el
+// primero. Si se agrega otro bloque al final de schema.sql, anótalo aquí.
+const LATER_BLOCKS = ["-- Selección de propiedades en un solo enlace (2026-11-13)"];
 const block = () => {
   const at = schema.indexOf(START);
-  return schema.slice(schema.lastIndexOf("-- ───", at));
+  const ends = LATER_BLOCKS.map((title) => schema.indexOf(title, at))
+    .filter((index) => index > at)
+    .map((index) => schema.lastIndexOf("-- ───", index));
+  return schema.slice(schema.lastIndexOf("-- ───", at), ends.length ? Math.min(...ends) : undefined);
 };
 
 describe("supabase/agendar-visita.sql", () => {
   it("termina con el bloque de schema.sql, idéntico (si falla: regenerar la copia)", () => {
-    expect(standalone.endsWith(block())).toBe(true);
+    expect(standalone.trimEnd().endsWith(block().trimEnd())).toBe(true);
   });
 
   it("antes del bloque solo lleva comentarios (no hay SQL suelto ni secretos)", () => {
-    const header = standalone.slice(0, standalone.length - block().length);
+    const header = standalone.slice(0, standalone.trimEnd().length - block().trimEnd().length);
     for (const line of header.split("\n")) expect(line === "" || line.startsWith("--")).toBe(true);
     expect(standalone).not.toMatch(/re_[A-Za-z0-9]{20,}|service_role|eyJ[A-Za-z0-9_-]{20,}/);
   });

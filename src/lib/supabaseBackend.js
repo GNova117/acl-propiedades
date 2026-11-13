@@ -13,6 +13,7 @@ import { getOrCreateVisitorId } from "./visitorId";
 import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } from "./developments";
 import { CITA_STATUSES } from "./agendaCitas";
 import { BOOKING_TOKEN_PATTERN, DEFAULT_VISIT_SETTINGS, hhmm, normalizeVisitSchedule } from "./visitSlots";
+import { cleanSelectionInput } from "./selections";
 
 // La tabla aún no existe en la base (falta correr su bloque de schema.sql):
 // 42P01 es Postgres directo, PGRST205 es PostgREST ("no está en el schema cache").
@@ -1891,6 +1892,36 @@ export const supabaseBackend = {
     const { data, error } = await supabase.from("prospectos").select("*").order("created_at", { ascending: false });
     if (error) throw error;
     return data || [];
+  },
+
+  // Selección de propiedades en un solo enlace (ver schema.sql: property_selections y selection_open). El público solo
+  // usa selection_open (anota la apertura); el personal ve y crea filas por RLS (cada asesor las suyas).
+  async createSelection({ propertyIds, title, note, advisorId = null, prospectoId = null }) {
+    const clean = cleanSelectionInput({ propertyIds, title, note });
+    if (clean.property_ids.length === 0) throw new Error("Elige al menos una propiedad");
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = { ...clean, advisor_id: advisorId, prospecto_id: prospectoId, created_by: sessionData?.session?.user?.email || null };
+    const { data, error } = await supabase.from("property_selections").insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async getSelections() {
+    const { data, error } = await supabase.from("property_selections").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async revokeSelection(id) {
+    const { data, error } = await supabase.from("property_selections").update({ revoked_at: new Date().toISOString() }).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async openSelection(token, { track = true } = {}) {
+    const { data, error } = await supabase.rpc("selection_open", { p_token: token, p_track: track });
+    if (error) throw error;
+    return data;
   },
 
   // Alertas de propiedades por WhatsApp (ver schema.sql). El público solo usa

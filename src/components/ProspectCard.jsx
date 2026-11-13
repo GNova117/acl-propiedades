@@ -8,7 +8,7 @@ import { prospectToCitaPrefill } from "../lib/prospectAgenda";
 import QuickReplyButton from "./QuickReplyButton";
 import ProspectContactForm from "./ProspectContactForm";
 import ProspectMatches from "./ProspectMatches";
-import { FollowChip, UnattendedChip } from "./ProspectChips";
+import { FollowChip, SelectionChip, UnattendedChip } from "./ProspectChips";
 
 // Tarjeta de un prospecto en el tablero de Prospectos. Lo que se hace casi
 // siempre está a la vista —mensaje rápido y llamar, que al regresar abren solos
@@ -35,6 +35,7 @@ export default function ProspectCard({
   selectable = false,
   selected = false,
   onToggleSelect,
+  selections,
 }) {
   const { t } = useTranslation();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -82,6 +83,7 @@ export default function ProspectCard({
       </p>
       <UnattendedChip prospect={p} />
       <FollowChip prospect={p} />
+      <SelectionChip prospect={p} selections={selections} />
       {due && (
         <div className="prospect-postsale">
           <span className="prospect-chip prospect-chip--today">{t(`prospects.postsale.step${due.key}`, { days: due.since })}</span>

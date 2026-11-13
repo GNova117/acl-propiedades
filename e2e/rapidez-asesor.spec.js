@@ -108,6 +108,9 @@ test.describe("Carga entre pantallas (caché que se refresca)", () => {
     await expect(page.locator(".my-day__item", { hasText: "Primera Cita Caché QA" })).toBeVisible();
 
     await irEnLaApp(page, "/admin/agenda");
+    // Esperar a que la Agenda de verdad se pinte (su código carga aparte): si no, Mi día nunca llega a desmontarse y al
+    // «volver» no hay entrada nueva que refresque la lista (la prueba fallaba según qué tan rápido cargara la Agenda).
+    await expect(page.locator(".admin-layout__content h1").first()).toHaveText("Agenda de asesores"); // el demo ve todas las agendas
     const citas = await leer(page, "acl_local_agenda_citas");
     await page.evaluate((rows) => localStorage.setItem("acl_local_agenda_citas", JSON.stringify(rows)), [...citas, cita("cita-dos", "Segunda Cita Caché QA", 120)]);
     await irEnLaApp(page, "/admin/mi-dia");
