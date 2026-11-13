@@ -13,6 +13,7 @@ import { getOrCreateVisitorId } from "./visitorId";
 import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } from "./developments";
 import { CITA_STATUSES } from "./agendaCitas";
 import { BOOKING_TOKEN_PATTERN, DEFAULT_VISIT_SETTINGS, hhmm, normalizeVisitSchedule } from "./visitSlots";
+import { cleanSelectionInput } from "./selections";
 
 // La tabla aún no existe en la base (falta correr su bloque de schema.sql):
 // 42P01 es Postgres directo, PGRST205 es PostgREST ("no está en el schema cache").
@@ -1893,6 +1894,36 @@ export const supabaseBackend = {
     return data || [];
   },
 
+  // Selección de propiedades en un solo enlace (ver schema.sql: property_selections y selection_open). El público solo
+  // usa selection_open (anota la apertura); el personal ve y crea filas por RLS (cada asesor las suyas).
+  async createSelection({ propertyIds, title, note, advisorId = null, prospectoId = null }) {
+    const clean = cleanSelectionInput({ propertyIds, title, note });
+    if (clean.property_ids.length === 0) throw new Error("Elige al menos una propiedad");
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = { ...clean, advisor_id: advisorId, prospecto_id: prospectoId, created_by: sessionData?.session?.user?.email || null };
+    const { data, error } = await supabase.from("property_selections").insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async getSelections() {
+    const { data, error } = await supabase.from("property_selections").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async revokeSelection(id) {
+    const { data, error } = await supabase.from("property_selections").update({ revoked_at: new Date().toISOString() }).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async openSelection(token, { track = true } = {}) {
+    const { data, error } = await supabase.rpc("selection_open", { p_token: token, p_track: track });
+    if (error) throw error;
+    return data;
+  },
+
   // Alertas de propiedades por WhatsApp (ver schema.sql). El público solo usa
   // alert_subscribe / alert_unsubscribe; el personal ve la tabla (RLS: 'prospectos').
   async subscribeAlert({ kind, name, phone, contactMethod, email, criteria, propertyId }) {
@@ -2403,8 +2434,10 @@ export const supabaseBackend = {
 
   // `contact_*`: datos de quien no es un cliente registrado (para mandarle el enlace de la cita). Como `lugar`,
   // solo se mandan si se capturaron. La cita trae su `booking_token` por omisión (ver "fase 8" en schema.sql).
-  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email, property_id, prospecto_id }) {
+  // `id` (opcional): lo pone quien guarda sin señal (cola de offlineQueue.js) para que un reenvío no duplique la cita.
+  async addAgendaCita({ id, advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email, property_id, prospecto_id }) {
     const payload = {
+      ...(id ? { id } : {}),
       advisor_id,
       client_id: client_id || null,
       titulo: titulo.trim(),
@@ -2659,15 +2692,24 @@ export const supabaseBackend = {
   },
 
   async signOut() {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    // Sin señal el cierre en el servidor falla y la sesión seguiría guardada: se cierra al menos en este dispositivo.
+    if (error) await supabase.auth.signOut({ scope: "local" });
   },
 
-  getCurrentSession() {
-    return supabase.auth.getSession().then(({ data }) => data.session);
+  // Sin sesión guardada devuelve null. Si la guardada caducó y no se pudo renovar por falta de red, NO es lo mismo que no
+  // haber iniciado sesión: se rechaza con un error de red (isOfflineError) para que el panel pueda abrir sin señal.
+  async getCurrentSession() {
+    const { data, error } = await supabase.auth.getSession();
+    if (!data.session && error?.name === "AuthRetryableFetchError") {
+      throw Object.assign(new Error("network request failed"), { cause: error });
+    }
+    return data.session;
   },
 
+  // El callback recibe (sesión, evento): el evento distingue, p. ej., INITIAL_SESSION de SIGNED_OUT.
   onAuthStateChange(callback) {
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => callback(session));
+    const { data } = supabase.auth.onAuthStateChange((event, session) => callback(session, event));
     return () => data.subscription.unsubscribe();
   },
 

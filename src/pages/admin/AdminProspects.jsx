@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
-import { FOLLOWUP_OPTIONS, PROSPECT_STAGES, firstStageWithProspects, followUpState, unattendedState, visitToProspectFields } from "../../lib/prospects";
+import { FOLLOWUP_OPTIONS, PROSPECT_STAGES, firstStageWithProspects, followUpState, isForgotten, unattendedState, visitToProspectFields } from "../../lib/prospects";
 import { applyBulk, followupDate } from "../../lib/prospectBulk";
 import { convertProspectToClient } from "../../lib/prospectActions";
 import { matchingProperties } from "../../lib/prospectMatch";
@@ -13,6 +13,7 @@ import { peek } from "../../lib/dataCache";
 import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import ProspectCard from "../../components/ProspectCard";
+import ProspectImportModal from "../../components/ProspectImportModal";
 import "./admin.css";
 import "./AdminProspects.css";
 
@@ -26,6 +27,8 @@ import "./AdminProspects.css";
 const NONE = [];
 
 const normalize = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+const NO_ADVISOR = "__none__"; // valor del filtro «Sin asesor»
 
 export default function AdminProspects() {
   const { t } = useTranslation();
@@ -41,6 +44,7 @@ export default function AdminProspects() {
   const propertiesQ = useQuery(queries.properties);
   const visitsQ = useQuery(queries.visits, { enabled: canImport });
   const historyQ = useQuery(queries.stageHistory);
+  const selectionsQ = useQuery(queries.selections);
   const prospects = prospectsQ.data ?? NONE;
   const advisors = advisorsQ.data ?? NONE;
   const properties = propertiesQ.data ?? NONE;
@@ -52,10 +56,15 @@ export default function AdminProspects() {
   const setProspects = prospectsQ.mutate;
   const [busyId, setBusyId] = useState(null);
   const [importing, setImporting] = useState(false);
+  const [pasteOpen, setPasteOpen] = useState(false); // «Pegar o importar lista»
   const [query, setQuery] = useState("");
-  const [advisorFilter, setAdvisorFilter] = useState("");
-  const [overdueOnly, setOverdueOnly] = useState(false);
-  const [unattendedOnly, setUnattendedOnly] = useState(false);
+  // Equipo hoy (la oficina) llega aquí ya filtrado: ?asesor=<id>|ninguno&filtro=vencidos|sin-atender|olvidados&seleccionar=1.
+  const [params] = useSearchParams();
+  const filtro = params.get("filtro");
+  const [advisorFilter, setAdvisorFilter] = useState(() => (params.get("asesor") === "ninguno" ? NO_ADVISOR : params.get("asesor") || ""));
+  const [overdueOnly, setOverdueOnly] = useState(filtro === "vencidos");
+  const [unattendedOnly, setUnattendedOnly] = useState(filtro === "sin-atender");
+  const [forgottenOnly, setForgottenOnly] = useState(filtro === "olvidados");
   // Etapa visible en el teléfono (en pantalla ancha se ven todas). Abre en la primera
   // etapa abierta que tenga prospectos: con la lista ya en el caché, desde el primer pintado.
   const cachedProspects = peek(queries.prospects.key);
@@ -70,7 +79,7 @@ export default function AdminProspects() {
 
   // Modo «Seleccionar»: casillas en las tarjetas y una barra para cambiar de etapa, poner el seguimiento o
   // (la oficina) reasignar a varios prospectos a la vez.
-  const [selecting, setSelecting] = useState(false);
+  const [selecting, setSelecting] = useState(() => params.get("seleccionar") === "1");
   const [selected, setSelected] = useState(() => new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
@@ -96,17 +105,29 @@ export default function AdminProspects() {
   // Propiedades disponibles que encajan con lo que busca cada prospecto abierto.
   const matchesByProspect = useMemo(() => new Map(prospects.map((p) => [p.id, matchingProperties(p, properties)])), [prospects, properties]);
 
+  const activeAdvisorIds = useMemo(() => new Set(advisors.filter((a) => a.active !== false).map((a) => a.id)), [advisors]);
   const filtered = useMemo(() => {
     const q = normalize(query);
     return prospects.filter((p) => {
-      if (advisorFilter && p.advisor_id !== advisorFilter) return false;
+      // «Sin asesor» incluye a los de un asesor que ya no está activo (también necesitan dueño).
+      if (advisorFilter === NO_ADVISOR ? p.advisor_id && activeAdvisorIds.has(p.advisor_id) : advisorFilter && p.advisor_id !== advisorFilter) return false;
       if (overdueOnly && followUpState(p) !== "overdue") return false;
       if (unattendedOnly && !unattendedState(p)) return false;
+      if (forgottenOnly && !isForgotten(p)) return false;
       if (!q) return true;
       return [p.name, p.phone, p.email, p.looking_for, propertyTitle(p.property_id)].some((v) => normalize(v).includes(q));
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prospects, query, advisorFilter, overdueOnly, unattendedOnly, properties]);
+  }, [prospects, query, advisorFilter, overdueOnly, unattendedOnly, forgottenOnly, activeAdvisorIds, properties]);
+
+  // Si se llegó con filtros en la dirección (Equipo hoy), en el teléfono el tablero abre en la primera etapa que tenga algo de lo filtrado.
+  const filtersFromUrl = useRef(Boolean(params.get("asesor") || params.get("filtro")));
+  useEffect(() => {
+    if (filtersFromUrl.current && prospectsQ.data) {
+      filtersFromUrl.current = false;
+      setActiveStage(firstStageWithProspects(filtered));
+    }
+  }, [prospectsQ.data, filtered]);
 
   const handleExport = () => {
     exportToCsv("prospectos.csv", filtered, [
@@ -248,6 +269,9 @@ export default function AdminProspects() {
           <button type="button" className={`btn btn-outline${selecting ? " is-active" : ""}`} onClick={toggleSelecting} aria-pressed={selecting}>
             {selecting ? t("prospects.bulk.exit") : t("prospects.bulk.select")}
           </button>
+          <button type="button" className="btn btn-outline" onClick={() => setPasteOpen(true)}>
+            {t("prospectImport.open")}
+          </button>
           {canImport && importable.length > 0 && (
             <button type="button" className="btn btn-outline" onClick={handleImport} disabled={importing}>
               {importing ? <span className="spinner" /> : null}
@@ -271,6 +295,7 @@ export default function AdminProspects() {
         {seesAll && (
           <select value={advisorFilter} onChange={(e) => setAdvisorFilter(e.target.value)} aria-label={t("prospects.form.advisor")}>
             <option value="">{t("prospects.allAdvisors")}</option>
+            <option value={NO_ADVISOR}>{t("prospects.noAdvisor")}</option>
             {advisors.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}
@@ -285,6 +310,10 @@ export default function AdminProspects() {
         <label className="prospect-filters__check">
           <input type="checkbox" checked={unattendedOnly} onChange={(e) => setUnattendedOnly(e.target.checked)} />
           {t("prospects.unattendedOnly")}
+        </label>
+        <label className="prospect-filters__check">
+          <input type="checkbox" checked={forgottenOnly} onChange={(e) => setForgottenOnly(e.target.checked)} />
+          {t("prospects.forgottenOnly")}
         </label>
       </div>
 
@@ -349,6 +378,7 @@ export default function AdminProspects() {
                       selectable={selecting}
                       selected={selected.has(p.id)}
                       onToggleSelect={toggleOne}
+                      selections={selectionsQ.data}
                     />
                   ))}
                 </section>
@@ -446,6 +476,15 @@ export default function AdminProspects() {
             </div>
           )}
         </>
+      )}
+      {pasteOpen && (
+        <ProspectImportModal
+          onClose={() => setPasteOpen(false)}
+          onImported={(created) => {
+            setProspects((prev) => [...created, ...(prev || [])]);
+            setActiveStage("nuevo"); // en el teléfono el tablero va a donde quedaron los recién importados
+          }}
+        />
       )}
     </div>
   );

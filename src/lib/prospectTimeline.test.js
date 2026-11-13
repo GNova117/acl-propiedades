@@ -7,6 +7,28 @@ const NOW = new Date(2026, 10, 12, 12, 0); // jueves 12 de noviembre de 2026, 12
 const prospect = { id: "p1", name: "María", phone: "871 123 4567", source: "sitio", stage: "interesado", created_at: iso(1) };
 const kinds = (items) => items.map((i) => i.kind);
 
+describe("buildTimeline: selecciones de propiedades", () => {
+  const sel = (over = {}) => ({ id: "s1", prospecto_id: "p1", title: "Propiedades para María", property_ids: ["a", "b", "c"], created_at: iso(3, 9), open_count: 0, first_opened_at: null, last_opened_at: null, revoked_at: null, ...over });
+
+  it("anota cuándo se le mandó (con cuántas propiedades) y, si la abrió, la primera apertura con las veces", () => {
+    const items = buildTimeline({ prospect, selections: [sel({ open_count: 3, first_opened_at: iso(3, 18), last_opened_at: iso(4, 8) })], now: NOW });
+    expect(kinds(items)).toEqual(["selectionOpened", "selection", "created"]);
+    expect(items[0]).toMatchObject({ selectionId: "s1", opens: 3, title: "Propiedades para María", at: new Date(iso(3, 18)).getTime(), lastAt: new Date(iso(4, 8)).getTime() });
+    expect(items[1]).toMatchObject({ selectionId: "s1", count: 3, revoked: false, at: new Date(iso(3, 9)).getTime() });
+  });
+
+  it("sin abrir solo trae el envío; desactivada lo marca", () => {
+    const items = buildTimeline({ prospect, selections: [sel({ revoked_at: iso(4) })], now: NOW });
+    expect(kinds(items)).toEqual(["selection", "created"]);
+    expect(items[0].revoked).toBe(true);
+  });
+
+  it("solo las de este prospecto, y una fecha vacía no inventa un evento en 1970", () => {
+    const items = buildTimeline({ prospect, selections: [sel({ id: "s2", prospecto_id: "otro" }), sel({ id: "s3", first_opened_at: "" })], now: NOW });
+    expect(items.filter((i) => i.kind.startsWith("selection")).map((i) => i.id)).toEqual(["selection-s3"]);
+  });
+});
+
 describe("buildTimeline", () => {
   it("siempre trae el alta («Capturado»), con su origen", () => {
     const [created] = buildTimeline({ prospect, now: NOW });

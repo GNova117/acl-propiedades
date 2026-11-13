@@ -4,10 +4,12 @@ import { formatMXN } from "../lib/format";
 import { criteriaSummary } from "../lib/prospectMatch";
 import { sendLink, suggestPropertyMessage } from "../lib/prospectMessages";
 import { propertiesShareMessage } from "../lib/propertyShare";
+import SelectionBuilder from "./SelectionBuilder";
 
 // Cuántas propiedades que le encajan se listan (el resto se cuenta).
 const MAX_MATCHES = 5;
 const MAX_SENT_TOGETHER = 3; // propiedades en un mismo mensaje de "enviar juntas"
+const SELECTION_PICKS = 5; // las que vienen marcadas al armar una selección desde aquí
 
 // "N propiedades le encajan": chip que despliega la lista, con un botón para
 // mandarle cada una (o las primeras juntas) por WhatsApp o correo. Va en la
@@ -16,6 +18,7 @@ const MAX_SENT_TOGETHER = 3; // propiedades en un mismo mensaje de "enviar junta
 export default function ProspectMatches({ prospect, matches, advisorName = "", onSent, defaultOpen = false }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(defaultOpen);
+  const [building, setBuilding] = useState(false);
   if (matches.length === 0) return null;
 
   const suggestionLink = (property) =>
@@ -58,6 +61,9 @@ export default function ProspectMatches({ prospect, matches, advisorName = "", o
             })}
           </ul>
           {matches.length > MAX_MATCHES && <p className="form-hint">{t("prospects.match.more", { count: matches.length - MAX_MATCHES })}</p>}
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => setBuilding(true)}>
+            {t("selection.list.new")}
+          </button>
           {bundle && (
             <a
               className="btn btn-primary btn-sm"
@@ -70,6 +76,17 @@ export default function ProspectMatches({ prospect, matches, advisorName = "", o
             </a>
           )}
         </>
+      )}
+      {building && (
+        <SelectionBuilder
+          prospect={prospect}
+          initialIds={matches.slice(0, SELECTION_PICKS).map((p) => p.id)}
+          onClose={() => setBuilding(false)}
+          onSent={(channel) => {
+            setBuilding(false);
+            onSent?.(channel);
+          }}
+        />
       )}
     </div>
   );

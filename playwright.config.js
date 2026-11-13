@@ -30,7 +30,8 @@ export default defineConfig({
   use: {
     baseURL,
     locale: "es-MX",
-    // Sin service worker: en el build de producción cachearía respuestas entre pruebas.
+    // Sin service worker: en el build de producción cachearía respuestas entre pruebas. Solo abre-sin-senal.spec.js lo
+    // activa (test.use), porque es justo lo que prueba; cada prueba tiene su propio contexto, sin caché compartido.
     serviceWorkers: "block",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",

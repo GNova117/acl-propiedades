@@ -1,0 +1,102 @@
+/* «Pegar o importar lista» (ProspectImportModal.jsx): la ventana usa las clases de PropertyProspectsModal; aquí la lista de renglones. */
+
+.prospect-import {
+  width: min(760px, 100%);
+}
+
+.prospect-import__list {
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0;
+  max-height: 22rem;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.prospect-import__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.25rem 0.6rem;
+  padding: 0.6rem 0.7rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.prospect-import__row:last-child {
+  border-bottom: 0;
+}
+
+.prospect-import__row.is-on {
+  background: color-mix(in srgb, var(--color-primary, #1d4ed8) 8%, transparent);
+}
+
+.prospect-import__pick {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 0.5rem;
+}
+
+.prospect-import__pick input {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.prospect-import__fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.prospect-import__fields input {
+  min-width: 0;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.prospect-import__flags {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.prospect-import__flags:empty {
+  display: none;
+}
+
+.prospect-import__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.prospect-import__actions .form-hint {
+  margin: 0;
+}
+
+/* El selector de archivo es el propio botón (el input real va oculto pero sigue siendo accesible). */
+.prospect-import__file {
+  position: relative;
+  cursor: pointer;
+}
+
+.prospect-import__file input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .prospect-import__fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

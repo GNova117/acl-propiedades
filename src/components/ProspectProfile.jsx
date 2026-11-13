@@ -11,6 +11,8 @@ import { useProspectContact } from "../lib/useProspectContact";
 import QuickReplyButton from "./QuickReplyButton";
 import ProspectContactForm from "./ProspectContactForm";
 import ProspectMatches from "./ProspectMatches";
+import ProspectSelections from "./ProspectSelections";
+import SelectionBuilder from "./SelectionBuilder";
 import { FollowChip, UnattendedChip } from "./ProspectChips";
 
 // Ficha de un prospecto: lo que hay que saber de él y lo que se le hace, sin
@@ -27,6 +29,7 @@ export default function ProspectProfile({ prospect: p, properties, advisors, onU
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const contact = useProspectContact({ onUpdated });
+  const [building, setBuilding] = useState(false);
 
   // Al llegar desde «Llamar» o «WhatsApp» de la búsqueda (state.logContact = canal), «Registrar contacto» ya
   // queda abierto con ese canal: al regresar de la llamada o del chat solo falta el resultado.
@@ -81,6 +84,7 @@ export default function ProspectProfile({ prospect: p, properties, advisors, onU
     ) : null;
 
   return (
+    <>
     <section className="card prospect-profile" aria-label={t("prospects.profile.summary")}>
       <div className="prospect-profile__head">
         <div>
@@ -198,5 +202,17 @@ export default function ProspectProfile({ prospect: p, properties, advisors, onU
 
       <ProspectMatches prospect={p} matches={matches} advisorName={advisorName} onSent={(channel) => contact.open(p, channel, true)} />
     </section>
+    <ProspectSelections prospect={p} advisorName={advisorName} onNew={() => setBuilding(true)} onSent={(channel) => contact.open(p, channel, true)} />
+    {building && (
+      <SelectionBuilder
+        prospect={p}
+        onClose={() => setBuilding(false)}
+        onSent={(channel) => {
+          setBuilding(false);
+          contact.open(p, channel, true);
+        }}
+      />
+    )}
+    </>
   );
 }

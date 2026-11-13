@@ -17,7 +17,7 @@
 import { next } from "@vercel/functions";
 
 export const config = {
-  matcher: ["/", "/propiedades", "/propiedades/:id", "/terrenos", "/naves-industriales", "/nosotros", "/contacto", "/guia-del-comprador"],
+  matcher: ["/", "/propiedades", "/propiedades/:id", "/terrenos", "/naves-industriales", "/nosotros", "/contacto", "/guia-del-comprador", "/seleccion/:token"],
 };
 
 const SITE_URL = "https://acl-propiedades.vercel.app";
@@ -74,7 +74,14 @@ function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
 
-function renderPreviewHtml({ title, description, url, image }) {
+// Selección de propiedades que un asesor manda por WhatsApp (/seleccion/<token>): la vista previa es genérica a propósito
+// (no revela cuántas propiedades ni para quién) y no se indexa: el enlace es privado.
+const SELECTION_PAGE = {
+  title: "Selección de propiedades | ACL Propiedades",
+  description: "Tu asesor preparó una selección de propiedades para ti. Entra para ver fotos, precios y coordinar tu visita.",
+};
+
+function renderPreviewHtml({ title, description, url, image, noindex = false }) {
   const imageTag = image
     ? `<meta property="og:image" content="${escapeHtml(image)}">\n<meta name="twitter:image" content="${escapeHtml(image)}">`
     : "";
@@ -83,7 +90,7 @@ function renderPreviewHtml({ title, description, url, image }) {
 <head>
 <meta charset="utf-8">
 <title>${escapeHtml(title)}</title>
-<meta property="og:type" content="website">
+${noindex ? '<meta name="robots" content="noindex, nofollow, noarchive">\n' : ""}<meta property="og:type" content="website">
 <meta property="og:site_name" content="ACL Propiedades">
 <meta property="og:title" content="${escapeHtml(title)}">
 <meta property="og:description" content="${escapeHtml(description)}">
@@ -137,6 +144,11 @@ export default async function middleware(request) {
     if (match) {
       const response = await propertyPreviewResponse(match[1]);
       return response || next();
+    }
+
+    if (/^\/seleccion\/[0-9a-f]{32}\/?$/.test(pathname)) {
+      const html = renderPreviewHtml({ ...SELECTION_PAGE, url: `${SITE_URL}${pathname}`, image: DEFAULT_IMAGE, noindex: true });
+      return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
     }
 
     const generic = GENERIC_PAGES[pathname === "/" ? "/" : pathname.replace(/\/$/, "")];

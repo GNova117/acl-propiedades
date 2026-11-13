@@ -2017,12 +2017,20 @@
         "stage": "Etapa",
         "appointment": "Cita",
         "visit": "Visita",
-        "note": "Nota"
+        "note": "Nota",
+        "selection": "Selección enviada",
+        "selectionOpened": "Selección abierta"
       },
       "upcoming": "Próxima",
       "created": "Origen: {{source}}",
       "stageTo": "Pasó a «{{stage}}»",
       "visitTo": "Visita a {{property}}",
+      "selectionSent_one": "«{{title}}» · {{count}} propiedad",
+      "selectionSent_other": "«{{title}}» · {{count}} propiedades",
+      "selectionRevoked": "Enlace desactivado",
+      "selectionOpenedText": "Abrió «{{title}}»",
+      "selectionOpenedTimes_one": "La ha abierto {{count}} vez; la última, {{ago}}",
+      "selectionOpenedTimes_other": "La ha abierto {{count}} veces; la última, {{ago}}",
       "showMore": "Ver {{count}} más",
       "showLess": "Ver menos"
     },
@@ -2075,6 +2083,7 @@
       "recomendacion": "Recomendación",
       "redes": "Redes sociales",
       "sitio": "Sitio web",
+      "importado": "Importado",
       "otro": "Otro"
     },
     "emptyColumn": "Sin prospectos",
@@ -2086,6 +2095,8 @@
     "followToday": "Seguimiento hoy",
     "followOn": "Seguimiento: {{date}}",
     "logContact": "Registrar contacto",
+    "noAdvisor": "Sin asesor",
+    "forgottenOnly": "Solo sin seguimiento (7+ días)",
     "unattendedOnly": "Solo sin atender",
     "unattended": {
       "hours_one": "Sin atender: {{count}} h",
@@ -3409,7 +3420,179 @@
     "logTitle": "¿Ya se lo mandaste? Registra el contacto con {{name}}:",
     "logged": "Contacto registrado."
   },
+  "selection": {
+    "builder": {
+      "title": "Armar selección",
+      "readyTitle": "Enlace listo",
+      "forProspect": "Para {{name}}. Las propiedades que le encajan ya vienen marcadas.",
+      "recipient": "¿A quién se la mandas?",
+      "titleLabel": "Título (lo ve el cliente)",
+      "noteLabel": "Mensaje para el cliente (opcional)",
+      "notePlaceholder": "Ej. Estas son las que mejor van con lo que platicamos. Dime cuál te gusta y la visitamos.",
+      "properties": "Propiedades",
+      "picked_one": "{{count}} de {{max}} propiedad elegida",
+      "picked_other": "{{count}} de {{max}} propiedades elegidas",
+      "remove": "Quitar {{title}}",
+      "pick": "Elegir {{title}}",
+      "searchProps": "Buscar propiedad por nombre, código o zona",
+      "fits": "Le encaja",
+      "noProps": "No hay propiedades disponibles con esa búsqueda.",
+      "refine": "Y {{count}} más: afina la búsqueda para verlas.",
+      "maxReached": "Máximo {{max}} propiedades por selección.",
+      "needOne": "Elige al menos una propiedad.",
+      "needOnline": "Necesitas conexión para crear el enlace.",
+      "createError": "No se pudo crear la selección.",
+      "create_one": "Crear enlace con {{count}} propiedad",
+      "create_other": "Crear enlace con {{count}} propiedades",
+      "creating": "Creando…",
+      "createHint": "Después eliges cómo mandarlo.",
+      "readyHint_one": "La selección con {{count}} propiedad está lista. Mándala por WhatsApp o copia el enlace.",
+      "readyHint_other": "La selección con {{count}} propiedades está lista. Mándala por WhatsApp o copia el enlace.",
+      "link": "Enlace",
+      "copyLink": "Copiar enlace",
+      "preview": "Ver como la verá el cliente",
+      "sendEmail": "Enviar por correo",
+      "emailSubject": "Selección de propiedades para ti — ACL Propiedades"
+    },
+    "list": {
+      "title": "Selecciones enviadas",
+      "new": "Armar selección",
+      "empty": "Todavía no le has mandado una selección.",
+      "properties_one": "{{count}} propiedad",
+      "properties_other": "{{count}} propiedades",
+      "sentOn": "Mandada {{date}}",
+      "state": {
+        "sent": "Sin abrir",
+        "opened": "La abrió {{ago}}",
+        "expired": "Vencida",
+        "revoked": "Desactivada"
+      },
+      "times_one": "{{count}} vez",
+      "times_other": "{{count}} veces",
+      "validUntil": "Vence el {{date}}",
+      "copyLink": "Copiar enlace",
+      "copied": "Copiado",
+      "resend": "Reenviar",
+      "view": "Ver",
+      "revoke": "Desactivar",
+      "confirmRevoke": "¿Desactivar este enlace? El cliente ya no podrá abrirlo.",
+      "revokeError": "No se pudo desactivar el enlace.",
+      "resendMessage": "Hola, te vuelvo a compartir la selección de propiedades: {{url}}"
+    },
+    "chip": {
+      "opened": "Abrió la selección {{ago}}"
+    },
+    "public": {
+      "pageTitle": "Selección de propiedades",
+      "defaultTitle": "Propiedades para ti",
+      "advisor": "Tu asesor",
+    "office": "Contacto",
+      "call": "Llamar",
+      "interested": "Me interesa",
+      "interestedAria": "Me interesa: {{title}}",
+        "unavailable": "Ya no está disponible",
+      "validUntil": "Enlace vigente hasta el {{date}}",
+      "preview": "Vista previa del asesor: esta visita no cuenta como apertura.",
+      "interestMessage": "Hola, vi la selección de propiedades que me compartiste y me interesa «{{title}}» ({{url}}). ¿Podemos coordinar una visita?",
+      "generalMessage": "Hola, vi la selección de propiedades que me compartiste ({{url}}). Tengo una duda.",
+      "invalidTitle": "Enlace no válido",
+      "invalidBody": "Revisa que el enlace esté completo o pídele a tu asesor que te mande uno nuevo.",
+      "errorTitle": "No pudimos abrir la selección",
+      "errorBody": "Revisa tu conexión e intenta de nuevo en un momento.",
+      "expiredTitle": "Esta selección ya venció",
+      "expiredBody": "Pídele a tu asesor que te mande una actualizada.",
+      "revokedTitle": "Esta selección ya no está disponible",
+      "revokedBody": "Tu asesor la desactivó. Escríbele y te manda una nueva.",
+      "noProperties": "Las propiedades de esta selección ya no están disponibles. Escríbele a tu asesor y te sugiere otras."
+    }
+  },
+  "prospectImport": {
+    "open": "Pegar o importar lista",
+    "title": "Pegar o importar prospectos",
+    "intro": "Pega nombres y teléfonos (de un chat o una lista de WhatsApp), o sube un CSV (Facebook Lead Ads, una hoja de cálculo) o contactos compartidos (.vcf). Antes de guardar los revisas.",
+    "pasteLabel": "Texto o lista",
+    "pastePlaceholder": "Luis Pérez 871 123 4567\nAna López - 871 234 5678 - ana@correo.com",
+    "file": "Subir archivo (.csv, .txt, .vcf)",
+    "review": "Revisar",
+    "nothing": "No encontré ningún teléfono ni correo en ese texto.",
+    "fileError": "No se pudo leer el archivo.",
+    "fileTooBig": "El archivo es demasiado grande (máximo 1 MB).",
+    "kind": {
+      "text": "lista de texto",
+      "csv": "archivo CSV",
+      "vcard": "contactos .vcf"
+    },
+    "found_one": "Encontré {{count}} contacto ({{kind}}).",
+    "found_other": "Encontré {{count}} contactos ({{kind}}).",
+    "truncated": "Solo se toman los primeros {{max}}.",
+    "checking": "Revisando si ya existen…",
+    "summary": "{{ready}} por importar · {{skipped}} sin importar",
+    "assignTo": "Asignar a",
+    "noAdvisor": "Sin asesor",
+    "columns": {
+      "name": "Nombre",
+      "phone": "Teléfono",
+      "email": "Correo"
+    },
+    "pick": "Importar a {{name}}",
+    "issues": {
+      "noName": "Falta el nombre",
+      "badPhone": "Teléfono incompleto",
+      "noContact": "Falta teléfono o correo"
+    },
+    "repeated": "Repetido en la lista",
+    "dupe": "Ya existe: {{name}} ({{kind}})",
+    "kinds": {
+      "prospect": "prospecto",
+      "client": "cliente"
+    },
+    "import_one": "Importar {{count}} prospecto",
+    "import_other": "Importar {{count}} prospectos",
+    "importing": "Importando…",
+    "back": "Cambiar el texto",
+    "needOnline": "Necesitas conexión para importar.",
+    "error": "No se pudieron importar los prospectos.",
+    "done_one": "Se importó {{count}} prospecto.",
+    "done_other": "Se importaron {{count}} prospectos.",
+    "doneHint": "Quedaron en la etapa «Nuevo», con origen «Importado».",
+    "finish": "Listo"
+  },
+  "team": {
+    "navTitle": "Equipo hoy",
+    "title": "Equipo hoy",
+    "subtitle": "lo que cada asesor tiene pendiente (mismas reglas que su «Mi día»)",
+    "totals": "Totales del equipo",
+    "officeOnly": "Este resumen es para la oficina: tu día está en «Mi día».",
+    "empty": "Todavía no hay asesores ni prospectos que mostrar.",
+    "tiles": {
+      "unattended": "Sin atender",
+      "urgentSome_one": "{{count}} urgente",
+      "urgentSome_other": "{{count}} urgentes",
+      "overdue": "Seguimientos vencidos",
+      "dueToday": "Seguimiento hoy",
+      "forgotten": "Sin seguimiento (7+ días)",
+      "agendaToday": "Citas por atender hoy",
+      "toClose": "Visitas por cerrar",
+      "toConfirm": "Por confirmar"
+    },
+    "state": {
+      "ok": "Al día",
+      "attention": "Pide atención",
+      "urgent": "Urgente"
+    },
+    "unassigned": {
+      "title": "Sin asesor",
+      "hint": "Prospectos sin asesor, o de uno que ya no está activo: nadie les da seguimiento."
+    },
+    "requests_one": "{{count}} solicitud de visita del sitio sin tomar.",
+    "requests_other": "{{count}} solicitudes de visita del sitio sin tomar.",
+    "requestsOpen": "Verlas en Mi día",
+    "viewProspects_one": "Ver {{count}} prospecto abierto",
+    "viewProspects_other": "Ver {{count}} prospectos abiertos",
+    "reassign": "Reasignar…"
+  },
   "offline": {
+    "loadFailed": "Sin conexión: esta pantalla necesita señal para cargar. Lo que captures con «+» se guarda en este dispositivo y se envía solo al volver la señal.",
     "banner": {
       "label": "Estado de la conexión",
       "offline": "Sin conexión. Lo que captures se guarda en este dispositivo y se envía solo al volver la señal.",
@@ -3427,6 +3610,8 @@
       "hide": "Ocultar"
     },
     "op": {
+      "visit": "Visita: {{name}}",
+      "cita": "Cita: {{name}}",
       "prospect": "Prospecto nuevo: {{name}}",
       "contact": "Contacto con {{name}} ({{channel}})",
       "when": "Capturado {{when}}",
@@ -3434,6 +3619,12 @@
       "retry": "Reintentar",
       "discard": "Descartar",
       "confirmDiscard": "¿Descartar este cambio? Se perderá y no se enviará."
+    },
+    "saved": {
+      "title": "Guardada en este dispositivo",
+      "visit": "La visita «{{name}}» se enviará sola cuando haya señal. Mientras tanto no aparece en las listas.",
+      "cita": "La cita «{{name}}» se enviará sola cuando haya señal. Mientras tanto no aparece en la Agenda y su enlace para el cliente estará disponible cuando se envíe.",
+      "back": "Volver"
     },
     "quickSaved": "Guardado en este dispositivo: {{name}}. Se enviará cuando haya señal.",
     "saveFailed": "No se pudo guardar sin conexión en este dispositivo. Intenta de nuevo con señal.",

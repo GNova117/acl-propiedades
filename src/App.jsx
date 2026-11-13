@@ -91,6 +91,7 @@ const AdminSalesReports = lazy(() => import("./pages/admin/AdminSalesReports"));
 const AdminPropertyBitacora = lazy(() => import("./pages/admin/AdminPropertyBitacora"));
 const AdminSecretaria = lazy(() => import("./pages/admin/AdminSecretaria"));
 const AdminProspects = lazy(() => import("./pages/admin/AdminProspects"));
+const AdminTeamDay = lazy(() => import("./pages/admin/AdminTeamDay"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
 const AdminClientHistory = lazy(() => import("./pages/admin/AdminClientHistory"));
 const AdminProspectForm = lazy(() => import("./pages/admin/AdminProspectForm"));
@@ -109,6 +110,7 @@ const PublicSign = lazy(() => import("./pages/PublicSign"));
 // ruta /documentos/:token más abajo, igual patrón que /informe/:token y /firmar/:token.
 const PortalDocuments = lazy(() => import("./pages/PortalDocuments"));
 const PublicVisit = lazy(() => import("./pages/PublicVisit"));
+const PublicSelection = lazy(() => import("./pages/PublicSelection"));
 const AdminSignatures = lazy(() => import("./pages/admin/AdminSignatures"));
 const AdminFunnel = lazy(() => import("./pages/admin/AdminFunnel"));
 const AdminMonthlyReport = lazy(() => import("./pages/admin/AdminMonthlyReport"));
@@ -205,6 +207,7 @@ export default function App() {
       <Route path="/firmar/:token" element={<ErrorBoundary><PublicSign /></ErrorBoundary>} />
       <Route path="/documentos/:token" element={<ErrorBoundary><PortalDocuments /></ErrorBoundary>} />
       <Route path="/visita/:token" element={<ErrorBoundary><PublicVisit /></ErrorBoundary>} />
+      <Route path="/seleccion/:token" element={<ErrorBoundary><PublicSelection /></ErrorBoundary>} />
 
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route
@@ -350,6 +353,7 @@ export default function App() {
         <Route path="blog/nuevo" element={<RequireSection section="blog"><AdminBlogForm /></RequireSection>} />
         <Route path="blog/:id" element={<RequireSection section="blog"><AdminBlogForm /></RequireSection>} />
         <Route path="prospectos" element={<RequireSection section="prospectos"><AdminProspects /></RequireSection>} />
+        <Route path="equipo" element={<RequireSection section="prospectos"><AdminTeamDay /></RequireSection>} />
         <Route path="prospectos/nuevo" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />
         <Route path="prospectos/:id" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />
         <Route path="gastos" element={<RequireSection section="gastos"><AdminExpenses /></RequireSection>} />

@@ -15,6 +15,7 @@ import { DEVELOPMENTS_SEED } from "./developmentsSeed";
 import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } from "./developments";
 import { CITA_STATUSES } from "./agendaCitas";
 import { findOpenProspect, mergeBookingIntoProspect, prospectFieldsFromBooking, syncProspectFollowup } from "./visitProspect";
+import { SELECTION_VALID_DAYS, cleanSelectionInput } from "./selections";
 import {
   BOOKING_TOKEN_PATTERN,
   DEFAULT_VISIT_SETTINGS,
@@ -44,6 +45,7 @@ function clientExpedientePayload(data) {
 
 const KEYS = {
   properties: "acl_local_properties",
+  selections: "acl_local_selecciones",
   advisors: "acl_local_advisors",
   zones: "acl_local_zones",
   propertyTypes: "acl_local_property_types",
@@ -171,6 +173,9 @@ function writeStoreOrThrowFriendly(key, value, quotaMessage = VIDEO_QUOTA_MESSAG
 function uid(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
+
+// Como la base real al repetir un id (código 23505): la cola sin señal lo da por ya enviado.
+const duplicateKeyError = () => Object.assign(new Error("duplicate key value violates unique constraint"), { code: "23505" });
 
 // Arranca después de los 9 códigos sembrados (ACL-1001..1009) — mismo
 // esquema que la secuencia de Postgres (properties_code_seq start 1001),
@@ -1785,6 +1790,7 @@ export const localBackend = {
 
   async addVisit(fields) {
     const items = readStore(KEYS.visits, VISITS_SEED);
+    if (fields.id && items.some((v) => v.id === fields.id)) throw duplicateKeyError();
     const now = new Date().toISOString();
     const record = { id: uid("visit"), ...fields, created_by: DEMO_ADMIN.email, created_at: now, updated_at: now };
     items.push(record);
@@ -2125,6 +2131,66 @@ export const localBackend = {
     writeStore(KEYS.prospectContacts, readStore(KEYS.prospectContacts, []).filter((c) => c.prospecto_id !== id));
   },
 
+  // Selección de propiedades en un solo enlace (espejo de property_selections y selection_open de schema.sql).
+  async createSelection({ propertyIds, title, note, advisorId = null, prospectoId = null }) {
+    const clean = cleanSelectionInput({ propertyIds, title, note });
+    if (clean.property_ids.length === 0) throw new Error("Elige al menos una propiedad");
+    const now = new Date();
+    const record = {
+      id: uid("selection"),
+      token: generateBookingToken(),
+      ...clean,
+      advisor_id: advisorId,
+      prospecto_id: prospectoId,
+      created_by: DEMO_ADMIN.email,
+      created_at: now.toISOString(),
+      expires_at: new Date(now.getTime() + SELECTION_VALID_DAYS * 864e5).toISOString(),
+      first_opened_at: null,
+      last_opened_at: null,
+      open_count: 0,
+      revoked_at: null,
+    };
+    writeStore(KEYS.selections, [record, ...readStore(KEYS.selections, [])]);
+    return record;
+  },
+
+  async getSelections() {
+    return [...readStore(KEYS.selections, [])].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  },
+
+  async revokeSelection(id) {
+    const items = readStore(KEYS.selections, []);
+    const idx = items.findIndex((s) => s.id === id);
+    if (idx === -1) throw new Error("Selección no encontrada");
+    items[idx] = { ...items[idx], revoked_at: new Date().toISOString() };
+    writeStore(KEYS.selections, items);
+    return items[idx];
+  },
+
+  // Lo que consulta la página pública: null si el token no existe; si no, { status: ok | expired | revoked, … }. Con
+  // `track` (por omisión) anota la apertura; el asesor que previsualiza pasa track: false.
+  async openSelection(token, { track = true } = {}) {
+    const items = readStore(KEYS.selections, []);
+    const idx = items.findIndex((s) => s.token === token);
+    if (idx === -1) return null;
+    const found = items[idx];
+    const status = found.revoked_at ? "revoked" : new Date(found.expires_at).getTime() < Date.now() ? "expired" : "ok";
+    if (status === "ok" && track) {
+      const now = new Date().toISOString();
+      items[idx] = { ...found, open_count: (found.open_count || 0) + 1, first_opened_at: found.first_opened_at || now, last_opened_at: now };
+      writeStore(KEYS.selections, items);
+    }
+    return {
+      status,
+      title: found.title,
+      note: found.note,
+      advisor_id: found.advisor_id,
+      property_ids: status === "ok" ? found.property_ids : [],
+      created_at: found.created_at,
+      expires_at: found.expires_at,
+    };
+  },
+
   // Historial de contactos (modo demo: localStorage).
   async getProspectContacts(prospectId) {
     return readStore(KEYS.prospectContacts, [])
@@ -2451,10 +2517,12 @@ export const localBackend = {
     return citas.find((c) => c.id === id) || null;
   },
 
-  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email, property_id, prospecto_id }) {
+  async addAgendaCita({ id, advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email, property_id, prospecto_id }) {
     const citas = readStore(KEYS.agendaCitas, []);
+    // Un id que ya existe (reenvío de la cola sin señal) se rechaza igual que Supabase (23505).
+    if (id && citas.some((c) => c.id === id)) throw duplicateKeyError();
     const record = {
-      id: uid("cita"),
+      id: id || uid("cita"),
       advisor_id,
       client_id: client_id || null,
       titulo: titulo.trim(),

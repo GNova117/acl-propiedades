@@ -41,3 +41,11 @@ export function propertiesShareMessage(properties, { origin, recipientName = "",
   const blocks = list.map((p, i) => `${i + 1}. ${propertyBlock(p, origin)}`).join("\n\n");
   return `${hello(recipientName)}, encontré estas propiedades que van con lo que buscas:\n\n${blocks}\n\n¿Cuál te gustaría visitar? Con gusto coordino el recorrido.${sign}`;
 }
+
+// Una selección de propiedades en UN solo enlace (ver lib/selections.js): el mensaje no lista las propiedades, las trae la
+// página del enlace (con la nota del asesor, si la escribió). `count`: cuántas lleva.
+export function selectionShareMessage({ url, count = 0, recipientName = "", advisorName = "" } = {}) {
+  const sign = advisorName ? `\n— ${advisorName}, ACL Propiedades` : "";
+  const what = count === 1 ? "una propiedad" : `${count || "varias"} propiedades`;
+  return `${hello(recipientName)}, te preparé una selección con ${what} para ti:\n\n🔗 ${url}\n\nEntra, revisa las fotos y dime cuál te gustaría visitar. Con gusto coordino el recorrido.${sign}`;
+}

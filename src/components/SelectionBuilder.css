@@ -1,0 +1,107 @@
+/* «Armar selección» (SelectionBuilder.jsx): la ventana usa las clases de PropertyProspectsModal y SendPropertyModal;
+   aquí solo lo propio: lo ya elegido como fichas y la lista de propiedades con casilla. */
+
+.selection-builder {
+  width: min(720px, 100%);
+}
+
+/* Un fieldset no se encoge por debajo de su contenido: sin esto los títulos largos ensanchan la ventana en el teléfono. */
+.selection-builder fieldset {
+  min-width: 0;
+}
+
+.selection-builder__picked {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.selection-builder__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  padding: 0.2rem 0.3rem 0.2rem 0.65rem;
+  border: 1px solid var(--color-primary, #1d4ed8);
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.selection-builder__chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selection-builder__chip button {
+  flex: none;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.selection-builder__choices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 16rem;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.selection-builder__choice {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  min-height: 2.75rem; /* cómodo para el dedo */
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+}
+
+.selection-builder__choices li:last-child .selection-builder__choice {
+  border-bottom: 0;
+}
+
+.selection-builder__choice.is-on {
+  background: color-mix(in srgb, var(--color-primary, #1d4ed8) 10%, transparent);
+}
+
+.selection-builder__choice input {
+  flex: none;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.selection-builder__choice-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.selection-builder__choice-main strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selection-builder__choice-main .form-hint {
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .selection-builder__choices {
+    max-height: 13rem;
+  }
+}

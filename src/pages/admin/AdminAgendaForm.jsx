@@ -8,6 +8,7 @@ import { QUICK_TIMES, quickDates } from "../../lib/quickSchedule";
 import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import { useAuth } from "../../context/AuthContext";
+import { enqueueCita, isOfflineError, isOnline, newId, withTimeout } from "../../lib/offlineQueue";
 import "./admin.css";
 
 const EMPTY = { advisor_id: "", client_id: "", property_id: "", prospecto_id: "", titulo: "", fecha: "", hora: "", actividades: "", lugar: "", contact_name: "", contact_phone: "", contact_email: "" };
@@ -20,7 +21,8 @@ export default function AdminAgendaForm() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { advisorId, hasSection } = useAuth();
+  const { advisorId, hasSection, session } = useAuth();
+  const email = session?.user?.email || "";
 
   // "Agendar cita" desde un mensaje de contacto (/admin/mensajes) llega
   // aquí con state.prefill (título + actividades con el teléfono/correo/
@@ -45,6 +47,7 @@ export default function AdminAgendaForm() {
   const properties = useQuery(queries.properties).data ?? NONE;
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [savedOffline, setSavedOffline] = useState(null); // { label } cuando se guardó en la cola sin señal
   // Solo al editar hay algo que esperar: la cita guardada.
   const [loading, setLoading] = useState(isEdit);
   // Solicitud de visita sin asesor: no se edita hasta que alguien la toma (desde la Agenda o Mi día).
@@ -145,9 +148,24 @@ export default function AdminAgendaForm() {
         await db.updateAgendaCita(id, payload);
         navigate(backTo);
       } else {
-        // Al crear se abre la cita ya guardada, con su enlace arriba para mandárselo al cliente.
-        const created = await db.addAgendaCita({ ...payload, ...(prospecto_id ? { prospecto_id } : {}) });
-        navigate(`/admin/agenda/${created.id}`, { state: { saved: true, from: location.state?.from } });
+        // Cada cita lleva su id desde el primer intento: un reenvío de la cola sin señal no la duplica.
+        const record = { ...payload, ...(prospecto_id ? { prospecto_id } : {}), id: newId() };
+        const queueIt = () => {
+          if (enqueueCita(email, { fields: record, label: record.titulo })) setSavedOffline({ label: record.titulo });
+          else window.alert(t("offline.saveFailed"));
+        };
+        if (!isOnline()) {
+          queueIt();
+          return;
+        }
+        try {
+          // Al crear se abre la cita ya guardada, con su enlace arriba para mandárselo al cliente.
+          const created = await withTimeout(db.addAgendaCita(record));
+          navigate(`/admin/agenda/${created.id}`, { state: { saved: true, from: location.state?.from } });
+        } catch (err) {
+          if (!isOfflineError(err)) throw err;
+          queueIt();
+        }
       }
     } catch (err) {
       window.alert(err.message || "Error al guardar");
@@ -179,6 +197,21 @@ export default function AdminAgendaForm() {
   };
 
   if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+
+  // Sin señal la visita/cita quedó en la cola de este dispositivo (lib/offlineQueue.js): se avisa en vez de navegar a algo que todavía no existe.
+  if (savedOffline) {
+    return (
+      <div>
+        <div className="card offline-saved" role="status">
+          <h2>{t("offline.saved.title")}</h2>
+          <p>{t("offline.saved.cita", { name: savedOffline.label })}</p>
+          <button type="button" className="btn btn-primary" onClick={() => navigate(backTo, { replace: true })}>
+            {t("offline.saved.back")}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (openRequest) {
     return (

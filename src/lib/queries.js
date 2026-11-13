@@ -10,6 +10,8 @@ export const queries = {
   properties: { key: "properties", fetch: () => db.getProperties({}) },
   prospects: { key: "prospects", fetch: () => db.getProspects() },
   stageHistory: { key: "prospect-stage-history", fetch: orEmpty(() => db.getProspectStageHistory()) },
+  // Las selecciones de propiedades mandadas (de todos o solo las del asesor, según RLS); sin ellas la pantalla sigue igual.
+  selections: { key: "selections", fetch: orEmpty(() => db.getSelections()) },
   visits: { key: "visits", fetch: orEmpty(() => db.getVisits()) },
   citas: { key: "agenda-citas", fetch: () => db.getAgendaCitas() },
   zones: { key: "zones", fetch: orEmpty(() => db.getZones()) },

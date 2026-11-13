@@ -43,7 +43,7 @@ export function useOfflineQueue() {
       });
       if (result.sent > 0) {
         setSent(result.sent);
-        for (const q of [queries.prospects, queries.stageHistory]) if (snapshot(q.key)) revalidate(q.key, q.fetch, { force: true }).catch(noop);
+        for (const q of [queries.prospects, queries.stageHistory, queries.citas, queries.visits]) if (snapshot(q.key)) revalidate(q.key, q.fetch, { force: true }).catch(noop);
       }
     } catch {
       /* la cola conserva lo pendiente: se reintenta */

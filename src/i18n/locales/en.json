@@ -2017,12 +2017,20 @@
         "stage": "Stage",
         "appointment": "Appointment",
         "visit": "Visit",
-        "note": "Note"
+        "note": "Note",
+        "selection": "Selection sent",
+        "selectionOpened": "Selection opened"
       },
       "upcoming": "Upcoming",
       "created": "Source: {{source}}",
       "stageTo": "Moved to «{{stage}}»",
       "visitTo": "Visit to {{property}}",
+      "selectionSent_one": "“{{title}}” · {{count}} property",
+      "selectionSent_other": "“{{title}}” · {{count}} properties",
+      "selectionRevoked": "Link deactivated",
+      "selectionOpenedText": "Opened “{{title}}”",
+      "selectionOpenedTimes_one": "Opened {{count}} time; the last, {{ago}}",
+      "selectionOpenedTimes_other": "Opened {{count}} times; the last, {{ago}}",
       "showMore": "Show {{count}} more",
       "showLess": "Show less"
     },
@@ -2075,6 +2083,7 @@
       "recomendacion": "Referral",
       "redes": "Social media",
       "sitio": "Website",
+      "importado": "Imported",
       "otro": "Other"
     },
     "emptyColumn": "No prospects",
@@ -2086,6 +2095,8 @@
     "followToday": "Follow-up today",
     "followOn": "Follow-up: {{date}}",
     "logContact": "Log contact",
+    "noAdvisor": "No advisor",
+    "forgottenOnly": "Only with no follow-up (7+ days)",
     "unattendedOnly": "Unattended only",
     "unattended": {
       "hours_one": "Unattended: {{count}} h",
@@ -3409,7 +3420,179 @@
     "logTitle": "Already sent it? Log the contact with {{name}}:",
     "logged": "Contact logged."
   },
+  "selection": {
+    "builder": {
+      "title": "Build a selection",
+      "readyTitle": "Link ready",
+      "forProspect": "For {{name}}. The properties that fit what they are looking for are already checked.",
+      "recipient": "Who is it for?",
+      "titleLabel": "Title (the client sees it)",
+      "noteLabel": "Message for the client (optional)",
+      "notePlaceholder": "E.g. These are the best fit for what we talked about. Tell me which you like and we visit it.",
+      "properties": "Properties",
+      "picked_one": "{{count}} of {{max}} property chosen",
+      "picked_other": "{{count}} of {{max}} properties chosen",
+      "remove": "Remove {{title}}",
+      "pick": "Choose {{title}}",
+      "searchProps": "Search a property by name, code or zone",
+      "fits": "Fits",
+      "noProps": "No available properties match that search.",
+      "refine": "And {{count}} more: narrow the search to see them.",
+      "maxReached": "At most {{max}} properties per selection.",
+      "needOne": "Choose at least one property.",
+      "needOnline": "You need a connection to create the link.",
+      "createError": "The selection could not be created.",
+      "create_one": "Create link with {{count}} property",
+      "create_other": "Create link with {{count}} properties",
+      "creating": "Creating…",
+      "createHint": "Then you choose how to send it.",
+      "readyHint_one": "The selection with {{count}} property is ready. Send it by WhatsApp or copy the link.",
+      "readyHint_other": "The selection with {{count}} properties is ready. Send it by WhatsApp or copy the link.",
+      "link": "Link",
+      "copyLink": "Copy link",
+      "preview": "See it as the client will",
+      "sendEmail": "Send by email",
+      "emailSubject": "A selection of properties for you — ACL Propiedades"
+    },
+    "list": {
+      "title": "Selections sent",
+      "new": "Build a selection",
+      "empty": "You have not sent a selection yet.",
+      "properties_one": "{{count}} property",
+      "properties_other": "{{count}} properties",
+      "sentOn": "Sent {{date}}",
+      "state": {
+        "sent": "Not opened",
+        "opened": "Opened {{ago}}",
+        "expired": "Expired",
+        "revoked": "Deactivated"
+      },
+      "times_one": "{{count}} time",
+      "times_other": "{{count}} times",
+      "validUntil": "Expires {{date}}",
+      "copyLink": "Copy link",
+      "copied": "Copied",
+      "resend": "Resend",
+      "view": "View",
+      "revoke": "Deactivate",
+      "confirmRevoke": "Deactivate this link? The client will no longer be able to open it.",
+      "revokeError": "The link could not be deactivated.",
+      "resendMessage": "Hi, I am sharing the selection of properties again: {{url}}"
+    },
+    "chip": {
+      "opened": "Opened the selection {{ago}}"
+    },
+    "public": {
+      "pageTitle": "Property selection",
+      "defaultTitle": "Properties for you",
+      "advisor": "Your advisor",
+    "office": "Contact",
+      "call": "Call",
+      "interested": "I'm interested",
+      "interestedAria": "I'm interested: {{title}}",
+        "unavailable": "No longer available",
+      "validUntil": "Link valid until {{date}}",
+      "preview": "Advisor preview: this visit does not count as an opening.",
+      "interestMessage": "Hola, vi la selección de propiedades que me compartiste y me interesa «{{title}}» ({{url}}). ¿Podemos coordinar una visita?",
+      "generalMessage": "Hola, vi la selección de propiedades que me compartiste ({{url}}). Tengo una duda.",
+      "invalidTitle": "Invalid link",
+      "invalidBody": "Check that the link is complete or ask your advisor to send you a new one.",
+      "errorTitle": "We could not open the selection",
+      "errorBody": "Check your connection and try again in a moment.",
+      "expiredTitle": "This selection has expired",
+      "expiredBody": "Ask your advisor to send you an updated one.",
+      "revokedTitle": "This selection is no longer available",
+      "revokedBody": "Your advisor deactivated it. Write to them and they will send you a new one.",
+      "noProperties": "The properties in this selection are no longer available. Write to your advisor and they will suggest others."
+    }
+  },
+  "prospectImport": {
+    "open": "Paste or import a list",
+    "title": "Paste or import prospects",
+    "intro": "Paste names and phone numbers (from a chat or a WhatsApp list), or upload a CSV (Facebook Lead Ads, a spreadsheet) or shared contacts (.vcf). You review everything before saving.",
+    "pasteLabel": "Text or list",
+    "pastePlaceholder": "Luis Pérez 871 123 4567\nAna López - 871 234 5678 - ana@mail.com",
+    "file": "Upload a file (.csv, .txt, .vcf)",
+    "review": "Review",
+    "nothing": "I could not find any phone number or email in that text.",
+    "fileError": "The file could not be read.",
+    "fileTooBig": "The file is too large (1 MB maximum).",
+    "kind": {
+      "text": "text list",
+      "csv": "CSV file",
+      "vcard": ".vcf contacts"
+    },
+    "found_one": "Found {{count}} contact ({{kind}}).",
+    "found_other": "Found {{count}} contacts ({{kind}}).",
+    "truncated": "Only the first {{max}} are taken.",
+    "checking": "Checking whether they already exist…",
+    "summary": "{{ready}} to import · {{skipped}} left out",
+    "assignTo": "Assign to",
+    "noAdvisor": "No advisor",
+    "columns": {
+      "name": "Name",
+      "phone": "Phone",
+      "email": "Email"
+    },
+    "pick": "Import {{name}}",
+    "issues": {
+      "noName": "Name missing",
+      "badPhone": "Incomplete phone",
+      "noContact": "Phone or email missing"
+    },
+    "repeated": "Repeated in the list",
+    "dupe": "Already exists: {{name}} ({{kind}})",
+    "kinds": {
+      "prospect": "prospect",
+      "client": "client"
+    },
+    "import_one": "Import {{count}} prospect",
+    "import_other": "Import {{count}} prospects",
+    "importing": "Importing…",
+    "back": "Change the text",
+    "needOnline": "You need a connection to import.",
+    "error": "The prospects could not be imported.",
+    "done_one": "{{count}} prospect imported.",
+    "done_other": "{{count}} prospects imported.",
+    "doneHint": "They are in the «New» stage, with source «Imported».",
+    "finish": "Done"
+  },
+  "team": {
+    "navTitle": "Team today",
+    "title": "Team today",
+    "subtitle": "what each advisor has pending (same rules as their “My day”)",
+    "totals": "Team totals",
+    "officeOnly": "This summary is for the office: your day is in “My day”.",
+    "empty": "There are no advisors or prospects to show yet.",
+    "tiles": {
+      "unattended": "Unattended",
+      "urgentSome_one": "{{count}} urgent",
+      "urgentSome_other": "{{count}} urgent",
+      "overdue": "Overdue follow-ups",
+      "dueToday": "Follow-up today",
+      "forgotten": "No follow-up (7+ days)",
+      "agendaToday": "Appointments left today",
+      "toClose": "Visits to close",
+      "toConfirm": "To confirm"
+    },
+    "state": {
+      "ok": "Up to date",
+      "attention": "Needs attention",
+      "urgent": "Urgent"
+    },
+    "unassigned": {
+      "title": "No advisor",
+      "hint": "Prospects with no advisor, or with one who is no longer active: nobody is following them up."
+    },
+    "requests_one": "{{count}} website visit request not taken yet.",
+    "requests_other": "{{count}} website visit requests not taken yet.",
+    "requestsOpen": "See them in My day",
+    "viewProspects_one": "View {{count}} open prospect",
+    "viewProspects_other": "View {{count}} open prospects",
+    "reassign": "Reassign…"
+  },
   "offline": {
+    "loadFailed": "No connection: this screen needs a signal to load. Anything you capture with «+» is saved on this device and sent automatically when the signal returns.",
     "banner": {
       "label": "Connection status",
       "offline": "No connection. What you capture is saved on this device and sent when the signal returns.",
@@ -3427,6 +3610,8 @@
       "hide": "Hide"
     },
     "op": {
+      "visit": "Visit: {{name}}",
+      "cita": "Appointment: {{name}}",
       "prospect": "New prospect: {{name}}",
       "contact": "Contact with {{name}} ({{channel}})",
       "when": "Captured {{when}}",
@@ -3434,6 +3619,12 @@
       "retry": "Retry",
       "discard": "Discard",
       "confirmDiscard": "Discard this change? It will be lost and will not be sent."
+    },
+    "saved": {
+      "title": "Saved on this device",
+      "visit": "The visit “{{name}}” will be sent automatically when there is a signal. Until then it does not show up in the lists.",
+      "cita": "The appointment “{{name}}” will be sent automatically when there is a signal. Until then it is not in the Agenda and its client link will be available once it is sent.",
+      "back": "Back"
     },
     "quickSaved": "Saved on this device: {{name}}. It will be sent when there is signal.",
     "saveFailed": "Could not save on this device while offline. Try again with signal.",
