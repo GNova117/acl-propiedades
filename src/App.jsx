@@ -59,6 +59,7 @@ const AdminAdvisors = lazy(() => import("./pages/admin/AdminAdvisors"));
 const AdminAdvisorForm = lazy(() => import("./pages/admin/AdminAdvisorForm"));
 const AdminMyProfile = lazy(() => import("./pages/admin/AdminMyProfile"));
 const AdminMySales = lazy(() => import("./pages/admin/AdminMySales"));
+const AdminShare = lazy(() => import("./pages/admin/AdminShare"));
 const AdminMyDay = lazy(() => import("./pages/admin/AdminMyDay"));
 const AdminZones = lazy(() => import("./pages/admin/AdminZones"));
 const AdminClients = lazy(() => import("./pages/admin/AdminClients"));
@@ -356,6 +357,7 @@ export default function App() {
         <Route path="blog" element={<RequireSection section="blog"><AdminBlog /></RequireSection>} />
         <Route path="blog/nuevo" element={<RequireSection section="blog"><AdminBlogForm /></RequireSection>} />
         <Route path="blog/:id" element={<RequireSection section="blog"><AdminBlogForm /></RequireSection>} />
+        <Route path="compartir" element={<RequireSection section="prospectos"><AdminShare /></RequireSection>} />
         <Route path="prospectos" element={<RequireSection section="prospectos"><AdminProspects /></RequireSection>} />
         <Route path="equipo" element={<RequireSection section="prospectos"><AdminTeamDay /></RequireSection>} />
         <Route path="prospectos/nuevo" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />

@@ -12,6 +12,7 @@ import QuickCapture from "../../components/QuickCapture";
 import OfflineBanner from "../../components/OfflineBanner";
 import { getQueue } from "../../lib/offlineQueue";
 import { startPrecache } from "../../lib/offlineShell";
+import { clearAppBadge } from "../../lib/appBadge";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
 import { HOME_MY_DAY, mobileTabs } from "../../lib/adminHome";
@@ -202,6 +203,7 @@ export default function AdminLayout() {
     const waiting = getQueue(session?.user?.email).length;
     if (waiting > 0 && !window.confirm(t("offline.logoutConfirm", { count: waiting }))) return;
     await logout();
+    clearAppBadge(); // la insignia de pendientes es de la cuenta que acaba de salir
     navigate("/admin/login", { replace: true });
   };
 

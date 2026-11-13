@@ -16,7 +16,8 @@ import { FollowChip, SelectionChip, UnattendedChip } from "./ProspectChips";
 // agendar, ficha, convertir en cliente, eliminar) va tras «Más», para que en el
 // teléfono cada tarjeta ocupe poco y lo destructivo no quede junto a lo de
 // todos los días. `contact`: el estado de useProspectContact del tablero. En modo
-// «Seleccionar» (`selectable`) la tarjeta trae su casilla para las acciones en lote.
+// «Seleccionar» (`selectable`) la tarjeta trae su casilla para las acciones en lote. `drag` ({ onStart(id), onEnd }): en computadora
+// la tarjeta se puede arrastrar a otra columna del tablero para cambiar de etapa (null = no se arrastra, como en el teléfono).
 export default function ProspectCard({
   prospect: p,
   seesAll,
@@ -36,6 +37,7 @@ export default function ProspectCard({
   selected = false,
   onToggleSelect,
   selections,
+  drag = null,
 }) {
   const { t } = useTranslation();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -45,7 +47,21 @@ export default function ProspectCard({
   const step = due ? POSTSALE_STEPS.find((s) => s.key === due.key) : null;
 
   return (
-    <article className={`card prospect-card${selected ? " is-selected" : ""}`}>
+    <article
+      className={`card prospect-card${selected ? " is-selected" : ""}${drag ? " is-draggable" : ""}`}
+      draggable={Boolean(drag)}
+      onDragStart={
+        drag
+          ? (e) => {
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData("text/plain", p.id);
+              drag.onStart(p.id);
+            }
+          : undefined
+      }
+      onDragEnd={drag ? drag.onEnd : undefined}
+      data-prospect={p.id}
+    >
       <div className="prospect-card__head">
         {selectable && (
           <input

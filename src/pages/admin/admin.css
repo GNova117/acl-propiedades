@@ -835,3 +835,169 @@
   color: #fff;
   font-weight: 600;
 }
+
+/* ── Lista de Asesores: cifras de cada uno (lib/advisorStats.js) ── */
+.advisor-totals {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.advisor-totals li {
+  display: flex;
+  flex-direction: column;
+  min-width: 7rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 10px);
+  background: var(--color-surface);
+}
+
+.advisor-totals li strong {
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.advisor-totals li span {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.advisor-totals li.is-zero {
+  opacity: 0.6;
+}
+
+.admin-table--advisors .cell-name {
+  white-space: normal;
+  min-width: 10rem;
+}
+
+.admin-table--advisors .cell-name strong {
+  display: block;
+}
+
+.advisor-contact {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.advisor-away {
+  display: inline-block;
+  margin-top: 0.25rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: #f0a500;
+  color: #1a1a1a;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.cell-stat {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.advisor-stat {
+  font-weight: 600;
+}
+
+.advisor-stat--zero {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.advisor-stat--warn {
+  color: var(--color-danger);
+}
+
+.advisor-row--attention td.cell-name strong::after {
+  content: " ●";
+  color: var(--color-danger);
+  font-size: 0.7rem;
+}
+
+.admin-table--advisors th {
+  white-space: normal;
+  line-height: 1.2;
+}
+
+.admin-table--advisors th.cell-stat {
+  text-align: center;
+}
+
+/* «Activo» y «En equipo» uno debajo del otro: la tabla cabe en una laptop sin deslizar de lado. */
+.cell-badges {
+  white-space: normal;
+}
+
+.cell-badges .badge {
+  display: inline-block;
+  margin: 0 0.3rem 0.25rem 0;
+}
+
+@media (max-width: 860px) {
+  /* Asesores: foto y nombre arriba; las cifras en una fila de cuatro; estado y acciones abajo. */
+  .admin-table--advisors tbody tr.admin-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-areas:
+      "photo name name name"
+      "open unat over props"
+      "visits agenda badges badges"
+      "actions actions actions actions";
+    row-gap: 0.55rem;
+  }
+
+  .admin-table--advisors .cell-photo {
+    grid-area: photo;
+    align-self: start;
+    justify-self: start;
+  }
+
+  .admin-table--advisors .cell-photo img {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+  }
+
+  .admin-table--advisors .cell-name {
+    grid-area: name;
+    font-size: 1rem;
+  }
+
+  .admin-table--advisors .cell-stat {
+    overflow-wrap: normal; /* «Propiedades» no se parte a media palabra */
+    padding: 0.35rem 0.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-alt);
+  }
+
+  .admin-table--advisors .cell-stat::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.64rem;
+    line-height: 1.2;
+    color: var(--color-text-muted);
+    font-weight: 400;
+  }
+
+  .admin-table--advisors .cell-open { grid-area: open; }
+  .admin-table--advisors .cell-unat { grid-area: unat; }
+  .admin-table--advisors .cell-over { grid-area: over; }
+  .admin-table--advisors .cell-props { grid-area: props; }
+  .admin-table--advisors .cell-visits { grid-area: visits; }
+  .admin-table--advisors .cell-agenda { grid-area: agenda; }
+
+  .admin-table--advisors .cell-badges {
+    grid-area: badges;
+    align-self: center;
+    justify-self: end;
+    white-space: normal;
+    text-align: right;
+  }
+}

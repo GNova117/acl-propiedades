@@ -1998,6 +1998,18 @@
     "reminderLink": "Ir a Roles y accesos"
   },
   "prospects": {
+    "split": {
+      "on": "Vista dividida",
+      "off": "Ver tablero",
+      "list": "Lista de prospectos",
+      "noResults": "No hay prospectos con estos filtros.",
+      "empty": "Elige un prospecto de la lista para ver su ficha.",
+      "openFull": "Abrir la ficha completa para editarla"
+    },
+    "drag": {
+      "hint": "Tip: arrastra una tarjeta a otra columna para cambiar su etapa.",
+      "lostConfirm": "¿Mandar a «{{name}}» a Perdidos?"
+    },
     "bulk": {
       "label": "Acciones en lote",
       "select": "Seleccionar",
@@ -4068,6 +4080,26 @@
     "downloadQr": "Descargar QR",
     "qrLabel": "Código QR de tu tarjeta digital",
     "qrError": "No se pudo generar la imagen del QR."
+  },
+  "advisorList": {
+    "short": {
+      "openProspects": "Abiertos",
+      "unattended": "Sin atender",
+      "overdue": "Vencidos",
+      "properties": "Propiedades",
+      "visitsMonth": "Visitas mes",
+      "agendaToday": "Citas hoy"
+    },
+    "totals": "Totales del equipo",
+    "note": "Prospectos, citas y visitas los ve la oficina según su rol. Las metas mensuales no salen aquí: cada asesor ve solo la suya.",
+    "cols": {
+      "openProspects": "Prospectos abiertos",
+      "unattended": "Sin atender",
+      "overdue": "Seguimientos vencidos",
+      "properties": "Propiedades disponibles",
+      "visitsMonth": "Visitas del mes",
+      "agendaToday": "Citas que le quedan hoy"
+    }
   },
   "goals": {
     "title": "Mi mes: {{month}}",

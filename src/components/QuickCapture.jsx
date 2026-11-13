@@ -28,7 +28,7 @@ export default function QuickCapture() {
   const { t } = useTranslation();
   const { advisorId, hasSection, session } = useAuth();
   const email = session?.user?.email || "";
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [open, setOpen] = useState(false);
@@ -64,6 +64,24 @@ export default function QuickCapture() {
   useEffect(() => {
     if (open && !saved) nameRef.current?.focus();
   }, [open, saved]);
+
+  // Atajo «Prospecto rápido» de la app instalada y «Compartir → ACL Panel» (ver /admin/compartir): una dirección con
+  // ?captura=prospecto[&nombre=&telefono=&texto=] abre esta hoja, con lo compartido ya puesto, y limpia la dirección para que
+  // recargar no la vuelva a abrir. Sin el apartado de prospectos solo se limpia.
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    if (params.get("captura") !== "prospecto") return;
+    const draft = { name: params.get("nombre") || "", phone: params.get("telefono") || "", lookingFor: "", pasted: params.get("texto") || "" };
+    for (const key of ["captura", "nombre", "telefono", "texto"]) params.delete(key);
+    navigate({ pathname, search: params.toString() ? `?${params}` : "" }, { replace: true });
+    if (!hasSection("prospectos")) return;
+    setForm(draft);
+    setErrors({});
+    setDuplicates([]);
+    setSaved(null);
+    setOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   const reset = () => {
     setForm(EMPTY);

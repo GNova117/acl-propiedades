@@ -5,6 +5,7 @@ import { usePendingToday } from "../lib/usePendingToday";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/dataStore";
 import { isSupabaseConfigured } from "../lib/supabaseClient";
+import { setAppBadge } from "../lib/appBadge";
 import { isPushSupported, getExistingSubscription, subscribeToPush, unsubscribeFromPush, subscriptionToRow } from "../lib/pushNotifications";
 import "./NotificationBell.css";
 
@@ -72,6 +73,11 @@ export default function NotificationBell() {
   const list = items || [];
   const total = list.reduce((sum, item) => sum + item.count, 0);
   const hasWarn = list.some((item) => item.tone === "warn");
+
+  // El mismo número sobre el ícono de la app instalada (lib/appBadge.js). Mientras se calcula (items === null) no se toca.
+  useEffect(() => {
+    if (items) setAppBadge(total);
+  }, [items, total]);
 
   return (
     <div className="notification-bell" ref={rootRef}>

@@ -1,6 +1,7 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { MAX_ROUTE_STOPS } from "../lib/dayRoute";
+import { useMediaQuery } from "../lib/useMediaQuery";
 import "./DayRoute.css";
 
 // El mapa (Leaflet) solo se descarga en pantalla ancha y cuando hay ruta.
@@ -8,24 +9,12 @@ const DayRouteMap = lazy(() => import("./DayRouteMap"));
 const WIDE = "(min-width: 861px)";
 const hm = (hora) => String(hora).slice(0, 5);
 
-function useWideScreen() {
-  const [wide, setWide] = useState(() => (typeof window !== "undefined" && window.matchMedia ? window.matchMedia(WIDE).matches : false));
-  useEffect(() => {
-    if (!window.matchMedia) return undefined;
-    const query = window.matchMedia(WIDE);
-    const onChange = () => setWide(query.matches);
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
-  return wide;
-}
-
 // «Ruta de hoy» (Mi día): las citas que faltan, en orden de hora, con el botón que abre la ruta completa en Google Maps, el tramo
 // entre una y otra y un aviso cuando no alcanza el tiempo. En pantalla ancha, además, el mapa con las paradas numeradas.
 // `plan`: lo que devuelve planDayRoute() (lib/dayRoute.js). Con menos de dos paradas no hay ruta que mostrar.
 export default function DayRoute({ plan }) {
   const { t } = useTranslation();
-  const wide = useWideScreen();
+  const wide = useMediaQuery(WIDE);
   if (plan.stops.length < 2) return null;
   const hasMap = wide && plan.stops.some((s) => s.pin);
 

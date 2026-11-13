@@ -156,12 +156,17 @@ self.addEventListener("push", (event) => {
   }
   const title = data.title || "ACL Propiedades";
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body: data.body || "",
-      icon: "/icon-192.png",
-      badge: "/icon-192.png",
-      data: { url: data.url || "/admin" },
-    })
+    Promise.all([
+      self.registration.showNotification(title, {
+        body: data.body || "",
+        icon: "/icon-192.png",
+        badge: "/icon-192.png",
+        data: { url: data.url || "/admin" },
+      }),
+      // Sin número (el servidor no sabe cuántos pendientes hay): solo el punto de «hay algo nuevo» sobre el ícono de la app.
+      // Al abrir el panel, la campana pone el número real (src/lib/appBadge.js). Donde no hay Badging API, no hace nada.
+      Promise.resolve(self.navigator && self.navigator.setAppBadge ? self.navigator.setAppBadge() : null).catch(() => {}),
+    ])
   );
 });
 

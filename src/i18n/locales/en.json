@@ -1998,6 +1998,18 @@
     "reminderLink": "Go to Roles & access"
   },
   "prospects": {
+    "split": {
+      "on": "Split view",
+      "off": "Show board",
+      "list": "Prospect list",
+      "noResults": "No prospects match these filters.",
+      "empty": "Pick a prospect from the list to see their profile.",
+      "openFull": "Open the full profile to edit it"
+    },
+    "drag": {
+      "hint": "Tip: drag a card to another column to change its stage.",
+      "lostConfirm": "Move \"{{name}}\" to Lost?"
+    },
     "bulk": {
       "label": "Bulk actions",
       "select": "Select",
@@ -4068,6 +4080,26 @@
     "downloadQr": "Download QR",
     "qrLabel": "QR code of your digital card",
     "qrError": "The QR image couldn't be generated."
+  },
+  "advisorList": {
+    "short": {
+      "openProspects": "Open",
+      "unattended": "Unattended",
+      "overdue": "Overdue",
+      "properties": "Properties",
+      "visitsMonth": "Visits/mo.",
+      "agendaToday": "Appts today"
+    },
+    "totals": "Team totals",
+    "note": "Prospects, appointments and visits are shown to the office according to its role. Monthly goals aren't shown here: each advisor sees only their own.",
+    "cols": {
+      "openProspects": "Open prospects",
+      "unattended": "Unattended",
+      "overdue": "Overdue follow-ups",
+      "properties": "Available properties",
+      "visitsMonth": "Visits this month",
+      "agendaToday": "Appointments left today"
+    }
   },
   "goals": {
     "title": "My month: {{month}}",
