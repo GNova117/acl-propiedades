@@ -13,6 +13,7 @@ import { peek } from "../../lib/dataCache";
 import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import ProspectCard from "../../components/ProspectCard";
+import ProspectImportModal from "../../components/ProspectImportModal";
 import "./admin.css";
 import "./AdminProspects.css";
 
@@ -53,6 +54,7 @@ export default function AdminProspects() {
   const setProspects = prospectsQ.mutate;
   const [busyId, setBusyId] = useState(null);
   const [importing, setImporting] = useState(false);
+  const [pasteOpen, setPasteOpen] = useState(false); // «Pegar o importar lista»
   const [query, setQuery] = useState("");
   const [advisorFilter, setAdvisorFilter] = useState("");
   const [overdueOnly, setOverdueOnly] = useState(false);
@@ -248,6 +250,9 @@ export default function AdminProspects() {
           </Link>
           <button type="button" className={`btn btn-outline${selecting ? " is-active" : ""}`} onClick={toggleSelecting} aria-pressed={selecting}>
             {selecting ? t("prospects.bulk.exit") : t("prospects.bulk.select")}
+          </button>
+          <button type="button" className="btn btn-outline" onClick={() => setPasteOpen(true)}>
+            {t("prospectImport.open")}
           </button>
           {canImport && importable.length > 0 && (
             <button type="button" className="btn btn-outline" onClick={handleImport} disabled={importing}>
@@ -448,6 +453,15 @@ export default function AdminProspects() {
             </div>
           )}
         </>
+      )}
+      {pasteOpen && (
+        <ProspectImportModal
+          onClose={() => setPasteOpen(false)}
+          onImported={(created) => {
+            setProspects((prev) => [...created, ...(prev || [])]);
+            setActiveStage("nuevo"); // en el teléfono el tablero va a donde quedaron los recién importados
+          }}
+        />
       )}
     </div>
   );

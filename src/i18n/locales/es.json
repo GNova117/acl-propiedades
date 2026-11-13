@@ -2083,6 +2083,7 @@
       "recomendacion": "Recomendación",
       "redes": "Redes sociales",
       "sitio": "Sitio web",
+      "importado": "Importado",
       "otro": "Otro"
     },
     "emptyColumn": "Sin prospectos",
@@ -3502,6 +3503,57 @@
       "revokedBody": "Tu asesor la desactivó. Escríbele y te manda una nueva.",
       "noProperties": "Las propiedades de esta selección ya no están disponibles. Escríbele a tu asesor y te sugiere otras."
     }
+  },
+  "prospectImport": {
+    "open": "Pegar o importar lista",
+    "title": "Pegar o importar prospectos",
+    "intro": "Pega nombres y teléfonos (de un chat o una lista de WhatsApp), o sube un CSV (Facebook Lead Ads, una hoja de cálculo) o contactos compartidos (.vcf). Antes de guardar los revisas.",
+    "pasteLabel": "Texto o lista",
+    "pastePlaceholder": "Luis Pérez 871 123 4567\nAna López - 871 234 5678 - ana@correo.com",
+    "file": "Subir archivo (.csv, .txt, .vcf)",
+    "review": "Revisar",
+    "nothing": "No encontré ningún teléfono ni correo en ese texto.",
+    "fileError": "No se pudo leer el archivo.",
+    "fileTooBig": "El archivo es demasiado grande (máximo 1 MB).",
+    "kind": {
+      "text": "lista de texto",
+      "csv": "archivo CSV",
+      "vcard": "contactos .vcf"
+    },
+    "found_one": "Encontré {{count}} contacto ({{kind}}).",
+    "found_other": "Encontré {{count}} contactos ({{kind}}).",
+    "truncated": "Solo se toman los primeros {{max}}.",
+    "checking": "Revisando si ya existen…",
+    "summary": "{{ready}} por importar · {{skipped}} sin importar",
+    "assignTo": "Asignar a",
+    "noAdvisor": "Sin asesor",
+    "columns": {
+      "name": "Nombre",
+      "phone": "Teléfono",
+      "email": "Correo"
+    },
+    "pick": "Importar a {{name}}",
+    "issues": {
+      "noName": "Falta el nombre",
+      "badPhone": "Teléfono incompleto",
+      "noContact": "Falta teléfono o correo"
+    },
+    "repeated": "Repetido en la lista",
+    "dupe": "Ya existe: {{name}} ({{kind}})",
+    "kinds": {
+      "prospect": "prospecto",
+      "client": "cliente"
+    },
+    "import_one": "Importar {{count}} prospecto",
+    "import_other": "Importar {{count}} prospectos",
+    "importing": "Importando…",
+    "back": "Cambiar el texto",
+    "needOnline": "Necesitas conexión para importar.",
+    "error": "No se pudieron importar los prospectos.",
+    "done_one": "Se importó {{count}} prospecto.",
+    "done_other": "Se importaron {{count}} prospectos.",
+    "doneHint": "Quedaron en la etapa «Nuevo», con origen «Importado».",
+    "finish": "Listo"
   },
   "offline": {
     "loadFailed": "Sin conexión: esta pantalla necesita señal para cargar. Lo que captures con «+» se guarda en este dispositivo y se envía solo al volver la señal.",

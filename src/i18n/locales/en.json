@@ -2083,6 +2083,7 @@
       "recomendacion": "Referral",
       "redes": "Social media",
       "sitio": "Website",
+      "importado": "Imported",
       "otro": "Other"
     },
     "emptyColumn": "No prospects",
@@ -3502,6 +3503,57 @@
       "revokedBody": "Your advisor deactivated it. Write to them and they will send you a new one.",
       "noProperties": "The properties in this selection are no longer available. Write to your advisor and they will suggest others."
     }
+  },
+  "prospectImport": {
+    "open": "Paste or import a list",
+    "title": "Paste or import prospects",
+    "intro": "Paste names and phone numbers (from a chat or a WhatsApp list), or upload a CSV (Facebook Lead Ads, a spreadsheet) or shared contacts (.vcf). You review everything before saving.",
+    "pasteLabel": "Text or list",
+    "pastePlaceholder": "Luis Pérez 871 123 4567\nAna López - 871 234 5678 - ana@mail.com",
+    "file": "Upload a file (.csv, .txt, .vcf)",
+    "review": "Review",
+    "nothing": "I could not find any phone number or email in that text.",
+    "fileError": "The file could not be read.",
+    "fileTooBig": "The file is too large (1 MB maximum).",
+    "kind": {
+      "text": "text list",
+      "csv": "CSV file",
+      "vcard": ".vcf contacts"
+    },
+    "found_one": "Found {{count}} contact ({{kind}}).",
+    "found_other": "Found {{count}} contacts ({{kind}}).",
+    "truncated": "Only the first {{max}} are taken.",
+    "checking": "Checking whether they already exist…",
+    "summary": "{{ready}} to import · {{skipped}} left out",
+    "assignTo": "Assign to",
+    "noAdvisor": "No advisor",
+    "columns": {
+      "name": "Name",
+      "phone": "Phone",
+      "email": "Email"
+    },
+    "pick": "Import {{name}}",
+    "issues": {
+      "noName": "Name missing",
+      "badPhone": "Incomplete phone",
+      "noContact": "Phone or email missing"
+    },
+    "repeated": "Repeated in the list",
+    "dupe": "Already exists: {{name}} ({{kind}})",
+    "kinds": {
+      "prospect": "prospect",
+      "client": "client"
+    },
+    "import_one": "Import {{count}} prospect",
+    "import_other": "Import {{count}} prospects",
+    "importing": "Importing…",
+    "back": "Change the text",
+    "needOnline": "You need a connection to import.",
+    "error": "The prospects could not be imported.",
+    "done_one": "{{count}} prospect imported.",
+    "done_other": "{{count}} prospects imported.",
+    "doneHint": "They are in the «New» stage, with source «Imported».",
+    "finish": "Done"
   },
   "offline": {
     "loadFailed": "No connection: this screen needs a signal to load. Anything you capture with «+» is saved on this device and sent automatically when the signal returns.",
