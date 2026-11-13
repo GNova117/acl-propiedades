@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
 import { closeLoopAfterVisit } from "../../lib/visitProspect";
+import { enqueueVisit, isOfflineError, isOnline, newId, withTimeout } from "../../lib/offlineQueue";
 import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import {
@@ -32,7 +33,8 @@ export default function AdminVisitForm() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { advisorId, hasSection } = useAuth();
+  const { advisorId, hasSection, session } = useAuth();
+  const email = session?.user?.email || "";
   const isEdit = Boolean(id);
   const presetProperty = searchParams.get("propiedad") || "";
   // Desde una cita de la Agenda ("Realizada" → "Registrar visita", o "Registrar visita" en Mi día) llega
@@ -52,6 +54,7 @@ export default function AdminVisitForm() {
   const [notFound, setNotFound] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [savedOffline, setSavedOffline] = useState(null); // { label } cuando se guardó en la cola sin señal
 
   useEffect(() => {
     if (!isEdit) return undefined;
@@ -101,9 +104,30 @@ export default function AdminVisitForm() {
       const fields = toVisitFields(form);
       if (isEdit) await db.updateVisit(id, fields);
       else {
-        const saved = await db.addVisit(fields);
+        // Cada visita lleva su id desde el primer intento: si la petición llegó pero se perdió la respuesta, el reenvío de la
+        // cola sin señal choca con él y no se duplica.
+        const record = { ...fields, id: newId() };
+        const can = { agenda: hasSection("agenda"), prospectos: hasSection("prospectos") };
+        const queueIt = () => {
+          const label = properties.find((p) => p.id === record.property_id)?.title || record.prospect_name || t("visits.form.newTitle");
+          if (enqueueVisit(email, { fields: record, label, citaId: form.cita_id || null, can })) setSavedOffline({ label });
+          else setSaveError(t("offline.saveFailed"));
+          setSaving(false);
+        };
+        if (!isOnline()) {
+          queueIt();
+          return;
+        }
+        let saved;
+        try {
+          saved = await withTimeout(db.addVisit(record));
+        } catch (err) {
+          if (!isOfflineError(err)) throw err;
+          queueIt();
+          return;
+        }
         // Si salió de una cita: se marca como realizada y se actualiza al prospecto ligado (mejor esfuerzo).
-        if (form.cita_id) await closeLoopAfterVisit(db, saved, form.cita_id, { agenda: hasSection("agenda"), prospectos: hasSection("prospectos") });
+        if (form.cita_id) await closeLoopAfterVisit(db, saved, form.cita_id, can);
       }
       // Si se llegó desde el informe de una propiedad se regresa al de la propiedad
       // que quedó guardada (pudo cambiarse en el formulario).
@@ -120,6 +144,21 @@ export default function AdminVisitForm() {
   };
 
   if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+
+  // Sin señal la visita/cita quedó en la cola de este dispositivo (lib/offlineQueue.js): se avisa en vez de navegar a algo que todavía no existe.
+  if (savedOffline) {
+    return (
+      <div>
+        <div className="card offline-saved" role="status">
+          <h2>{t("offline.saved.title")}</h2>
+          <p>{t("offline.saved.visit", { name: savedOffline.label })}</p>
+          <button type="button" className="btn btn-primary" onClick={() => navigate(backTo, { replace: true })}>
+            {t("offline.saved.back")}
+          </button>
+        </div>
+      </div>
+    );
+  }
   if (notFound) {
     return (
       <div className="empty-state">

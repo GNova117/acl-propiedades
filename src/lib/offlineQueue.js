@@ -1,11 +1,14 @@
-// Captura sin señal: lo que el asesor guarda cuando no hay conexión —un «Prospecto rápido» o un «Registrar
-// contacto», incluidos los resultados de un toque— no se pierde ni lo hace esperar: queda en una cola en este
-// dispositivo y se envía solo al volver la señal. Lo demás sigue pidiendo conexión.
+// Captura sin señal: lo que el asesor guarda cuando no hay conexión —un «Prospecto rápido», un «Registrar
+// contacto» (incluidos los resultados de un toque), una visita nueva o una cita nueva de la Agenda— no se pierde
+// ni lo hace esperar: queda en una cola en este dispositivo y se envía solo al volver la señal. Lo demás (editar,
+// cambiar de etapa, notas…) sigue pidiendo conexión.
 //
 // Cuidados que importan:
-//  - Duplicados. Cada prospecto lleva un id propio desde el primer intento (`fields.id`): si una petición
-//    llegó pero se perdió la respuesta, el reenvío choca con ese id (código 23505) y se da por enviado. Un
-//    contacto, antes de reenviarse, se busca en el historial del prospecto (`maybeSent`).
+//  - Duplicados. Cada prospecto, visita y cita lleva un id propio desde el primer intento (`fields.id`): si una
+//    petición llegó pero se perdió la respuesta, el reenvío choca con ese id (código 23505) y se da por enviado.
+//    Un contacto, antes de reenviarse, se busca en el historial del prospecto (`maybeSent`). Una visita que salió
+//    de una cita, al enviarse, cierra el ciclo como siempre (cita realizada y prospecto al día; closeLoopAfterVisit,
+//    que se puede repetir sin daño).
 //  - Etapa. El contacto se vuelve a calcular AL ENVIARLO con el prospecto de ese momento (contactUpdate): si un
 //    compañero lo movió de etapa mientras tanto, no se le hace retroceder. El último contacto sí lleva la hora real.
 //  - Privacidad. La cola es de una cuenta (clave por correo): otra cuenta en el mismo dispositivo ni la ve ni la
@@ -15,6 +18,7 @@
 //  - Un solo envío a la vez, también entre pestañas (Web Locks), para no mandar dos veces lo mismo.
 
 import { contactUpdate } from "./prospectContacts";
+import { closeLoopAfterVisit } from "./visitProspect";
 
 const KEY_PREFIX = "acl_offline_queue_v1:";
 export const MAX_OPS = 200;
@@ -25,7 +29,7 @@ const DELAYED_MS = 5 * 60 * 1000;
 // Ventana para reconocer que un contacto «dudoso» ya había llegado.
 const SENT_WINDOW_MS = 60 * 1000;
 
-export const OP_TYPES = ["prospect.add", "prospect.contact"];
+export const OP_TYPES = ["prospect.add", "prospect.contact", "visit.add", "cita.add"];
 const EMPTY = Object.freeze([]);
 
 // ── Conexión y errores ──
@@ -136,6 +140,13 @@ export const enqueueProspect = (email, fields) => enqueue(email, { type: "prospe
 export const enqueueContact = (email, { prospect, channel, note, nextFollowup, stage, maybeSent = false }) =>
   enqueue(email, { type: "prospect.contact", label: prospect.name, maybeSent, payload: { prospectId: prospect.id, channel, note: note ?? "", nextFollowup, stage } });
 
+// Visita nueva (Visitas → Registrar visita). `fields.id` lo pone quien llama (newId()); `citaId`: la cita de la que salió, para cerrar el
+// ciclo al enviarla; `can`: { agenda, prospectos } según los apartados del rol al registrarla.
+export const enqueueVisit = (email, { fields, label, citaId = null, can = {} }) => enqueue(email, { type: "visit.add", label, payload: { fields, citaId, can } });
+
+// Cita nueva de la Agenda. `fields.id` lo pone quien llama (newId()).
+export const enqueueCita = (email, { fields, label }) => enqueue(email, { type: "cita.add", label, payload: { fields } });
+
 export function removeOp(email, id) {
   const ops = getQueue(email);
   return write(email, ops.filter((op) => op.id !== id));
@@ -169,6 +180,28 @@ export function contactAlreadyLogged(contacts, op, noteSuffix = defaultNoteSuffi
 async function replayProspect(op, db) {
   try {
     await withTimeout(db.addProspect(op.payload.fields), 2 * SAVE_TIMEOUT_MS);
+  } catch (err) {
+    if (!isDuplicateKey(err)) throw err; // ya había llegado
+  }
+}
+
+async function replayVisit(op, db) {
+  const { fields, citaId, can } = op.payload;
+  let saved;
+  try {
+    saved = await withTimeout(db.addVisit(fields), 2 * SAVE_TIMEOUT_MS);
+  } catch (err) {
+    if (!isDuplicateKey(err)) throw err;
+    // Ya había llegado: se lee para poder cerrar el ciclo (si no se puede leer, ya llegó y no hay más que hacer).
+    saved = await withTimeout(db.getVisitById(fields.id), 2 * SAVE_TIMEOUT_MS).catch(() => null);
+    if (!saved) return;
+  }
+  if (citaId) await closeLoopAfterVisit(db, saved, citaId, can || {});
+}
+
+async function replayCita(op, db) {
+  try {
+    await withTimeout(db.addAgendaCita(op.payload.fields), 2 * SAVE_TIMEOUT_MS);
   } catch (err) {
     if (!isDuplicateKey(err)) throw err; // ya había llegado
   }
@@ -208,6 +241,8 @@ export function flushQueue({ email, db, noteSuffix = defaultNoteSuffix }) {
     for (const op of getQueue(email).filter((o) => !o.failed)) {
       try {
         if (op.type === "prospect.add") await replayProspect(op, db);
+        else if (op.type === "visit.add") await replayVisit(op, db);
+        else if (op.type === "cita.add") await replayCita(op, db);
         else await replayContact(op, db, noteSuffix);
         removeOp(email, op.id);
         result.sent += 1;

@@ -44,3 +44,27 @@ describe("modo demo: citas con propiedad y prospecto", () => {
     expect(editada.prospecto_id).toBe("p1");
   });
 });
+
+describe("modo demo: ids propios (la cola sin señal) y claves duplicadas", () => {
+  const visita = { property_id: "prop-3", advisor_id: "advisor-1", visited_at: "2026-11-01T10:00:00.000Z", prospect_name: "Ana", interest: "muy_interesado", reasons: [], comments: null };
+
+  it("una cita con id propio lo conserva; repetir ese id se rechaza como la base real (23505) y no duplica", async () => {
+    const cita = await db.addAgendaCita({ ...base, id: "cita-cola-1" });
+    expect(cita.id).toBe("cita-cola-1");
+    await expect(db.addAgendaCita({ ...base, id: "cita-cola-1" })).rejects.toMatchObject({ code: "23505" });
+    expect((await db.getAgendaCitas()).filter((c) => c.id === "cita-cola-1")).toHaveLength(1);
+  });
+
+  it("sin id propio, la cita sigue recibiendo el suyo", async () => {
+    const a = await db.addAgendaCita(base);
+    const b = await db.addAgendaCita(base);
+    expect(a.id).not.toBe(b.id);
+  });
+
+  it("una visita con id propio lo conserva; repetirlo se rechaza igual", async () => {
+    const saved = await db.addVisit({ ...visita, id: "visita-cola-1" });
+    expect(saved.id).toBe("visita-cola-1");
+    await expect(db.addVisit({ ...visita, id: "visita-cola-1" })).rejects.toMatchObject({ code: "23505" });
+    expect((await db.getVisits()).filter((v) => v.id === "visita-cola-1")).toHaveLength(1);
+  });
+});

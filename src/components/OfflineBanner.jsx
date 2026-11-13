@@ -14,6 +14,14 @@ export default function OfflineBanner() {
   const { online, ops, pending, failed, flushing, sent, flush, discard, retry } = useOfflineQueue();
   const [open, setOpen] = useState(false);
 
+  // Qué es cada cambio en espera: el nombre del prospecto, de la visita o de la cita.
+  const opText = (op) => {
+    if (op.type === "prospect.add") return t("offline.op.prospect", { name: op.label });
+    if (op.type === "visit.add") return t("offline.op.visit", { name: op.label });
+    if (op.type === "cita.add") return t("offline.op.cita", { name: op.label });
+    return t("offline.op.contact", { name: op.label, channel: t(`prospects.contact.channels.${op.payload.channel}`, { defaultValue: op.payload.channel }) });
+  };
+
   if (online && ops.length === 0 && sent === 0) return null;
 
   const tone = failed.length > 0 ? "error" : !online ? "offline" : pending > 0 ? "pending" : "ok";
@@ -49,9 +57,7 @@ export default function OfflineBanner() {
             <li key={op.id} className={`offline-banner__item${op.failed ? " is-failed" : ""}`}>
               <div className="offline-banner__item-text">
                 <strong>
-                  {op.type === "prospect.add"
-                    ? t("offline.op.prospect", { name: op.label })
-                    : t("offline.op.contact", { name: op.label, channel: t(`prospects.contact.channels.${op.payload.channel}`, { defaultValue: op.payload.channel }) })}
+                  {opText(op)}
                 </strong>
                 <span className="form-hint">
                   {t("offline.op.when", { when: formatWhen(op.createdAt) })}

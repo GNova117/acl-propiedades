@@ -3574,6 +3574,8 @@
       "hide": "Hide"
     },
     "op": {
+      "visit": "Visit: {{name}}",
+      "cita": "Appointment: {{name}}",
       "prospect": "New prospect: {{name}}",
       "contact": "Contact with {{name}} ({{channel}})",
       "when": "Captured {{when}}",
@@ -3581,6 +3583,12 @@
       "retry": "Retry",
       "discard": "Discard",
       "confirmDiscard": "Discard this change? It will be lost and will not be sent."
+    },
+    "saved": {
+      "title": "Saved on this device",
+      "visit": "The visit “{{name}}” will be sent automatically when there is a signal. Until then it does not show up in the lists.",
+      "cita": "The appointment “{{name}}” will be sent automatically when there is a signal. Until then it is not in the Agenda and its client link will be available once it is sent.",
+      "back": "Back"
     },
     "quickSaved": "Saved on this device: {{name}}. It will be sent when there is signal.",
     "saveFailed": "Could not save on this device while offline. Try again with signal.",

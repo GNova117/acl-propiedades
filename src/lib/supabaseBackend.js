@@ -2434,8 +2434,10 @@ export const supabaseBackend = {
 
   // `contact_*`: datos de quien no es un cliente registrado (para mandarle el enlace de la cita). Como `lugar`,
   // solo se mandan si se capturaron. La cita trae su `booking_token` por omisión (ver "fase 8" en schema.sql).
-  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email, property_id, prospecto_id }) {
+  // `id` (opcional): lo pone quien guarda sin señal (cola de offlineQueue.js) para que un reenvío no duplique la cita.
+  async addAgendaCita({ id, advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email, property_id, prospecto_id }) {
     const payload = {
+      ...(id ? { id } : {}),
       advisor_id,
       client_id: client_id || null,
       titulo: titulo.trim(),

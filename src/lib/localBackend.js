@@ -174,6 +174,9 @@ function uid(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+// Como la base real al repetir un id (código 23505): la cola sin señal lo da por ya enviado.
+const duplicateKeyError = () => Object.assign(new Error("duplicate key value violates unique constraint"), { code: "23505" });
+
 // Arranca después de los 9 códigos sembrados (ACL-1001..1009) — mismo
 // esquema que la secuencia de Postgres (properties_code_seq start 1001),
 // solo que aquí no hay trigger de base de datos que lo haga solo.
@@ -1787,6 +1790,7 @@ export const localBackend = {
 
   async addVisit(fields) {
     const items = readStore(KEYS.visits, VISITS_SEED);
+    if (fields.id && items.some((v) => v.id === fields.id)) throw duplicateKeyError();
     const now = new Date().toISOString();
     const record = { id: uid("visit"), ...fields, created_by: DEMO_ADMIN.email, created_at: now, updated_at: now };
     items.push(record);
@@ -2513,10 +2517,12 @@ export const localBackend = {
     return citas.find((c) => c.id === id) || null;
   },
 
-  async addAgendaCita({ advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email, property_id, prospecto_id }) {
+  async addAgendaCita({ id, advisor_id, client_id, titulo, fecha, hora, actividades, lugar, contact_name, contact_phone, contact_email, property_id, prospecto_id }) {
     const citas = readStore(KEYS.agendaCitas, []);
+    // Un id que ya existe (reenvío de la cola sin señal) se rechaza igual que Supabase (23505).
+    if (id && citas.some((c) => c.id === id)) throw duplicateKeyError();
     const record = {
-      id: uid("cita"),
+      id: id || uid("cita"),
       advisor_id,
       client_id: client_id || null,
       titulo: titulo.trim(),

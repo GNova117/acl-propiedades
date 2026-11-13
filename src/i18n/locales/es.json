@@ -3574,6 +3574,8 @@
       "hide": "Ocultar"
     },
     "op": {
+      "visit": "Visita: {{name}}",
+      "cita": "Cita: {{name}}",
       "prospect": "Prospecto nuevo: {{name}}",
       "contact": "Contacto con {{name}} ({{channel}})",
       "when": "Capturado {{when}}",
@@ -3581,6 +3583,12 @@
       "retry": "Reintentar",
       "discard": "Descartar",
       "confirmDiscard": "¿Descartar este cambio? Se perderá y no se enviará."
+    },
+    "saved": {
+      "title": "Guardada en este dispositivo",
+      "visit": "La visita «{{name}}» se enviará sola cuando haya señal. Mientras tanto no aparece en las listas.",
+      "cita": "La cita «{{name}}» se enviará sola cuando haya señal. Mientras tanto no aparece en la Agenda y su enlace para el cliente estará disponible cuando se envíe.",
+      "back": "Volver"
     },
     "quickSaved": "Guardado en este dispositivo: {{name}}. Se enviará cuando haya señal.",
     "saveFailed": "No se pudo guardar sin conexión en este dispositivo. Intenta de nuevo con señal.",
