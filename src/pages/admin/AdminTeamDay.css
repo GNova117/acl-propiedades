@@ -164,3 +164,15 @@
   background: color-mix(in srgb, #16a34a 14%, transparent);
   color: #15803d;
 }
+
+/* Asesor ausente hoy (ver lib/absences.js): se nota en la tarjeta, sin cambiar su estado. */
+.team-card__away {
+  display: inline-block;
+  margin: 0.2rem 0 0;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: #f0a500;
+  color: #1a1a1a;
+  font-size: 0.78rem;
+  font-weight: 600;
+}

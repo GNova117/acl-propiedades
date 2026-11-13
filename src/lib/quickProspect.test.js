@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractPhone, quickProspectFields, validateQuickProspect } from "./quickProspect";
+import { SHARE_MAX_TEXT, extractPhone, quickProspectFields, shareToDraft, validateQuickProspect } from "./quickProspect";
 
 describe("extractPhone", () => {
   it.each([
@@ -38,5 +38,32 @@ describe("quickProspectFields", () => {
     expect(fields.phone).toBe("8711111111");
     expect(fields.advisor_id).toBeNull();
     expect(fields.looking_for).toBeNull();
+  });
+});
+
+describe("shareToDraft", () => {
+  it("un contacto compartido: nombre en la primera línea y teléfono en la segunda", () => {
+    expect(shareToDraft({ text: "Luis Ramírez\n+52 871 123 4567" })).toEqual({ name: "Luis Ramírez", phone: "8711234567", pasted: "Luis Ramírez\n+52 871 123 4567" });
+  });
+
+  it("el título, si parece un nombre, gana sobre la primera línea", () => {
+    const draft = shareToDraft({ title: "Ana López", text: "Me interesa la casa de Lerdo. Mi cel 871-123-4567" });
+    expect(draft).toMatchObject({ name: "Ana López", phone: "8711234567" });
+    expect(draft.pasted).toBe("Ana López\nMe interesa la casa de Lerdo. Mi cel 871-123-4567");
+  });
+
+  it("un mensaje de WhatsApp NO se toma por nombre: se deja vacío para escribirlo, y el teléfono sí se saca", () => {
+    const draft = shareToDraft({ text: "Hola, buenas tardes, me interesa la casa de Lerdo, mi número es 8711234567" });
+    expect(draft.name).toBe("");
+    expect(draft.phone).toBe("8711234567");
+    expect(shareToDraft({ text: "¿Sigue disponible?" }).name).toBe("");
+    expect(shareToDraft({ text: "https://wa.me/528711234567" }).name).toBe("");
+  });
+
+  it("incluye el enlace compartido, ignora partes vacías y recorta lo larguísimo", () => {
+    expect(shareToDraft({ title: "  ", text: "Ana", url: "https://acl.mx/p/1" }).pasted).toBe("Ana\nhttps://acl.mx/p/1");
+    expect(shareToDraft({ text: "x".repeat(5000) }).pasted).toHaveLength(SHARE_MAX_TEXT);
+    expect(shareToDraft()).toEqual({ name: "", phone: "", pasted: "" });
+    expect(shareToDraft({ text: "sin teléfono" }).phone).toBe("");
   });
 });

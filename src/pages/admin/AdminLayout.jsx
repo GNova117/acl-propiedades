@@ -12,6 +12,7 @@ import QuickCapture from "../../components/QuickCapture";
 import OfflineBanner from "../../components/OfflineBanner";
 import { getQueue } from "../../lib/offlineQueue";
 import { startPrecache } from "../../lib/offlineShell";
+import { clearAppBadge } from "../../lib/appBadge";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
 import { HOME_MY_DAY, mobileTabs } from "../../lib/adminHome";
@@ -28,6 +29,8 @@ const NAV = [
   // Sin apartado: se muestra por tener un login vinculado a un asesor
   // (advisorId), no por un permiso de rol — ver AdminMyProfile.jsx.
   { section: null, to: "/admin/mi-perfil", labelKey: "admin.myProfile", requiresAdvisor: true },
+  // Igual que Mi perfil: lo ve quien tiene un login vinculado a un asesor (sus ventas y la comisión que la oficina le publicó).
+  { section: null, to: "/admin/mis-ventas", labelKey: "mySales.navTitle", requiresAdvisor: true },
   {
     key: "propiedades",
     labelKey: "admin.groups.propiedades",
@@ -200,6 +203,7 @@ export default function AdminLayout() {
     const waiting = getQueue(session?.user?.email).length;
     if (waiting > 0 && !window.confirm(t("offline.logoutConfirm", { count: waiting }))) return;
     await logout();
+    clearAppBadge(); // la insignia de pendientes es de la cuenta que acaba de salir
     navigate("/admin/login", { replace: true });
   };
 

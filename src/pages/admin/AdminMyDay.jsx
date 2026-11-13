@@ -17,6 +17,11 @@ import QuickReplyButton from "../../components/QuickReplyButton";
 import CopyVisitLinkButton from "../../components/CopyVisitLinkButton";
 import ProspectContactForm from "../../components/ProspectContactForm";
 import MonthGoals from "../../components/MonthGoals";
+import MatchAlerts from "../../components/MatchAlerts";
+import DayRoute from "../../components/DayRoute";
+import { markSeen, matchAlerts, readSeen } from "../../lib/matchAlerts";
+import { planDayRoute } from "../../lib/dayRoute";
+import { absentUntil, todayISO } from "../../lib/absences";
 import { HOME_MY_DAY, HOME_PANEL } from "../../lib/adminHome";
 import { useAdminHome } from "../../lib/useAdminHome";
 import "./admin.css";
@@ -33,7 +38,8 @@ const NONE = [];
 // Muestra solo lo de los apartados que el rol tiene.
 export default function AdminMyDay() {
   const { t, i18n } = useTranslation();
-  const { hasSection, advisorId } = useAuth();
+  const { hasSection, advisorId, session } = useAuth();
+  const email = session?.user?.email || "";
   const canAgenda = hasSection("agenda");
   const canProspects = hasSection("prospectos");
   const canVisits = hasSection("visitas");
@@ -44,8 +50,11 @@ export default function AdminMyDay() {
   const citasQ = useQuery(queries.citas, { enabled: canAgenda });
   const prospectsQ = useQuery(queries.prospects, { enabled: canProspects });
   const clientsQ = useQuery(queries.clients(), { enabled: canAgenda });
-  const propertiesQ = useQuery(queries.properties, { enabled: canProspects });
+  // Las propiedades sirven para los mensajes, para «le encaja a tus prospectos» y para ubicar las citas en la ruta del día.
+  const propertiesQ = useQuery(queries.properties, { enabled: canProspects || canAgenda });
   const advisorsQ = useQuery(queries.advisors);
+  // Mis ausencias (solo con un login de asesor): si hoy estoy ausente, Mi día lo recuerda.
+  const timeOffQ = useQuery(queries.timeOff, { enabled: advisorId != null && canAgenda });
   const citas = citasQ.data ?? NONE;
   const prospects = prospectsQ.data ?? NONE;
   const clients = clientsQ.data ?? NONE;
@@ -66,6 +75,14 @@ export default function AdminMyDay() {
   }, []);
 
   const plan = useMemo(() => buildDayPlan({ citas, prospects, now }), [citas, prospects, now]);
+
+  // Ruta del día: las citas que faltan, en orden de hora (lib/dayRoute.js).
+  const route = useMemo(() => planDayRoute(plan.agenda, properties), [plan.agenda, properties]);
+
+  // Propiedades nuevas o con rebaja que le encajan a algún prospecto (lib/matchAlerts.js); lo ya revisado se recuerda en este dispositivo.
+  const [seen, setSeen] = useState(() => readSeen(email));
+  const matches = useMemo(() => (canProspects ? matchAlerts({ properties, prospects, now: now.getTime(), seen }) : NONE), [canProspects, properties, prospects, now, seen]);
+  const onSeen = (keys) => setSeen(markSeen(email, keys));
 
   // Cerrar una visita pasada: realizada o "no asistió". Vuelve a leer las citas para que salga de la lista.
   const [closeError, setCloseError] = useState("");
@@ -88,6 +105,7 @@ export default function AdminMyDay() {
   const templatesFor = (p) =>
     quickTemplates(p, { propertyTitle: propertyTitle(p.property_id), advisorName: advisorName(p.advisor_id), origin: window.location.origin, t });
 
+  const awayUntil = advisorId != null ? absentUntil(timeOffQ.data ?? NONE, advisorId, todayISO(now)) : null;
   const dateTitle = now.toLocaleDateString(i18n.language?.startsWith("en") ? "en-US" : "es-MX", { weekday: "long", day: "numeric", month: "long" });
 
   const citaChip = ({ state, minutesUntil }) => {
@@ -384,6 +402,13 @@ export default function AdminMyDay() {
         </div>
       </div>
 
+      {awayUntil && (
+        <p className="card my-day__away" role="status">
+          <span>{t("absences.banner", { date: new Date(`${awayUntil}T00:00:00`).toLocaleDateString(i18n.language?.startsWith("en") ? "en-US" : "es-MX", { day: "numeric", month: "long" }) })}</span>
+          <Link to="/admin/mi-perfil">{t("absences.bannerChange")}</Link>
+        </p>
+      )}
+
       {advisorId && (
         <div className="my-day__goals">
           <MonthGoals advisorId={advisorId} />
@@ -397,6 +422,7 @@ export default function AdminMyDay() {
       )}
 
       {canAgenda && section("agenda", plan.agenda, renderCita, plan.pendingAgenda)}
+      {canAgenda && <DayRoute plan={route} />}
       {canAgenda && section("requests", plan.requests, renderRequest)}
       {canAgenda && section("confirm", plan.toConfirm, renderToConfirm)}
       {canAgenda && section("close", plan.toClose, renderToClose)}
@@ -411,6 +437,12 @@ export default function AdminMyDay() {
           renderProspect(e, <span className="prospect-chip prospect-chip--overdue">{t("myDay.daysLate", { count: e.daysLate })}</span>)
         )}
       {canProspects && section("today", plan.today, (e) => renderProspect(e, <span className="prospect-chip prospect-chip--today">{t("prospects.followToday")}</span>))}
+      {canProspects && <MatchAlerts
+          alerts={matches}
+          advisorName={advisorName}
+          onSeen={onSeen}
+          onProspectUpdated={(updated) => prospectsQ.mutate((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))}
+        />}
 
       {/* Preferencia de este dispositivo: va al final, para que la primera cita se vea sin deslizar. */}
       <label className="my-day__home-toggle">

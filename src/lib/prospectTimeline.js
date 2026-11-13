@@ -43,6 +43,7 @@ const INITIAL_STAGE_WINDOW_MS = 60 * 1000;
  *   contact     — { channel, note, actor }
  *   stage       — { stage }
  *   appointment — { title, status, place, upcoming, citaId }
+ *   feedback    — { title, rating (1-5), comment, moreOptions, citaId } (la opinión del cliente tras la visita)
  *   visit       — { propertyId, interest, comments, visitId }
  *   note        — { body, author }
  *   selection        — { selectionId, title, count, revoked } (se le mandó una selección de propiedades)
@@ -77,6 +78,11 @@ export function buildTimeline({ prospect, contacts = [], stages = [], citas = []
     if (at == null) continue;
     const status = citaStatus(cita);
     items.push({ id: `cita-${cita.id}`, kind: "appointment", at, citaId: cita.id, title: cita.titulo, status, place: cita.lugar || "", upcoming: at > nowMs && (status === "confirmada" || status === "solicitada") });
+    // La opinión que el cliente dejó después de la visita (desde su enlace): va en la línea de tiempo con su propia hora.
+    const feedbackAt = ms(cita.feedback_at);
+    if (feedbackAt != null && cita.feedback_rating) {
+      items.push({ id: `feedback-${cita.id}`, kind: "feedback", at: feedbackAt, citaId: cita.id, title: cita.titulo, rating: Number(cita.feedback_rating), comment: cita.feedback_comment || "", moreOptions: Boolean(cita.feedback_more_options) });
+    }
   }
 
   const citaIds = new Set(myCitas.map((c) => c.id));

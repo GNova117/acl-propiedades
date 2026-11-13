@@ -2,6 +2,7 @@
 // el formulario, el panel de pendientes y la búsqueda global.
 
 import { filtersToCriteria } from "./alertMatch";
+import { firstPresentAdvisor } from "./absences";
 
 export const PROSPECT_STAGES = ["nuevo", "contactado", "interesado", "negociacion", "cerrado", "perdido"];
 export const OPEN_STAGES = ["nuevo", "contactado", "interesado", "negociacion"];
@@ -136,15 +137,19 @@ export function visitToProspectFields(visit) {
 // oficina (RLS de prospectos), así que en una propiedad compartida nadie lo
 // traería en su seguimiento aunque a todos les llegó el aviso de WhatsApp del
 // mensaje original. La oficina puede reasignarlo después desde su edición.
-export function messageToProspectFields(message, property) {
+export function messageToProspectFields(message, property, { absentIds = new Set(), advisors: allAdvisors = [] } = {}) {
   const advisors = property?.advisors || [];
+  // Un mensaje que llegó por la página de un asesor (message.advisor_id) es de ese asesor; si no, el primer asesor de la propiedad
+  // que no esté ausente hoy (si todos lo están, el primero).
+  const direct = message.advisor_id ? allAdvisors.find((a) => a.id === message.advisor_id) || { id: message.advisor_id } : null;
+  const assigned = direct || firstPresentAdvisor(advisors, absentIds);
   return {
     name: (message.name || "").trim() || "Sin nombre",
     phone: message.phone || null,
     email: message.email || null,
     source: ["whatsapp", "simulador", "estimacion", "comparador", "alerta"].includes(message.channel) ? message.channel : "sitio",
     stage: "nuevo",
-    advisor_id: advisors.length > 0 ? advisors[0].id : null,
+    advisor_id: assigned ? assigned.id : null,
     property_id: message.property_id || null,
     message_id: message.id,
     looking_for: null,

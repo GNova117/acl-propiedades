@@ -105,3 +105,23 @@ describe("buildTeamDay", () => {
     expect(out.rows.map((r) => r.advisor.name)).toEqual(["Ana", "Beto", "Carlos"]);
   });
 });
+
+describe("buildTeamDay: asesores ausentes", () => {
+  const now = new Date(2026, 10, 21, 10, 0, 0); // 21 de noviembre de 2026
+  const advisors = [{ id: "a1", name: "Ana", active: true }, { id: "a2", name: "Beto", active: true }];
+  const timeOff = [
+    { advisor_id: "a1", fecha_inicio: "2026-11-20", fecha_fin: "2026-11-23" },
+    { advisor_id: "a1", fecha_inicio: "2026-11-24", fecha_fin: "2026-11-27" },
+    { advisor_id: "a2", fecha_inicio: "2026-12-01", fecha_fin: "2026-12-05" },
+  ];
+
+  it("marca hasta cuándo está ausente hoy quien lo está (juntando ausencias seguidas) y deja en null a los demás", () => {
+    const out = buildTeamDay({ advisors, timeOff, now });
+    expect(out.rows.find((r) => r.advisor.id === "a1").absentUntil).toBe("2026-11-27");
+    expect(out.rows.find((r) => r.advisor.id === "a2").absentUntil).toBeNull(); // la suya es en diciembre
+  });
+
+  it("sin ausencias todo queda igual", () => {
+    expect(buildTeamDay({ advisors, now }).rows.every((r) => r.absentUntil === null)).toBe(true);
+  });
+});

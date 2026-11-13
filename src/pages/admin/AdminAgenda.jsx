@@ -335,6 +335,12 @@ export default function AdminAgenda() {
                           </span>
                         )}
                         {cita.reschedule_count > 0 && <span className="agenda-chip">{t("agenda.rescheduled", { count: cita.reschedule_count })}</span>}
+                        {cita.feedback_rating > 0 && (
+                          <span className="agenda-chip agenda-chip--ok" title={cita.feedback_comment || undefined}>
+                            {t("agenda.feedbackChip", { rating: cita.feedback_rating })}
+                            {cita.feedback_more_options ? ` · ${t("agenda.feedbackMore")}` : ""}
+                          </span>
+                        )}
                       </div>
                       {open && <div className="form-hint">{t("agenda.requestHint")}</div>}
                       {status === "cancelada" && cita.cancelled_by && (

@@ -1,0 +1,42 @@
+.advisor-share {
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.25rem;
+}
+
+.advisor-share h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+}
+
+.advisor-share__body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  align-items: flex-start;
+  margin-top: 0.75rem;
+}
+
+.advisor-share__links {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.advisor-share__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.advisor-share__qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.advisor-share__qr-canvas {
+  width: 9rem;
+  height: 9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}

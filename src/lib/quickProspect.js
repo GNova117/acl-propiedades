@@ -49,3 +49,25 @@ export function quickProspectFields({ name, phone, lookingFor, pasted }, { advis
     lost_reason: null,
   };
 }
+
+// ── «Compartir → ACL Panel» (Android: la app instalada aparece al compartir desde WhatsApp, Contactos, etc.) ──
+
+export const SHARE_MAX_TEXT = 1000;
+
+const looksLikeName = (line) => {
+  const text = String(line || "").trim();
+  return text.length >= 2 && text.length <= 40 && !/\d|https?:|[?¿!¡,:;@]/.test(text) && text.split(/\s+/).length <= 4;
+};
+
+/**
+ * Lo compartido ({ title, text, url }, tal como llega en la dirección) → un borrador para el prospecto rápido:
+ *   name   — el título o la primera línea, solo si parece un nombre (corto, sin números ni signos); si no, "" (se escribe a mano);
+ *   phone  — el teléfono de 10 dígitos que aparezca, o "";
+ *   pasted — todo el texto compartido (se guarda en las notas del prospecto).
+ */
+export function shareToDraft({ title = "", text = "", url = "" } = {}) {
+  const pasted = [title, text, url].map((part) => String(part || "").trim()).filter(Boolean).join("\n").slice(0, SHARE_MAX_TEXT);
+  const firstLine = pasted.split(/\r?\n/).find((line) => line.trim()) || "";
+  const name = looksLikeName(title) ? String(title).trim() : looksLikeName(firstLine) ? firstLine.trim() : "";
+  return { name, phone: extractPhone(pasted) || "", pasted };
+}

@@ -14,6 +14,8 @@ export const queries = {
   selections: { key: "selections", fetch: orEmpty(() => db.getSelections()) },
   visits: { key: "visits", fetch: orEmpty(() => db.getVisits()) },
   citas: { key: "agenda-citas", fetch: () => db.getAgendaCitas() },
+  // Ausencias de los asesores (las propias, o las de todos para la oficina según RLS); sin ellas las pantallas siguen igual.
+  timeOff: { key: "advisor-time-off", fetch: orEmpty(() => db.getAllAdvisorTimeOff()) },
   zones: { key: "zones", fetch: orEmpty(() => db.getZones()) },
   propertyTypes: { key: "property-types", fetch: orEmpty(() => db.getPropertyTypes()) },
   remodelProjects: { key: "remodel-projects", fetch: () => db.getRemodelProjects({}) },

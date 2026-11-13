@@ -30,6 +30,7 @@ export default function VisitScheduleEditor({ advisorId }) {
   const { t, i18n } = useTranslation();
   const [settings, setSettings] = useState({ ...DEFAULT_VISIT_SETTINGS, enabled: false });
   const [days, setDays] = useState(() => weeklyToDays([]));
+  // Las ausencias se capturan en su propia tarjeta (AbsenceCard); aquí solo se leen para la vista previa de horarios.
   const [timeOff, setTimeOff] = useState([]);
   const [citas, setCitas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +42,7 @@ export default function VisitScheduleEditor({ advisorId }) {
   const applySchedule = (schedule) => {
     setSettings(schedule.settings);
     setDays(weeklyToDays(schedule.weekly));
-    setTimeOff((schedule.timeOff || []).map((o) => ({ fecha_inicio: o.fecha_inicio, fecha_fin: o.fecha_fin, motivo: o.motivo || "" })));
+    setTimeOff(schedule.timeOff || []);
   };
 
   useEffect(() => {
@@ -61,7 +62,7 @@ export default function VisitScheduleEditor({ advisorId }) {
   }, [advisorId, t]);
 
   const weekly = useMemo(() => daysToWeekly(days), [days]);
-  const issues = useMemo(() => findScheduleIssues({ weekly, timeOff }), [weekly, timeOff]);
+  const issues = useMemo(() => findScheduleIssues({ weekly }), [weekly]);
   const issueFor = (weekday) => issues.find((i) => i.weekday === weekday)?.code;
 
   // Cuántos horarios vería un visitante en los próximos días con lo que hay en pantalla.
@@ -102,11 +103,6 @@ export default function VisitScheduleEditor({ advisorId }) {
   const copyMondayToWeekdays = touch(() =>
     setDays((prev) => ({ ...prev, 2: prev[1].map((w) => ({ ...w })), 3: prev[1].map((w) => ({ ...w })), 4: prev[1].map((w) => ({ ...w })), 5: prev[1].map((w) => ({ ...w })) }))
   );
-  const addTimeOff = touch(() => setTimeOff((prev) => [...prev, { fecha_inicio: "", fecha_fin: "", motivo: "" }]));
-  const editTimeOff = touch((index, field, value) =>
-    setTimeOff((prev) => prev.map((o, i) => (i === index ? { ...o, [field]: value } : o)))
-  );
-  const removeTimeOff = touch((index) => setTimeOff((prev) => prev.filter((_, i) => i !== index)));
 
   const handleSave = async () => {
     setError("");
@@ -118,7 +114,8 @@ export default function VisitScheduleEditor({ advisorId }) {
     setShowIssues(false);
     setSaving(true);
     try {
-      const result = await db.saveAdvisorVisitSchedule(advisorId, { settings, weekly, timeOff });
+      // Sin `timeOff`: guardar el horario no toca las ausencias (se editan en su tarjeta).
+      const result = await db.saveAdvisorVisitSchedule(advisorId, { settings, weekly });
       applySchedule(result);
       setSaved(true);
     } catch (err) {
@@ -231,30 +228,7 @@ export default function VisitScheduleEditor({ advisorId }) {
           {t("visitSchedule.copyMonday")}
         </button>
 
-        <h3>{t("visitSchedule.timeOffTitle")}</h3>
-        <p className="form-hint">{t("visitSchedule.timeOffHint")}</p>
-        {timeOff.map((o, index) => (
-          <div key={index} className="visit-schedule__off">
-            <input type="date" value={o.fecha_inicio} aria-label={t("visitSchedule.offFrom")} onChange={(e) => editTimeOff(index, "fecha_inicio", e.target.value)} />
-            <span aria-hidden="true">–</span>
-            <input type="date" value={o.fecha_fin} min={o.fecha_inicio || undefined} aria-label={t("visitSchedule.offTo")} onChange={(e) => editTimeOff(index, "fecha_fin", e.target.value)} />
-            <input
-              type="text"
-              value={o.motivo}
-              maxLength={80}
-              placeholder={t("visitSchedule.offReason")}
-              aria-label={t("visitSchedule.offReason")}
-              onChange={(e) => editTimeOff(index, "motivo", e.target.value)}
-            />
-            <button type="button" className="btn btn-outline btn-sm" onClick={() => removeTimeOff(index)} aria-label={t("visitSchedule.removeOff")}>
-              ✕
-            </button>
-          </div>
-        ))}
-        {showIssues && issues.some((i) => i.code === "invalid_time_off") && <p className="form-error">{t("visitSchedule.issues.invalid_time_off")}</p>}
-        <button type="button" className="btn btn-outline btn-sm" onClick={addTimeOff}>
-          {t("visitSchedule.addTimeOff")}
-        </button>
+        <p className="form-hint visit-schedule__absences-note">{t("visitSchedule.absencesNote")}</p>
       </div>
 
       {settings.enabled && !hasWindows && <p className="form-error">{t("visitSchedule.enabledWithoutWindows")}</p>}

@@ -14,6 +14,9 @@ import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } fro
 import { CITA_STATUSES } from "./agendaCitas";
 import { BOOKING_TOKEN_PATTERN, DEFAULT_VISIT_SETTINGS, hhmm, normalizeVisitSchedule } from "./visitSlots";
 import { cleanSelectionInput } from "./selections";
+import { commissionKey } from "./mySales";
+import { cleanAbsences } from "./absences";
+import { SLUG_PATTERN } from "./advisorPage";
 
 // La tabla aún no existe en la base (falta correr su bloque de schema.sql):
 // 42P01 es Postgres directo, PGRST205 es PostgREST ("no está en el schema cache").
@@ -412,6 +415,15 @@ export const supabaseBackend = {
     const { data, error } = await supabase.from("advisors").select("*").order("name");
     if (error) throw error;
     return data || [];
+  },
+
+  // La página pública /asesor/<slug>: lee por slug (la tabla advisors es de lectura pública; el slug lo pone un trigger, ver
+  // «Página del asesor» en schema.sql). null si no existe.
+  async getAdvisorBySlug(slug) {
+    if (!SLUG_PATTERN.test(slug || "")) return null;
+    const { data, error } = await supabase.from("advisors").select("*").eq("slug", slug).maybeSingle();
+    if (error) throw error;
+    return data;
   },
 
   async getAdvisorById(id) {
@@ -1541,6 +1553,35 @@ export const supabaseBackend = {
     await this.setPropertyStatus(propertyId, "disponible");
   },
 
+  // Comisiones que la oficina publicó para cada asesor (tabla advisor_commissions; ver «Mis ventas y comisiones» en schema.sql).
+  // RLS: cada asesor lee solo las suyas; quien tiene el apartado 'liquidaciones' lee y escribe todas.
+  async getAdvisorCommissions() {
+    const { data, error } = await supabase.from("advisor_commissions").select("*").order("fecha_venta", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Deja publicado exactamente `rows` ({ property_id, advisor_id, role, amount, fecha_venta }): agrega o actualiza lo que viene y
+  // retira lo que ya no (una venta deshecha o una liquidación que dejó de dar comisión).
+  async syncAdvisorCommissions(rows) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const publishedAt = new Date().toISOString();
+    const publishedBy = sessionData?.session?.user?.email || null;
+    const existing = await this.getAdvisorCommissions();
+    if (rows.length > 0) {
+      const payload = rows.map((row) => ({ ...row, published_by: publishedBy, published_at: publishedAt }));
+      const { error } = await supabase.from("advisor_commissions").upsert(payload, { onConflict: "property_id,advisor_id,role" });
+      if (error) throw error;
+    }
+    const keep = new Set(rows.map(commissionKey));
+    const stale = existing.filter((e) => !keep.has(commissionKey(e))).map((e) => e.id);
+    if (stale.length > 0) {
+      const { error } = await supabase.from("advisor_commissions").delete().in("id", stale);
+      if (error) throw error;
+    }
+    return { published: rows.length, removed: stale.length };
+  },
+
   // Bitácora y gastos por propiedad. Tablas property_log / property_budgets y
   // bucket privado property-log-files, todos protegidos por RLS con
   // has_admin_section('bitacora') (ver schema.sql): quien no tenga ese
@@ -2636,6 +2677,13 @@ export const supabaseBackend = {
     return data;
   },
 
+  // Opinión del cliente después de la visita (función submit_booking_feedback; ver el bloque de «Opinión de la visita» en schema.sql).
+  async submitVisitFeedback(token, { rating, comment = "", moreOptions = false } = {}) {
+    const { data, error } = await supabase.rpc("submit_booking_feedback", { p_token: token, p_rating: rating, p_comment: comment, p_more_options: Boolean(moreOptions) });
+    if (error) throw error;
+    return data;
+  },
+
   // Horario de visitas de un asesor (con sesión; RLS: el suyo, o todos si el
   // acceso de Agenda no tiene asesor vinculado). Sin fila de ajustes devuelve
   // la reserva desactivada: nadie ofrece horarios hasta que se active a propósito.
@@ -2681,8 +2729,41 @@ export const supabaseBackend = {
       }
     };
     await replaceRows("advisor_availability", weekly);
-    await replaceRows("advisor_time_off", timeOff);
+    // Las ausencias se editan aparte (saveAdvisorTimeOff): si quien guarda el horario no las manda, no se tocan.
+    if (input.timeOff !== undefined) await replaceRows("advisor_time_off", timeOff);
     return this.getAdvisorVisitSchedule(advisorId);
+  },
+
+  // Ausencias del asesor («no estoy del … al …»): los días de descanso de su horario de visitas (advisor_time_off). RLS: las suyas,
+  // o todas para quien tiene Agenda sin asesor vinculado. `getAllAdvisorTimeOff` trae las de todos los que el acceso puede ver.
+  async getAdvisorTimeOff(advisorId) {
+    const { data, error } = await supabase.from("advisor_time_off").select("id, advisor_id, fecha_inicio, fecha_fin, motivo").eq("advisor_id", advisorId).order("fecha_inicio");
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getAllAdvisorTimeOff() {
+    const { data, error } = await supabase.from("advisor_time_off").select("id, advisor_id, fecha_inicio, fecha_fin, motivo").order("fecha_inicio");
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Reemplaza las ausencias del asesor. Primero inserta lo nuevo y al final borra lo viejo (por id): si algo falla a la mitad,
+  // queda una ausencia de más, nunca una de menos.
+  async saveAdvisorTimeOff(advisorId, rows) {
+    const clean = cleanAbsences(rows);
+    const { data: old, error: oldError } = await supabase.from("advisor_time_off").select("id").eq("advisor_id", advisorId);
+    if (oldError) throw oldError;
+    if (clean.length > 0) {
+      const { error } = await supabase.from("advisor_time_off").insert(clean.map((row) => ({ ...row, advisor_id: advisorId })));
+      if (error) throw error;
+    }
+    const oldIds = (old || []).map((row) => row.id);
+    if (oldIds.length > 0) {
+      const { error } = await supabase.from("advisor_time_off").delete().in("id", oldIds);
+      if (error) throw error;
+    }
+    return this.getAdvisorTimeOff(advisorId);
   },
 
   async signIn(email, password) {

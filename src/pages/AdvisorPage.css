@@ -1,0 +1,98 @@
+.advisor-page {
+  max-width: 960px;
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+}
+
+.advisor-page__hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1.25rem 1.5rem;
+  align-items: center;
+  padding: 1.5rem;
+}
+
+.advisor-page__photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.advisor-page__who h1 {
+  margin: 0 0 0.2rem;
+  font-size: 1.8rem;
+}
+
+.advisor-page__role {
+  margin: 0;
+  font-weight: 600;
+}
+
+.advisor-page__who .form-hint {
+  margin: 0.2rem 0 0;
+}
+
+.advisor-page__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.advisor-page__section {
+  margin-top: 2rem;
+}
+
+.advisor-page__section h2,
+.advisor-page__form h2 {
+  font-size: 1.3rem;
+  margin: 0 0 0.75rem;
+}
+
+.advisor-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.advisor-page__empty,
+.advisor-page__notice {
+  padding: 1.25rem;
+}
+
+.advisor-page__notice {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.advisor-page__form {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  position: relative;
+}
+
+.advisor-page__ok {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .advisor-page__hero {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    text-align: center;
+  }
+
+  /* Teléfono: dos botones por renglón y WhatsApp, el principal, a lo ancho. */
+  .advisor-page__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .advisor-page__actions .btn:first-child {
+    grid-column: 1 / -1;
+  }
+}

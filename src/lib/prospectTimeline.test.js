@@ -140,3 +140,27 @@ describe("citaTime", () => {
     expect(citaTime({ fecha: "2026-11-14", hora: null })).toBe(new Date(2026, 10, 14, 0, 0).getTime());
   });
 });
+
+describe("buildTimeline: opinión de la visita", () => {
+  const prospect = { id: "p1", created_at: "2026-11-01T10:00:00Z" };
+  const cita = (over = {}) => ({ id: "c1", prospecto_id: "p1", titulo: "Visita: Casa Lerdo", fecha: "2026-11-10", hora: "10:00", status: "realizada", ...over });
+
+  it("la opinión del cliente entra con su propia hora, calificación, comentario y si quiere ver más", () => {
+    const items = buildTimeline({
+      prospect,
+      citas: [cita({ feedback_rating: 4, feedback_comment: "Bonita pero lejos", feedback_more_options: true, feedback_at: "2026-11-10T18:30:00Z" })],
+      now: new Date("2026-11-12T12:00:00Z"),
+    });
+    const feedback = items.find((i) => i.kind === "feedback");
+    expect(feedback).toMatchObject({ rating: 4, comment: "Bonita pero lejos", moreOptions: true, citaId: "c1", title: "Visita: Casa Lerdo" });
+    expect(feedback.at).toBe(new Date("2026-11-10T18:30:00Z").getTime());
+    // La cita sigue saliendo aparte, antes de la opinión en el tiempo.
+    expect(items.filter((i) => i.kind === "appointment")).toHaveLength(1);
+    expect(items.findIndex((i) => i.kind === "feedback")).toBeLessThan(items.findIndex((i) => i.kind === "appointment"));
+  });
+
+  it("sin opinión (o de una cita de otro prospecto) no hay evento", () => {
+    expect(buildTimeline({ prospect, citas: [cita()], now: new Date("2026-11-12T12:00:00Z") }).some((i) => i.kind === "feedback")).toBe(false);
+    expect(buildTimeline({ prospect, citas: [cita({ prospecto_id: "otro", feedback_rating: 5, feedback_at: "2026-11-10T18:30:00Z" })], now: new Date("2026-11-12T12:00:00Z") }).some((i) => i.kind === "feedback")).toBe(false);
+  });
+});

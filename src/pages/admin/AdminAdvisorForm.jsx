@@ -5,6 +5,7 @@ import { db } from "../../lib/dataStore";
 import { whatsappDigits } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
 import VisitScheduleEditor from "../../components/VisitScheduleEditor";
+import AbsenceCard from "../../components/AbsenceCard";
 import "./admin.css";
 
 const EMPTY = { name: "", phone: "", email: "", whatsapp: "", bio: "", active: true, show_in_team: true };
@@ -169,6 +170,7 @@ export default function AdminAdvisorForm() {
       </form>
 
       {/* Solo al editar (el asesor nuevo todavía no tiene id) y con acceso a la Agenda. */}
+      {isEdit && hasSection("agenda") && <AbsenceCard advisorId={id} />}
       {isEdit && hasSection("agenda") && <VisitScheduleEditor advisorId={id} />}
     </div>
   );

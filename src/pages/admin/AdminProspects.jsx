@@ -13,6 +13,11 @@ import { peek } from "../../lib/dataCache";
 import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import ProspectCard from "../../components/ProspectCard";
+import ProspectProfile from "../../components/ProspectProfile";
+import ProspectTimeline from "../../components/ProspectTimeline";
+import { FollowChip, UnattendedChip } from "../../components/ProspectChips";
+import { dropAction, edgeScrollDelta, resolveSelected, splitOrder } from "../../lib/prospectBoard";
+import { useMediaQuery } from "../../lib/useMediaQuery";
 import ProspectImportModal from "../../components/ProspectImportModal";
 import "./admin.css";
 import "./AdminProspects.css";
@@ -21,14 +26,24 @@ import "./AdminProspects.css";
 // con login vinculado ve solo los suyos; un correo sin asesor vinculado ve todos
 // y puede filtrar por asesor. En pantalla ancha cada etapa es una columna; en el
 // teléfono se ve una etapa a la vez, con pestañas arriba (cada una con su
-// contador). Cambiar de etapa es un selector en la tarjeta (sin arrastrar:
-// funciona igual con el dedo en el celular).
+// contador). Cambiar de etapa es un selector en la tarjeta (funciona igual con
+// el dedo en el celular); en computadora además se puede arrastrar la tarjeta a otra
+// columna (lib/prospectBoard.js) y, en pantalla ancha, la «vista dividida» deja la lista a
+// la izquierda y la ficha del elegido a la derecha, sin ir y volver.
 
 const NONE = [];
 
 const normalize = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
 const NO_ADVISOR = "__none__"; // valor del filtro «Sin asesor»
+const SPLIT_KEY = "acl_prospects_split";
+const readSplit = () => {
+  try {
+    return localStorage.getItem(SPLIT_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
 
 export default function AdminProspects() {
   const { t } = useTranslation();
@@ -56,6 +71,26 @@ export default function AdminProspects() {
   const setProspects = prospectsQ.mutate;
   const [busyId, setBusyId] = useState(null);
   const [importing, setImporting] = useState(false);
+
+  // Computadora: arrastrar tarjetas entre columnas (solo con ratón: con el dedo arrastrar es deslizar la pantalla) y vista dividida
+  // (solo en pantalla ancha; la preferencia se recuerda en este dispositivo).
+  const finePointer = useMediaQuery("(hover: hover) and (pointer: fine)");
+  const wide = useMediaQuery("(min-width: 1100px)");
+  const [splitPref, setSplitPref] = useState(readSplit);
+  const [pickedId, setPickedId] = useState(null);
+  const [splitKey, setSplitKey] = useState(0);
+  const [dragId, setDragId] = useState(null);
+  const [overStage, setOverStage] = useState(null);
+  const splitActive = splitPref && wide;
+  const toggleSplit = () => {
+    const next = !splitPref;
+    setSplitPref(next);
+    try {
+      localStorage.setItem(SPLIT_KEY, next ? "1" : "0");
+    } catch {
+      /* sin almacenamiento: la vista dividida se recuerda solo mientras esta pantalla siga abierta */
+    }
+  };
   const [pasteOpen, setPasteOpen] = useState(false); // «Pegar o importar lista»
   const [query, setQuery] = useState("");
   // Equipo hoy (la oficina) llega aquí ya filtrado: ?asesor=<id>|ninguno&filtro=vencidos|sin-atender|olvidados&seleccionar=1.
@@ -120,6 +155,11 @@ export default function AdminProspects() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prospects, query, advisorFilter, overdueOnly, unattendedOnly, forgottenOnly, activeAdvisorIds, properties]);
 
+  // Vista dividida: la lista compacta (con los mismos filtros) y el prospecto que muestra la ficha.
+  const ordered = useMemo(() => (splitActive ? splitOrder(filtered) : NONE), [splitActive, filtered]);
+  const selectedProspect = splitActive ? resolveSelected(ordered, pickedId) : null;
+  const canDrag = finePointer && !selecting && !splitActive;
+
   // Si se llegó con filtros en la dirección (Equipo hoy), en el teléfono el tablero abre en la primera etapa que tenga algo de lo filtrado.
   const filtersFromUrl = useRef(Boolean(params.get("asesor") || params.get("filtro")));
   useEffect(() => {
@@ -152,6 +192,24 @@ export default function AdminProspects() {
     } finally {
       setBusyId(null);
     }
+  };
+
+  // Soltar la tarjeta que se arrastra sobre una columna: cambia de etapa (mandarla a «perdido» pide confirmación).
+  const dropOn = (stage) => {
+    const prospect = prospects.find((p) => p.id === dragId);
+    setDragId(null);
+    setOverStage(null);
+    const action = dropAction(prospect, stage);
+    if (!action) return;
+    if (!action.confirm) {
+      patch(prospect, action.fields);
+      return;
+    }
+    // La confirmación sale después de que termine el «soltar»: un aviso bloqueante dentro del evento deja a medias el arrastre en
+    // algunos navegadores.
+    setTimeout(() => {
+      if (window.confirm(t("prospects.drag.lostConfirm", { name: prospect.name }))) patch(prospect, action.fields);
+    }, 0);
   };
 
   // Posventa: marca el paso (30 días / 6 meses) como atendido.
@@ -266,7 +324,12 @@ export default function AdminProspects() {
           <Link to="/admin/prospectos/nuevo" className="btn btn-primary">
             {t("prospects.new")}
           </Link>
-          <button type="button" className={`btn btn-outline${selecting ? " is-active" : ""}`} onClick={toggleSelecting} aria-pressed={selecting}>
+          {wide && (
+            <button type="button" className={`btn btn-outline${splitActive ? " is-active" : ""}`} onClick={toggleSplit} aria-pressed={splitActive}>
+              {splitActive ? t("prospects.split.off") : t("prospects.split.on")}
+            </button>
+          )}
+          <button type="button" className={`btn btn-outline${selecting ? " is-active" : ""}`} onClick={toggleSelecting} aria-pressed={selecting} disabled={splitActive}>
             {selecting ? t("prospects.bulk.exit") : t("prospects.bulk.select")}
           </button>
           <button type="button" className="btn btn-outline" onClick={() => setPasteOpen(true)}>
@@ -322,6 +385,55 @@ export default function AdminProspects() {
         <p className="form-hint">…</p>
       ) : (
         <>
+          {splitActive ? (
+            <div className="prospect-split">
+              <ul className="prospect-split__list" aria-label={t("prospects.split.list")}>
+                {ordered.length === 0 && <li className="form-hint">{t("prospects.split.noResults")}</li>}
+                {ordered.map((p) => (
+                  <li key={p.id}>
+                    <button
+                      type="button"
+                      className={`prospect-row prospect-row--${p.stage}${p.id === selectedProspect?.id ? " is-selected" : ""}`}
+                      aria-pressed={p.id === selectedProspect?.id}
+                      onClick={() => setPickedId(p.id)}
+                      data-prospect={p.id}
+                    >
+                      <span className="prospect-row__name">{p.name}</span>
+                      <span className="prospect-chip">{t(`prospects.stages.${p.stage}`)}</span>
+                      <span className="prospect-row__chips">
+                        <UnattendedChip prospect={p} />
+                        <FollowChip prospect={p} />
+                      </span>
+                      {seesAll && advisorName(p.advisor_id) && <span className="form-hint prospect-row__advisor">{advisorName(p.advisor_id)}</span>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <div className="prospect-split__detail">
+                {selectedProspect ? (
+                  <>
+                    <ProspectProfile
+                      key={selectedProspect.id}
+                      prospect={selectedProspect}
+                      properties={properties}
+                      advisors={advisors}
+                      onUpdated={(updated) => {
+                        setProspects((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+                        setSplitKey((k) => k + 1);
+                      }}
+                    />
+                    <ProspectTimeline prospect={selectedProspect} properties={properties} refreshKey={splitKey} />
+                    <p>
+                      <Link to={`/admin/prospectos/${selectedProspect.id}`}>{t("prospects.split.openFull")}</Link>
+                    </p>
+                  </>
+                ) : (
+                  <p className="card prospect-split__empty">{t("prospects.split.empty")}</p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
           {/* Solo en el teléfono: una etapa a la vez en vez de seis columnas apiladas. */}
           <div className="prospect-tabs" role="group" aria-label={t("prospects.tabs.label")}>
             {PROSPECT_STAGES.map((stage) => (
@@ -338,14 +450,30 @@ export default function AdminProspects() {
             ))}
           </div>
 
-          <div className="prospect-board">
+          {canDrag && !loading && filtered.length > 0 && <p className="form-hint prospect-drag-hint">{t("prospects.drag.hint")}</p>}
+          <div
+            className="prospect-board"
+            onDragOver={
+              dragId
+                ? (e) => {
+                    // El tablero se desliza de lado donde no caben las seis columnas: cerca del borde, corre solo.
+                    const board = e.currentTarget;
+                    board.scrollLeft += edgeScrollDelta(board.getBoundingClientRect(), e.clientX);
+                  }
+                : undefined
+            }
+          >
             {PROSPECT_STAGES.map((stage) => {
               const items = filtered.filter((p) => p.stage === stage);
               return (
                 <section
                   key={stage}
-                  className={`prospect-col prospect-col--${stage}${stage === activeStage ? " is-active" : ""}`}
+                  className={`prospect-col prospect-col--${stage}${stage === activeStage ? " is-active" : ""}${dragId && overStage === stage ? " is-drop" : ""}`}
                   aria-label={t(`prospects.stages.${stage}`)}
+                  data-stage={stage}
+                  onDragOver={dragId ? (e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; if (overStage !== stage) setOverStage(stage); } : undefined}
+                  onDragLeave={dragId ? (e) => { if (!e.currentTarget.contains(e.relatedTarget) && overStage === stage) setOverStage(null); } : undefined}
+                  onDrop={dragId ? (e) => { e.preventDefault(); dropOn(stage); } : undefined}
                 >
                   <h2 className="prospect-col__title">
                     {t(`prospects.stages.${stage}`)}
@@ -379,12 +507,16 @@ export default function AdminProspects() {
                       selected={selected.has(p.id)}
                       onToggleSelect={toggleOne}
                       selections={selectionsQ.data}
+                      drag={canDrag && busyId !== p.id ? { onStart: setDragId, onEnd: () => { setDragId(null); setOverStage(null); } } : null}
                     />
                   ))}
                 </section>
               );
             })}
           </div>
+
+            </>
+          )}
 
           {selecting && (
             <div className="prospect-bulk" role="region" aria-label={t("prospects.bulk.label")}>

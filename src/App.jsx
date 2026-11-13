@@ -30,6 +30,7 @@ const CreditCompare = lazy(() => import("./pages/CreditCompare"));
 const BuyerGuide = lazy(() => import("./pages/BuyerGuide"));
 const AlertUnsubscribe = lazy(() => import("./pages/AlertUnsubscribe"));
 const About = lazy(() => import("./pages/About"));
+const AdvisorPage = lazy(() => import("./pages/AdvisorPage"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Favorites = lazy(() => import("./pages/Favorites"));
 const Compare = lazy(() => import("./pages/Compare"));
@@ -57,6 +58,8 @@ const AdminPropertyHistory = lazy(() => import("./pages/admin/AdminPropertyHisto
 const AdminAdvisors = lazy(() => import("./pages/admin/AdminAdvisors"));
 const AdminAdvisorForm = lazy(() => import("./pages/admin/AdminAdvisorForm"));
 const AdminMyProfile = lazy(() => import("./pages/admin/AdminMyProfile"));
+const AdminMySales = lazy(() => import("./pages/admin/AdminMySales"));
+const AdminShare = lazy(() => import("./pages/admin/AdminShare"));
 const AdminMyDay = lazy(() => import("./pages/admin/AdminMyDay"));
 const AdminZones = lazy(() => import("./pages/admin/AdminZones"));
 const AdminClients = lazy(() => import("./pages/admin/AdminClients"));
@@ -193,6 +196,7 @@ export default function App() {
       <Route path="/guia-del-comprador" element={<PublicLayout><BuyerGuide /></PublicLayout>} />
       <Route path="/alertas/baja/:token" element={<PublicLayout><AlertUnsubscribe /></PublicLayout>} />
       <Route path="/nosotros" element={<PublicLayout><About /></PublicLayout>} />
+      <Route path="/asesor/:slug" element={<PublicLayout><AdvisorPage /></PublicLayout>} />
       <Route path="/contacto" element={<PublicLayout><Contact /></PublicLayout>} />
       <Route path="/favoritos" element={<PublicLayout><Favorites /></PublicLayout>} />
       <Route path="/comparar" element={<PublicLayout><Compare /></PublicLayout>} />
@@ -302,6 +306,7 @@ export default function App() {
         <Route path="asesores/nuevo" element={<RequireSection section="asesores"><AdminAdvisorForm /></RequireSection>} />
         <Route path="asesores/:id" element={<RequireSection section="asesores"><AdminAdvisorForm /></RequireSection>} />
         <Route path="mi-perfil" element={<AdminMyProfile />} />
+        <Route path="mis-ventas" element={<AdminMySales />} />
         <Route path="mi-dia" element={<AdminMyDay />} />
         <Route path="zonas" element={<RequireSection section="zonas"><AdminZones /></RequireSection>} />
         <Route path="clientes" element={<RequireSection section="clientes"><AdminClients /></RequireSection>} />
@@ -352,6 +357,7 @@ export default function App() {
         <Route path="blog" element={<RequireSection section="blog"><AdminBlog /></RequireSection>} />
         <Route path="blog/nuevo" element={<RequireSection section="blog"><AdminBlogForm /></RequireSection>} />
         <Route path="blog/:id" element={<RequireSection section="blog"><AdminBlogForm /></RequireSection>} />
+        <Route path="compartir" element={<RequireSection section="prospectos"><AdminShare /></RequireSection>} />
         <Route path="prospectos" element={<RequireSection section="prospectos"><AdminProspects /></RequireSection>} />
         <Route path="equipo" element={<RequireSection section="prospectos"><AdminTeamDay /></RequireSection>} />
         <Route path="prospectos/nuevo" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />

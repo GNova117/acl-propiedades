@@ -1,0 +1,80 @@
+.absence-card {
+  padding: 1rem 1.1rem;
+  margin-top: 1.25rem;
+}
+
+.absence-card h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+}
+
+.absence-card__list {
+  list-style: none;
+  margin: 0.75rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.absence-card__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-alt);
+}
+
+.absence-card__item > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+  min-width: 0;
+}
+
+.absence-card__now {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: #f0a500;
+  color: #1a1a1a;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.absence-card__reason {
+  margin: 0;
+  flex-basis: 100%;
+  overflow-wrap: anywhere;
+}
+
+.absence-card__empty {
+  margin: 0.75rem 0;
+}
+
+.absence-card__form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  align-items: end;
+  margin-top: 0.5rem;
+}
+
+.absence-card__reason-field,
+.absence-card__form .btn {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 861px) {
+  .absence-card__form {
+    grid-template-columns: 11rem 11rem minmax(0, 1fr) auto;
+  }
+
+  .absence-card__reason-field,
+  .absence-card__form .btn {
+    grid-column: auto;
+  }
+}
