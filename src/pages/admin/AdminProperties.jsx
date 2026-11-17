@@ -8,12 +8,15 @@ import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
 import SocialPostModal from "../../components/SocialPostModal";
 import PropertyProspectsModal from "../../components/PropertyProspectsModal";
+import PropertyOffersModal from "../../components/PropertyOffersModal";
 import SendPropertyModal from "../../components/SendPropertyModal";
 import SelectionBuilder from "../../components/SelectionBuilder";
 import PropertyQrModal from "../../components/PropertyQrModal";
 import { matchingProspects } from "../../lib/prospectMatch";
 import { isOpenStage } from "../../lib/prospects";
 import BulkActionsBar from "../../components/BulkActionsBar";
+import { propertyCompleteness } from "../../lib/propertyCompleteness";
+import { bulkAdvisorIds, bulkPriceValue } from "../../lib/bulkProperties";
 import AdminFilters from "../../components/AdminFilters";
 import RowMore from "../../components/RowMore";
 import { queries } from "../../lib/queries";
@@ -56,6 +59,7 @@ export default function AdminProperties({
   const [busyFichaId, setBusyFichaId] = useState(null);
   const [socialProperty, setSocialProperty] = useState(null);
   const [matchProperty, setMatchProperty] = useState(null);
+  const [offersProperty, setOffersProperty] = useState(null);
   const [sendProperty, setSendProperty] = useState(null);
   const [buildingSelection, setBuildingSelection] = useState(false);
   const [qrProperty, setQrProperty] = useState(null);
@@ -68,6 +72,10 @@ export default function AdminProperties({
   const [selected, setSelected] = useState(() => new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkStatus, setBulkStatus] = useState("disponible");
+  const [onlyIncomplete, setOnlyIncomplete] = useState(false);
+  const [priceMode, setPriceMode] = useState("percentDown");
+  const [priceAmount, setPriceAmount] = useState("");
+  const [bulkAdvisor, setBulkAdvisor] = useState("");
 
   // Las listas salen del caché (ver dataCache.js): si ya se pidieron en otra pantalla, esta se pinta
   // al instante y se actualiza al llegar lo nuevo. Los prospectos solo se piden a quien tiene el apartado
@@ -75,9 +83,11 @@ export default function AdminProperties({
   const propertiesQ = useQuery(queries.properties);
   const remodelQ = useQuery(queries.remodelProjects);
   const zonesQ = useQuery(queries.zones);
+  const advisorsQ = useQuery(queries.advisors);
   const prospectsQ = useQuery(queries.prospects, { enabled: hasSection("prospectos") });
   const remodelProjects = remodelQ.data ?? NONE;
   const zones = zonesQ.data ?? NONE;
+  const advisors = advisorsQ.data ?? NONE;
   const prospects = prospectsQ.data ?? NONE;
   const loading = propertiesQ.loading;
   const properties = useMemo(() => {
@@ -97,9 +107,13 @@ export default function AdminProperties({
     [prospects]
   );
 
+  // Qué tan completa está cada ficha y qué le falta (lib/propertyCompleteness.js).
+  const completeness = useMemo(() => new Map(properties.map((p) => [p.id, propertyCompleteness(p)])), [properties]);
+
   const visibleProperties = useMemo(() => {
     const term = search.trim().toLowerCase();
     return properties.filter((p) => {
+      if (onlyIncomplete && completeness.get(p.id)?.complete) return false;
       if (term && !p.title?.toLowerCase().includes(term) && !p.code?.toLowerCase().includes(term) && !p.address?.toLowerCase().includes(term)) return false;
       if (zoneFilter && p.zone !== zoneFilter) return false;
       if (operationFilter && p.operation_type !== operationFilter) return false;
@@ -108,7 +122,7 @@ export default function AdminProperties({
       if (maxPrice && Number(p.price) > Number(maxPrice)) return false;
       return true;
     });
-  }, [properties, search, zoneFilter, operationFilter, statusFilter, minPrice, maxPrice]);
+  }, [properties, completeness, onlyIncomplete, search, zoneFilter, operationFilter, statusFilter, minPrice, maxPrice]);
 
   const handleDelete = async (id) => {
     if (!window.confirm(t("common.confirmDelete"))) return;
@@ -146,12 +160,12 @@ export default function AdminProperties({
   // lee el arreglo completo, lo modifica en memoria y lo vuelve a escribir
   // completo — dos llamadas a la vez (p. ej. Promise.all) se pisan entre sí
   // y la última en guardar revierte el cambio de la otra en silencio.
-  const runBulk = async (fn) => {
+  const runBulk = async (fn, list = selectedProperties) => {
     setBulkBusy(true);
     let okCount = 0;
     let failed = false;
     try {
-      for (const property of selectedProperties) {
+      for (const property of list) {
         try {
           await fn(property);
           okCount += 1;
@@ -177,6 +191,42 @@ export default function AdminProperties({
   const handleBulkActive = (active) => runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { active })));
 
   const handleBulkStatus = () => runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { status: bulkStatus })));
+
+  // Cambio de precio en lote: se calcula el nuevo precio de cada una, se muestra un ejemplo y se pide confirmar.
+  // Las que no se pueden calcular (sin precio, o el cambio no lo mueve) se omiten y se avisa.
+  const handleBulkPrice = () => {
+    const plan = selectedProperties.map((property) => ({ property, ...bulkPriceValue(priceMode, priceAmount, property.price) }));
+    const ready = plan.filter((e) => e.price != null);
+    if (ready.length === 0) {
+      window.alert(t(`bulkProperties.errors.${plan[0]?.error || "amount"}`));
+      return;
+    }
+    const sample = ready[0];
+    const skipped = plan.length - ready.length;
+    const message = [
+      t("bulkProperties.confirmPrice", { count: ready.length, title: sample.property.title, from: formatMXN(sample.property.price), to: formatMXN(sample.price) }),
+      skipped > 0 ? t("bulkProperties.skipped", { count: skipped }) : null,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+    if (!window.confirm(message)) return;
+    const newPrice = new Map(ready.map((e) => [e.property.id, e.price]));
+    runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { price: newPrice.get(property.id) })), ready.map((e) => e.property));
+    setPriceAmount("");
+  };
+
+  // Asignar asesor en lote: «agregar» no quita a nadie; «reemplazar» deja solo a ese (se confirma).
+  const handleBulkAdvisor = (mode) => {
+    const advisor = advisors.find((a) => a.id === bulkAdvisor);
+    if (!advisor) return;
+    const targets = selectedProperties.filter((p) => bulkAdvisorIds(mode, p.advisor_ids, advisor.id));
+    if (targets.length === 0) {
+      window.alert(t("bulkProperties.nothingToChange"));
+      return;
+    }
+    if (mode === "replace" && !window.confirm(t("bulkProperties.confirmReplace", { name: advisor.name, count: targets.length }))) return;
+    runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { advisor_ids: bulkAdvisorIds(mode, property.advisor_ids, advisor.id) })), targets);
+  };
 
   const handleExport = () => {
     exportToCsv(`${basePath.split("/").pop()}.csv`, visibleProperties, [
@@ -229,7 +279,7 @@ export default function AdminProperties({
       </div>
 
       <AdminFilters
-        activeCount={[zoneFilter, operationFilter, statusFilter, minPrice, maxPrice].filter(Boolean).length}
+        activeCount={[zoneFilter, operationFilter, statusFilter, minPrice, maxPrice, onlyIncomplete].filter(Boolean).length}
         search={
           <div className="form-field">
             <label htmlFor="ap-search">{t("common.search")}</label>
@@ -273,6 +323,10 @@ export default function AdminProperties({
           <label htmlFor="ap-max-price">{t("properties.maxPrice")}</label>
           <input id="ap-max-price" type="number" min="0" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
         </div>
+        <label className="prospect-filters__check">
+          <input type="checkbox" checked={onlyIncomplete} onChange={(e) => setOnlyIncomplete(e.target.checked)} />
+          {t("completeness.onlyIncomplete")}
+        </label>
       </AdminFilters>
 
       <BulkActionsBar count={selected.size} onClear={() => setSelected(new Set())} busy={bulkBusy}>
@@ -290,6 +344,47 @@ export default function AdminProperties({
         <button type="button" className="btn btn-outline btn-sm" onClick={() => handleBulkActive(false)} disabled={bulkBusy}>
           {t("bulkActions.deactivateSelected")}
         </button>
+        <span className="bulk-actions-bar__group">
+          <select value={priceMode} onChange={(e) => setPriceMode(e.target.value)} disabled={bulkBusy} aria-label={t("bulkProperties.priceLabel")}>
+            {["percentDown", "percentUp", "exact"].map((mode) => (
+              <option key={mode} value={mode}>
+                {t(`bulkProperties.modes.${mode}`)}
+              </option>
+            ))}
+          </select>
+          <input
+            type="number"
+            min="0"
+            step="any"
+            className="bulk-actions-bar__amount"
+            value={priceAmount}
+            onChange={(e) => setPriceAmount(e.target.value)}
+            disabled={bulkBusy}
+            placeholder={priceMode === "exact" ? "$" : "%"}
+            aria-label={t("bulkProperties.amountLabel")}
+          />
+          <button type="button" className="btn btn-outline btn-sm" onClick={handleBulkPrice} disabled={bulkBusy || !priceAmount}>
+            {t("bulkProperties.applyPrice")}
+          </button>
+        </span>
+        <span className="bulk-actions-bar__group">
+          <select value={bulkAdvisor} onChange={(e) => setBulkAdvisor(e.target.value)} disabled={bulkBusy} aria-label={t("bulkProperties.advisorLabel")}>
+            <option value="">{t("bulkProperties.advisorPick")}</option>
+            {advisors
+              .filter((a) => a.active !== false)
+              .map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+          </select>
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => handleBulkAdvisor("add")} disabled={bulkBusy || !bulkAdvisor}>
+            {t("bulkProperties.addAdvisor")}
+          </button>
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => handleBulkAdvisor("replace")} disabled={bulkBusy || !bulkAdvisor}>
+            {t("bulkProperties.replaceAdvisor")}
+          </button>
+        </span>
         <button type="button" className="btn btn-danger btn-sm" onClick={handleBulkDelete} disabled={bulkBusy}>
           {t("bulkActions.deleteSelected")}
         </button>
@@ -337,7 +432,23 @@ export default function AdminProperties({
                     </td>
                     <td className="cell-thumb">{property.main_image && <img src={property.main_image} alt="" />}</td>
                     <td className="cell-code">{property.code || "—"}</td>
-                    <td className="cell-title">{property.title}</td>
+                    <td className="cell-title">
+                      {property.title}
+                      {(() => {
+                        const c = completeness.get(property.id);
+                        if (!c) return null;
+                        const missing = c.missing.map((key) => t(`completeness.items.${key}`)).join(", ");
+                        return (
+                          <div className={`property-completeness property-completeness--${c.complete ? "ok" : c.percent >= 50 ? "mid" : "low"}`} title={missing ? t("completeness.missing", { items: missing }) : t("completeness.complete")}>
+                            <span className="property-completeness__bar" aria-hidden="true">
+                              <span style={{ width: `${c.percent}%` }} />
+                            </span>
+                            <span>{t("completeness.label", { percent: c.percent })}</span>
+                            {!c.complete && missing && <span className="form-hint property-completeness__missing">{t("completeness.missing", { items: missing })}</span>}
+                          </div>
+                        );
+                      })()}
+                    </td>
                     <td className="cell-type">{propertyTypeLabel(t, property.type)}</td>
                     {fixedType === "nave_industrial" && <td className="cell-tipo">{property.tipo_nave ? t(`naveTipo.${property.tipo_nave}`) : "—"}</td>}
                     <td className="cell-zone">{property.zone}</td>
@@ -357,6 +468,9 @@ export default function AdminProperties({
                         {t("sendProperty.button")}
                       </button>
                       <RowMore>
+                        <Link to={`${basePath}/nueva?duplicar=${property.id}`} className="btn btn-outline btn-sm">
+                          {t("duplicate.button")}
+                        </Link>
                         <Link to={`${basePath}/${property.id}/historial`} className="btn btn-outline btn-sm">
                           {t("propertyHistory.button")}
                         </Link>
@@ -374,6 +488,9 @@ export default function AdminProperties({
                         </button>
                         <button type="button" className="btn btn-outline btn-sm" onClick={() => setSocialProperty(property)}>
                           {t("socialPost.button")}
+                        </button>
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => setOffersProperty(property)}>
+                          {t("offers.button")}
                         </button>
                         {matchedProspects.length > 0 && (
                           <button type="button" className="btn btn-outline btn-sm" onClick={() => setMatchProperty(property)}>
@@ -434,6 +551,7 @@ export default function AdminProperties({
           onLogged={(updated) => prospectsQ.mutate((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))}
         />
       )}
+      {offersProperty && <PropertyOffersModal property={offersProperty} onClose={() => setOffersProperty(null)} onChanged={load} />}
       {matchProperty && (
         <PropertyProspectsModal property={matchProperty} prospects={prospectsByProperty.get(matchProperty.id) || []} onClose={() => setMatchProperty(null)} />
       )}

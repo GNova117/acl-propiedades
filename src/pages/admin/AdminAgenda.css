@@ -1,5 +1,7 @@
 .agenda-view-toggle {
   display: flex;
+  flex-wrap: wrap; /* cuatro vistas (calendario, semana, día, lista): en el teléfono pasan a un segundo renglón */
+  max-width: 100%;
   gap: 0.4rem;
 }
 

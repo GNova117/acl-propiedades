@@ -835,3 +835,66 @@
   color: #fff;
   font-weight: 600;
 }
+
+/* Ficha completa: barra y lo que falta, bajo el título de la propiedad en la lista */
+.property-completeness {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.property-completeness__bar {
+  width: 56px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.property-completeness__bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-success);
+}
+
+.property-completeness--mid .property-completeness__bar span {
+  background: #e0a100;
+}
+
+.property-completeness--low .property-completeness__bar span {
+  background: var(--color-danger);
+}
+
+.property-completeness__missing {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+/* Precio y asesor en la barra de acciones en lote */
+.bulk-actions-bar__group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.bulk-actions-bar__amount {
+  width: 6.5rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.admin-form__notice {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  color: var(--color-text);
+}

@@ -17,6 +17,7 @@ import { CITA_STATUSES } from "./agendaCitas";
 import { findOpenProspect, mergeBookingIntoProspect, prospectFieldsFromBooking, syncProspectFollowup } from "./visitProspect";
 import { SELECTION_VALID_DAYS, cleanReaction, cleanSelectionInput } from "./selections";
 import { matchesBounds, matchesSearch } from "./propertySearch";
+import { HOLD_STATUSES, OFFER_STATUSES, validateHold, validateOffer } from "./offers";
 import {
   BOOKING_TOKEN_PATTERN,
   DEFAULT_VISIT_SETTINGS,
@@ -101,6 +102,8 @@ const KEYS = {
   propertyViews: "acl_local_property_views",
   propertyEvents: "acl_local_property_events",
   visitFeedback: "acl_local_visit_feedback",
+  propertyOffers: "acl_local_property_offers",
+  propertyHolds: "acl_local_property_holds",
   developments: "acl_local_developments",
   visitSchedules: "acl_local_visit_schedules",
   visitAttempts: "acl_local_visit_attempts",
@@ -1624,6 +1627,79 @@ export const localBackend = {
     properties[idx] = { ...properties[idx], status, updated_at: new Date().toISOString() };
     writeStore(KEYS.properties, properties);
     return properties[idx];
+  },
+
+  // Ofertas y apartados por propiedad (espejo de supabaseBackend, mismas validaciones y mismas claves de error).
+  async getPropertyOffers(propertyId) {
+    return readStore(KEYS.propertyOffers, [])
+      .filter((o) => o.property_id === propertyId)
+      .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  },
+
+  async addPropertyOffer(propertyId, fields) {
+    const checked = validateOffer(fields);
+    if (checked.error) throw new Error(`offer:${checked.error}`);
+    const offers = readStore(KEYS.propertyOffers, []);
+    const record = { id: uid("offer"), property_id: propertyId, ...checked.value, status: "abierta", created_by: DEMO_ADMIN.email, created_at: new Date().toISOString() };
+    offers.push(record);
+    writeStore(KEYS.propertyOffers, offers);
+    return record;
+  },
+
+  async setPropertyOfferStatus(id, status) {
+    if (!OFFER_STATUSES.includes(status)) throw new Error("offer:status");
+    const offers = readStore(KEYS.propertyOffers, []);
+    const idx = offers.findIndex((o) => o.id === id);
+    if (idx === -1) throw new Error("Oferta no encontrada");
+    offers[idx] = { ...offers[idx], status };
+    writeStore(KEYS.propertyOffers, offers);
+    return offers[idx];
+  },
+
+  async deletePropertyOffer(id) {
+    writeStore(KEYS.propertyOffers, readStore(KEYS.propertyOffers, []).filter((o) => o.id !== id));
+  },
+
+  async getPropertyHolds(propertyId = null) {
+    const holds = readStore(KEYS.propertyHolds, []);
+    if (propertyId) return holds.filter((h) => h.property_id === propertyId).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+    return holds.filter((h) => h.status === "vigente").sort((a, b) => String(a.due_date).localeCompare(String(b.due_date)));
+  },
+
+  async addPropertyHold(propertyId, fields) {
+    const checked = validateHold(fields);
+    if (checked.error) throw new Error(`hold:${checked.error}`);
+    const holds = readStore(KEYS.propertyHolds, []);
+    if (holds.some((h) => h.property_id === propertyId && h.status === "vigente")) throw new Error("hold:exists");
+    const record = { id: uid("hold"), property_id: propertyId, advisor_id: null, ...checked.value, status: "vigente", created_by: DEMO_ADMIN.email, created_at: new Date().toISOString() };
+    holds.push(record);
+    writeStore(KEYS.propertyHolds, holds);
+    const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === propertyId);
+    if (property?.status === "disponible") await this.setPropertyStatus(propertyId, "apartada");
+    return record;
+  },
+
+  async setPropertyHoldStatus(id, status) {
+    if (!HOLD_STATUSES.includes(status) || status === "vigente") throw new Error("hold:status");
+    const holds = readStore(KEYS.propertyHolds, []);
+    const idx = holds.findIndex((h) => h.id === id);
+    if (idx === -1) throw new Error("Apartado no encontrado");
+    holds[idx] = { ...holds[idx], status };
+    writeStore(KEYS.propertyHolds, holds);
+    if (status === "cancelado") {
+      const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === holds[idx].property_id);
+      if (property?.status === "apartada") await this.setPropertyStatus(property.id, "disponible");
+    }
+    return holds[idx];
+  },
+
+  // El calendario suscribible necesita el servidor (una URL que Google/Apple lean); en modo demo no existe.
+  async createAgendaFeedToken() {
+    throw new Error("agendaFeed:demo");
+  },
+
+  async getAgendaFeedToken() {
+    return null;
   },
 
   // Ventas registradas (quién vendió y cuándo). Una por propiedad. Registrar

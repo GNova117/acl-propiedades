@@ -7,12 +7,14 @@ import { describe, expect, it } from "vitest";
 // bloque no pierda piezas, ni cuele secretos, ni se abra a anon.
 const schema = readFileSync(new URL("./schema.sql", import.meta.url), "utf8");
 const START = "-- Encuesta tras la visita y vendidas recientes con sus días (2026-11-17)";
-const block = schema.slice(schema.lastIndexOf("-- ───", schema.indexOf(START)));
+const NEXT = "-- Ofertas y apartados por propiedad, y calendario suscribible de la Agenda (2026-11-17)"; // el bloque que se agregó después
+const start = schema.lastIndexOf("-- ───", schema.indexOf(START));
+const block = schema.slice(start, schema.lastIndexOf("-- ───", schema.indexOf(NEXT, start)));
 
 describe("schema.sql: encuesta tras la visita", () => {
-  it("el bloque existe una sola vez y va al final", () => {
+  it("el bloque existe una sola vez y termina con el trigger de correo, antes del de ofertas", () => {
     expect(schema.split(START)).toHaveLength(2);
-    expect(schema.trimEnd().endsWith(block.trimEnd())).toBe(true);
+    expect(block.trimEnd().endsWith("return new;\nend;\n$$;")).toBe(true);
   });
 
   it("trae las funciones públicas con sus permisos", () => {

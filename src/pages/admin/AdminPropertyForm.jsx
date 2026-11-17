@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { propertyTypeLabel } from "../../lib/format";
@@ -49,6 +49,47 @@ const EMPTY = {
   amenities: [],
 };
 
+// Los campos del formulario a partir de una propiedad (para editarla o para crear una copia).
+function propertyToForm(property) {
+  return {
+    title: property.title,
+    type: property.type,
+    description: property.description || "",
+    price: property.price,
+    area_m2: property.area_m2,
+    bedrooms: property.bedrooms ?? "",
+    bathrooms: property.bathrooms ?? "",
+    parking: property.parking ?? "",
+    zone: property.zone,
+    address: property.address,
+    lat: property.lat,
+    lng: property.lng,
+    status: property.status,
+    operation_type: property.operation_type || "compra",
+    active: property.active,
+    advisor_ids: property.advisor_ids || [],
+    colindancias: property.colindancias || "",
+    servicios: property.servicios || "",
+    acabados: property.acabados || "",
+    sistema_constructivo: property.sistema_constructivo || "",
+    techumbre: property.techumbre || "",
+    condicion_propiedad: property.condicion_propiedad || "",
+    estatus_construccion: property.estatus_construccion || "",
+    altura_libre: property.altura_libre ?? "",
+    anio_construccion: property.anio_construccion ?? "",
+    area_minima_divisible: property.area_minima_divisible ?? "",
+    area_oficina: property.area_oficina ?? "",
+    luz_natural_pct: property.luz_natural_pct ?? "",
+    sistema_contra_incendios: property.sistema_contra_incendios || "",
+    tipo_seguridad: property.tipo_seguridad || "",
+    andenes_carga: property.andenes_carga ?? "",
+    rampas_vehiculares: property.rampas_vehiculares ?? "",
+    mantenimiento_pct: property.mantenimiento_pct ?? "",
+    tipo_nave: property.tipo_nave || "",
+    amenities: property.amenities || [],
+  };
+}
+
 // `fixedType`: apartado de un solo tipo (Naves Industriales) — el tipo
 // llega fijo, el selector de Tipo no se muestra, y al guardar/cancelar
 // regresa a `listPath` en vez del listado general de Propiedades.
@@ -95,43 +136,7 @@ export default function AdminPropertyForm({
     if (!isEdit) return;
     db.getPropertyById(id).then((property) => {
       if (!property) return;
-      setForm({
-        title: property.title,
-        type: property.type,
-        description: property.description || "",
-        price: property.price,
-        area_m2: property.area_m2,
-        bedrooms: property.bedrooms ?? "",
-        bathrooms: property.bathrooms ?? "",
-        parking: property.parking ?? "",
-        zone: property.zone,
-        address: property.address,
-        lat: property.lat,
-        lng: property.lng,
-        status: property.status,
-        operation_type: property.operation_type || "compra",
-        active: property.active,
-        advisor_ids: property.advisor_ids || [],
-        colindancias: property.colindancias || "",
-        servicios: property.servicios || "",
-        acabados: property.acabados || "",
-        sistema_constructivo: property.sistema_constructivo || "",
-        techumbre: property.techumbre || "",
-        condicion_propiedad: property.condicion_propiedad || "",
-        estatus_construccion: property.estatus_construccion || "",
-        altura_libre: property.altura_libre ?? "",
-        anio_construccion: property.anio_construccion ?? "",
-        area_minima_divisible: property.area_minima_divisible ?? "",
-        area_oficina: property.area_oficina ?? "",
-        luz_natural_pct: property.luz_natural_pct ?? "",
-        sistema_contra_incendios: property.sistema_contra_incendios || "",
-        tipo_seguridad: property.tipo_seguridad || "",
-        andenes_carga: property.andenes_carga ?? "",
-        rampas_vehiculares: property.rampas_vehiculares ?? "",
-        mantenimiento_pct: property.mantenimiento_pct ?? "",
-        tipo_nave: property.tipo_nave || "",
-        amenities: property.amenities || [],
-      });
+      setForm(propertyToForm(property));
       setExistingImages(property.images || []);
       setExistingVideos(property.videos || []);
       setExistingTour360(property.tour_360_images || []);
@@ -140,6 +145,29 @@ export default function AdminPropertyForm({
       setLoading(false);
     });
   }, [id, isEdit]);
+
+  // /nueva?duplicar=<id>: una propiedad nueva con los datos de otra parecida (los de siempre se copian; fotos, videos,
+  // recorrido 360°, plano, código y notas NO). Queda inactiva hasta que se publique, para no salir al sitio a medias.
+  const [searchParams] = useSearchParams();
+  const duplicateId = !isEdit ? searchParams.get("duplicar") : null;
+  const [duplicateOf, setDuplicateOf] = useState(null);
+  useEffect(() => {
+    if (!duplicateId) return;
+    let cancelled = false;
+    db.getPropertyById(duplicateId).then((source) => {
+      if (cancelled || !source) return;
+      setDuplicateOf(source);
+      setForm({
+        ...propertyToForm(source),
+        title: `${source.title}${t("duplicate.titleSuffix")}`,
+        status: "disponible",
+        active: false,
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [duplicateId, t]);
 
   const handleChange = (field) => (e) => {
     const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
@@ -221,6 +249,12 @@ export default function AdminPropertyForm({
           {isEdit && propertyCode && <p className="form-hint">{t("detail.code")}: {propertyCode}</p>}
         </div>
       </div>
+
+      {duplicateOf && (
+        <p className="card admin-form__notice" role="status">
+          {t("duplicate.banner", { title: duplicateOf.title })}
+        </p>
+      )}
 
       <form className="card admin-form" onSubmit={handleSubmit} noValidate>
         <div className="form-row">

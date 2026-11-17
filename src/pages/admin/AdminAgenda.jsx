@@ -8,6 +8,9 @@ import { citaToIcs, downloadIcs, mapsUrl } from "../../lib/calendarEvent";
 import { canRegisterVisit, citaContact, citaStatus, citaToVisitPrefill, isFromSite, isOpenRequest, isPending, statusActions, visitLink, visitLinkTextKey } from "../../lib/agendaCitas";
 import { formatIsoDate } from "../../lib/propertyLog";
 import CopyVisitLinkButton from "../../components/CopyVisitLinkButton";
+import AgendaTimeGrid from "../../components/AgendaTimeGrid";
+import AgendaFeedCard from "../../components/AgendaFeedCard";
+import { shiftIso, weekDays } from "../../lib/agendaWeek";
 import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
@@ -74,12 +77,13 @@ export default function AdminAgenda() {
   // El calendario es la vista de entrada; la lista (con todas las acciones) queda a un toque y se recuerda en
   // la dirección (?vista=lista) para que «atrás» desde una cita regrese a la misma vista.
   const [searchParams, setSearchParams] = useSearchParams();
-  const view = searchParams.get("vista") === "lista" ? "list" : "calendar";
+  const VIEW_PARAM = { list: "lista", week: "semana", day: "dia" };
+  const view = { lista: "list", semana: "week", dia: "day" }[searchParams.get("vista")] || "calendar";
   const setView = (next) =>
     setSearchParams(
       (prev) => {
         const params = new URLSearchParams(prev);
-        if (next === "list") params.set("vista", "lista");
+        if (VIEW_PARAM[next]) params.set("vista", VIEW_PARAM[next]);
         else params.delete("vista");
         return params;
       },
@@ -245,6 +249,14 @@ export default function AdminAgenda() {
     if (date.getMonth() !== cursor.month || date.getFullYear() !== cursor.year) setCursor({ year: date.getFullYear(), month: date.getMonth() });
   };
   const selectedCitas = citasByDate.get(selectedIso) || [];
+  // Semana y día: se navega de 7 en 7 o de 1 en 1 días a partir del día elegido.
+  const gridDays = view === "week" ? weekDays(selectedIso) : [selectedIso];
+  const stepGrid = (dir) => setSelectedIso((iso) => shiftIso(iso, dir * (view === "week" ? 7 : 1)));
+  const gridDayLabel = (iso) => formatIsoDate(iso, i18n.language, { weekday: "short", day: "numeric", month: "short" });
+  const gridTitle =
+    view === "week"
+      ? `${formatIsoDate(gridDays[0], i18n.language, { day: "numeric", month: "short" })} – ${formatIsoDate(gridDays[6], i18n.language, { day: "numeric", month: "short", year: "numeric" })}`
+      : formatIsoDate(selectedIso, i18n.language, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const selectedTitle = formatIsoDate(selectedIso, i18n.language, { weekday: "long", day: "numeric", month: "long" });
 
   return (
@@ -255,6 +267,12 @@ export default function AdminAgenda() {
           <div className="agenda-view-toggle" role="group" aria-label={t("agenda.viewToggle")}>
             <button type="button" className={`btn btn-sm ${view === "calendar" ? "btn-primary" : "btn-outline"}`} aria-pressed={view === "calendar"} onClick={() => setView("calendar")}>
               {t("agenda.viewCalendar")}
+            </button>
+            <button type="button" className={`btn btn-sm ${view === "week" ? "btn-primary" : "btn-outline"}`} aria-pressed={view === "week"} onClick={() => setView("week")}>
+              {t("agenda.viewWeek")}
+            </button>
+            <button type="button" className={`btn btn-sm ${view === "day" ? "btn-primary" : "btn-outline"}`} aria-pressed={view === "day"} onClick={() => setView("day")}>
+              {t("agenda.viewDay")}
             </button>
             <button type="button" className={`btn btn-sm ${view === "list" ? "btn-primary" : "btn-outline"}`} aria-pressed={view === "list"} onClick={() => setView("list")}>
               {t("agenda.viewList")}
@@ -464,6 +482,33 @@ export default function AdminAgenda() {
             </tbody>
           </table>
         </div>
+      ) : view === "week" || view === "day" ? (
+        <div className="card agenda-calendar">
+          <div className="agenda-calendar__nav">
+            <button type="button" className="btn btn-outline btn-sm" onClick={() => stepGrid(-1)} aria-label={t(view === "week" ? "agenda.prevWeek" : "agenda.prevDay")}>
+              ‹
+            </button>
+            <strong className="agenda-calendar__title">{gridTitle}</strong>
+            <button type="button" className="btn btn-outline btn-sm" onClick={() => stepGrid(1)} aria-label={t(view === "week" ? "agenda.nextWeek" : "agenda.nextDay")}>
+              ›
+            </button>
+            <button type="button" className="btn btn-outline btn-sm agenda-calendar__today" onClick={goToday}>
+              {t("agenda.today")}
+            </button>
+          </div>
+          {loading ? (
+            <p className="form-hint">{t("common.loading")}</p>
+          ) : (
+            <AgendaTimeGrid
+              days={gridDays}
+              citasByDate={citasByDate}
+              todayIso={todayIso}
+              dayLabel={gridDayLabel}
+              contactName={(cita) => contactOf(cita).name}
+              onOpenRequest={() => setView("list")}
+            />
+          )}
+        </div>
       ) : (
         <div className="card agenda-calendar">
           <div className="agenda-calendar__nav">
@@ -583,6 +628,7 @@ export default function AdminAgenda() {
           </section>
         </div>
       )}
+      <AgendaFeedCard />
     </div>
   );
 }

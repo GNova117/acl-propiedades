@@ -17,6 +17,9 @@ import QuickReplyButton from "../../components/QuickReplyButton";
 import CopyVisitLinkButton from "../../components/CopyVisitLinkButton";
 import ProspectContactForm from "../../components/ProspectContactForm";
 import MonthGoals from "../../components/MonthGoals";
+import DayRouteCard from "../../components/DayRouteCard";
+import NewMatchesPanel from "../../components/NewMatchesPanel";
+import HoldsDuePanel from "../../components/HoldsDuePanel";
 import { HOME_MY_DAY, HOME_PANEL } from "../../lib/adminHome";
 import { useAdminHome } from "../../lib/useAdminHome";
 import "./admin.css";
@@ -44,7 +47,7 @@ export default function AdminMyDay() {
   const citasQ = useQuery(queries.citas, { enabled: canAgenda });
   const prospectsQ = useQuery(queries.prospects, { enabled: canProspects });
   const clientsQ = useQuery(queries.clients(), { enabled: canAgenda });
-  const propertiesQ = useQuery(queries.properties, { enabled: canProspects });
+  const propertiesQ = useQuery(queries.properties, { enabled: canProspects || canAgenda });
   const advisorsQ = useQuery(queries.advisors);
   const citas = citasQ.data ?? NONE;
   const prospects = prospectsQ.data ?? NONE;
@@ -397,6 +400,7 @@ export default function AdminMyDay() {
       )}
 
       {canAgenda && section("agenda", plan.agenda, renderCita, plan.pendingAgenda)}
+      {canAgenda && <DayRouteCard agenda={plan.agenda} properties={properties} />}
       {canAgenda && section("requests", plan.requests, renderRequest)}
       {canAgenda && section("confirm", plan.toConfirm, renderToConfirm)}
       {canAgenda && section("close", plan.toClose, renderToClose)}
@@ -405,6 +409,8 @@ export default function AdminMyDay() {
           {closeError}
         </p>
       )}
+      {canProspects && <NewMatchesPanel prospects={prospects} properties={properties} scope={advisorId} />}
+      {hasSection("propiedades") && <HoldsDuePanel advisorId={advisorId} propertyTitle={propertyTitle} />}
       {canProspects && section("urgent", plan.urgent, (e) => renderProspect(e, unattendedChip(e)))}
       {canProspects &&
         section("overdue", plan.overdue, (e) =>

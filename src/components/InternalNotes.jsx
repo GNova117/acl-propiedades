@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { useAuth } from "../context/AuthContext";
 import { formatVisitDateTime } from "../lib/visitReport";
+import DictationButton from "./DictationButton";
+import { appendDictation } from "../lib/dictation";
 import "./InternalNotes.css";
 
 // Comunicación interna del equipo sobre un cliente/prospecto/propiedad: notas
@@ -83,6 +85,7 @@ export default function InternalNotes({ entityType, entityId, onChange }) {
         <div className="form-field">
           <label htmlFor="internal-note-body">{t("internalNotes.newNote")}</label>
           <textarea id="internal-note-body" rows={3} value={body} onChange={(e) => setBody(e.target.value)} />
+          <DictationButton onText={(text) => setBody((prev) => appendDictation(prev, text))} disabled={saving} />
         </div>
         {advisors.filter((a) => a.email).length > 0 && (
           <div className="form-field">

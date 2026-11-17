@@ -15,6 +15,7 @@ import { CITA_STATUSES } from "./agendaCitas";
 import { BOOKING_TOKEN_PATTERN, DEFAULT_VISIT_SETTINGS, hhmm, normalizeVisitSchedule } from "./visitSlots";
 import { cleanSelectionInput } from "./selections";
 import { isValidBounds, supabaseSearchFilters } from "./propertySearch";
+import { HOLD_STATUSES, OFFER_STATUSES, validateHold, validateOffer } from "./offers";
 
 // La tabla aún no existe en la base (falta correr su bloque de schema.sql):
 // 42P01 es Postgres directo, PGRST205 es PostgREST ("no está en el schema cache").
@@ -1553,6 +1554,95 @@ export const supabaseBackend = {
       .single();
     if (error) throw error;
     return data;
+  },
+
+  // Ofertas y contraofertas de una propiedad (RLS: solo con el apartado Propiedades o Naves). Se validan aquí y
+  // otra vez en la base (CHECKs); el error trae una clave `offer:<campo>` que la pantalla traduce.
+  async getPropertyOffers(propertyId) {
+    const { data, error } = await supabase.from("property_offers").select("*").eq("property_id", propertyId).order("created_at", { ascending: false });
+    if (error) {
+      if (isMissingTable(error)) return [];
+      throw error;
+    }
+    return data || [];
+  },
+
+  async addPropertyOffer(propertyId, fields) {
+    const checked = validateOffer(fields);
+    if (checked.error) throw new Error(`offer:${checked.error}`);
+    const { data, error } = await supabase.from("property_offers").insert({ property_id: propertyId, ...checked.value }).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async setPropertyOfferStatus(id, status) {
+    if (!OFFER_STATUSES.includes(status)) throw new Error("offer:status");
+    const { data, error } = await supabase.from("property_offers").update({ status }).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deletePropertyOffer(id) {
+    const { error } = await supabase.from("property_offers").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  // Apartados: de una propiedad, o (sin `propertyId`) todos los vigentes, para el aviso de «por vencer» de Mi día.
+  async getPropertyHolds(propertyId = null) {
+    let query = supabase.from("property_holds").select("*");
+    query = propertyId ? query.eq("property_id", propertyId).order("created_at", { ascending: false }) : query.eq("status", "vigente").order("due_date", { ascending: true });
+    const { data, error } = await query;
+    if (error) {
+      if (isMissingTable(error)) return [];
+      throw error;
+    }
+    return data || [];
+  },
+
+  // Un apartado nuevo deja la propiedad en «apartada» (si estaba disponible). Solo hay uno vigente por propiedad.
+  async addPropertyHold(propertyId, fields) {
+    const checked = validateHold(fields);
+    if (checked.error) throw new Error(`hold:${checked.error}`);
+    const { data, error } = await supabase.from("property_holds").insert({ property_id: propertyId, ...checked.value }).select().single();
+    if (error) {
+      if (error.code === "23505") throw new Error("hold:exists");
+      throw error;
+    }
+    const { data: property } = await supabase.from("properties").select("status").eq("id", propertyId).maybeSingle();
+    if (property?.status === "disponible") await this.setPropertyStatus(propertyId, "apartada");
+    return data;
+  },
+
+  // «concretado» o «cancelado». Cancelar regresa la propiedad a «disponible» si seguía «apartada»; concretar
+  // no toca el estatus (la venta se registra aparte, en Ventas).
+  async setPropertyHoldStatus(id, status) {
+    if (!HOLD_STATUSES.includes(status) || status === "vigente") throw new Error("hold:status");
+    const { data, error } = await supabase.from("property_holds").update({ status }).eq("id", id).select().single();
+    if (error) throw error;
+    if (status === "cancelado") {
+      const { data: property } = await supabase.from("properties").select("status").eq("id", data.property_id).maybeSingle();
+      if (property?.status === "apartada") await this.setPropertyStatus(data.property_id, "disponible");
+    }
+    return data;
+  },
+
+  // Crea o REGENERA la URL secreta del calendario suscribible de quien llama (la anterior deja de servir).
+  async createAgendaFeedToken() {
+    const { data, error } = await supabase.rpc("create_agenda_feed_token");
+    if (error) throw error;
+    return data;
+  },
+
+  async getAgendaFeedToken() {
+    const { data: session } = await supabase.auth.getSession();
+    const email = session?.session?.user?.email;
+    if (!email) return null;
+    const { data, error } = await supabase.from("agenda_feed_tokens").select("token").eq("email", email).maybeSingle();
+    if (error) {
+      if (isMissingTable(error)) return null;
+      throw error;
+    }
+    return data?.token || null;
   },
 
   // Ventas registradas (quién vendió y cuándo), una por propiedad. RLS: solo

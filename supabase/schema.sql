@@ -7642,3 +7642,138 @@ begin
   return new;
 end;
 $$;
+
+-- ─────────────────────────────────────────────
+-- Ofertas y apartados por propiedad, y calendario suscribible de la Agenda (2026-11-17)
+--
+-- 1. property_offers: ofertas del cliente y contraofertas del propietario por propiedad (quién, cuánto, nota y
+--    estado). Solo la ve y la maneja quien tiene el apartado Propiedades o Naves (mismo permiso que la propiedad).
+-- 2. property_holds: apartados (monto, fecha límite, estado). A lo mucho UNO vigente por propiedad (índice
+--    único parcial). El aviso de «por vencer» y «vencido» se calcula con la fecha: nada cambia solo en la base.
+-- 3. agenda_feed_tokens + create_agenda_feed_token() + get_agenda_feed(): una URL secreta por persona del equipo
+--    para suscribir la Agenda en Google/Apple/Outlook (SOLO lectura, un sentido: el calendario externo no
+--    escribe en el sitio). El token es un secreto: quien tenga la URL ve las citas de esa persona; se puede
+--    regenerar para invalidar la anterior. No expone teléfonos ni correos de clientes.
+
+create table if not exists property_offers (
+  id uuid primary key default gen_random_uuid(),
+  property_id uuid not null references properties(id) on delete cascade,
+  party text not null check (party in ('cliente', 'propietario')),
+  buyer_name text not null check (char_length(btrim(buyer_name)) between 1 and 120),
+  amount numeric not null check (amount > 0),
+  note text check (note is null or char_length(note) <= 300),
+  status text not null default 'abierta' check (status in ('abierta', 'aceptada', 'rechazada', 'retirada')),
+  created_by text default auth.email(),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_property_offers_property on property_offers(property_id, created_at desc);
+
+alter table property_offers enable row level security;
+
+drop policy if exists "Rol con apartado propiedades o naves maneja property_offers" on property_offers;
+create policy "Rol con apartado propiedades o naves maneja property_offers" on property_offers for all
+  using (has_admin_section('propiedades') or has_admin_section('naves_industriales'))
+  with check (has_admin_section('propiedades') or has_admin_section('naves_industriales'));
+
+create table if not exists property_holds (
+  id uuid primary key default gen_random_uuid(),
+  property_id uuid not null references properties(id) on delete cascade,
+  advisor_id uuid references advisors(id) on delete set null default my_advisor_id(),
+  buyer_name text not null check (char_length(btrim(buyer_name)) between 1 and 120),
+  buyer_phone text check (buyer_phone is null or char_length(buyer_phone) <= 30),
+  amount numeric not null check (amount >= 0),
+  due_date date not null,
+  note text check (note is null or char_length(note) <= 300),
+  status text not null default 'vigente' check (status in ('vigente', 'concretado', 'cancelado')),
+  created_by text default auth.email(),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_property_holds_property on property_holds(property_id, created_at desc);
+create index if not exists idx_property_holds_due on property_holds(due_date) where status = 'vigente';
+-- Una propiedad no se aparta dos veces a la vez.
+create unique index if not exists uniq_property_holds_vigente on property_holds(property_id) where status = 'vigente';
+
+alter table property_holds enable row level security;
+
+drop policy if exists "Rol con apartado propiedades o naves maneja property_holds" on property_holds;
+create policy "Rol con apartado propiedades o naves maneja property_holds" on property_holds for all
+  using (has_admin_section('propiedades') or has_admin_section('naves_industriales'))
+  with check (has_admin_section('propiedades') or has_admin_section('naves_industriales'));
+
+create table if not exists agenda_feed_tokens (
+  email text primary key,
+  advisor_id uuid references advisors(id) on delete cascade,
+  token text not null unique check (token ~ '^[0-9a-f]{64}$'),
+  created_at timestamptz not null default now()
+);
+
+alter table agenda_feed_tokens enable row level security;
+
+-- Cada quien ve (y solo ve) su propio registro; nadie escribe directo: se hace por create_agenda_feed_token().
+drop policy if exists "Ver mi propio token de calendario" on agenda_feed_tokens;
+create policy "Ver mi propio token de calendario" on agenda_feed_tokens for select
+  using (email = auth.email());
+
+-- Crea o REGENERA el token de quien llama (la URL anterior deja de servir). Requiere el apartado Agenda.
+create or replace function create_agenda_feed_token()
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  new_token text := replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', '');
+begin
+  if auth.email() is null or not has_admin_section('agenda') then
+    raise exception 'No tienes acceso a la Agenda' using errcode = '42501';
+  end if;
+  insert into agenda_feed_tokens (email, advisor_id, token)
+  values (auth.email(), my_advisor_id(), new_token)
+  on conflict (email) do update set token = excluded.token, advisor_id = excluded.advisor_id, created_at = now();
+  return new_token;
+end;
+$$;
+
+revoke all on function create_agenda_feed_token() from public, anon;
+grant execute on function create_agenda_feed_token() to authenticated;
+
+-- Lo que lee /api/agenda-ics con el token: las citas confirmadas de esa persona (o todas, si es de oficina) de la
+-- última semana en adelante. Sin teléfonos ni correos del cliente. Token inválido → arreglo vacío (no revela nada).
+create or replace function get_agenda_feed(p_token text)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  t agenda_feed_tokens;
+begin
+  if p_token is null or p_token !~ '^[0-9a-f]{64}$' then
+    return '[]'::jsonb;
+  end if;
+  select * into t from agenda_feed_tokens where token = p_token;
+  if not found then
+    return '[]'::jsonb;
+  end if;
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id', c.id, 'titulo', c.titulo, 'fecha', c.fecha, 'hora', c.hora,
+      'duracion_min', c.duracion_min, 'lugar', c.lugar, 'actividades', c.actividades
+    ) order by c.fecha, c.hora)
+    from (
+      select * from agenda_citas
+      where status = 'confirmada'
+        and fecha >= current_date - 7
+        and (t.advisor_id is null or advisor_id = t.advisor_id)
+      order by fecha, hora
+      limit 1000
+    ) c
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function get_agenda_feed(text) from public;
+grant execute on function get_agenda_feed(text) to anon, authenticated;

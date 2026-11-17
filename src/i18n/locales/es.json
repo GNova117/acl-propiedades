@@ -3415,7 +3415,15 @@
     "directions": "Cómo llegar",
     "addToCalendar": "A mi calendario",
     "addToCalendarTitle": "Descargar para tu calendario (te avisa 1 hora y 15 minutos antes)",
-    "reminderPlace": "Nos vemos en: {{place}}"
+    "reminderPlace": "Nos vemos en: {{place}}",
+    "viewWeek": "Semana",
+    "viewDay": "Día",
+    "prevWeek": "Semana anterior",
+    "nextWeek": "Semana siguiente",
+    "prevDay": "Día anterior",
+    "nextDay": "Día siguiente",
+    "timeGrid": "Citas por hora",
+    "allDay": "Todo el día"
   },
   "sendProperty": {
     "button": "Enviar",
@@ -4268,5 +4276,169 @@
     "done_one": "Listo: se asignó {{count}} prospecto.",
     "done_other": "Listo: se asignaron {{count}} prospectos.",
     "partial": "Se asignaron {{done}}; {{failed}} no se pudieron guardar (inténtalo de nuevo)."
+  },
+  "completeness": {
+    "label": "Ficha {{percent}} %",
+    "complete": "Ficha completa",
+    "missing": "Falta: {{items}}",
+    "onlyIncomplete": "Solo fichas incompletas",
+    "items": {
+      "photos": "fotos (mínimo 5)",
+      "description": "descripción más larga",
+      "location": "dirección y ubicación en el mapa",
+      "basics": "precio y superficie",
+      "specs": "datos de la propiedad (recámaras, baños…)",
+      "zone": "zona",
+      "advisor": "asesor asignado",
+      "media": "video o recorrido 360°",
+      "amenities": "amenidades",
+      "plan": "plano"
+    }
+  },
+  "bulkProperties": {
+    "priceLabel": "Cambio de precio",
+    "amountLabel": "Cantidad",
+    "modes": {
+      "percentDown": "Bajar %",
+      "percentUp": "Subir %",
+      "exact": "Precio exacto"
+    },
+    "applyPrice": "Cambiar precio",
+    "confirmPrice": "¿Cambiar el precio de {{count}} propiedades? Por ejemplo: {{title}}: {{from}} → {{to}}.",
+    "skipped": "{{count}} se omiten porque no se pudo calcular su precio.",
+    "advisorLabel": "Asesor",
+    "advisorPick": "Asesor…",
+    "addAdvisor": "Agregar asesor",
+    "replaceAdvisor": "Reemplazar asesores",
+    "confirmReplace": "Esto deja SOLO a {{name}} como asesor de {{count}} propiedades (se quita a los demás). ¿Continuar?",
+    "nothingToChange": "Ninguna de las seleccionadas necesita el cambio.",
+    "errors": {
+      "amount": "Escribe una cantidad mayor que cero.",
+      "percent": "El porcentaje no puede pasar de 50 %.",
+      "current": "Esas propiedades no tienen un precio con el que calcular.",
+      "nochange": "Ese cambio no modifica el precio.",
+      "mode": "Elige cómo cambiar el precio."
+    }
+  },
+  "duplicate": {
+    "button": "Duplicar",
+    "titleSuffix": " (copia)",
+    "banner": "Estás creando una copia de «{{title}}»: se copiaron sus datos, pero no las fotos, videos ni el plano. Queda inactiva hasta que la publiques."
+  },
+  "dictation": {
+    "start": "Dictar",
+    "stop": "Detener",
+    "listening": "Escuchando…",
+    "denied": "El navegador no tiene permiso para usar el micrófono.",
+    "error": "No se pudo dictar. Escribe la nota a mano.",
+    "privacy": "Usa el reconocimiento de voz de tu navegador: según el navegador, el audio lo transcribe un servicio de su proveedor. Solo escucha mientras está activo."
+  },
+  "offers": {
+    "button": "Ofertas y apartado",
+    "title": "Ofertas y apartado",
+    "subtitle": "{{title}} · precio de lista {{price}}",
+    "offersTitle": "Ofertas y contraofertas",
+    "none": "Todavía no hay ofertas.",
+    "best": "Mejor oferta abierta del cliente: {{amount}} ({{name}})",
+    "aboveList": "{{pct}} % por encima de la lista",
+    "belowList": "{{pct}} % por debajo de la lista",
+    "party": "De",
+    "buyer": "Comprador",
+    "amount": "Monto",
+    "note": "Nota (opcional)",
+    "add": "Agregar oferta",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "parties": {
+      "cliente": "Cliente",
+      "propietario": "Contraoferta del propietario"
+    },
+    "statuses": {
+      "abierta": "Abierta",
+      "aceptada": "Aceptada",
+      "rechazada": "Rechazada",
+      "retirada": "Retirada"
+    },
+    "hold": {
+      "title": "Apartado",
+      "hint": "Al apartar, la propiedad queda «apartada» en el sitio. Solo puede haber un apartado vigente a la vez.",
+      "buyer": "Quién aparta",
+      "phone": "Teléfono (opcional)",
+      "amount": "Monto del apartado",
+      "due": "Fecha límite",
+      "save": "Registrar apartado",
+      "summary": "{{amount}} · vence el {{date}}",
+      "complete": "Se concretó",
+      "cancel": "Cancelar apartado",
+      "confirmCancel": "¿Cancelar el apartado? La propiedad vuelve a «disponible».",
+      "dueToday": "Vence hoy",
+      "dueSoon_one": "Vence en {{count}} día",
+      "dueSoon_other": "Vence en {{count}} días",
+      "overdue_one": "Venció hace {{count}} día",
+      "overdue_other": "Venció hace {{count}} días",
+      "states": {
+        "vigente": "Vigente",
+        "porVencer": "Por vencer",
+        "vencido": "Vencido",
+        "concretado": "Concretado",
+        "cancelado": "Cancelado"
+      },
+      "pastItem": "{{name}} · {{amount}} · {{status}}"
+    },
+    "errors": {
+      "generic": "No se pudo guardar. Inténtalo de nuevo.",
+      "offer": {
+        "party": "Elige de quién es la oferta.",
+        "name": "Escribe el nombre del comprador.",
+        "amount": "Escribe un monto mayor que cero.",
+        "status": "Estado no válido."
+      },
+      "hold": {
+        "name": "Escribe quién aparta.",
+        "amount": "El monto no puede ser negativo.",
+        "date": "Elige la fecha límite.",
+        "pastDate": "La fecha límite no puede ser anterior a hoy.",
+        "exists": "Esa propiedad ya tiene un apartado vigente.",
+        "status": "Estado no válido."
+      }
+    }
+  },
+  "dayRoute": {
+    "title": "Ruta de hoy",
+    "hint": "Tus visitas que faltan hoy, en orden de hora. El enlace abre Google Maps con todas las paradas.",
+    "open": "Abrir ruta en Google Maps",
+    "openOne": "Cómo llegar",
+    "truncated_one": "Se omite {{count}} parada más (Google Maps admite 10).",
+    "truncated_other": "Se omiten {{count}} paradas más (Google Maps admite 10).",
+    "unplaced_one": "{{count}} visita de hoy no tiene una dirección que se pueda poner en la ruta.",
+    "unplaced_other": "{{count}} visitas de hoy no tienen una dirección que se pueda poner en la ruta."
+  },
+  "newMatches": {
+    "title": "Propiedades nuevas para tus prospectos",
+    "hint": "Publicadas esta semana y que encajan con lo que busca un prospecto abierto. Tú decides si le avisas.",
+    "notify": "Avisarle",
+    "hide": "Ocultar",
+    "more_one": "…y {{count}} prospecto más.",
+    "more_other": "…y {{count}} prospectos más."
+  },
+  "holdsDue": {
+    "title": "Apartados por vencer",
+    "hint": "Vencen en 3 días o menos, o ya vencieron. Se cierran desde «Ofertas y apartado» en Propiedades.",
+    "property": "Propiedad"
+  },
+  "agendaFeed": {
+    "open": "Ver mi Agenda en Google, Apple u Outlook",
+    "hint": "Una dirección secreta que tu calendario lee solo, cada cierto tiempo: tus citas confirmadas aparecen ahí y se actualizan cuando cambian en el sitio.",
+    "privacy": "Es de solo lectura y en un sentido: lo que cambies en el calendario externo NO llega al sitio. Quien tenga la dirección puede ver tus citas (título, hora, lugar y actividades; no los teléfonos de clientes): no la compartas, y si se filtra, genera otra.",
+    "create": "Crear mi dirección",
+    "urlLabel": "Dirección del calendario",
+    "copy": "Copiar",
+    "copied": "Copiada",
+    "regenerate": "Generar otra (invalida la anterior)",
+    "confirmRegenerate": "La dirección anterior dejará de funcionar y tendrás que suscribir el calendario de nuevo con la nueva. ¿Continuar?",
+    "howTo": "En Google Calendar: Otros calendarios → Desde URL. En Apple Calendar: Archivo → Nueva suscripción a calendario. En Outlook: Agregar calendario → Suscribirse desde la web. Pueden tardar hasta unas horas en actualizarse.",
+    "demo": "En modo demo no está disponible: necesita el servidor del sitio.",
+    "error": "No se pudo crear la dirección. Inténtalo de nuevo.",
+    "copyError": "No se pudo copiar; selecciónala y cópiala a mano."
   }
 }

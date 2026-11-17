@@ -3415,7 +3415,15 @@
     "directions": "Directions",
     "addToCalendar": "To my calendar",
     "addToCalendarTitle": "Download for your calendar (alerts you 1 hour and 15 minutes before)",
-    "reminderPlace": "Meeting at: {{place}}"
+    "reminderPlace": "Meeting at: {{place}}",
+    "viewWeek": "Week",
+    "viewDay": "Day",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "prevDay": "Previous day",
+    "nextDay": "Next day",
+    "timeGrid": "Appointments by hour",
+    "allDay": "All day"
   },
   "sendProperty": {
     "button": "Send",
@@ -4268,5 +4276,169 @@
     "done_one": "Done: {{count}} prospect assigned.",
     "done_other": "Done: {{count}} prospects assigned.",
     "partial": "{{done}} assigned; {{failed}} could not be saved (try again)."
+  },
+  "completeness": {
+    "label": "Listing {{percent}}%",
+    "complete": "Listing complete",
+    "missing": "Missing: {{items}}",
+    "onlyIncomplete": "Incomplete listings only",
+    "items": {
+      "photos": "photos (at least 5)",
+      "description": "a longer description",
+      "location": "address and map location",
+      "basics": "price and size",
+      "specs": "property details (bedrooms, bathrooms…)",
+      "zone": "zone",
+      "advisor": "assigned advisor",
+      "media": "video or 360° tour",
+      "amenities": "amenities",
+      "plan": "floor plan"
+    }
+  },
+  "bulkProperties": {
+    "priceLabel": "Price change",
+    "amountLabel": "Amount",
+    "modes": {
+      "percentDown": "Lower %",
+      "percentUp": "Raise %",
+      "exact": "Exact price"
+    },
+    "applyPrice": "Change price",
+    "confirmPrice": "Change the price of {{count}} properties? For example: {{title}}: {{from}} → {{to}}.",
+    "skipped": "{{count}} are skipped because their price could not be calculated.",
+    "advisorLabel": "Advisor",
+    "advisorPick": "Advisor…",
+    "addAdvisor": "Add advisor",
+    "replaceAdvisor": "Replace advisors",
+    "confirmReplace": "This leaves ONLY {{name}} as the advisor of {{count}} properties (the others are removed). Continue?",
+    "nothingToChange": "None of the selected properties needs the change.",
+    "errors": {
+      "amount": "Enter an amount greater than zero.",
+      "percent": "The percentage cannot exceed 50%.",
+      "current": "Those properties have no price to calculate from.",
+      "nochange": "That change does not modify the price.",
+      "mode": "Choose how to change the price."
+    }
+  },
+  "duplicate": {
+    "button": "Duplicate",
+    "titleSuffix": " (copy)",
+    "banner": "You are creating a copy of “{{title}}”: its data was copied, but not the photos, videos or floor plan. It stays inactive until you publish it."
+  },
+  "dictation": {
+    "start": "Dictate",
+    "stop": "Stop",
+    "listening": "Listening…",
+    "denied": "The browser is not allowed to use the microphone.",
+    "error": "Dictation failed. Type the note by hand.",
+    "privacy": "Uses your browser's speech recognition: depending on the browser, the audio is transcribed by its provider's service. It only listens while active."
+  },
+  "offers": {
+    "button": "Offers & hold",
+    "title": "Offers & hold",
+    "subtitle": "{{title}} · list price {{price}}",
+    "offersTitle": "Offers and counteroffers",
+    "none": "No offers yet.",
+    "best": "Best open client offer: {{amount}} ({{name}})",
+    "aboveList": "{{pct}}% above list",
+    "belowList": "{{pct}}% below list",
+    "party": "From",
+    "buyer": "Buyer",
+    "amount": "Amount",
+    "note": "Note (optional)",
+    "add": "Add offer",
+    "accept": "Accept",
+    "reject": "Reject",
+    "parties": {
+      "cliente": "Client",
+      "propietario": "Owner counteroffer"
+    },
+    "statuses": {
+      "abierta": "Open",
+      "aceptada": "Accepted",
+      "rechazada": "Rejected",
+      "retirada": "Withdrawn"
+    },
+    "hold": {
+      "title": "Hold",
+      "hint": "Placing a hold marks the property as “on hold” on the site. Only one active hold at a time.",
+      "buyer": "Who is holding it",
+      "phone": "Phone (optional)",
+      "amount": "Hold amount",
+      "due": "Deadline",
+      "save": "Register hold",
+      "summary": "{{amount}} · expires {{date}}",
+      "complete": "It went through",
+      "cancel": "Cancel hold",
+      "confirmCancel": "Cancel the hold? The property goes back to “available”.",
+      "dueToday": "Expires today",
+      "dueSoon_one": "Expires in {{count}} day",
+      "dueSoon_other": "Expires in {{count}} days",
+      "overdue_one": "Expired {{count}} day ago",
+      "overdue_other": "Expired {{count}} days ago",
+      "states": {
+        "vigente": "Active",
+        "porVencer": "Expiring soon",
+        "vencido": "Expired",
+        "concretado": "Completed",
+        "cancelado": "Cancelled"
+      },
+      "pastItem": "{{name}} · {{amount}} · {{status}}"
+    },
+    "errors": {
+      "generic": "Could not save. Try again.",
+      "offer": {
+        "party": "Choose who the offer is from.",
+        "name": "Enter the buyer's name.",
+        "amount": "Enter an amount greater than zero.",
+        "status": "Invalid status."
+      },
+      "hold": {
+        "name": "Enter who is holding it.",
+        "amount": "The amount cannot be negative.",
+        "date": "Choose the deadline.",
+        "pastDate": "The deadline cannot be before today.",
+        "exists": "That property already has an active hold.",
+        "status": "Invalid status."
+      }
+    }
+  },
+  "dayRoute": {
+    "title": "Today's route",
+    "hint": "Your remaining visits today, in time order. The link opens Google Maps with every stop.",
+    "open": "Open route in Google Maps",
+    "openOne": "Get directions",
+    "truncated_one": "{{count}} more stop is left out (Google Maps allows 10).",
+    "truncated_other": "{{count}} more stops are left out (Google Maps allows 10).",
+    "unplaced_one": "{{count}} visit today has no address that can go on the route.",
+    "unplaced_other": "{{count}} visits today have no address that can go on the route."
+  },
+  "newMatches": {
+    "title": "New properties for your prospects",
+    "hint": "Published this week and matching what an open prospect is looking for. You decide whether to tell them.",
+    "notify": "Tell them",
+    "hide": "Hide",
+    "more_one": "…and {{count}} more prospect.",
+    "more_other": "…and {{count}} more prospects."
+  },
+  "holdsDue": {
+    "title": "Holds about to expire",
+    "hint": "They expire in 3 days or less, or already did. Close them from “Offers & hold” in Properties.",
+    "property": "Property"
+  },
+  "agendaFeed": {
+    "open": "See my Agenda in Google, Apple or Outlook",
+    "hint": "A secret address your calendar reads on its own from time to time: your confirmed appointments show up there and update when they change on the site.",
+    "privacy": "It is read-only and one-way: what you change in the external calendar does NOT reach the site. Anyone with the address can see your appointments (title, time, place and activities; not client phone numbers): do not share it, and if it leaks, generate another.",
+    "create": "Create my address",
+    "urlLabel": "Calendar address",
+    "copy": "Copy",
+    "copied": "Copied",
+    "regenerate": "Generate another (invalidates the old one)",
+    "confirmRegenerate": "The old address will stop working and you will have to subscribe the calendar again with the new one. Continue?",
+    "howTo": "In Google Calendar: Other calendars → From URL. In Apple Calendar: File → New Calendar Subscription. In Outlook: Add calendar → Subscribe from web. They can take a few hours to update.",
+    "demo": "Not available in demo mode: it needs the site's server.",
+    "error": "Could not create the address. Try again.",
+    "copyError": "Could not copy; select it and copy it by hand."
   }
 }
