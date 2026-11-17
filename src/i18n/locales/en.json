@@ -12,7 +12,8 @@
     "land": "Land",
     "about": "About",
     "contact": "Contact",
-    "admin": "Admin Panel"
+    "admin": "Admin Panel",
+    "mySpace": "My space"
   },
   "hero": {
     "title": "Find your next property in La Comarca Lagunera",
@@ -4023,5 +4024,111 @@
     "invalidType": "Upload a PNG or JPG image.",
     "tooBig": "The plan is too large (max {{mb}} MB).",
     "saveFailed": "The property was saved, but the floor plan was not: {{message}}"
+  },
+  "downloadFicha": {
+    "button": "Download PDF fact sheet",
+    "error": "The PDF could not be generated. Please try again."
+  },
+  "favoritesShare": {
+    "sharedTitle": "Shared list",
+    "sharedSubtitle": "Someone shared these properties with you.",
+    "sharedBanner_one": "{{count}} property was shared with you.",
+    "sharedBanner_other": "{{count}} properties were shared with you.",
+    "saveAll": "Save to my favorites",
+    "saved": "Done: they are in your favorites.",
+    "viewMine": "View my list",
+    "sharedEmpty": "This list no longer has available properties.",
+    "shareText": "My property list at ACL Propiedades:",
+    "shareHint": "The link opens this list on any device so it can be saved."
+  },
+  "travelTime": {
+    "title": "How far is it from your work or school?",
+    "prompt": "Enter an address and we will tell you how long it takes to drive to this property.",
+    "placeholder": "E.g. Blvd. Independencia 1200, Torreón",
+    "calculate": "Calculate",
+    "calculating": "Calculating…",
+    "from": "From: {{place}}",
+    "change": "Change",
+    "minutes": "{{minutes}} min",
+    "hoursMinutes": "{{hours}} h {{minutes}} min",
+    "approx": "≈ {{duration}}",
+    "byCar": "by car · {{km}} km",
+    "estimateNote": "Estimate based on distance: we could not look up the route. Real time depends on traffic.",
+    "notFound": "We could not find that address. Try the street and neighborhood.",
+    "error": "It could not be calculated right now. Please try again in a moment.",
+    "privacy": "When you calculate, the address is sent to OpenStreetMap and a routing service; we do not store it on our servers. It is remembered only on this device."
+  },
+  "mySpace": {
+    "title": "My space",
+    "subtitle": "Your visits, documents and lists in one place.",
+    "favorites": "My favorites",
+    "favoritesCount_one": "You have {{count}} saved property.",
+    "favoritesCount_other": "You have {{count}} saved properties.",
+    "openFavorites": "View my favorites",
+    "kinds": {
+      "visit": "My visits",
+      "portal": "My documents",
+      "sign": "Documents to sign",
+      "selection": "Lists from my advisor"
+    },
+    "defaultTitle": {
+      "visit": "Scheduled visit",
+      "portal": "Documents for my process",
+      "sign": "Document to sign",
+      "selection": "Properties for you"
+    },
+    "openedOn": "Opened on {{date}}",
+    "forget": "Remove",
+    "forgetOne": "Remove “{{title}}” from My space",
+    "forgetAll": "Remove all",
+    "forgetAllConfirm": "Remove all My space links on this device? The links still work if you open them again.",
+    "empty": "There is nothing here yet. When you open the link of a visit, your documents or a list your advisor sends you, it will show up in this space.",
+    "privacy": "This list lives only on this device: there is no account and nothing is sent to a server. We only keep the link and a short title, never your name or what you type.",
+    "portalDetail": "{{todo}} pending of {{total}}",
+    "selectionDetail_one": "{{count}} property",
+    "selectionDetail_other": "{{count}} properties",
+    "signStatus": {
+      "pendiente": "Pending signature",
+      "firmado": "Signed",
+      "expirado": "Expired",
+      "bloqueado": "Locked"
+    }
+  },
+  "nextVisit": {
+    "today": "Visit it today",
+    "tomorrow": "Visit it tomorrow",
+    "weekday": "Visit it on {{day}}"
+  },
+  "selectionReactions": {
+    "like": "I like it",
+    "dislike": "Not for me",
+    "addComment": "Add a comment",
+    "editComment": "Edit comment",
+    "groupLabel": "Your opinion on {{title}}",
+    "commentLabel": "Comment about {{title}}",
+    "commentPlaceholder": "Tell your advisor what you thought…",
+    "saveComment": "Save comment",
+    "saved": "Done, your advisor will see it.",
+    "errors": {
+      "generic": "It could not be saved. Please try again.",
+      "unavailable": "This link is no longer available.",
+      "invalid_property": "That property is not in your list.",
+      "invalid_reaction": "Your opinion could not be saved.",
+      "invalid_comment": "The comment is too long (300 characters max)."
+    },
+    "summary": "👍 {{like}} · 👎 {{dislike}} · 💬 {{comments}} — view replies"
+  },
+  "onlineInterest": {
+    "title": "Online interest",
+    "note": "People who viewed the property on the site. In-person visits are above.",
+    "visitors": "People who viewed the listing",
+    "week": "In the last 7 days",
+    "favorites": "Saved it to favorites",
+    "shares": "Times shared"
+  },
+  "portalAvisos": {
+    "label": "Email the client",
+    "hint": "They get an email when you change the stage of their process and, while any document is missing, a reminder every 7 days (3 per stage at most). Only if they have an email and a valid portal link.",
+    "noEmail": "This client has no email, so they cannot be notified. Add it in their profile."
   }
 }

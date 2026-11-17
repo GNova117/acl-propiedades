@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { mergeFavorites } from "../lib/favoritesShare";
 
 // Favoritos de visitante — 100% localStorage, sin cuenta ni backend (a
 // diferencia de todo lo demás en el sitio, esto no necesita SQL). Vive en
@@ -45,10 +46,23 @@ export function FavoritesProvider({ children }) {
     });
   }, []);
 
+  // Guarda de un golpe una lista (la que alguien compartió), sin repetir lo que ya había.
+  const addFavorites = useCallback((ids) => {
+    setFavorites((prev) => {
+      const next = mergeFavorites(prev, ids);
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // igual que arriba: sin almacenamiento solo no persiste
+      }
+      return next;
+    });
+  }, []);
+
   const isFavorite = useCallback((propertyId) => favorites.includes(propertyId), [favorites]);
 
   return (
-    <FavoritesContext.Provider value={{ favorites, toggleFavorite, isFavorite }}>{children}</FavoritesContext.Provider>
+    <FavoritesContext.Provider value={{ favorites, toggleFavorite, addFavorites, isFavorite }}>{children}</FavoritesContext.Provider>
   );
 }
 

@@ -5,10 +5,12 @@ import Logo from "../components/Logo";
 import ThemeToggle from "../components/ThemeToggle";
 import LanguageToggle from "../components/LanguageToggle";
 import PropertyCard from "../components/PropertyCard";
+import SelectionReaction from "../components/SelectionReaction";
 import { db } from "../lib/dataStore";
 import { whatsappDigits, whatsappUrl } from "../lib/format";
-import { selectionUrl } from "../lib/selections";
+import { cleanReaction, selectionUrl } from "../lib/selections";
 import { OFFICE_WHATSAPP } from "../lib/office";
+import { rememberItem } from "../lib/mySpace";
 import "./Properties.css";
 import "./PublicVisitReport.css";
 import "./PublicSelection.css";
@@ -31,6 +33,16 @@ export default function PublicSelection() {
   // URL cambia, el resultado viejo deja de aplicar.
   const [result, setResult] = useState({ token: null, status: "loading" });
   const state = result.token === token ? result : { status: "loading" };
+  // Reacciones del cliente (me gusta / comentario por propiedad); arrancan con lo que ya había guardado.
+  const [reactionsByToken, setReactionsByToken] = useState({});
+  const reactions = reactionsByToken[token] ?? state.selection?.reactions ?? {};
+  const saveReaction = async (propertyId, reaction, comment) => {
+    const cleaned = cleanReaction({ reaction, comment });
+    if (cleaned.error) return { error: cleaned.error };
+    const response = await db.reactToSelection(token, propertyId, { reaction: cleaned.reaction, comment: cleaned.comment });
+    if (response?.reactions) setReactionsByToken((prev) => ({ ...prev, [token]: response.reactions }));
+    return response;
+  };
 
   // Que no se indexe ni se archive y que el navegador no mande el enlace como «referrer» a otros sitios.
   useEffect(() => {
@@ -89,6 +101,14 @@ export default function PublicSelection() {
   }, [token, preview]);
 
   const { selection, advisor, properties = [] } = state;
+
+  // «Mi espacio»: queda anotada esta selección (el asesor que la previsualiza no la anota).
+  const selectionTitle = selection?.title;
+  const selectionCount = properties.length;
+  useEffect(() => {
+    if (preview || state.status !== "ok") return;
+    rememberItem({ kind: "selection", token, title: selectionTitle || t("selection.public.pageTitle"), detail: t("mySpace.selectionDetail", { count: selectionCount }) });
+  }, [preview, state.status, token, selectionTitle, selectionCount, t]);
   // Sin asesor (la armó la oficina para alguien sin asesor, o el asesor ya no está) se escribe a la oficina.
   const contactName = advisor?.name || "ACL Propiedades";
   const advisorPhone = advisor?.whatsapp || advisor?.phone || OFFICE_WHATSAPP;
@@ -194,6 +214,15 @@ export default function PublicSelection() {
                         )}
                         {!available && <span className="form-hint">{t("selection.public.unavailable")}</span>}
                       </div>
+                      {available && (
+                        <SelectionReaction
+                          key={`${token}-${property.id}`}
+                          title={property.title}
+                          entry={reactions[property.id]}
+                          readOnly={preview}
+                          onSave={(reaction, comment) => saveReaction(property.id, reaction, comment)}
+                        />
+                      )}
                     </div>
                   );
                 })}

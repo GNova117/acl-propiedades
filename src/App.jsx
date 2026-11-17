@@ -32,6 +32,7 @@ const AlertUnsubscribe = lazy(() => import("./pages/AlertUnsubscribe"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Favorites = lazy(() => import("./pages/Favorites"));
+const MySpace = lazy(() => import("./pages/MySpace"));
 const Compare = lazy(() => import("./pages/Compare"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Rights = lazy(() => import("./pages/Rights"));
@@ -195,6 +196,7 @@ export default function App() {
       <Route path="/nosotros" element={<PublicLayout><About /></PublicLayout>} />
       <Route path="/contacto" element={<PublicLayout><Contact /></PublicLayout>} />
       <Route path="/favoritos" element={<PublicLayout><Favorites /></PublicLayout>} />
+      <Route path="/mi-espacio" element={<PublicLayout><MySpace /></PublicLayout>} />
       <Route path="/comparar" element={<PublicLayout><Compare /></PublicLayout>} />
       <Route path="/aviso-de-privacidad" element={<PublicLayout><Privacy /></PublicLayout>} />
       <Route path="/carta-de-derechos" element={<PublicLayout><Rights /></PublicLayout>} />

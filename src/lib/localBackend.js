@@ -15,7 +15,7 @@ import { DEVELOPMENTS_SEED } from "./developmentsSeed";
 import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } from "./developments";
 import { CITA_STATUSES } from "./agendaCitas";
 import { findOpenProspect, mergeBookingIntoProspect, prospectFieldsFromBooking, syncProspectFollowup } from "./visitProspect";
-import { SELECTION_VALID_DAYS, cleanSelectionInput } from "./selections";
+import { SELECTION_VALID_DAYS, cleanReaction, cleanSelectionInput } from "./selections";
 import { matchesBounds, matchesSearch } from "./propertySearch";
 import {
   BOOKING_TOKEN_PATTERN,
@@ -99,6 +99,7 @@ const KEYS = {
   documentTemplates: "acl_local_document_templates",
   internalNotes: "acl_local_internal_notes",
   propertyViews: "acl_local_property_views",
+  propertyEvents: "acl_local_property_events",
   developments: "acl_local_developments",
   visitSchedules: "acl_local_visit_schedules",
   visitAttempts: "acl_local_visit_attempts",
@@ -1176,12 +1177,15 @@ export const localBackend = {
     return readStore(KEYS.clientTramites, []).find((t) => t.client_id === clientId) || null;
   },
 
-  async saveClientTramite(clientId, { stage, note, requestedDocs }) {
+  async saveClientTramite(clientId, { stage, note, requestedDocs, notifyClient }) {
+    const previous = readStore(KEYS.clientTramites, []).find((t) => t.client_id === clientId);
     const record = {
       client_id: clientId,
       stage,
       note: note?.trim() ? note.trim() : null,
       requested_docs: requestedDocs,
+      // Igual que en Supabase: solo cambia si viene; si no, conserva lo que había (apagado por omisión).
+      notify_client: notifyClient === undefined ? previous?.notify_client ?? false : Boolean(notifyClient),
       updated_by: DEMO_ADMIN.email,
       updated_at: new Date().toISOString(),
     };
@@ -2202,7 +2206,49 @@ export const localBackend = {
       property_ids: status === "ok" ? found.property_ids : [],
       created_at: found.created_at,
       expires_at: found.expires_at,
+      reactions: status === "ok" ? found.reactions || {} : {},
     };
+  },
+
+  // Espejo de selection_react (schema.sql): mismas validaciones y mismos errores.
+  async reactToSelection(token, propertyId, { reaction = null, comment = null } = {}) {
+    const items = readStore(KEYS.selections, []);
+    const idx = items.findIndex((s) => s.token === token);
+    if (idx === -1) return { error: "unavailable" };
+    const found = items[idx];
+    if (found.revoked_at || new Date(found.expires_at).getTime() < Date.now()) return { error: "unavailable" };
+    if (!(found.property_ids || []).includes(propertyId)) return { error: "invalid_property" };
+    const cleaned = cleanReaction({ reaction, comment });
+    if (cleaned.error) return { error: cleaned.error };
+    const reactions = { ...(found.reactions || {}) };
+    if (cleaned.reaction == null && cleaned.comment == null) delete reactions[propertyId];
+    else reactions[propertyId] = { r: cleaned.reaction, c: cleaned.comment, at: new Date().toISOString() };
+    items[idx] = { ...found, reactions };
+    writeStore(KEYS.selections, items);
+    return { ok: true, reactions };
+  },
+
+  // Espejo de next_visit_slots: el primer horario libre de cada propiedad (las que no tienen, no salen).
+  async getNextVisitSlots(propertyIds) {
+    const result = [];
+    for (const id of [...new Set(propertyIds || [])].slice(0, 48)) {
+      const [first] = await this.getVisitSlots(id, { days: 7 });
+      if (first) result.push({ property_id: id, fecha: first.fecha, hora: first.hora });
+    }
+    return result;
+  },
+
+  // Espejo de track_property_event: una vez por visitante, evento y día, solo en propiedades publicadas.
+  async trackPropertyEvent(propertyId, kind) {
+    if (!["favorite", "share"].includes(kind)) return;
+    const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === propertyId);
+    if (!property || !property.active) return;
+    const visitorId = getOrCreateVisitorId();
+    const today = new Date().toISOString().slice(0, 10);
+    const events = readStore(KEYS.propertyEvents, []);
+    if (events.some((e) => e.property_id === propertyId && e.visitor_id === visitorId && e.kind === kind && e.event_on === today)) return;
+    events.push({ property_id: propertyId, visitor_id: visitorId, kind, event_on: today });
+    writeStore(KEYS.propertyEvents, events);
   },
 
   // Historial de contactos (modo demo: localStorage).
@@ -2381,6 +2427,21 @@ export const localBackend = {
   // una lista CERRADA de campos por visita — sin nombre del prospecto, sin
   // asesor, sin notas internas. Lo usan tanto la vista previa del personal como
   // la página pública por token.
+  // Espejo del objeto `interest` de _visit_report_payload (schema.sql): vistas de la ficha (una por visitante y
+  // día), personas distintas, personas distintas en los últimos 7 días, favoritos y veces compartida.
+  _propertyInterest(propertyId) {
+    const views = readStore(KEYS.propertyViews, []).filter((v) => v.property_id === propertyId);
+    const events = readStore(KEYS.propertyEvents, []).filter((e) => e.property_id === propertyId);
+    const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
+    return {
+      views: views.length,
+      unique_visitors: new Set(views.map((v) => v.visitor_id)).size,
+      views_7d: new Set(views.filter((v) => v.viewed_on > weekAgo).map((v) => v.visitor_id)).size,
+      favorites: new Set(events.filter((e) => e.kind === "favorite").map((e) => e.visitor_id)).size,
+      shares: events.filter((e) => e.kind === "share").length,
+    };
+  },
+
   _visitReportPayload(propertyId) {
     const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === propertyId);
     if (!property) return null;
@@ -2395,6 +2456,7 @@ export const localBackend = {
         main_image: property.main_image || null,
       },
       sold_on: sale?.fecha_venta || null,
+      interest: this._propertyInterest(propertyId),
       visits: readStore(KEYS.visits, VISITS_SEED)
         .filter((v) => v.property_id === propertyId)
         .sort((a, b) => String(b.visited_at).localeCompare(String(a.visited_at)))

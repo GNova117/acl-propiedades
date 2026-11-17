@@ -1164,13 +1164,17 @@ export const supabaseBackend = {
     return data;
   },
 
-  async saveClientTramite(clientId, { stage, note, requestedDocs }) {
+  // `notifyClient` es opcional a propósito: solo entra al upsert si viene (la pantalla lo manda únicamente cuando
+  // el asesor lo cambió), así guardar el trámite no depende de que la columna notify_client ya exista
+  // (bloque «Avisos por correo al cliente del portal» de schema.sql).
+  async saveClientTramite(clientId, { stage, note, requestedDocs, notifyClient }) {
     const { data: sessionData } = await supabase.auth.getSession();
     const row = {
       client_id: clientId,
       stage,
       note: note?.trim() ? note.trim() : null,
       requested_docs: requestedDocs,
+      ...(notifyClient === undefined ? {} : { notify_client: Boolean(notifyClient) }),
       updated_by: sessionData?.session?.user?.email || null,
       updated_at: new Date().toISOString(),
     };
@@ -1956,6 +1960,31 @@ export const supabaseBackend = {
     const { data, error } = await supabase.from("property_selections").update({ revoked_at: new Date().toISOString() }).eq("id", id).select().single();
     if (error) throw error;
     return data;
+  },
+
+  // Cliente: «me gusta / no me gusta» y comentario por propiedad de su selección (selection_react, schema.sql).
+  // Devuelve { ok, reactions } o { error }.
+  async reactToSelection(token, propertyId, { reaction = null, comment = null } = {}) {
+    const { data, error } = await supabase.rpc("selection_react", { p_token: token, p_property_id: propertyId, p_reaction: reaction, p_comment: comment });
+    if (error) throw error;
+    return data;
+  },
+
+  // Primer horario libre de cada propiedad dada, de un golpe (next_visit_slots, schema.sql): para la etiqueta
+  // «Visítala mañana» de las tarjetas. Si la función aún no existe en la base devuelve [] (no hay etiquetas).
+  async getNextVisitSlots(propertyIds) {
+    const ids = [...new Set(propertyIds || [])].slice(0, 48);
+    if (ids.length === 0) return [];
+    const { data, error } = await supabase.rpc("next_visit_slots", { p_property_ids: ids });
+    if (error) return [];
+    return Array.isArray(data) ? data : [];
+  },
+
+  // Favorito o «compartir» de un visitante (track_property_event, schema.sql): cuenta para el informe del
+  // vendedor. Sin esperar respuesta ni mostrar errores: es solo una cifra.
+  async trackPropertyEvent(propertyId, kind) {
+    const { error } = await supabase.rpc("track_property_event", { p_property_id: propertyId, p_visitor_id: getOrCreateVisitorId(), p_kind: kind });
+    if (error) throw error;
   },
 
   async openSelection(token, { track = true } = {}) {

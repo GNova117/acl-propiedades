@@ -10,17 +10,20 @@ import PropertyImageCarousel from "./PropertyImageCarousel";
 import { cardImages } from "../lib/cardImages";
 import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
 import { getPropertyBadge } from "../lib/propertyBadges";
+import { nextVisitTag } from "../lib/nextVisit";
 import { estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import "./PropertyCard.css";
 
-export default function PropertyCard({ property }) {
-  const { t } = useTranslation();
+// `nextVisitSlot`: primer horario libre para visitarla ({ fecha, hora }); sale «Visítala hoy / mañana / el jueves».
+export default function PropertyCard({ property, nextVisitSlot }) {
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   // De dónde viene la persona: la ficha lo usa para que «Volver» regrese a este listado con sus filtros.
   const linkState = { from: location.pathname + location.search };
   const advisor = property.advisors?.[0];
   const badge = getPropertyBadge(property);
   const monthly = estimateMonthlyPayment(property);
+  const visitTag = property.status === "disponible" ? nextVisitTag(nextVisitSlot) : null;
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/propiedades/${property.id}` : "";
   // Mismo formato que el botón de Compartir de la ficha de propiedad, pero
   // sin amenidades (la tarjeta de listado no las trae cargadas) — para que
@@ -64,6 +67,14 @@ export default function PropertyCard({ property }) {
             {t("monthlyEstimate.perMonth", { amount: formatMXN(monthly.payment) })}
           </p>
         )}
+        {visitTag && (
+          <p className={`property-card__visit property-card__visit--${visitTag.kind}`}>
+            <span aria-hidden="true">📅</span>{" "}
+            {visitTag.kind === "weekday"
+              ? t("nextVisit.weekday", { day: new Date(2024, 0, 7 + visitTag.weekday).toLocaleDateString(i18n.language === "en" ? "en-US" : "es-MX", { weekday: "long" }) })
+              : t(`nextVisit.${visitTag.kind}`)}
+          </p>
+        )}
         <ul className="property-card__meta">
           <li>{formatArea(property.area_m2)}</li>
           {property.bedrooms != null && <li>{property.bedrooms} {t("properties.bedrooms")}</li>}
@@ -79,7 +90,7 @@ export default function PropertyCard({ property }) {
             <span />
           )}
           <div className="property-card__footer-actions">
-            <ShareButton title={property.title} text={shareText} url={shareUrl} openUpward />
+            <ShareButton title={property.title} text={shareText} url={shareUrl} openUpward propertyId={property.id} />
             <Link to={`/propiedades/${property.id}`} state={linkState} className="btn btn-outline btn-sm">
               {t("properties.viewDetail")}
             </Link>

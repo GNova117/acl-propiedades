@@ -7019,3 +7019,416 @@ grant execute on function selection_open(text, boolean) to anon, authenticated;
 -- formulario de la propiedad. Vive en el bucket público `property-images`
 -- (mismas políticas de subida que las fotos). Re-ejecutable.
 alter table properties add column if not exists floor_plan_url text;
+
+-- ─────────────────────────────────────────────
+-- Listado y ficha: próximas visitas, reacciones en la selección e interés en línea (2026-11-17)
+--
+-- Tres piezas independientes (cada una se puede ignorar sin romper las demás):
+--
+-- 1. «Visítala mañana» en las tarjetas del listado: next_visit_slots() devuelve, de un golpe
+--    para varias propiedades, el primer horario libre de cada una (reusa get_visit_slots).
+--
+-- 2. «Me gusta / no me gusta» y comentario por propiedad en la selección que manda el asesor
+--    (/seleccion/<token>): property_selections.reactions (jsonb) + selection_react(). El
+--    cliente solo puede reaccionar a las propiedades de SU selección, mientras el enlace
+--    esté vigente. selection_open() ahora también devuelve las reacciones.
+--
+-- 3. Interés en línea en el informe del vendedor: property_events cuenta cuántas personas
+--    guardaron la propiedad en favoritos y cuántas veces se compartió (las vistas ya las
+--    cuenta property_views); _visit_report_payload() suma el resumen en `interest`. Solo se
+--    publican cifras agregadas; las filas crudas (quién y cuándo) no las lee nadie con anon
+--    ni authenticated, igual que property_views.
+--
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor; necesita que antes
+--  estén "Agendar visita con horarios reales", "Selección de propiedades en un solo enlace"
+--  y "property_views")
+-- ─────────────────────────────────────────────
+
+-- ── 1. Próximo horario libre de varias propiedades ──
+-- Como mucho 48 propiedades por llamada y 14 días de horizonte. Una propiedad sin horarios
+-- (sin asesor con reserva activa, vendida, inactiva…) simplemente no sale en el resultado.
+create or replace function next_visit_slots(p_property_ids uuid[], p_days int default 7)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  pid uuid;
+  first_slot jsonb;
+  result jsonb := '[]'::jsonb;
+begin
+  if p_property_ids is null then
+    return result;
+  end if;
+  foreach pid in array p_property_ids[1:48] loop
+    continue when pid is null;
+    first_slot := (get_visit_slots(pid, null, least(greatest(coalesce(p_days, 7), 1), 14)) -> 'slots') -> 0;
+    if first_slot is not null then
+      result := result || jsonb_build_array(jsonb_build_object('property_id', pid, 'fecha', first_slot ->> 'fecha', 'hora', first_slot ->> 'hora'));
+    end if;
+  end loop;
+  return result;
+end;
+$$;
+
+revoke all on function next_visit_slots(uuid[], int) from public;
+grant execute on function next_visit_slots(uuid[], int) to anon, authenticated;
+
+-- ── 2. Reacciones del cliente en una selección ──
+-- reactions = { "<property_id>": { "r": "like" | "dislike" | null, "c": "comentario" | null, "at": "…" } }
+alter table property_selections add column if not exists reactions jsonb not null default '{}'::jsonb;
+
+-- Errores (jsonb {error}): unavailable (enlace inexistente, vencido o desactivado),
+-- invalid_property, invalid_reaction, invalid_comment. Sin reacción ni comentario = borra la entrada.
+create or replace function selection_react(p_token text, p_property_id uuid, p_reaction text, p_comment text default null)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  s property_selections%rowtype;
+  cleaned text := nullif(btrim(coalesce(p_comment, '')), '');
+  next_reactions jsonb;
+begin
+  if p_token is null or p_token !~ '^[0-9a-f]{32}$' then
+    return jsonb_build_object('error', 'unavailable');
+  end if;
+  select * into s from property_selections where token = p_token;
+  if not found or s.revoked_at is not null or s.expires_at < now() then
+    return jsonb_build_object('error', 'unavailable');
+  end if;
+  if p_property_id is null or not (p_property_id = any (s.property_ids)) then
+    return jsonb_build_object('error', 'invalid_property');
+  end if;
+  if p_reaction is not null and p_reaction not in ('like', 'dislike') then
+    return jsonb_build_object('error', 'invalid_reaction');
+  end if;
+  if cleaned is not null and char_length(cleaned) > 300 then
+    return jsonb_build_object('error', 'invalid_comment');
+  end if;
+
+  if p_reaction is null and cleaned is null then
+    next_reactions := s.reactions - p_property_id::text;
+  else
+    next_reactions := jsonb_set(
+      s.reactions,
+      array[p_property_id::text],
+      jsonb_build_object('r', p_reaction, 'c', cleaned, 'at', now())
+    );
+  end if;
+  update property_selections set reactions = next_reactions where id = s.id;
+  return jsonb_build_object('ok', true, 'reactions', next_reactions);
+end;
+$$;
+
+revoke all on function selection_react(text, uuid, text, text) from public;
+grant execute on function selection_react(text, uuid, text, text) to anon, authenticated;
+
+-- Misma función de siempre, ahora con las reacciones.
+create or replace function selection_open(p_token text, p_track boolean default true)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  s property_selections%rowtype;
+  st text;
+begin
+  if p_token is null or p_token !~ '^[0-9a-f]{32}$' then
+    return null;
+  end if;
+
+  select * into s from property_selections where token = p_token;
+  if not found then
+    return null;
+  end if;
+
+  st := case
+    when s.revoked_at is not null then 'revoked'
+    when s.expires_at < now() then 'expired'
+    else 'ok'
+  end;
+
+  if st = 'ok' and coalesce(p_track, true) then
+    update property_selections
+    set open_count = open_count + 1,
+        first_opened_at = coalesce(first_opened_at, now()),
+        last_opened_at = now()
+    where id = s.id;
+  end if;
+
+  return jsonb_build_object(
+    'status', st,
+    'title', s.title,
+    'note', s.note,
+    'advisor_id', s.advisor_id,
+    'property_ids', case when st = 'ok' then to_jsonb(s.property_ids) else '[]'::jsonb end,
+    'created_at', s.created_at,
+    'expires_at', s.expires_at,
+    'reactions', case when st = 'ok' then s.reactions else '{}'::jsonb end
+  );
+end;
+$$;
+
+revoke all on function selection_open(text, boolean) from public;
+grant execute on function selection_open(text, boolean) to anon, authenticated;
+
+-- ── 3. Interés en línea: favoritos y veces compartida ──
+create table if not exists property_events (
+  id uuid primary key default gen_random_uuid(),
+  property_id uuid not null references properties(id) on delete cascade,
+  visitor_id uuid not null,
+  kind text not null check (kind in ('favorite', 'share')),
+  event_on date not null default current_date,
+  created_at timestamptz not null default now(),
+  unique (property_id, visitor_id, kind, event_on)
+);
+
+create index if not exists idx_property_events_property on property_events(property_id, kind);
+
+-- Sin políticas: nadie con anon/authenticated lee ni escribe la tabla directo.
+alter table property_events enable row level security;
+
+-- Una vez por visitante, evento y día (recargar o volver a tocar no infla la cifra). Una propiedad
+-- que no existe o no está publicada se ignora sin error.
+create or replace function track_property_event(p_property_id uuid, p_visitor_id uuid, p_kind text)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+begin
+  if p_kind is null or p_kind not in ('favorite', 'share') or p_visitor_id is null then
+    return;
+  end if;
+  if not exists (select 1 from properties where id = p_property_id and active) then
+    return;
+  end if;
+  insert into property_events (property_id, visitor_id, kind)
+  values (p_property_id, p_visitor_id, p_kind)
+  on conflict (property_id, visitor_id, kind, event_on) do nothing;
+end;
+$$;
+
+revoke all on function track_property_event(uuid, uuid, text) from public;
+grant execute on function track_property_event(uuid, uuid, text) to anon, authenticated;
+
+-- El informe del vendedor, ahora con `interest`: vistas de la ficha (una por persona y día),
+-- personas distintas, personas distintas en los últimos 7 días, personas que la guardaron en
+-- favoritos y veces que se compartió. Mismos campos de siempre; solo se agrega ese objeto.
+create or replace function _visit_report_payload(p_property_id uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'property', jsonb_build_object(
+      'title', p.title,
+      'code', p.code,
+      'zone', p.zone,
+      'status', p.status,
+      'created_at', p.created_at,
+      'main_image', p.main_image
+    ),
+    'sold_on', case when p.status = 'vendida' then (select v.fecha_venta from ventas v where v.property_id = p.id) end,
+    'visits', coalesce((
+      select jsonb_agg(
+        jsonb_build_object(
+          'visited_at', pv.visited_at,
+          'interest', pv.interest,
+          'reasons', to_jsonb(pv.reasons),
+          'comments', nullif(btrim(pv.comments), '')
+        )
+        order by pv.visited_at desc
+      )
+      from property_visits pv
+      where pv.property_id = p.id
+    ), '[]'::jsonb),
+    'interest', jsonb_build_object(
+      'views', (select count(*) from property_views pv2 where pv2.property_id = p.id),
+      'unique_visitors', (select count(distinct pv2.visitor_id) from property_views pv2 where pv2.property_id = p.id),
+      'views_7d', (select count(distinct pv2.visitor_id) from property_views pv2 where pv2.property_id = p.id and pv2.viewed_on > current_date - 7),
+      'favorites', (select count(distinct pe.visitor_id) from property_events pe where pe.property_id = p.id and pe.kind = 'favorite'),
+      'shares', (select count(*) from property_events pe where pe.property_id = p.id and pe.kind = 'share')
+    )
+  )
+  from properties p
+  where p.id = p_property_id;
+$$;
+
+-- ─────────────────────────────────────────────
+-- Avisos por correo al cliente del portal (2026-11-17)
+--
+-- Dos avisos automáticos para el cliente que tiene portal (/documentos/<token>):
+--  · «Tu trámite avanzó»: cuando el asesor cambia la etapa del trámite, un trigger llama a la Edge
+--    Function portal-avisos (pg_net), que le manda el correo.
+--  · Recordatorios de documentos pendientes: pg_cron llama a esa misma función una vez al día
+--    (10:30 hora de México); manda a lo más 3 recordatorios, uno cada 7 días como máximo, y solo si
+--    todavía le falta algo por subir o corregir.
+--
+-- Son OPT-IN por cliente: el asesor los activa con «Avisar por correo» en el trámite del cliente
+-- (client_tramites.notify_client, apagado por omisión), y solo se manda a quien tiene correo y un
+-- enlace de portal vigente. Cada aviso se «reclama» en la base antes de enviarse (las funciones
+-- portal_claim_*), así que dos corridas o un reintento nunca lo duplican.
+--
+-- Despliegue (en este orden):
+--   1. Correr este bloque (re-ejecutable).
+--   2. Desplegar la función:  supabase functions deploy portal-avisos --no-verify-jwt
+--      (valida con su propio x-cron-secret, igual que visita-correo). Usa los secretos que ya existen:
+--      CRON_SECRET, RESEND_API_KEY y, si los tienes, RESEND_FROM y SITE_URL.
+--   3. Necesita los secretos de Vault que ya usan las demás funciones: project_url, publishable_key y
+--      agenda_cron_secret.
+-- (bloque re-ejecutable: cron.schedule con un nombre que ya existe actualiza ese job; necesita antes
+--  el bloque «Portal del cliente: más documentos, lista de pendientes y estatus del trámite»)
+-- ─────────────────────────────────────────────
+
+alter table client_tramites add column if not exists notify_client boolean not null default false;
+alter table client_tramites add column if not exists last_reminder_at timestamptz;
+alter table client_tramites add column if not exists reminder_count integer not null default 0;
+alter table client_tramites add column if not exists last_notified_stage text;
+
+-- Los recordatorios empiezan de cero al activar los avisos, y al cambiar de etapa se espera una semana
+-- (el cliente acaba de recibir el aviso de la etapa nueva).
+create or replace function client_tramite_reset_reminders()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.notify_client and not old.notify_client then
+    new.reminder_count := 0;
+    new.last_reminder_at := null;
+  elsif new.stage is distinct from old.stage then
+    new.reminder_count := 0;
+    new.last_reminder_at := now();
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_client_tramite_reset_reminders on client_tramites;
+create trigger trg_client_tramite_reset_reminders
+before update on client_tramites
+for each row execute function client_tramite_reset_reminders();
+
+-- Cambio de etapa con avisos activados → portal-avisos (si no se puede encolar, el cambio de etapa se
+-- guarda igual: solo se pierde el aviso).
+create or replace function notify_client_stage()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not new.notify_client or new.stage is not distinct from old.stage then
+    return new;
+  end if;
+  begin
+    perform net.http_post(
+      url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/portal-avisos',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'publishable_key'),
+        'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'agenda_cron_secret')
+      ),
+      body := jsonb_build_object('kind', 'etapa', 'client_id', new.client_id)
+    );
+  exception when others then
+    raise warning 'notify_client_stage: no se pudo encolar el aviso del cliente %: %', new.client_id, sqlerrm;
+  end;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_client_tramite_notify on client_tramites;
+create trigger trg_client_tramite_notify
+after update of stage on client_tramites
+for each row execute function notify_client_stage();
+
+-- «Reclamos»: solo los usa la Edge Function (service_role); nadie más puede llamarlos.
+-- Aviso de etapa: true si esta llamada lo reclamó (esa etapa aún no se había avisado).
+create or replace function portal_claim_stage_notice(p_client_id uuid, p_stage text)
+returns boolean
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  changed integer;
+begin
+  update client_tramites
+  set last_notified_stage = p_stage
+  where client_id = p_client_id and notify_client and stage = p_stage and last_notified_stage is distinct from p_stage;
+  get diagnostics changed = row_count;
+  return changed > 0;
+end;
+$$;
+
+-- Recordatorio: { claimed, prev_at, prev_count }. No se reclama con avisos apagados, con el máximo ya
+-- mandado ni antes de que pasen p_min_days desde el último. prev_* sirven para liberarlo si falla el envío.
+create or replace function portal_claim_reminder(p_client_id uuid, p_min_days integer default 7, p_max integer default 3)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  prev record;
+begin
+  select last_reminder_at, reminder_count into prev
+  from client_tramites
+  where client_id = p_client_id and notify_client
+  for update;
+  if not found
+     or prev.reminder_count >= p_max
+     or (prev.last_reminder_at is not null and prev.last_reminder_at > now() - make_interval(days => p_min_days)) then
+    return jsonb_build_object('claimed', false);
+  end if;
+  update client_tramites set last_reminder_at = now(), reminder_count = reminder_count + 1 where client_id = p_client_id;
+  return jsonb_build_object('claimed', true, 'prev_at', prev.last_reminder_at, 'prev_count', prev.reminder_count);
+end;
+$$;
+
+create or replace function portal_release_reminder(p_client_id uuid, p_prev_at timestamptz, p_prev_count integer)
+returns void
+language sql
+volatile
+security definer
+set search_path = public
+as $$
+  update client_tramites set last_reminder_at = p_prev_at, reminder_count = coalesce(p_prev_count, 0) where client_id = p_client_id;
+$$;
+
+revoke all on function portal_claim_stage_notice(uuid, text) from public, anon, authenticated;
+revoke all on function portal_claim_reminder(uuid, integer, integer) from public, anon, authenticated;
+revoke all on function portal_release_reminder(uuid, timestamptz, integer) from public, anon, authenticated;
+grant execute on function portal_claim_stage_notice(uuid, text) to service_role;
+grant execute on function portal_claim_reminder(uuid, integer, integer) to service_role;
+grant execute on function portal_release_reminder(uuid, timestamptz, integer) to service_role;
+
+-- Recordatorios: una vez al día a las 10:30 hora de México (16:30 UTC; México ya no cambia de horario).
+select cron.schedule(
+  'portal-recordatorios',
+  '30 16 * * *',
+  $$
+  select net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/portal-avisos',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'publishable_key'),
+      'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'agenda_cron_secret')
+    ),
+    body := jsonb_build_object('kind', 'recordatorios')
+  );
+  $$
+);

@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import Gallery, { Lightbox } from "../components/Gallery";
 import MortgageCalculator from "../components/MortgageCalculator";
+import DownloadFichaButton from "../components/DownloadFichaButton";
+import TravelTime from "../components/TravelTime";
 import ContactRequestCard from "../components/ContactRequestCard";
 import PropertyCard from "../components/PropertyCard";
 import PropertyTypeIcon from "../components/PropertyTypeIcon";
@@ -367,7 +369,7 @@ export default function PropertyDetail() {
                   <PropertyFlag property={property} />
                   <FavoriteButton propertyId={property.id} className="favorite-button--inline" />
                   <CompareButton propertyId={property.id} className="compare-button--inline" />
-                  <ShareButton title={seoTitle} text={shareText} url={`${window.location.origin}/propiedades/${property.id}`} />
+                  <ShareButton title={seoTitle} text={shareText} url={`${window.location.origin}/propiedades/${property.id}`} propertyId={property.id} />
                 </div>
                 <span className="property-detail__price">{formatMXN(property.price)}</span>
                 {priceDrop && (
@@ -411,6 +413,7 @@ export default function PropertyDetail() {
             <section>
               <h2>{t("detail.description")}</h2>
               <p>{property.description}</p>
+              <DownloadFichaButton property={property} />
             </section>
 
             {propertyAmenities.length > 0 && (
@@ -506,6 +509,7 @@ export default function PropertyDetail() {
                   </a>
                 </div>
               )}
+              <TravelTime property={property} />
             </section>
 
             <ZoneContext property={property} />

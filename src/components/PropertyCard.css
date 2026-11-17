@@ -138,3 +138,11 @@
   font-size: 0.85rem;
   color: var(--color-text-muted);
 }
+
+/* «Visítala hoy / mañana»: aviso de que hay horario libre pronto. */
+.property-card__visit {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-success);
+}

@@ -81,3 +81,37 @@ export function cleanSelectionInput({ propertyIds, title, note }) {
     note: String(note || "").trim().slice(0, NOTE_MAX) || null,
   };
 }
+
+// ── Reacciones del cliente en la página de la selección ──
+// property_selections.reactions = { "<property_id>": { r: "like" | "dislike" | null, c: "comentario" | null, at } }
+// (ver selection_react en schema.sql). El cliente marca «me gusta / no me gusta» y puede dejar un comentario.
+export const REACTION_COMMENT_MAX = 300;
+export const REACTIONS = ["like", "dislike"];
+
+// Lo que se manda: reacción válida o null, comentario recortado o null. `error` si el comentario no cabe.
+export function cleanReaction({ reaction, comment } = {}) {
+  const clean = String(comment ?? "").trim();
+  if (clean.length > REACTION_COMMENT_MAX) return { reaction: null, comment: null, error: "invalid_comment" };
+  if (reaction != null && !REACTIONS.includes(reaction)) return { reaction: null, comment: null, error: "invalid_reaction" };
+  return { reaction: reaction ?? null, comment: clean || null };
+}
+
+// Para alternar: tocar la reacción que ya está puesta la quita.
+export const nextReaction = (current, tapped) => (current === tapped ? null : tapped);
+
+export const reactionOf = (reactions, propertyId) => reactions?.[propertyId] || null;
+
+// Resumen para el asesor: cuántas gustaron, cuántas no y cuántos comentarios (solo de propiedades de la selección).
+export function reactionSummary(reactions, propertyIds = []) {
+  let like = 0;
+  let dislike = 0;
+  let comments = 0;
+  for (const id of propertyIds) {
+    const entry = reactions?.[id];
+    if (!entry) continue;
+    if (entry.r === "like") like += 1;
+    if (entry.r === "dislike") dislike += 1;
+    if (entry.c) comments += 1;
+  }
+  return { like, dislike, comments };
+}

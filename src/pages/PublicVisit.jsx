@@ -10,6 +10,7 @@ import { OFFICE_WHATSAPP } from "../lib/office";
 import { citaToIcs, downloadIcs, mapsUrl } from "../lib/calendarEvent";
 import { MAX_RESCHEDULES } from "../lib/visitSlots";
 import { useSlotSelection } from "../lib/useSlotSelection";
+import { rememberItem } from "../lib/mySpace";
 import { bookingToCalendarEvent, formatSlotDay, formatSlotTime } from "../lib/visitBookingUi";
 import "./PublicVisit.css";
 
@@ -198,6 +199,12 @@ export default function PublicVisit() {
   const label = property ? (property.code ? `${String(property.title).trim()} (${property.code})` : String(property.title).trim()) : String(data?.titulo || "").trim();
   const address = property?.address || data?.lugar || "";
   const when = data?.fecha ? `${formatSlotDay(data.fecha, locale)} · ${formatSlotTime(data.hora, locale)}` : "";
+
+  // «Mi espacio»: queda anotada esta visita en el dispositivo (ver lib/mySpace.js).
+  useEffect(() => {
+    if (state.status === "loading" || state.status === "invalido" || state.status === "error" || !label) return;
+    rememberItem({ kind: "visit", token, title: label, detail: when });
+  }, [state.status, token, label, when]);
 
   const confirmAttendance = async () => {
     setBusy(true);

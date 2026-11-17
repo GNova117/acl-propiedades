@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { rememberItem } from "../lib/mySpace";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Logo from "../components/Logo";
@@ -46,6 +47,11 @@ export default function PublicSign() {
       .then(setInfo)
       .catch(() => setInfo(null));
   }, [token]);
+
+  // «Mi espacio»: queda anotado este documento por firmar (solo su título; ver lib/mySpace.js).
+  useEffect(() => {
+    if (info?.title) rememberItem({ kind: "sign", token, title: info.title, detail: t(`mySpace.signStatus.${info.status}`, { defaultValue: "" }) });
+  }, [info?.title, info?.status, token, t]);
 
   const blobUrl = useMemo(() => (doc ? URL.createObjectURL(new Blob([base64ToBytes(doc.document_b64)], { type: "application/pdf" })) : ""), [doc]);
   useEffect(() => {

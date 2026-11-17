@@ -3,5 +3,7 @@ Allow: /
 Disallow: /admin
 Disallow: /informe/
 Disallow: /seleccion/
+Disallow: /favoritos
+Disallow: /mi-espacio
 
 Sitemap: https://acl-propiedades.vercel.app/sitemap.xml

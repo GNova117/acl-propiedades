@@ -17,7 +17,7 @@
 import { next } from "@vercel/functions";
 
 export const config = {
-  matcher: ["/", "/propiedades", "/propiedades/:id", "/terrenos", "/naves-industriales", "/nosotros", "/contacto", "/guia-del-comprador", "/seleccion/:token"],
+  matcher: ["/", "/propiedades", "/propiedades/:id", "/terrenos", "/naves-industriales", "/nosotros", "/contacto", "/guia-del-comprador", "/seleccion/:token", "/favoritos"],
 };
 
 const SITE_URL = "https://acl-propiedades.vercel.app";
@@ -76,6 +76,12 @@ function escapeHtml(value) {
 
 // Selección de propiedades que un asesor manda por WhatsApp (/seleccion/<token>): la vista previa es genérica a propósito
 // (no revela cuántas propiedades ni para quién) y no se indexa: el enlace es privado.
+// Lista de favoritos compartida (/favoritos?lista=…): vista previa genérica y sin indexar (es una lista personal).
+const FAVORITES_PAGE = {
+  title: "Lista de propiedades | ACL Propiedades",
+  description: "Te compartieron una lista de propiedades. Entra para ver fotos y precios, y guárdala en tus favoritos.",
+};
+
 const SELECTION_PAGE = {
   title: "Selección de propiedades | ACL Propiedades",
   description: "Tu asesor preparó una selección de propiedades para ti. Entra para ver fotos, precios y coordinar tu visita.",
@@ -148,6 +154,11 @@ export default async function middleware(request) {
 
     if (/^\/seleccion\/[0-9a-f]{32}\/?$/.test(pathname)) {
       const html = renderPreviewHtml({ ...SELECTION_PAGE, url: `${SITE_URL}${pathname}`, image: DEFAULT_IMAGE, noindex: true });
+      return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
+    }
+
+    if (pathname.replace(/\/$/, "") === "/favoritos") {
+      const html = renderPreviewHtml({ ...FAVORITES_PAGE, url: `${SITE_URL}/favoritos`, image: DEFAULT_IMAGE, noindex: true });
       return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
     }
 

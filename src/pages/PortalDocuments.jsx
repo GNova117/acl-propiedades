@@ -10,6 +10,7 @@ import PortalChecklist from "../components/portal/PortalChecklist";
 import PortalTramiteStatus from "../components/portal/PortalTramiteStatus";
 import { db } from "../lib/dataStore";
 import { OFFICE_WHATSAPP } from "../lib/office";
+import { rememberItem } from "../lib/mySpace";
 import { PORTAL_OFFICIAL_LINKS, PORTAL_CONSENT_VERSION, checklistSummary, clientTodo, latestPortalDoc, portalChecklist, requestedDocsFor } from "../lib/clientPortal";
 import "./PortalDocuments.css";
 
@@ -78,6 +79,18 @@ export default function PortalDocuments() {
   const todo = clientTodo(checklist);
   const orderedItems = [...todo, ...checklist.filter((i) => !todo.includes(i))];
   const allSent = summary.total > 0 && summary.todo === 0;
+
+  // «Mi espacio»: queda anotado este portal en el dispositivo. Título genérico: nunca el nombre del cliente.
+  const portalActive = state.status === "activo";
+  useEffect(() => {
+    if (!portalActive) return;
+    rememberItem({
+      kind: "portal",
+      token,
+      title: t("mySpace.defaultTitle.portal"),
+      detail: summary.total > 0 ? t("mySpace.portalDetail", { todo: summary.todo, total: summary.total }) : "",
+    });
+  }, [portalActive, token, summary.todo, summary.total, t]);
   const notifyText = t("portal.summary.whatsappText", {
     docs: checklist.map((i) => t(`documentCapture.docTypes.${i.docType}`)).join(", "),
   });

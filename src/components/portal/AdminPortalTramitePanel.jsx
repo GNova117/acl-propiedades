@@ -23,6 +23,9 @@ export default function AdminPortalTramitePanel({ client, documents, onSaved }) 
   const [stage, setStage] = useState("");
   const [note, setNote] = useState("");
   const [requested, setRequested] = useState([]);
+  // «Avisar por correo»: arranca con lo guardado y solo se manda si el asesor lo toca (ver saveClientTramite).
+  const [notify, setNotify] = useState(false);
+  const [notifyTouched, setNotifyTouched] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -38,6 +41,7 @@ export default function AdminPortalTramitePanel({ client, documents, onSaved }) 
         setStage(row?.stage && stages.includes(row.stage) ? row.stage : stages[0]);
         setNote(row?.note || "");
         setRequested(requestedDocsFor(row, client.type));
+        setNotify(Boolean(row?.notify_client));
       })
       .catch(() => {
         if (cancelled) return;
@@ -73,7 +77,8 @@ export default function AdminPortalTramitePanel({ client, documents, onSaved }) 
     }
     setSaving(true);
     try {
-      const saved = await db.saveClientTramite(client.id, { stage, note, requestedDocs: requested });
+      const saved = await db.saveClientTramite(client.id, { stage, note, requestedDocs: requested, ...(notifyTouched ? { notifyClient: notify } : {}) });
+      setNotifyTouched(false);
       setTramite(saved);
       setMessage(t("adminPortal.tramite.saved"));
       onSaved?.(saved);
@@ -131,6 +136,26 @@ export default function AdminPortalTramitePanel({ client, documents, onSaved }) 
           );
         })}
       </fieldset>
+
+      {/* Si la base ya trae la columna (la fila existe y la incluye) o aún no hay fila, se ofrece el aviso. */}
+      {(!tramite || "notify_client" in tramite) && (
+        <div className="form-field admin-portal-tramite__notify">
+          <label className="admin-portal-tramite__doc">
+            <input
+              type="checkbox"
+              checked={notify}
+              onChange={(e) => {
+                setNotify(e.target.checked);
+                setNotifyTouched(true);
+                setMessage("");
+              }}
+            />
+            <span>{t("portalAvisos.label")}</span>
+          </label>
+          <p className="form-hint">{t("portalAvisos.hint")}</p>
+          {notify && !client.email?.trim() && <p className="form-error" role="alert">{t("portalAvisos.noEmail")}</p>}
+        </div>
+      )}
 
       {error && <p className="form-error">{error}</p>}
       <div className="admin-portal-tramite__actions">

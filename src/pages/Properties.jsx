@@ -11,6 +11,7 @@ import { filtersToCriteria } from "../lib/alertMatch";
 import { buildActiveFilterChips } from "../lib/activeFilters";
 import { boundsFromParam, boundsToParam } from "../lib/propertySearch";
 import { propertyTypeLabel } from "../lib/format";
+import { indexNextSlots } from "../lib/nextVisit";
 import { useMediaQuery } from "../lib/useMediaQuery";
 import { propertyMatchesCity } from "../lib/zoneLandingPages";
 import { db } from "../lib/dataStore";
@@ -343,6 +344,21 @@ export default function Properties({
   );
   const lastPage = Math.max(0, Math.ceil(total / PAGE_SIZE) - 1);
 
+  // «Visítala mañana»: el primer horario libre de las tarjetas que se ven (una sola consulta por página).
+  // Si la base aún no tiene la función, simplemente no salen etiquetas.
+  const [nextSlots, setNextSlots] = useState({});
+  const visibleIdsKey = properties.map((p) => p.id).join(",");
+  useEffect(() => {
+    if (!visibleIdsKey) return undefined;
+    let active = true;
+    db.getNextVisitSlots(visibleIdsKey.split(","))
+      .then((list) => active && setNextSlots(indexNextSlots(list)))
+      .catch(() => active && setNextSlots({}));
+    return () => {
+      active = false;
+    };
+  }, [visibleIdsKey]);
+
   // Una dirección con una página que ya no existe (menos resultados que antes) cae en la última.
   useEffect(() => {
     if (!loading && total > 0 && page > lastPage) setPage(lastPage);
@@ -542,7 +558,7 @@ export default function Properties({
                   <div className="properties-grid">
                     {properties.map((property, index) => (
                       <Reveal key={property.id} delay={(index % 6) * 70}>
-                        <PropertyCard property={property} />
+                        <PropertyCard property={property} nextVisitSlot={nextSlots[property.id]} />
                       </Reveal>
                     ))}
                   </div>

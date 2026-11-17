@@ -171,7 +171,7 @@ export function toBase64(text) {
 
 const BRAND = "#1565c0";
 
-function renderHtml({ preheader, heading, greeting, lines, details, buttons, footnote }) {
+export function renderHtml({ preheader, heading, greeting, lines, details, buttons, footnote }) {
   const detailRows = details
     .map(([label, value]) => `<tr><td style="padding:6px 12px 6px 0;color:#5a6472;font-size:14px;white-space:nowrap;vertical-align:top">${esc(label)}</td><td style="padding:6px 0;color:#12161c;font-size:15px;font-weight:600">${value}</td></tr>`)
     .join("");
@@ -198,7 +198,7 @@ ${lines.map((l) => `<p style="margin:0 0 14px;font-size:15px;color:#12161c;line-
 </table></td></tr></table></body></html>`;
 }
 
-const stripLines = (lines) => lines.map((l) => l.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&"));
+export const stripLines = (lines) => lines.map((l) => l.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&"));
 
 /**
  * Arma el correo de un tipo: "solicitud" (pidió una visita sin asesor), "confirmacion",

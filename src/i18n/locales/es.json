@@ -12,7 +12,8 @@
     "land": "Terrenos",
     "about": "Nosotros",
     "contact": "Contacto",
-    "admin": "Panel Admin"
+    "admin": "Panel Admin",
+    "mySpace": "Mi espacio"
   },
   "hero": {
     "title": "Encuentra tu próxima propiedad en La Comarca Lagunera",
@@ -4023,5 +4024,111 @@
     "invalidType": "Sube una imagen PNG o JPG.",
     "tooBig": "El plano pesa demasiado (máximo {{mb}} MB).",
     "saveFailed": "La propiedad se guardó, pero el plano no: {{message}}"
+  },
+  "downloadFicha": {
+    "button": "Descargar ficha en PDF",
+    "error": "No se pudo generar el PDF. Intenta de nuevo."
+  },
+  "favoritesShare": {
+    "sharedTitle": "Lista compartida",
+    "sharedSubtitle": "Alguien te compartió estas propiedades.",
+    "sharedBanner_one": "Te compartieron {{count}} propiedad.",
+    "sharedBanner_other": "Te compartieron {{count}} propiedades.",
+    "saveAll": "Guardar en mis favoritos",
+    "saved": "Listo: ya están en tus favoritos.",
+    "viewMine": "Ver mi lista",
+    "sharedEmpty": "Esta lista ya no tiene propiedades disponibles.",
+    "shareText": "Mi lista de propiedades en ACL Propiedades:",
+    "shareHint": "Con el enlace se abre esta lista en cualquier dispositivo y se puede guardar."
+  },
+  "travelTime": {
+    "title": "¿A cuánto queda de tu trabajo o escuela?",
+    "prompt": "Escribe una dirección y te decimos cuánto tardas en auto hasta esta propiedad.",
+    "placeholder": "Ej. Blvd. Independencia 1200, Torreón",
+    "calculate": "Calcular",
+    "calculating": "Calculando…",
+    "from": "Desde: {{place}}",
+    "change": "Cambiar",
+    "minutes": "{{minutes}} min",
+    "hoursMinutes": "{{hours}} h {{minutes}} min",
+    "approx": "≈ {{duration}}",
+    "byCar": "en auto · {{km}} km",
+    "estimateNote": "Estimación a partir de la distancia: no pudimos consultar la ruta. El tiempo real depende del tráfico.",
+    "notFound": "No encontramos esa dirección. Prueba con la calle y la colonia.",
+    "error": "No se pudo calcular ahora. Intenta de nuevo en un momento.",
+    "privacy": "Al calcular, la dirección se envía a OpenStreetMap y a un servicio de rutas; no la guardamos en nuestros servidores. Se recuerda solo en este dispositivo."
+  },
+  "mySpace": {
+    "title": "Mi espacio",
+    "subtitle": "Tus visitas, documentos y listas en un solo lugar.",
+    "favorites": "Mis favoritos",
+    "favoritesCount_one": "Tienes {{count}} propiedad guardada.",
+    "favoritesCount_other": "Tienes {{count}} propiedades guardadas.",
+    "openFavorites": "Ver mis favoritos",
+    "kinds": {
+      "visit": "Mis visitas",
+      "portal": "Mis documentos",
+      "sign": "Documentos por firmar",
+      "selection": "Listas de mi asesor"
+    },
+    "defaultTitle": {
+      "visit": "Visita agendada",
+      "portal": "Documentos de mi trámite",
+      "sign": "Documento por firmar",
+      "selection": "Propiedades para ti"
+    },
+    "openedOn": "Abierto el {{date}}",
+    "forget": "Quitar",
+    "forgetOne": "Quitar «{{title}}» de Mi espacio",
+    "forgetAll": "Quitar todo",
+    "forgetAllConfirm": "¿Quitar todos los enlaces de Mi espacio en este dispositivo? Los enlaces siguen funcionando si los vuelves a abrir.",
+    "empty": "Todavía no hay nada aquí. Cuando abras el enlace de una visita, de tus documentos o de una lista que te mande tu asesor, aparecerá en este espacio.",
+    "privacy": "Esta lista vive solo en este dispositivo: no tiene cuenta ni se envía a ningún servidor. Guardamos únicamente el enlace y un título corto, nunca tu nombre ni lo que escribes.",
+    "portalDetail": "{{todo}} pendientes de {{total}}",
+    "selectionDetail_one": "{{count}} propiedad",
+    "selectionDetail_other": "{{count}} propiedades",
+    "signStatus": {
+      "pendiente": "Pendiente de firma",
+      "firmado": "Firmado",
+      "expirado": "Expirado",
+      "bloqueado": "Bloqueado"
+    }
+  },
+  "nextVisit": {
+    "today": "Visítala hoy",
+    "tomorrow": "Visítala mañana",
+    "weekday": "Visítala el {{day}}"
+  },
+  "selectionReactions": {
+    "like": "Me gusta",
+    "dislike": "No es para mí",
+    "addComment": "Agregar comentario",
+    "editComment": "Editar comentario",
+    "groupLabel": "Tu opinión sobre {{title}}",
+    "commentLabel": "Comentario sobre {{title}}",
+    "commentPlaceholder": "Cuéntale a tu asesor qué te pareció…",
+    "saveComment": "Guardar comentario",
+    "saved": "Listo, tu asesor lo verá.",
+    "errors": {
+      "generic": "No se pudo guardar. Intenta de nuevo.",
+      "unavailable": "Este enlace ya no está disponible.",
+      "invalid_property": "Esa propiedad no está en tu lista.",
+      "invalid_reaction": "No se pudo guardar tu opinión.",
+      "invalid_comment": "El comentario es demasiado largo (máximo 300 caracteres)."
+    },
+    "summary": "👍 {{like}} · 👎 {{dislike}} · 💬 {{comments}} — ver respuestas"
+  },
+  "onlineInterest": {
+    "title": "Interés en línea",
+    "note": "Personas que vieron la propiedad en el sitio. Las visitas en persona están arriba.",
+    "visitors": "Personas que vieron la ficha",
+    "week": "En los últimos 7 días",
+    "favorites": "La guardaron en favoritos",
+    "shares": "Veces compartida"
+  },
+  "portalAvisos": {
+    "label": "Avisar por correo al cliente",
+    "hint": "Le llega un correo cuando cambias la etapa de su trámite y, mientras le falte algún documento, un recordatorio cada 7 días (máximo 3 por etapa). Solo si tiene correo y un enlace de portal vigente.",
+    "noEmail": "Este cliente no tiene correo: no se le podrá avisar. Agrégalo en su ficha."
   }
 }
