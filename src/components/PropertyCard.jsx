@@ -1,11 +1,13 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import PropertyTypeIcon from "./PropertyTypeIcon";
 import FavoriteButton from "./FavoriteButton";
 import CompareButton from "./CompareButton";
 import ShareButton from "./ShareButton";
 import PropertyFlag from "./PropertyFlag";
+import PropertyImageCarousel from "./PropertyImageCarousel";
+import { cardImages } from "../lib/cardImages";
 import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
 import { getPropertyBadge } from "../lib/propertyBadges";
 import { estimateMonthlyPayment } from "../lib/monthlyEstimate";
@@ -13,6 +15,9 @@ import "./PropertyCard.css";
 
 export default function PropertyCard({ property }) {
   const { t } = useTranslation();
+  const location = useLocation();
+  // De dónde viene la persona: la ficha lo usa para que «Volver» regrese a este listado con sus filtros.
+  const linkState = { from: location.pathname + location.search };
   const advisor = property.advisors?.[0];
   const badge = getPropertyBadge(property);
   const monthly = estimateMonthlyPayment(property);
@@ -29,8 +34,8 @@ export default function PropertyCard({ property }) {
 
   return (
     <article className="property-card card">
-      <Link to={`/propiedades/${property.id}`} className="property-card__image-link">
-        {property.main_image && <img src={property.main_image} alt={property.title} loading="lazy" decoding="async" />}
+      <Link to={`/propiedades/${property.id}`} state={linkState} className="property-card__image-link">
+        <PropertyImageCarousel images={cardImages(property)} alt={property.title} />
         <span className={`badge badge-${property.status === "disponible" ? "available" : property.status === "apartada" ? "reserved" : "sold"} property-card__badge`}>
           {t(`propertyStatus.${property.status}`)}
         </span>
@@ -45,7 +50,7 @@ export default function PropertyCard({ property }) {
           <span className="property-card__zone">· {property.zone}</span>
         </div>
         <h3 className="property-card__title">
-          <Link to={`/propiedades/${property.id}`}>{property.title}</Link>
+          <Link to={`/propiedades/${property.id}`} state={linkState}>{property.title}</Link>
         </h3>
         <p className="property-card__price">
           {badge?.kind === "priceDrop" && <s className="property-price-was">{formatMXN(badge.previousPrice)}</s>}
@@ -75,7 +80,7 @@ export default function PropertyCard({ property }) {
           )}
           <div className="property-card__footer-actions">
             <ShareButton title={property.title} text={shareText} url={shareUrl} openUpward />
-            <Link to={`/propiedades/${property.id}`} className="btn btn-outline btn-sm">
+            <Link to={`/propiedades/${property.id}`} state={linkState} className="btn btn-outline btn-sm">
               {t("properties.viewDetail")}
             </Link>
           </div>

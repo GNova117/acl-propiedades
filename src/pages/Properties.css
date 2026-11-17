@@ -99,3 +99,109 @@
   grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 380px));
   gap: 1.25rem;
 }
+
+/* Búsqueda de texto, chips de filtros activos y vista dividida */
+.properties-page__results {
+  /* Al cambiar de página el navegador sube hasta aquí, sin quedar tapado por el encabezado fijo. */
+  scroll-margin-top: 90px;
+  min-width: 0;
+}
+
+/* Mientras llegan resultados nuevos se siguen viendo los anteriores, atenuados. */
+.properties-page__results.is-loading .properties-grid {
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.properties-page__search {
+  margin-bottom: 0.9rem;
+}
+
+.properties-page__search input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.properties-page__search input:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.properties-page__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 0.9rem;
+  padding: 0;
+  list-style: none;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 100%;
+  padding: 0.3rem 0.4rem 0.3rem 0.75rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.filter-chip span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter-chip span[aria-hidden="true"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  font-size: 1rem;
+  line-height: 1;
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+.filter-chip:hover {
+  background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface));
+}
+
+.filter-chip--clear {
+  padding-right: 0.75rem;
+  border-color: var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+/* Lista y mapa a la vez (solo pantallas anchas: el botón ni existe debajo de 981 px). */
+.properties-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.properties-split .properties-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.properties-split__map {
+  position: sticky;
+  top: 90px;
+  height: calc(100vh - 120px);
+  min-height: 420px;
+}

@@ -16,6 +16,7 @@ import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } fro
 import { CITA_STATUSES } from "./agendaCitas";
 import { findOpenProspect, mergeBookingIntoProspect, prospectFieldsFromBooking, syncProspectFollowup } from "./visitProspect";
 import { SELECTION_VALID_DAYS, cleanSelectionInput } from "./selections";
+import { matchesBounds, matchesSearch } from "./propertySearch";
 import {
   BOOKING_TOKEN_PATTERN,
   DEFAULT_VISIT_SETTINGS,
@@ -221,6 +222,8 @@ function matchesFilters(property, filters = {}) {
   if (filters.minBathrooms != null && (property.bathrooms ?? -Infinity) < filters.minBathrooms) return false;
   if (filters.minParking != null && (property.parking ?? -Infinity) < filters.minParking) return false;
   if (filters.amenities?.length && !filters.amenities.every((a) => (property.amenities || []).includes(a))) return false;
+  if (filters.q && !matchesSearch(property, filters.q)) return false;
+  if (filters.bounds && !matchesBounds(property, filters.bounds)) return false;
   return true;
 }
 
@@ -473,6 +476,17 @@ export const localBackend = {
       .filter((c) => c.property_id === propertyId)
       .slice()
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  },
+
+  // Espejo de setPropertyFloorPlan de Supabase: el plano queda como data: URL.
+  async setPropertyFloorPlan(id, file) {
+    const properties = readStore(KEYS.properties, PROPERTIES);
+    const idx = properties.findIndex((p) => p.id === id);
+    if (idx === -1) throw new Error("Propiedad no encontrada");
+    const [url] = file ? await filesToDataUrls([file]) : [null];
+    properties[idx] = { ...properties[idx], floor_plan_url: url, updated_at: new Date().toISOString() };
+    writeStore(KEYS.properties, properties);
+    return properties[idx];
   },
 
   async deleteProperty(id) {

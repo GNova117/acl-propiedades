@@ -224,7 +224,14 @@
     "codeNotFound": "No se encontró ninguna propiedad con ese código.",
     "showFilters": "Filtros",
     "hideFilters": "Ocultar filtros",
-    "viewResults": "Ver resultados"
+    "viewResults": "Ver resultados",
+    "priceRange": "Precio",
+    "noLimit": "Sin límite",
+    "searchLabel": "Buscar propiedades",
+    "searchPlaceholder": "Busca por colonia, calle o palabra: alberca, Senderos…",
+    "searchThisArea": "Buscar en esta zona",
+    "splitView": "Dividida",
+    "splitViewTitle": "Lista y mapa a la vez"
   },
   "detail": {
     "compareCredits": {
@@ -3168,7 +3175,9 @@
     "counter": "{{current}} / {{total}}",
     "prev": "Foto anterior",
     "next": "Foto siguiente",
-    "zoomHint": "Clic en la foto para acercar · flechas o desliza para cambiar · Esc para cerrar"
+    "zoomHint": "Clic o doble toque para acercar (pellizca en el celular) · flechas o desliza para cambiar · Esc para cerrar",
+    "viewImage": "Ver imagen {{number}}",
+    "imageAlt": "{{alt}} - imagen {{number}}"
   },
   "panorama360": {
     "title": "Recorrido 360°",
@@ -3959,5 +3968,60 @@
     "navidad": {
       "greeting": "¡Feliz Navidad y próspero Año Nuevo! Les desea ACL Propiedades."
     }
+  },
+  "priceRanges": {
+    "upTo": "Hasta {{max}}",
+    "from": "Más de {{min}}",
+    "between": "{{min}} – {{max}}"
+  },
+  "activeFilters": {
+    "label": "Filtros activos",
+    "remove": "Quitar filtro: {{filter}}",
+    "clearAll": "Limpiar todo",
+    "search": "«{{text}}»",
+    "priceBetween": "{{min}} – {{max}}",
+    "priceFrom": "Desde {{min}}",
+    "priceUpTo": "Hasta {{max}}",
+    "areaBetween": "{{min}}–{{max}} m²",
+    "areaFrom": "Desde {{min}} m²",
+    "areaUpTo": "Hasta {{max}} m²",
+    "bedrooms": "{{count}}+ recámaras",
+    "bathrooms": "{{count}}+ baños",
+    "parking": "{{count}}+ estacionamientos",
+    "mapArea": "Zona del mapa"
+  },
+  "mortgageCalc": {
+    "title": "Calcula tu mensualidad",
+    "reset": "Valores de referencia",
+    "adjust": "Personalizar",
+    "down": "Enganche",
+    "years": "Plazo",
+    "yearsValue": "{{count}} años",
+    "rate": "Tasa anual",
+    "monthly": "Mensualidad estimada",
+    "loan": "Monto del crédito",
+    "interest": "Intereses totales",
+    "totalPaid": "Total a pagar",
+    "note": "Cálculo de referencia con cuota fija. Cada banco ofrece condiciones distintas: no es una oferta ni una aprobación de crédito, y no incluye seguros, comisiones ni gastos de escrituración."
+  },
+  "mapLinks": {
+    "directions": "Cómo llegar",
+    "streetView": "Ver en Street View",
+    "waze": "Abrir en Waze"
+  },
+  "floorPlan": {
+    "title": "Plano",
+    "open": "Ampliar el plano",
+    "alt": "Plano de {{title}}",
+    "note": "Plano de referencia: las medidas son aproximadas y pueden variar.",
+    "adminLabel": "Plano de la propiedad",
+    "adminHint": "Opcional. Imagen PNG o JPG del plano; se ve en la ficha pública. También se puede publicar desde Construcción («Publicar en la ficha»).",
+    "upload": "Subir plano",
+    "replace": "Cambiar plano",
+    "remove": "Quitar plano",
+    "previewAlt": "Vista previa del plano",
+    "invalidType": "Sube una imagen PNG o JPG.",
+    "tooBig": "El plano pesa demasiado (máximo {{mb}} MB).",
+    "saveFailed": "La propiedad se guardó, pero el plano no: {{message}}"
   }
 }

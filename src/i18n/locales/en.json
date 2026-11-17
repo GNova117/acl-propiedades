@@ -224,7 +224,14 @@
     "codeNotFound": "No property was found with that code.",
     "showFilters": "Filters",
     "hideFilters": "Hide filters",
-    "viewResults": "View results"
+    "viewResults": "View results",
+    "priceRange": "Price",
+    "noLimit": "No limit",
+    "searchLabel": "Search properties",
+    "searchPlaceholder": "Search by neighborhood, street or keyword: pool, Senderos…",
+    "searchThisArea": "Search this area",
+    "splitView": "Split",
+    "splitViewTitle": "List and map side by side"
   },
   "detail": {
     "compareCredits": {
@@ -3168,7 +3175,9 @@
     "counter": "{{current}} / {{total}}",
     "prev": "Previous photo",
     "next": "Next photo",
-    "zoomHint": "Click the photo to zoom · arrows or swipe to change · Esc to close"
+    "zoomHint": "Click or double-tap to zoom (pinch on a phone) · arrows or swipe to change · Esc to close",
+    "viewImage": "View image {{number}}",
+    "imageAlt": "{{alt}} - image {{number}}"
   },
   "panorama360": {
     "title": "360° tour",
@@ -3959,5 +3968,60 @@
     "navidad": {
       "greeting": "Merry Christmas and a Happy New Year from ACL Propiedades!"
     }
+  },
+  "priceRanges": {
+    "upTo": "Up to {{max}}",
+    "from": "Over {{min}}",
+    "between": "{{min}} – {{max}}"
+  },
+  "activeFilters": {
+    "label": "Active filters",
+    "remove": "Remove filter: {{filter}}",
+    "clearAll": "Clear all",
+    "search": "“{{text}}”",
+    "priceBetween": "{{min}} – {{max}}",
+    "priceFrom": "From {{min}}",
+    "priceUpTo": "Up to {{max}}",
+    "areaBetween": "{{min}}–{{max}} m²",
+    "areaFrom": "From {{min}} m²",
+    "areaUpTo": "Up to {{max}} m²",
+    "bedrooms": "{{count}}+ bedrooms",
+    "bathrooms": "{{count}}+ bathrooms",
+    "parking": "{{count}}+ parking spots",
+    "mapArea": "Map area"
+  },
+  "mortgageCalc": {
+    "title": "Calculate your monthly payment",
+    "reset": "Reference values",
+    "adjust": "Adjust",
+    "down": "Down payment",
+    "years": "Term",
+    "yearsValue": "{{count}} years",
+    "rate": "Annual rate",
+    "monthly": "Estimated monthly payment",
+    "loan": "Loan amount",
+    "interest": "Total interest",
+    "totalPaid": "Total paid",
+    "note": "Reference calculation with a fixed payment. Each bank offers different terms: this is not an offer or a credit approval, and it does not include insurance, fees or closing costs."
+  },
+  "mapLinks": {
+    "directions": "Get directions",
+    "streetView": "View on Street View",
+    "waze": "Open in Waze"
+  },
+  "floorPlan": {
+    "title": "Floor plan",
+    "open": "Enlarge the floor plan",
+    "alt": "Floor plan of {{title}}",
+    "note": "Reference plan: measurements are approximate and may vary.",
+    "adminLabel": "Floor plan",
+    "adminHint": "Optional. PNG or JPG image of the floor plan, shown on the public listing. It can also be published from Construction (“Publish to listing”).",
+    "upload": "Upload plan",
+    "replace": "Replace plan",
+    "remove": "Remove plan",
+    "previewAlt": "Floor plan preview",
+    "invalidType": "Upload a PNG or JPG image.",
+    "tooBig": "The plan is too large (max {{mb}} MB).",
+    "saveFailed": "The property was saved, but the floor plan was not: {{message}}"
   }
 }

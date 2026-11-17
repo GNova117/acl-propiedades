@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigationType, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import PropertyFilters from "../components/PropertyFilters";
@@ -8,6 +8,10 @@ import Reveal from "../components/Reveal";
 import AlertSignupCard from "../components/AlertSignupCard";
 import DevelopmentCard from "../components/DevelopmentCard";
 import { filtersToCriteria } from "../lib/alertMatch";
+import { buildActiveFilterChips } from "../lib/activeFilters";
+import { boundsFromParam, boundsToParam } from "../lib/propertySearch";
+import { propertyTypeLabel } from "../lib/format";
+import { useMediaQuery } from "../lib/useMediaQuery";
 import { propertyMatchesCity } from "../lib/zoneLandingPages";
 import { db } from "../lib/dataStore";
 import "./Properties.css";
@@ -19,6 +23,8 @@ import "./Properties.css";
 const PropertyMap = lazy(() => import("../components/PropertyMap"));
 
 const EMPTY_FILTERS = {
+  q: "",
+  bounds: null,
   type: "",
   operationType: "",
   tipoNave: "",
@@ -40,6 +46,45 @@ const SORT_OPTIONS = ["newest", "price_asc", "price_desc", "area_desc"];
 // de mapa necesita todas las propiedades que cumplen el filtro para poner
 // cada pin, así que esa sigue pidiendo el set completo.
 const PAGE_SIZE = 24;
+
+// Vistas del listado y cómo se escriben en la dirección (?vista=mapa|dividida).
+// «dividida» = lista y mapa a la vez; solo en pantallas anchas.
+const VIEW_PARAMS = { map: "mapa", split: "dividida" };
+const viewFromParam = (value) => (value === "mapa" ? "map" : value === "dividida" ? "split" : "list");
+const SPLIT_MEDIA = "(min-width: 981px)";
+const SEARCH_DEBOUNCE_MS = 350;
+
+// Referencia estable para "sin resultados todavía" (el mapa se reajusta si el arreglo cambia).
+const EMPTY_LIST = [];
+
+// Al abrir una ficha se anota hasta dónde iba el listado; al volver con «Atrás»
+// se regresa justo ahí (el navegador no puede: el listado se vuelve a cargar).
+const SCROLL_KEY = "acl_list_scroll";
+const currentUrl = () => window.location.pathname + window.location.search;
+
+// Se usa una sola vez: al entrar al listado por cualquier otro camino que «Atrás» la
+// posición anotada se descarta, y tras restaurarla también (ver el efecto de abajo).
+function readSavedScroll(navigationType) {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(SCROLL_KEY) || "null");
+    if (navigationType !== "POP") {
+      sessionStorage.removeItem(SCROLL_KEY);
+      return null;
+    }
+    return saved && saved.path === currentUrl() && Number.isFinite(saved.y) ? saved.y : null;
+  } catch {
+    return null;
+  }
+}
+
+function rememberScroll(event) {
+  if (!event.target.closest?.('a[href^="/propiedades/"], a[href^="/desarrollos/"]')) return;
+  try {
+    sessionStorage.setItem(SCROLL_KEY, JSON.stringify({ path: currentUrl(), y: window.scrollY }));
+  } catch {
+    /* sin almacenamiento: solo no se recuerda la posición */
+  }
+}
 
 // Número de oficina — mismo que usa Contact.jsx/Footer.jsx/
 // ChatWidget.jsx (cada uno lo tiene por separado, no hay una
@@ -101,7 +146,13 @@ export default function Properties({
 }) {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigationType = useNavigationType();
+  const restoreScrollY = useRef(undefined);
+  if (restoreScrollY.current === undefined) restoreScrollY.current = readSavedScroll(navigationType);
+  const resultsTopRef = useRef(null);
   const [filters, setFilters] = useState({
+    q: searchParams.get("q") || "",
+    bounds: boundsFromParam(searchParams.get("area")),
     type: searchParams.get("tipo") || "",
     operationType: searchParams.get("operacion") || "",
     tipoNave: searchParams.get("navetipo") || "",
@@ -116,15 +167,25 @@ export default function Properties({
     amenities: searchParams.get("amenidades")?.split(",").filter(Boolean) || [],
     sortBy: searchParams.get("orden") || "newest",
   });
-  const [properties, setProperties] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(0);
+  // Lo que devuelve el servidor cuando la lista pagina allá (vista de lista) y
+  // el conjunto completo cuando hace falta (mapa, vista dividida, filtro por ciudad).
+  const [pageData, setPageData] = useState({ data: EMPTY_LIST, total: 0 });
+  const [allMatches, setAllMatches] = useState(null);
+  const [page, setPage] = useState(() => Math.max(0, (Number.parseInt(searchParams.get("pagina"), 10) || 1) - 1));
   const [zones, setZones] = useState([]);
   const [propertyTypes, setPropertyTypes] = useState([]);
+  const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
   const [typesLoaded, setTypesLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState("list");
+  const [view, setView] = useState(() => viewFromParam(searchParams.get("vista")));
   const [developments, setDevelopments] = useState([]);
+  const [searchText, setSearchText] = useState(() => searchParams.get("q") || "");
+  const wide = useMediaQuery(SPLIT_MEDIA);
+  // La vista dividida no cabe en pantallas angostas: ahí se ve la lista.
+  const effectiveView = view === "split" && !wide ? "list" : view;
+  const needsFullSet = effectiveView !== "list" || Boolean(cityFilter);
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
 
   // Cualquier cambio de filtro o de orden deja resultados viejos de otra
   // búsqueda en la página 2+; se regresa a la primera página para no
@@ -135,11 +196,15 @@ export default function Properties({
     setFilters(updater);
   };
 
+  // «Buscar en esta zona» del mapa: el listado se queda con lo que hay a la vista.
+  const searchThisArea = (bounds) => goToFilters((prev) => ({ ...prev, bounds }));
+
   useEffect(() => {
     // Torres publicadas: salen como una tarjeta cada una arriba del listado
     // general, no como un departamento por tarjeta (ver DevelopmentCard).
     db.getDevelopments({ publishedOnly: true }).then(setDevelopments).catch(() => setDevelopments([]));
     db.getZones().then(setZones).catch(() => setZones([]));
+    db.getAmenities().then(setAmenitiesCatalog).catch(() => setAmenitiesCatalog([]));
     db.getPropertyTypes()
       .then(setPropertyTypes)
       .catch(() => setPropertyTypes([]))
@@ -153,6 +218,7 @@ export default function Properties({
   // entrada (con el filtro ya actualizado) la que "Volver" restaura.
   useEffect(() => {
     const params = new URLSearchParams();
+    if (filters.q) params.set("q", filters.q);
     if (filters.type) params.set("tipo", filters.type);
     if (filters.operationType) params.set("operacion", filters.operationType);
     if (filters.tipoNave) params.set("navetipo", filters.tipoNave);
@@ -166,8 +232,29 @@ export default function Properties({
     if (filters.minParking) params.set("estacionamiento", filters.minParking);
     if (filters.amenities.length) params.set("amenidades", filters.amenities.join(","));
     if (filters.sortBy && filters.sortBy !== "newest") params.set("orden", filters.sortBy);
+    if (filters.bounds) params.set("area", boundsToParam(filters.bounds));
+    // La página y la vista también viajan en la dirección: «Atrás» desde una
+    // ficha regresa a la misma página, y la dirección se puede compartir.
+    if (page > 0) params.set("pagina", String(page + 1));
+    if (view !== "list") params.set("vista", VIEW_PARAMS[view]);
     setSearchParams(params, { replace: true });
-  }, [filters, setSearchParams]);
+  }, [filters, page, view, setSearchParams]);
+
+  // Búsqueda de texto: se aplica sola poco después de dejar de escribir.
+  useEffect(() => {
+    const value = searchText.trim();
+    const timer = setTimeout(() => {
+      if (filtersRef.current.q === value) return;
+      setPage(0);
+      setFilters((prev) => ({ ...prev, q: value }));
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
+  // Y al revés: si otro control cambia la búsqueda (un chip, «Limpiar»), el campo la sigue.
+  useEffect(() => {
+    setSearchText((current) => (current.trim() === filters.q ? current : filters.q));
+  }, [filters.q]);
 
   // Apartado dedicado a un tipo desactivado desde /admin/zonas (Naves
   // Industriales/Terrenos hoy) — se muestra "Próximamente" en vez del
@@ -209,44 +296,90 @@ export default function Properties({
       minBathrooms: filters.minBathrooms ? Number(filters.minBathrooms) : undefined,
       minParking: filters.minParking ? Number(filters.minParking) : undefined,
       amenities: filters.amenities.length ? filters.amenities : undefined,
+      q: filters.q || undefined,
+      bounds: filters.bounds || undefined,
       sortBy: filters.sortBy,
     }),
     [filters, fixedType, sectionTypes]
   );
 
+  // Mapa, vista dividida y filtro por ciudad piden el conjunto completo (cada
+  // propiedad es un pin; la ciudad se resuelve en el cliente, ver `cityFilter`).
   useEffect(() => {
+    if (!needsFullSet) return undefined;
     let active = true;
     setLoading(true);
-    // La vista de mapa necesita el set completo (cada propiedad es un pin).
-    // `cityFilter` (páginas de ZoneLanding) también: es un filtro que se
-    // resuelve en el cliente —no es una `zone` exacta, sino cualquier
-    // colonia de esa ciudad— así que no se le puede pedir al backend que
-    // pagine algo que todavía no sabe si va a quedar en el resultado. Solo
-    // la lista normal, sin cityFilter, pide su página directo al servidor.
-    const needsFullSet = view === "map" || Boolean(cityFilter);
-    const request = needsFullSet
-      ? db.getProperties(queryFilters).then((data) => {
-          const filtered = cityFilter ? data.filter((property) => propertyMatchesCity(property, cityFilter)) : data;
-          return view === "map"
-            ? { data: filtered, total: filtered.length }
-            : { data: filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), total: filtered.length };
-        })
-      : db.getProperties({ ...queryFilters, page, pageSize: PAGE_SIZE });
-    request
-      .then(({ data, total: count }) => {
-        if (!active) return;
-        setProperties(data);
-        setTotal(count);
+    db.getProperties(queryFilters)
+      .then((data) => {
+        if (active) setAllMatches(cityFilter ? data.filter((property) => propertyMatchesCity(property, cityFilter)) : data);
       })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, [queryFilters, view, page, cityFilter]);
+  }, [needsFullSet, queryFilters, cityFilter]);
+
+  // La lista normal pide su página directo al servidor. Mientras llega la nueva
+  // se siguen mostrando los resultados anteriores (atenuados): no brinca la página.
+  useEffect(() => {
+    if (needsFullSet) return undefined;
+    let active = true;
+    setLoading(true);
+    db.getProperties({ ...queryFilters, page, pageSize: PAGE_SIZE })
+      .then(({ data, total: count }) => {
+        if (active) setPageData({ data, total: count });
+      })
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [needsFullSet, queryFilters, page]);
+
+  const pins = needsFullSet ? allMatches || EMPTY_LIST : pageData.data;
+  const total = needsFullSet ? pins.length : pageData.total;
+  const properties = useMemo(
+    () => (needsFullSet && effectiveView !== "map" ? pins.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE) : pins),
+    [needsFullSet, effectiveView, pins, page]
+  );
+  const lastPage = Math.max(0, Math.ceil(total / PAGE_SIZE) - 1);
+
+  // Una dirección con una página que ya no existe (menos resultados que antes) cae en la última.
+  useEffect(() => {
+    if (!loading && total > 0 && page > lastPage) setPage(lastPage);
+  }, [loading, total, page, lastPage]);
+
+  // Con «Atrás» desde una ficha: de vuelta a donde iba el listado, una vez que ya hay tarjetas.
+  useEffect(() => {
+    if (loading || properties.length === 0 || restoreScrollY.current == null) return;
+    const y = restoreScrollY.current;
+    restoreScrollY.current = null;
+    try {
+      sessionStorage.removeItem(SCROLL_KEY);
+    } catch {
+      /* sin almacenamiento */
+    }
+    requestAnimationFrame(() => window.scrollTo(0, y));
+  }, [loading, properties.length]);
+
+  const changePage = (delta) => {
+    setPage((p) => Math.max(0, p + delta));
+    resultsTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const chips = useMemo(
+    () =>
+      buildActiveFilterChips(filters, {
+        t,
+        fixedType,
+        typeLabel: (key) => propertyTypeLabel(t, key),
+        amenityLabel: (key) => amenitiesCatalog.find((a) => a.key === key)?.label || key,
+      }),
+    [filters, t, fixedType, amenitiesCatalog]
+  );
 
   // Solo en el listado general, sin filtros ni mapa y en la primera página:
   // con una búsqueda activa las torres estorbarían a lo que la persona pidió.
-  const showDevelopments = !fixedType && !cityFilter && !hasActiveFilters && page === 0 && view === "list" && developments.length > 0;
+  const showDevelopments = !fixedType && !cityFilter && !hasActiveFilters && page === 0 && effectiveView === "list" && developments.length > 0;
 
   const pageTitle = title || t(titleKey);
   const pageSubtitle = subtitle || t(subtitleKey);
@@ -272,7 +405,7 @@ export default function Properties({
     <>
       <Seo title={pageTitle} description={pageSubtitle} />
 
-      <div className="container properties-page">
+      <div className="container properties-page" onClickCapture={rememberScroll}>
         <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
           <h2>{pageTitle}</h2>
           <p>{pageSubtitle}</p>
@@ -308,9 +441,56 @@ export default function Properties({
             />
           </aside>
 
-          <div className="properties-page__results">
+          <div className={`properties-page__results${loading ? " is-loading" : ""}`} ref={resultsTopRef} aria-busy={loading}>
+            <form
+              className="properties-page__search"
+              role="search"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setPage(0);
+                setFilters((prev) => ({ ...prev, q: searchText.trim() }));
+              }}
+            >
+              <label htmlFor="properties-search" className="visually-hidden">{t("properties.searchLabel")}</label>
+              <input
+                id="properties-search"
+                type="search"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                placeholder={t("properties.searchPlaceholder")}
+                autoComplete="off"
+                enterKeyHint="search"
+                maxLength={80}
+              />
+            </form>
+
+            {chips.length > 0 && (
+              <ul className="properties-page__chips" aria-label={t("activeFilters.label")}>
+                {chips.map((chip) => (
+                  <li key={chip.key}>
+                    <button
+                      type="button"
+                      className="filter-chip"
+                      onClick={() => goToFilters((prev) => ({ ...prev, ...chip.patch }))}
+                      aria-label={t("activeFilters.remove", { filter: chip.label })}
+                    >
+                      <span>{chip.label}</span>
+                      <span aria-hidden="true">×</span>
+                    </button>
+                  </li>
+                ))}
+                {chips.length > 1 && (
+                  <li>
+                    <button type="button" className="filter-chip filter-chip--clear" onClick={() => goToFilters(EMPTY_FILTERS)}>
+                      {t("activeFilters.clearAll")}
+                    </button>
+                  </li>
+                )}
+              </ul>
+            )}
+
             <div className="properties-page__toolbar">
-              <span>{t(total === 1 ? "properties.results_one" : "properties.results_other", { count: total })}</span>
+              <span aria-live="polite">{t(total === 1 ? "properties.results_one" : "properties.results_other", { count: total })}</span>
               <div className="properties-page__toolbar-actions">
                 <select
                   aria-label={t("properties.sortBy")}
@@ -324,53 +504,73 @@ export default function Properties({
                   ))}
                 </select>
                 <div className="properties-page__view-toggle">
-                  <button type="button" className={view === "list" ? "active" : ""} onClick={() => setView("list")}>
+                  <button type="button" className={effectiveView === "list" ? "active" : ""} aria-pressed={effectiveView === "list"} onClick={() => setView("list")}>
                     {t("properties.listView")}
                   </button>
-                  <button type="button" className={view === "map" ? "active" : ""} onClick={() => setView("map")}>
+                  <button type="button" className={effectiveView === "map" ? "active" : ""} aria-pressed={effectiveView === "map"} onClick={() => setView("map")}>
                     {t("properties.mapView")}
                   </button>
+                  {wide && (
+                    <button
+                      type="button"
+                      className={effectiveView === "split" ? "active" : ""}
+                      aria-pressed={effectiveView === "split"}
+                      title={t("properties.splitViewTitle")}
+                      onClick={() => setView("split")}
+                    >
+                      {t("properties.splitView")}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
 
-            {loading ? (
+            {loading && properties.length === 0 ? (
               <div className="empty-state">{t("common.loading")}</div>
             ) : total === 0 ? (
               <div className="empty-state">
                 {t(hasActiveFilters ? "properties.noResults" : "properties.emptySection")}
                 <NotifyMeCta section={pageTitle} />
               </div>
-            ) : view === "map" ? (
+            ) : effectiveView === "map" ? (
               <Suspense fallback={<div className="empty-state" style={{ height: 560 }}>{t("common.loading")}</div>}>
-                <PropertyMap properties={properties} height={560} />
+                <PropertyMap properties={pins} height={560} onSearchArea={searchThisArea} areaActive={Boolean(filters.bounds)} />
               </Suspense>
             ) : (
-              <>
-                <div className="properties-grid">
-                  {properties.map((property, index) => (
-                    <Reveal key={property.id} delay={(index % 6) * 70}>
-                      <PropertyCard property={property} />
-                    </Reveal>
-                  ))}
+              <div className={effectiveView === "split" ? "properties-split" : undefined}>
+                <div className="properties-split__list">
+                  <div className="properties-grid">
+                    {properties.map((property, index) => (
+                      <Reveal key={property.id} delay={(index % 6) * 70}>
+                        <PropertyCard property={property} />
+                      </Reveal>
+                    ))}
+                  </div>
+                  {total > PAGE_SIZE && (
+                    <div className="properties-page__pagination">
+                      <button type="button" className="btn btn-outline btn-sm" disabled={page === 0} onClick={() => changePage(-1)}>
+                        {t("properties.prevPage")}
+                      </button>
+                      <span>{t("properties.pageOf", { page: page + 1, pages: Math.ceil(total / PAGE_SIZE) })}</span>
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        disabled={(page + 1) * PAGE_SIZE >= total}
+                        onClick={() => changePage(1)}
+                      >
+                        {t("properties.nextPage")}
+                      </button>
+                    </div>
+                  )}
                 </div>
-                {total > PAGE_SIZE && (
-                  <div className="properties-page__pagination">
-                    <button type="button" className="btn btn-outline btn-sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
-                      {t("properties.prevPage")}
-                    </button>
-                    <span>{t("properties.pageOf", { page: page + 1, pages: Math.ceil(total / PAGE_SIZE) })}</span>
-                    <button
-                      type="button"
-                      className="btn btn-outline btn-sm"
-                      disabled={(page + 1) * PAGE_SIZE >= total}
-                      onClick={() => setPage((p) => p + 1)}
-                    >
-                      {t("properties.nextPage")}
-                    </button>
+                {effectiveView === "split" && (
+                  <div className="properties-split__map">
+                    <Suspense fallback={<div className="empty-state" style={{ height: "100%" }}>{t("common.loading")}</div>}>
+                      <PropertyMap properties={pins} height="100%" onSearchArea={searchThisArea} areaActive={Boolean(filters.bounds)} />
+                    </Suspense>
                   </div>
                 )}
-              </>
+              </div>
             )}
             {!loading && (
               <AlertSignupCard

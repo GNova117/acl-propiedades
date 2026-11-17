@@ -102,3 +102,56 @@
   font-size: 0.9rem;
   font-weight: 400;
 }
+
+/* Precio: rangos listos y campos con "$". */
+.property-filters__label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.property-filters__ranges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.property-filters__range {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.property-filters__range:hover {
+  border-color: var(--color-primary);
+}
+
+.property-filters__range.is-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.property-filters__money {
+  position: relative;
+}
+
+.property-filters__money span {
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.property-filters__money input {
+  padding-left: 1.5rem;
+}

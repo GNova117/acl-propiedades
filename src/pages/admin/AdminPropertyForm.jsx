@@ -7,6 +7,7 @@ import { groupZonesByCity, zoneDisplayName } from "../../lib/zones";
 import ImageUploader from "../../components/ImageUploader";
 import VideoUploader from "../../components/VideoUploader";
 import Tour360Uploader from "../../components/Tour360Uploader";
+import FloorPlanField from "../../components/FloorPlanField";
 import InternalNotes from "../../components/InternalNotes";
 import "./admin.css";
 
@@ -75,6 +76,10 @@ export default function AdminPropertyForm({
   const [newVideoFiles, setNewVideoFiles] = useState([]);
   const [existingTour360, setExistingTour360] = useState([]);
   const [newTour360Files, setNewTour360Files] = useState([]);
+  // Plano de la ficha pública: el que ya tiene, el nuevo por subir y si se quitó.
+  const [floorPlanUrl, setFloorPlanUrl] = useState("");
+  const [floorPlanFile, setFloorPlanFile] = useState(null);
+  const [floorPlanRemoved, setFloorPlanRemoved] = useState(false);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
@@ -130,6 +135,7 @@ export default function AdminPropertyForm({
       setExistingImages(property.images || []);
       setExistingVideos(property.videos || []);
       setExistingTour360(property.tour_360_images || []);
+      setFloorPlanUrl(property.floor_plan_url || "");
       setPropertyCode(property.code || "");
       setLoading(false);
     });
@@ -183,10 +189,15 @@ export default function AdminPropertyForm({
         existingTour360Images: existingTour360,
         tour360Files: newTour360Files,
       };
-      if (isEdit) {
-        await db.updateProperty(id, payload);
-      } else {
-        await db.addProperty(payload);
+      const saved = isEdit ? await db.updateProperty(id, payload) : await db.addProperty(payload);
+      // El plano va aparte (setPropertyFloorPlan): si falla, la propiedad ya quedó guardada.
+      const planChanged = floorPlanFile || (floorPlanRemoved && floorPlanUrl);
+      if (planChanged) {
+        try {
+          await db.setPropertyFloorPlan(isEdit ? id : saved?.id, floorPlanFile || null);
+        } catch (planErr) {
+          window.alert(t("floorPlan.saveFailed", { message: planErr.message || "" }));
+        }
       }
       navigate(listPath);
     } catch (err) {
@@ -497,6 +508,24 @@ export default function AdminPropertyForm({
             onAddFiles={(files) => setNewTour360Files((prev) => [...prev, ...files])}
             onRemoveExisting={(index) => setExistingTour360((prev) => prev.filter((_, i) => i !== index))}
             onRemoveNew={(index) => setNewTour360Files((prev) => prev.filter((_, i) => i !== index))}
+          />
+        </div>
+
+        <div className="form-field">
+          <label>{t("floorPlan.adminLabel")}</label>
+          <p className="form-hint">{t("floorPlan.adminHint")}</p>
+          <FloorPlanField
+            existingUrl={floorPlanUrl}
+            file={floorPlanFile}
+            removed={floorPlanRemoved}
+            onPick={(file) => {
+              setFloorPlanFile(file);
+              setFloorPlanRemoved(false);
+            }}
+            onRemove={() => {
+              setFloorPlanFile(null);
+              setFloorPlanRemoved(true);
+            }}
           />
         </div>
 

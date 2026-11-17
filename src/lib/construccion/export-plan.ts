@@ -81,6 +81,12 @@ export async function exportPlanAsPng(svg: SVGSVGElement, meta: PlanExportMeta, 
   download(dataUrl, `${meta.nombre || "plano"}.png`);
 }
 
+/** El plano como PNG en memoria (sin descargarlo), para publicarlo en la ficha de una propiedad. */
+export async function planAsPngBlob(svg: SVGSVGElement, box?: Bounds | null): Promise<Blob> {
+  const { dataUrl } = await svgToPng(svg, 120, box);
+  return await (await fetch(dataUrl)).blob();
+}
+
 export async function exportPlanAsPdf(svg: SVGSVGElement, meta: PlanExportMeta, box?: Bounds | null) {
   const { dataUrl, width, height } = await svgToPng(svg, 120, box);
   const pngBytes = await (await fetch(dataUrl)).arrayBuffer();

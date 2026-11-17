@@ -1,8 +1,9 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
-import Gallery from "../components/Gallery";
+import Gallery, { Lightbox } from "../components/Gallery";
+import MortgageCalculator from "../components/MortgageCalculator";
 import ContactRequestCard from "../components/ContactRequestCard";
 import PropertyCard from "../components/PropertyCard";
 import PropertyTypeIcon from "../components/PropertyTypeIcon";
@@ -21,7 +22,9 @@ import { db } from "../lib/dataStore";
 import { recordPropertyView } from "../lib/recentlyViewed";
 import { buildSimilarCriteria } from "../lib/alertMatch";
 import { getPropertyBadge } from "../lib/propertyBadges";
-import { estimateMonthlyPayment } from "../lib/monthlyEstimate";
+import { CALCULATOR_ANCHOR, canEstimateMonthly, estimateMonthlyPayment } from "../lib/monthlyEstimate";
+import { directionsUrl, streetViewUrl, wazeUrl } from "../lib/mapLinks";
+import { listingFrom } from "../lib/listNavigation";
 import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
 import "./PropertyDetail.css";
 
@@ -189,6 +192,16 @@ export default function PropertyDetail() {
   const [similar, setSimilar] = useState([]);
   const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
   const [showPanorama, setShowPanorama] = useState(false);
+  const [showPlan, setShowPlan] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Si llegó desde un listado, «Volver» regresa a ese listado (con filtros, página y posición).
+  const listFrom = listingFrom(location.state);
+  const handleBack = (e) => {
+    if (!listFrom) return;
+    e.preventDefault();
+    navigate(-1);
+  };
 
   useEffect(() => {
     let active = true;
@@ -321,7 +334,7 @@ export default function PropertyDetail() {
       <Seo title={seoTitle} description={seoDescription} image={property.main_image} jsonLd={jsonLd} />
 
       <div className="container property-detail">
-        <Link to="/propiedades" className="property-detail__back">
+        <Link to={listFrom || "/propiedades"} onClick={handleBack} className="property-detail__back">
           &larr; {t("detail.back")}
         </Link>
 
@@ -366,6 +379,13 @@ export default function PropertyDetail() {
                   <div className="property-detail__monthly">
                     <strong>{t("monthlyEstimate.fromPerMonth", { amount: formatMXN(monthly.payment) })}</strong>
                     <span>{t("monthlyEstimate.hint", { down: monthly.downPct, years: monthly.years, rate: monthly.rate })}</span>
+                    <button
+                      type="button"
+                      className="property-detail__monthly-adjust"
+                      onClick={() => document.getElementById(CALCULATOR_ANCHOR)?.scrollIntoView({ behavior: "smooth", block: "center" })}
+                    >
+                      {t("mortgageCalc.adjust")}
+                    </button>
                     <Link to={`/comparar-creditos?propiedad=${property.id}`}>{t("monthlyEstimate.cta")}</Link>
                   </div>
                 )}
@@ -457,11 +477,35 @@ export default function PropertyDetail() {
               })()
             )}
 
+            {property.floor_plan_url && (
+              <section>
+                <h2>{t("floorPlan.title")}</h2>
+                <button type="button" className="property-detail__plan" onClick={() => setShowPlan(true)} aria-label={t("floorPlan.open")}>
+                  <img src={property.floor_plan_url} alt={t("floorPlan.alt", { title: property.title })} loading="lazy" decoding="async" />
+                  <span className="gallery__expand-badge">⤢ {t("gallery.expand")}</span>
+                </button>
+                <p className="form-hint">{t("floorPlan.note")}</p>
+              </section>
+            )}
+
             <section>
               <h2>{t("detail.location")}</h2>
               <Suspense fallback={<div className="empty-state" style={{ height: 360 }}>{t("common.loading")}</div>}>
                 <PropertyMap properties={[property]} height={360} />
               </Suspense>
+              {directionsUrl(property) && (
+                <div className="property-detail__map-actions">
+                  <a className="btn btn-primary btn-sm" href={directionsUrl(property)} target="_blank" rel="noopener noreferrer">
+                    {t("mapLinks.directions")}
+                  </a>
+                  <a className="btn btn-outline btn-sm" href={streetViewUrl(property)} target="_blank" rel="noopener noreferrer">
+                    {t("mapLinks.streetView")}
+                  </a>
+                  <a className="btn btn-outline btn-sm" href={wazeUrl(property)} target="_blank" rel="noopener noreferrer">
+                    {t("mapLinks.waze")}
+                  </a>
+                </div>
+              )}
             </section>
 
             <ZoneContext property={property} />
@@ -472,6 +516,8 @@ export default function PropertyDetail() {
                 justo antes de las preguntas frecuentes, no en la barra
                 lateral. El asesor asignado se sigue viendo en el panel y en
                 la ficha técnica en PDF. */}
+            {canEstimateMonthly(property) && <MortgageCalculator property={property} />}
+
             <div className="card" style={{ padding: "1.1rem 1.25rem", marginBottom: "1.25rem" }}>
               <strong>{t("detail.compareCredits.title")}</strong>
               <p className="form-hint" style={{ margin: "0.25rem 0 0.75rem" }}>{t("detail.compareCredits.text")}</p>
@@ -529,6 +575,10 @@ export default function PropertyDetail() {
       </div>
 
       {property.status !== "vendida" && <MobileContactBar property={property} />}
+
+      {showPlan && (
+        <Lightbox images={[property.floor_plan_url]} index={0} onIndexChange={() => {}} onClose={() => setShowPlan(false)} alt={t("floorPlan.alt", { title: property.title })} />
+      )}
 
       {showPanorama && (
         <Suspense fallback={null}>

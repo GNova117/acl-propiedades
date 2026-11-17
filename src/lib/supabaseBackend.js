@@ -14,6 +14,7 @@ import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } fro
 import { CITA_STATUSES } from "./agendaCitas";
 import { BOOKING_TOKEN_PATTERN, DEFAULT_VISIT_SETTINGS, hhmm, normalizeVisitSchedule } from "./visitSlots";
 import { cleanSelectionInput } from "./selections";
+import { isValidBounds, supabaseSearchFilters } from "./propertySearch";
 
 // La tabla aún no existe en la base (falta correr su bloque de schema.sql):
 // 42P01 es Postgres directo, PGRST205 es PostgREST ("no está en el schema cache").
@@ -200,6 +201,16 @@ export const supabaseBackend = {
     if (filters.minBathrooms != null) query = query.gte("bathrooms", filters.minBathrooms);
     if (filters.minParking != null) query = query.gte("parking", filters.minParking);
     if (filters.amenities?.length) query = query.contains("amenities", filters.amenities);
+    // Búsqueda de texto: un `or` por palabra (se combinan con Y). Ver propertySearch.js.
+    for (const clause of supabaseSearchFilters(filters.q)) query = query.or(clause);
+    // "Buscar en esta zona" del mapa.
+    if (isValidBounds(filters.bounds)) {
+      query = query
+        .gte("lat", filters.bounds.south)
+        .lte("lat", filters.bounds.north)
+        .gte("lng", filters.bounds.west)
+        .lte("lng", filters.bounds.east);
+    }
     for (const [column, ascending] of PROPERTY_SORTERS[filters.sortBy] || PROPERTY_SORTERS.newest) {
       query = query.order(column, { ascending });
     }
@@ -384,6 +395,35 @@ export const supabaseBackend = {
       const { error } = await supabase.from("property_advisors").insert(rows);
       if (error) throw error;
     }
+  },
+
+  // Plano de la propiedad que se ve en la ficha pública (columna
+  // `floor_plan_url`, ver el bloque "Plano en la ficha" de schema.sql). Va
+  // aparte de addProperty/updateProperty a propósito: guardar una propiedad
+  // no depende de que esa columna ya exista, solo esta acción. `file` = el
+  // PNG/JPG del plano, o null para quitarlo. Se sube tal cual (sin
+  // recomprimir a JPEG, que mancha las líneas finas de un plano).
+  async setPropertyFloorPlan(id, file) {
+    let url = null;
+    let uploadedPath = null;
+    if (file) {
+      const ext = (file.type === "image/jpeg" ? "jpg" : "png");
+      uploadedPath = `plano-${id}-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("property-images").upload(uploadedPath, file, { upsert: false, contentType: file.type || "image/png" });
+      if (uploadError) throw uploadError;
+      url = supabase.storage.from("property-images").getPublicUrl(uploadedPath).data.publicUrl;
+    }
+    const { data, error } = await supabase
+      .from("properties")
+      .update({ floor_plan_url: url, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) {
+      if (uploadedPath) await discardUploads([{ bucket: "property-images", path: uploadedPath }]);
+      throw error;
+    }
+    return data;
   },
 
   async deleteProperty(id) {

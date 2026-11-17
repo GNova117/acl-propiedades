@@ -9,6 +9,20 @@
   background: var(--color-bg-alt);
   aspect-ratio: 16 / 10;
   cursor: zoom-in;
+  /* El deslizamiento horizontal es de la galería; el vertical sigue siendo scroll de la página. */
+  touch-action: pan-y;
+}
+
+.gallery__counter {
+  position: absolute;
+  left: 0.6rem;
+  bottom: 0.6rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 0.78rem;
+  pointer-events: none;
 }
 
 .gallery__main img {
@@ -105,7 +119,8 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  touch-action: pan-y;
+  /* Los gestos (deslizar, pellizcar, arrastrar) los maneja el visor. */
+  touch-action: none;
 }
 
 .gallery-lightbox__image {
@@ -115,13 +130,15 @@
   cursor: zoom-in;
   transition: transform 0.2s ease;
   user-select: none;
+  -webkit-user-drag: none;
+  will-change: transform;
+}
+
+.gallery-lightbox__image.is-gesturing {
+  transition: none;
 }
 
 .gallery-lightbox__image--zoomed {
-  max-width: none;
-  max-height: none;
-  width: auto;
-  height: 180%;
   cursor: zoom-out;
 }
 

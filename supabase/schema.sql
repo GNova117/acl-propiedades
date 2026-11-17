@@ -7010,3 +7010,12 @@ $$;
 
 revoke all on function selection_open(text, boolean) from public;
 grant execute on function selection_open(text, boolean) to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Plano en la ficha (2026-11)
+-- ---------------------------------------------------------------------------
+-- Imagen del plano de la propiedad que se muestra en la ficha pública. Se
+-- publica desde Construcción («Publicar en la ficha») o se sube desde el
+-- formulario de la propiedad. Vive en el bucket público `property-images`
+-- (mismas políticas de subida que las fotos). Re-ejecutable.
+alter table properties add column if not exists floor_plan_url text;

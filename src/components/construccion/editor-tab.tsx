@@ -34,7 +34,8 @@ import {
 } from "../../lib/construccion/geometry";
 import { cortarPorMedida, dividirHabitacion, puntoEnBorde } from "../../lib/construccion/dividir";
 import { ZONAS, zonaDe, colocarKit, nuevoObjeto, objetoDef, type Kit } from "../../lib/construccion/objetos";
-import { exportPlanAsPdf, exportPlanAsPng } from "../../lib/construccion/export-plan";
+import { exportPlanAsPdf, exportPlanAsPng, planAsPngBlob } from "../../lib/construccion/export-plan";
+import PublicarPlano from "./publicar-plano";
 import { downloadDxf } from "../../lib/construccion/exportDxf";
 import { db } from "../../lib/dataStore";
 import { compressImageFile } from "../../lib/imageCompression";
@@ -1442,6 +1443,13 @@ export default function EditorTab({ proyecto, setProyecto, selectedId, setSelect
               <button onClick={() => handleExport("dxf")} className="btn btn-outline btn-sm">
                 Exportar DXF
               </button>
+              <PublicarPlano
+                disabled={view === "3d"}
+                obtenerPng={async () => {
+                  if (!svgRef.current) throw new Error("El plano no está a la vista.");
+                  return planAsPngBlob(svgRef.current, contentBox);
+                }}
+              />
             </div>
           )}
         </div>
