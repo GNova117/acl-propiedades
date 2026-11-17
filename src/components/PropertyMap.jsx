@@ -165,7 +165,7 @@ function ClusteredMarkers({ properties }) {
     if (group.length === 1) {
       const property = group[0];
       return (
-        <Marker key={property.id} position={[property.lat, property.lng]} icon={getIcon(property.type)}>
+        <Marker key={property.id} position={[property.lat, property.lng]} icon={getIcon(property.type)} title={property.title} alt={property.title}>
           <Popup>
             <div className="map-popup">
               {property.main_image && <img src={property.main_image} alt={property.title} loading="lazy" decoding="async" />}
@@ -185,6 +185,8 @@ function ClusteredMarkers({ properties }) {
         key={`cluster-${i}-${group.length}`}
         position={clusterCenter(group)}
         icon={getClusterIcon(group.length)}
+        title={t("propertyMap.cluster", { count: group.length })}
+        alt={t("propertyMap.cluster", { count: group.length })}
         eventHandlers={{
           click: () => {
             const bounds = L.latLngBounds(group.map((p) => [p.lat, p.lng]));

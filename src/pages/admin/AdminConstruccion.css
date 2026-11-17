@@ -63,7 +63,7 @@
 }
 
 .construccion__tab--active {
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: var(--color-on-primary);
 }
 
@@ -172,7 +172,7 @@
 
 .construccion-editor__room--active,
 .construccion-editor__room--active:hover {
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: var(--color-on-primary);
 }
 
@@ -234,7 +234,7 @@
 .construccion-editor__confirm-btn {
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--color-success);
+  background: var(--color-success-solid);
   color: var(--color-on-primary);
   font-size: 0.8rem;
   font-weight: 600;
@@ -292,7 +292,7 @@
 }
 
 .construccion-editor__view-btn--active {
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: var(--color-on-primary);
 }
 

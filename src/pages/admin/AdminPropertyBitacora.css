@@ -148,7 +148,7 @@
 }
 
 .pl-seg__btn--active {
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: var(--color-on-primary);
 }
 

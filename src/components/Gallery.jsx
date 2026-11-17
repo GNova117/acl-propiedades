@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { swipeDirection } from "../lib/swipe";
+import { useMediaQuery } from "../lib/useMediaQuery";
 import "./Gallery.css";
 
 const MAX_SCALE = 4;
@@ -212,6 +213,12 @@ export default function Gallery({ images, alt }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const list = images && images.length > 0 ? images : ["https://placehold.co/1000x700?text=ACL+Propiedades"];
   const { t } = useTranslation();
+  // En computadora y con 3 fotos o más, la galería es un MOSAICO (una grande y hasta cuatro chicas); en el teléfono y con
+  // pocas fotos sigue siendo la foto principal con su tira de miniaturas (que se desliza con el dedo).
+  const wide = useMediaQuery("(min-width: 981px)");
+  const mosaic = wide && list.length >= 3;
+  const tiles = mosaic ? list.slice(1, 5) : [];
+  const hidden = list.length - 1 - tiles.length;
 
   // El index del lightbox puede recibir un número o una función updater
   // (igual que setState), para reusar la misma prop con teclado/swipe/clic.
@@ -241,14 +248,14 @@ export default function Gallery({ images, alt }) {
   };
 
   return (
-    <div className="gallery">
+    <div className={`gallery${mosaic ? " gallery--mosaic" : ""}`}>
       <button
         type="button"
         className="gallery__main"
         onClick={onMainClick}
         onTouchStart={onMainTouchStart}
         onTouchEnd={onMainTouchEnd}
-        aria-label={t("gallery.expand")}
+        aria-label={list.length > 1 ? `${t("gallery.counter", { current: active + 1, total: list.length })} · ${t("gallery.expand")}` : t("gallery.expand")}
       >
         {/* Es la imagen principal de la ficha de propiedad — normalmente el
             LCP de la página — así que se carga eager, no lazy. */}
@@ -256,7 +263,30 @@ export default function Gallery({ images, alt }) {
         {list.length > 1 && <span className="gallery__counter">{t("gallery.counter", { current: active + 1, total: list.length })}</span>}
         <span className="gallery__expand-badge">⤢ {t("gallery.expand")}</span>
       </button>
-      {list.length > 1 && (
+      {mosaic && (
+        <div className={`gallery__side gallery__side--${tiles.length}`}>
+          {tiles.map((src, i) => {
+            const index = i + 1;
+            const last = i === tiles.length - 1 && hidden > 0;
+            return (
+              <button
+                key={src + index}
+                type="button"
+                className="gallery__tile"
+                onClick={() => {
+                  setActive(index);
+                  setLightboxOpen(true);
+                }}
+                aria-label={last ? t("gallery.seeAll", { count: list.length }) : t("gallery.viewImage", { number: index + 1 })}
+              >
+                <img src={src} alt="" loading="lazy" decoding="async" />
+                {last && <span className="gallery__more">{t("gallery.moreCount", { count: hidden })}</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {!mosaic && list.length > 1 && (
         <div className="gallery__thumbs">
           {list.map((src, index) => (
             <button

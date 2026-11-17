@@ -1,3 +1,4 @@
+import FactIcon from "./FactIcon";
 import { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -80,9 +81,10 @@ export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
           </p>
         )}
         <ul className="property-card__meta">
-          <li>{formatArea(property.area_m2)}</li>
-          {property.bedrooms != null && <li>{property.bedrooms} {t("properties.bedrooms")}</li>}
-          {property.bathrooms != null && <li>{property.bathrooms} {t("properties.bathrooms")}</li>}
+          <li><FactIcon name="area" />{formatArea(property.area_m2)}</li>
+          {property.bedrooms != null && <li><FactIcon name="bed" />{property.bedrooms} {t("properties.bedrooms")}</li>}
+          {property.bathrooms != null && <li><FactIcon name="bath" />{property.bathrooms} {t("properties.bathrooms")}</li>}
+          {property.parking != null && property.type !== "nave_industrial" && <li><FactIcon name="car" />{property.parking} {t("properties.parking")}</li>}
         </ul>
         <div className="property-card__footer">
           {advisor ? (

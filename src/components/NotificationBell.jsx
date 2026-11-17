@@ -80,7 +80,7 @@ export default function NotificationBell() {
         type="button"
         className="icon-toggle notification-bell__trigger"
         onClick={() => setOpen((v) => !v)}
-        aria-label={t("admin.notifications")}
+        aria-label={total > 0 ? `${total > 99 ? "99+" : total} ${t("admin.notifications")}` : t("admin.notifications")}
         aria-expanded={open}
         title={t("admin.notifications")}
       >

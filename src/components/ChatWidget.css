@@ -6,7 +6,7 @@
   height: 56px;
   border: none;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: var(--color-on-primary);
   display: flex;
   align-items: center;
@@ -90,7 +90,7 @@
 
 .chat-widget__bubble--user {
   align-self: flex-end;
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: var(--color-on-primary);
   border-bottom-right-radius: 2px;
 }

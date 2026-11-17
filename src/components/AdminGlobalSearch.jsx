@@ -240,6 +240,9 @@ export default function AdminGlobalSearch() {
         value={query}
         placeholder={t("search.placeholder")}
         aria-label={t("search.placeholder")}
+        role="combobox"
+        aria-haspopup="listbox"
+        aria-controls="admin-search-panel"
         aria-expanded={showPanel}
         autoComplete="off"
         onFocus={() => {
@@ -254,7 +257,7 @@ export default function AdminGlobalSearch() {
         onKeyDown={onKeyDown}
       />
       {showPanel && (
-        <div className="admin-search__panel" role="listbox">
+        <div className="admin-search__panel" role="listbox" id="admin-search-panel">
           {loading && flat.length === 0 && <p className="admin-search__note">{t("search.loading")}</p>}
           {!loading && flat.length === 0 && <p className="admin-search__note">{t("search.noResults", { query: query.trim() })}</p>}
           {groups.map((group) => (

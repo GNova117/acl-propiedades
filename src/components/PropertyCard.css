@@ -93,6 +93,12 @@
   color: var(--color-text-muted);
 }
 
+.property-card__meta li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
 /* Asesor + botones: en una tarjeta angosta (celular de 360 px, tableta) no
    caben en una sola fila, así que el pie salta de línea en vez de recortar
    «Ver detalle» contra el borde. El asesor parte de un ancho mínimo (no de su

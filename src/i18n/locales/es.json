@@ -234,7 +234,8 @@
     "searchPlaceholder": "Busca por colonia, calle o palabra: alberca, Senderos…",
     "searchThisArea": "Buscar en esta zona",
     "splitView": "Dividida",
-    "splitViewTitle": "Lista y mapa a la vez"
+    "splitViewTitle": "Lista y mapa a la vez",
+    "parking": "Estacionamiento"
   },
   "detail": {
     "compareCredits": {
@@ -371,7 +372,8 @@
     "required": "Este campo es obligatorio",
     "invalidEmail": "Correo electrónico no válido",
     "privacyNotice": "Al enviar este formulario, tus datos serán tratados conforme a nuestro",
-    "privacyLinkLabel": "Aviso de Privacidad"
+    "privacyLinkLabel": "Aviso de Privacidad",
+    "mapTitle": "Ubicación de ACL Propiedades"
   },
   "messages": {
     "via_alerta": "Pidió avisos por WhatsApp",
@@ -2234,7 +2236,8 @@
       }
     },
     "dragHint": "Arrastra una tarjeta a otra columna para cambiar su etapa (en el teléfono, usa «Más» → etapa).",
-    "deletedUndo": "Prospecto «{{name}}» eliminado."
+    "deletedUndo": "Prospecto «{{name}}» eliminado.",
+    "boardLabel": "Tablero de prospectos por etapa"
   },
   "pending": {
     "title": "Pendientes de hoy",
@@ -3198,7 +3201,9 @@
     "next": "Foto siguiente",
     "zoomHint": "Clic o doble toque para acercar (pellizca en el celular) · flechas o desliza para cambiar · Esc para cerrar",
     "viewImage": "Ver imagen {{number}}",
-    "imageAlt": "{{alt}} - imagen {{number}}"
+    "imageAlt": "{{alt}} - imagen {{number}}",
+    "moreCount": "+{{count}} fotos",
+    "seeAll": "Ver las {{count}} fotos"
   },
   "panorama360": {
     "title": "Recorrido 360°",
@@ -4676,7 +4681,8 @@
     "close": "Cerrar aviso",
     "cancel": "Cancelar",
     "confirm": "Aceptar",
-    "undo": "Deshacer"
+    "undo": "Deshacer",
+    "region": "Avisos"
   },
   "adminNav": {
     "pin": "Fijar arriba",
@@ -4685,5 +4691,71 @@
     "recent": "Recientes",
     "compact": "Compactar menú",
     "expand": "Expandir menú"
+  },
+  "a11y": {
+    "skipToContent": "Saltar al contenido",
+    "mainNav": "Navegación principal",
+    "openMenu": "Abrir menú",
+    "loadingSite": "Cargando ACL Propiedades…",
+    "removeImage": "Eliminar imagen",
+    "removeVideo": "Eliminar video",
+    "switchLanguage": "Cambiar idioma / Switch language"
+  },
+  "propertyForm": {
+    "descriptionHint": "Deja una línea en blanco para separar párrafos y empieza una línea con «- » para hacer una lista (con «1. » para numerarla). En el sitio se ve con sus párrafos y viñetas."
+  },
+  "stickyBar": {
+    "label": "Precio y contacto"
+  },
+  "emptyState": {
+    "noResultsTitle": "No encontramos propiedades con esos filtros",
+    "emptySectionTitle": "Aún no hay propiedades aquí",
+    "comingSoonTitle": "Muy pronto",
+    "favoritesTitle": "Todavía no tienes favoritas",
+    "compareTitle": "Nada que comparar todavía",
+    "propertyGoneTitle": "Esta propiedad ya no está disponible",
+    "postGoneTitle": "No encontramos ese artículo",
+    "blogTitle": "Pronto habrá artículos",
+    "mySpaceTitle": "Aquí verás lo que tengas pendiente"
+  },
+  "notFound": {
+    "title": "Esta página no existe",
+    "text": "La página que buscas no existe o cambió de lugar.",
+    "home": "Volver al inicio",
+    "browse": "Ver propiedades",
+    "seoDescription": "Página no encontrada"
+  },
+  "propertyMap": {
+    "cluster": "{{count}} propiedades juntas: acercar el mapa"
+  },
+  "charts": {
+    "title": "Gráficas",
+    "viewData": "Ver los datos",
+    "item": "Concepto",
+    "value": "Valor",
+    "empty": "Todavía no hay datos para esta gráfica.",
+    "none": "ninguna",
+    "otherSources": "Otras fuentes",
+    "prospects": "Prospectos",
+    "sales": "Ventas",
+    "stagesTitle": "Embudo de prospectos",
+    "stagesSubtitle": "Prospectos por etapa (hoy)",
+    "stagesAria": "Prospectos por etapa: {{summary}}",
+    "fullFunnel": "Embudo completo",
+    "noProspects": "Todavía no hay prospectos.",
+    "sourcesTitle": "Prospectos por fuente",
+    "sourcesSubtitle": "De dónde llegan los prospectos",
+    "sourcesAria": "Prospectos por fuente: {{summary}}",
+    "salesTitle": "Ventas por mes",
+    "salesSubtitle_one": "Últimos 12 meses: {{count}} venta",
+    "salesSubtitle_other": "Últimos 12 meses: {{count}} ventas",
+    "salesAria": "Ventas por mes en los últimos 12 meses: {{summary}}",
+    "salesReport": "Reporte de ventas",
+    "noSales": "Todavía no hay ventas en los últimos 12 meses."
+  },
+  "tableTools": {
+    "columns": "Columnas",
+    "showAll": "Mostrar todas",
+    "sortBy": "Ordenar por {{column}}"
   }
 }

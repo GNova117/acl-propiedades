@@ -55,7 +55,7 @@
   min-width: 1.4rem;
   padding: 0 0.4rem;
   border-radius: 999px;
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: var(--color-on-primary);
   font-size: 0.75rem;
   text-align: center;
@@ -133,7 +133,7 @@
 }
 
 .prospect-chip--overdue {
-  background: var(--color-danger);
+  background: var(--color-danger-solid);
   border-color: var(--color-danger);
   color: var(--color-on-primary);
 }
@@ -165,7 +165,7 @@
 }
 
 .prospect-tabs__tab.is-active {
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   border-color: var(--color-primary);
   color: var(--color-on-primary);
   font-weight: 600;
@@ -436,7 +436,7 @@
 
 .btn.is-active {
   border-color: var(--color-primary);
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: var(--color-on-primary);
 }
 

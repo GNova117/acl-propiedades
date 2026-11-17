@@ -41,7 +41,7 @@
   min-width: 1.4rem;
   padding: 0 0.4rem;
   border-radius: 999px;
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: var(--color-on-primary);
   font-size: 0.8rem;
   text-align: center;

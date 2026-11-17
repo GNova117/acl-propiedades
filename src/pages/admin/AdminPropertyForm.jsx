@@ -280,6 +280,7 @@ export default function AdminPropertyForm({
         <div className="form-field">
           <label htmlFor="p-description">{t("detail.description")}</label>
           <textarea id="p-description" rows={4} value={form.description} onChange={handleChange("description")} />
+          <span className="form-hint">{t("propertyForm.descriptionHint")}</span>
         </div>
 
         <div className="form-row">

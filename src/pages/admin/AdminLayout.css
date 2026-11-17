@@ -46,7 +46,7 @@
   height: 1.3rem;
   padding: 0 0.35rem;
   border-radius: 999px;
-  background: var(--color-danger);
+  background: var(--color-danger-solid);
   color: var(--color-on-primary);
   font-size: 0.72rem;
   font-weight: 700;
@@ -59,7 +59,7 @@
 }
 
 .admin-layout__sidebar nav a.active {
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: var(--color-on-primary);
 }
 

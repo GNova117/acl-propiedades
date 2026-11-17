@@ -14,7 +14,7 @@
   height: 18px;
   padding: 0 4px;
   border-radius: 9px;
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: var(--color-on-primary);
   font-size: 0.68rem;
   font-weight: 700;

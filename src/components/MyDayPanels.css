@@ -35,7 +35,7 @@
   flex: 0 0 1.6rem;
   height: 1.6rem;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: var(--color-on-primary);
   font-size: 0.8rem;
   font-weight: 700;

@@ -196,3 +196,74 @@
     font-size: 1.5rem;
   }
 }
+
+/* ── Mosaico (computadora, 3 fotos o más): la grande a la izquierda y hasta cuatro chicas a la derecha ── */
+.gallery--mosaic {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-2);
+}
+
+.gallery--mosaic .gallery__main {
+  aspect-ratio: auto;
+  min-height: 400px;
+  height: 100%;
+}
+
+.gallery__side {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: var(--space-2);
+  min-height: 0;
+}
+
+/* Con pocas fotos las chicas ocupan toda la columna. */
+.gallery__side--2 {
+  grid-template-columns: 1fr;
+}
+
+.gallery__side--3 .gallery__tile:last-child {
+  grid-column: 1 / -1;
+}
+
+.gallery__tile {
+  position: relative;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-bg-alt);
+  cursor: zoom-in;
+}
+
+.gallery__tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.25s ease;
+}
+
+.gallery__tile:hover img,
+.gallery__tile:focus-visible img {
+  transform: scale(1.04);
+}
+
+.gallery__more {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 10, 20, 0.55);
+  color: var(--color-on-primary);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-lg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery__tile img {
+    transition: none;
+  }
+}

@@ -76,7 +76,7 @@ function ConfirmModal({ request }) {
   }, [request.id, opts.danger]);
 
   return (
-    <div className="confirm-dialog" role="alertdialog" aria-modal="true" aria-describedby="confirm-dialog-message">
+    <div className="confirm-dialog" role="alertdialog" data-manages-focus aria-modal="true" aria-describedby="confirm-dialog-message">
       <div className="confirm-dialog__backdrop" onClick={() => resolveConfirm(false)} aria-hidden="true" />
       <div className="confirm-dialog__box card" ref={boxRef}>
         <p id="confirm-dialog-message" className="confirm-dialog__message">
@@ -97,11 +97,12 @@ function ConfirmModal({ request }) {
 
 // Se monta una sola vez, arriba de todo (App.jsx): dibuja los avisos y la confirmación pendiente.
 export default function Toaster() {
+  const { t } = useTranslation();
   const toasts = useSyncExternalStore(subscribe, getToasts);
   const request = useSyncExternalStore(subscribe, getConfirmRequest);
   return (
     <>
-      <div className="toaster" aria-label="Avisos">
+      <div className="toaster" role="region" aria-label={t("toast.region")}>
         {toasts.map((item) => (
           <ToastItem key={item.id} toast={item} />
         ))}

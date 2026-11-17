@@ -155,6 +155,11 @@
   gap: 0.15rem;
 }
 
+.property-detail__features .fact-icon {
+  margin-bottom: 0.2rem;
+  color: var(--color-primary);
+}
+
 .property-detail__features strong {
   font-size: 1.2rem;
   font-family: var(--font-heading);

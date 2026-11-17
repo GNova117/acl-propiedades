@@ -10,6 +10,7 @@ import { buildFavoritesShareUrl, parseSharedIds } from "../lib/favoritesShare";
 import "./Properties.css";
 import "./Favorites.css";
 import LoadingState from "../components/LoadingState";
+import EmptyState from "../components/EmptyState";
 
 export default function Favorites() {
   const { t } = useTranslation();
@@ -94,12 +95,11 @@ export default function Favorites() {
         {loading ? (
           <LoadingState variant="cards" />
         ) : properties.length === 0 ? (
-          <div className="empty-state">
-            <p>{shared ? t("favoritesShare.sharedEmpty") : t("favorites.empty")}</p>
+          <EmptyState illustration="heart" title={t("emptyState.favoritesTitle")} text={shared ? t("favoritesShare.sharedEmpty") : t("favorites.empty")}>
             <Link to="/propiedades" className="btn btn-primary">
               {t("favorites.browseCta")}
             </Link>
-          </div>
+          </EmptyState>
         ) : (
           <div className="properties-grid">
             {properties.map((property) => (

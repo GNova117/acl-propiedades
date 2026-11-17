@@ -17,6 +17,7 @@ import { propertyMatchesCity } from "../lib/zoneLandingPages";
 import { db } from "../lib/dataStore";
 import "./Properties.css";
 import LoadingState from "../components/LoadingState";
+import EmptyState from "../components/EmptyState";
 
 // Leaflet (react-leaflet + leaflet, ~150KB) pesa bastante para algo que
 // la mayoría de las visitas nunca activa (por default se ve la lista, no
@@ -409,10 +410,9 @@ export default function Properties({
           <div className="section-heading m-section">
             <h2>{pageTitle}</h2>
           </div>
-          <div className="empty-state">
-            {t("properties.comingSoon")}
+          <EmptyState illustration="calendar" title={t("emptyState.comingSoonTitle")} text={t("properties.comingSoon")}>
             <NotifyMeCta section={pageTitle} />
-          </div>
+          </EmptyState>
         </div>
       </>
     );
@@ -545,10 +545,18 @@ export default function Properties({
             {loading && properties.length === 0 ? (
               <LoadingState variant="cards" />
             ) : total === 0 ? (
-              <div className="empty-state">
-                {t(hasActiveFilters ? "properties.noResults" : "properties.emptySection")}
+              <EmptyState
+                illustration="search"
+                title={t(hasActiveFilters ? "emptyState.noResultsTitle" : "emptyState.emptySectionTitle")}
+                text={t(hasActiveFilters ? "properties.noResults" : "properties.emptySection")}
+              >
+                {hasActiveFilters && (
+                  <button type="button" className="btn btn-outline btn-sm" onClick={() => goToFilters(EMPTY_FILTERS)}>
+                    {t("activeFilters.clearAll")}
+                  </button>
+                )}
                 <NotifyMeCta section={pageTitle} />
-              </div>
+              </EmptyState>
             ) : effectiveView === "map" ? (
               <Suspense fallback={<LoadingState variant="block" height={560} />}>
                 <PropertyMap properties={pins} height={560} onSearchArea={searchThisArea} areaActive={Boolean(filters.bounds)} />

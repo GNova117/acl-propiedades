@@ -410,7 +410,7 @@ export default function AdminProspects() {
             ))}
           </div>
 
-          <div className="prospect-board">
+          <div className="prospect-board" tabIndex={0} role="region" aria-label={t("prospects.boardLabel")}>
             {PROSPECT_STAGES.map((stage) => {
               const inStage = filtered.filter((p) => p.stage === stage);
               const items = sortBy === "temperature" ? sortByScore(inStage, (p) => scores.get(p.id)) : inStage;

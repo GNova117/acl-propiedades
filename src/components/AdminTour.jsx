@@ -44,7 +44,7 @@ export default function AdminTour({ onClose }) {
   }, [onClose]);
 
   return (
-    <div className="admin-tour" role="dialog" aria-modal="true" aria-labelledby="admin-tour-title">
+    <div className="admin-tour" role="dialog" data-manages-focus aria-modal="true" aria-labelledby="admin-tour-title">
       <div className="admin-tour__backdrop" onClick={onClose} aria-hidden="true" />
       <div className="admin-tour__box card" ref={boxRef} tabIndex={-1}>
         <p className="form-hint">{t("help.tour.progress", { current: index + 1, total: steps.length })}</p>

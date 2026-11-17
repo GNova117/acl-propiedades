@@ -65,7 +65,7 @@ export default function Header() {
           <Logo size="sm" />
         </NavLink>
 
-        <nav className={`site-nav ${open ? "site-nav--open" : ""}`} aria-label="Navegación principal">
+        <nav className={`site-nav ${open ? "site-nav--open" : ""}`} aria-label={t("a11y.mainNav")}>
           <ul>
             {visibleNavItems.map((item) => (
               <li key={item.to}>
@@ -86,7 +86,7 @@ export default function Header() {
             type="button"
             className="site-header__burger"
             onClick={() => setOpen((v) => !v)}
-            aria-label="Abrir menú"
+            aria-label={t("a11y.openMenu")}
             aria-expanded={open}
           >
             <span />

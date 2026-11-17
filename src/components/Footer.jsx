@@ -5,6 +5,26 @@ import WhatsAppIcon from "./icons/WhatsAppIcon";
 import { slugify, ZONE_LANDING_CITIES } from "../lib/zoneLandingPages";
 import "./Footer.css";
 
+// Redes con dirección configurada en el build (variables VITE_*, ver .env.example); sin ella, el icono no se muestra.
+const httpsOnly = (value) => {
+  try {
+    return new URL(String(value || "")).protocol === "https:" ? String(value) : null;
+  } catch {
+    return null;
+  }
+};
+const SOCIAL = { linkedin: httpsOnly(import.meta.env.VITE_LINKEDIN_URL), instagram: httpsOnly(import.meta.env.VITE_INSTAGRAM_URL) };
+
+function InstagramIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" />
+    </svg>
+  );
+}
+
 function FacebookIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -78,10 +98,18 @@ export default function Footer() {
             <a href="https://www.facebook.com/Aclpropiedadess/" target="_blank" rel="noreferrer" aria-label="Facebook">
               <FacebookIcon />
             </a>
-            {/* Pendiente: falta el link real de LinkedIn — sin href hasta tenerlo */}
-            <a aria-label="LinkedIn">
-              <LinkedInIcon />
-            </a>
+            {/* LinkedIn e Instagram solo aparecen si hay una dirección real (VITE_LINKEDIN_URL / VITE_INSTAGRAM_URL): un icono
+                sin enlace no lleva a ningún lado y confunde a los lectores de pantalla. */}
+            {SOCIAL.linkedin && (
+              <a href={SOCIAL.linkedin} target="_blank" rel="noreferrer" aria-label="LinkedIn">
+                <LinkedInIcon />
+              </a>
+            )}
+            {SOCIAL.instagram && (
+              <a href={SOCIAL.instagram} target="_blank" rel="noreferrer" aria-label="Instagram">
+                <InstagramIcon />
+              </a>
+            )}
             <a href="https://wa.me/528713243271" target="_blank" rel="noreferrer" aria-label="WhatsApp">
               <WhatsAppIcon />
             </a>

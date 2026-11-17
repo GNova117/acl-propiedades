@@ -18,14 +18,21 @@
   --color-text: #12161c;
   --color-text-muted: #5a6472;
   --color-border: #e2e6ec;
-  --color-success: #1e8e5a;
-  --color-danger: #c0392b;
-  --color-warning: #b8860b;
+  --color-success: #17784a;
+  --color-danger: #b3321f;
+  --color-warning: #805f0a;
   /* Colores que antes se repetían «a mano» en los .css: ahora tienen nombre y el modo oscuro puede cambiarlos. */
   --color-on-primary: #ffffff; /* texto sobre un fondo de color (botones, insignias, menú activo) */
+  /* Fondos de color que llevan texto BLANCO encima (botones, menú activo, insignias): iguales en claro y oscuro, porque el
+     blanco solo se lee (4.5:1 o más) sobre un color oscuro. Los --color-primary/success/danger de arriba son para TEXTO
+     y cambian con el tema; no los uses de fondo con texto blanco (src/lib/contrast.test.js lo vigila). */
+  --color-primary-deep: #0d3b73;
+  --color-primary-solid: #1565c0;
+  --color-success-solid: #17784a;
+  --color-danger-solid: #c0392b;
   --color-scrim: rgba(5, 10, 20, 0.6); /* fondo oscurecido detrás de las ventanas emergentes */
   --color-attention: #f0a500; /* avisos y estrellas: ámbar que se ve en claro y en oscuro */
-  --color-muted-soft: #6b7688; /* gris más tenue que el texto secundario (iconos, separadores de texto) */
+  --color-muted-soft: #5f6b7d; /* gris más tenue que el texto secundario (iconos, separadores de texto) */
   --color-favorite: #e0245e; /* el corazón de favoritos */
 
   /* Escala de espaciado (base 4 px): usa estas en lugar de rem sueltos. */
@@ -82,6 +89,9 @@
   --color-text-muted: #9fb0c8;
   --color-border: #24314a;
   --color-muted-soft: #93a1b8;
+  --color-success: #3cc487;
+  --color-danger: #ff7a6b;
+  --color-warning: #e2a21c;
   --color-scrim: rgba(0, 0, 0, 0.7);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -202,7 +212,7 @@ ul {
 }
 
 .btn-primary {
-  background: linear-gradient(120deg, var(--color-primary-dark), var(--color-primary-light));
+  background: linear-gradient(120deg, var(--color-primary-deep), var(--color-primary-solid));
   color: var(--color-on-primary);
   box-shadow: var(--shadow-sm);
 }
@@ -223,7 +233,7 @@ ul {
 }
 
 .btn-danger {
-  background: var(--color-danger);
+  background: var(--color-danger-solid);
   color: var(--color-on-primary);
 }
 
@@ -336,7 +346,7 @@ ul {
   position: absolute;
   left: -999px;
   top: 0;
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: var(--color-on-primary);
   padding: var(--space-3) var(--space-4);
   z-index: 1000;

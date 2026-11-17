@@ -7,6 +7,7 @@ import { db } from "../lib/dataStore";
 import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./Compare.css";
 import LoadingState from "../components/LoadingState";
+import EmptyState from "../components/EmptyState";
 
 export default function Compare() {
   const { t } = useTranslation();
@@ -56,12 +57,11 @@ export default function Compare() {
         {loading ? (
           <LoadingState />
         ) : properties.length === 0 ? (
-          <div className="empty-state">
-            <p>{t("compare.empty")}</p>
+          <EmptyState illustration="compare" title={t("emptyState.compareTitle")} text={t("compare.empty")}>
             <Link to="/propiedades" className="btn btn-primary">
               {t("compare.browseCta")}
             </Link>
-          </div>
+          </EmptyState>
         ) : (
           <>
             <div className="compare-table-wrapper">

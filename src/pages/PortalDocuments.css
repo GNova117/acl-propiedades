@@ -221,7 +221,7 @@
 }
 
 .portal-tramite__step--hecha .portal-tramite__dot {
-  background: var(--color-success);
+  background: var(--color-success-solid);
   border-color: var(--color-success);
   color: var(--color-on-primary);
 }

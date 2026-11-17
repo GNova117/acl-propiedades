@@ -11,6 +11,9 @@ import PropertyProspectsModal from "../../components/PropertyProspectsModal";
 import PropertyOffersModal from "../../components/PropertyOffersModal";
 import PropertyContractModal from "../../components/PropertyContractModal";
 import SavedViews from "../../components/SavedViews";
+import SortableTh from "../../components/SortableTh";
+import ColumnPicker from "../../components/ColumnPicker";
+import { loadHiddenColumns, nextSort, saveHiddenColumns, sortRows, toggleColumn } from "../../lib/tableTools";
 import { contractState } from "../../lib/contracts";
 import { buildActivityIndex, stalledInfo, STALL_DAY_OPTIONS } from "../../lib/stalledProperties";
 import SendPropertyModal from "../../components/SendPropertyModal";
@@ -56,6 +59,20 @@ function mediaPreservingPatch(property, patch) {
 // Lo que guarda una vista de Propiedades (lib/savedViews.js).
 const PROPERTY_VIEW_SCHEMA = { search: "string", zoneFilter: "string", operationFilter: "string", statusFilter: "string", minPrice: "string", maxPrice: "string", onlyIncomplete: "boolean", stallDays: "number" };
 
+// Columnas de la tabla que se pueden ocultar (las demás —selección, foto, título y acciones— siempre se ven) y cómo se ordena
+// cada una (lib/tableTools.js).
+const HIDEABLE = ["code", "type", "zone", "price", "area", "status", "active"];
+const SORT_BY = {
+  code: (p) => p.code,
+  title: (p) => p.title,
+  type: (p) => p.type,
+  zone: (p) => p.zone,
+  price: (p) => (p.price == null ? null : Number(p.price)),
+  area: (p) => (p.area_m2 == null ? null : Number(p.area_m2)),
+  status: (p) => p.status,
+  active: (p) => Boolean(p.active),
+};
+
 export default function AdminProperties({
   fixedType,
   excludeTypes = [],
@@ -71,6 +88,14 @@ export default function AdminProperties({
   const [offersProperty, setOffersProperty] = useState(null);
   const [contractProperty, setContractProperty] = useState(null);
   const [stallDays, setStallDays] = useState(0); // 0 = sin filtro
+  const [sort, setSort] = useState(null);
+  const tableKey = `propiedades:${basePath}`;
+  const [hiddenCols, setHiddenCols] = useState(() => loadHiddenColumns(`propiedades:${basePath}`, HIDEABLE));
+  const col = (key) => ({ "data-col": key, hidden: hiddenCols.has(key) || undefined });
+  const changeColumns = (next) => {
+    setHiddenCols(next);
+    saveHiddenColumns(tableKey, next);
+  };
   const [sendProperty, setSendProperty] = useState(null);
   const [buildingSelection, setBuildingSelection] = useState(false);
   const [qrProperty, setQrProperty] = useState(null);
@@ -138,7 +163,7 @@ export default function AdminProperties({
 
   const visibleProperties = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return properties.filter((p) => {
+    const matching = properties.filter((p) => {
       if (onlyIncomplete && completeness.get(p.id)?.complete) return false;
       if (stallDays && !stalled.get(p.id)?.stalled) return false;
       if (term && !p.title?.toLowerCase().includes(term) && !p.code?.toLowerCase().includes(term) && !p.address?.toLowerCase().includes(term)) return false;
@@ -149,7 +174,8 @@ export default function AdminProperties({
       if (maxPrice && Number(p.price) > Number(maxPrice)) return false;
       return true;
     });
-  }, [properties, completeness, onlyIncomplete, stallDays, stalled, search, zoneFilter, operationFilter, statusFilter, minPrice, maxPrice]);
+    return sortRows(matching, sort, SORT_BY);
+  }, [properties, completeness, onlyIncomplete, stallDays, stalled, search, zoneFilter, operationFilter, statusFilter, minPrice, maxPrice, sort]);
 
   const handleDelete = async (id) => {
     if (!await confirmDialog(t("common.confirmDelete"))) return;
@@ -299,6 +325,12 @@ export default function AdminProperties({
           <button type="button" className="btn btn-outline" onClick={() => setBuildingSelection(true)}>
             {t("selection.list.new")}
           </button>
+          <ColumnPicker
+            columns={HIDEABLE.map((key) => ({ key, label: { code: t("detail.code"), type: t("properties.type"), zone: t("properties.zone"), price: "Precio", area: t("properties.area"), status: t("common.status"), active: t("common.active") }[key] }))}
+            hidden={hiddenCols}
+            onToggle={(key) => changeColumns(toggleColumn(hiddenCols, key, HIDEABLE))}
+            onReset={() => changeColumns(new Set())}
+          />
           <button type="button" className="btn btn-outline" onClick={handleExport} disabled={visibleProperties.length === 0}>
             {t("common.exportCsv")}
           </button>
@@ -455,15 +487,31 @@ export default function AdminProperties({
                 <input type="checkbox" checked={allVisibleSelected} onChange={toggleAll} aria-label={t("bulkActions.selectAll")} />
               </th>
               <th></th>
-              <th>{t("detail.code")}</th>
-              <th>Título</th>
-              <th className="cell-type">{t("properties.type")}</th>
+              <SortableTh column="code" sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))} colProps={col("code")}>
+                {t("detail.code")}
+              </SortableTh>
+              <SortableTh column="title" sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))}>
+                Título
+              </SortableTh>
+              <SortableTh column="type" sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))} colProps={col("type")} className="cell-type">
+                {t("properties.type")}
+              </SortableTh>
               {fixedType === "nave_industrial" && <th className="cell-tipo">{t("properties.naveTipo")}</th>}
-              <th>{t("properties.zone")}</th>
-              <th>Precio</th>
-              <th>{t("properties.area")}</th>
-              <th>{t("common.status")}</th>
-              <th>{t("common.active")}</th>
+              <SortableTh column="zone" sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))} colProps={col("zone")}>
+                {t("properties.zone")}
+              </SortableTh>
+              <SortableTh column="price" sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))} colProps={col("price")}>
+                Precio
+              </SortableTh>
+              <SortableTh column="area" sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))} colProps={col("area")}>
+                {t("properties.area")}
+              </SortableTh>
+              <SortableTh column="status" sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))} colProps={col("status")}>
+                {t("common.status")}
+              </SortableTh>
+              <SortableTh column="active" sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))} colProps={col("active")}>
+                {t("common.active")}
+              </SortableTh>
               <th>{t("common.actions")}</th>
             </tr>
           </thead>
@@ -487,7 +535,7 @@ export default function AdminProperties({
                       />
                     </td>
                     <td className="cell-thumb">{property.main_image && <img src={property.main_image} alt="" />}</td>
-                    <td className="cell-code">{property.code || "—"}</td>
+                    <td className="cell-code" {...col("code")}>{property.code || "—"}</td>
                     <td className="cell-title">
                       {property.title}
                       {(() => {
@@ -521,13 +569,13 @@ export default function AdminProperties({
                         );
                       })()}
                     </td>
-                    <td className="cell-type">{propertyTypeLabel(t, property.type)}</td>
+                    <td className="cell-type" {...col("type")}>{propertyTypeLabel(t, property.type)}</td>
                     {fixedType === "nave_industrial" && <td className="cell-tipo">{property.tipo_nave ? t(`naveTipo.${property.tipo_nave}`) : "—"}</td>}
-                    <td className="cell-zone">{property.zone}</td>
-                    <td className="cell-price">{formatMXN(property.price)}</td>
-                    <td className="cell-area">{formatArea(property.area_m2)}</td>
-                    <td className="cell-status">{t(`propertyStatus.${property.status}`)}</td>
-                    <td className="cell-active">
+                    <td className="cell-zone" {...col("zone")}>{property.zone}</td>
+                    <td className="cell-price" {...col("price")}>{formatMXN(property.price)}</td>
+                    <td className="cell-area" {...col("area")}>{formatArea(property.area_m2)}</td>
+                    <td className="cell-status" {...col("status")}>{t(`propertyStatus.${property.status}`)}</td>
+                    <td className="cell-active" {...col("active")}>
                       <button type="button" className={`badge ${property.active ? "badge-available" : "badge-sold"}`} onClick={() => toggleActive(property)}>
                         {property.active ? t("common.active") : t("common.inactive")}
                       </button>

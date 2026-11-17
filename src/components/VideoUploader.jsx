@@ -57,7 +57,7 @@ export default function VideoUploader({ existingVideos, files, onRemoveExisting,
                 type="button"
                 className="video-uploader__remove"
                 onClick={() => (item.kind === "existing" ? onRemoveExisting(item.index) : onRemoveNew(item.index))}
-                aria-label="Eliminar video"
+                aria-label={t("a11y.removeVideo")}
               >
                 ×
               </button>

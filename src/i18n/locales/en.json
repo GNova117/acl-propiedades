@@ -234,7 +234,8 @@
     "searchPlaceholder": "Search by neighborhood, street or keyword: pool, Senderos…",
     "searchThisArea": "Search this area",
     "splitView": "Split",
-    "splitViewTitle": "List and map side by side"
+    "splitViewTitle": "List and map side by side",
+    "parking": "Parking"
   },
   "detail": {
     "compareCredits": {
@@ -371,7 +372,8 @@
     "required": "This field is required",
     "invalidEmail": "Invalid email address",
     "privacyNotice": "By submitting this form, your data will be handled according to our",
-    "privacyLinkLabel": "Privacy Notice"
+    "privacyLinkLabel": "Privacy Notice",
+    "mapTitle": "ACL Propiedades location"
   },
   "messages": {
     "via_alerta": "Asked for WhatsApp alerts",
@@ -2234,7 +2236,8 @@
       }
     },
     "dragHint": "Drag a card to another column to change its stage (on a phone, use “More” → stage).",
-    "deletedUndo": "Prospect “{{name}}” deleted."
+    "deletedUndo": "Prospect “{{name}}” deleted.",
+    "boardLabel": "Prospect board by stage"
   },
   "pending": {
     "title": "To do today",
@@ -3198,7 +3201,9 @@
     "next": "Next photo",
     "zoomHint": "Click or double-tap to zoom (pinch on a phone) · arrows or swipe to change · Esc to close",
     "viewImage": "View image {{number}}",
-    "imageAlt": "{{alt}} - image {{number}}"
+    "imageAlt": "{{alt}} - image {{number}}",
+    "moreCount": "+{{count}} photos",
+    "seeAll": "See all {{count}} photos"
   },
   "panorama360": {
     "title": "360° tour",
@@ -4676,7 +4681,8 @@
     "close": "Close notice",
     "cancel": "Cancel",
     "confirm": "OK",
-    "undo": "Undo"
+    "undo": "Undo",
+    "region": "Notices"
   },
   "adminNav": {
     "pin": "Pin to top",
@@ -4685,5 +4691,71 @@
     "recent": "Recent",
     "compact": "Compact menu",
     "expand": "Expand menu"
+  },
+  "a11y": {
+    "skipToContent": "Skip to content",
+    "mainNav": "Main navigation",
+    "openMenu": "Open menu",
+    "loadingSite": "Loading ACL Propiedades…",
+    "removeImage": "Remove image",
+    "removeVideo": "Remove video",
+    "switchLanguage": "Cambiar idioma / Switch language"
+  },
+  "propertyForm": {
+    "descriptionHint": "Leave a blank line to separate paragraphs and start a line with “- ” to make a list (with “1. ” to number it). On the site it shows with its paragraphs and bullets."
+  },
+  "stickyBar": {
+    "label": "Price and contact"
+  },
+  "emptyState": {
+    "noResultsTitle": "We found no properties with those filters",
+    "emptySectionTitle": "There are no properties here yet",
+    "comingSoonTitle": "Coming soon",
+    "favoritesTitle": "You have no favorites yet",
+    "compareTitle": "Nothing to compare yet",
+    "propertyGoneTitle": "This property is no longer available",
+    "postGoneTitle": "We could not find that article",
+    "blogTitle": "Articles are coming soon",
+    "mySpaceTitle": "Here you will see what is pending"
+  },
+  "notFound": {
+    "title": "This page does not exist",
+    "text": "The page you are looking for does not exist or has moved.",
+    "home": "Back to home",
+    "browse": "See properties",
+    "seoDescription": "Page not found"
+  },
+  "propertyMap": {
+    "cluster": "{{count}} properties together: zoom in"
+  },
+  "charts": {
+    "title": "Charts",
+    "viewData": "View the data",
+    "item": "Item",
+    "value": "Value",
+    "empty": "There is no data for this chart yet.",
+    "none": "none",
+    "otherSources": "Other sources",
+    "prospects": "Prospects",
+    "sales": "Sales",
+    "stagesTitle": "Prospect funnel",
+    "stagesSubtitle": "Prospects by stage (today)",
+    "stagesAria": "Prospects by stage: {{summary}}",
+    "fullFunnel": "Full funnel",
+    "noProspects": "There are no prospects yet.",
+    "sourcesTitle": "Prospects by source",
+    "sourcesSubtitle": "Where prospects come from",
+    "sourcesAria": "Prospects by source: {{summary}}",
+    "salesTitle": "Sales per month",
+    "salesSubtitle_one": "Last 12 months: {{count}} sale",
+    "salesSubtitle_other": "Last 12 months: {{count}} sales",
+    "salesAria": "Sales per month over the last 12 months: {{summary}}",
+    "salesReport": "Sales report",
+    "noSales": "There are no sales in the last 12 months yet."
+  },
+  "tableTools": {
+    "columns": "Columns",
+    "showAll": "Show all",
+    "sortBy": "Sort by {{column}}"
   }
 }

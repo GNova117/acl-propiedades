@@ -6,6 +6,7 @@ import { useFavorites } from "../context/FavoritesContext";
 import { clearItems, forgetItem, getItems, groupItems, itemPath } from "../lib/mySpace";
 import "./MySpace.css";
 import { confirmDialog } from "../lib/toast";
+import EmptyState from "../components/EmptyState";
 
 // /mi-espacio: lo del cliente en un solo lugar (ver src/lib/mySpace.js). Lee del dispositivo; no pide nada
 // al servidor hasta que la persona toca un enlace.
@@ -65,7 +66,13 @@ export default function MySpace() {
           </section>
         ))}
 
-        {groups.length === 0 && <div className="empty-state">{t("mySpace.empty")}</div>}
+        {groups.length === 0 && (
+          <EmptyState illustration="heart" title={t("emptyState.mySpaceTitle")} text={t("mySpace.empty")}>
+            <Link to="/propiedades" className="btn btn-primary">
+              {t("favorites.browseCta")}
+            </Link>
+          </EmptyState>
+        )}
 
         <p className="form-hint my-space__privacy">{t("mySpace.privacy")}</p>
         {items.length > 0 && (

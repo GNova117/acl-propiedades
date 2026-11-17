@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import "./utilities.css";
 import "./i18n";
+import { installDialogFocus } from "./lib/dialogFocus";
 import App from "./App.jsx";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -57,6 +58,9 @@ function Root() {
     </ThemeProvider>
   );
 }
+
+// Foco del teclado en todas las ventanas emergentes (ver lib/dialogFocus.js).
+installDialogFocus();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

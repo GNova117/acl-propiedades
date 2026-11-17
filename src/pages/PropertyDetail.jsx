@@ -1,3 +1,6 @@
+import FactIcon from "../components/FactIcon";
+import RichDescription from "../components/RichDescription";
+import StickyPriceBar from "../components/StickyPriceBar";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -30,6 +33,7 @@ import { listingFrom } from "../lib/listNavigation";
 import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
 import "./PropertyDetail.css";
 import LoadingState from "../components/LoadingState";
+import EmptyState from "../components/EmptyState";
 
 // Leaflet (react-leaflet + leaflet, ~150KB) queda fuera del bundle
 // principal del sitio público — aquí siempre se termina mostrando (no es
@@ -325,10 +329,9 @@ export default function PropertyDetail() {
 
   if (!property) {
     return (
-      <div className="empty-state">
-        <p>{t("detail.notFound")}</p>
+      <EmptyState illustration="signpost" title={t("emptyState.propertyGoneTitle")} text={t("detail.notFound")}>
         <Link to="/propiedades" className="btn btn-primary">{t("detail.back")}</Link>
-      </div>
+      </EmptyState>
     );
   }
 
@@ -398,22 +401,22 @@ export default function PropertyDetail() {
 
             {property.type !== "nave_industrial" && (
               <ul className="property-detail__features">
-                <li><strong>{formatArea(property.area_m2)}</strong><span>{t("properties.area")}</span></li>
+                <li><FactIcon name="area" size={22} /><strong>{formatArea(property.area_m2)}</strong><span>{t("properties.area")}</span></li>
                 {property.bedrooms != null && (
-                  <li><strong>{property.bedrooms}</strong><span>{t("properties.bedrooms")}</span></li>
+                  <li><FactIcon name="bed" size={22} /><strong>{property.bedrooms}</strong><span>{t("properties.bedrooms")}</span></li>
                 )}
                 {property.bathrooms != null && (
-                  <li><strong>{property.bathrooms}</strong><span>{t("properties.bathrooms")}</span></li>
+                  <li><FactIcon name="bath" size={22} /><strong>{property.bathrooms}</strong><span>{t("properties.bathrooms")}</span></li>
                 )}
                 {property.parking != null && (
-                  <li><strong>{property.parking}</strong><span>Estacionamiento</span></li>
+                  <li><FactIcon name="car" size={22} /><strong>{property.parking}</strong><span>{t("properties.parking")}</span></li>
                 )}
               </ul>
             )}
 
             <section>
               <h2>{t("detail.description")}</h2>
-              <p>{property.description}</p>
+              <RichDescription text={property.description} />
               <DownloadFichaButton property={property} />
             </section>
 
@@ -580,6 +583,7 @@ export default function PropertyDetail() {
       </div>
 
       {property.status !== "vendida" && <MobileContactBar property={property} />}
+      {property.status !== "vendida" && <StickyPriceBar property={property} />}
 
       {showPlan && (
         <Lightbox images={[property.floor_plan_url]} index={0} onIndexChange={() => {}} onClose={() => setShowPlan(false)} alt={t("floorPlan.alt", { title: property.title })} />

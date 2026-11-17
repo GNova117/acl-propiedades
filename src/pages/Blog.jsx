@@ -7,6 +7,7 @@ import GuideBanner from "../components/GuideBanner";
 import { db } from "../lib/dataStore";
 import "./Blog.css";
 import LoadingState from "../components/LoadingState";
+import EmptyState from "../components/EmptyState";
 
 const formatDate = (iso, locale) => new Date(iso).toLocaleDateString(locale === "en" ? "en-US" : "es-MX", { dateStyle: "long" });
 
@@ -42,7 +43,7 @@ export default function Blog() {
           {loading ? (
             <LoadingState variant="lines" />
           ) : posts.length === 0 ? (
-            <p className="empty-state">{t("blog.empty")}</p>
+            <EmptyState illustration="document" title={t("emptyState.blogTitle")} text={t("blog.empty")} />
           ) : (
             <div className="blog-grid">
               {posts.map((post, index) => (

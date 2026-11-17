@@ -123,9 +123,18 @@
   color: var(--color-text-muted);
 }
 
+/* Días del mes vecino: fondo apagado y número gris (con opacidad el número no pasaba el contraste mínimo). */
 .agenda-calendar__day--out {
-  opacity: 0.4;
   background: var(--color-bg-alt);
+}
+
+.agenda-calendar__day--out .agenda-calendar__day-number {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.agenda-calendar__day--out .agenda-calendar__chips {
+  opacity: 0.75;
 }
 
 .agenda-calendar__day--today {

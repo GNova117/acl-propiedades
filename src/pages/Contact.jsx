@@ -49,7 +49,7 @@ export default function Contact() {
             </div>
             <div className="contact-page__map">
               <iframe
-                title="Ubicación ACL Propiedades"
+                title={t("contact.mapTitle")}
                 width="100%"
                 height="100%"
                 style={{ border: 0, borderRadius: "var(--radius-md)" }}
