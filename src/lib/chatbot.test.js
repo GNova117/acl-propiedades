@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   buildSystemPrompt,
   buildWhatsappHandoffMessage,
+  CHAT_TOOLS,
+  normalizePropertyCode,
   normalizePropertySearchArgs,
+  summarizeBookingResult,
+  summarizeSlotsForChat,
+  validateBookingArgs,
+  validateHandoffArgs,
   summarizePropertiesForChat,
   validateIncomingMessages,
   validateLeadArgs,
@@ -162,5 +168,88 @@ describe("buildWhatsappHandoffMessage", () => {
     expect(msg.length).toBeLessThan(900);
     expect(msg).toContain("mensaje número 29");
     expect(msg).not.toContain("mensaje número 0 ");
+  });
+});
+
+describe("agendar visitas desde el chat", () => {
+  const NOW = new Date("2026-11-17T16:00:00Z");
+  const args = { codigo: "acl-12", fecha: "2026-11-20", hora: "10:00", nombre: " Ana Pérez ", correo: "ANA@Correo.com", telefono: "871 123 4567" };
+
+  it("las herramientas nuevas están declaradas con sus campos obligatorios", () => {
+    const byName = Object.fromEntries(CHAT_TOOLS.map((t) => [t.name, t]));
+    expect(byName.horarios_visita.input_schema.required).toEqual(["codigo"]);
+    expect(byName.agendar_visita.input_schema.required).toEqual(["codigo", "fecha", "hora", "nombre", "correo", "telefono"]);
+    expect(byName.pasar_a_asesor.input_schema.required).toEqual(["motivo"]);
+  });
+
+  it("el prompt pide ofrecer solo horarios reales y confirmar antes de agendar", () => {
+    const prompt = buildSystemPrompt();
+    expect(prompt).toContain("horarios_visita");
+    expect(prompt).toContain("agendar_visita");
+    expect(prompt).toContain("pasar_a_asesor");
+    expect(prompt).toContain("NUNCA inventes");
+  });
+
+  it("solo acepta códigos con forma de código", () => {
+    expect(normalizePropertyCode(" acl-12 ")).toBe("ACL-12");
+    for (const bad of ["", "a", "ACL 12", "x'; drop table", "<b>", null, "A".repeat(31)]) expect(normalizePropertyCode(bad)).toBeNull();
+  });
+
+  it("valida y normaliza los datos para book_visit", () => {
+    expect(validateBookingArgs(args, NOW).value).toEqual({ code: "ACL-12", fecha: "2026-11-20", hora: "10:00", name: "Ana Pérez", email: "ana@correo.com", phone: "871 123 4567", note: null });
+  });
+
+  it("pide lo que falta, sin inventarlo", () => {
+    expect(validateBookingArgs({ ...args, nombre: "" }, NOW).error).toContain("nombre completo");
+    expect(validateBookingArgs({ ...args, correo: "x" }, NOW).error).toContain("correo válido");
+    expect(validateBookingArgs({ ...args, telefono: "123" }, NOW).error).toContain("teléfono de 10 dígitos");
+    expect(validateBookingArgs({ ...args, nota: "x".repeat(501) }, NOW).error).toContain("nota más corta");
+    expect(validateBookingArgs({ ...args, codigo: "no es codigo" }, NOW).error).toContain("código");
+  });
+
+  it("rechaza fechas mal escritas, pasadas o a más de 60 días", () => {
+    for (const fecha of ["20/11/2026", "mañana", "2026-11-16", "2027-06-01"]) expect(validateBookingArgs({ ...args, fecha }, NOW).error).toBeTruthy();
+    expect(validateBookingArgs({ ...args, hora: "las diez" }, NOW).error).toBeTruthy();
+    expect(validateBookingArgs({ ...args, fecha: "2026-11-17" }, NOW).value).toBeTruthy(); // hoy sí; la base decide si el horario sigue libre
+  });
+
+  it("resume los horarios por día con el día de la semana y recorta lo demás", () => {
+    const slots = [
+      ...["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"].map((hora) => ({ fecha: "2026-11-18", hora: `${hora}:00` })),
+      { fecha: "2026-11-19", hora: "10:00" },
+      { fecha: "2026-11-20", hora: "10:00" },
+      { fecha: "2026-11-21", hora: "10:00" },
+      { fecha: "2026-11-22", hora: "10:00" },
+    ];
+    const text = summarizeSlotsForChat(slots, { property: "ACL-12" });
+    expect(text).toContain("Horarios libres para ACL-12");
+    expect(text).toContain("- mié 2026-11-18: 09:00, 10:00, 11:00, 12:00, 13:00, 14:00 (+2 más)");
+    expect(text).toContain("- jue 2026-11-19: 10:00");
+    expect(text).not.toContain("2026-11-22"); // solo 4 días
+  });
+
+  it("sin horarios manda a un asesor", () => {
+    expect(summarizeSlotsForChat([])).toContain("pasar_a_asesor");
+    expect(summarizeSlotsForChat(null)).toContain("pasar_a_asesor");
+  });
+
+  it("traduce cada error de la base a una instrucción y nunca expone el enlace de la visita", () => {
+    for (const error of ["invalid_name", "invalid_email", "invalid_phone", "invalid_note", "invalid_slot", "slot_unavailable", "property_unavailable", "rate_limited", "too_many_active", "upstream"]) {
+      const out = summarizeBookingResult({ error });
+      expect(out.booked).toBe(false);
+      expect(out.text.length).toBeGreaterThan(10);
+    }
+    const ok = summarizeBookingResult({ ok: true, token: "abc".repeat(11), fecha: "2026-11-20", hora: "10:00:00" });
+    expect(ok.booked).toBe(true);
+    expect(ok.text).toContain("2026-11-20 a las 10:00");
+    expect(ok.text).not.toContain("abcabc");
+  });
+
+  it("pasar_a_asesor: motivo acotado y el prospecto solo existe con un dato de contacto real", () => {
+    expect(validateHandoffArgs({ motivo: "x".repeat(500) }).reason).toHaveLength(200);
+    expect(validateHandoffArgs({}).reason).toBe("Pide hablar con un asesor");
+    expect(validateHandoffArgs({ motivo: "precio" }).lead).toBeNull();
+    const { lead } = validateHandoffArgs({ motivo: "precio", telefono: "871 555 0101" });
+    expect(lead).toMatchObject({ name: "Contacto del chat", phone: "8715550101", interest: "PIDE UN ASESOR: precio" });
   });
 });

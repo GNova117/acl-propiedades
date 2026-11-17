@@ -3,6 +3,10 @@ Allow: /
 Disallow: /admin
 Disallow: /informe/
 Disallow: /seleccion/
+Disallow: /opinion/
+Disallow: /visita/
+Disallow: /documentos/
+Disallow: /firmar/
 Disallow: /favoritos
 Disallow: /mi-espacio
 

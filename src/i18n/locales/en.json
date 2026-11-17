@@ -55,7 +55,9 @@
     "avgDays": "average days to sell",
     "available_one": "property available today",
     "available_other": "properties available today",
-    "recentTitle": "Recently sold"
+    "recentTitle": "Recently sold",
+    "soldInDays_one": "Sold in {{count}} day",
+    "soldInDays_other": "Sold in {{count}} days"
   },
   "mobileBar": {
     "schedule": "Schedule a visit",
@@ -2216,7 +2218,8 @@
         "email": "The email is not valid.",
         "budgetRange": "The minimum price cannot be higher than the maximum."
       }
-    }
+    },
+    "dragHint": "Drag a card to another column to change its stage (on a phone, use “More” → stage)."
   },
   "pending": {
     "title": "To do today",
@@ -2460,7 +2463,9 @@
       "estimatedTotal": "Estimated housing subaccount",
       "useInSimulator": "Use this total in the simulator",
       "disclaimer": "Simple estimate (daily salary × 30.4 = month × 12 = year × 5%, for the years worked at each job). It does not include interest or withdrawals; your real balance is confirmed in the Mi Cuenta Infonavit app."
-    }
+    },
+    "years_one": "{{count}} year",
+    "years_other": "{{count}} years"
   },
   "sellHome": {
     "seoTitle": "Sell your home or find out what it is worth",
@@ -4130,5 +4135,138 @@
     "label": "Email the client",
     "hint": "They get an email when you change the stage of their process and, while any document is missing, a reminder every 7 days (3 per stage at most). Only if they have an email and a valid portal link.",
     "noEmail": "This client has no email, so they cannot be notified. Add it in their profile."
+  },
+  "sellEstimate": {
+    "title": "Your rough estimate",
+    "range": "Between {{low}} and {{high}}",
+    "note": "This is a reference by zone and size, without having seen the property. The real value depends on its condition, exact location and the market; an advisor gives you a free valuation.",
+    "hint": "Choose your zone and enter the land and built square meters to see an instant estimate.",
+    "afterSend": "Your rough estimate: between {{low}} and {{high}}."
+  },
+  "survey": {
+    "pageTitle": "Your feedback",
+    "title": "How was your visit?",
+    "intro": "It takes 30 seconds and helps us improve.",
+    "ratingLabel": "Your rating",
+    "starAria_one": "{{count}} star",
+    "starAria_other": "{{count}} stars",
+    "words": {
+      "1": "Bad experience",
+      "2": "Could be better",
+      "3": "Okay",
+      "4": "Good",
+      "5": "Excellent"
+    },
+    "commentLabel": "Anything else you want to tell us? (optional)",
+    "commentPlaceholder": "What you liked, what we could improve…",
+    "privacy": "Only the ACL Propiedades team sees it; it is not published.",
+    "submit": "Send my feedback",
+    "pickRating": "Choose 1 to 5 stars.",
+    "thanksTitle": "Thank you for your feedback!",
+    "thanksHappy": "We are glad your visit went well. If you like, share it on Google too: it helps other families find us.",
+    "thanksOther": "Thank you for your honesty: we will review it to improve. If you want an advisor to contact you, message us on WhatsApp.",
+    "googleCta": "Leave a Google review",
+    "backHome": "Go to the home page",
+    "errors": {
+      "generic": "It could not be sent. Please try again.",
+      "invalid_rating": "Choose 1 to 5 stars.",
+      "invalid_comment": "The comment is too long (500 characters max).",
+      "not_ready": "This visit is not marked as done yet.",
+      "invalid": "This link is not valid."
+    },
+    "notice": {
+      "invalido": {
+        "title": "Invalid link",
+        "body": "Check that it is the full link from the email we sent you."
+      },
+      "error": {
+        "title": "Could not load",
+        "body": "Please try again in a moment."
+      },
+      "no_disponible": {
+        "title": "Not available yet",
+        "body": "The survey opens once your visit is marked as done. Please try again later."
+      },
+      "respondida": {
+        "title": "We already got your feedback!",
+        "body": "Thank you for taking the time."
+      }
+    }
+  },
+  "surveyAdmin": {
+    "ratingAria": "{{rating}} out of 5 stars",
+    "noComment": "No comment"
+  },
+  "prospectScore": {
+    "title": "Score {{score}}/100",
+    "levels": {
+      "hot": "Hot",
+      "warm": "Warm",
+      "cold": "Cold"
+    },
+    "hotOnly": "Hot only",
+    "sortLabel": "Sort prospects",
+    "sortRecent": "Order: most recent",
+    "sortTemperature": "Order: hottest first",
+    "reasons": {
+      "stage_nuevo": "New prospect",
+      "stage_contactado": "Already contacted",
+      "stage_interesado": "Interested",
+      "stage_negociacion": "In negotiation",
+      "source_visita_agendada": "Booked a visit",
+      "source_simulador": "Used the credit simulator",
+      "source_estimacion": "Asked for an estimate",
+      "source_comparador": "Used the credit comparison",
+      "source_whatsapp": "Wrote on WhatsApp",
+      "source_chatbot": "Talked to the chat",
+      "source_visita": "Went to a visit",
+      "source_alerta": "Asked for alerts",
+      "source_sitio": "Came from the website",
+      "hasProperty": "Has a property of interest",
+      "hasBudget": "Shared their budget",
+      "hasMatches": "There are matching properties",
+      "openedSelection": "Opened the selection you sent",
+      "recentContact": "Contacted recently",
+      "stale": "No contact for over 2 weeks",
+      "followOverdue": "Follow-up overdue"
+    }
+  },
+  "sequence": {
+    "step": "Sequence: step {{n}} of {{total}}",
+    "today": "due today",
+    "late_one": "{{count}} day late",
+    "late_other": "{{count}} days late",
+    "on": "due on {{date}}",
+    "finished": "Sequence complete",
+    "write": "Write: {{step}}",
+    "dueOnly": "Sequence due today",
+    "stepName": {
+      "first": "first message",
+      "day1": "day 1 follow-up",
+      "day3": "day 3 follow-up",
+      "day7": "last follow-up"
+    },
+    "messages": {
+      "first": "Hi {{name}}, this is {{advisor}} from ACL Propiedades. I saw you were interested in {{property}}. Can I help you with more information or schedule a visit?",
+      "firstGeneric": "Hi {{name}}, this is {{advisor}} from ACL Propiedades. Thanks for your interest. What kind of property are you looking for? Happy to help.",
+      "day1": "Hi {{name}}, I'm following up from ACL Propiedades. Were you able to look at the information? If you like, we can schedule a visit this week.",
+      "day3": "Hi {{name}}, how is your search going? We have new options that might interest you; tell me your budget and area and I'll send you the best ones.",
+      "day7": "Hi {{name}}, I don't want to be pushy: I just want to confirm whether you are still interested. If your plans changed, no problem; I'm here whenever you need me."
+    }
+  },
+  "autoAssign": {
+    "open": "Assign automatically",
+    "title": "Automatic assignment",
+    "hint": "Suggests an advisor for each open prospect without an owner: if it comes from a property, one of its advisors; otherwise whoever has the fewest open prospects. Nothing is saved until you confirm.",
+    "reason": {
+      "property": "by property",
+      "load": "by workload"
+    },
+    "apply": "Assign all {{count}} prospects",
+    "more": "…and {{count}} more with the same rule.",
+    "nothing": "There are no open prospects without an advisor.",
+    "done_one": "Done: {{count}} prospect assigned.",
+    "done_other": "Done: {{count}} prospects assigned.",
+    "partial": "{{done}} assigned; {{failed}} could not be saved (try again)."
   }
 }

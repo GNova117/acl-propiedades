@@ -110,3 +110,36 @@ describe("modo demo: avisos al cliente del portal (notify_client)", () => {
     expect((await db.saveClientTramite("c1", { ...base, notifyClient: false })).notify_client).toBe(false);
   });
 });
+
+describe("modo demo: encuesta tras la visita", () => {
+  const TOKEN = "e".repeat(32);
+  const seedCita = (status) =>
+    store.set("acl_local_agenda_citas", JSON.stringify([{ id: "cita-e", advisor_id: "advisor-1", property_id: "prop-1", status, fecha: "2026-11-10", booking_token: TOKEN }]));
+
+  it("una visita sin realizar no admite opinión", async () => {
+    seedCita("confirmada");
+    expect((await db.getVisitSurvey(TOKEN)).status).toBe("no_disponible");
+    expect(await db.submitVisitFeedback(TOKEN, 5)).toEqual({ error: "not_ready" });
+  });
+
+  it("una visita realizada: estado ok, guarda una sola opinión y la lista el asesor", async () => {
+    seedCita("realizada");
+    expect(await db.getVisitSurvey(TOKEN)).toMatchObject({ status: "ok", property: { title: expect.any(String) } });
+    expect(await db.submitVisitFeedback(TOKEN, 5, "  Muy buena atención  ")).toEqual({ ok: true });
+    expect((await db.getVisitSurvey(TOKEN)).status).toBe("respondida");
+    expect(await db.submitVisitFeedback(TOKEN, 1, "otra vez")).toEqual({ error: "already_answered" });
+    const feedback = await db.getVisitFeedback();
+    expect(feedback).toHaveLength(1);
+    expect(feedback[0]).toMatchObject({ cita_id: "cita-e", rating: 5, comment: "Muy buena atención", advisor_id: "advisor-1" });
+  });
+
+  it("mismos errores que la base: token, calificación y comentario", async () => {
+    seedCita("realizada");
+    expect(await db.getVisitSurvey("zzz")).toEqual({ status: "invalido" });
+    expect(await db.getVisitSurvey("f".repeat(32))).toEqual({ status: "invalido" });
+    expect(await db.submitVisitFeedback("zzz", 5)).toEqual({ error: "invalid" });
+    for (const rating of [0, 6, 2.5, null, "x"]) expect(await db.submitVisitFeedback(TOKEN, rating)).toEqual({ error: "invalid_rating" });
+    expect(await db.submitVisitFeedback(TOKEN, 5, "x".repeat(501))).toEqual({ error: "invalid_comment" });
+    expect(await db.getVisitFeedback()).toEqual([]);
+  });
+});

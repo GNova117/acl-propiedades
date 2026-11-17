@@ -16,6 +16,7 @@ const PUBLIC_ROUTES = [
   "/calculadora",
   "/vende-tu-casa",
   "/comparar-creditos",
+  "/simulador-credito",
   "/guia-del-comprador",
   "/nosotros",
   "/contacto",

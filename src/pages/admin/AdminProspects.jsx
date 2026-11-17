@@ -8,6 +8,9 @@ import { FOLLOWUP_OPTIONS, PROSPECT_STAGES, firstStageWithProspects, followUpSta
 import { applyBulk, followupDate } from "../../lib/prospectBulk";
 import { convertProspectToClient } from "../../lib/prospectActions";
 import { matchingProperties } from "../../lib/prospectMatch";
+import { prospectScore, sortByScore } from "../../lib/prospectScore";
+import { contactCounts, sequenceState } from "../../lib/prospectSequence";
+import { openedSelection } from "../../lib/selections";
 import { useProspectContact } from "../../lib/useProspectContact";
 import { peek } from "../../lib/dataCache";
 import { queries } from "../../lib/queries";
@@ -45,6 +48,7 @@ export default function AdminProspects() {
   const visitsQ = useQuery(queries.visits, { enabled: canImport });
   const historyQ = useQuery(queries.stageHistory);
   const selectionsQ = useQuery(queries.selections);
+  const contactLogQ = useQuery(queries.contactLog);
   const prospects = prospectsQ.data ?? NONE;
   const advisors = advisorsQ.data ?? NONE;
   const properties = propertiesQ.data ?? NONE;
@@ -65,6 +69,13 @@ export default function AdminProspects() {
   const [overdueOnly, setOverdueOnly] = useState(filtro === "vencidos");
   const [unattendedOnly, setUnattendedOnly] = useState(filtro === "sin-atender");
   const [forgottenOnly, setForgottenOnly] = useState(filtro === "olvidados");
+  // Calificación (caliente/tibio/frío) y secuencia de seguimiento sugerida: ver lib/prospectScore.js y lib/prospectSequence.js.
+  const [hotOnly, setHotOnly] = useState(filtro === "calientes");
+  const [sequenceOnly, setSequenceOnly] = useState(filtro === "secuencia");
+  const [sortBy, setSortBy] = useState("recent"); // recent | temperature
+  // Arrastrar una tarjeta a otra columna cambia su etapa.
+  const [dragId, setDragId] = useState(null);
+  const [dropStage, setDropStage] = useState(null);
   // Etapa visible en el teléfono (en pantalla ancha se ven todas). Abre en la primera
   // etapa abierta que tenga prospectos: con la lista ya en el caché, desde el primer pintado.
   const cachedProspects = peek(queries.prospects.key);
@@ -105,6 +116,21 @@ export default function AdminProspects() {
   // Propiedades disponibles que encajan con lo que busca cada prospecto abierto.
   const matchesByProspect = useMemo(() => new Map(prospects.map((p) => [p.id, matchingProperties(p, properties)])), [prospects, properties]);
 
+  const scores = useMemo(() => {
+    const now = new Date();
+    return new Map(
+      prospects.map((p) => [
+        p.id,
+        prospectScore(p, { now, matchCount: (matchesByProspect.get(p.id) || []).length, selectionOpenedAt: openedSelection(p, selectionsQ.data || [], now)?.last_opened_at || null }),
+      ])
+    );
+  }, [prospects, matchesByProspect, selectionsQ.data]);
+  const counts = useMemo(() => contactCounts(contactLogQ.data), [contactLogQ.data]);
+  const sequences = useMemo(() => {
+    const now = new Date();
+    return new Map(prospects.map((p) => [p.id, sequenceState(p, { contactCount: counts.get(p.id) || 0, now })]));
+  }, [prospects, counts]);
+
   const activeAdvisorIds = useMemo(() => new Set(advisors.filter((a) => a.active !== false).map((a) => a.id)), [advisors]);
   const filtered = useMemo(() => {
     const q = normalize(query);
@@ -114,11 +140,13 @@ export default function AdminProspects() {
       if (overdueOnly && followUpState(p) !== "overdue") return false;
       if (unattendedOnly && !unattendedState(p)) return false;
       if (forgottenOnly && !isForgotten(p)) return false;
+      if (hotOnly && scores.get(p.id)?.level !== "hot") return false;
+      if (sequenceOnly && sequences.get(p.id)?.state !== "due") return false;
       if (!q) return true;
       return [p.name, p.phone, p.email, p.looking_for, propertyTitle(p.property_id)].some((v) => normalize(v).includes(q));
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prospects, query, advisorFilter, overdueOnly, unattendedOnly, forgottenOnly, activeAdvisorIds, properties]);
+  }, [prospects, query, advisorFilter, overdueOnly, unattendedOnly, forgottenOnly, hotOnly, sequenceOnly, scores, sequences, activeAdvisorIds, properties]);
 
   // Si se llegó con filtros en la dirección (Equipo hoy), en el teléfono el tablero abre en la primera etapa que tenga algo de lo filtrado.
   const filtersFromUrl = useRef(Boolean(params.get("asesor") || params.get("filtro")));
@@ -161,6 +189,14 @@ export default function AdminProspects() {
   const changeStage = (prospect, stage) => {
     setActiveStage(stage);
     return patch(prospect, { stage, ...(stage === "perdido" ? {} : { lost_reason: null }) });
+  };
+
+  // Soltar una tarjeta en una columna: cambia su etapa (si es otra) igual que el selector de la tarjeta.
+  const handleDrop = (stage) => {
+    const dragged = prospects.find((p) => p.id === dragId);
+    setDragId(null);
+    setDropStage(null);
+    if (dragged && dragged.stage !== stage) changeStage(dragged, stage);
   };
 
   const handleDelete = async (prospect) => {
@@ -315,7 +351,20 @@ export default function AdminProspects() {
           <input type="checkbox" checked={forgottenOnly} onChange={(e) => setForgottenOnly(e.target.checked)} />
           {t("prospects.forgottenOnly")}
         </label>
+        <label className="prospect-filters__check">
+          <input type="checkbox" checked={hotOnly} onChange={(e) => setHotOnly(e.target.checked)} />
+          {t("prospectScore.hotOnly")}
+        </label>
+        <label className="prospect-filters__check">
+          <input type="checkbox" checked={sequenceOnly} onChange={(e) => setSequenceOnly(e.target.checked)} />
+          {t("sequence.dueOnly")}
+        </label>
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} aria-label={t("prospectScore.sortLabel")}>
+          <option value="recent">{t("prospectScore.sortRecent")}</option>
+          <option value="temperature">{t("prospectScore.sortTemperature")}</option>
+        </select>
       </div>
+      <p className="form-hint prospect-board-hint">{t("prospects.dragHint")}</p>
 
       {loadError && <p className="form-error">{loadError}</p>}
       {loading ? (
@@ -340,12 +389,26 @@ export default function AdminProspects() {
 
           <div className="prospect-board">
             {PROSPECT_STAGES.map((stage) => {
-              const items = filtered.filter((p) => p.stage === stage);
+              const inStage = filtered.filter((p) => p.stage === stage);
+              const items = sortBy === "temperature" ? sortByScore(inStage, (p) => scores.get(p.id)) : inStage;
               return (
                 <section
                   key={stage}
-                  className={`prospect-col prospect-col--${stage}${stage === activeStage ? " is-active" : ""}`}
+                  className={`prospect-col prospect-col--${stage}${stage === activeStage ? " is-active" : ""}${dragId && dropStage === stage ? " is-drop-target" : ""}`}
                   aria-label={t(`prospects.stages.${stage}`)}
+                  onDragOver={(e) => {
+                    if (!dragId) return;
+                    e.preventDefault();
+                    if (dropStage !== stage) setDropStage(stage);
+                  }}
+                  onDragLeave={(e) => {
+                    // Solo cuando el cursor sale de la columna, no al pasar sobre sus tarjetas.
+                    if (!e.currentTarget.contains(e.relatedTarget)) setDropStage((current) => (current === stage ? null : current));
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    handleDrop(stage);
+                  }}
                 >
                   <h2 className="prospect-col__title">
                     {t(`prospects.stages.${stage}`)}
@@ -379,6 +442,14 @@ export default function AdminProspects() {
                       selected={selected.has(p.id)}
                       onToggleSelect={toggleOne}
                       selections={selectionsQ.data}
+                      score={scores.get(p.id)}
+                      sequence={sequences.get(p.id)}
+                      onDragStart={(id) => setDragId(id)}
+                      onDragEnd={() => {
+                        setDragId(null);
+                        setDropStage(null);
+                      }}
+                      dragging={dragId === p.id}
                     />
                   ))}
                 </section>

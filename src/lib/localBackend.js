@@ -100,6 +100,7 @@ const KEYS = {
   internalNotes: "acl_local_internal_notes",
   propertyViews: "acl_local_property_views",
   propertyEvents: "acl_local_property_events",
+  visitFeedback: "acl_local_visit_feedback",
   developments: "acl_local_developments",
   visitSchedules: "acl_local_visit_schedules",
   visitAttempts: "acl_local_visit_attempts",
@@ -2252,6 +2253,12 @@ export const localBackend = {
   },
 
   // Historial de contactos (modo demo: localStorage).
+  // Espejo de getProspectContactLog de Supabase.
+  async getProspectContactLog(days = 45) {
+    const since = new Date(Date.now() - days * 864e5).toISOString();
+    return readStore(KEYS.prospectContacts, []).filter((c) => String(c.at) >= since).map((c) => ({ prospecto_id: c.prospecto_id, at: c.at }));
+  },
+
   async getProspectContacts(prospectId) {
     return readStore(KEYS.prospectContacts, [])
       .filter((c) => c.prospecto_id === prospectId)
@@ -2872,6 +2879,40 @@ export const localBackend = {
       if (prospect && !prospect.advisor_id) await this.updateProspect(prospect.id, { advisor_id: advisorId });
     }
     return { ok: true, cita_id: citaId, advisor_id: advisorId };
+  },
+
+  // Espejo de get_visit_survey / submit_visit_feedback (schema.sql): mismos estados y mismos errores.
+  async getVisitSurvey(token) {
+    if (!BOOKING_TOKEN_PATTERN.test(token || "")) return { status: "invalido" };
+    const cita = readStore(KEYS.agendaCitas, []).find((c) => c.booking_token === token);
+    if (!cita) return { status: "invalido" };
+    const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === cita.property_id);
+    const answered = readStore(KEYS.visitFeedback, []).some((f) => f.cita_id === cita.id);
+    return {
+      status: answered ? "respondida" : cita.status === "realizada" ? "ok" : "no_disponible",
+      fecha: cita.fecha,
+      property: property ? { title: property.title, code: property.code || null } : null,
+    };
+  },
+
+  async submitVisitFeedback(token, rating, comment = null) {
+    if (!BOOKING_TOKEN_PATTERN.test(token || "")) return { error: "invalid" };
+    const cita = readStore(KEYS.agendaCitas, []).find((c) => c.booking_token === token);
+    if (!cita) return { error: "invalid" };
+    if (cita.status !== "realizada") return { error: "not_ready" };
+    const value = Number(rating);
+    if (!Number.isInteger(value) || value < 1 || value > 5) return { error: "invalid_rating" };
+    const cleaned = String(comment ?? "").trim();
+    if (cleaned.length > 500) return { error: "invalid_comment" };
+    const all = readStore(KEYS.visitFeedback, []);
+    if (all.some((f) => f.cita_id === cita.id)) return { error: "already_answered" };
+    all.push({ id: uid("fb"), cita_id: cita.id, property_id: cita.property_id || null, advisor_id: cita.advisor_id || null, rating: value, comment: cleaned || null, created_at: new Date().toISOString() });
+    writeStore(KEYS.visitFeedback, all);
+    return { ok: true };
+  },
+
+  async getVisitFeedback() {
+    return readStore(KEYS.visitFeedback, []).slice().sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
   },
 
   async getVisitBooking(token) {

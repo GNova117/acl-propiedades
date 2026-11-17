@@ -431,3 +431,18 @@
     flex: 1 1 9rem;
   }
 }
+
+/* Opinión que dejó el cliente tras su visita (encuesta /opinion/<token>) */
+.agenda-feedback {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.agenda-feedback span[aria-label] {
+  color: #e0a100;
+}
+
+.agenda-feedback__off {
+  color: var(--color-border);
+}

@@ -97,6 +97,7 @@ export const visitLabel = (property) => {
 };
 
 export const manageUrl = (siteUrl, token) => `${siteUrl}/visita/${token}`;
+export const surveyUrl = (siteUrl, token) => `${siteUrl}/opinion/${token}`;
 export const propertyUrl = (siteUrl, property) => (property?.id ? `${siteUrl}/propiedades/${property.id}` : siteUrl);
 export const mapsUrl = (address) => (String(address ?? "").trim() ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(String(address).trim())}` : null);
 
@@ -202,7 +203,7 @@ export const stripLines = (lines) => lines.map((l) => l.replace(/<[^>]+>/g, "").
 
 /**
  * Arma el correo de un tipo: "solicitud" (pidió una visita sin asesor), "confirmacion",
- * "reprogramada", "cancelacion", "recordatorio24h" o "recordatorio2h".
+ * "reprogramada", "cancelacion", "recordatorio24h", "recordatorio2h" o "encuesta" (después de una visita realizada).
  * Devuelve { subject, html, text, attachments }.
  * Los datos que escribió el visitante (nombre) y los de la propiedad van escapados; el
  * motivo de una cancelación NO se incluye (el asesor puede haber escrito notas internas).
@@ -298,6 +299,18 @@ export function buildVisitEmail(kind, cita, { siteUrl = DEFAULT_SITE_URL, now = 
         buttons: [...mapButton, { ...manageButton, primary: !map }],
         footnote: "Si no puedes asistir, cancela desde el botón para que otra persona pueda usar el horario.",
       };
+      break;
+    case "encuesta":
+      // La visita ya se hizo (el asesor la marcó «realizada»): se pide una calificación. El enlace es la misma llave de la visita.
+      spec = {
+        subject: `¿Cómo te fue en tu visita? — ${label}`,
+        preheader: "Son 30 segundos: una calificación y, si quieres, un comentario.",
+        heading: "Gracias por visitarnos",
+        lines: ["Nos encantaría saber cómo te fue en tu visita. Son 30 segundos: una calificación y, si quieres, un comentario. Solo lo ve el equipo de ACL Propiedades."],
+        buttons: [{ href: surveyUrl(siteUrl, cita.booking_token), label: "Calificar mi visita", primary: true }],
+        footnote: "Tu opinión nos ayuda a mejorar. Si tienes dudas sobre la propiedad, responde a este correo o escríbenos por WhatsApp.",
+      };
+      details[0] = ["Visitaste", esc(when)];
       break;
     default:
       throw new Error(`Tipo de correo desconocido: ${kind}`);

@@ -38,7 +38,7 @@ export default function TrustStats({ summary }) {
             <h3 className="trust-stats__recent-title">{t("trust.recentTitle")}</h3>
             <div className="trust-stats__recent">
               {summary.recentSold.map((property) => (
-                <PropertyCard key={property.id} property={property} />
+                <PropertyCard key={property.id} property={property} soldInDays={summary.soldDays?.[property.id]} />
               ))}
             </div>
           </>

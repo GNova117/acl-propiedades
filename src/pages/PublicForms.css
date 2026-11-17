@@ -84,3 +84,29 @@
     font-size: 0.85rem;
   }
 }
+
+/* «Vende tu casa»: estimado orientativo al instante */
+.sell-estimate {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-alt);
+}
+
+.sell-estimate__range {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: var(--color-primary);
+}
+
+.sell-estimate .form-hint {
+  margin: 0;
+}
+
+.sell-estimate__after {
+  font-weight: 600;
+  color: var(--color-text);
+}

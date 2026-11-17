@@ -86,7 +86,8 @@ export default function ChatWidget() {
         setMessages((prev) => [...prev, { role: "assistant", content: t("chatWidget.error"), fallback: true }]);
         return;
       }
-      setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
+      // Si el chat pasó la conversación a un asesor, el botón de WhatsApp (con lo platicado) sale resaltado en ese mensaje.
+      setMessages((prev) => [...prev, { role: "assistant", content: data.reply, fallback: Boolean(data.handoff) }]);
     } catch {
       setMessages((prev) => [...prev, { role: "assistant", content: t("chatWidget.error"), fallback: true }]);
     } finally {

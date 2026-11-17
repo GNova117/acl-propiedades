@@ -7432,3 +7432,213 @@ select cron.schedule(
   );
   $$
 );
+
+-- ─────────────────────────────────────────────
+-- Encuesta tras la visita y vendidas recientes con sus días (2026-11-17)
+--
+-- 1. «Vendidas recientemente» del inicio: public_sales_stats() ahora devuelve también `recent_sold`
+--    ([{ property_id, days }]) para mostrar «Vendida en N días». Mismas reglas que el promedio: una venta
+--    registrada el mismo día del alta (o antes) lleva days = null, nunca «0 días».
+--
+-- 2. Encuesta tras la visita: cuando el asesor marca «Realizada» una visita reservada desde el sitio (con
+--    correo), el trigger de correo manda «¿Cómo te fue?» (visita-correo, kind 'encuesta') con el enlace
+--    /opinion/<booking_token>. El cliente califica de 1 a 5 y puede dejar un comentario (máx. 500); una sola
+--    respuesta por visita. get_visit_survey() y submit_visit_feedback() son públicas y se guían por el
+--    mismo token de la visita; las respuestas (visit_feedback) solo las leen el asesor de esa visita y la
+--    oficina (RLS). El correo se «reclama» (visit_claim_survey, solo service_role): marcar «Realizada» más de
+--    una vez no lo manda otra vez.
+--
+-- Despliegue: correr este bloque (re-ejecutable) y volver a desplegar la función visita-correo
+--   (supabase functions deploy visita-correo --no-verify-jwt). Sin eso, todo sigue como antes.
+-- (bloque re-ejecutable: necesita antes "Agendar visita con horarios reales")
+-- ─────────────────────────────────────────────
+
+-- ── 1. Vendidas recientes con sus días ──
+create or replace function public_sales_stats() returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'total', count(*),
+    'last_12_months', count(*) filter (where v.fecha_venta >= current_date - 365),
+    'avg_days_to_sell', round(avg(v.fecha_venta - p.created_at::date) filter (where v.fecha_venta - p.created_at::date > 0)),
+    'recent_sold', coalesce((
+      select jsonb_agg(jsonb_build_object('property_id', r.property_id, 'days', case when r.days > 0 then r.days end) order by r.fecha_venta desc)
+      from (
+        select v3.property_id, v3.fecha_venta, (v3.fecha_venta - p3.created_at::date) as days
+        from ventas v3
+        join properties p3 on p3.id = v3.property_id
+        where p3.active
+        order by v3.fecha_venta desc
+        limit 6
+      ) r
+    ), '[]'::jsonb),
+    'recent_property_ids', coalesce((
+      select jsonb_agg(r.property_id)
+      from (
+        select v2.property_id
+        from ventas v2
+        join properties p2 on p2.id = v2.property_id
+        where p2.active
+        order by v2.fecha_venta desc
+        limit 6
+      ) r
+    ), '[]'::jsonb)
+  )
+  from ventas v
+  join properties p on p.id = v.property_id;
+$$;
+
+revoke all on function public_sales_stats() from public;
+grant execute on function public_sales_stats() to anon, authenticated;
+
+-- ── 2. Encuesta tras la visita ──
+alter table agenda_citas add column if not exists survey_sent_at timestamptz;
+
+create table if not exists visit_feedback (
+  id uuid primary key default gen_random_uuid(),
+  cita_id uuid not null unique references agenda_citas(id) on delete cascade,
+  property_id uuid references properties(id) on delete set null,
+  advisor_id uuid references advisors(id) on delete set null,
+  rating smallint not null check (rating between 1 and 5),
+  comment text check (comment is null or char_length(comment) <= 500),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_visit_feedback_advisor on visit_feedback(advisor_id, created_at desc);
+
+alter table visit_feedback enable row level security;
+
+-- Solo lectura para el personal (el asesor de la visita, o la oficina). Nadie escribe directo: se hace por submit_visit_feedback().
+drop policy if exists "Ver opiniones de visitas propias o todas con agenda" on visit_feedback;
+create policy "Ver opiniones de visitas propias o todas con agenda" on visit_feedback for select
+  using (has_admin_section('agenda') and (my_advisor_id() is null or my_advisor_id() = advisor_id));
+
+-- Lo que consulta /opinion/<token>. status: invalido | ok | respondida | no_disponible (la visita aún no es «realizada»).
+create or replace function get_visit_survey(p_token text)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  c agenda_citas;
+  prop properties;
+  answered boolean;
+begin
+  select * into c from agenda_citas where booking_token = p_token and p_token ~ '^[0-9a-f]{32}$';
+  if not found then
+    return jsonb_build_object('status', 'invalido');
+  end if;
+  select * into prop from properties where id = c.property_id;
+  select exists (select 1 from visit_feedback where cita_id = c.id) into answered;
+  return jsonb_build_object(
+    'status', case when answered then 'respondida' when c.status = 'realizada' then 'ok' else 'no_disponible' end,
+    'fecha', c.fecha,
+    'property', case when prop.id is null then null else jsonb_build_object('title', prop.title, 'code', prop.code) end
+  );
+end;
+$$;
+
+-- Errores (jsonb {error}): invalid (token), not_ready, invalid_rating, invalid_comment, already_answered.
+create or replace function submit_visit_feedback(p_token text, p_rating integer, p_comment text default null)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  c agenda_citas;
+  cleaned text := nullif(btrim(coalesce(p_comment, '')), '');
+  inserted integer;
+begin
+  select * into c from agenda_citas where booking_token = p_token and p_token ~ '^[0-9a-f]{32}$';
+  if not found then return jsonb_build_object('error', 'invalid'); end if;
+  if c.status <> 'realizada' then return jsonb_build_object('error', 'not_ready'); end if;
+  if p_rating is null or p_rating < 1 or p_rating > 5 then return jsonb_build_object('error', 'invalid_rating'); end if;
+  if cleaned is not null and char_length(cleaned) > 500 then return jsonb_build_object('error', 'invalid_comment'); end if;
+
+  insert into visit_feedback (cita_id, property_id, advisor_id, rating, comment)
+  values (c.id, c.property_id, c.advisor_id, p_rating, cleaned)
+  on conflict (cita_id) do nothing;
+  get diagnostics inserted = row_count;
+  if inserted = 0 then return jsonb_build_object('error', 'already_answered'); end if;
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+revoke all on function get_visit_survey(text) from public;
+revoke all on function submit_visit_feedback(text, integer, text) from public;
+grant execute on function get_visit_survey(text) to anon, authenticated;
+grant execute on function submit_visit_feedback(text, integer, text) to anon, authenticated;
+
+-- «Reclamo» del correo de la encuesta: true solo la primera vez (solo la usa la Edge Function, con service_role).
+create or replace function visit_claim_survey(p_cita_id uuid)
+returns boolean
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  changed integer;
+begin
+  update agenda_citas set survey_sent_at = now() where id = p_cita_id and status = 'realizada' and survey_sent_at is null;
+  get diagnostics changed = row_count;
+  return changed > 0;
+end;
+$$;
+
+revoke all on function visit_claim_survey(uuid) from public, anon, authenticated;
+grant execute on function visit_claim_survey(uuid) to service_role;
+
+-- El trigger de correo de visitas, ahora también con la encuesta al marcar «Realizada».
+create or replace function notify_visit_email()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  kind text;
+begin
+  -- Solo reservas del sitio con correo. Las citas que crea el equipo a mano no mandan correo.
+  if new.source is distinct from 'sitio' or coalesce(trim(new.contact_email), '') = '' then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' then
+    kind := case when new.status = 'solicitada' then 'solicitud' else 'confirmacion' end;
+  elsif old.status is distinct from 'realizada' and new.status = 'realizada' then
+    kind := 'encuesta'; -- el asesor marcó la visita como realizada: se le pide su opinión
+  elsif old.status in ('confirmada', 'solicitada') and new.status = 'cancelada' then
+    kind := 'cancelacion';
+  elsif old.status in ('cancelada', 'solicitada') and new.status = 'confirmada' then
+    kind := 'confirmacion'; -- el asesor reactivó una visita cancelada o tomó una solicitud sin asesor
+  elsif new.status = 'confirmada' and (new.fecha is distinct from old.fecha or new.hora is distinct from old.hora) then
+    kind := 'reprogramada';
+  else
+    return new;
+  end if;
+
+  begin
+    perform net.http_post(
+      url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/visita-correo',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'publishable_key'),
+        'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'agenda_cron_secret')
+      ),
+      body := jsonb_build_object('cita_id', new.id, 'kind', kind)
+    );
+  exception when others then
+    raise warning 'notify_visit_email: no se pudo encolar el correo (%) de la cita %: %', kind, new.id, sqlerrm;
+  end;
+
+  return new;
+end;
+$$;

@@ -27,6 +27,7 @@ const Development = lazy(() => import("./pages/Development"));
 const Calculator = lazy(() => import("./pages/Calculator"));
 const SellYourHome = lazy(() => import("./pages/SellYourHome"));
 const CreditCompare = lazy(() => import("./pages/CreditCompare"));
+const CreditSimulator = lazy(() => import("./pages/CreditSimulator"));
 const BuyerGuide = lazy(() => import("./pages/BuyerGuide"));
 const AlertUnsubscribe = lazy(() => import("./pages/AlertUnsubscribe"));
 const About = lazy(() => import("./pages/About"));
@@ -111,6 +112,7 @@ const PublicSign = lazy(() => import("./pages/PublicSign"));
 // ruta /documentos/:token más abajo, igual patrón que /informe/:token y /firmar/:token.
 const PortalDocuments = lazy(() => import("./pages/PortalDocuments"));
 const PublicVisit = lazy(() => import("./pages/PublicVisit"));
+const PublicSurvey = lazy(() => import("./pages/PublicSurvey"));
 const PublicSelection = lazy(() => import("./pages/PublicSelection"));
 const AdminSignatures = lazy(() => import("./pages/admin/AdminSignatures"));
 const AdminFunnel = lazy(() => import("./pages/admin/AdminFunnel"));
@@ -191,6 +193,7 @@ export default function App() {
       <Route path="/calculadora" element={<PublicLayout><Calculator /></PublicLayout>} />
       <Route path="/vende-tu-casa" element={<PublicLayout><SellYourHome /></PublicLayout>} />
       <Route path="/comparar-creditos" element={<PublicLayout><CreditCompare /></PublicLayout>} />
+      <Route path="/simulador-credito" element={<PublicLayout><CreditSimulator /></PublicLayout>} />
       <Route path="/guia-del-comprador" element={<PublicLayout><BuyerGuide /></PublicLayout>} />
       <Route path="/alertas/baja/:token" element={<PublicLayout><AlertUnsubscribe /></PublicLayout>} />
       <Route path="/nosotros" element={<PublicLayout><About /></PublicLayout>} />
@@ -209,6 +212,7 @@ export default function App() {
       <Route path="/firmar/:token" element={<ErrorBoundary><PublicSign /></ErrorBoundary>} />
       <Route path="/documentos/:token" element={<ErrorBoundary><PortalDocuments /></ErrorBoundary>} />
       <Route path="/visita/:token" element={<ErrorBoundary><PublicVisit /></ErrorBoundary>} />
+      <Route path="/opinion/:token" element={<ErrorBoundary><PublicSurvey /></ErrorBoundary>} />
       <Route path="/seleccion/:token" element={<ErrorBoundary><PublicSelection /></ErrorBoundary>} />
 
       <Route path="/admin/login" element={<AdminLogin />} />

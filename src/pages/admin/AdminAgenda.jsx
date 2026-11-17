@@ -56,6 +56,7 @@ export default function AdminAgenda() {
   // pinta al instante y se actualiza al llegar lo nuevo. Las visitas registradas (para saber qué citas
   // ya tienen la suya) solo se piden con el apartado Visitas.
   const citasQ = useQuery(queries.citas);
+  const feedbackQ = useQuery(queries.visitFeedback);
   const advisorsQ = useQuery(queries.advisors);
   const clientsQ = useQuery(queries.clients());
   const propertiesQ = useQuery(queries.properties);
@@ -194,6 +195,7 @@ export default function AdminAgenda() {
 
   // Visita ya registrada de cada cita (agenda_citas ↔ property_visits.cita_id).
   const visitByCita = new Map(visits.filter((v) => v.cita_id).map((v) => [v.cita_id, v]));
+  const feedbackByCita = new Map((feedbackQ.data ?? []).map((f) => [f.cita_id, f]));
   const canLogVisits = hasSection("visitas");
   // "Registrar visita": abre el formulario ya prellenado con los datos de la cita.
   const registerVisit = (cita) =>
@@ -358,6 +360,15 @@ export default function AdminAgenda() {
                           )}
                           {visitByCita.has(cita.id) && cita.prospecto_id && hasSection("prospectos") && " · "}
                           {cita.prospecto_id && hasSection("prospectos") && <Link to={`/admin/prospectos/${cita.prospecto_id}`}>{t("agenda.viewProspect")}</Link>}
+                        </div>
+                      )}
+                      {feedbackByCita.has(cita.id) && (
+                        <div className="agenda-feedback">
+                          <span aria-label={t("surveyAdmin.ratingAria", { rating: feedbackByCita.get(cita.id).rating })}>
+                            {"★".repeat(feedbackByCita.get(cita.id).rating)}
+                            <span className="agenda-feedback__off">{"★".repeat(5 - feedbackByCita.get(cita.id).rating)}</span>
+                          </span>{" "}
+                          {feedbackByCita.get(cita.id).comment ? `“${feedbackByCita.get(cita.id).comment}”` : t("surveyAdmin.noComment")}
                         </div>
                       )}
                       {cita.lugar && (

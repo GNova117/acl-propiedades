@@ -572,3 +572,52 @@
   flex-wrap: wrap;
   gap: 0.4rem;
 }
+
+/* Arrastrar tarjetas entre columnas (solo pantallas anchas con ratón) */
+.prospect-board-hint {
+  display: none;
+  margin: 0 0 0.75rem;
+}
+
+@media (hover: hover) and (min-width: 981px) {
+  .prospect-board-hint {
+    display: block;
+  }
+
+  .prospect-card[draggable="true"] {
+    cursor: grab;
+  }
+}
+
+.prospect-card.is-dragging {
+  opacity: 0.45;
+}
+
+.prospect-col.is-drop-target {
+  outline: 2px dashed var(--color-primary);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+}
+
+/* Calificación y secuencia sugerida */
+.prospect-score--hot {
+  border-color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface));
+}
+
+.prospect-score--warm {
+  border-color: #e0a100;
+  background: color-mix(in srgb, #e0a100 12%, var(--color-surface));
+}
+
+.prospect-score--cold {
+  border-color: var(--color-border);
+}
+
+.prospect-sequence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}

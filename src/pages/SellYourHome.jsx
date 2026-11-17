@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import { db } from "../lib/dataStore";
-import { formatArea, propertyTypeLabel } from "../lib/format";
+import { formatArea, formatMXN, propertyTypeLabel } from "../lib/format";
+import { sellEstimate } from "../lib/sellEstimate";
 import { isValidPhone, sendLead } from "../lib/lead";
 import "./PublicForms.css";
 
@@ -27,6 +28,12 @@ export default function SellYourHome() {
 
   const change = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   const isLand = form.type === "terreno";
+  // Estimado al instante con el tabulador de la zona (ver lib/sellEstimate.js); se queda a la vista tras enviar.
+  const estimate = useMemo(
+    () => sellEstimate({ zone: zones.find((z) => z.id === form.zoneId), type: form.type, landArea: form.landArea, builtArea: form.builtArea }),
+    [zones, form.zoneId, form.type, form.landArea, form.builtArea]
+  );
+  const [sentEstimate, setSentEstimate] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,6 +55,7 @@ export default function SellYourHome() {
       terreno_m2: Number(form.landArea) || 0,
       construccion_m2: isLand ? 0 : Number(form.builtArea) || 0,
       precio_esperado: Number(form.expectedPrice) || 0,
+      ...(estimate ? { estimado_bajo: estimate.low, estimado_alto: estimate.high } : {}),
     };
     const message = [
       "Solicitud de estimación de valor — quiere vender o conocer el valor de su propiedad.",
@@ -55,6 +63,7 @@ export default function SellYourHome() {
       `Dirección / colonia: ${details.direccion}`,
       `Terreno: ${formatArea(details.terreno_m2)}${details.construccion_m2 ? ` · Construcción: ${formatArea(details.construccion_m2)}` : ""}`,
       details.precio_esperado ? `Precio que espera: $${details.precio_esperado.toLocaleString("es-MX")}` : null,
+      estimate ? `Estimado orientativo que vio en el sitio: ${formatMXN(estimate.low)} a ${formatMXN(estimate.high)}` : null,
       form.comments.trim() ? `Comentarios: ${form.comments.trim()}` : null,
     ]
       .filter(Boolean)
@@ -70,7 +79,10 @@ export default function SellYourHome() {
       details,
     });
     setStatus(outcome);
-    if (outcome === "success") setForm(INITIAL);
+    if (outcome === "success") {
+      setSentEstimate(estimate);
+      setForm(INITIAL);
+    }
   };
 
   return (
@@ -89,7 +101,10 @@ export default function SellYourHome() {
               <p className="form-hint" style={{ color: "var(--color-success)" }}>
                 {t("sellHome.success")}
               </p>
-              <button type="button" className="btn btn-outline" onClick={() => setStatus("idle")}>
+              {sentEstimate && (
+                <p className="sell-estimate__after">{t("sellEstimate.afterSend", { low: formatMXN(sentEstimate.low), high: formatMXN(sentEstimate.high) })}</p>
+              )}
+              <button type="button" className="btn btn-outline" onClick={() => { setStatus("idle"); setSentEstimate(null); }}>
                 {t("sellHome.another")}
               </button>
             </>
@@ -164,6 +179,18 @@ export default function SellYourHome() {
                     <label htmlFor="sh-built">{t("sellHome.builtArea")}</label>
                     <input id="sh-built" name="builtArea" type="number" min="0" step="any" inputMode="decimal" value={form.builtArea} onChange={change} />
                   </div>
+                )}
+              </div>
+
+              <div className="sell-estimate" role="status" aria-live="polite">
+                {estimate ? (
+                  <>
+                    <strong>{t("sellEstimate.title")}</strong>
+                    <span className="sell-estimate__range">{t("sellEstimate.range", { low: formatMXN(estimate.low), high: formatMXN(estimate.high) })}</span>
+                    <span className="form-hint">{t("sellEstimate.note")}</span>
+                  </>
+                ) : (
+                  <span className="form-hint">{t("sellEstimate.hint")}</span>
                 )}
               </div>
 

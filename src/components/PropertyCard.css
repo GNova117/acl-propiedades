@@ -146,3 +146,11 @@
   font-weight: 600;
   color: var(--color-success);
 }
+
+/* «Vendida en 42 días» en la galería de vendidas recientes. */
+.property-card__sold-days {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}

@@ -7,12 +7,15 @@ import { describe, expect, it } from "vitest";
 // etapa. Estas pruebas vigilan que el bloque no pierda piezas, ni cuele secretos, ni se abra a anon.
 const schema = readFileSync(new URL("./schema.sql", import.meta.url), "utf8");
 const START = "-- Avisos por correo al cliente del portal (2026-11-17)";
-const block = schema.slice(schema.lastIndexOf("-- ───", schema.indexOf(START)));
+const NEXT = "-- Encuesta tras la visita y vendidas recientes con sus días (2026-11-17)"; // el bloque que se agregó después
+const start = schema.lastIndexOf("-- ───", schema.indexOf(START));
+const block = schema.slice(start, schema.lastIndexOf("-- ───", schema.indexOf(NEXT, start)));
 
 describe("schema.sql: avisos por correo al cliente del portal", () => {
-  it("el bloque existe una sola vez y va al final", () => {
+  it("el bloque existe una sola vez y está completo, antes del de la encuesta", () => {
     expect(schema.split(START)).toHaveLength(2);
-    expect(schema.trimEnd().endsWith(block.trimEnd())).toBe(true);
+    expect(block.length).toBeGreaterThan(2000);
+    expect(block.trimEnd().endsWith("'recordatorios')\n  );\n  $$\n);")).toBe(true);
   });
 
   it("es opt-in: notify_client apagado por omisión y los triggers lo respetan", () => {

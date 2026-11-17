@@ -2120,6 +2120,15 @@ export const supabaseBackend = {
   // del historial. Devuelve el prospecto actualizado.
   // Contactos registrados desde `sinceISO` (RLS: un asesor cuenta solo los de sus
   // prospectos). Solo el conteo, sin traer filas. Alimenta "Mi mes" (lib/goals.js).
+  // Fechas de los contactos registrados en los últimos `days` días, de todos los prospectos que el usuario puede ver (RLS):
+  // alimenta la secuencia de seguimiento sugerida (cuántos contactos lleva cada prospecto). Sin la tabla devuelve [].
+  async getProspectContactLog(days = 45) {
+    const since = new Date(Date.now() - days * 864e5).toISOString();
+    const { data, error } = await supabase.from("prospecto_contactos").select("prospecto_id, at").gte("at", since);
+    if (error) return [];
+    return data || [];
+  },
+
   async countProspectContactsSince(sinceISO) {
     const { count, error } = await supabase.from("prospecto_contactos").select("id", { count: "exact", head: true }).gte("at", sinceISO);
     if (error) return 0;
@@ -2669,6 +2678,28 @@ export const supabaseBackend = {
     const { data, error } = await supabase.rpc("claim_visit_request", { p_cita_id: citaId, p_advisor_id: advisorId });
     if (error) throw error;
     return data;
+  },
+
+  // Encuesta tras la visita (get_visit_survey / submit_visit_feedback / visit_feedback en schema.sql).
+  // El cliente entra con el mismo token de su visita. Si las funciones aún no existen en la base, la página dice
+  // que la encuesta no está disponible en vez de romperse.
+  async getVisitSurvey(token) {
+    const { data, error } = await supabase.rpc("get_visit_survey", { p_token: token });
+    if (error) throw error;
+    return data;
+  },
+
+  async submitVisitFeedback(token, rating, comment = null) {
+    const { data, error } = await supabase.rpc("submit_visit_feedback", { p_token: token, p_rating: rating, p_comment: comment });
+    if (error) throw error;
+    return data;
+  },
+
+  // Opiniones de las visitas (RLS: cada asesor las suyas, la oficina todas). Sin la tabla devuelve [].
+  async getVisitFeedback() {
+    const { data, error } = await supabase.from("visit_feedback").select("*").order("created_at", { ascending: false });
+    if (error) return [];
+    return data || [];
   },
 
   async getVisitBooking(token) {

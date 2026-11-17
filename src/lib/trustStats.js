@@ -27,17 +27,24 @@ export function computeSalesStats(ventas, properties, now = Date.now()) {
     .map((v) => dayNumber(v.fecha_venta) - dayNumber(byId.get(v.property_id).created_at))
     .filter((days) => days > 0);
 
-  const recent = sales
+  const recentSales = sales
     .filter((v) => byId.get(v.property_id).active !== false)
     .sort((a, b) => String(b.fecha_venta).localeCompare(String(a.fecha_venta)))
-    .slice(0, 6)
-    .map((v) => v.property_id);
+    .slice(0, 6);
+  const recent = recentSales.map((v) => v.property_id);
+  // Cuántos días tardó cada una. Mismo criterio que el promedio: una venta registrada el mismo día del alta (o antes)
+  // viene de casas que ya estaban vendidas antes de usar el sistema; decir «0 días» sería falso, así que va null.
+  const recentSold = recentSales.map((v) => {
+    const days = dayNumber(v.fecha_venta) - dayNumber(byId.get(v.property_id).created_at);
+    return { property_id: v.property_id, days: days > 0 ? days : null };
+  });
 
   return {
     total: sales.length,
     last_12_months: sales.filter((v) => today - dayNumber(v.fecha_venta) <= 365).length,
     avg_days_to_sell: spans.length ? Math.round(spans.reduce((sum, d) => sum + d, 0) / spans.length) : null,
     recent_property_ids: recent,
+    recent_sold: recentSold,
   };
 }
 
@@ -51,6 +58,11 @@ export function buildTrustSummary(stats, properties) {
     .map((id) => byId.get(id))
     .filter((p) => p && p.status === "vendida")
     .slice(0, MAX_RECENT_SOLD);
+  // property_id → días que tardó en venderse (solo las que tienen un dato creíble).
+  const soldDays = {};
+  for (const item of stats.recent_sold || []) {
+    if (item?.property_id && item.days > 0) soldDays[item.property_id] = Math.round(item.days);
+  }
   return {
     sold: stats.total,
     // Si todas son del último año, repetir la cifra no aporta nada.
@@ -58,5 +70,6 @@ export function buildTrustSummary(stats, properties) {
     avgDays: stats.avg_days_to_sell > 0 ? stats.avg_days_to_sell : null,
     available: available > 0 ? available : null,
     recentSold,
+    soldDays,
   };
 }

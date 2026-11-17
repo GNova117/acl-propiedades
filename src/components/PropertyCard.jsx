@@ -15,7 +15,8 @@ import { estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import "./PropertyCard.css";
 
 // `nextVisitSlot`: primer horario libre para visitarla ({ fecha, hora }); sale «Visítala hoy / mañana / el jueves».
-export default function PropertyCard({ property, nextVisitSlot }) {
+// `soldInDays`: en «Vendidas recientemente», cuántos días tardó en venderse.
+export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
   const { t, i18n } = useTranslation();
   const location = useLocation();
   // De dónde viene la persona: la ficha lo usa para que «Volver» regrese a este listado con sus filtros.
@@ -66,6 +67,9 @@ export default function PropertyCard({ property, nextVisitSlot }) {
           >
             {t("monthlyEstimate.perMonth", { amount: formatMXN(monthly.payment) })}
           </p>
+        )}
+        {property.status === "vendida" && soldInDays > 0 && (
+          <p className="property-card__sold-days">{t("trust.soldInDays", { count: soldInDays })}</p>
         )}
         {visitTag && (
           <p className={`property-card__visit property-card__visit--${visitTag.kind}`}>

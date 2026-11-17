@@ -4,7 +4,19 @@
 // este archivo nunca toca Supabase directo — `searchProperties`/`onLead` son
 // funciones que le inyecta quien llama.
 import Anthropic from "@anthropic-ai/sdk";
-import { CHAT_MODEL_DEFAULT, CHAT_TOOLS, buildSystemPrompt, normalizePropertySearchArgs, summarizePropertiesForChat, validateLeadArgs } from "../src/lib/chatbot.js";
+import {
+  CHAT_MODEL_DEFAULT,
+  CHAT_TOOLS,
+  buildSystemPrompt,
+  normalizePropertyCode,
+  normalizePropertySearchArgs,
+  summarizeBookingResult,
+  summarizePropertiesForChat,
+  summarizeSlotsForChat,
+  validateBookingArgs,
+  validateHandoffArgs,
+  validateLeadArgs,
+} from "../src/lib/chatbot.js";
 
 export const DEFAULT_MODEL = CHAT_MODEL_DEFAULT;
 
@@ -51,32 +63,66 @@ export function estimateCostUsd(model, usage) {
   return Math.round(usd * 1e6) / 1e6;
 }
 
-async function runTool(toolUse, { searchProperties, onLead }) {
+// Cada herramienta devuelve un tool_result y, aparte, banderas para el widget (leadCaptured, handoff, visitBooked) que
+// se quitan antes de mandárselo al modelo. Las funciones que tocan la base (searchProperties, onLead, listVisitSlots,
+// bookVisit) las inyecta quien llama; si no se inyectaron, la herramienta responde que no está disponible.
+async function runTool(toolUse, deps) {
+  const { searchProperties, onLead, listVisitSlots, bookVisit } = deps;
+  const result = (content, extra = {}) => ({ type: "tool_result", tool_use_id: toolUse.id, content, ...extra });
+  const error = (content) => result(content, { is_error: true });
+
   if (toolUse.name === "buscar_propiedades") {
     const args = normalizePropertySearchArgs(toolUse.input);
     const properties = await searchProperties(args);
-    return { type: "tool_result", tool_use_id: toolUse.id, content: summarizePropertiesForChat(properties) };
+    return result(summarizePropertiesForChat(properties));
   }
   if (toolUse.name === "capturar_lead") {
     const lead = validateLeadArgs(toolUse.input);
-    if (!lead) {
-      return { type: "tool_result", tool_use_id: toolUse.id, content: "Falta un dato de contacto válido (teléfono o correo).", is_error: true };
-    }
+    if (!lead) return error("Falta un dato de contacto válido (teléfono o correo).");
     await onLead(lead);
-    return { type: "tool_result", tool_use_id: toolUse.id, content: "Listo, ya quedó registrado. Un asesor le dará seguimiento pronto.", leadCaptured: true };
+    return result("Listo, ya quedó registrado. Un asesor le dará seguimiento pronto.", { leadCaptured: true });
   }
-  return { type: "tool_result", tool_use_id: toolUse.id, content: "Esa herramienta no existe.", is_error: true };
+  if (toolUse.name === "horarios_visita") {
+    const code = normalizePropertyCode(toolUse.input?.codigo);
+    if (!code) return error("Falta el código de la propiedad (el que aparece en buscar_propiedades).");
+    if (!listVisitSlots) return error("Agendar visitas en línea no está disponible; usa pasar_a_asesor.");
+    const slots = await listVisitSlots(code);
+    if (slots === null) return error("No encontré una propiedad activa con ese código.");
+    return result(summarizeSlotsForChat(slots, { property: code }));
+  }
+  if (toolUse.name === "agendar_visita") {
+    const checked = validateBookingArgs(toolUse.input);
+    if (checked.error) return error(checked.error);
+    if (!bookVisit) return error("Agendar visitas en línea no está disponible; usa pasar_a_asesor.");
+    const booked = await bookVisit(checked.value);
+    if (booked === null) return error("No encontré una propiedad activa con ese código.");
+    const summary = summarizeBookingResult(booked);
+    return summary.booked ? result(summary.text, { visitBooked: true }) : error(summary.text);
+  }
+  if (toolUse.name === "pasar_a_asesor") {
+    const { lead } = validateHandoffArgs(toolUse.input);
+    if (lead) await onLead(lead);
+    return result(
+      lead
+        ? "Listo: un asesor le escribirá a los datos que dejó. Dile que también puede seguir ahora por WhatsApp con el botón del chat."
+        : "Listo. Dile que puede escribirle ya a un asesor por WhatsApp con el botón del chat (ahí queda lo que platicaron).",
+      { handoff: true, leadCaptured: Boolean(lead) }
+    );
+  }
+  return error("Esa herramienta no existe.");
 }
 
 // Punto de entrada. `client` se puede inyectar (pruebas); en producción se
 // crea con la llave de entorno. `messages` ya viene validado por quien llama
 // (ver validateIncomingMessages en src/lib/chatbot.js).
-export async function runChat({ messages, searchProperties, onLead }, { client, model = DEFAULT_MODEL, budgetMs = 25_000 } = {}) {
+export async function runChat({ messages, searchProperties, onLead, listVisitSlots, bookVisit }, { client, model = DEFAULT_MODEL, budgetMs = 25_000 } = {}) {
   const anthropic = client || new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 0 });
   const deadline = Date.now() + budgetMs;
   const conversation = messages.map((m) => ({ role: m.role, content: m.content }));
   const usage = { input: 0, output: 0 };
   let leadCaptured = false;
+  let handoff = false;
+  let visitBooked = false;
 
   for (let turn = 0; turn < MAX_TOOL_TURNS; turn++) {
     const remaining = deadline - Date.now();
@@ -117,6 +163,8 @@ export async function runChat({ messages, searchProperties, onLead }, { client, 
       return {
         reply: text || "Disculpa, no entendí bien tu mensaje — ¿me lo puedes decir de otra forma?",
         leadCaptured,
+        handoff,
+        visitBooked,
         usage: { ...usage, model, costUsd: estimateCostUsd(model, usage) },
       };
     }
@@ -125,9 +173,11 @@ export async function runChat({ messages, searchProperties, onLead }, { client, 
     // Un solo mensaje de usuario con TODOS los tool_result de este turno —
     // partirlos en varios mensajes le enseña al modelo a dejar de pedir
     // herramientas en paralelo.
-    const toolResults = await Promise.all(toolUses.map((toolUse) => runTool(toolUse, { searchProperties, onLead })));
+    const toolResults = await Promise.all(toolUses.map((toolUse) => runTool(toolUse, { searchProperties, onLead, listVisitSlots, bookVisit })));
     if (toolResults.some((r) => r.leadCaptured)) leadCaptured = true;
-    conversation.push({ role: "user", content: toolResults.map(({ leadCaptured: _lc, ...r }) => r) });
+    if (toolResults.some((r) => r.handoff)) handoff = true;
+    if (toolResults.some((r) => r.visitBooked)) visitBooked = true;
+    conversation.push({ role: "user", content: toolResults.map(({ leadCaptured: _lc, handoff: _h, visitBooked: _vb, ...r }) => r) });
   }
   throw new ChatbotError("too_many_turns", "La conversación necesitó demasiados pasos para responder.");
 }

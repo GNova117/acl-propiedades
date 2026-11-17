@@ -119,12 +119,40 @@ export default async function handler(req, res) {
     });
   };
 
+  // Agendar visitas desde el chat: el código de la propiedad (el que ve en los resultados) se resuelve aquí y las
+  // reglas de horarios, límites y correos son las de siempre (get_visit_slots / book_visit de schema.sql). Si esas
+  // funciones aún no existen en la base, el chat responde que no hay horarios en línea y pasa a un asesor.
+  const findPropertyId = async (code) => {
+    const { data } = await anon.from("properties").select("id").eq("code", code).eq("active", true).maybeSingle();
+    return data?.id || null;
+  };
+  const listVisitSlots = async (code) => {
+    const id = await findPropertyId(code);
+    if (!id) return null;
+    const { data, error } = await anon.rpc("get_visit_slots", { p_property_id: id, p_from: null, p_days: 14 });
+    return error ? [] : data?.slots || [];
+  };
+  const bookVisit = async (visit) => {
+    const id = await findPropertyId(visit.code);
+    if (!id) return null;
+    const { data, error } = await anon.rpc("book_visit", {
+      p_property_id: id,
+      p_fecha: visit.fecha,
+      p_hora: visit.hora,
+      p_name: visit.name,
+      p_email: visit.email,
+      p_phone: visit.phone,
+      p_note: visit.note,
+    });
+    return error ? { error: "upstream" } : data;
+  };
+
   try {
     const result = await runChat(
-      { messages, searchProperties, onLead },
+      { messages, searchProperties, onLead, listVisitSlots, bookVisit },
       { model: process.env.CHAT_MODEL || DEFAULT_MODEL }
     );
-    res.status(200).json({ configured: true, reply: result.reply, leadCaptured: result.leadCaptured });
+    res.status(200).json({ configured: true, reply: result.reply, leadCaptured: result.leadCaptured, handoff: result.handoff, visitBooked: result.visitBooked });
   } catch (err) {
     const code = err instanceof ChatbotError ? err.code : "upstream";
     res.status(HTTP_STATUS_BY_CODE[code] || 502).json({ error: code, message: err.message });
