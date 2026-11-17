@@ -43,12 +43,20 @@
     "api/ad-copy.js": {
       "maxDuration": 60
     },
-    "api/og.js": {
+    "api/media.js": {
       "maxDuration": 15,
       "includeFiles": "server/fonts/**"
     }
   },
   "rewrites": [
+    {
+      "source": "/api/og",
+      "destination": "/api/media?kind=og"
+    },
+    {
+      "source": "/api/agenda-ics",
+      "destination": "/api/media?kind=ics"
+    },
     {
       "source": "/sitemap.xml",
       "destination": "/api/sitemap"

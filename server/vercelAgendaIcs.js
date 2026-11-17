@@ -1,7 +1,7 @@
 // Calendario suscribible de la Agenda (ver server/agendaFeed.js). Usa la llave pública: la función
 // get_agenda_feed de la base ya valida el token y no devuelve teléfonos ni correos de clientes.
 import { createClient } from "@supabase/supabase-js";
-import { serveAgendaFeed } from "../server/agendaFeed.js";
+import { serveAgendaFeed } from "./agendaFeed.js";
 
 export default async function handler(req, res) {
   if (req.method !== "GET" && req.method !== "HEAD") {

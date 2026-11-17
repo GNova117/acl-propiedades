@@ -3,8 +3,8 @@
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { GlobalFonts, Path2D, createCanvas, loadImage } from "@napi-rs/canvas";
-import { registerFonts } from "../server/ogImage.js";
-import { propertyOgResponse } from "../server/ogProperty.js";
+import { registerFonts } from "./ogImage.js";
+import { propertyOgResponse } from "./ogProperty.js";
 
 let fontsReady = false;
 
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     return;
   }
   if (!fontsReady) {
-    registerFonts(GlobalFonts, join(dirname(fileURLToPath(import.meta.url)), "..", "server", "fonts"));
+    registerFonts(GlobalFonts, join(dirname(fileURLToPath(import.meta.url)), "fonts"));
     fontsReady = true;
   }
   const out = await propertyOgResponse({ id: req.query?.id, env: process.env, canvasApi: { createCanvas, Path2D }, loadImage });
