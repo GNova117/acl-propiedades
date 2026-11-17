@@ -43,6 +43,8 @@ const ADMIN_ROUTES = [
   "/admin/propiedades/prop-1",
   "/admin/propiedades/prop-1/bitacora",
   "/admin/propiedades/prop-1/liquidacion",
+  "/admin/comisiones",
+  "/admin/ayuda",
   "/admin/propiedades/prop-1/historial",
   "/admin/desarrollos",
   "/admin/desarrollos/nuevo",

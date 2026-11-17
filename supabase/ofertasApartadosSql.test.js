@@ -10,12 +10,13 @@ import { describe, expect, it } from "vitest";
 const schema = readFileSync(new URL("./schema.sql", import.meta.url), "utf8");
 const START = "-- Ofertas y apartados por propiedad, y calendario suscribible de la Agenda (2026-11-17)";
 const start = schema.lastIndexOf("-- ───", schema.indexOf(START));
-const block = schema.slice(start);
+const NEXT = "-- Contratos de intermediación, comisiones por asesor y fusión de prospectos (2026-11-17)"; // el bloque que se agregó después
+const block = schema.slice(start, schema.lastIndexOf("-- ───", schema.indexOf(NEXT, start)));
 
 describe("schema.sql: ofertas, apartados y calendario suscribible", () => {
-  it("el bloque existe una sola vez y va al final", () => {
+  it("el bloque existe una sola vez y termina con get_agenda_feed, antes del de contratos", () => {
     expect(schema.split(START)).toHaveLength(2);
-    expect(schema.trimEnd().endsWith(block.trimEnd())).toBe(true);
+    expect(block.trimEnd().endsWith("grant execute on function get_agenda_feed(text) to anon, authenticated;")).toBe(true);
   });
 
   it("ofertas y apartados: RLS con el permiso de Propiedades o Naves y validaciones en la base", () => {

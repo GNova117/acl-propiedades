@@ -16,6 +16,8 @@ import { BOOKING_TOKEN_PATTERN, DEFAULT_VISIT_SETTINGS, hhmm, normalizeVisitSche
 import { cleanSelectionInput } from "./selections";
 import { isValidBounds, supabaseSearchFilters } from "./propertySearch";
 import { HOLD_STATUSES, OFFER_STATUSES, validateHold, validateOffer } from "./offers";
+import { validateContract } from "./contracts";
+import { COMMISSION_CONCEPTS, validatePayment } from "./commissions";
 
 // La tabla aún no existe en la base (falta correr su bloque de schema.sql):
 // 42P01 es Postgres directo, PGRST205 es PostgREST ("no está en el schema cache").
@@ -1626,6 +1628,86 @@ export const supabaseBackend = {
     return data;
   },
 
+  // Contrato de intermediación (exclusiva o abierta) con su vencimiento. Tabla aparte de properties (que se lee en
+  // público). Sin el bloque SQL todavía, la lista llega vacía en vez de romper la pantalla.
+  async getPropertyContracts() {
+    const { data, error } = await supabase.from("property_contracts").select("*").order("expires_on", { ascending: true });
+    if (error) {
+      if (isMissingTable(error)) return [];
+      throw error;
+    }
+    return data || [];
+  },
+
+  async setPropertyContract(propertyId, fields) {
+    const checked = validateContract(fields);
+    if (checked.error) throw new Error(`contract:${checked.error}`);
+    const { data, error } = await supabase
+      .from("property_contracts")
+      .upsert({ property_id: propertyId, ...checked.value, updated_at: new Date().toISOString() }, { onConflict: "property_id" })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deletePropertyContract(propertyId) {
+    const { error } = await supabase.from("property_contracts").delete().eq("property_id", propertyId);
+    if (error) throw error;
+  },
+
+  // Comisiones por asesor (RLS: los socios todas; cada asesor las suyas). Una por propiedad y concepto.
+  async getCommissions(propertyId = null) {
+    let query = supabase.from("commissions").select("*").order("created_at", { ascending: false });
+    if (propertyId) query = query.eq("property_id", propertyId);
+    const { data, error } = await query;
+    if (error) {
+      if (isMissingTable(error)) return [];
+      throw error;
+    }
+    return data || [];
+  },
+
+  // Registra (o actualiza el monto de) la comisión de ese concepto. Una ya pagada no se toca.
+  async saveCommission(propertyId, { advisor_id, concept, amount }) {
+    if (!COMMISSION_CONCEPTS.includes(concept) || !advisor_id || !(Number(amount) >= 0)) throw new Error("commission:invalid");
+    const { data: existing, error: readError } = await supabase.from("commissions").select("id,status").eq("property_id", propertyId).eq("concept", concept).maybeSingle();
+    if (readError) throw readError;
+    if (existing?.status === "pagada") throw new Error("commission:paid");
+    const row = { property_id: propertyId, advisor_id, concept, amount: Math.round(Number(amount)), updated_at: new Date().toISOString() };
+    const { data, error } = existing
+      ? await supabase.from("commissions").update(row).eq("id", existing.id).select().single()
+      : await supabase.from("commissions").insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  // paidOn = fecha de pago → «pagada»; null → vuelve a «pendiente».
+  async setCommissionPaid(id, paidOn) {
+    let patch = { status: "pendiente", paid_on: null };
+    if (paidOn) {
+      const checked = validatePayment(paidOn);
+      if (checked.error) throw new Error(`commission:${checked.error}`);
+      patch = { status: "pagada", paid_on: checked.value };
+    }
+    const { data, error } = await supabase.from("commissions").update({ ...patch, updated_at: new Date().toISOString() }).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteCommission(id) {
+    const { error } = await supabase.from("commissions").delete().eq("id", id);
+    if (error) throw error;
+  },
+
+  // Fusiona dos prospectos duplicados (merge_prospects, schema.sql). Devuelve { ok } o lanza `merge:<motivo>`.
+  async mergeProspects(keepId, removeId) {
+    const { data, error } = await supabase.rpc("merge_prospects", { p_keep: keepId, p_remove: removeId });
+    if (error) throw error;
+    if (data?.error) throw new Error(`merge:${data.error}`);
+    return data;
+  },
+
   // Crea o REGENERA la URL secreta del calendario suscribible de quien llama (la anterior deja de servir).
   async createAgendaFeedToken() {
     const { data, error } = await supabase.rpc("create_agenda_feed_token");
@@ -2225,6 +2307,14 @@ export const supabaseBackend = {
     return count ?? 0;
   },
 
+  // Conteos del mes de cada asesor activo para la tabla de posiciones (team_leaderboard, schema.sql). Sin la función
+  // todavía en la base devuelve [] y la tarjeta no se muestra.
+  async getTeamLeaderboard() {
+    const { data, error } = await supabase.rpc("team_leaderboard");
+    if (error) return [];
+    return Array.isArray(data) ? data : [];
+  },
+
   // Meta mensual del asesor (una fila por asesor, ver advisor_goals en schema.sql).
   // Sin la tabla (migración sin correr) se lee como "sin meta"; guardar sí avisa.
   async getAdvisorGoals(advisorId) {
@@ -2571,6 +2661,22 @@ export const supabaseBackend = {
     return data;
   },
 
+  // Manda la invitación por correo (Edge Function invitar-usuario) a alguien que YA tiene acceso en Roles: el enlace le
+  // deja elegir su contraseña en /admin/restablecer. Devuelve { alreadyHasAccount }. Lanza `invite:<motivo>`.
+  async inviteUser(email) {
+    const { data, error } = await supabase.functions.invoke("invitar-usuario", { body: { email } });
+    if (error) {
+      let reason = "failed";
+      try {
+        reason = (await error.context?.json?.())?.error || reason;
+      } catch {
+        /* sin cuerpo legible */
+      }
+      throw new Error(`invite:${reason}`);
+    }
+    return { alreadyHasAccount: Boolean(data?.alreadyHasAccount) };
+  },
+
   async updateAccess(id, { role_id, advisor_id } = {}) {
     const payload = {};
     if (role_id !== undefined) payload.role_id = role_id;
@@ -2879,6 +2985,18 @@ export const supabaseBackend = {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     return data.session;
+  },
+
+  // «Olvidé mi contraseña»: Supabase manda el enlace al correo (si existe; la respuesta es la misma exista o no, para no
+  // revelar qué correos tienen cuenta). El enlace abre /admin/restablecer con una sesión de recuperación.
+  async requestPasswordReset(email) {
+    const { error } = await supabase.auth.resetPasswordForEmail(String(email).trim(), { redirectTo: `${window.location.origin}/admin/restablecer` });
+    if (error) throw error;
+  },
+
+  async updatePassword(newPassword) {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
   },
 
   async signOut() {

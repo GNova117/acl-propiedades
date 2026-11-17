@@ -18,6 +18,10 @@ export const queries = {
   // Opiniones que dejaron los clientes tras su visita (encuesta de /opinion/<token>).
   visitFeedback: { key: "visit-feedback", fetch: orEmpty(() => db.getVisitFeedback()) },
   citas: { key: "agenda-citas", fetch: () => db.getAgendaCitas() },
+  // Contratos de intermediación con su vencimiento y comisiones por asesor (RLS decide qué ve cada quien).
+  propertyContracts: { key: "property-contracts", fetch: orEmpty(() => db.getPropertyContracts()) },
+  teamLeaderboard: { key: "team-leaderboard", fetch: orEmpty(() => db.getTeamLeaderboard()) },
+  commissions: { key: "commissions", fetch: orEmpty(() => db.getCommissions()) },
   zones: { key: "zones", fetch: orEmpty(() => db.getZones()) },
   propertyTypes: { key: "property-types", fetch: orEmpty(() => db.getPropertyTypes()) },
   remodelProjects: { key: "remodel-projects", fetch: () => db.getRemodelProjects({}) },

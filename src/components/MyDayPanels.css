@@ -57,3 +57,48 @@
   align-items: center;
   gap: 0.5rem;
 }
+
+/* Tabla de posiciones */
+.leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.leaderboard__row {
+  display: grid;
+  grid-template-columns: 2rem 1fr auto;
+  gap: 0.1rem 0.6rem;
+  align-items: center;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+}
+
+.leaderboard__row.is-me {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.leaderboard__rank {
+  text-align: center;
+  font-weight: 700;
+}
+
+.leaderboard__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.leaderboard__points {
+  font-weight: 700;
+}
+
+.leaderboard__detail {
+  grid-column: 2 / -1;
+  margin: 0;
+}

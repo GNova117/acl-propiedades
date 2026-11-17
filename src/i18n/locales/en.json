@@ -881,7 +881,9 @@
     "industrialSpecsHint": "Technical data specific to industrial warehouses. Optional — shown on the public page when filled in.",
     "messages": "Messages",
     "testimonials": "Testimonials",
-    "blog": "Blog"
+    "blog": "Blog",
+    "showPassword": "Show",
+    "hidePassword": "Hide"
   },
   "accessControl": {
     "restricted": "You don't have access to this section.",
@@ -929,7 +931,19 @@
     "accessAdvisorHint": "Only applies to the Agenda and Visits sections: link this email to their own advisor record so they only see and edit their own appointments and visits. Leave empty so they see everyone's.",
     "addAccess": "Grant access",
     "removeAccess": "Remove access",
-    "noAccess": "No emails have access assigned yet."
+    "noAccess": "No emails have access assigned yet.",
+    "sendInvite": "Send them an invitation by email",
+    "sendInviteHint": "They get a link to choose their password; no need to create the account by hand in Supabase.",
+    "resendInvite": "Invite",
+    "inviteSent": "Invitation sent to {{email}}. They will get an email with the link to choose their password.",
+    "inviteExists": "{{email}} already has an account. If they forgot the password, they can use “Forgot your password?” on the sign-in page.",
+    "inviteErrors": {
+      "failed": "Could not send the invitation (the access was granted). Try again with “Invite”.",
+      "demo": "Demo mode does not send invitations: there are no real accounts.",
+      "forbidden": "Only people with the Roles section can invite.",
+      "no_access_row": "That email has no access granted in Roles.",
+      "invalid_email": "That email is not valid."
+    }
   },
   "zones": {
     "name": "Zone name",
@@ -4440,5 +4454,221 @@
     "demo": "Not available in demo mode: it needs the site's server.",
     "error": "Could not create the address. Try again.",
     "copyError": "Could not copy; select it and copy it by hand."
+  },
+  "passwordReset": {
+    "forgot": "Forgot your password?",
+    "sendLink": "Email me the link",
+    "backToLogin": "Back to sign in",
+    "needEmail": "Enter your email above so we can send you the link.",
+    "sent": "If that email has an account, you will get a link to choose a new password. Check your spam folder too.",
+    "demo": "Demo mode has no real accounts: the password cannot be reset.",
+    "title": "New password",
+    "hint": "Choose a password of at least 8 characters.",
+    "newPassword": "New password",
+    "confirm": "Repeat the password",
+    "save": "Save password",
+    "done": "Done: your password was changed. Taking you to the panel…",
+    "invalidLink": "This link no longer works (it expired or was already used). Request a new one from “Forgot your password?”.",
+    "errors": {
+      "short": "Use at least 8 characters.",
+      "spaces": "The password cannot start or end with spaces.",
+      "mismatch": "The two passwords do not match.",
+      "generic": "Could not change the password. Request a new link and try again."
+    }
+  },
+  "contract": {
+    "button": "Contract",
+    "title": "Listing agreement",
+    "hint": "For {{title}}. It is internal: it is not published on the site.",
+    "kind": "Type",
+    "expires": "Expires on",
+    "kinds": {
+      "exclusiva": "Exclusive",
+      "abierta": "Open"
+    },
+    "remove": "Remove contract",
+    "confirmRemove": "Remove this property's contract?",
+    "chip": "{{kind}} · {{state}}",
+    "states": {
+      "vigente": "Active",
+      "porVencer_one": "Expires in {{count}} day",
+      "porVencer_other": "Expires in {{count}} days",
+      "urgente_one": "Expires in {{count}} day",
+      "urgente_other": "Expires in {{count}} days",
+      "vencido_one": "Expired {{count}} day ago",
+      "vencido_other": "Expired {{count}} days ago"
+    },
+    "errors": {
+      "kind": "Choose the contract type.",
+      "date": "Choose the expiration date.",
+      "generic": "Could not save. Try again."
+    }
+  },
+  "contractsDue": {
+    "title": "Exclusives about to expire",
+    "hint": "Agreements with the owner that expire in 30 days or less, or already did. Renew them from “Contract” in Properties.",
+    "open": "Go to Properties"
+  },
+  "stalled": {
+    "filter": "No activity",
+    "any": "Any",
+    "days": "{{count}}+ days",
+    "chip": "No activity for {{count}} days",
+    "hint": "Activity: listing changes, visits, appointments or new prospects for that property."
+  },
+  "commissions": {
+    "navTitle": "Commissions",
+    "title": "Commissions by advisor",
+    "hint": "They come from the settlement above. “Register” saves the amount as of now; later it is marked paid with its date.",
+    "none": "This settlement does not leave a commission for any advisor yet.",
+    "pageHint": "The commissions registered from settlements. Only the partners see them; each advisor sees their own in My day.",
+    "concepts": {
+      "captacion": "Listing",
+      "venta": "Sale"
+    },
+    "pending": "Pending",
+    "paidState": "Paid",
+    "paidOn": "Paid on {{date}}",
+    "register": "Register",
+    "update": "Update amount",
+    "changed": "The calculation now gives {{amount}} for {{name}}.",
+    "payDate": "Payment date",
+    "markPaid": "Mark paid",
+    "undoPaid": "Back to pending",
+    "confirmUndo": "Return this commission to pending?",
+    "advisor": "Advisor",
+    "status": "Status",
+    "all": "All",
+    "empty": "No commissions with that filter.",
+    "owed": "Pending: {{amount}}",
+    "paidTotal": "Paid: {{amount}}",
+    "mineTitle": "My commissions",
+    "lastPaid": "last payment {{date}}",
+    "errors": {
+      "generic": "Could not save. Try again.",
+      "paid": "That commission is already paid: it cannot be changed.",
+      "invalid": "Invalid commission data.",
+      "date": "Choose the payment date.",
+      "future": "The payment date cannot be in the future."
+    }
+  },
+  "mergeDuplicates": {
+    "title": "Possible duplicates",
+    "merge": "Merge into this one",
+    "confirm": "“{{keep}}” will be kept and “{{remove}}” merged into it: its stages, contacts, appointments, selections and notes move to this prospect, missing details are filled in and “{{remove}}” is deleted. This cannot be undone. Continue?",
+    "hint": "Same phone or email. Merging keeps this prospect and moves the other's whole history to it. Clients and other advisors' prospects are only flagged.",
+    "errors": {
+      "forbidden": "You can only merge prospects that are yours.",
+      "not_found": "That prospect no longer exists.",
+      "invalid": "Those two cannot be merged.",
+      "generic": "Could not merge. Try again."
+    }
+  },
+  "savedViews": {
+    "title": "My views",
+    "save": "Save this view",
+    "nothingToSave": "Set a filter first so there is something to save.",
+    "nameLabel": "View name",
+    "namePlaceholder": "Name (e.g. “Hot today”)",
+    "remove": "Remove the view {{name}}",
+    "confirmRemove": "Remove the view “{{name}}”?",
+    "confirmReplace": "There is already a view called “{{name}}”. Replace it with the current filters?",
+    "errors": {
+      "name": "Enter a name.",
+      "full": "You already have 8 views: remove one to save another."
+    }
+  },
+  "leaderboard": {
+    "title": "This month's board",
+    "hint": "Points this month: {{contacts}} per contact, {{visits}} per visit, {{prospects}} per prospect brought in and {{sales}} per sale. Only numbers are counted; no clients or amounts are shown.",
+    "place": "Place {{count}}",
+    "you": "You",
+    "goalsMet": "Goals met",
+    "points_one": "{{count}} point",
+    "points_other": "{{count}} points",
+    "detail": "{{contacts}} contacts · {{visits}} visits · {{prospects}} prospects · {{sales}} sales"
+  },
+  "help": {
+    "navTitle": "Help",
+    "title": "Help",
+    "hint": "How to use each part of the panel. Only the topics for the sections your role has are shown.",
+    "search": "Search the help…",
+    "empty": "No topics match that search.",
+    "goThere": "Go there",
+    "banner": {
+      "label": "Guided tour",
+      "text": "First time in the panel? A one-minute tour shows you where the important things are.",
+      "start": "Take the tour",
+      "later": "Not now"
+    },
+    "tour": {
+      "start": "See the guided tour",
+      "progress": "Step {{current}} of {{total}}",
+      "goThere": "Go there",
+      "skip": "Exit",
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish",
+      "steps": {
+        "welcome": {
+          "title": "Welcome to the panel",
+          "body": "This is where you manage your prospects, your agenda and your properties. This tour is short and you can repeat it any time from Help."
+        },
+        "myDay": {
+          "title": "My day",
+          "body": "Start here: today's appointments in order, the route to reach them, the prospects you need to write to and the important alerts."
+        },
+        "prospects": {
+          "title": "Prospects",
+          "body": "Each interested person is a card you drag from one stage to another. Log every contact so the follow-up date is worked out."
+        },
+        "agenda": {
+          "title": "Agenda",
+          "body": "Your visits and appointments by month, week or day. You can also see your agenda in Google, Apple or Outlook with a read-only address."
+        },
+        "properties": {
+          "title": "Properties",
+          "body": "The site's listings. Each one shows how complete it is and what is missing; from there you log offers, holds and the agreement with the owner."
+        },
+        "help": {
+          "title": "Questions?",
+          "body": "“Help” (in the menu) explains everything by topic with a search box, and you can repeat this tour from there."
+        }
+      }
+    },
+    "topics": {
+      "myDay": {
+        "title": "My day",
+        "points": ["It gathers today: appointments in time order, unattended prospects, overdue follow-ups and today's.", "“Today's route” opens Google Maps with your remaining visits as stops.", "“New properties for your prospects” shows what was published this week that fits someone; you decide whether to tell them.", "Holds and exclusives about to expire, your commissions and the team's monthly board also show up here."]
+      },
+      "prospects": {
+        "title": "Prospects",
+        "points": ["Drag the card to another column to change its stage (on a phone, use “More”).", "“Log contact” saves the channel and a note and sets the next follow-up; you can dictate the note with the microphone.", "The hot/warm/cold chip explains with points why a prospect is hot or cold; hover to see it.", "“My views” saves your usual filters (on this device) so you can return to them with one tap.", "If two prospects are the same person (same phone or email), open one and use “Merge into this one”: it keeps the whole history."]
+      },
+      "agenda": {
+        "title": "Agenda",
+        "points": ["Switch between month, week, day and list with the buttons on top; in week and day, appointments sit at their hour.", "A visit request without an advisor is seen by the whole team: whoever takes it first keeps it.", "At the bottom you can create the secret address to see your agenda in Google, Apple or Outlook. It is read-only: what you change there does not reach the panel."]
+      },
+      "properties": {
+        "title": "Properties",
+        "points": ["The “Listing N%” bar says what is missing (photos, description, location…); “Incomplete listings only” filters the pending ones.", "“Duplicate” creates an inactive copy without photos so you can enter a similar one faster.", "Select several rows to change price (capped at 50% at a time) or advisor for all of them at once; you are asked to confirm.", "“Offers & hold” stores offers and the hold (one active per property); “Contract” stores whether it is exclusive and when it expires.", "Listings with no visits, appointments or changes in 30 days are flagged “No activity” (office only)."]
+      },
+      "visits": {
+        "title": "Visits",
+        "points": ["Log each visit to feed the report given to the owner.", "When you mark a visit booked from the site as “Done”, the client gets a survey and their opinion shows in your Agenda."]
+      },
+      "commissions": {
+        "title": "Commissions",
+        "points": ["Each saved settlement works out the listing and sale commission of each advisor.", "“Register” saves the amount as of that moment; later it is marked paid with its date.", "Only the partners see all of them; each advisor sees their own in My day."]
+      },
+      "roles": {
+        "title": "Roles and access",
+        "points": ["A role groups the sections that can be seen; an access links an email to a role (and to an advisor).", "When granting new access you can send an email invitation: the person chooses their password with the link and the account does not have to be created by hand.", "“Invite” in the table sends the invitation again."]
+      },
+      "account": {
+        "title": "My account",
+        "points": ["Forgot your password? On the sign-in page use “Forgot your password?”: you get a link to choose a new one.", "The “Show” button next to the password lets you see what you type (handy on a phone).", "Language and light or dark mode are changed at the top right."]
+      }
+    }
   }
 }

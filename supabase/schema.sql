@@ -7777,3 +7777,179 @@ $$;
 
 revoke all on function get_agenda_feed(text) from public;
 grant execute on function get_agenda_feed(text) to anon, authenticated;
+
+-- ─────────────────────────────────────────────
+-- Contratos de intermediación, comisiones por asesor y fusión de prospectos (2026-11-17)
+--
+-- 1. property_contracts: tipo (exclusiva o abierta) y fecha de vencimiento del contrato con el propietario, para
+--    avisar antes de que venza. Va en una tabla APARTE de properties a propósito: properties se lee en público
+--    (cualquiera puede consultarla), y esto es interno. Solo el personal con el apartado Propiedades o Naves.
+-- 2. commissions: comisión de cada asesor por propiedad y concepto (captación o venta), con su estado
+--    (pendiente o pagada) y la fecha de pago. Confidencial como las liquidaciones: la manejan solo los dos
+--    socios; cada asesor puede LEER las suyas (no las de otros).
+-- 3. merge_prospects(): fusiona dos prospectos duplicados en uno, sin perder su historia (etapas, contactos,
+--    citas, selecciones y notas internas pasan al que se conserva).
+-- 4. team_leaderboard(): lo que lleva cada asesor ACTIVO en el mes (contactos, visitas, prospectos captados, ventas) y
+--    cuántas de sus metas ha cumplido, para la tabla de posiciones. Solo CONTEOS (nada de nombres de clientes ni
+--    montos); las metas no se revelan, solo cuántas van cumplidas. Cualquier persona del equipo con Prospectos o Agenda.
+
+create table if not exists property_contracts (
+  property_id uuid primary key references properties(id) on delete cascade,
+  kind text not null check (kind in ('exclusiva', 'abierta')),
+  expires_on date not null,
+  note text check (note is null or char_length(note) <= 300),
+  updated_by text default auth.email(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_property_contracts_expires on property_contracts(expires_on);
+
+alter table property_contracts enable row level security;
+
+drop policy if exists "Rol con apartado propiedades o naves maneja property_contracts" on property_contracts;
+create policy "Rol con apartado propiedades o naves maneja property_contracts" on property_contracts for all
+  using (has_admin_section('propiedades') or has_admin_section('naves_industriales'))
+  with check (has_admin_section('propiedades') or has_admin_section('naves_industriales'));
+
+create table if not exists commissions (
+  id uuid primary key default gen_random_uuid(),
+  property_id uuid not null references properties(id) on delete cascade,
+  advisor_id uuid not null references advisors(id) on delete cascade,
+  concept text not null check (concept in ('captacion', 'venta')),
+  amount numeric not null check (amount >= 0),
+  status text not null default 'pendiente' check (status in ('pendiente', 'pagada')),
+  paid_on date,
+  note text check (note is null or char_length(note) <= 300),
+  updated_by text default auth.email(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (property_id, concept),
+  -- Una comisión pagada lleva su fecha de pago; una pendiente no.
+  constraint commissions_paid_has_date check ((status = 'pagada') = (paid_on is not null))
+);
+
+create index if not exists idx_commissions_advisor on commissions(advisor_id, status);
+
+alter table commissions enable row level security;
+
+drop policy if exists "Solo socios manejan commissions" on commissions;
+create policy "Solo socios manejan commissions" on commissions for all
+  using (auth.email() in ('inmobiliaria@aclpropiedades.com', 'mh@aclpropiedades.com'))
+  with check (auth.email() in ('inmobiliaria@aclpropiedades.com', 'mh@aclpropiedades.com'));
+
+drop policy if exists "Cada asesor lee sus commissions" on commissions;
+create policy "Cada asesor lee sus commissions" on commissions for select
+  using (advisor_id = my_advisor_id());
+
+-- Fusiona p_remove dentro de p_keep (el que se conserva) y borra p_remove. Quien llama debe tener el apartado
+-- Prospectos y, si es un asesor (no la oficina), ser dueño de los dos. Lo que el prospecto conservado ya tiene se
+-- respeta; los huecos (teléfono, correo, qué busca, propiedad, visita, asesor) se llenan con los del otro; las
+-- notas se juntan; la etapa es la más avanzada (perdido es la más baja); el seguimiento, el más próximo.
+create or replace function merge_prospects(p_keep uuid, p_remove uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  k prospectos;
+  r prospectos;
+  me uuid := my_advisor_id();
+  ranks text[] := array['perdido', 'nuevo', 'contactado', 'interesado', 'negociacion', 'cerrado'];
+  new_stage text;
+  merged_notes text;
+begin
+  if auth.email() is null or not has_admin_section('prospectos') then
+    raise exception 'No tienes acceso a Prospectos' using errcode = '42501';
+  end if;
+  if p_keep is null or p_remove is null or p_keep = p_remove then
+    return jsonb_build_object('error', 'invalid');
+  end if;
+
+  select * into k from prospectos where id = p_keep for update;
+  if not found then return jsonb_build_object('error', 'not_found'); end if;
+  select * into r from prospectos where id = p_remove for update;
+  if not found then return jsonb_build_object('error', 'not_found'); end if;
+
+  if me is not null and (k.advisor_id is distinct from me or r.advisor_id is distinct from me) then
+    return jsonb_build_object('error', 'forbidden');
+  end if;
+
+  new_stage := case when array_position(ranks, r.stage) > array_position(ranks, k.stage) then r.stage else k.stage end;
+  merged_notes := nullif(concat_ws(E'\n\n',
+    nullif(btrim(coalesce(k.notes, '')), ''),
+    case when nullif(btrim(coalesce(r.notes, '')), '') is not null then 'Fusionado con «' || r.name || '»: ' || btrim(r.notes) end
+  ), '');
+
+  -- visit_id es único: se libera en el que se borra antes de pasárselo al que se conserva.
+  if r.visit_id is not null then
+    update prospectos set visit_id = null where id = r.id;
+  end if;
+
+  update prospectos set
+    phone = coalesce(nullif(btrim(coalesce(k.phone, '')), ''), r.phone),
+    email = coalesce(nullif(btrim(coalesce(k.email, '')), ''), r.email),
+    looking_for = coalesce(nullif(btrim(coalesce(k.looking_for, '')), ''), r.looking_for),
+    property_id = coalesce(k.property_id, r.property_id),
+    visit_id = coalesce(k.visit_id, r.visit_id),
+    advisor_id = coalesce(k.advisor_id, r.advisor_id),
+    notes = merged_notes,
+    stage = new_stage,
+    lost_reason = case when new_stage = 'perdido' then coalesce(k.lost_reason, r.lost_reason) else null end,
+    last_contact_at = greatest(k.last_contact_at, r.last_contact_at),
+    next_followup_at = least(k.next_followup_at, r.next_followup_at),
+    created_at = least(k.created_at, r.created_at),
+    updated_at = now()
+  where id = k.id;
+
+  update prospecto_etapas set prospecto_id = k.id where prospecto_id = r.id;
+  update prospecto_contactos set prospecto_id = k.id where prospecto_id = r.id;
+  update agenda_citas set prospecto_id = k.id where prospecto_id = r.id;
+  update property_selections set prospecto_id = k.id where prospecto_id = r.id;
+  update internal_notes set entity_id = k.id where entity_type = 'prospect' and entity_id = r.id;
+
+  delete from prospectos where id = r.id;
+  return jsonb_build_object('ok', true, 'kept', k.id);
+end;
+$$;
+
+revoke all on function merge_prospects(uuid, uuid) from public, anon;
+grant execute on function merge_prospects(uuid, uuid) to authenticated;
+
+create or replace function team_leaderboard()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  month_start timestamptz := date_trunc('month', now());
+begin
+  if auth.email() is null or not (has_admin_section('prospectos') or has_admin_section('agenda')) then
+    raise exception 'No tienes acceso al equipo' using errcode = '42501';
+  end if;
+  return coalesce((
+    select jsonb_agg(to_jsonb(r) order by r.name)
+    from (
+      select
+        a.id as advisor_id,
+        a.name,
+        c.contacts, v.visits, p.new_prospects, s.sales,
+        coalesce((g.contacts > 0)::int + (g.visits > 0)::int + (g.new_prospects > 0)::int + (g.sales > 0)::int, 0) as goals_set,
+        coalesce((g.contacts > 0 and c.contacts >= g.contacts)::int + (g.visits > 0 and v.visits >= g.visits)::int
+          + (g.new_prospects > 0 and p.new_prospects >= g.new_prospects)::int + (g.sales > 0 and s.sales >= g.sales)::int, 0) as goals_met
+      from advisors a
+      left join advisor_goals g on g.advisor_id = a.id
+      cross join lateral (select count(*)::int as contacts from prospecto_contactos pc join prospectos pr on pr.id = pc.prospecto_id where pr.advisor_id = a.id and pc.at >= month_start) c
+      cross join lateral (select count(*)::int as visits from property_visits pv where pv.advisor_id = a.id and pv.visited_at >= month_start) v
+      cross join lateral (select count(*)::int as new_prospects from prospectos pr where pr.advisor_id = a.id and pr.created_at >= month_start) p
+      cross join lateral (select count(*)::int as sales from ventas ve where ve.advisor_id = a.id and ve.fecha_venta >= month_start::date) s
+      where a.active
+    ) r
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function team_leaderboard() from public, anon;
+grant execute on function team_leaderboard() to authenticated;

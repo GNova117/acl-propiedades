@@ -10,6 +10,7 @@ import InstallAppButton from "../../components/InstallAppButton";
 import NotificationBell from "../../components/NotificationBell";
 import QuickCapture from "../../components/QuickCapture";
 import OfflineBanner from "../../components/OfflineBanner";
+import TourBanner from "../../components/TourBanner";
 import { getQueue } from "../../lib/offlineQueue";
 import { startPrecache } from "../../lib/offlineShell";
 import { useAuth } from "../../context/AuthContext";
@@ -86,11 +87,13 @@ const NAV = [
       { section: "secretaria", to: "/admin/secretaria", labelKey: "accessControl.sections.secretaria" },
       { section: "reportes", to: "/admin/reportes", labelKey: "accessControl.sections.reportes" },
       { section: "reportes", to: "/admin/reporte-mensual", labelKey: "monthly.title" },
+      { section: "liquidaciones", to: "/admin/comisiones", labelKey: "commissions.navTitle" },
       { section: "roles", to: "/admin/actividad", labelKey: "activity.title" },
       { section: "novedades", to: "/admin/novedades", labelKey: "novedades.admin.title" },
     ],
   },
   { section: "roles", to: "/admin/roles", labelKey: "accessControl.sections.roles" },
+  { section: null, to: "/admin/ayuda", labelKey: "help.navTitle" },
 ];
 
 const OPEN_KEY = "acl_admin_nav_open";
@@ -260,6 +263,7 @@ export default function AdminLayout() {
         </header>
         <main className="admin-layout__content">
           <OfflineBanner />
+          <TourBanner />
           <ErrorBoundary key={pathname} homePath="/admin">
             <Outlet />
           </ErrorBoundary>

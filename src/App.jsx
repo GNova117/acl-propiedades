@@ -47,6 +47,9 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 // páginas del admin mientras cargan datos) cubre el instante de red que
 // tarda en bajar el chunk la primera vez que alguien entra a /admin.
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
+const AdminCommissions = lazy(() => import("./pages/admin/AdminCommissions"));
+const AdminHelp = lazy(() => import("./pages/admin/AdminHelp"));
+const AdminPasswordReset = lazy(() => import("./pages/admin/AdminPasswordReset"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminHome = lazy(() => import("./pages/admin/AdminHome"));
@@ -216,6 +219,7 @@ export default function App() {
       <Route path="/seleccion/:token" element={<ErrorBoundary><PublicSelection /></ErrorBoundary>} />
 
       <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/restablecer" element={<AdminPasswordReset />} />
       <Route
         path="/admin"
         element={
@@ -245,6 +249,14 @@ export default function App() {
           element={
             <RequireSection section="bitacora">
               <AdminPropertyBitacora listPath="/admin/naves-industriales" />
+            </RequireSection>
+          }
+        />
+        <Route
+          path="comisiones"
+          element={
+            <RequireSection section="liquidaciones">
+              <AdminCommissions />
             </RequireSection>
           }
         />
@@ -309,6 +321,7 @@ export default function App() {
         <Route path="asesores/:id" element={<RequireSection section="asesores"><AdminAdvisorForm /></RequireSection>} />
         <Route path="mi-perfil" element={<AdminMyProfile />} />
         <Route path="mi-dia" element={<AdminMyDay />} />
+        <Route path="ayuda" element={<AdminHelp />} />
         <Route path="zonas" element={<RequireSection section="zonas"><AdminZones /></RequireSection>} />
         <Route path="clientes" element={<RequireSection section="clientes"><AdminClients /></RequireSection>} />
         <Route path="clientes/nuevo" element={<RequireSection section="clientes"><AdminClientForm /></RequireSection>} />

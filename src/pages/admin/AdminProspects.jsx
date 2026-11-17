@@ -18,6 +18,7 @@ import { useQuery } from "../../lib/useQuery";
 import ProspectCard from "../../components/ProspectCard";
 import ProspectImportModal from "../../components/ProspectImportModal";
 import "./admin.css";
+import SavedViews from "../../components/SavedViews";
 import "./AdminProspects.css";
 
 // Embudo de prospectos por etapas. RLS recorta del lado de Supabase: un asesor
@@ -27,6 +28,8 @@ import "./AdminProspects.css";
 // contador). Cambiar de etapa es un selector en la tarjeta (sin arrastrar:
 // funciona igual con el dedo en el celular).
 
+// Lo que guarda una vista de Prospectos (lib/savedViews.js).
+const PROSPECT_VIEW_SCHEMA = { query: "string", advisorFilter: "string", overdueOnly: "boolean", unattendedOnly: "boolean", forgottenOnly: "boolean", hotOnly: "boolean", sequenceOnly: "boolean", sortBy: "string" };
 const NONE = [];
 
 const normalize = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -319,6 +322,23 @@ export default function AdminProspects() {
           </button>
         </div>
       </div>
+
+      <SavedViews
+        list="prospectos"
+        schema={PROSPECT_VIEW_SCHEMA}
+        defaults={{ sortBy: "recent" }}
+        current={{ query, advisorFilter, overdueOnly, unattendedOnly, forgottenOnly, hotOnly, sequenceOnly, sortBy }}
+        onApply={(f) => {
+          setQuery(f.query ?? "");
+          setAdvisorFilter(seesAll ? f.advisorFilter ?? "" : "");
+          setOverdueOnly(Boolean(f.overdueOnly));
+          setUnattendedOnly(Boolean(f.unattendedOnly));
+          setForgottenOnly(Boolean(f.forgottenOnly));
+          setHotOnly(Boolean(f.hotOnly));
+          setSequenceOnly(Boolean(f.sequenceOnly));
+          setSortBy(f.sortBy === "temperature" ? "temperature" : "recent");
+        }}
+      />
 
       <div className="prospect-filters">
         <input

@@ -18,6 +18,10 @@ import { findOpenProspect, mergeBookingIntoProspect, prospectFieldsFromBooking, 
 import { SELECTION_VALID_DAYS, cleanReaction, cleanSelectionInput } from "./selections";
 import { matchesBounds, matchesSearch } from "./propertySearch";
 import { HOLD_STATUSES, OFFER_STATUSES, validateHold, validateOffer } from "./offers";
+import { validateContract } from "./contracts";
+import { COMMISSION_CONCEPTS, validatePayment } from "./commissions";
+import { canMerge, mergedProspectFields } from "./mergeProspects";
+import { computeLeaderboardRows } from "./leaderboard";
 import {
   BOOKING_TOKEN_PATTERN,
   DEFAULT_VISIT_SETTINGS,
@@ -104,6 +108,8 @@ const KEYS = {
   visitFeedback: "acl_local_visit_feedback",
   propertyOffers: "acl_local_property_offers",
   propertyHolds: "acl_local_property_holds",
+  propertyContracts: "acl_local_property_contracts",
+  commissions: "acl_local_commissions",
   developments: "acl_local_developments",
   visitSchedules: "acl_local_visit_schedules",
   visitAttempts: "acl_local_visit_attempts",
@@ -1693,6 +1699,85 @@ export const localBackend = {
     return holds[idx];
   },
 
+  // Contratos de intermediación y comisiones (espejo de supabaseBackend; en demo no hay RLS por socio).
+  async getPropertyContracts() {
+    return readStore(KEYS.propertyContracts, []).sort((a, b) => String(a.expires_on).localeCompare(String(b.expires_on)));
+  },
+
+  async setPropertyContract(propertyId, fields) {
+    const checked = validateContract(fields);
+    if (checked.error) throw new Error(`contract:${checked.error}`);
+    const contracts = readStore(KEYS.propertyContracts, []).filter((c) => c.property_id !== propertyId);
+    const record = { property_id: propertyId, ...checked.value, updated_by: DEMO_ADMIN.email, updated_at: new Date().toISOString() };
+    writeStore(KEYS.propertyContracts, [...contracts, record]);
+    return record;
+  },
+
+  async deletePropertyContract(propertyId) {
+    writeStore(KEYS.propertyContracts, readStore(KEYS.propertyContracts, []).filter((c) => c.property_id !== propertyId));
+  },
+
+  async getCommissions(propertyId = null) {
+    return readStore(KEYS.commissions, [])
+      .filter((c) => !propertyId || c.property_id === propertyId)
+      .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  },
+
+  async saveCommission(propertyId, { advisor_id, concept, amount }) {
+    if (!COMMISSION_CONCEPTS.includes(concept) || !advisor_id || !(Number(amount) >= 0)) throw new Error("commission:invalid");
+    const rows = readStore(KEYS.commissions, []);
+    const idx = rows.findIndex((c) => c.property_id === propertyId && c.concept === concept);
+    if (idx !== -1 && rows[idx].status === "pagada") throw new Error("commission:paid");
+    const now = new Date().toISOString();
+    if (idx === -1) {
+      rows.push({ id: uid("comm"), property_id: propertyId, advisor_id, concept, amount: Math.round(Number(amount)), status: "pendiente", paid_on: null, created_at: now, updated_at: now });
+    } else {
+      rows[idx] = { ...rows[idx], advisor_id, amount: Math.round(Number(amount)), updated_at: now };
+    }
+    writeStore(KEYS.commissions, rows);
+    return rows[idx === -1 ? rows.length - 1 : idx];
+  },
+
+  async setCommissionPaid(id, paidOn) {
+    const rows = readStore(KEYS.commissions, []);
+    const idx = rows.findIndex((c) => c.id === id);
+    if (idx === -1) throw new Error("Comisión no encontrada");
+    let patch = { status: "pendiente", paid_on: null };
+    if (paidOn) {
+      const checked = validatePayment(paidOn);
+      if (checked.error) throw new Error(`commission:${checked.error}`);
+      patch = { status: "pagada", paid_on: checked.value };
+    }
+    rows[idx] = { ...rows[idx], ...patch, updated_at: new Date().toISOString() };
+    writeStore(KEYS.commissions, rows);
+    return rows[idx];
+  },
+
+  async deleteCommission(id) {
+    writeStore(KEYS.commissions, readStore(KEYS.commissions, []).filter((c) => c.id !== id));
+  },
+
+  // Fusiona dos prospectos (espejo de merge_prospects): lo que pasa al conservado lo decide lib/mergeProspects.js.
+  async mergeProspects(keepId, removeId) {
+    const prospects = readStore(KEYS.prospects, []);
+    const keep = prospects.find((p) => p.id === keepId);
+    const remove = prospects.find((p) => p.id === removeId);
+    if (keepId === removeId) throw new Error("merge:invalid");
+    if (!keep || !remove) throw new Error("merge:not_found");
+    if (!canMerge(keep, remove, null)) throw new Error("merge:forbidden");
+    writeStore(KEYS.prospects, prospects.filter((p) => p.id !== removeId).map((p) => (p.id === keepId ? { ...p, ...mergedProspectFields(keep, remove) } : p)));
+    const moveProspecto = (key) => writeStore(KEYS[key], readStore(KEYS[key], []).map((row) => (row.prospecto_id === removeId ? { ...row, prospecto_id: keepId } : row)));
+    moveProspecto("prospectStages");
+    moveProspecto("prospectContacts");
+    moveProspecto("agendaCitas");
+    moveProspecto("selections");
+    writeStore(
+      KEYS.internalNotes,
+      readStore(KEYS.internalNotes, []).map((n) => (n.entity_type === "prospect" && n.entity_id === removeId ? { ...n, entity_id: keepId } : n))
+    );
+    return { ok: true, kept: keepId };
+  },
+
   // El calendario suscribible necesita el servidor (una URL que Google/Apple lean); en modo demo no existe.
   async createAgendaFeedToken() {
     throw new Error("agendaFeed:demo");
@@ -2345,6 +2430,17 @@ export const localBackend = {
     return readStore(KEYS.prospectContacts, []).filter((c) => String(c.at) >= sinceISO).length;
   },
 
+  async getTeamLeaderboard() {
+    return computeLeaderboardRows({
+      advisors: readStore(KEYS.advisors, ADVISORS),
+      prospects: readStore(KEYS.prospects, []),
+      contacts: readStore(KEYS.prospectContacts, []),
+      visits: readStore(KEYS.visits, VISITS_SEED),
+      ventas: readStore(KEYS.ventas, VENTAS_SEED),
+      goals: readStore(KEYS.advisorGoals, {}),
+    });
+  },
+
   async getAdvisorGoals(advisorId) {
     return readStore(KEYS.advisorGoals, {})[advisorId] || null;
   },
@@ -2646,6 +2742,10 @@ export const localBackend = {
     access.push(record);
     writeStore(KEYS.adminAccess, access);
     return { ...record, role: roles.find((r) => r.id === role_id) || null };
+  },
+
+  async inviteUser() {
+    throw new Error("invite:demo");
   },
 
   async updateAccess(id, { role_id, advisor_id } = {}) {
@@ -3179,6 +3279,15 @@ export const localBackend = {
       return session;
     }
     throw new Error("invalid_credentials");
+  },
+
+  // En modo demo no hay correo ni cuentas reales: la pantalla lo avisa.
+  async requestPasswordReset() {
+    throw new Error("passwordReset:demo");
+  },
+
+  async updatePassword() {
+    throw new Error("passwordReset:demo");
   },
 
   async signOut() {

@@ -9,6 +9,10 @@ import { useAuth } from "../../context/AuthContext";
 import SocialPostModal from "../../components/SocialPostModal";
 import PropertyProspectsModal from "../../components/PropertyProspectsModal";
 import PropertyOffersModal from "../../components/PropertyOffersModal";
+import PropertyContractModal from "../../components/PropertyContractModal";
+import SavedViews from "../../components/SavedViews";
+import { contractState } from "../../lib/contracts";
+import { buildActivityIndex, stalledInfo, STALL_DAY_OPTIONS } from "../../lib/stalledProperties";
 import SendPropertyModal from "../../components/SendPropertyModal";
 import SelectionBuilder from "../../components/SelectionBuilder";
 import PropertyQrModal from "../../components/PropertyQrModal";
@@ -47,6 +51,9 @@ function mediaPreservingPatch(property, patch) {
 // muestra propiedades de ese tipo y "Nueva" cae directo en ese tipo.
 // `excludeTypes`: apartado general "Propiedades" — oculta los tipos que ya
 // tienen su propio apartado, mismo criterio que la parte pública del sitio.
+// Lo que guarda una vista de Propiedades (lib/savedViews.js).
+const PROPERTY_VIEW_SCHEMA = { search: "string", zoneFilter: "string", operationFilter: "string", statusFilter: "string", minPrice: "string", maxPrice: "string", onlyIncomplete: "boolean", stallDays: "number" };
+
 export default function AdminProperties({
   fixedType,
   excludeTypes = [],
@@ -55,11 +62,13 @@ export default function AdminProperties({
   basePath = "/admin/propiedades",
 }) {
   const { t } = useTranslation();
-  const { hasSection } = useAuth();
+  const { hasSection, advisorId } = useAuth();
   const [busyFichaId, setBusyFichaId] = useState(null);
   const [socialProperty, setSocialProperty] = useState(null);
   const [matchProperty, setMatchProperty] = useState(null);
   const [offersProperty, setOffersProperty] = useState(null);
+  const [contractProperty, setContractProperty] = useState(null);
+  const [stallDays, setStallDays] = useState(0); // 0 = sin filtro
   const [sendProperty, setSendProperty] = useState(null);
   const [buildingSelection, setBuildingSelection] = useState(false);
   const [qrProperty, setQrProperty] = useState(null);
@@ -85,6 +94,12 @@ export default function AdminProperties({
   const zonesQ = useQuery(queries.zones);
   const advisorsQ = useQuery(queries.advisors);
   const prospectsQ = useQuery(queries.prospects, { enabled: hasSection("prospectos") });
+  const contractsQ = useQuery(queries.propertyContracts);
+  // «Sin movimiento» solo se calcula con TODOS los datos (la oficina con esos apartados): un asesor solo ve lo suyo y
+  // una propiedad parecería estancada sin estarlo.
+  const canJudgeStalled = advisorId == null && hasSection("prospectos") && hasSection("agenda") && hasSection("visitas");
+  const visitsQ = useQuery(queries.visits, { enabled: canJudgeStalled });
+  const citasQ = useQuery(queries.citas, { enabled: canJudgeStalled });
   const remodelProjects = remodelQ.data ?? NONE;
   const zones = zonesQ.data ?? NONE;
   const advisors = advisorsQ.data ?? NONE;
@@ -108,12 +123,22 @@ export default function AdminProperties({
   );
 
   // Qué tan completa está cada ficha y qué le falta (lib/propertyCompleteness.js).
+  const contracts = useMemo(() => new Map((contractsQ.data ?? NONE).map((c) => [c.property_id, c])), [contractsQ.data]);
+  const activityIndex = useMemo(
+    () => (canJudgeStalled ? buildActivityIndex({ visits: visitsQ.data ?? NONE, citas: citasQ.data ?? NONE, prospects }) : null),
+    [canJudgeStalled, visitsQ.data, citasQ.data, prospects]
+  );
+  const stalled = useMemo(
+    () => new Map(properties.map((p) => [p.id, activityIndex ? stalledInfo(p, activityIndex, { days: stallDays || 30 }) : null])),
+    [properties, activityIndex, stallDays]
+  );
   const completeness = useMemo(() => new Map(properties.map((p) => [p.id, propertyCompleteness(p)])), [properties]);
 
   const visibleProperties = useMemo(() => {
     const term = search.trim().toLowerCase();
     return properties.filter((p) => {
       if (onlyIncomplete && completeness.get(p.id)?.complete) return false;
+      if (stallDays && !stalled.get(p.id)?.stalled) return false;
       if (term && !p.title?.toLowerCase().includes(term) && !p.code?.toLowerCase().includes(term) && !p.address?.toLowerCase().includes(term)) return false;
       if (zoneFilter && p.zone !== zoneFilter) return false;
       if (operationFilter && p.operation_type !== operationFilter) return false;
@@ -122,7 +147,7 @@ export default function AdminProperties({
       if (maxPrice && Number(p.price) > Number(maxPrice)) return false;
       return true;
     });
-  }, [properties, completeness, onlyIncomplete, search, zoneFilter, operationFilter, statusFilter, minPrice, maxPrice]);
+  }, [properties, completeness, onlyIncomplete, stallDays, stalled, search, zoneFilter, operationFilter, statusFilter, minPrice, maxPrice]);
 
   const handleDelete = async (id) => {
     if (!window.confirm(t("common.confirmDelete"))) return;
@@ -278,8 +303,24 @@ export default function AdminProperties({
         </div>
       </div>
 
+      <SavedViews
+        list="propiedades"
+        schema={PROPERTY_VIEW_SCHEMA}
+        defaults={{ stallDays: 0 }}
+        current={{ search, zoneFilter, operationFilter, statusFilter, minPrice, maxPrice, onlyIncomplete, stallDays }}
+        onApply={(f) => {
+          setSearch(f.search ?? "");
+          setZoneFilter(f.zoneFilter ?? "");
+          setOperationFilter(f.operationFilter ?? "");
+          setStatusFilter(f.statusFilter ?? "");
+          setMinPrice(f.minPrice ?? "");
+          setMaxPrice(f.maxPrice ?? "");
+          setOnlyIncomplete(Boolean(f.onlyIncomplete));
+          setStallDays(canJudgeStalled && STALL_DAY_OPTIONS.includes(f.stallDays) ? f.stallDays : 0);
+        }}
+      />
       <AdminFilters
-        activeCount={[zoneFilter, operationFilter, statusFilter, minPrice, maxPrice, onlyIncomplete].filter(Boolean).length}
+        activeCount={[zoneFilter, operationFilter, statusFilter, minPrice, maxPrice, onlyIncomplete, stallDays].filter(Boolean).length}
         search={
           <div className="form-field">
             <label htmlFor="ap-search">{t("common.search")}</label>
@@ -323,6 +364,19 @@ export default function AdminProperties({
           <label htmlFor="ap-max-price">{t("properties.maxPrice")}</label>
           <input id="ap-max-price" type="number" min="0" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
         </div>
+        {canJudgeStalled && (
+          <div className="form-field">
+            <label htmlFor="ap-stalled">{t("stalled.filter")}</label>
+            <select id="ap-stalled" value={stallDays} onChange={(e) => setStallDays(Number(e.target.value))} title={t("stalled.hint")}>
+              <option value={0}>{t("stalled.any")}</option>
+              {STALL_DAY_OPTIONS.map((d) => (
+                <option key={d} value={d}>
+                  {t("stalled.days", { count: d })}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <label className="prospect-filters__check">
           <input type="checkbox" checked={onlyIncomplete} onChange={(e) => setOnlyIncomplete(e.target.checked)} />
           {t("completeness.onlyIncomplete")}
@@ -448,6 +502,22 @@ export default function AdminProperties({
                           </div>
                         );
                       })()}
+                      {(() => {
+                        const contract = contracts.get(property.id);
+                        const idle = stalled.get(property.id);
+                        const cs = contract ? contractState(contract) : null;
+                        if (!(cs && cs.state !== "vigente") && !idle?.stalled) return null;
+                        return (
+                          <div className="property-flags">
+                            {cs && cs.state !== "vigente" && (
+                              <span className={`prospect-chip prospect-chip--${cs.state === "vencido" ? "overdue" : "today"}`}>
+                                {t("contract.chip", { kind: t(`contract.kinds.${contract.kind}`), state: t(`contract.states.${cs.state}`, { count: Math.abs(cs.daysLeft) }) })}
+                              </span>
+                            )}
+                            {idle?.stalled && <span className="prospect-chip prospect-chip--overdue">{t("stalled.chip", { count: idle.daysIdle })}</span>}
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="cell-type">{propertyTypeLabel(t, property.type)}</td>
                     {fixedType === "nave_industrial" && <td className="cell-tipo">{property.tipo_nave ? t(`naveTipo.${property.tipo_nave}`) : "—"}</td>}
@@ -488,6 +558,9 @@ export default function AdminProperties({
                         </button>
                         <button type="button" className="btn btn-outline btn-sm" onClick={() => setSocialProperty(property)}>
                           {t("socialPost.button")}
+                        </button>
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => setContractProperty(property)}>
+                          {t("contract.button")}
                         </button>
                         <button type="button" className="btn btn-outline btn-sm" onClick={() => setOffersProperty(property)}>
                           {t("offers.button")}
@@ -549,6 +622,14 @@ export default function AdminProperties({
           prospects={openProspects}
           onClose={() => setSendProperty(null)}
           onLogged={(updated) => prospectsQ.mutate((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))}
+        />
+      )}
+      {contractProperty && (
+        <PropertyContractModal
+          property={contractProperty}
+          contract={contracts.get(contractProperty.id) || null}
+          onClose={() => setContractProperty(null)}
+          onChanged={() => contractsQ.reload().catch(() => {})}
         />
       )}
       {offersProperty && <PropertyOffersModal property={offersProperty} onClose={() => setOffersProperty(null)} onChanged={load} />}

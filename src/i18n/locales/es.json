@@ -881,7 +881,9 @@
     "industrialSpecsHint": "Datos técnicos específicos de naves industriales. Opcionales — se muestran en la ficha pública si se capturan.",
     "messages": "Mensajes",
     "testimonials": "Testimonios",
-    "blog": "Blog"
+    "blog": "Blog",
+    "showPassword": "Mostrar",
+    "hidePassword": "Ocultar"
   },
   "accessControl": {
     "restricted": "No tienes acceso a este apartado.",
@@ -929,7 +931,19 @@
     "accessAdvisorHint": "Solo aplica a los apartados Agenda y Visitas: vincula este correo con su propio asesor para que solo vea y edite sus propias citas y visitas. Déjalo vacío para que vea las de todos.",
     "addAccess": "Dar acceso",
     "removeAccess": "Quitar acceso",
-    "noAccess": "Aún no hay correos con acceso asignado."
+    "noAccess": "Aún no hay correos con acceso asignado.",
+    "sendInvite": "Enviarle una invitación por correo",
+    "sendInviteHint": "Le llega un enlace para elegir su contraseña; no hace falta crear la cuenta a mano en Supabase.",
+    "resendInvite": "Invitar",
+    "inviteSent": "Invitación enviada a {{email}}. Le llegará un correo con el enlace para elegir su contraseña.",
+    "inviteExists": "{{email}} ya tiene cuenta. Si no recuerda su contraseña, puede usar «¿Olvidaste tu contraseña?» al iniciar sesión.",
+    "inviteErrors": {
+      "failed": "No se pudo mandar la invitación (el acceso sí quedó dado). Inténtalo de nuevo con «Invitar».",
+      "demo": "En modo demo no se mandan invitaciones: no hay cuentas reales.",
+      "forbidden": "Solo quien tiene el apartado Roles puede invitar.",
+      "no_access_row": "Ese correo no tiene acceso dado en Roles.",
+      "invalid_email": "Ese correo no es válido."
+    }
   },
   "zones": {
     "name": "Nombre de la zona",
@@ -4440,5 +4454,221 @@
     "demo": "En modo demo no está disponible: necesita el servidor del sitio.",
     "error": "No se pudo crear la dirección. Inténtalo de nuevo.",
     "copyError": "No se pudo copiar; selecciónala y cópiala a mano."
+  },
+  "passwordReset": {
+    "forgot": "¿Olvidaste tu contraseña?",
+    "sendLink": "Enviarme el enlace",
+    "backToLogin": "Volver a iniciar sesión",
+    "needEmail": "Escribe tu correo arriba para mandarte el enlace.",
+    "sent": "Si ese correo tiene una cuenta, te llegará un enlace para elegir una contraseña nueva. Revisa también el correo no deseado.",
+    "demo": "En modo demo no hay cuentas reales: no se puede restablecer la contraseña.",
+    "title": "Contraseña nueva",
+    "hint": "Elige una contraseña de al menos 8 caracteres.",
+    "newPassword": "Contraseña nueva",
+    "confirm": "Repite la contraseña",
+    "save": "Guardar contraseña",
+    "done": "Listo: tu contraseña se cambió. Entrando al panel…",
+    "invalidLink": "Este enlace ya no sirve (venció o ya se usó). Pide uno nuevo desde «¿Olvidaste tu contraseña?».",
+    "errors": {
+      "short": "Usa al menos 8 caracteres.",
+      "spaces": "La contraseña no puede empezar ni terminar con espacios.",
+      "mismatch": "Las dos contraseñas no coinciden.",
+      "generic": "No se pudo cambiar la contraseña. Pide un enlace nuevo e inténtalo de nuevo."
+    }
+  },
+  "contract": {
+    "button": "Contrato",
+    "title": "Contrato de intermediación",
+    "hint": "Para {{title}}. Es un dato interno: no se publica en el sitio.",
+    "kind": "Tipo",
+    "expires": "Vence el",
+    "kinds": {
+      "exclusiva": "Exclusiva",
+      "abierta": "Abierta"
+    },
+    "remove": "Quitar contrato",
+    "confirmRemove": "¿Quitar el contrato de esta propiedad?",
+    "chip": "{{kind}} · {{state}}",
+    "states": {
+      "vigente": "Vigente",
+      "porVencer_one": "Vence en {{count}} día",
+      "porVencer_other": "Vence en {{count}} días",
+      "urgente_one": "Vence en {{count}} día",
+      "urgente_other": "Vence en {{count}} días",
+      "vencido_one": "Venció hace {{count}} día",
+      "vencido_other": "Venció hace {{count}} días"
+    },
+    "errors": {
+      "kind": "Elige el tipo de contrato.",
+      "date": "Elige la fecha de vencimiento.",
+      "generic": "No se pudo guardar. Inténtalo de nuevo."
+    }
+  },
+  "contractsDue": {
+    "title": "Exclusivas por vencer",
+    "hint": "Contratos con el propietario que vencen en 30 días o menos, o que ya vencieron. Renuévalos desde «Contrato» en Propiedades.",
+    "open": "Ir a Propiedades"
+  },
+  "stalled": {
+    "filter": "Sin movimiento",
+    "any": "Cualquiera",
+    "days": "{{count}}+ días",
+    "chip": "Sin movimiento hace {{count}} días",
+    "hint": "Movimiento: cambios en la ficha, visitas, citas o prospectos nuevos de esa propiedad."
+  },
+  "commissions": {
+    "navTitle": "Comisiones",
+    "title": "Comisiones por asesor",
+    "hint": "Salen de la liquidación de arriba. «Registrar» guarda el monto de este momento; después se marca como pagada con su fecha.",
+    "none": "Esta liquidación todavía no deja comisión para ningún asesor.",
+    "pageHint": "Las comisiones registradas desde las liquidaciones. Solo las ven los socios; cada asesor ve las suyas en Mi día.",
+    "concepts": {
+      "captacion": "Captación",
+      "venta": "Venta"
+    },
+    "pending": "Pendiente",
+    "paidState": "Pagada",
+    "paidOn": "Pagada el {{date}}",
+    "register": "Registrar",
+    "update": "Actualizar monto",
+    "changed": "El cálculo ahora da {{amount}} para {{name}}.",
+    "payDate": "Fecha de pago",
+    "markPaid": "Marcar pagada",
+    "undoPaid": "Regresar a pendiente",
+    "confirmUndo": "¿Regresar esta comisión a pendiente?",
+    "advisor": "Asesor",
+    "status": "Estado",
+    "all": "Todos",
+    "empty": "No hay comisiones con ese filtro.",
+    "owed": "Pendiente: {{amount}}",
+    "paidTotal": "Pagado: {{amount}}",
+    "mineTitle": "Mis comisiones",
+    "lastPaid": "último pago {{date}}",
+    "errors": {
+      "generic": "No se pudo guardar. Inténtalo de nuevo.",
+      "paid": "Esa comisión ya está pagada: no se puede cambiar.",
+      "invalid": "Datos de la comisión no válidos.",
+      "date": "Elige la fecha de pago.",
+      "future": "La fecha de pago no puede ser futura."
+    }
+  },
+  "mergeDuplicates": {
+    "title": "Posibles duplicados",
+    "merge": "Fusionar aquí",
+    "confirm": "Se conservará «{{keep}}» y «{{remove}}» se fusionará en él: sus etapas, contactos, citas, selecciones y notas pasan a este prospecto, los datos que falten se completan y «{{remove}}» se elimina. No se puede deshacer. ¿Continuar?",
+    "hint": "Mismo teléfono o correo. Fusionar conserva este prospecto y le pasa toda la historia del otro. Los clientes y los prospectos de otro asesor solo se avisan.",
+    "errors": {
+      "forbidden": "Solo puedes fusionar prospectos que son tuyos.",
+      "not_found": "Ese prospecto ya no existe.",
+      "invalid": "No se pueden fusionar esos dos.",
+      "generic": "No se pudo fusionar. Inténtalo de nuevo."
+    }
+  },
+  "savedViews": {
+    "title": "Mis vistas",
+    "save": "Guardar esta vista",
+    "nothingToSave": "Pon algún filtro para poder guardarlo.",
+    "nameLabel": "Nombre de la vista",
+    "namePlaceholder": "Nombre (p. ej. «Calientes de hoy»)",
+    "remove": "Quitar la vista {{name}}",
+    "confirmRemove": "¿Quitar la vista «{{name}}»?",
+    "confirmReplace": "Ya hay una vista llamada «{{name}}». ¿Reemplazarla con los filtros de ahora?",
+    "errors": {
+      "name": "Escribe un nombre.",
+      "full": "Ya tienes 8 vistas: quita alguna para guardar otra."
+    }
+  },
+  "leaderboard": {
+    "title": "Tabla del mes",
+    "hint": "Puntos del mes: {{contacts}} por contacto, {{visits}} por visita, {{prospects}} por prospecto captado y {{sales}} por venta. Solo se cuentan números; no se muestran clientes ni montos.",
+    "place": "Lugar {{count}}",
+    "you": "Tú",
+    "goalsMet": "Metas cumplidas",
+    "points_one": "{{count}} punto",
+    "points_other": "{{count}} puntos",
+    "detail": "{{contacts}} contactos · {{visits}} visitas · {{prospects}} prospectos · {{sales}} ventas"
+  },
+  "help": {
+    "navTitle": "Ayuda",
+    "title": "Ayuda",
+    "hint": "Cómo usar cada parte del panel. Solo salen los temas de los apartados que tu rol tiene.",
+    "search": "Buscar en la ayuda…",
+    "empty": "No hay temas con esa búsqueda.",
+    "goThere": "Ir allí",
+    "banner": {
+      "label": "Recorrido guiado",
+      "text": "¿Primera vez en el panel? Un recorrido de un minuto te enseña dónde está lo importante.",
+      "start": "Hacer el recorrido",
+      "later": "Ahora no"
+    },
+    "tour": {
+      "start": "Ver el recorrido guiado",
+      "progress": "Paso {{current}} de {{total}}",
+      "goThere": "Ir allí",
+      "skip": "Salir",
+      "back": "Atrás",
+      "next": "Siguiente",
+      "finish": "Terminar",
+      "steps": {
+        "welcome": {
+          "title": "Bienvenido al panel",
+          "body": "Aquí llevas tus prospectos, tu agenda y tus propiedades. Este recorrido es corto y puedes repetirlo cuando quieras desde Ayuda."
+        },
+        "myDay": {
+          "title": "Mi día",
+          "body": "Empieza aquí: tus citas de hoy en orden, la ruta para llegar a ellas, los prospectos a los que toca escribirles y los avisos importantes."
+        },
+        "prospects": {
+          "title": "Prospectos",
+          "body": "Cada persona interesada es una tarjeta que se arrastra de una etapa a otra. Registra cada contacto para que se calcule cuándo darle seguimiento."
+        },
+        "agenda": {
+          "title": "Agenda",
+          "body": "Tus visitas y citas por mes, semana o día. Puedes ver tu agenda también en Google, Apple u Outlook con una dirección de solo lectura."
+        },
+        "properties": {
+          "title": "Propiedades",
+          "body": "Las fichas del sitio. Cada una muestra qué tan completa está y qué le falta; desde ahí registras ofertas, apartados y el contrato con el propietario."
+        },
+        "help": {
+          "title": "¿Dudas?",
+          "body": "En «Ayuda» (en el menú) está todo explicado por temas y con buscador, y desde ahí puedes repetir este recorrido."
+        }
+      }
+    },
+    "topics": {
+      "myDay": {
+        "title": "Mi día",
+        "points": ["Junta lo de hoy: citas en orden de hora, prospectos sin atender, seguimientos vencidos y los de hoy.", "«Ruta de hoy» abre Google Maps con todas tus visitas que faltan como paradas.", "«Propiedades nuevas para tus prospectos» muestra lo publicado esta semana que le encaja a alguien; tú decides si le avisas.", "Aquí también salen los apartados y las exclusivas por vencer, tus comisiones y la tabla del mes del equipo."]
+      },
+      "prospects": {
+        "title": "Prospectos",
+        "points": ["Arrastra la tarjeta a otra columna para cambiar su etapa (en el teléfono, usa «Más»).", "«Registrar contacto» guarda el canal y una nota, y fija el siguiente seguimiento; puedes dictar la nota con el micrófono.", "El chip 🔥 tibio ❄️ explica con puntos por qué un prospecto está caliente o frío; pasa el cursor para verlo.", "«Mis vistas» guarda tus filtros de siempre (en este dispositivo) para volver a ellos con un toque.", "Si dos prospectos son la misma persona (mismo teléfono o correo), abre uno y usa «Fusionar aquí»: conserva su historia completa."]
+      },
+      "agenda": {
+        "title": "Agenda",
+        "points": ["Cambia entre mes, semana, día y lista con los botones de arriba; en semana y día las citas se colocan en su hora.", "Una solicitud de visita sin asesor la ve todo el equipo: quien la toma primero se la queda.", "Al final de la pantalla puedes crear la dirección secreta para ver tu agenda en Google, Apple u Outlook. Es de solo lectura: lo que cambies allá no llega al panel."]
+      },
+      "properties": {
+        "title": "Propiedades",
+        "points": ["La barra «Ficha N %» dice qué falta (fotos, descripción, ubicación…); «Solo fichas incompletas» filtra las pendientes.", "«Duplicar» crea una copia inactiva sin fotos para capturar una parecida más rápido.", "Selecciona varias filas para cambiar precio (con un tope de 50 % por vez) o asesor de todas a la vez; se pide confirmar.", "«Ofertas y apartado» guarda las ofertas y el apartado (uno vigente por propiedad); «Contrato» guarda si es exclusiva y cuándo vence.", "Las fichas sin visitas, citas ni cambios en 30 días salen marcadas «Sin movimiento» (solo para la oficina)."]
+      },
+      "visits": {
+        "title": "Visitas",
+        "points": ["Registra cada visita para alimentar el informe que se le entrega al propietario.", "Al marcar «Realizada» una visita reservada desde el sitio, el cliente recibe una encuesta y su opinión aparece en tu Agenda."]
+      },
+      "commissions": {
+        "title": "Comisiones",
+        "points": ["Cada liquidación guardada calcula la comisión de captación y la de venta de cada asesor.", "«Registrar» guarda el monto de ese momento; después se marca como pagada con su fecha.", "Solo los socios ven todas; cada asesor ve las suyas en Mi día."]
+      },
+      "roles": {
+        "title": "Roles y accesos",
+        "points": ["Un rol agrupa los apartados que se pueden ver; un acceso liga un correo con un rol (y con un asesor).", "Al dar un acceso nuevo puedes enviar una invitación por correo: la persona elige su contraseña con el enlace y no hay que crear la cuenta a mano.", "«Invitar» en la tabla vuelve a mandar la invitación."]
+      },
+      "account": {
+        "title": "Mi cuenta",
+        "points": ["¿Olvidaste tu contraseña? En el inicio de sesión usa «¿Olvidaste tu contraseña?»: te llega un enlace para elegir una nueva.", "El botón «Mostrar» junto a la contraseña deja ver lo que escribes (útil en el teléfono).", "El idioma y el modo claro u oscuro se cambian arriba a la derecha."]
+      }
+    }
   }
 }

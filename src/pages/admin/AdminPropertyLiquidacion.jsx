@@ -6,6 +6,7 @@ import { formatMXN } from "../../lib/format";
 import { computeMaterialsTotals } from "../../lib/materialsTotals";
 import { sumExpenses } from "../../lib/propertyLog";
 import { useAuth } from "../../context/AuthContext";
+import CommissionsCard from "../../components/CommissionsCard";
 import { EMPTY_LIQUIDACION, computeLiquidacion, toLiquidacionPayload, toLiquidacionFormValues } from "../../lib/liquidacion";
 import "./AdminPropertyLiquidacion.css";
 import "./admin.css";
@@ -295,6 +296,8 @@ export default function AdminPropertyLiquidacion() {
           <p className="form-hint">{t("liquidacion.disclaimer")}</p>
         </div>
       </div>
+
+      {existing && <CommissionsCard propertyId={id} breakdown={breakdown} captadorId={form.captador_id} vendedorId={form.vendedor_id} advisors={advisors} />}
     </div>
   );
 }

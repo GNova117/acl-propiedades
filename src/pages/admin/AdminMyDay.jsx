@@ -20,6 +20,9 @@ import MonthGoals from "../../components/MonthGoals";
 import DayRouteCard from "../../components/DayRouteCard";
 import NewMatchesPanel from "../../components/NewMatchesPanel";
 import HoldsDuePanel from "../../components/HoldsDuePanel";
+import ContractsDuePanel from "../../components/ContractsDuePanel";
+import MyCommissionsPanel from "../../components/MyCommissionsPanel";
+import TeamLeaderboard from "../../components/TeamLeaderboard";
 import { HOME_MY_DAY, HOME_PANEL } from "../../lib/adminHome";
 import { useAdminHome } from "../../lib/useAdminHome";
 import "./admin.css";
@@ -411,12 +414,17 @@ export default function AdminMyDay() {
       )}
       {canProspects && <NewMatchesPanel prospects={prospects} properties={properties} scope={advisorId} />}
       {hasSection("propiedades") && <HoldsDuePanel advisorId={advisorId} propertyTitle={propertyTitle} />}
+      {hasSection("propiedades") && <ContractsDuePanel propertyTitle={propertyTitle} />}
       {canProspects && section("urgent", plan.urgent, (e) => renderProspect(e, unattendedChip(e)))}
       {canProspects &&
         section("overdue", plan.overdue, (e) =>
           renderProspect(e, <span className="prospect-chip prospect-chip--overdue">{t("myDay.daysLate", { count: e.daysLate })}</span>)
         )}
       {canProspects && section("today", plan.today, (e) => renderProspect(e, <span className="prospect-chip prospect-chip--today">{t("prospects.followToday")}</span>))}
+
+      {/* Lo de consulta (no urgente) va al final, para que la primera cita se vea sin deslizar. */}
+      <MyCommissionsPanel advisorId={advisorId} />
+      <TeamLeaderboard advisorId={advisorId} />
 
       {/* Preferencia de este dispositivo: va al final, para que la primera cita se vea sin deslizar. */}
       <label className="my-day__home-toggle">
