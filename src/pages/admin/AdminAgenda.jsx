@@ -15,6 +15,8 @@ import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
 import "./AdminAgenda.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 const pad2 = (n) => String(n).padStart(2, "0");
 const isoOf = (date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
@@ -102,7 +104,7 @@ export default function AdminAgenda() {
   const load = () => citasQ.reload().catch(() => {});
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     await db.deleteAgendaCita(id);
     load();
   };
@@ -138,13 +140,13 @@ export default function AdminAgenda() {
   // toma para sí; administración (sin asesor vinculado) la asigna a quien elija. Gana la primera persona que llega.
   const takeRequest = async (cita, chosenId) => {
     if (!chosenId) return;
-    if (!window.confirm(t(seesAll ? "agenda.assignConfirm" : "agenda.takeConfirm", { when: whenLabel(cita), name: advisorName(chosenId) }))) return;
+    if (!await confirmDialog(t(seesAll ? "agenda.assignConfirm" : "agenda.takeConfirm", { when: whenLabel(cita), name: advisorName(chosenId) }))) return;
     setBusyId(cita.id);
     try {
       const res = await db.claimVisitRequest(cita.id, { advisorId: chosenId });
-      if (res?.error) window.alert(t(res.error === "already_taken" || res.error === "not_found" ? "agenda.alreadyTaken" : "agenda.takeError"));
+      if (res?.error) notify(t(res.error === "already_taken" || res.error === "not_found" ? "agenda.alreadyTaken" : "agenda.takeError"));
     } catch {
-      window.alert(t("agenda.takeError"));
+      notify(t("agenda.takeError"));
     }
     setBusyId(null);
     load();
@@ -168,13 +170,13 @@ export default function AdminAgenda() {
     try {
       await db.setAgendaCitaStatus(cita.id, status, { reason });
     } catch (err) {
-      window.alert(err.message || t("agenda.statusError"));
+      notify(err.message || t("agenda.statusError"));
       setBusyId(null);
       return;
     }
     setBusyId(null);
     // Al cerrar una visita como realizada se ofrece registrarla (así alimenta el informe de la propiedad).
-    if (status === "realizada" && canLogVisits && canRegisterVisit(cita) && !visitByCita.has(cita.id) && window.confirm(t("agenda.registerVisitPrompt"))) {
+    if (status === "realizada" && canLogVisits && canRegisterVisit(cita) && !visitByCita.has(cita.id) && await confirmDialog(t("agenda.registerVisitPrompt"))) {
       registerVisit(cita);
       return;
     }
@@ -183,7 +185,7 @@ export default function AdminAgenda() {
       // Una visita reservada desde el sitio con correo: el cliente ya recibe el aviso por correo (trigger
       // notify_visit_email); aquí solo se ofrece, además, avisarle por WhatsApp.
       const emailed = isFromSite(cita) && contact.email;
-      if (contact.phone && window.confirm(t(emailed ? "agenda.notifyCancelledEmailed" : "agenda.notifyCancelled"))) {
+      if (contact.phone && await confirmDialog(t(emailed ? "agenda.notifyCancelledEmailed" : "agenda.notifyCancelled"))) {
         openWhatsApp(contact.phone, t("agenda.cancelledText", { name: contact.name.split(/\s+/)[0], title: cita.titulo, when: whenLabel(cita), advisor: advisorName(cita.advisor_id) }));
       }
     }
@@ -325,7 +327,7 @@ export default function AdminAgenda() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={seesAll ? 5 : 4}>{t("common.loading")}</td>
+                  <td colSpan={seesAll ? 5 : 4}><LoadingState variant="rows" /></td>
                 </tr>
               ) : visibleCitas.length === 0 ? (
                 <tr>
@@ -497,7 +499,7 @@ export default function AdminAgenda() {
             </button>
           </div>
           {loading ? (
-            <p className="form-hint">{t("common.loading")}</p>
+            <LoadingState variant="lines" />
           ) : (
             <AgendaTimeGrid
               days={gridDays}
@@ -584,7 +586,7 @@ export default function AdminAgenda() {
           <section className="agenda-day" aria-live="polite">
             <h2 className="agenda-day__title">{selectedTitle}</h2>
             {loading ? (
-              <p className="form-hint">{t("common.loading")}</p>
+              <LoadingState variant="lines" />
             ) : selectedCitas.length === 0 ? (
               <p className="form-hint">{t("agenda.noAppointmentsDay")}</p>
             ) : (

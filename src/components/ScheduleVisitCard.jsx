@@ -136,7 +136,7 @@ function VisitRequestForm({ property, onBack, noSlots }) {
     );
   }
 
-  if (status === "success") return <p className="form-hint" style={{ color: "var(--color-success)" }}>{t("scheduleVisit.success")}</p>;
+  if (status === "success") return <p className="form-hint text-success">{t("scheduleVisit.success")}</p>;
 
   return (
     <form onSubmit={handleSubmit} noValidate>
@@ -148,7 +148,7 @@ function VisitRequestForm({ property, onBack, noSlots }) {
         </p>
       )}
       <p className="form-hint">{t(noSlots ? "scheduleVisit.request.noSlots" : "scheduleVisit.request.intro")}</p>
-      <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}>
+      <div aria-hidden="true" className="hp-field">
         <label htmlFor="visit-empresa">Empresa</label>
         <input id="visit-empresa" name="empresa" value={form.empresa} onChange={handleChange} tabIndex={-1} autoComplete="off" />
       </div>

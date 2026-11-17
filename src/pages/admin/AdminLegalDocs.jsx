@@ -6,6 +6,7 @@ import ContractGenerator from "../../components/ContractGenerator";
 import TemplateDocGenerator from "../../components/TemplateDocGenerator";
 import { PORTAL_OFFICIAL_URLS } from "../../lib/clientPortal";
 import "./admin.css";
+import { notify } from "../../lib/toast";
 
 // Descarga el Aviso de Privacidad / Carta de Derechos sobre la hoja
 // membretada, con línea de firma — el texto es el mismo que ya se publica
@@ -21,7 +22,7 @@ export default function AdminLegalDocs() {
       const content = t(key, { returnObjects: true });
       await downloadLegalDocPdf(content, filePrefix);
     } catch (err) {
-      window.alert(err.message || "Error al generar el documento");
+      notify(err.message || "Error al generar el documento");
     } finally {
       setDownloading(null);
     }
@@ -32,7 +33,7 @@ export default function AdminLegalDocs() {
       <div className="admin-header">
         <h1>{t("legalDocs.title")}</h1>
       </div>
-      <p className="form-hint" style={{ marginBottom: "1.5rem" }}>{t("legalDocs.subtitle")}</p>
+      <p className="form-hint mb-6">{t("legalDocs.subtitle")}</p>
 
       <div className="admin-zones-grid">
         <div className="card admin-zone-card">
@@ -53,8 +54,8 @@ export default function AdminLegalDocs() {
         </div>
       </div>
 
-      <h2 style={{ marginTop: "2rem" }}>{t("legalDocs.officialLinksTitle")}</h2>
-      <p className="form-hint" style={{ marginBottom: "1.5rem" }}>{t("legalDocs.officialLinksSubtitle")}</p>
+      <h2 className="mt-8">{t("legalDocs.officialLinksTitle")}</h2>
+      <p className="form-hint mb-6">{t("legalDocs.officialLinksSubtitle")}</p>
 
       <div className="admin-zones-grid">
         <div className="card admin-zone-card">
@@ -75,8 +76,8 @@ export default function AdminLegalDocs() {
 
       <ContractGenerator />
 
-      <h2 style={{ marginTop: "2rem" }}>{t("documentTemplates.title")}</h2>
-      <p className="form-hint" style={{ marginBottom: "1.5rem" }}>
+      <h2 className="mt-8">{t("documentTemplates.title")}</h2>
+      <p className="form-hint mb-6">
         {t("documentTemplates.subtitle")}{" "}
         <Link to="/admin/plantillas-documentos">{t("documentTemplates.manage")}</Link>
       </p>

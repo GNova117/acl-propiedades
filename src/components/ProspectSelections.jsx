@@ -7,6 +7,7 @@ import { whatsappDigits, whatsappUrl } from "../lib/format";
 import { selectionShareMessage } from "../lib/propertyShare";
 import { agoText, defaultSelectionTitle, reactionSummary, selectionState, selectionUrl, selectionsFor } from "../lib/selections";
 import "./SelectionReaction.css";
+import { confirmDialog } from "../lib/toast";
 
 const NONE = [];
 
@@ -43,7 +44,7 @@ export default function ProspectSelections({ prospect, advisorName = "", onNew, 
   };
 
   const revoke = async (selection) => {
-    if (!window.confirm(t("selection.list.confirmRevoke"))) return;
+    if (!await confirmDialog(t("selection.list.confirmRevoke"))) return;
     setError("");
     try {
       const updated = await db.revokeSelection(selection.id);

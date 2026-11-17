@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import "./AgendaFeedCard.css";
+import { confirmDialog } from "../lib/toast";
 
 const feedUrl = (token) => `${window.location.origin}/api/agenda-ics?t=${token}`;
 
@@ -29,7 +30,7 @@ export default function AgendaFeedCard() {
   }, [open]);
 
   const generate = async () => {
-    if (token && !window.confirm(t("agendaFeed.confirmRegenerate"))) return;
+    if (token && !await confirmDialog(t("agendaFeed.confirmRegenerate"))) return;
     setBusy(true);
     setMessage("");
     try {

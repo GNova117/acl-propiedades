@@ -81,7 +81,7 @@
 }
 
 .valuation-figures__swatch--land {
-  background: #1e8e5a;
+  background: var(--color-success);
 }
 
 .valuation-figures__swatch--built {
@@ -190,7 +190,7 @@
   color: var(--color-text-muted);
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 980px) {
   /* En pantalla angosta queda mapa → figuras → datos y resultado: primero se
      mide y luego se lee lo que el mapa rellenó. */
   .valuation-layout {

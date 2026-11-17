@@ -9,6 +9,7 @@ import { db } from "../lib/dataStore";
 import { buildFavoritesShareUrl, parseSharedIds } from "../lib/favoritesShare";
 import "./Properties.css";
 import "./Favorites.css";
+import LoadingState from "../components/LoadingState";
 
 export default function Favorites() {
   const { t } = useTranslation();
@@ -53,7 +54,7 @@ export default function Favorites() {
       <Seo title={shared ? t("favoritesShare.sharedTitle") : t("favorites.title")} description={t("favorites.subtitle")} />
 
       <div className="container properties-page">
-        <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
+        <div className="section-heading m-section">
           <h2>{shared ? t("favoritesShare.sharedTitle") : t("favorites.title")}</h2>
           <p>{shared ? t("favoritesShare.sharedSubtitle") : t("favorites.subtitle")}</p>
         </div>
@@ -91,7 +92,7 @@ export default function Favorites() {
         )}
 
         {loading ? (
-          <div className="empty-state">{t("common.loading")}</div>
+          <LoadingState variant="cards" />
         ) : properties.length === 0 ? (
           <div className="empty-state">
             <p>{shared ? t("favoritesShare.sharedEmpty") : t("favorites.empty")}</p>

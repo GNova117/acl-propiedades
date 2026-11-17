@@ -17,7 +17,7 @@
 }
 
 .favorite-button--active {
-  color: #e0245e;
+  color: var(--color-favorite);
 }
 
 /* Variante en línea (ficha de propiedad, junto al botón de compartir) —
@@ -32,6 +32,6 @@
 }
 
 .favorite-button--inline.favorite-button--active {
-  border-color: #e0245e;
-  color: #e0245e;
+  border-color: var(--color-favorite);
+  color: var(--color-favorite);
 }

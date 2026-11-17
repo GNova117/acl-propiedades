@@ -2233,7 +2233,8 @@
         "budgetRange": "El precio mínimo no puede ser mayor que el máximo."
       }
     },
-    "dragHint": "Arrastra una tarjeta a otra columna para cambiar su etapa (en el teléfono, usa «Más» → etapa)."
+    "dragHint": "Arrastra una tarjeta a otra columna para cambiar su etapa (en el teléfono, usa «Más» → etapa).",
+    "deletedUndo": "Prospecto «{{name}}» eliminado."
   },
   "pending": {
     "title": "Pendientes de hoy",
@@ -4670,5 +4671,19 @@
         "points": ["¿Olvidaste tu contraseña? En el inicio de sesión usa «¿Olvidaste tu contraseña?»: te llega un enlace para elegir una nueva.", "El botón «Mostrar» junto a la contraseña deja ver lo que escribes (útil en el teléfono).", "El idioma y el modo claro u oscuro se cambian arriba a la derecha."]
       }
     }
+  },
+  "toast": {
+    "close": "Cerrar aviso",
+    "cancel": "Cancelar",
+    "confirm": "Aceptar",
+    "undo": "Deshacer"
+  },
+  "adminNav": {
+    "pin": "Fijar arriba",
+    "unpin": "Quitar de fijados",
+    "pinned": "Fijados",
+    "recent": "Recientes",
+    "compact": "Compactar menú",
+    "expand": "Expandir menú"
   }
 }

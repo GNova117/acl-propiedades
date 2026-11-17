@@ -317,3 +317,30 @@ test.describe("Centro de ayuda y recorrido guiado", () => {
     await expect(page.getByRole("region", { name: "Recorrido guiado" })).toHaveCount(0);
   });
 });
+
+test.describe("Avisos y confirmaciones propias", () => {
+  test.beforeEach(async ({ seedAdminSession }) => {
+    await seedAdminSession();
+  });
+
+  test("la confirmación es un modal propio: Escape cancela, el foco empieza en «Cancelar» si es destructiva y Aceptar sigue adelante", async ({ page, go, press }) => {
+    await go("/admin/propiedades");
+    await page.evaluate(() => {
+      window.__ACL_AUTO_CONFIRM__ = false;
+    });
+    const fila = page.locator(".admin-table tbody tr.admin-row").first();
+    const total = await page.locator(".admin-table tbody tr.admin-row").count();
+    await abrirMas(fila, press);
+    await press(fila.getByRole("button", { name: "Eliminar" }));
+    const modal = page.getByRole("alertdialog");
+    await expect(modal).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(modal).toHaveCount(0);
+    await expect(page.locator(".admin-table tbody tr.admin-row")).toHaveCount(total); // cancelar no borra nada
+
+    await abrirMas(fila, press);
+    await press(fila.getByRole("button", { name: "Eliminar" }));
+    await press(page.getByRole("alertdialog").getByRole("button", { name: "Aceptar" }));
+    await expect(page.locator(".admin-table tbody tr.admin-row")).toHaveCount(total - 1);
+  });
+});

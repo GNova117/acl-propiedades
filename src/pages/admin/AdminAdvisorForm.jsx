@@ -6,6 +6,8 @@ import { whatsappDigits } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
 import VisitScheduleEditor from "../../components/VisitScheduleEditor";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { notify } from "../../lib/toast";
 
 const EMPTY = { name: "", phone: "", email: "", whatsapp: "", bio: "", active: true, show_in_team: true };
 
@@ -90,13 +92,13 @@ export default function AdminAdvisorForm() {
       }
       navigate("/admin/asesores");
     } catch (err) {
-      window.alert(err.message || "Error al guardar");
+      notify(err.message || "Error al guardar");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div>
@@ -144,14 +146,14 @@ export default function AdminAdvisorForm() {
 
         <div className="form-field">
           <label>
-            <input type="checkbox" checked={form.active} onChange={handleChange("active")} style={{ marginRight: "0.5rem" }} />
+            <input type="checkbox" checked={form.active} onChange={handleChange("active")} className="mr-2" />
             {t("common.active")}
           </label>
         </div>
 
         <div className="form-field">
           <label>
-            <input type="checkbox" checked={form.show_in_team} onChange={handleChange("show_in_team")} style={{ marginRight: "0.5rem" }} />
+            <input type="checkbox" checked={form.show_in_team} onChange={handleChange("show_in_team")} className="mr-2" />
             Mostrar en la página de Nosotros
           </label>
           <p className="form-hint">Desmárcalo para el contacto general de la empresa (ej. "ACL Propiedades") — sigue disponible como asesor de propiedades sin agente asignado, solo deja de listarse como integrante del equipo.</p>

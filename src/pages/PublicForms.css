@@ -23,7 +23,7 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
 }
 
 .public-form-result__value {
@@ -58,7 +58,7 @@
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
 }
 
 .ssv-calc-table__row input {
@@ -70,7 +70,7 @@
   text-align: right;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .public-form-card {
     padding: 1.1rem;
   }

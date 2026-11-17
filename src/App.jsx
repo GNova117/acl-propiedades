@@ -1,9 +1,9 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ChatWidget from "./components/ChatWidget";
+import Toaster from "./components/Toaster";
 import { db } from "./lib/dataStore";
 import { applyPropertyTypeLabels } from "./lib/propertyTypeLabels";
 import RequireSection from "./components/RequireSection";
@@ -20,6 +20,7 @@ import { initAnalytics, trackPageview } from "./lib/analytics";
 // de red por otra y de paso metería un parpadeo de "cargando" en la
 // primera impresión.
 import Home from "./pages/Home";
+import LoadingState from "./components/LoadingState";
 const Properties = lazy(() => import("./pages/Properties"));
 const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
 const ZoneLanding = lazy(() => import("./pages/ZoneLanding"));
@@ -159,7 +160,6 @@ function PublicLayout({ children }) {
 }
 
 export default function App() {
-  const { t } = useTranslation();
   const { pathname } = useLocation();
 
   // Nombres de tipos de propiedad editables desde /admin/zonas: se inyectan en
@@ -169,7 +169,8 @@ export default function App() {
   }, []);
 
   return (
-    <Suspense fallback={<div className="empty-state">{t("common.loading")}</div>}>
+    <>
+    <Suspense fallback={<LoadingState />}>
     {!pathname.startsWith("/admin") && !pathname.startsWith("/informe/") && <SeasonalParticles />}
     <Routes>
       <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
@@ -387,5 +388,7 @@ export default function App() {
       <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />
     </Routes>
     </Suspense>
+    <Toaster />
+    </>
   );
 }

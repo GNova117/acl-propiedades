@@ -11,6 +11,8 @@ import { monthLabel, monthOptions, monthPayload, parseMonthValue } from "../../l
 import "../../components/VisitReportView.css";
 import "./admin.css";
 import "./AdminVisits.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 // Informe de visitas de UNA propiedad: la vista previa exacta de lo que recibe
 // el vendedor (mismo componente, mismo JSON anonimizado), el enlace privado
@@ -75,7 +77,7 @@ export default function AdminPropertyVisits() {
     try {
       await action();
     } catch (err) {
-      window.alert(err.message || t("visits.form.saveError"));
+      notify(err.message || t("visits.form.saveError"));
     } finally {
       setBusy(false);
     }
@@ -83,16 +85,16 @@ export default function AdminPropertyVisits() {
 
   const createLink = () => run(async () => setLink(await db.saveReportLink(propertyId)));
 
-  const regenerateLink = () => {
-    if (!window.confirm(t("visits.share.confirmRegenerate"))) return;
+  const regenerateLink = async () => {
+    if (!await confirmDialog(t("visits.share.confirmRegenerate"))) return;
     return run(async () => {
       setLink(await db.saveReportLink(propertyId));
       setCopyState("");
     });
   };
 
-  const disableLink = () => {
-    if (!window.confirm(t("visits.share.confirmDisable"))) return;
+  const disableLink = async () => {
+    if (!await confirmDialog(t("visits.share.confirmDisable"))) return;
     return run(async () => {
       await db.deleteReportLink(propertyId);
       setLink(null);
@@ -113,12 +115,12 @@ export default function AdminPropertyVisits() {
   };
 
   const handleDeleteVisit = async (id) => {
-    if (!window.confirm(t("visits.confirmDelete"))) return;
+    if (!await confirmDialog(t("visits.confirmDelete"))) return;
     try {
       await db.deleteVisit(id);
       load();
     } catch (err) {
-      window.alert(err.message || t("visits.form.saveError"));
+      notify(err.message || t("visits.form.saveError"));
     }
   };
 
@@ -135,7 +137,7 @@ export default function AdminPropertyVisits() {
       });
       setEmailStatus("sent");
     } catch (err) {
-      window.alert(err.message || t("visits.share.emailError"));
+      notify(err.message || t("visits.share.emailError"));
       setEmailStatus("error");
     }
   };
@@ -150,13 +152,13 @@ export default function AdminPropertyVisits() {
         `informe-visitas-${report.property.code || propertyTitle}${month ? `-${month}` : ""}`
       );
     } catch (err) {
-      window.alert(err.message || t("visits.report.pdfError"));
+      notify(err.message || t("visits.report.pdfError"));
     } finally {
       setPdfBusy(false);
     }
   };
 
-  if (loading && !report) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading && !report) return <LoadingState />;
 
   if (loadError || !report) {
     return (
@@ -219,7 +221,7 @@ export default function AdminPropertyVisits() {
                 {t("visits.share.disable")}
               </button>
             </div>
-            <p className="visit-note" style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+            <p className="visit-note mt-3 mb-0">
               {t("visits.share.createdOn", { date: formatVisitDate(link.created_at, i18n.language) })} {t("visits.share.rotateHint")}
             </p>
             <div className="visit-share__email" style={{ marginTop: "0.9rem", display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "flex-end" }}>

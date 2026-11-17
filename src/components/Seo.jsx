@@ -2,14 +2,10 @@ import { useEffect } from "react";
 
 const SITE_NAME = "ACL Propiedades";
 
-// Imagen genérica para páginas sin foto propia (home, listados, nosotros,
-// contacto). Es una foto de stock temporal (misma que usa el panel
-// "Propiedades" del hero de inicio) — reemplazar por un banner real de la
-// marca cuando exista uno. Ver también middleware.js: ese mismo default
-// existe ahí por separado (no se puede compartir el módulo, corre en el
-// edge, fuera del bundle de Vite) y es el que de verdad ve WhatsApp/
-// Facebook, ya que no ejecutan JS.
-const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&h=630&fit=crop&q=80";
+// Imagen genérica para páginas sin foto propia (home, listados, nosotros, contacto): la de la marca, public/og-default.png.
+// Ver también middleware.js: ese mismo default existe ahí por separado (no se puede compartir el módulo, corre en el
+// edge, fuera del bundle de Vite) y es el que de verdad ve WhatsApp/Facebook, ya que no ejecutan JS.
+const DEFAULT_IMAGE_PATH = "/og-default.png";
 
 // `jsonLd`: objeto o arreglo de objetos schema.org — quien lo pase debe
 // useMemo-izarlo para no disparar el efecto en cada render. Se REMUEVE si
@@ -51,7 +47,7 @@ export default function Seo({ title, description, image, jsonLd }) {
       tag.setAttribute("content", description);
     }
 
-    const resolvedImage = image || DEFAULT_IMAGE;
+    const resolvedImage = image || `${window.location.origin}${DEFAULT_IMAGE_PATH}`;
 
     upsertMeta("property", "og:type", "website");
     upsertMeta("property", "og:site_name", SITE_NAME);

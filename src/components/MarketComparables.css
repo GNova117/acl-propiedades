@@ -241,7 +241,7 @@
   color: var(--color-warning);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 980px) {
   .market__controls {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
@@ -260,7 +260,7 @@
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .market__controls {
     grid-template-columns: minmax(0, 1fr);
   }

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { buildTemplateContent } from "../lib/documentTemplates";
 import { downloadContractPdf } from "../lib/contractPdf";
+import { notify } from "../lib/toast";
 
 // Generación de documentos a partir de una plantilla personalizada (creada
 // en /admin/plantillas-documentos, sin tocar código). A diferencia de
@@ -50,7 +51,7 @@ export default function TemplateDocGenerator() {
       const content = buildTemplateContent(template, { client, property, advisor, customValues });
       await downloadContractPdf(content);
     } catch (err) {
-      window.alert(err.message || t("documentTemplates.generateError"));
+      notify(err.message || t("documentTemplates.generateError"));
     } finally {
       setBusy(false);
     }

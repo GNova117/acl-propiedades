@@ -64,7 +64,7 @@
 
 .construccion__tab--active {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 /* ── Editor (pestaña "Editor") ─────────────────────────────────────────── */
@@ -173,7 +173,7 @@
 .construccion-editor__room--active,
 .construccion-editor__room--active:hover {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .construccion-editor__room-name {
@@ -235,7 +235,7 @@
   border: none;
   border-radius: var(--radius-sm);
   background: var(--color-success);
-  color: #fff;
+  color: var(--color-on-primary);
   font-size: 0.8rem;
   font-weight: 600;
   padding: 0.4rem 0.8rem;
@@ -293,7 +293,7 @@
 
 .construccion-editor__view-btn--active {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .construccion-editor__canvas {
@@ -734,7 +734,7 @@
 }
 
 .construccion-palette__cat--active {
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .construccion-palette__kit {
@@ -1014,7 +1014,7 @@
 .construccion-zonas__tab--active {
   background: #2563eb;
   border-color: #2563eb;
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 /* La barra lateral hace scroll: sus bloques no deben encogerse (el selector de modo, con overflow oculto,

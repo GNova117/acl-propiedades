@@ -251,7 +251,7 @@
 
 /* Teléfono: cuadros compactos con el número y un puntito por cita (no se lee
    el título en 50 px de ancho); las citas se ven completas abajo al tocar el día. */
-@media (max-width: 720px) {
+@media (max-width: 860px) {
   .agenda-calendar {
     padding: 0.75rem 0.6rem 1rem;
   }
@@ -422,7 +422,7 @@
 }
 
 /* Teléfono: los dos filtros lado a lado para que el calendario quede más arriba. */
-@media (max-width: 720px) {
+@media (max-width: 860px) {
   .agenda-filters {
     gap: 0.6rem;
     margin-bottom: 0.9rem;
@@ -442,7 +442,7 @@
 }
 
 .agenda-feedback span[aria-label] {
-  color: #e0a100;
+  color: var(--color-attention);
 }
 
 .agenda-feedback__off {

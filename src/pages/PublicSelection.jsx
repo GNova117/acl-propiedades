@@ -14,6 +14,7 @@ import { rememberItem } from "../lib/mySpace";
 import "./Properties.css";
 import "./PublicVisitReport.css";
 import "./PublicSelection.css";
+import LoadingState from "../components/LoadingState";
 
 const seenKey = (token) => `acl_selection_seen_${token}`;
 
@@ -162,7 +163,7 @@ export default function PublicSelection() {
           </p>
         )}
 
-        {state.status === "loading" && <p className="public-report__status">{t("common.loading")}</p>}
+        {state.status === "loading" && <LoadingState variant="lines" />}
 
         {state.status === "invalid" && (
           <div className="card public-report__notice">

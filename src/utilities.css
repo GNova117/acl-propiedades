@@ -1,0 +1,49 @@
+/* Utilidades: lo que antes eran estilos en línea (style={{ marginTop: ... }}) repetidos por todo el panel. Van con !important
+   a propósito, igual que el estilo en línea al que reemplazan (así ninguna regla de un componente las pisa). Los valores
+   salen de la escala de espaciado de index.css. */
+
+.mt-0 { margin-top: 0 !important; }
+.mt-2 { margin-top: var(--space-2) !important; }
+.mt-3 { margin-top: var(--space-3) !important; }
+.mt-4 { margin-top: var(--space-4) !important; }
+.mt-5 { margin-top: var(--space-5) !important; }
+.mt-6 { margin-top: var(--space-6) !important; }
+.mt-8 { margin-top: var(--space-8) !important; }
+.mt-10 { margin-top: var(--space-10) !important; }
+.mb-0 { margin-bottom: 0 !important; }
+.mb-2 { margin-bottom: var(--space-2) !important; }
+.mb-3 { margin-bottom: var(--space-3) !important; }
+.mb-4 { margin-bottom: var(--space-4) !important; }
+.mb-5 { margin-bottom: var(--space-5) !important; }
+.mb-6 { margin-bottom: var(--space-6) !important; }
+.mb-8 { margin-bottom: var(--space-8) !important; }
+.mb-10 { margin-bottom: var(--space-10) !important; }
+.mr-0 { margin-right: 0 !important; }
+.mr-2 { margin-right: var(--space-2) !important; }
+.mr-3 { margin-right: var(--space-3) !important; }
+.mr-4 { margin-right: var(--space-4) !important; }
+.mr-5 { margin-right: var(--space-5) !important; }
+.mr-6 { margin-right: var(--space-6) !important; }
+.mr-8 { margin-right: var(--space-8) !important; }
+.mr-10 { margin-right: var(--space-10) !important; }
+.ml-0 { margin-left: 0 !important; }
+.ml-2 { margin-left: var(--space-2) !important; }
+.ml-3 { margin-left: var(--space-3) !important; }
+.ml-4 { margin-left: var(--space-4) !important; }
+.ml-5 { margin-left: var(--space-5) !important; }
+.ml-6 { margin-left: var(--space-6) !important; }
+.ml-8 { margin-left: var(--space-8) !important; }
+.ml-10 { margin-left: var(--space-10) !important; }
+.mt-n2 { margin-top: calc(var(--space-2) * -1) !important; }
+.mt-n3 { margin-top: calc(var(--space-3) * -1) !important; }
+.m-0 { margin: 0 !important; }
+/* Bloque de sección centrado con aire arriba y abajo (formularios largos del panel). */
+.m-section { margin: var(--space-10) auto var(--space-8) !important; }
+.d-block { display: block !important; }
+.text-success { color: var(--color-success) !important; }
+.text-danger { color: var(--color-danger) !important; }
+.text-muted { color: var(--color-text-muted) !important; }
+.fw-semibold { font-weight: var(--weight-semibold) !important; }
+.ws-normal { white-space: normal !important; }
+/* Campo trampa de los formularios públicos (antispam): fuera de pantalla, no ocupa lugar y no se lee. */
+.hp-field { position: absolute !important; left: -9999px !important; width: 0 !important; height: 0 !important; overflow: hidden !important; }

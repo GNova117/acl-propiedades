@@ -11,6 +11,9 @@ import NotificationBell from "../../components/NotificationBell";
 import QuickCapture from "../../components/QuickCapture";
 import OfflineBanner from "../../components/OfflineBanner";
 import TourBanner from "../../components/TourBanner";
+import NavIcon from "../../components/NavIcon";
+import { ICON_BY_GROUP, ICON_BY_PATH } from "../../lib/navIcons";
+import { itemForPath, loadPins, loadRecents, pushRecent, resolveShortcuts, savePins, saveRecents, togglePin } from "../../lib/navShortcuts";
 import { getQueue } from "../../lib/offlineQueue";
 import { startPrecache } from "../../lib/offlineShell";
 import { useAuth } from "../../context/AuthContext";
@@ -18,6 +21,7 @@ import { db } from "../../lib/dataStore";
 import { HOME_MY_DAY, mobileTabs } from "../../lib/adminHome";
 import { useAdminHome } from "../../lib/useAdminHome";
 import "./AdminLayout.css";
+import { confirmDialog } from "../../lib/toast";
 
 // Menú por carpetas. Cada item se muestra solo si el rol tiene ese apartado;
 // una carpeta sin ningún item visible no se dibuja. Los apartados sueltos
@@ -97,6 +101,7 @@ const NAV = [
 ];
 
 const OPEN_KEY = "acl_admin_nav_open";
+const COMPACT_KEY = "acl_admin_nav_compact";
 const readOpen = () => {
   try {
     const raw = JSON.parse(localStorage.getItem(OPEN_KEY));
@@ -114,6 +119,17 @@ export default function AdminLayout() {
   const { pathname } = useLocation();
   const [newMessagesCount, setNewMessagesCount] = useState(0);
   const [openGroups, setOpenGroups] = useState(readOpen);
+  // Atajos del menú (ver lib/navShortcuts.js): lo fijado arriba, lo visitado hace poco y el modo compacto (solo iconos).
+  const email = session?.user?.email;
+  const [pins, setPins] = useState(() => loadPins(email));
+  const [recents, setRecents] = useState(() => loadRecents(email));
+  const [compact, setCompact] = useState(() => {
+    try {
+      return localStorage.getItem(COMPACT_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
   // En pantallas chicas el menú es un cajón que se abre con el botón ☰.
   const [menuOpen, setMenuOpen] = useState(false);
   const { home } = useAdminHome();
@@ -156,6 +172,47 @@ export default function AdminLayout() {
     return entry.section === null || hasSection(entry.section);
   });
 
+  // Todos los elementos que la persona puede usar, en el orden del menú (para fijados y recientes).
+  const allItems = visibleNav.flatMap((entry) => (entry.items ? entry.items : [entry]));
+  const itemPaths = allItems.map((i) => i.to);
+  const pinnedSet = new Set(pins.filter((to) => itemPaths.includes(to)));
+  // Un elemento fijado se mueve arriba: ya no se repite en su carpeta (ni como enlace suelto).
+  const navWithoutPinned = visibleNav
+    .map((entry) => (entry.items ? { ...entry, items: entry.items.filter((i) => !pinnedSet.has(i.to)) } : entry))
+    .filter((entry) => (entry.items ? entry.items.length > 0 : !pinnedSet.has(entry.to)));
+
+  const togglePinned = (to) => {
+    setPins((prev) => {
+      const next = togglePin(prev, to);
+      savePins(email, next);
+      return next;
+    });
+  };
+
+  // La página visitada pasa a «recientes».
+  useEffect(() => {
+    const to = itemForPath(pathname, itemPaths);
+    if (!to) return;
+    setRecents((prev) => {
+      const next = pushRecent(prev, to);
+      if (next.join("|") === prev.join("|")) return prev;
+      saveRecents(email, next);
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  const toggleCompact = () => {
+    setCompact((prev) => {
+      try {
+        localStorage.setItem(COMPACT_KEY, prev ? "0" : "1");
+      } catch {
+        /* sin almacenamiento: vale mientras la pantalla siga abierta */
+      }
+      return !prev;
+    });
+  };
+
   // La carpeta de la página actual siempre se abre, aunque el usuario la
   // hubiera cerrado antes (así nunca se "pierde" dónde está).
   useEffect(() => {
@@ -176,13 +233,36 @@ export default function AdminLayout() {
     });
   };
 
+  const iconFor = (item) => ICON_BY_PATH[item.to] || "dashboard";
+  const labelOf = (item) => item.label || t(item.labelKey);
+
   const renderLink = (item) => (
     // onClick además del cierre por cambio de ruta: tocar el enlace de la
     // página donde ya estás no cambia la ruta y el cajón se quedaba abierto.
-    <NavLink key={item.to} to={item.to} end={item.end} onClick={() => setMenuOpen(false)}>
-      {item.label || t(item.labelKey)}
+    <NavLink key={item.to} to={item.to} end={item.end} onClick={() => setMenuOpen(false)} title={compact ? labelOf(item) : undefined} id={`nav-link-${item.to.replace(/\W+/g, "-")}`}>
+      <NavIcon name={iconFor(item)} />
+      <span className="admin-layout__nav-label">{labelOf(item)}</span>
       {item.badge && newMessagesCount > 0 && <span className="admin-layout__nav-badge">{newMessagesCount}</span>}
     </NavLink>
+  );
+
+  // Un enlace con su estrella para fijarlo (o quitarlo de fijados). La estrella es un botón APARTE del enlace (un botón
+  // dentro de un enlace no es válido) y su nombre no repite el del apartado: lo describe `aria-describedby`.
+  const renderRow = (item, isPinned) => (
+    <div key={item.to} className={`admin-layout__nav-row${isPinned ? " is-pinned" : ""}`}>
+      {renderLink(item)}
+      <button
+        type="button"
+        className="admin-layout__pin"
+        aria-pressed={isPinned}
+        aria-label={isPinned ? t("adminNav.unpin") : t("adminNav.pin")}
+        aria-describedby={`nav-link-${item.to.replace(/\W+/g, "-")}`}
+        title={isPinned ? t("adminNav.unpin") : t("adminNav.pin")}
+        onClick={() => togglePinned(item.to)}
+      >
+        <NavIcon name="pin" />
+      </button>
+    </div>
   );
 
   // Se vuelve a consultar en cada cambio de ruta (no solo al montar) para
@@ -198,23 +278,44 @@ export default function AdminLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
+  // Los recientes solo salen si NO se ven ya en el menú (una carpeta cerrada los esconde); así no se repite ningún enlace.
+  const visiblePaths = new Set([...navWithoutPinned.filter((e) => !e.items).map((e) => e.to), ...navWithoutPinned.filter((e) => e.items && openGroups.includes(e.key)).flatMap((e) => e.items.map((i) => i.to))]);
+  const shortcuts = resolveShortcuts(allItems, [...pinnedSet], recents, visiblePaths);
+
   const handleLogout = async () => {
     // Lo que se capturó sin señal y aún no se envía se queda en este dispositivo: se avisa antes de salir.
     const waiting = getQueue(session?.user?.email).length;
-    if (waiting > 0 && !window.confirm(t("offline.logoutConfirm", { count: waiting }))) return;
+    if (waiting > 0 && !await confirmDialog(t("offline.logoutConfirm", { count: waiting }))) return;
     await logout();
     navigate("/admin/login", { replace: true });
   };
 
   return (
-    <div className="admin-layout">
+    <div className={`admin-layout${compact ? " is-compact" : ""}`}>
       <aside id="admin-sidebar" className={`admin-layout__sidebar${menuOpen ? " is-open" : ""}`}>
         <NavLink to="/" className="admin-layout__logo">
           <Logo variant="white" size="sm" />
         </NavLink>
         <nav>
-          {visibleNav.map((entry) => {
-            if (!entry.items) return renderLink(entry);
+          {shortcuts.pinned.length > 0 && (
+            <div className="admin-layout__shortcuts" role="group" aria-label={t("adminNav.pinned")}>
+              <div className="admin-layout__shortcuts-title">{t("adminNav.pinned")}</div>
+              {shortcuts.pinned.map((item) => renderRow(item, true))}
+            </div>
+          )}
+          {shortcuts.recent.length > 0 && (
+            <div className="admin-layout__shortcuts" role="group" aria-label={t("adminNav.recent")}>
+              <div className="admin-layout__shortcuts-title">{t("adminNav.recent")}</div>
+              {shortcuts.recent.map((item) => (
+                <NavLink key={item.to} to={item.to} end={item.end} className="admin-layout__recent" onClick={() => setMenuOpen(false)} title={compact ? labelOf(item) : undefined}>
+                  <NavIcon name={iconFor(item)} />
+                  <span className="admin-layout__nav-label">{labelOf(item)}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+          {navWithoutPinned.map((entry) => {
+            if (!entry.items) return renderRow(entry, false);
             const open = openGroups.includes(entry.key);
             const hasBadge = !open && newMessagesCount > 0 && entry.items.some((i) => i.badge);
             return (
@@ -224,18 +325,25 @@ export default function AdminLayout() {
                   className="admin-layout__group-toggle"
                   aria-expanded={open}
                   onClick={() => toggleGroup(entry.key)}
+                  title={compact ? t(entry.labelKey) : undefined}
                 >
-                  <span>{t(entry.labelKey)}</span>
+                  <NavIcon name={ICON_BY_GROUP[entry.key] || "dashboard"} />
+                  <span className="admin-layout__nav-label">{t(entry.labelKey)}</span>
                   {hasBadge && <span className="admin-layout__nav-badge">{newMessagesCount}</span>}
                   <span className={`admin-layout__chevron${open ? " is-open" : ""}`} aria-hidden="true">›</span>
                 </button>
-                {open && <div className="admin-layout__group-items">{entry.items.map(renderLink)}</div>}
+                {open && <div className="admin-layout__group-items">{entry.items.map((item) => renderRow(item, false))}</div>}
               </div>
             );
           })}
         </nav>
-        <button type="button" className="admin-layout__logout" onClick={handleLogout}>
-          {t("admin.logout")}
+        <button type="button" className="admin-layout__compact-toggle" aria-pressed={compact} onClick={toggleCompact} title={compact ? t("adminNav.expand") : t("adminNav.compact")}>
+          <span aria-hidden="true">{compact ? "»" : "«"}</span>
+          <span className="admin-layout__nav-label">{compact ? t("adminNav.expand") : t("adminNav.compact")}</span>
+        </button>
+        <button type="button" className="admin-layout__logout" onClick={handleLogout} title={compact ? t("admin.logout") : undefined}>
+          <span className="admin-layout__logout-icon" aria-hidden="true">⏻</span>
+          <span className="admin-layout__nav-label">{t("admin.logout")}</span>
         </button>
       </aside>
 

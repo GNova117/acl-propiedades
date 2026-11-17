@@ -4,6 +4,7 @@ import { db } from "../lib/dataStore";
 import { formatMXN } from "../lib/format";
 import { commissionLines } from "../lib/commissions";
 import "./CommissionsCard.css";
+import { confirmDialog } from "../lib/toast";
 
 const errorText = (t, err) => {
   const match = /^commission:(\w+)$/.exec(String(err?.message || ""));
@@ -94,7 +95,7 @@ export default function CommissionsCard({ propertyId, breakdown, captadorId, ven
                     </>
                   )}
                   {paid && (
-                    <button type="button" className="btn btn-outline btn-sm" disabled={busyKey === row.id} onClick={() => window.confirm(t("commissions.confirmUndo")) && run(row.id, () => db.setCommissionPaid(row.id, null))}>
+                    <button type="button" className="btn btn-outline btn-sm" disabled={busyKey === row.id} onClick={async () => await confirmDialog(t("commissions.confirmUndo")) && run(row.id, () => db.setCommissionPaid(row.id, null))}>
                       {t("commissions.undoPaid")}
                     </button>
                   )}

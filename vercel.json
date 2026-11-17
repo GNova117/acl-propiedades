@@ -3,27 +3,59 @@
     {
       "source": "/sw.js",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
-        { "key": "Service-Worker-Allowed", "value": "/" }
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
       ]
     },
     {
       "source": "/manifest.webmanifest",
       "headers": [
-        { "key": "Content-Type", "value": "application/manifest+json" },
-        { "key": "Cache-Control", "value": "public, max-age=3600" }
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
       ]
     }
   ],
   "functions": {
-    "api/market-comps.js": { "maxDuration": 60 },
-    "api/sketch-to-plan.js": { "maxDuration": 45 },
-    "api/portal-upload.js": { "maxDuration": 30 },
-    "api/chat.js": { "maxDuration": 30 },
-    "api/ad-copy.js": { "maxDuration": 60 }
+    "api/market-comps.js": {
+      "maxDuration": 60
+    },
+    "api/sketch-to-plan.js": {
+      "maxDuration": 45
+    },
+    "api/portal-upload.js": {
+      "maxDuration": 30
+    },
+    "api/chat.js": {
+      "maxDuration": 30
+    },
+    "api/ad-copy.js": {
+      "maxDuration": 60
+    },
+    "api/og.js": {
+      "maxDuration": 15,
+      "includeFiles": "server/fonts/**"
+    }
   },
   "rewrites": [
-    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

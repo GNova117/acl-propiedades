@@ -9,7 +9,7 @@
 }
 
 .offline-banner--offline {
-  border-left-color: #f0a500;
+  border-left-color: var(--color-attention);
 }
 
 .offline-banner--pending {

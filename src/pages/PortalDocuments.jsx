@@ -13,6 +13,7 @@ import { OFFICE_WHATSAPP } from "../lib/office";
 import { rememberItem } from "../lib/mySpace";
 import { PORTAL_OFFICIAL_LINKS, PORTAL_CONSENT_VERSION, checklistSummary, clientTodo, latestPortalDoc, portalChecklist, requestedDocsFor } from "../lib/clientPortal";
 import "./PortalDocuments.css";
+import LoadingState from "../components/LoadingState";
 
 const CONSENT_KEY_PREFIX = "acl_portal_consent_";
 
@@ -106,7 +107,7 @@ export default function PortalDocuments() {
       </header>
 
       <main className="portal-page__main">
-        {state.status === "loading" && <p className="form-hint">{t("common.loading")}</p>}
+        {state.status === "loading" && <LoadingState variant="lines" />}
 
         {state.status === "invalido" && (
           <div className="card portal-page__notice">

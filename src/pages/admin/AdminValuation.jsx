@@ -13,6 +13,7 @@ import { downloadValuationPdf } from "../../lib/valuationPdf";
 import { valuationPdfLabels, valuationRowToPdfData, valuationWhatsappUrl } from "../../lib/valuationShare";
 import "./AdminValuation.css";
 import "./admin.css";
+import { confirmDialog, notify } from "../../lib/toast";
 
 const DEFAULT_SPREAD_PCT = 10;
 const MAX_LEVELS = 10;
@@ -142,7 +143,7 @@ export default function AdminValuation() {
     try {
       await downloadValuationPdf(data, valuationPdfLabels(t));
     } catch (err) {
-      window.alert(err.message || t("valuation.pdf.error"));
+      notify(err.message || t("valuation.pdf.error"));
     } finally {
       setDownloading(false);
     }
@@ -212,7 +213,7 @@ export default function AdminValuation() {
       });
       navigate(`/admin/construccion/${id}`);
     } catch (err) {
-      window.alert(err.message || "No se pudo crear el proyecto de Construcción.");
+      notify(err.message || "No se pudo crear el proyecto de Construcción.");
     } finally {
       setSendingToConstruccion(null);
     }
@@ -241,19 +242,19 @@ export default function AdminValuation() {
       setHistory((prev) => [row, ...prev]);
       setSavedId(row.id);
     } catch (err) {
-      window.alert(err.message || t("valuation.history.saveError"));
+      notify(err.message || t("valuation.history.saveError"));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (row) => {
-    if (!window.confirm(t("valuation.history.confirmDelete"))) return;
+    if (!await confirmDialog(t("valuation.history.confirmDelete"))) return;
     try {
       await db.deleteValuationEstimate(row.id);
       setHistory((prev) => prev.filter((r) => r.id !== row.id));
     } catch (err) {
-      window.alert(err.message || t("valuation.history.deleteError"));
+      notify(err.message || t("valuation.history.deleteError"));
     }
   };
 

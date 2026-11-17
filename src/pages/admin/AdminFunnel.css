@@ -19,12 +19,12 @@
 
 .funnel-kpi span {
   font-size: 0.85rem;
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
 }
 
 .funnel-kpi small {
   font-size: 0.75rem;
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
 }
 
 .funnel-kpi--accent {
@@ -68,14 +68,14 @@
 
 .funnel-step__pct {
   font-weight: 400;
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
 }
 
 .funnel-step__conv {
   display: block;
   margin-top: 0.25rem;
   font-size: 0.78rem;
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
 }
 
 .funnel-bar {
@@ -96,7 +96,7 @@
 }
 
 .funnel-bar--lost > span {
-  background: #7a8598;
+  background: var(--color-muted-soft);
 }
 
 .funnel-bar--inline {
@@ -111,7 +111,7 @@
   white-space: nowrap;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .funnel-grid {
     grid-template-columns: 1fr;
   }

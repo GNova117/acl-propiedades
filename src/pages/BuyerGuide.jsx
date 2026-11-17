@@ -69,13 +69,13 @@ export default function BuyerGuide() {
     <>
       <Seo title={t("buyerGuide.seoTitle")} description={t("buyerGuide.subtitle")} />
       <div className="container public-form-page">
-        <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
+        <div className="section-heading m-section">
           <h1 style={{ fontSize: "2rem" }}>{t("buyerGuide.title")}</h1>
           <p>{t("buyerGuide.subtitle")}</p>
         </div>
 
         <div className="card public-form-card">
-          <h2 style={{ marginTop: 0 }}>{t("buyerGuide.includesTitle")}</h2>
+          <h2 className="mt-0">{t("buyerGuide.includesTitle")}</h2>
           <ul style={{ margin: 0, paddingLeft: "1.25rem", display: "grid", gap: "0.35rem" }}>
             {BUYER_GUIDE.sections.map((section) => (
               <li key={section.title}>{section.title.replace(/^\d+\.\s*/, "")}</li>
@@ -84,7 +84,7 @@ export default function BuyerGuide() {
           <p className="form-hint">{t("buyerGuide.spanishNote")}</p>
         </div>
 
-        <div className="card public-form-card" style={{ marginTop: "1.5rem" }}>
+        <div className="card public-form-card mt-6">
           {finished ? (
             <>
               <p className="form-hint" style={{ color: status === "done" ? "var(--color-success)" : "var(--color-danger)" }}>
@@ -94,14 +94,14 @@ export default function BuyerGuide() {
                 {downloading ? <span className="spinner" /> : null}
                 {t("buyerGuide.downloadAgain")}
               </button>
-              <p className="form-hint" style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+              <p className="form-hint mt-3 mb-0">
                 <Link to="/comparar-creditos">{t("buyerGuide.nextStep")}</Link>
               </p>
             </>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
-              <h2 style={{ marginTop: 0 }}>{t("buyerGuide.formTitle")}</h2>
-              <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}>
+              <h2 className="mt-0">{t("buyerGuide.formTitle")}</h2>
+              <div aria-hidden="true" className="hp-field">
                 <label htmlFor="bg-empresa">Empresa</label>
                 <input id="bg-empresa" name="empresa" value={lead.empresa} onChange={changeLead} tabIndex={-1} autoComplete="off" />
               </div>
@@ -132,7 +132,7 @@ export default function BuyerGuide() {
                 {status === "sending" ? <span className="spinner" /> : null}
                 {status === "sending" ? t("buyerGuide.preparing") : t("buyerGuide.submit")}
               </button>
-              <p className="form-hint" style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+              <p className="form-hint mt-3 mb-0">
                 {t("contact.privacyNotice")} <Link to="/aviso-de-privacidad">{t("contact.privacyLinkLabel")}</Link>.
               </p>
             </form>

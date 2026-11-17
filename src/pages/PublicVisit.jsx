@@ -13,6 +13,7 @@ import { useSlotSelection } from "../lib/useSlotSelection";
 import { rememberItem } from "../lib/mySpace";
 import { bookingToCalendarEvent, formatSlotDay, formatSlotTime } from "../lib/visitBookingUi";
 import "./PublicVisit.css";
+import LoadingState from "../components/LoadingState";
 
 // Página pública /visita/<token>: el cliente que reservó una visita desde la ficha
 // confirma que va a asistir, cambia el horario (con un horario libre del mismo
@@ -253,7 +254,7 @@ export default function PublicVisit() {
       </header>
 
       <main className="visit-page__main">
-        {status === "loading" && <p className="form-hint">{t("common.loading")}</p>}
+        {status === "loading" && <LoadingState variant="lines" />}
 
         {status === "invalido" && (
           <div className="card visit-page__notice">

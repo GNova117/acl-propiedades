@@ -10,6 +10,8 @@ import Tour360Uploader from "../../components/Tour360Uploader";
 import FloorPlanField from "../../components/FloorPlanField";
 import InternalNotes from "../../components/InternalNotes";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { notify } from "../../lib/toast";
 
 const EMPTY = {
   title: "",
@@ -224,18 +226,18 @@ export default function AdminPropertyForm({
         try {
           await db.setPropertyFloorPlan(isEdit ? id : saved?.id, floorPlanFile || null);
         } catch (planErr) {
-          window.alert(t("floorPlan.saveFailed", { message: planErr.message || "" }));
+          notify(t("floorPlan.saveFailed", { message: planErr.message || "" }));
         }
       }
       navigate(listPath);
     } catch (err) {
-      window.alert(err.message || "Error al guardar");
+      notify(err.message || "Error al guardar");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   const typeOptions = fixedType
     ? propertyTypes.filter((pt) => pt.key === fixedType)
@@ -359,7 +361,7 @@ export default function AdminPropertyForm({
         </div>
         {errors.lat && <span className="form-error">{errors.lat}</span>}
 
-        <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{t("admin.propertySpecsHint")}</p>
+        <p className="form-hint mt-n2">{t("admin.propertySpecsHint")}</p>
 
         <div className="form-row">
           <div className="form-field">
@@ -385,7 +387,7 @@ export default function AdminPropertyForm({
 
         {fixedType === "nave_industrial" && (
           <>
-            <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{t("admin.industrialSpecsHint")}</p>
+            <p className="form-hint mt-n2">{t("admin.industrialSpecsHint")}</p>
 
             <div className="form-field">
               <label htmlFor="p-tipo-nave">{t("properties.naveTipo")}</label>
@@ -471,7 +473,7 @@ export default function AdminPropertyForm({
 
         <div className="form-field">
           <label>
-            <input type="checkbox" checked={form.active} onChange={handleChange("active")} style={{ marginRight: "0.5rem" }} />
+            <input type="checkbox" checked={form.active} onChange={handleChange("active")} className="mr-2" />
             {t("common.active")}
           </label>
         </div>

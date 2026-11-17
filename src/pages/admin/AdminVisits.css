@@ -203,7 +203,7 @@
   color: var(--color-text-muted);
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .visit-share__url {
     flex-direction: column;
   }

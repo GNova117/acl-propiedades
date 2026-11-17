@@ -36,6 +36,12 @@ export const test = base.extend({
       if (u.origin === origin && !u.pathname.startsWith("/api/") && r.status() >= 400) problems.push(`HTTP ${r.status()} ${u.pathname}`);
     });
     page.on("dialog", (d) => d.accept());
+    // Las confirmaciones del sitio ya no son ventanas del navegador sino un modal propio (lib/toast.js): esto las acepta
+    // solas, como antes aceptaba las nativas. Una prueba que quiera ver el modal lo apaga con
+    // `page.evaluate(() => { window.__ACL_AUTO_CONFIRM__ = false; })`.
+    await page.addInitScript(() => {
+      window.__ACL_AUTO_CONFIRM__ = true;
+    });
 
     await use(page);
 

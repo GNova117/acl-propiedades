@@ -29,6 +29,7 @@ import { directionsUrl, streetViewUrl, wazeUrl } from "../lib/mapLinks";
 import { listingFrom } from "../lib/listNavigation";
 import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
 import "./PropertyDetail.css";
+import LoadingState from "../components/LoadingState";
 
 // Leaflet (react-leaflet + leaflet, ~150KB) queda fuera del bundle
 // principal del sitio público — aquí siempre se termina mostrando (no es
@@ -317,7 +318,7 @@ export default function PropertyDetail() {
     };
   }, [property?.id, property?.type, property?.zone]);
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
   const badge = getPropertyBadge(property);
   const priceDrop = badge?.kind === "priceDrop" ? badge : null;
   const monthly = estimateMonthlyPayment(property);
@@ -333,7 +334,7 @@ export default function PropertyDetail() {
 
   return (
     <>
-      <Seo title={seoTitle} description={seoDescription} image={property.main_image} jsonLd={jsonLd} />
+      <Seo title={seoTitle} description={seoDescription} image={`${window.location.origin}/api/og?id=${encodeURIComponent(property.id)}`} jsonLd={jsonLd} />
 
       <div className="container property-detail">
         <Link to={listFrom || "/propiedades"} onClick={handleBack} className="property-detail__back">
@@ -493,7 +494,7 @@ export default function PropertyDetail() {
 
             <section>
               <h2>{t("detail.location")}</h2>
-              <Suspense fallback={<div className="empty-state" style={{ height: 360 }}>{t("common.loading")}</div>}>
+              <Suspense fallback={<LoadingState variant="block" height={360} />}>
                 <PropertyMap properties={[property]} height={360} />
               </Suspense>
               {directionsUrl(property) && (

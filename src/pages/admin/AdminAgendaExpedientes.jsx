@@ -3,6 +3,8 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 export default function AdminAgendaExpedientes() {
   const { id } = useParams();
@@ -33,14 +35,14 @@ export default function AdminAgendaExpedientes() {
       await db.addAgendaExpediente({ cita_id: id, file });
       load();
     } catch (err) {
-      window.alert(err.message || "Error al subir el expediente");
+      notify(err.message || "Error al subir el expediente");
     } finally {
       setUploading(false);
     }
   };
 
   const handleDelete = async (expedienteId) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     setDeletingId(expedienteId);
     try {
       await db.deleteAgendaExpediente(expedienteId);
@@ -50,7 +52,7 @@ export default function AdminAgendaExpedientes() {
     }
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div>

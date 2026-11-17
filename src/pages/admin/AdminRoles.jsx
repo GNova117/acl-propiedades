@@ -5,6 +5,7 @@ import BackupCard from "../../components/BackupCard";
 import { SECTION_KEYS, ADMIN_ROLE_SLUG } from "../../lib/accessControl";
 import "./admin.css";
 import "./AdminLogin.css";
+import { confirmDialog, notify } from "../../lib/toast";
 
 export default function AdminRoles() {
   const { t } = useTranslation();
@@ -53,7 +54,7 @@ export default function AdminRoles() {
       setNewRoleSections([]);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al crear el rol");
+      notify(err.message || "Error al crear el rol");
     } finally {
       setAddingRole(false);
     }
@@ -78,20 +79,20 @@ export default function AdminRoles() {
       setEditingRoleId(null);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al guardar el rol");
+      notify(err.message || "Error al guardar el rol");
     } finally {
       setSavingRole(false);
     }
   };
 
   const handleDeleteRole = async (role) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     setDeletingRoleId(role.id);
     try {
       await db.deleteRole(role.id);
       load();
     } catch (err) {
-      window.alert(err.message || t("accessControl.roleInUse"));
+      notify(err.message || t("accessControl.roleInUse"));
     } finally {
       setDeletingRoleId(null);
     }
@@ -123,7 +124,7 @@ export default function AdminRoles() {
       setNewAccessAdvisorId("");
       load();
     } catch (err) {
-      window.alert(err.message || "Error al dar acceso");
+      notify(err.message || "Error al dar acceso");
     } finally {
       setAddingAccess(false);
     }
@@ -135,7 +136,7 @@ export default function AdminRoles() {
       await db.updateAccess(accessRow.id, { role_id: roleId });
       load();
     } catch (err) {
-      window.alert(err.message || "Error al cambiar el rol");
+      notify(err.message || "Error al cambiar el rol");
     } finally {
       setChangingAccessId(null);
     }
@@ -147,14 +148,14 @@ export default function AdminRoles() {
       await db.updateAccess(accessRow.id, { advisor_id: advisorId || null });
       load();
     } catch (err) {
-      window.alert(err.message || "Error al vincular el asesor");
+      notify(err.message || "Error al vincular el asesor");
     } finally {
       setChangingAccessId(null);
     }
   };
 
   const handleDeleteAccess = async (accessRow) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     setDeletingAccessId(accessRow.id);
     try {
       await db.deleteAccess(accessRow.id);
@@ -264,7 +265,7 @@ export default function AdminRoles() {
         {roles.length === 0 && <p className="form-hint">{t("accessControl.noRoles")}</p>}
       </div>
 
-      <div className="admin-header" style={{ marginTop: "2.5rem" }}>
+      <div className="admin-header mt-10">
         <h1>{t("accessControl.accessesTitle")}</h1>
       </div>
 

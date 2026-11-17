@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import "./VideoUploader.css";
+import { notify } from "../lib/toast";
 
 // Tope real de Supabase Storage: el bucket property-videos declara 100 MB
 // pero un límite por bucket no puede pasar del límite global del proyecto,
@@ -33,7 +34,7 @@ export default function VideoUploader({ existingVideos, files, onRemoveExisting,
     const tooLarge = picked.filter((file) => file.size > MAX_VIDEO_MB * 1024 * 1024);
     const accepted = picked.filter((file) => file.size <= MAX_VIDEO_MB * 1024 * 1024);
     if (tooLarge.length > 0) {
-      window.alert(t("admin.videoTooLarge", { max: MAX_VIDEO_MB, names: tooLarge.map((f) => f.name).join(", ") }));
+      notify(t("admin.videoTooLarge", { max: MAX_VIDEO_MB, names: tooLarge.map((f) => f.name).join(", ") }));
     }
     if (accepted.length > 0) onAddFiles(accepted);
     e.target.value = "";

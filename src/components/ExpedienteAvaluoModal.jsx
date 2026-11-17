@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { AVALUO_BUYER_DOCS, AVALUO_SELLER_DOCS, downloadExpedienteAvaluoPdf } from "../lib/expedienteAvaluoPdf";
 import "./ExpedienteAvaluoModal.css";
+import LoadingState from "./LoadingState";
 
 // Armado del expediente para avalúos: se eligen aquí las personas (uno o
 // los dos compradores de un expediente conjunto, más el vendedor) y se
@@ -102,7 +103,7 @@ export default function ExpedienteAvaluoModal({ client, linkedClient, onClose })
         </div>
 
         {loading ? (
-          <div className="empty-state">{t("common.loading")}</div>
+          <LoadingState />
         ) : (
           <>
             <div className="form-field">

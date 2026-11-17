@@ -20,6 +20,8 @@ import {
 } from "../../lib/salesReport";
 import "./admin.css";
 import "./AdminSalesReports.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 const TABS = ["summary", "advisors", "profit", "sales"];
 const EMPTY_FORM = { propertyId: "", advisorId: "", fecha: "" };
@@ -308,18 +310,18 @@ export default function AdminSalesReports() {
   };
 
   const handleUndo = async (row) => {
-    if (!window.confirm(t("salesReports.confirmUndo", { title: row.property.title }))) return;
+    if (!await confirmDialog(t("salesReports.confirmUndo", { title: row.property.title }))) return;
     try {
       await db.deleteVenta(row.id, row.propertyId);
       if (editing?.id === row.id) cancelForm();
       load();
     } catch (err) {
-      window.alert(err.message || t("salesReports.form.saveError"));
+      notify(err.message || t("salesReports.form.saveError"));
     }
   };
 
   if (loading && ventas.length === 0 && properties.length === 0) {
-    return <div className="empty-state">{t("common.loading")}</div>;
+    return <LoadingState />;
   }
 
   const selectableProperties = properties

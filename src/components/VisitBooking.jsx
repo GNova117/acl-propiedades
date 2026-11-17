@@ -168,7 +168,7 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
 
       <h4 className="visit-booking__step">{t("scheduleVisit.booking.yourData")}</h4>
 
-      <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}>
+      <div aria-hidden="true" className="hp-field">
         <label htmlFor="booking-empresa">Empresa</label>
         <input id="booking-empresa" name="empresa" value={form.empresa} onChange={handleChange} tabIndex={-1} autoComplete="off" />
       </div>

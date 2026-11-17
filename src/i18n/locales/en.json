@@ -2233,7 +2233,8 @@
         "budgetRange": "The minimum price cannot be higher than the maximum."
       }
     },
-    "dragHint": "Drag a card to another column to change its stage (on a phone, use “More” → stage)."
+    "dragHint": "Drag a card to another column to change its stage (on a phone, use “More” → stage).",
+    "deletedUndo": "Prospect “{{name}}” deleted."
   },
   "pending": {
     "title": "To do today",
@@ -4670,5 +4671,19 @@
         "points": ["Forgot your password? On the sign-in page use “Forgot your password?”: you get a link to choose a new one.", "The “Show” button next to the password lets you see what you type (handy on a phone).", "Language and light or dark mode are changed at the top right."]
       }
     }
+  },
+  "toast": {
+    "close": "Close notice",
+    "cancel": "Cancel",
+    "confirm": "OK",
+    "undo": "Undo"
+  },
+  "adminNav": {
+    "pin": "Pin to top",
+    "unpin": "Unpin",
+    "pinned": "Pinned",
+    "recent": "Recent",
+    "compact": "Compact menu",
+    "expand": "Expand menu"
   }
 }

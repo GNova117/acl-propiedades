@@ -65,7 +65,7 @@
 
 .properties-page__view-toggle button.active {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .properties-grid {

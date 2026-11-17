@@ -106,7 +106,7 @@
   border-radius: 50%;
   border: none;
   background: var(--color-danger);
-  color: #fff;
+  color: var(--color-on-primary);
   line-height: 1;
   cursor: pointer;
 }

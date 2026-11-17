@@ -8,6 +8,8 @@ import { quickReplyTemplates } from "../../lib/messageTemplates";
 import { useAuth } from "../../context/AuthContext";
 import QuickReplyButton from "../../components/QuickReplyButton";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 const PREVIEW_LENGTH = 80;
 
@@ -83,7 +85,7 @@ export default function AdminMessages() {
       const created = await db.addProspect(messageToProspectFields(message, propertyById.get(message.property_id)));
       setProspects((prev) => [created, ...prev]);
     } catch (err) {
-      window.alert(err.message || t("messages.makeProspectError"));
+      notify(err.message || t("messages.makeProspectError"));
     } finally {
       setPromotingId(null);
     }
@@ -122,20 +124,20 @@ export default function AdminMessages() {
       await db.updateContactMessageStatus(message.id, next);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al actualizar el mensaje");
+      notify(err.message || "Error al actualizar el mensaje");
     } finally {
       setUpdatingId(null);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     setDeletingId(id);
     try {
       await db.deleteContactMessage(id);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al eliminar el mensaje");
+      notify(err.message || "Error al eliminar el mensaje");
     } finally {
       setDeletingId(null);
     }
@@ -146,7 +148,7 @@ export default function AdminMessages() {
       <div className="admin-header">
         <h1>{t("messages.title")}</h1>
       </div>
-      <p className="form-hint" style={{ marginTop: "-0.75rem", marginBottom: "1.25rem" }}>{t("messages.subtitle")}</p>
+      <p className="form-hint mt-n3 mb-5">{t("messages.subtitle")}</p>
 
       <div className="form-row" style={{ maxWidth: 560, marginBottom: "1.25rem" }}>
         <div className="form-field">
@@ -185,7 +187,7 @@ export default function AdminMessages() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={8}>{t("common.loading")}</td></tr>
+              <tr><td colSpan={8}><LoadingState variant="rows" /></td></tr>
             ) : filtered.length === 0 ? (
               <tr><td colSpan={8}>{t("messages.noResults")}</td></tr>
             ) : (
@@ -206,7 +208,7 @@ export default function AdminMessages() {
                     <td>{new Date(message.created_at).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}</td>
                     <td>
                       {message.name}
-                      {["whatsapp", "simulador", "estimacion", "comparador", "alerta", "guia", "visita", "visita_cambio", "visita_solicitud"].includes(message.channel) && <span className="form-hint" style={{ display: "block", margin: 0 }}>{t(`messages.via_${message.channel}`)}</span>}
+                      {["whatsapp", "simulador", "estimacion", "comparador", "alerta", "guia", "visita", "visita_cambio", "visita_solicitud"].includes(message.channel) && <span className="form-hint d-block m-0">{t(`messages.via_${message.channel}`)}</span>}
                     </td>
                     <td>{message.phone || "—"}</td>
                     <td>{message.email || "—"}</td>
@@ -235,7 +237,7 @@ export default function AdminMessages() {
                           <>
                             {property.code ? `${property.code} · ` : ""}
                             {property.title}
-                            <span className="form-hint" style={{ display: "block", margin: 0 }}>
+                            <span className="form-hint d-block m-0">
                               {advisors.length > 0 ? advisors.map((a) => a.name).join(", ") : t("messages.noAdvisor")}
                             </span>
                           </>

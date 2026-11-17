@@ -56,18 +56,18 @@
   padding: 0 0.4rem;
   border-radius: 999px;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
   font-size: 0.75rem;
   text-align: center;
   line-height: 1.4rem;
 }
 
 .prospect-col--cerrado .prospect-col__count {
-  background: #1e8e5a;
+  background: var(--color-success);
 }
 
 .prospect-col--perdido .prospect-col__count {
-  background: #7a8598;
+  background: var(--color-muted-soft);
 }
 
 .prospect-col__empty {
@@ -102,7 +102,7 @@
 .prospect-card__meta {
   margin: 0;
   font-size: 0.8rem;
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
 }
 
 .prospect-card__actions {
@@ -135,12 +135,12 @@
 .prospect-chip--overdue {
   background: var(--color-danger);
   border-color: var(--color-danger);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .prospect-chip--today {
-  background: #f0a500;
-  border-color: #f0a500;
+  background: var(--color-attention);
+  border-color: var(--color-attention);
   color: #1a1a1a;
 }
 
@@ -167,7 +167,7 @@
 .prospect-tabs__tab.is-active {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
   font-weight: 600;
 }
 
@@ -185,7 +185,7 @@
 
 .prospect-tabs__tab.is-active .prospect-tabs__count {
   background: rgba(255, 255, 255, 0.25);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 @media (max-width: 860px) {
@@ -328,7 +328,7 @@
   padding: 0.6rem 0;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .prospect-profile__facts {
     grid-template-columns: 5.6rem 1fr;
     gap: 0.35rem 0.6rem;
@@ -437,7 +437,7 @@
 .btn.is-active {
   border-color: var(--color-primary);
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .prospect-bulk {
@@ -606,8 +606,8 @@
 }
 
 .prospect-score--warm {
-  border-color: #e0a100;
-  background: color-mix(in srgb, #e0a100 12%, var(--color-surface));
+  border-color: var(--color-attention);
+  background: color-mix(in srgb, var(--color-attention) 12%, var(--color-surface));
 }
 
 .prospect-score--cold {

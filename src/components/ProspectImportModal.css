@@ -27,7 +27,7 @@
 }
 
 .prospect-import__row.is-on {
-  background: color-mix(in srgb, var(--color-primary, #1d4ed8) 8%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
 }
 
 .prospect-import__pick {
@@ -95,7 +95,7 @@
   cursor: pointer;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .prospect-import__fields {
     grid-template-columns: minmax(0, 1fr);
   }

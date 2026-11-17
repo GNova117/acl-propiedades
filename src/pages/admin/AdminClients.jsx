@@ -12,6 +12,8 @@ import { telHref, whatsappLink } from "../../lib/prospectActions";
 import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 function clientTypeLabel(t, type) {
   return t(`clients.${type === "comprador" ? "buyer" : type === "vendedor" ? "seller" : "both"}`);
@@ -64,7 +66,7 @@ export default function AdminClients() {
   }, [clients, search, financiamientoFilter, monthFilter, yearFilter]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     await db.deleteClient(id);
     load();
   };
@@ -93,7 +95,7 @@ export default function AdminClients() {
   const handleBulkDelete = async () => {
     const ids = Array.from(selected);
     if (ids.length === 0) return;
-    if (!window.confirm(t("bulkActions.deleteConfirm", { count: ids.length }))) return;
+    if (!await confirmDialog(t("bulkActions.deleteConfirm", { count: ids.length }))) return;
     setBulkBusy(true);
     let failed = false;
     try {
@@ -104,7 +106,7 @@ export default function AdminClients() {
           failed = true;
         }
       }
-      if (failed) window.alert(t("bulkActions.someFailed"));
+      if (failed) notify(t("bulkActions.someFailed"));
       setSelected(new Set());
       load();
     } finally {
@@ -234,7 +236,7 @@ export default function AdminClients() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7}>{t("common.loading")}</td>
+                <td colSpan={7}><LoadingState variant="rows" /></td>
               </tr>
             ) : filteredClients.length === 0 ? (
               <tr>

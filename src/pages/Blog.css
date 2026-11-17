@@ -23,7 +23,7 @@
 }
 
 .blog-card__image--placeholder {
-  background: linear-gradient(135deg, var(--color-primary-light, #e8edf5), var(--color-border));
+  background: linear-gradient(135deg, var(--color-primary-light), var(--color-border));
 }
 
 .blog-card__body {

@@ -45,7 +45,7 @@
   justify-content: center;
   border-radius: 50%;
   background: var(--color-primary-dark);
-  color: #fff;
+  color: var(--color-on-primary);
   font-weight: 700;
   font-size: 0.85rem;
   border: 3px solid #fff;
@@ -117,7 +117,7 @@
   border: none;
   border-radius: 999px;
   background: var(--color-primary-dark);
-  color: #fff;
+  color: var(--color-on-primary);
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;

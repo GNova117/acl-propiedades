@@ -335,13 +335,13 @@
 
 /* ── Pantallas angostas (el vendedor lo abre desde WhatsApp) ─── */
 
-@media (min-width: 720px) {
+@media (min-width: 641px) {
   .vr-tiles {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .vr-head__img {
     width: 72px;
     height: 56px;

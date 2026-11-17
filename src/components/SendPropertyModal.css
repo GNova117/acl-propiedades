@@ -37,8 +37,8 @@
 }
 
 .send-property__option.is-active {
-  border-color: var(--color-primary, #1d4ed8);
-  box-shadow: 0 0 0 1px var(--color-primary, #1d4ed8);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
 }
 
 .send-property__actions {

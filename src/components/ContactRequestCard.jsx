@@ -138,7 +138,7 @@ export default function ContactRequestCard({ property }) {
     return (
       <div className="card contact-request-card">
         <h2 className="contact-request-card__title">{t("contactRequest.title")}</h2>
-        <p className="form-hint" style={{ color: "var(--color-success)" }}>{t(via === "whatsapp" ? "contactRequest.whatsappSuccess" : "contactRequest.success")}</p>
+        <p className="form-hint text-success">{t(via === "whatsapp" ? "contactRequest.whatsappSuccess" : "contactRequest.success")}</p>
       </div>
     );
   }
@@ -149,7 +149,7 @@ export default function ContactRequestCard({ property }) {
       <p className="form-hint">{t("contactRequest.subtitle")}</p>
 
       <form onSubmit={handleSubmit} noValidate>
-        <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}>
+        <div aria-hidden="true" className="hp-field">
           <label htmlFor="callback-empresa">Empresa</label>
           <input id="callback-empresa" name="empresa" value={form.empresa} onChange={handleChange} tabIndex={-1} autoComplete="off" />
         </div>
@@ -199,7 +199,7 @@ export default function ContactRequestCard({ property }) {
           {t("contactRequest.whatsapp")}
         </button>
 
-        <p className="form-hint" style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+        <p className="form-hint mt-3 mb-0">
           {t("contact.privacyNotice")} <Link to="/aviso-de-privacidad">{t("contact.privacyLinkLabel")}</Link>.
         </p>
       </form>

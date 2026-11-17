@@ -223,7 +223,7 @@
 .portal-tramite__step--hecha .portal-tramite__dot {
   background: var(--color-success);
   border-color: var(--color-success);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .portal-tramite__step--actual {

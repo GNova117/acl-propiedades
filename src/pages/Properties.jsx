@@ -16,6 +16,7 @@ import { useMediaQuery } from "../lib/useMediaQuery";
 import { propertyMatchesCity } from "../lib/zoneLandingPages";
 import { db } from "../lib/dataStore";
 import "./Properties.css";
+import LoadingState from "../components/LoadingState";
 
 // Leaflet (react-leaflet + leaflet, ~150KB) pesa bastante para algo que
 // la mayoría de las visitas nunca activa (por default se ve la lista, no
@@ -405,7 +406,7 @@ export default function Properties({
       <>
         <Seo title={pageTitle} description={pageSubtitle} />
         <div className="container properties-page">
-          <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
+          <div className="section-heading m-section">
             <h2>{pageTitle}</h2>
           </div>
           <div className="empty-state">
@@ -422,7 +423,7 @@ export default function Properties({
       <Seo title={pageTitle} description={pageSubtitle} />
 
       <div className="container properties-page" onClickCapture={rememberScroll}>
-        <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
+        <div className="section-heading m-section">
           <h2>{pageTitle}</h2>
           <p>{pageSubtitle}</p>
         </div>
@@ -542,14 +543,14 @@ export default function Properties({
             </div>
 
             {loading && properties.length === 0 ? (
-              <div className="empty-state">{t("common.loading")}</div>
+              <LoadingState variant="cards" />
             ) : total === 0 ? (
               <div className="empty-state">
                 {t(hasActiveFilters ? "properties.noResults" : "properties.emptySection")}
                 <NotifyMeCta section={pageTitle} />
               </div>
             ) : effectiveView === "map" ? (
-              <Suspense fallback={<div className="empty-state" style={{ height: 560 }}>{t("common.loading")}</div>}>
+              <Suspense fallback={<LoadingState variant="block" height={560} />}>
                 <PropertyMap properties={pins} height={560} onSearchArea={searchThisArea} areaActive={Boolean(filters.bounds)} />
               </Suspense>
             ) : (
@@ -581,7 +582,7 @@ export default function Properties({
                 </div>
                 {effectiveView === "split" && (
                   <div className="properties-split__map">
-                    <Suspense fallback={<div className="empty-state" style={{ height: "100%" }}>{t("common.loading")}</div>}>
+                    <Suspense fallback={<LoadingState variant="block" height="100%" />}>
                       <PropertyMap properties={pins} height="100%" onSearchArea={searchThisArea} areaActive={Boolean(filters.bounds)} />
                     </Suspense>
                   </div>

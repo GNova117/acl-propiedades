@@ -11,7 +11,7 @@
 .admin-tour__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(5, 10, 20, 0.6);
+  background: var(--color-scrim);
 }
 
 .admin-tour__box {

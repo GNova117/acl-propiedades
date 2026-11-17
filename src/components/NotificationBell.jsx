@@ -7,6 +7,7 @@ import { db } from "../lib/dataStore";
 import { isSupabaseConfigured } from "../lib/supabaseClient";
 import { isPushSupported, getExistingSubscription, subscribeToPush, unsubscribeFromPush, subscriptionToRow } from "../lib/pushNotifications";
 import "./NotificationBell.css";
+import { notify } from "../lib/toast";
 
 // Campana del topbar del admin: mismo cálculo de "pendientes de hoy" que ya
 // se ve en el Panel principal (PendingToday), pero visible desde cualquier
@@ -34,7 +35,7 @@ export default function NotificationBell() {
 
   const togglePush = async () => {
     if (!isSupabaseConfigured) {
-      window.alert(t("admin.pushDemoUnavailable"));
+      notify(t("admin.pushDemoUnavailable"));
       return;
     }
     setPushBusy(true);
@@ -49,7 +50,7 @@ export default function NotificationBell() {
         setPushEnabled(true);
       }
     } catch (err) {
-      window.alert(err.message || t("admin.pushError"));
+      notify(err.message || t("admin.pushError"));
     } finally {
       setPushBusy(false);
     }

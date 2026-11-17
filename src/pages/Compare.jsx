@@ -6,6 +6,7 @@ import { useCompare } from "../context/CompareContext";
 import { db } from "../lib/dataStore";
 import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./Compare.css";
+import LoadingState from "../components/LoadingState";
 
 export default function Compare() {
   const { t } = useTranslation();
@@ -47,13 +48,13 @@ export default function Compare() {
       <Seo title={t("compare.title")} description={t("compare.subtitle")} />
 
       <div className="container properties-page">
-        <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
+        <div className="section-heading m-section">
           <h2>{t("compare.title")}</h2>
           <p>{t("compare.subtitle")}</p>
         </div>
 
         {loading ? (
-          <div className="empty-state">{t("common.loading")}</div>
+          <LoadingState />
         ) : properties.length === 0 ? (
           <div className="empty-state">
             <p>{t("compare.empty")}</p>

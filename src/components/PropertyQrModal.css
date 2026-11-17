@@ -21,7 +21,7 @@
 .property-qr__warn {
   margin: 0.5rem 0;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #f0a500;
+  border: 1px solid var(--color-attention);
   border-left-width: 4px;
   border-radius: 8px;
   background: rgba(240, 165, 0, 0.1);

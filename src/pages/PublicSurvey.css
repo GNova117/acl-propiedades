@@ -50,7 +50,7 @@
 }
 
 .public-survey__star.is-on {
-  color: #e0a100;
+  color: var(--color-attention);
 }
 
 .public-survey__star:hover {

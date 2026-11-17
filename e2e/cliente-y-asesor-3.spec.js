@@ -225,14 +225,8 @@ test.describe("Propiedades: ofertas, apartado, duplicar, lote y ficha completa",
     await press(filaProp(page, SENDEROS).getByLabel("Seleccionar fila"));
     const barra = page.locator(".bulk-actions-bar");
     await barra.getByLabel("Cantidad").fill("80");
-    let aviso = "";
-    page.removeAllListeners("dialog");
-    page.on("dialog", (d) => {
-      aviso = d.message();
-      d.accept();
-    });
     await press(barra.getByRole("button", { name: "Cambiar precio" }));
-    await expect.poll(() => aviso).toContain("50 %");
+    await expect(page.locator(".toast")).toContainText("50 %"); // el aviso es un toast, no una ventana del navegador
     expect((await leer(page, "acl_local_properties")).find((p) => p.id === "prop-1").price).toBe(2450000);
   });
 

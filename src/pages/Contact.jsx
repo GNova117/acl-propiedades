@@ -20,7 +20,7 @@ export default function Contact() {
       <Seo title={t("nav.contact")} description={t("contact.subtitle")} />
 
       <div className="container contact-page">
-        <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
+        <div className="section-heading m-section">
           <h2>{t("contact.title")}</h2>
           <p>{t("contact.subtitle")}</p>
         </div>

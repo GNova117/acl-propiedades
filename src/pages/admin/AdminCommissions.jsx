@@ -8,6 +8,8 @@ import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
 import "../../components/CommissionsCard.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog } from "../../lib/toast";
 
 const NONE = [];
 
@@ -90,7 +92,7 @@ export default function AdminCommissions() {
       )}
 
       {commissionsQ.loading ? (
-        <p className="form-hint">{t("common.loading")}</p>
+        <LoadingState variant="lines" />
       ) : visible.length === 0 ? (
         <p className="card empty-state">{t("commissions.empty")}</p>
       ) : (
@@ -113,7 +115,7 @@ export default function AdminCommissions() {
                     </button>
                   </>
                 ) : (
-                  <button type="button" className="btn btn-outline btn-sm" onClick={() => window.confirm(t("commissions.confirmUndo")) && act(() => db.setCommissionPaid(r.id, null))}>
+                  <button type="button" className="btn btn-outline btn-sm" onClick={async () => await confirmDialog(t("commissions.confirmUndo")) && act(() => db.setCommissionPaid(r.id, null))}>
                     {t("commissions.undoPaid")}
                   </button>
                 )}

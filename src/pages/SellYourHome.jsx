@@ -89,7 +89,7 @@ export default function SellYourHome() {
     <>
       <Seo title={t("sellHome.seoTitle")} description={t("sellHome.subtitle")} />
       <div className="container public-form-page">
-        <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
+        <div className="section-heading m-section">
           <h1 style={{ fontSize: "2rem" }}>{t("sellHome.title")}</h1>
           <p>{t("sellHome.subtitle")}</p>
         </div>
@@ -97,8 +97,8 @@ export default function SellYourHome() {
         <div className="card public-form-card">
           {status === "success" ? (
             <>
-              <h2 style={{ marginTop: 0 }}>{t("sellHome.successTitle")}</h2>
-              <p className="form-hint" style={{ color: "var(--color-success)" }}>
+              <h2 className="mt-0">{t("sellHome.successTitle")}</h2>
+              <p className="form-hint text-success">
                 {t("sellHome.success")}
               </p>
               {sentEstimate && (
@@ -110,7 +110,7 @@ export default function SellYourHome() {
             </>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
-              <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}>
+              <div aria-hidden="true" className="hp-field">
                 <label htmlFor="sh-empresa">Empresa</label>
                 <input id="sh-empresa" name="empresa" value={form.empresa} onChange={change} tabIndex={-1} autoComplete="off" />
               </div>
@@ -212,7 +212,7 @@ export default function SellYourHome() {
                 {status === "sending" ? <span className="spinner" /> : null}
                 {status === "sending" ? t("contact.sending") : t("sellHome.submit")}
               </button>
-              <p className="form-hint" style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+              <p className="form-hint mt-3 mb-0">
                 {t("contact.privacyNotice")} <Link to="/aviso-de-privacidad">{t("contact.privacyLinkLabel")}</Link>.
               </p>
             </form>

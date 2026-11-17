@@ -10,6 +10,8 @@ import { useQuery } from "../../lib/useQuery";
 import { useAuth } from "../../context/AuthContext";
 import { enqueueCita, isOfflineError, isOnline, newId, withTimeout } from "../../lib/offlineQueue";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { notify } from "../../lib/toast";
 
 const EMPTY = { advisor_id: "", client_id: "", property_id: "", prospecto_id: "", titulo: "", fecha: "", hora: "", actividades: "", lugar: "", contact_name: "", contact_phone: "", contact_email: "" };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -152,7 +154,7 @@ export default function AdminAgendaForm() {
         const record = { ...payload, ...(prospecto_id ? { prospecto_id } : {}), id: newId() };
         const queueIt = () => {
           if (enqueueCita(email, { fields: record, label: record.titulo })) setSavedOffline({ label: record.titulo });
-          else window.alert(t("offline.saveFailed"));
+          else notify(t("offline.saveFailed"));
         };
         if (!isOnline()) {
           queueIt();
@@ -168,7 +170,7 @@ export default function AdminAgendaForm() {
         }
       }
     } catch (err) {
-      window.alert(err.message || "Error al guardar");
+      notify(err.message || "Error al guardar");
     } finally {
       setSaving(false);
     }
@@ -196,7 +198,7 @@ export default function AdminAgendaForm() {
     return info ? <VisitLinkPanel link={info.link} phone={info.phone} text={info.text} /> : fallback;
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   // Sin señal la visita/cita quedó en la cola de este dispositivo (lib/offlineQueue.js): se avisa en vez de navegar a algo que todavía no existe.
   if (savedOffline) {

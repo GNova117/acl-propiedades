@@ -26,13 +26,11 @@ const SITE_URL = "https://acl-propiedades.vercel.app";
 const PREVIEW_BOT_PATTERN =
   /whatsapp|facebookexternalhit|facebot|twitterbot|linkedinbot|slackbot|telegrambot|discordbot|pinterest|redditbot|skypeuripreview|vkshare|googlebot|bingbot|applebot|whatsapp/i;
 
-// Foto de stock temporal (misma que usa el panel "Propiedades" del hero de
-// inicio, ver src/components/SplitHero.jsx) — reemplazar por un banner
-// real de la marca cuando exista uno. Ver también Seo.jsx, que tiene su
-// propia copia de este mismo default para el lado del navegador (no se
-// puede compartir el módulo: ahí corre en el bundle de Vite, aquí en el
-// edge).
-const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&h=630&fit=crop&q=80";
+// Imagen de la marca (logo y texto sobre azul, hecha con scripts/build-og-image.mjs): para el inicio y las páginas sin
+// foto propia. Las propiedades usan /api/og?id=… (su foto con el precio y los datos encima; si algo falla, esa función
+// responde con esta misma imagen). Ver también Seo.jsx, que tiene su propia copia de esta ruta para el lado del
+// navegador (no se puede compartir el módulo: ahí corre en el bundle de Vite, aquí en el edge).
+const DEFAULT_IMAGE = `${SITE_URL}/og-default.png`;
 
 // Título/descripción de cada página genérica, iguales a los que ya arma
 // Seo.jsx del lado del cliente (ver cada page/*.jsx) — duplicados aquí a
@@ -134,7 +132,7 @@ async function propertyPreviewResponse(id) {
     title: `${property.title} — ${price}`,
     description: (property.description || "").replace(/\s+/g, " ").trim().slice(0, 200),
     url: `${SITE_URL}/propiedades/${id}`,
-    image: property.main_image,
+    image: `${SITE_URL}/api/og?id=${encodeURIComponent(id)}`,
   });
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
 }

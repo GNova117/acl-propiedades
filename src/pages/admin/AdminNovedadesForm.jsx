@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { notify } from "../../lib/toast";
 
 const EMPTY = { title: "", body: "" };
 
@@ -51,13 +53,13 @@ export default function AdminNovedadesForm() {
       }
       navigate("/admin/novedades");
     } catch (err) {
-      window.alert(err.message || "Error al guardar la entrada");
+      notify(err.message || "Error al guardar la entrada");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div>

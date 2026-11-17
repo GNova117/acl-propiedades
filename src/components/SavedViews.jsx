@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { addView, hasActiveFilters, loadViews, removeView, saveViews } from "../lib/savedViews";
 import "./SavedViews.css";
+import { confirmDialog } from "../lib/toast";
 
 // «Mis vistas»: filtros guardados de una lista, a un toque. `list` (clave de la lista), `schema` (qué campos entran),
 // `current` (los filtros puestos ahora), `defaults` (valor «sin filtro» de los que no son "" ni false) y
@@ -19,10 +20,10 @@ export default function SavedViews({ list, schema, current, defaults, onApply })
     saveViews(list, next);
   };
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     let result = addView(views, name, current, schema);
-    if (result.error === "exists" && window.confirm(t("savedViews.confirmReplace", { name: name.trim() }))) result = addView(views, name, current, schema, { replace: true });
+    if (result.error === "exists" && await confirmDialog(t("savedViews.confirmReplace", { name: name.trim() }))) result = addView(views, name, current, schema, { replace: true });
     if (result.error) {
       if (result.error !== "exists") setError(t(`savedViews.errors.${result.error}`));
       return;
@@ -43,7 +44,7 @@ export default function SavedViews({ list, schema, current, defaults, onApply })
           <button type="button" className="saved-views__apply" onClick={() => onApply(view.filters)}>
             {view.name}
           </button>
-          <button type="button" className="saved-views__remove" aria-label={t("savedViews.remove", { name: view.name })} onClick={() => window.confirm(t("savedViews.confirmRemove", { name: view.name })) && persist(removeView(views, view.name))}>
+          <button type="button" className="saved-views__remove" aria-label={t("savedViews.remove", { name: view.name })} onClick={async () => await confirmDialog(t("savedViews.confirmRemove", { name: view.name })) && persist(removeView(views, view.name))}>
             ×
           </button>
         </span>

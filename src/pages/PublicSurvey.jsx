@@ -8,6 +8,7 @@ import { db } from "../lib/dataStore";
 import { surveyOutcome } from "../lib/visitSurvey";
 import "./PublicVisitReport.css";
 import "./PublicSurvey.css";
+import LoadingState from "../components/LoadingState";
 
 // Enlace a «Escribir una reseña» de Google (opcional: VITE_GOOGLE_REVIEW_URL). Sin él, la invitación a reseñar no se muestra.
 const GOOGLE_REVIEW_URL = import.meta.env.VITE_GOOGLE_REVIEW_URL || "";
@@ -93,7 +94,7 @@ export default function PublicSurvey() {
       </header>
 
       <main className="public-survey__main">
-        {current.status === "loading" && <p className="public-report__status">{t("common.loading")}</p>}
+        {current.status === "loading" && <LoadingState variant="lines" />}
 
         {["invalido", "error", "no_disponible", "respondida"].includes(current.status) && !sent && (
           <div className="card public-report__notice">

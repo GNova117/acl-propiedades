@@ -68,7 +68,7 @@ export default function ContactForm() {
     <form className="card contact-form" onSubmit={handleSubmit} noValidate style={{ padding: "1.75rem" }}>
       {/* Campo trampa: invisible y fuera del tabulador para una persona,
           pero un bot que llena cualquier <input> del formulario sí lo ve. */}
-      <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}>
+      <div aria-hidden="true" className="hp-field">
         <label htmlFor="contact-empresa">Empresa</label>
         <input id="contact-empresa" name="empresa" value={form.empresa} onChange={handleChange} tabIndex={-1} autoComplete="off" />
       </div>
@@ -97,11 +97,11 @@ export default function ContactForm() {
         {errors.message && <span className="form-error">{errors.message}</span>}
       </div>
 
-      {status === "success" && <p className="form-hint" style={{ color: "var(--color-success)" }}>{t("contact.success")}</p>}
+      {status === "success" && <p className="form-hint text-success">{t("contact.success")}</p>}
       {status === "error" && <p className="form-error">{t("contact.error")}</p>}
       {status === "rateLimited" && <p className="form-error">{t("contact.rateLimited")}</p>}
 
-      <p className="form-hint" style={{ marginBottom: "1rem" }}>
+      <p className="form-hint mb-4">
         {t("contact.privacyNotice")}{" "}
         <Link to="/aviso-de-privacidad">{t("contact.privacyLinkLabel")}</Link>.
       </p>

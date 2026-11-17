@@ -28,6 +28,8 @@ import { useAdminHome } from "../../lib/useAdminHome";
 import "./admin.css";
 import "./AdminProspects.css";
 import "./AdminMyDay.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog } from "../../lib/toast";
 
 const hm = (hora) => String(hora).slice(0, 5);
 const NONE = [];
@@ -235,7 +237,7 @@ export default function AdminMyDay() {
   // Solicitud de visita sin asesor: la ven todos los asesores; la primera persona que la toma se la queda.
   const takeRequest = async (cita) => {
     const whenText = `${dayLabel(cita.fecha)} ${t("myDay.confirm.at")} ${hm(cita.hora)}`;
-    if (!window.confirm(t("agenda.takeConfirm", { when: whenText }))) return;
+    if (!await confirmDialog(t("agenda.takeConfirm", { when: whenText }))) return;
     setCloseError("");
     try {
       const res = await db.claimVisitRequest(cita.id, { advisorId });
@@ -362,7 +364,7 @@ export default function AdminMyDay() {
     );
 
   if (!canAgenda && !canProspects) return <div className="empty-state">{t("accessControl.restricted")}</div>;
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div className="my-day">

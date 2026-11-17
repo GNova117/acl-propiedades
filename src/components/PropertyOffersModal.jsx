@@ -5,6 +5,8 @@ import { formatMXN } from "../lib/format";
 import { holdState, offersSummary, validateHold, validateOffer } from "../lib/offers";
 import "./PropertyProspectsModal.css";
 import "./PropertyOffersModal.css";
+import LoadingState from "./LoadingState";
+import { confirmDialog } from "../lib/toast";
 
 const dateLabel = (iso, lang) => new Date(`${iso}T00:00:00`).toLocaleDateString(lang?.startsWith("en") ? "en-US" : "es-MX", { day: "numeric", month: "short", year: "numeric" });
 const errorText = (t, err) => {
@@ -93,8 +95,8 @@ export default function PropertyOffersModal({ property, onClose, onChanged }) {
     );
   };
 
-  const closeHold = (hold, status) => {
-    if (status === "cancelado" && !window.confirm(t("offers.hold.confirmCancel"))) return;
+  const closeHold = async (hold, status) => {
+    if (status === "cancelado" && !await confirmDialog(t("offers.hold.confirmCancel"))) return;
     run(() => db.setPropertyHoldStatus(hold.id, status), { reloadList: true });
   };
 
@@ -128,7 +130,7 @@ export default function PropertyOffersModal({ property, onClose, onChanged }) {
           </p>
         )}
         {loading ? (
-          <p className="form-hint">{t("common.loading")}</p>
+          <LoadingState variant="lines" />
         ) : (
           <>
             <section aria-labelledby="offers-hold-title">
@@ -234,7 +236,7 @@ export default function PropertyOffersModal({ property, onClose, onChanged }) {
                           type="button"
                           className="btn btn-outline btn-sm"
                           disabled={busy}
-                          onClick={() => window.confirm(t("common.confirmDelete")) && run(() => db.deletePropertyOffer(o.id))}
+                          onClick={async () => await confirmDialog(t("common.confirmDelete")) && run(() => db.deletePropertyOffer(o.id))}
                         >
                           {t("common.delete")}
                         </button>

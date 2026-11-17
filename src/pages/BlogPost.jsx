@@ -5,6 +5,7 @@ import Seo from "../components/Seo";
 import GuideBanner from "../components/GuideBanner";
 import { db } from "../lib/dataStore";
 import "./Blog.css";
+import LoadingState from "../components/LoadingState";
 
 const formatDate = (iso, locale) => new Date(iso).toLocaleDateString(locale === "en" ? "en-US" : "es-MX", { dateStyle: "long" });
 
@@ -39,7 +40,7 @@ export default function BlogPost() {
     };
   }, [post]);
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
   if (!post) {
     return (
       <div className="empty-state">

@@ -51,11 +51,11 @@
 }
 
 .month-goals__bar--done span {
-  background: var(--color-success, #2e7d32);
+  background: var(--color-success);
 }
 
 .month-goals__bar--behind span {
-  background: #f0a500;
+  background: var(--color-attention);
 }
 
 .month-goals__status {

@@ -40,7 +40,7 @@
 .development-card__badge {
   left: 0.75rem;
   background: var(--color-primary-dark);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .development-card__stage {

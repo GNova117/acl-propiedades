@@ -96,7 +96,7 @@
 }
 
 .agenda-grid__cita--request {
-  border-left-color: #e0a100;
+  border-left-color: var(--color-attention);
 }
 
 .agenda-grid__who {

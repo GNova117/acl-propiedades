@@ -26,6 +26,8 @@ import RowMore from "../../components/RowMore";
 import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 // updateProperty espera el registro casi completo (no hace un merge parcial
 // en el servidor) y, en particular, pisa fotos/videos/360° a [] si no se le
@@ -150,7 +152,7 @@ export default function AdminProperties({
   }, [properties, completeness, onlyIncomplete, stallDays, stalled, search, zoneFilter, operationFilter, statusFilter, minPrice, maxPrice]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     await db.deleteProperty(id);
     load();
   };
@@ -198,8 +200,8 @@ export default function AdminProperties({
           failed = true;
         }
       }
-      if (failed) window.alert(t("bulkActions.someFailed"));
-      if (okCount > 0) window.alert(t("bulkActions.done", { count: okCount }));
+      if (failed) notify(t("bulkActions.someFailed"));
+      if (okCount > 0) notify(t("bulkActions.done", { count: okCount }));
       setSelected(new Set());
       load();
     } finally {
@@ -207,9 +209,9 @@ export default function AdminProperties({
     }
   };
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
     if (selected.size === 0) return;
-    if (!window.confirm(t("bulkActions.deleteConfirm", { count: selected.size }))) return;
+    if (!await confirmDialog(t("bulkActions.deleteConfirm", { count: selected.size }))) return;
     runBulk((property) => db.deleteProperty(property.id));
   };
 
@@ -219,11 +221,11 @@ export default function AdminProperties({
 
   // Cambio de precio en lote: se calcula el nuevo precio de cada una, se muestra un ejemplo y se pide confirmar.
   // Las que no se pueden calcular (sin precio, o el cambio no lo mueve) se omiten y se avisa.
-  const handleBulkPrice = () => {
+  const handleBulkPrice = async () => {
     const plan = selectedProperties.map((property) => ({ property, ...bulkPriceValue(priceMode, priceAmount, property.price) }));
     const ready = plan.filter((e) => e.price != null);
     if (ready.length === 0) {
-      window.alert(t(`bulkProperties.errors.${plan[0]?.error || "amount"}`));
+      notify(t(`bulkProperties.errors.${plan[0]?.error || "amount"}`));
       return;
     }
     const sample = ready[0];
@@ -234,22 +236,22 @@ export default function AdminProperties({
     ]
       .filter(Boolean)
       .join("\n\n");
-    if (!window.confirm(message)) return;
+    if (!await confirmDialog(message)) return;
     const newPrice = new Map(ready.map((e) => [e.property.id, e.price]));
     runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { price: newPrice.get(property.id) })), ready.map((e) => e.property));
     setPriceAmount("");
   };
 
   // Asignar asesor en lote: «agregar» no quita a nadie; «reemplazar» deja solo a ese (se confirma).
-  const handleBulkAdvisor = (mode) => {
+  const handleBulkAdvisor = async (mode) => {
     const advisor = advisors.find((a) => a.id === bulkAdvisor);
     if (!advisor) return;
     const targets = selectedProperties.filter((p) => bulkAdvisorIds(mode, p.advisor_ids, advisor.id));
     if (targets.length === 0) {
-      window.alert(t("bulkProperties.nothingToChange"));
+      notify(t("bulkProperties.nothingToChange"));
       return;
     }
-    if (mode === "replace" && !window.confirm(t("bulkProperties.confirmReplace", { name: advisor.name, count: targets.length }))) return;
+    if (mode === "replace" && !await confirmDialog(t("bulkProperties.confirmReplace", { name: advisor.name, count: targets.length }))) return;
     runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { advisor_ids: bulkAdvisorIds(mode, property.advisor_ids, advisor.id) })), targets);
   };
 
@@ -280,7 +282,7 @@ export default function AdminProperties({
         statusLabel: t(`propertyStatus.${property.status}`),
       });
     } catch (err) {
-      window.alert(err.message || "Error al generar la ficha técnica");
+      notify(err.message || "Error al generar la ficha técnica");
     } finally {
       setBusyFichaId(null);
     }
@@ -467,7 +469,7 @@ export default function AdminProperties({
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={fixedType === "nave_industrial" ? 12 : 11}>{t("common.loading")}</td></tr>
+              <tr><td colSpan={fixedType === "nave_industrial" ? 12 : 11}><LoadingState variant="rows" /></td></tr>
             ) : visibleProperties.length === 0 ? (
               <tr><td colSpan={fixedType === "nave_industrial" ? 12 : 11}>{t("properties.noResults")}</td></tr>
             ) : (

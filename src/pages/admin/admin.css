@@ -832,7 +832,7 @@
 .quick-chip.is-active {
   border-color: var(--color-primary);
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
   font-weight: 600;
 }
 
@@ -863,7 +863,7 @@
 }
 
 .property-completeness--mid .property-completeness__bar span {
-  background: #e0a100;
+  background: var(--color-attention);
 }
 
 .property-completeness--low .property-completeness__bar span {

@@ -149,7 +149,7 @@
 
 .pl-seg__btn--active {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .pl-seg__btn:disabled {

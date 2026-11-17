@@ -14,6 +14,8 @@ import {
 import { formatMXN } from "../../lib/format";
 import "./admin.css";
 import "./AdminDevelopmentForm.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 const EMPTY_MODEL = { name: "", area_m2: "", bedrooms: "", bathrooms: "", parking: "", description: "", existingImages: [], imageFiles: [], existingPlan: "", planFile: null };
 
@@ -148,21 +150,21 @@ export default function AdminDevelopmentForm() {
     });
   };
 
-  const removeModel = (index) => {
+  const removeModel = async (index) => {
     const model = models[index];
-    if (units.some((u) => u.model === model.key) && !window.confirm(t("developments.admin.model.unitsUsing", { count: units.filter((u) => u.model === model.key).length }))) return;
+    if (units.some((u) => u.model === model.key) && !await confirmDialog(t("developments.admin.model.unitsUsing", { count: units.filter((u) => u.model === model.key).length }))) return;
     setModels((prev) => prev.filter((_, i) => i !== index));
     setUnits((prev) => prev.filter((u) => u.model !== model.key));
   };
 
-  const applyCsv = () => {
+  const applyCsv = async () => {
     const { units: parsed, errors: parseErrors } = parseUnitsCsv(csvText, models);
     setCsvErrors(parseErrors);
     if (parseErrors.length > 0 || parsed.length === 0) {
       setCsvNotice("");
       return;
     }
-    if (units.length > 0 && !window.confirm(t("developments.admin.units.replaceWarning", { count: units.length }))) return;
+    if (units.length > 0 && !await confirmDialog(t("developments.admin.units.replaceWarning", { count: units.length }))) return;
     setUnits(parsed);
     setCsvNotice(t("developments.admin.units.loaded", { count: parsed.length }));
   };
@@ -206,13 +208,13 @@ export default function AdminDevelopmentForm() {
       await db.saveDevelopment(payload, existing);
       navigate("/admin/desarrollos");
     } catch (err) {
-      window.alert(err.message || t("developments.admin.saveError"));
+      notify(err.message || t("developments.admin.saveError"));
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   const fieldError = (name) => errors[name] && <span className="form-error">{t(`developments.admin.errors.${errors[name]}`)}</span>;
 
@@ -293,7 +295,7 @@ export default function AdminDevelopmentForm() {
           {logoPreview && <img src={logoPreview} alt="" className="dev-admin-preview dev-admin-preview--logo" />}
           <input type="file" accept="image/*" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
           {existingLogo && !logoFile && (
-            <button type="button" className="btn btn-outline btn-sm" style={{ marginTop: "0.5rem" }} onClick={() => setExistingLogo("")}>
+            <button type="button" className="btn btn-outline btn-sm mt-2" onClick={() => setExistingLogo("")}>
               {t("common.delete")}
             </button>
           )}
@@ -460,7 +462,7 @@ export default function AdminDevelopmentForm() {
         </div>
         <div className="form-field">
           <label>
-            <input type="checkbox" checked={form.published} onChange={handleChange("published")} style={{ marginRight: "0.5rem" }} />
+            <input type="checkbox" checked={form.published} onChange={handleChange("published")} className="mr-2" />
             {t("developments.admin.fields.published")}
           </label>
           <p className="form-hint">{t("developments.admin.fields.publishedHint")}</p>

@@ -4,6 +4,7 @@ import { db } from "../lib/dataStore";
 import { clientSheetData, clientSheetSections } from "../lib/clientExpedienteFields";
 import { downloadMultiPerfilamientoPdf } from "../lib/perfilamientoPdf";
 import "./ExpedienteAvaluoModal.css";
+import LoadingState from "./LoadingState";
 
 function clientTypeLabel(t, type) {
   return t(`clients.${type === "comprador" ? "buyer" : type === "vendedor" ? "seller" : "both"}`);
@@ -130,7 +131,7 @@ export default function ClientPdfModal({ initialTypeFilter, onClose }) {
         </div>
 
         {loading ? (
-          <div className="empty-state">{t("common.loading")}</div>
+          <LoadingState />
         ) : (
           <>
             <div className="form-row">

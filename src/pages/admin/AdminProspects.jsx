@@ -20,6 +20,7 @@ import ProspectImportModal from "../../components/ProspectImportModal";
 import "./admin.css";
 import SavedViews from "../../components/SavedViews";
 import "./AdminProspects.css";
+import { confirmDialog, notify, undoableDelete } from "../../lib/toast";
 
 // Embudo de prospectos por etapas. RLS recorta del lado de Supabase: un asesor
 // con login vinculado ve solo los suyos; un correo sin asesor vinculado ve todos
@@ -179,7 +180,7 @@ export default function AdminProspects() {
       const updated = await db.updateProspect(prospect.id, fields);
       setProspects((prev) => prev.map((p) => (p.id === prospect.id ? updated : p)));
     } catch (err) {
-      window.alert(err.message || t("prospects.saveError"));
+      notify(err.message || t("prospects.saveError"));
     } finally {
       setBusyId(null);
     }
@@ -202,17 +203,19 @@ export default function AdminProspects() {
     if (dragged && dragged.stage !== stage) changeStage(dragged, stage);
   };
 
-  const handleDelete = async (prospect) => {
-    if (!window.confirm(t("prospects.confirmDelete", { name: prospect.name }))) return;
-    setBusyId(prospect.id);
-    try {
-      await db.deleteProspect(prospect.id);
-      setProspects((prev) => prev.filter((p) => p.id !== prospect.id));
-    } catch (err) {
-      window.alert(err.message || t("prospects.deleteError"));
-    } finally {
-      setBusyId(null);
-    }
+  // Eliminar con «Deshacer»: el prospecto sale de la pantalla al instante y se borra de verdad a los pocos segundos; con
+  // «Deshacer» vuelve tal cual. (Si la persona sale de la página antes, se borra en ese momento: ver lib/toast.js.)
+  const handleDelete = (prospect) => {
+    setProspects((prev) => prev.filter((p) => p.id !== prospect.id));
+    undoableDelete(t("prospects.deletedUndo", { name: prospect.name }), {
+      undoLabel: t("toast.undo"),
+      commit: () => db.deleteProspect(prospect.id),
+      onUndo: () => setProspects((prev) => (prev.some((p) => p.id === prospect.id) ? prev : [prospect, ...prev])),
+      onError: (err) => {
+        setProspects((prev) => (prev.some((p) => p.id === prospect.id) ? prev : [prospect, ...prev]));
+        notify(err?.message || t("prospects.deleteError"));
+      },
+    });
   };
 
   // Convierte al prospecto en cliente (comprador por omisión; el tipo se puede
@@ -222,10 +225,10 @@ export default function AdminProspects() {
   const handleConvert = async (prospect) => {
     setBusyId(prospect.id);
     try {
-      const clientId = await convertProspectToClient(db, prospect, (existing) => window.confirm(t("prospects.convertExisting", { name: existing.name })));
+      const clientId = await convertProspectToClient(db, prospect, async (existing) => await confirmDialog(t("prospects.convertExisting", { name: existing.name })));
       if (clientId) navigate(`/admin/clientes/${clientId}`);
     } catch (err) {
-      window.alert(err.message || t("prospects.convertError"));
+      notify(err.message || t("prospects.convertError"));
     } finally {
       setBusyId(null);
     }
@@ -288,7 +291,7 @@ export default function AdminProspects() {
       const created = await db.addProspects(importable.map(visitToProspectFields));
       setProspects((prev) => [...created, ...prev]);
     } catch (err) {
-      window.alert(err.message || t("prospects.importError"));
+      notify(err.message || t("prospects.importError"));
     } finally {
       setImporting(false);
     }

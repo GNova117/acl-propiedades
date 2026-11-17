@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import "./DuplicateWarning.css";
+import { confirmDialog } from "../lib/toast";
 
 // «Posibles duplicados» de un prospecto ya guardado: otros prospectos con el mismo teléfono o correo. Cada uno propio
 // se puede fusionar AQUÍ (se conserva este, y su historia —etapas, contactos, citas, selecciones y notas— pasa a él).
@@ -26,7 +27,7 @@ export default function MergeDuplicatesCard({ prospect, onMerged }) {
   if (found.length === 0) return null;
 
   const merge = async (dup) => {
-    if (!window.confirm(t("mergeDuplicates.confirm", { keep: prospect.name, remove: dup.name }))) return;
+    if (!await confirmDialog(t("mergeDuplicates.confirm", { keep: prospect.name, remove: dup.name }))) return;
     setBusyId(dup.id);
     setError("");
     try {

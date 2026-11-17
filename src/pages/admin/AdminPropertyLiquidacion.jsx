@@ -10,6 +10,8 @@ import CommissionsCard from "../../components/CommissionsCard";
 import { EMPTY_LIQUIDACION, computeLiquidacion, toLiquidacionPayload, toLiquidacionFormValues } from "../../lib/liquidacion";
 import "./AdminPropertyLiquidacion.css";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { notify } from "../../lib/toast";
 
 export default function AdminPropertyLiquidacion() {
   const { id } = useParams();
@@ -103,13 +105,13 @@ export default function AdminPropertyLiquidacion() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
-      window.alert(err.message || "Error al guardar");
+      notify(err.message || "Error al guardar");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div>

@@ -5,6 +5,7 @@ import Seo from "../components/Seo";
 import { useFavorites } from "../context/FavoritesContext";
 import { clearItems, forgetItem, getItems, groupItems, itemPath } from "../lib/mySpace";
 import "./MySpace.css";
+import { confirmDialog } from "../lib/toast";
 
 // /mi-espacio: lo del cliente en un solo lugar (ver src/lib/mySpace.js). Lee del dispositivo; no pide nada
 // al servidor hasta que la persona toca un enlace.
@@ -19,8 +20,8 @@ export default function MySpace() {
     forgetItem(item.kind, item.token);
     setItems(getItems());
   };
-  const forgetAll = () => {
-    if (!window.confirm(t("mySpace.forgetAllConfirm"))) return;
+  const forgetAll = async () => {
+    if (!await confirmDialog(t("mySpace.forgetAllConfirm"))) return;
     clearItems();
     setItems([]);
   };
@@ -29,7 +30,7 @@ export default function MySpace() {
     <>
       <Seo title={t("mySpace.title")} description={t("mySpace.subtitle")} />
       <div className="container my-space">
-        <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
+        <div className="section-heading m-section">
           <h2>{t("mySpace.title")}</h2>
           <p>{t("mySpace.subtitle")}</p>
         </div>

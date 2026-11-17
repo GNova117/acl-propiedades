@@ -34,7 +34,7 @@
   flex-direction: column;
   justify-content: flex-end;
   padding: 1.75rem;
-  color: #ffffff;
+  color: var(--color-on-primary);
 }
 
 .category-card__icon {
@@ -50,7 +50,7 @@
 }
 
 .category-card__content h3 {
-  color: #ffffff;
+  color: var(--color-on-primary);
   font-size: 1.5rem;
   margin-bottom: 0.4rem;
 }
@@ -95,5 +95,5 @@
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.4);
-  color: #ffffff;
+  color: var(--color-on-primary);
 }

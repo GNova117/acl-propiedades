@@ -10,6 +10,8 @@ import { VISIT_INTERESTS, formatVisitDateTime, reasonLabel } from "../../lib/vis
 import "../../components/VisitReportView.css";
 import "./admin.css";
 import "./AdminVisits.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 // Lista de visitas registradas. RLS ya recorta del lado de Supabase: un asesor
 // con login vinculado a su perfil ve SOLO las suyas; un correo sin asesor
@@ -74,12 +76,12 @@ export default function AdminVisits() {
   }, [visits, properties]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t("visits.confirmDelete"))) return;
+    if (!await confirmDialog(t("visits.confirmDelete"))) return;
     try {
       await db.deleteVisit(id);
       load();
     } catch (err) {
-      window.alert(err.message || t("visits.form.saveError"));
+      notify(err.message || t("visits.form.saveError"));
     }
   };
 
@@ -183,7 +185,7 @@ export default function AdminVisits() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={seesAll ? 8 : 7}>{t("common.loading")}</td>
+                <td colSpan={seesAll ? 8 : 7}><LoadingState variant="rows" /></td>
               </tr>
             ) : visible.length === 0 ? (
               <tr>

@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useCompare, MAX_COMPARE } from "../context/CompareContext";
 import "./CompareButton.css";
+import { notify } from "../lib/toast";
 
 // Mismo esquema que FavoriteButton: flota sobre la foto en PropertyCard,
 // o se usa en línea (className="compare-button--inline") en la ficha.
@@ -16,7 +17,7 @@ export default function CompareButton({ propertyId, className = "" }) {
     e.preventDefault();
     e.stopPropagation();
     const added = toggleCompare(propertyId);
-    if (!added) window.alert(t("compare.full", { max: MAX_COMPARE }));
+    if (!added) notify(t("compare.full", { max: MAX_COMPARE }));
   };
 
   const label = active ? t("compare.remove") : disabled ? t("compare.full", { max: MAX_COMPARE }) : t("compare.add");

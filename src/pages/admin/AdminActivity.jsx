@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { isSupabaseConfigured } from "../../lib/supabaseClient";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
 
 const PAGE_SIZE = 100;
 const ACTION_CLASS = { INSERT: "badge-available", UPDATE: "badge-reserved", DELETE: "badge-sold" };
@@ -124,7 +125,7 @@ export default function AdminActivity() {
             ))}
             {loading && (
               <tr>
-                <td colSpan={6}>{t("common.loading")}</td>
+                <td colSpan={6}><LoadingState variant="rows" /></td>
               </tr>
             )}
           </tbody>
@@ -132,7 +133,7 @@ export default function AdminActivity() {
       </div>
 
       {hasMore && !loading && (
-        <button type="button" className="btn btn-outline" style={{ marginTop: "1rem" }} onClick={() => load(rows.length)}>
+        <button type="button" className="btn btn-outline mt-4" onClick={() => load(rows.length)}>
           {t("activity.loadMore")}
         </button>
       )}

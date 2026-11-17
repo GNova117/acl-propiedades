@@ -26,7 +26,7 @@ export default function SigningCredentials({ request, phone, onClose }) {
 
   return (
     <div className="card" style={{ padding: "1.25rem", marginBottom: "1.5rem", borderLeft: "4px solid var(--color-primary)" }}>
-      <h3 style={{ marginTop: 0 }}>{t("signing.credentials.title")}</h3>
+      <h3 className="mt-0">{t("signing.credentials.title")}</h3>
       <p className="form-hint">{t("signing.credentials.hint")}</p>
 
       <div className="form-field">
@@ -36,7 +36,7 @@ export default function SigningCredentials({ request, phone, onClose }) {
 
       <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap", margin: "0.5rem 0 1rem" }}>
         <div>
-          <span className="form-hint" style={{ display: "block" }}>
+          <span className="form-hint d-block">
             {t("signing.credentials.code")}
           </span>
           <strong style={{ fontSize: "2rem", letterSpacing: "0.3em", fontFamily: "monospace" }}>{request.code}</strong>
@@ -63,7 +63,7 @@ export default function SigningCredentials({ request, phone, onClose }) {
           {t("common.close")}
         </button>
       </div>
-      <p className="form-hint" style={{ marginBottom: 0, marginTop: "0.75rem" }}>
+      <p className="form-hint mb-0 mt-3">
         {t("signing.credentials.whatsappNote")}
       </p>
     </div>

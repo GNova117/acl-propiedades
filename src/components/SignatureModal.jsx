@@ -119,7 +119,7 @@ export default function SignatureModal({ title, onAccept, onCancel }) {
     <div className="signature-modal" role="dialog" aria-modal="true" aria-label={title}>
       <div className="signature-modal__backdrop" onClick={onCancel} aria-hidden="true" />
       <div className="signature-modal__box card">
-        <h3 style={{ marginTop: 0 }}>{title}</h3>
+        <h3 className="mt-0">{title}</h3>
         <p className="form-hint">{t("signature.hint")}</p>
         <canvas
           ref={canvasRef}

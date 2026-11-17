@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 const formatDate = (iso, locale) => new Date(iso).toLocaleDateString(locale === "en" ? "en-US" : "es-MX", { dateStyle: "long" });
 
@@ -23,13 +25,13 @@ export default function AdminBlog() {
   useEffect(load, []);
 
   const handleDelete = async (post) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     setDeletingId(post.id);
     try {
       await db.deleteBlogPost(post.id);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al eliminar el artículo");
+      notify(err.message || "Error al eliminar el artículo");
     } finally {
       setDeletingId(null);
     }
@@ -45,10 +47,10 @@ export default function AdminBlog() {
           </Link>
         </div>
       </div>
-      <p className="form-hint" style={{ marginTop: "-0.75rem", marginBottom: "1.25rem" }}>{t("blog.admin.subtitle")}</p>
+      <p className="form-hint mt-n3 mb-5">{t("blog.admin.subtitle")}</p>
 
       {loading ? (
-        <p className="form-hint">{t("common.loading")}</p>
+        <LoadingState variant="lines" />
       ) : posts.length === 0 ? (
         <p className="form-hint">{t("blog.admin.empty")}</p>
       ) : (
@@ -60,7 +62,7 @@ export default function AdminBlog() {
               <span className={`badge ${post.published ? "badge-available" : "badge-sold"}`}>
                 {post.published ? t("blog.admin.published") : t("blog.admin.draft")}
               </span>
-              <p className="form-hint" style={{ marginTop: "0.5rem" }}>
+              <p className="form-hint mt-2">
                 {post.published_at
                   ? t("blog.admin.publishedOn", { date: formatDate(post.published_at, i18n.language) })
                   : t("blog.admin.notPublishedYet")}

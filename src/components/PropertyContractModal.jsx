@@ -4,6 +4,7 @@ import { db } from "../lib/dataStore";
 import { CONTRACT_KINDS, contractState, validateContract } from "../lib/contracts";
 import "./PropertyProspectsModal.css";
 import "./PropertyOffersModal.css";
+import { confirmDialog } from "../lib/toast";
 
 // «Contrato» de una propiedad: si está en exclusiva o abierta y cuándo vence, para que Mi día avise antes de que venza.
 // Es un dato interno (no se publica en el sitio). `onChanged()` pide recargar la lista de contratos.
@@ -41,7 +42,7 @@ export default function PropertyContractModal({ property, contract, onClose, onC
   };
 
   const remove = async () => {
-    if (!window.confirm(t("contract.confirmRemove"))) return;
+    if (!await confirmDialog(t("contract.confirmRemove"))) return;
     setBusy(true);
     try {
       await db.deletePropertyContract(property.id);
