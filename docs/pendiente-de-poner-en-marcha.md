@@ -1,14 +1,14 @@
 # Lo que falta para poner en marcha el PR #42 (en orden)
 
-Supuesto: **producción tiene todo lo que había en `main`** (hasta «Selección de propiedades en un solo enlace»). Si no es así, avísame antes de correr nada.
+Supuesto: producción tiene **hasta aproximadamente el 6 de noviembre** (Agendar visita, fases 1 a 8). Ya se vio que **le falta al menos «Selección de propiedades en un solo enlace» (13 de nov.)**, así que el archivo de abajo empieza más atrás y es seguro aunque ya tenga parte.
 
 ## 1. SQL (Supabase → SQL Editor)
 
-Archivo: **`supabase/pendiente-de-aplicar.sql`** — pégalo **completo** y ejecútalo **una vez** (es re-ejecutable: si se corta, lo vuelves a correr entero).
+Archivo: **`supabase/pendiente-de-aplicar.sql`** (migraciones 0099 a 0114, ~2,700 líneas) — pégalo **completo** y ejecútalo **una vez**.
 
-Trae, en orden: Listado y ficha · Avisos por correo al cliente del portal · Encuesta tras la visita · Ofertas y apartados + calendario de la Agenda · Contratos, comisiones y fusión de prospectos · Freno de envíos públicos · Verificación en dos pasos y dispositivos · Monitoreo de errores (programa un cron cada 30 min) · Tiempo real · Conteo por tipo.
+Es seguro aunque a tu base ya le falte o ya tenga parte de lo anterior: cada bloque es re-ejecutable y van en orden, así que lo que existe se respeta y lo que falta se crea. Trae: Desarrollos · Portal del cliente · Agendar visita (fases 1 a 8) · Selección de propiedades en un solo enlace · Listado y ficha · Avisos por correo al cliente · Encuesta tras la visita · Ofertas y apartados · Contratos, comisiones y fusión · Freno de envíos públicos · Verificación en dos pasos y dispositivos · Monitoreo de errores (programa un cron cada 30 min) · Tiempo real · Conteo por tipo.
 
-Verificado contra un Postgres 16 real: se aplica sobre el estado de `main`, una segunda pasada no falla y pasan las pruebas de SQL. **No verificado contra tu Supabase real.**
+Verificado contra un Postgres 16 real **partiendo de tres estados distintos** (base hasta la migración 0098, hasta la 0105 y completa): se aplica sin errores en los tres y pasan las pruebas de SQL. **No verificado contra tu Supabase real.** Si falla con otro «relation … does not exist», significa que a tu base le falta algo todavía más antiguo: pásame el mensaje exacto.
 
 Después, **una sola vez**, desde tu computadora (necesita `psql` y la cadena de conexión «Session pooler»):
 
