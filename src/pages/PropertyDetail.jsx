@@ -336,7 +336,7 @@ export default function PropertyDetail() {
     };
   }, [property?.id, property?.type, property?.zone]);
 
-  if (loading) return <LoadingState />;
+  if (loading) return <LoadingState tall />;
   const badge = getPropertyBadge(property);
   const priceDrop = badge?.kind === "priceDrop" ? badge : null;
   const monthly = estimateMonthlyPayment(property);
@@ -350,7 +350,7 @@ export default function PropertyDetail() {
   }
 
   // Mientras se corrige la dirección (el cambio de ruta vuelve a montar la página) no se muestra la ficha a medias.
-  if (!isCanonicalSlug(id, property)) return <LoadingState />;
+  if (!isCanonicalSlug(id, property)) return <LoadingState tall />;
 
   return (
     <>

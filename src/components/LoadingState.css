@@ -72,3 +72,7 @@ td > .loading-state .loading-state__shapes {
   width: 100%;
   border-radius: var(--radius-md);
 }
+
+.loading-state--tall {
+  min-height: 150vh;
+}
