@@ -4882,10 +4882,35 @@
     "delete": "Borrar",
     "deleteConfirm": "¿Borrar este error del registro?",
     "loadError": "No se pudieron cargar los errores.",
-    "updateError": "No se pudo actualizar."
+    "updateError": "No se pudo actualizar.",
+    "kindLabel": "Tipo de aviso",
+    "kind": {
+      "todos": "Todos",
+      "automatico": "Errores automáticos",
+      "usuario": "Reportes del equipo"
+    },
+    "reportedBy": "Reportó: {{email}}",
+    "unknownPerson": "alguien del equipo"
   },
   "live": {
     "newMessage": "Llegó un mensaje nuevo {{name}}",
     "newProspect": "Nuevo prospecto {{name}}"
+  },
+  "reportProblem": {
+    "button": "Reportar un problema",
+    "title": "Reportar un problema",
+    "hint": "¿Algo no salió bien, un dato se ve raro o un botón no hace lo que debe? Cuéntanoslo con tus palabras. Lo verán los administradores.",
+    "label": "¿Qué pasó?",
+    "placeholder": "Por ejemplo: «Al guardar el prospecto me sale un error» o «La agenda de hoy no muestra la cita de las 4».",
+    "counter": "{{count}} de {{max}} caracteres",
+    "attached": "Se enviará con tu correo ({{email}}), la pantalla en la que estás ({{screen}}) y tu navegador.",
+    "send": "Enviar reporte",
+    "thanks": "¡Gracias! Ya lo recibimos. Los administradores lo verán en «Errores del sitio».",
+    "errors": {
+      "empty": "Escribe qué pasó.",
+      "short": "Cuéntanos un poco más (al menos 10 caracteres).",
+      "rateLimited": "Ya mandaste varios reportes seguidos. Inténtalo de nuevo en un rato.",
+      "generic": "No se pudo enviar el reporte. Inténtalo de nuevo."
+    }
   }
 }

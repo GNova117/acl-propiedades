@@ -209,6 +209,22 @@ export const adminMethods = {
     if (error) throw error;
   },
 
+  // «Reportar un problema» del panel: lo manda una persona del equipo con sesión (el correo sale de la sesión, en la base).
+  async reportUserProblem({ message, url, userAgent, release }) {
+    const { error } = await supabase.rpc("report_user_problem", {
+      p_message: message,
+      p_url: url || null,
+      p_user_agent: userAgent || null,
+      p_release: release || null,
+    });
+    if (error) {
+      // 22023 = texto demasiado corto; 54429 = demasiados reportes en una hora.
+      if (error.code === "22023") throw Object.assign(new Error(error.message), { code: "too_short" });
+      if (error.code === "54429") throw Object.assign(new Error(error.message), { code: "rate_limited" });
+      throw error;
+    }
+  },
+
   async getClientErrors() {
     const { data, error } = await supabase.from("client_errors").select("*").order("last_seen", { ascending: false }).limit(300);
     if (error) throw error;

@@ -73,6 +73,25 @@
   font-weight: 600;
 }
 
+.admin-layout__report {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: #c9d3e2;
+  padding: 0.65rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.admin-layout__report:hover {
+  border-color: #fff;
+  color: var(--color-on-primary);
+}
+
 .admin-layout__logout:hover {
   border-color: #fff;
   color: var(--color-on-primary);

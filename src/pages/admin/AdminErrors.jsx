@@ -12,6 +12,7 @@ export default function AdminErrors() {
   const { t, i18n } = useTranslation();
   const [errors, setErrors] = useState(null);
   const [filter, setFilter] = useState("nuevo");
+  const [kind, setKind] = useState("todos"); // todos | automatico | usuario
   const [open, setOpen] = useState(null);
 
   const load = useCallback(async () => {
@@ -28,7 +29,8 @@ export default function AdminErrors() {
   }, [load]);
 
   const counts = useMemo(() => Object.fromEntries(STATUSES.map((s) => [s, (errors || []).filter((e) => e.status === s).length])), [errors]);
-  const shown = (errors || []).filter((e) => e.status === filter);
+  const matchesKind = (e) => kind === "todos" || (kind === "usuario" ? e.source === "usuario" : e.source !== "usuario");
+  const shown = (errors || []).filter((e) => e.status === filter && matchesKind(e));
 
   const setStatus = async (error, status) => {
     try {
@@ -70,6 +72,14 @@ export default function AdminErrors() {
         ))}
       </div>
 
+      <div className="admin-errors__filters" role="group" aria-label={t("errors.kindLabel")}>
+        {["todos", "automatico", "usuario"].map((value) => (
+          <button key={value} type="button" aria-pressed={kind === value} className={`btn btn-sm ${kind === value ? "btn-primary" : "btn-outline"}`} onClick={() => setKind(value)}>
+            {t(`errors.kind.${value}`)}
+          </button>
+        ))}
+      </div>
+
       {shown.length === 0 ? (
         <p className="card admin-errors__empty">{t(filter === "nuevo" ? "errors.emptyNew" : "errors.empty")}</p>
       ) : (
@@ -78,7 +88,11 @@ export default function AdminErrors() {
             <li key={error.id} className="card admin-errors__item">
               <div className="admin-errors__head">
                 <strong>{error.message}</strong>
-                <span className="admin-errors__count" title={t("errors.times", { count: error.count })}>×{error.count}</span>
+                {error.source === "usuario" ? (
+                  <span className="admin-errors__who">{t("errors.reportedBy", { email: error.reported_by || t("errors.unknownPerson") })}</span>
+                ) : (
+                  <span className="admin-errors__count" title={t("errors.times", { count: error.count })}>×{error.count}</span>
+                )}
               </div>
               <p className="form-hint">
                 {error.url || "/"} · {t("errors.lastSeen", { when: when(error.last_seen) })}
@@ -86,7 +100,7 @@ export default function AdminErrors() {
               </p>
               {open === error.id && (
                 <div>
-                  <pre className="admin-errors__stack">{error.stack || t("errors.noStack")}</pre>
+                  {error.source !== "usuario" && <pre className="admin-errors__stack">{error.stack || t("errors.noStack")}</pre>}
                   {error.user_agent && <p className="form-hint">{error.user_agent}</p>}
                 </div>
               )}

@@ -4882,10 +4882,35 @@
     "delete": "Delete",
     "deleteConfirm": "Delete this error from the log?",
     "loadError": "Could not load the errors.",
-    "updateError": "Could not update."
+    "updateError": "Could not update.",
+    "kindLabel": "Type of notice",
+    "kind": {
+      "todos": "All",
+      "automatico": "Automatic errors",
+      "usuario": "Team reports"
+    },
+    "reportedBy": "Reported by: {{email}}",
+    "unknownPerson": "someone on the team"
   },
   "live": {
     "newMessage": "A new message arrived {{name}}",
     "newProspect": "New lead {{name}}"
+  },
+  "reportProblem": {
+    "button": "Report a problem",
+    "title": "Report a problem",
+    "hint": "Did something go wrong, does some data look odd or does a button not do what it should? Tell us in your own words. The administrators will see it.",
+    "label": "What happened?",
+    "placeholder": "For example: “When I save the lead I get an error” or “Today's agenda doesn't show the 4 o'clock appointment”.",
+    "counter": "{{count}} of {{max}} characters",
+    "attached": "It will be sent with your email ({{email}}), the screen you are on ({{screen}}) and your browser.",
+    "send": "Send report",
+    "thanks": "Thank you! We received it. The administrators will see it in “Site errors”.",
+    "errors": {
+      "empty": "Write what happened.",
+      "short": "Tell us a bit more (at least 10 characters).",
+      "rateLimited": "You sent several reports in a row. Please try again in a while.",
+      "generic": "The report could not be sent. Please try again."
+    }
   }
 }

@@ -26,6 +26,24 @@ describe("buildErrorDigest", () => {
     expect(html).not.toContain(`Falla ${MAX_ERRORS_IN_EMAIL + 1}<`);
   });
 
+  it("los reportes del equipo llevan quién los mandó y su propio asunto", () => {
+    const report = (n, who) => error(n, { source: "usuario", reported_by: who, message: `No carga la agenda ${n}`, count: 1 });
+    const only = buildErrorDigest([report(1, "ana@correo.mx")], { siteUrl: "https://x.mx" });
+    expect(only.subject).toBe("Una persona del equipo reportó un problema en ACL Propiedades");
+    expect(only.html).toContain("Reporte de ana@correo.mx");
+    expect(only.html).not.toContain("vez/veces");
+    expect(only.text).toContain("Reporte de ana@correo.mx: No carga la agenda 1");
+    expect(buildErrorDigest([report(1, "a@x.mx"), report(2, "b@x.mx")], { siteUrl: "https://x.mx" }).subject).toBe("2 reportes de problemas del equipo en ACL Propiedades");
+    const mixed = buildErrorDigest([error(1), report(2, "ana@correo.mx")], { siteUrl: "https://x.mx" });
+    expect(mixed.subject).toBe("2 avisos nuevos en ACL Propiedades (1 errores y 1 reportes del equipo)");
+  });
+
+  it("escapa también el correo y el texto de un reporte", () => {
+    const { html } = buildErrorDigest([error(1, { source: "usuario", reported_by: '<b>x</b>@a.mx', message: "<script>alert(1)</script>" })], { siteUrl: "https://x.mx" });
+    expect(html).not.toContain("<script>");
+    expect(html).not.toContain("<b>x</b>");
+  });
+
   it("escapa lo que viene del navegador (mensaje y ruta)", () => {
     const { html } = buildErrorDigest([error(1, { message: '<img src=x onerror="alert(1)">', url: "/<script>" })], { siteUrl: "https://x.mx" });
     expect(html).not.toContain("<img src=x");

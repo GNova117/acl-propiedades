@@ -26,13 +26,27 @@ export function buildErrorDigest(errors, { siteUrl }) {
   if (list.length === 0) return null;
   const shown = list.slice(0, MAX_ERRORS_IN_EMAIL);
   const extra = list.length - shown.length;
-  const subject = list.length === 1 ? "Error nuevo en el sitio de ACL Propiedades" : `${list.length} errores nuevos en el sitio de ACL Propiedades`;
+  const reports = list.filter((e) => e.source === "usuario").length;
+  const subject =
+    reports === list.length
+      ? list.length === 1
+        ? "Una persona del equipo reportó un problema en ACL Propiedades"
+        : `${list.length} reportes de problemas del equipo en ACL Propiedades`
+      : reports === 0
+        ? list.length === 1
+          ? "Error nuevo en el sitio de ACL Propiedades"
+          : `${list.length} errores nuevos en el sitio de ACL Propiedades`
+        : `${list.length} avisos nuevos en ACL Propiedades (${list.length - reports} errores y ${reports} reportes del equipo)`;
 
   const rows = shown
     .map(
       (e) =>
-        `<tr><td style="padding:8px 0;border-bottom:1px solid #e2e6ec;font-size:14px"><strong>${escapeHtml(oneLine(e.message, 160))}</strong><br>` +
-        `<span style="color:#5a6472;font-size:13px">${escapeHtml(e.url || "/")} · ${escapeHtml(String(e.count))} vez/veces${e.release ? ` · versión ${escapeHtml(e.release)}` : ""}</span></td></tr>`,
+        `<tr><td style="padding:8px 0;border-bottom:1px solid #e2e6ec;font-size:14px">${
+          e.source === "usuario" ? `<span style="color:#1565c0;font-size:13px;font-weight:700">Reporte de ${escapeHtml(e.reported_by || "alguien del equipo")}</span><br>` : ""
+        }<strong>${escapeHtml(oneLine(e.message, e.source === "usuario" ? 400 : 160))}</strong><br>` +
+        `<span style="color:#5a6472;font-size:13px">${escapeHtml(e.url || "/")}${
+          e.source === "usuario" ? "" : ` · ${escapeHtml(String(e.count))} vez/veces`
+        }${e.release ? ` · versión ${escapeHtml(e.release)}` : ""}</span></td></tr>`,
     )
     .join("");
   const body = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 14px">${rows}</table>${
@@ -42,11 +56,11 @@ export function buildErrorDigest(errors, { siteUrl }) {
   const html = renderEmail({
     preheader: subject,
     heading: subject,
-    lines: ["Los visitantes o el equipo se toparon con esto en el navegador. Se agrupan por tipo de error."],
+    lines: ["Los visitantes o el equipo se toparon con esto, o alguien del equipo lo reportó con el botón «Reportar un problema». Los errores se agrupan por tipo."],
     body,
     buttons: [{ href: `${siteUrl}/admin/errores`, label: "Ver los errores", primary: true }],
-    footnote: "Este aviso sale cuando aparece un error nuevo (o uno que ya estaba resuelto vuelve a pasar).",
+    footnote: "Este aviso sale cuando aparece un error nuevo, uno resuelto vuelve a pasar o alguien del equipo manda un reporte.",
   });
-  const text = [subject, "", ...shown.map((e) => `- ${oneLine(e.message, 160)} (${e.url || "/"}, ${e.count} vez/veces)`), ...(extra > 0 ? [`…y ${extra} más`] : []), "", `${siteUrl}/admin/errores`].join("\n");
+  const text = [subject, "", ...shown.map((e) => (e.source === "usuario" ? `- Reporte de ${e.reported_by || "alguien del equipo"}: ${oneLine(e.message, 400)} (${e.url || "/"})` : `- ${oneLine(e.message, 160)} (${e.url || "/"}, ${e.count} vez/veces)`)), ...(extra > 0 ? [`…y ${extra} más`] : []), "", `${siteUrl}/admin/errores`].join("\n");
   return { subject, html, text };
 }

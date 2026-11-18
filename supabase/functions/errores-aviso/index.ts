@@ -34,7 +34,7 @@ async function handler(req: Request): Promise<Response> {
 
   const { data: errors, error } = await supabase
     .from("client_errors")
-    .select("id, message, url, count, release, last_seen")
+    .select("id, message, url, count, release, last_seen, source, reported_by")
     .eq("status", "nuevo")
     .is("notified_at", null)
     .order("last_seen", { ascending: false })

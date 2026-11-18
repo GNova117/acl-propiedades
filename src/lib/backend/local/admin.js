@@ -147,6 +147,19 @@ export const adminMethods = {
     writeStore(KEYS.clientErrors, errors);
   },
 
+  async reportUserProblem({ message, url, userAgent, release }) {
+    const text = String(message || "").trim().slice(0, 1000);
+    if (text.length < 10) throw Object.assign(new Error("Texto demasiado corto"), { code: "too_short" });
+    const who = getSession()?.user?.email;
+    if (!who) throw new Error("Inicia sesión para reportar un problema");
+    const errors = readStore(KEYS.clientErrors, []);
+    const mine = errors.filter((e) => e.source === "usuario" && e.reported_by === who && Date.now() - new Date(e.first_seen).getTime() < 3600_000);
+    if (mine.length >= 10) throw Object.assign(new Error("Demasiados reportes"), { code: "rate_limited" });
+    const now = new Date().toISOString();
+    errors.push({ id: uid("error"), fingerprint: uid("rep"), message: text, stack: "", source: "usuario", url: url || "", user_agent: userAgent || "", release: release || "", reported_by: who, count: 1, status: "nuevo", first_seen: now, last_seen: now, notified_at: null });
+    writeStore(KEYS.clientErrors, errors);
+  },
+
   async getClientErrors() {
     return [...readStore(KEYS.clientErrors, [])].sort((a, b) => String(b.last_seen).localeCompare(String(a.last_seen)));
   },

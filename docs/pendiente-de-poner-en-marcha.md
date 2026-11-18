@@ -22,6 +22,21 @@ npm run db:migrate -- status                    # debe decir 114 aplicadas, 0 pe
 
 (De ahí en adelante el SQL nuevo va como migración: `npm run migration:new -- "Qué hace"`.)
 
+## 1B. «Reportar un problema» (migración 0115) — agregado después
+
+Si ya aplicaste lo de la sección 1, esto es **un cambio más**:
+
+1. **SQL:** pega en el SQL Editor el archivo `supabase/migrations/0115_reportes_de_problemas_del_equipo_desde_el_panel.sql` y ejecútalo (es re-ejecutable). Después anótalo:
+   ```sql
+   insert into supabase_migrations.schema_migrations (version, name)
+   values ('0115', 'reportes_de_problemas_del_equipo_desde_el_panel') on conflict do nothing;
+   ```
+2. **Función:** volver a desplegar `errores-aviso` para que el correo distinga los reportes:
+   ```powershell
+   npx supabase@latest functions deploy errores-aviso --no-verify-jwt --remote=TU-CODIGO-DE-PROYECTO
+   ```
+3. **Sitio:** el botón «Reportar un problema» sale en el menú lateral del panel cuando se despliegue este PR.
+
 ## 2. Supabase (panel)
 
 1. **Authentication → Multi-Factor:** activar **TOTP**. Sin esto, «Seguridad → verificación en dos pasos» no funciona.

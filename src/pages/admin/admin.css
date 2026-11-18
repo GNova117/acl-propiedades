@@ -1250,3 +1250,13 @@
 .admin-errors__empty {
   padding: var(--space-5);
 }
+
+.admin-errors__who {
+  flex: none;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  background: var(--color-primary-solid);
+  color: var(--color-on-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold, 600);
+}

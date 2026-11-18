@@ -11,6 +11,7 @@ import NotificationBell from "../../components/NotificationBell";
 import QuickCapture from "../../components/QuickCapture";
 import OfflineBanner from "../../components/OfflineBanner";
 import IdleLogout from "../../components/IdleLogout";
+import ReportProblem from "../../components/ReportProblem";
 import MfaNudge from "../../components/MfaNudge";
 import TourBanner from "../../components/TourBanner";
 import NavIcon from "../../components/NavIcon";
@@ -391,6 +392,7 @@ export default function AdminLayout() {
           <span aria-hidden="true">{compact ? "»" : "«"}</span>
           <span className="admin-layout__nav-label">{compact ? t("adminNav.expand") : t("adminNav.compact")}</span>
         </button>
+        <ReportProblem compact={compact} />
         <button type="button" className="admin-layout__logout" onClick={handleLogout} title={compact ? t("admin.logout") : undefined}>
           <span className="admin-layout__logout-icon" aria-hidden="true">⏻</span>
           <span className="admin-layout__nav-label">{t("admin.logout")}</span>
