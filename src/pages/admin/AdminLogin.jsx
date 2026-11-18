@@ -9,7 +9,7 @@ import "./AdminLogin.css";
 
 export default function AdminLogin() {
   const { t } = useTranslation();
-  const { login, isAuthenticated, isDemoMode } = useAuth();
+  const { login, logout, isAuthenticated, isDemoMode, mfaPending, verifyMfaCode } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
@@ -19,6 +19,7 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [forgot, setForgot] = useState(false);
   const [resetInfo, setResetInfo] = useState("");
+  const [code, setCode] = useState("");
 
   if (isAuthenticated) {
     return <Navigate to={location.state?.from?.pathname || "/admin"} replace />;
@@ -33,6 +34,21 @@ export default function AdminLogin() {
       navigate("/admin", { replace: true });
     } catch {
       setError(t("admin.loginError"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Segundo paso: la cuenta tiene la verificación en dos pasos y la sesión ya tiene la contraseña correcta.
+  const handleCode = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await verifyMfaCode(code);
+    } catch {
+      setError(t("mfa.badCode"));
+      setCode("");
     } finally {
       setLoading(false);
     }
@@ -58,6 +74,43 @@ export default function AdminLogin() {
       setLoading(false);
     }
   };
+
+  if (mfaPending) {
+    return (
+      <div className="admin-login">
+        <Seo title={t("admin.loginTitle")} noindex />
+        <form className="admin-login__card card" onSubmit={handleCode}>
+          <div className="admin-login__logo">
+            <Logo size="lg" />
+          </div>
+          <h1>{t("mfa.loginTitle")}</h1>
+          <p className="form-hint">{t("mfa.loginHint")}</p>
+          <div className="form-field">
+            <label htmlFor="mfa-code">{t("mfa.codeLabel")}</label>
+            <input
+              id="mfa-code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              pattern="[0-9 ]*"
+              maxLength={7}
+              required
+              autoFocus
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+            />
+          </div>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <button type="submit" className="btn btn-primary btn-block" disabled={loading || code.replace(/\s/g, "").length < 6}>
+            {loading ? <span className="spinner" /> : null}
+            {t("mfa.verify")}
+          </button>
+          <button type="button" className="admin-login__forgot" onClick={() => { setCode(""); setError(""); logout(); }}>
+            {t("mfa.useOtherAccount")}
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-login">
@@ -105,6 +158,7 @@ export default function AdminLogin() {
           </div>
         )}
 
+        {location.state?.idle && !error && <p className="form-hint" role="status">{t("idle.expired")}</p>}
         {error && <p className="form-error" role="alert">{error}</p>}
         {resetInfo && <p className="form-hint" role="status">{resetInfo}</p>}
 

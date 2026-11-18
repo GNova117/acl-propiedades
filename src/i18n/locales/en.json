@@ -235,7 +235,11 @@
     "searchThisArea": "Search this area",
     "splitView": "Split",
     "splitViewTitle": "List and map side by side",
-    "parking": "Parking"
+    "parking": "Parking",
+    "colonyTitle": "Properties in {{colony}}, {{city}}",
+    "colonySubtitle": "Houses, apartments and land available in the {{colony}} neighborhood, in {{city}}.",
+    "colonyBack": "See all of {{city}}",
+    "coloniesTitle": "Neighborhoods in {{city}} with listings"
   },
   "detail": {
     "compareCredits": {
@@ -373,7 +377,8 @@
     "invalidEmail": "Invalid email address",
     "privacyNotice": "By submitting this form, your data will be handled according to our",
     "privacyLinkLabel": "Privacy Notice",
-    "mapTitle": "ACL Propiedades location"
+    "mapTitle": "ACL Propiedades location",
+    "serverLimited": "Too many messages were sent from your connection. Please try again later or call us."
   },
   "messages": {
     "via_alerta": "Asked for WhatsApp alerts",
@@ -4785,5 +4790,101 @@
     "contact": "Contact",
     "favoritesCount_one": "{{count}} favorite",
     "favoritesCount_other": "{{count}} favorites"
+  },
+  "security": {
+    "title": "Account security",
+    "navTitle": "Security",
+    "subtitle": "Protect the panel: it stores your clients' ID, CURP and portal passwords."
+  },
+  "mfa": {
+    "title": "Two-step verification",
+    "intro": "On top of your password, the panel asks for a 6-digit code from an app (Google Authenticator, Authy, Microsoft Authenticator…). Even if someone knows your password, they can't get in or see client data without your phone.",
+    "demoNote": "You are in demo mode: the code really works, but it is stored only in this browser.",
+    "unavailable": "Could not check the verification status.",
+    "active": "Two-step verification is on.",
+    "inactive": "You haven't turned it on yet.",
+    "enable": "Turn on two-step verification",
+    "factorName": "Authenticator app",
+    "remove": "Remove",
+    "removeConfirm": "Remove two-step verification? Your account will be protected by the password only.",
+    "removed": "Verification removed",
+    "removeError": "Could not remove it.",
+    "step1": "Open your authenticator app on your phone.",
+    "step2": "Scan this QR code:",
+    "qrAlt": "QR code for the authenticator app",
+    "manualKey": "Can't scan? Type this key into the app:",
+    "step3": "Enter the 6-digit code the app shows:",
+    "codeLabel": "6-digit code",
+    "confirm": "Confirm and turn on",
+    "enabled": "Two-step verification is on",
+    "enrollError": "Could not start the setup.",
+    "badCode": "That code is wrong or expired. Check your phone's clock and try the next one.",
+    "loginTitle": "Two-step verification",
+    "loginHint": "Enter the 6-digit code from your authenticator app.",
+    "verify": "Verify",
+    "useOtherAccount": "Use another account",
+    "nudge": "Protect the panel with two-step verification: it stores ID, CURP and portal passwords.",
+    "nudgeAction": "Turn it on",
+    "nudgeLater": "Later"
+  },
+  "idle": {
+    "title": "Are you still there?",
+    "text_one": "For security, we will sign you out in {{count}} second because of inactivity.",
+    "text_other": "For security, we will sign you out in {{count}} seconds because of inactivity.",
+    "stay": "Stay signed in",
+    "logoutNow": "Sign out now",
+    "expired": "We signed you out because of inactivity. Please sign in again.",
+    "sectionTitle": "Sign-out on inactivity",
+    "sectionText": "Your session ends on its own after {{minutes}} minutes without activity (with a warning a minute before). It does not end if there are unsent captures saved on this device.",
+    "sectionOff": "Sign-out on inactivity is turned off."
+  },
+  "devices": {
+    "title": "Signed-in devices",
+    "intro": "Browsers that have signed in to the panel with your account.",
+    "empty": "No devices registered yet.",
+    "unknown": "Device",
+    "thisOne": "this one",
+    "lastSeen": "seen {{when}}",
+    "signOutOthers": "Sign out of all other devices",
+    "signOutOthersConfirm": "Sign out of every other device? They will have to sign in again.",
+    "signedOutOthers": "Signed out of the other devices",
+    "error": "Could not complete this.",
+    "limit": "The list shows devices that have signed in since this screen existed. For now you can only sign out of all the others at once, not one by one."
+  },
+  "errors": {
+    "title": "Site errors",
+    "navTitle": "Site errors",
+    "subtitle": "Failures that visitors' or team members' browsers ran into, grouped. New ones are emailed to the administrators.",
+    "filterLabel": "Error status",
+    "status": {
+      "nuevo": "New",
+      "resuelto": "Resolved",
+      "ignorado": "Ignored"
+    },
+    "emptyNew": "No new errors. 🎉",
+    "empty": "No errors in this list.",
+    "times_one": "Happened {{count}} time",
+    "times_other": "Happened {{count}} times",
+    "lastSeen": "seen {{when}}",
+    "release": "version {{release}}",
+    "source": {
+      "window": "page error",
+      "promise": "unhandled promise",
+      "react": "error while showing a screen"
+    },
+    "noStack": "(no technical detail)",
+    "showDetail": "Show detail",
+    "hideDetail": "Hide detail",
+    "resolve": "Mark resolved",
+    "ignore": "Ignore",
+    "reopen": "Reopen",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this error from the log?",
+    "loadError": "Could not load the errors.",
+    "updateError": "Could not update."
+  },
+  "live": {
+    "newMessage": "A new message arrived {{name}}",
+    "newProspect": "New lead {{name}}"
   }
 }

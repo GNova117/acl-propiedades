@@ -1,3 +1,4 @@
+import { FEATURED_POOL, VIDEO_POOL, buildHomeData } from "./homeData";
 import { supabase } from "./supabaseClient";
 import * as construccionSync from "./construccion/sync";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "./perfilamientoVendedor";
@@ -6,7 +7,8 @@ import { SOLICITUD_AVALUO_LIST_FIELDS } from "./solicitudAvaluo";
 import { SOLICITUD_CREDITO_LIST_FIELDS } from "./solicitudCredito";
 import { slugify, numOrNull } from "./format";
 import { CLIENT_EXPEDIENTE_KEYS } from "./clientExpedienteFields";
-import { compressImageFile, compressImageFiles } from "./imageCompression";
+import { compressImageFile, compressImageFiles, makeImageVariants } from "./imageCompression";
+import { markVariantName, variantUrl } from "./imageVariants";
 import { generateReportToken, REPORT_TOKEN_PATTERN } from "./visitReport";
 import { generatePortalToken, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS, PortalUploadError, blobToBase64 } from "./clientPortal";
 import { getOrCreateVisitorId } from "./visitorId";
@@ -63,7 +65,17 @@ async function uploadFiles(bucket, files, uploaded, pathPrefix = "") {
   const compressed = await compressImageFiles(files);
   const urls = [];
   for (const file of compressed) {
-    const path = `${pathPrefix}${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${sanitizeFileName(file.name)}`;
+    // Las fotos de propiedad llevan además copias WebP más chicas (lib/imageVariants.js); solo si se pudieron generar la foto
+    // grande se sube con la marca «_rs» en el nombre, que es lo que avisa al sitio que existen.
+    const variants = bucket === "property-images" ? await makeImageVariants(file) : null;
+    const fileName = sanitizeFileName(file.name);
+    const path = `${pathPrefix}${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${variants ? markVariantName(fileName) : fileName}`;
+    for (const variant of variants || []) {
+      const variantPath = variantUrl(path, variant.width);
+      const { error: variantError } = await supabase.storage.from(bucket).upload(variantPath, variant.file, { upsert: false, contentType: "image/webp" });
+      if (variantError) throw variantError;
+      uploaded?.push({ bucket, path: variantPath });
+    }
     const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: false });
     if (error) throw error;
     uploaded?.push({ bucket, path });
@@ -225,6 +237,49 @@ export const supabaseBackend = {
     if (error) throw error;
     const mapped = (data || []).map(mapPropertyRow);
     return paginated ? { data: mapped, total: count ?? mapped.length } : mapped;
+  },
+
+  // Cuántas propiedades activas hay por tipo: { casa: 12, terreno: 3, ... }. Un conteo en el servidor (public_type_counts);
+  // si esa función aún no existe (no se ha corrido el SQL), se cuenta bajando la lista como antes.
+  async getTypeCounts() {
+    const { data, error } = await supabase.rpc("public_type_counts");
+    if (!error && data && typeof data === "object") return data;
+    return buildHomeData(await this.getProperties({ activeOnly: true })).counts;
+  },
+
+  // Lo del inicio sin bajar el catálogo: conteos por tipo, cuántas están disponibles y solo los candidatos a «destacadas» y
+  // «recorridos en video» (ver lib/homeData.js, que garantiza la misma selección que con todo el catálogo).
+  async getHomeData() {
+    const counts = await supabase.rpc("public_type_counts");
+    if (counts.error || !counts.data || typeof counts.data !== "object") {
+      return buildHomeData(await this.getProperties({ activeOnly: true })); // respaldo: aún sin el SQL
+    }
+    const since = new Date(Date.now() - 30 * 86400000).toISOString();
+    const base = () => supabase.from("properties").select(PROPERTY_SELECT).eq("active", true).eq("status", "disponible");
+    const [available, newest, dropped, videos] = await Promise.all([
+      supabase.from("properties").select("id", { count: "exact", head: true }).eq("active", true).eq("status", "disponible"),
+      base().not("main_image", "is", null).order("created_at", { ascending: false }).limit(FEATURED_POOL),
+      base().not("main_image", "is", null).not("previous_price", "is", null).gte("price_changed_at", since).order("created_at", { ascending: false }).limit(FEATURED_POOL),
+      base().neq("videos", "{}").order("created_at", { ascending: false }).limit(VIDEO_POOL),
+    ]);
+    const failed = [available, newest, dropped, videos].find((r) => r.error);
+    if (failed) throw failed.error;
+    const pool = new Map([...(dropped.data || []), ...(newest.data || [])].map((row) => [row.id, mapPropertyRow(row)]));
+    return {
+      counts: counts.data,
+      availableCount: available.count || 0,
+      featuredPool: [...pool.values()],
+      videoPool: (videos.data || []).map(mapPropertyRow),
+    };
+  },
+
+  // Solo propiedades publicadas (activas), por sus ids: el sitio público las pide así (p. ej. las vendidas del bloque de confianza).
+  async getPropertiesByIds(ids) {
+    const list = (ids || []).filter(Boolean);
+    if (list.length === 0) return [];
+    const { data, error } = await supabase.from("properties").select(PROPERTY_SELECT).eq("active", true).in("id", list);
+    if (error) throw error;
+    return (data || []).map(mapPropertyRow);
   },
 
   async getPropertyById(id) {
@@ -947,8 +1002,31 @@ export const supabaseBackend = {
 
   async submitContactMessage(data) {
     const { error } = await supabase.from("contact_messages").insert(data);
-    if (error) throw error;
+    if (error) {
+      // 54429: el servidor frenó el exceso de envíos desde esta conexión (ver «Freno de envíos públicos» en schema.sql).
+      if (error.code === "54429") throw Object.assign(new Error(error.message), { code: "rate_limited" });
+      throw error;
+    }
     return true;
+  },
+
+  // Solo el número (sin bajar los mensajes): lo usa el contador del menú.
+  async countNewContactMessages() {
+    const { count, error } = await supabase.from("contact_messages").select("id", { count: "exact", head: true }).eq("status", "nuevo");
+    if (error) throw error;
+    return count || 0;
+  },
+
+  // Tiempo real (Supabase Realtime): avisa de cada cambio en mensajes y prospectos mientras haya sesión. Devuelve cómo cerrarlo.
+  subscribeToChanges(onEvent) {
+    const channel = supabase.channel("admin-live");
+    for (const table of ["contact_messages", "prospectos"]) {
+      channel.on("postgres_changes", { event: "*", schema: "public", table }, (payload) => onEvent({ table, type: payload.eventType, record: payload.new || null }));
+    }
+    channel.subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
   },
 
   async getContactMessages() {
@@ -2996,6 +3074,97 @@ export const supabaseBackend = {
 
   async updatePassword(newPassword) {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+  },
+
+  // ── Verificación en dos pasos (TOTP de Supabase Auth) y dispositivos ──
+  // → { enrolled, factors: [{ id, name, createdAt }], needsCode, factorId }. `needsCode`: la sesión solo tiene la contraseña
+  // y la cuenta tiene la verificación activada, así que falta confirmar el código antes de entrar al panel.
+  async getMfaStatus() {
+    const { data: aal, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aalError) throw aalError;
+    const { data: list, error } = await supabase.auth.mfa.listFactors();
+    if (error) throw error;
+    const verified = list?.totp || [];
+    return {
+      enrolled: verified.length > 0,
+      factors: verified.map((f) => ({ id: f.id, name: f.friendly_name || "", createdAt: f.created_at })),
+      needsCode: aal?.nextLevel === "aal2" && aal?.currentLevel !== "aal2",
+      factorId: verified[0]?.id || null,
+    };
+  },
+
+  // Empieza a activarla: → { factorId, secret, uri, qrSvg }. Se confirma con verifyMfa (el primer código correcto la activa).
+  async enrollMfa() {
+    // Un intento anterior sin terminar deja un factor «unverified» que estorba (mismo nombre): se limpia primero.
+    const { data: list } = await supabase.auth.mfa.listFactors();
+    for (const factor of list?.all || []) {
+      if (factor.status === "unverified") await supabase.auth.mfa.unenroll({ factorId: factor.id });
+    }
+    const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: `Autenticador ${new Date().toISOString().slice(0, 16)}` });
+    if (error) throw error;
+    return { factorId: data.id, secret: data.totp.secret, uri: data.totp.uri, qrSvg: data.totp.qr_code };
+  },
+
+  // Confirma un código de 6 dígitos (al activarla y al iniciar sesión). Lanza si es incorrecto.
+  async verifyMfa(factorId, code) {
+    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code: String(code || "").replace(/\s/g, "") });
+    if (error) throw error;
+    return true;
+  },
+
+  async removeMfa(factorId) {
+    const { error } = await supabase.auth.mfa.unenroll({ factorId });
+    if (error) throw error;
+  },
+
+  // Dispositivos que han entrado al panel (tabla admin_devices; ver «Verificación en dos pasos y dispositivos»).
+  async touchDevice(deviceId, label) {
+    const { error } = await supabase.rpc("touch_admin_device", { p_device_id: deviceId, p_label: label });
+    if (error) throw error;
+  },
+
+  async listDevices() {
+    const { data, error } = await supabase.from("admin_devices").select("device_id, label, first_seen, last_seen").order("last_seen", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Cierra la sesión en todos los demás dispositivos (real: invalida sus tokens) y los quita de la lista.
+  async signOutOtherDevices(currentDeviceId) {
+    const { error } = await supabase.auth.signOut({ scope: "others" });
+    if (error) throw error;
+    const { error: forgetError } = await supabase.rpc("forget_other_admin_devices", { p_device_id: currentDeviceId });
+    if (forgetError) throw forgetError;
+  },
+
+  // ── Monitoreo de errores del navegador (tabla client_errors; ver «Monitoreo de errores» en schema.sql) ──
+  async reportClientError(payload) {
+    const { error } = await supabase.rpc("report_client_error", {
+      p_fingerprint: payload.fingerprint,
+      p_message: payload.message,
+      p_stack: payload.stack || null,
+      p_url: payload.url || null,
+      p_user_agent: payload.user_agent || null,
+      p_release: payload.release || null,
+      p_source: payload.source || "window",
+    });
+    if (error) throw error;
+  },
+
+  async getClientErrors() {
+    const { data, error } = await supabase.from("client_errors").select("*").order("last_seen", { ascending: false }).limit(300);
+    if (error) throw error;
+    return data || [];
+  },
+
+  async setClientErrorStatus(id, status) {
+    const { error } = await supabase.from("client_errors").update({ status }).eq("id", id);
+    if (error) throw error;
+  },
+
+  async deleteClientError(id) {
+    const { error } = await supabase.from("client_errors").delete().eq("id", id);
     if (error) throw error;
   },
 

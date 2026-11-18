@@ -1,3 +1,4 @@
+import ResponsiveImg from "./ResponsiveImg";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
@@ -169,7 +170,7 @@ function ClusteredMarkers({ properties }) {
         <Marker key={property.id} position={[property.lat, property.lng]} icon={getIcon(property.type)} title={property.title} alt={property.title}>
           <Popup>
             <div className="map-popup">
-              {property.main_image && <img src={property.main_image} alt={property.title} loading="lazy" decoding="async" />}
+              {property.main_image && <ResponsiveImg src={property.main_image} sizes="240px" alt={property.title} loading="lazy" decoding="async" />}
               <strong>{property.title}</strong>
               <span className="map-popup__price">{formatMXN(property.price)}</span>
               <span className="map-popup__area">{formatArea(property.area_m2)}</span>

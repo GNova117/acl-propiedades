@@ -1,3 +1,4 @@
+import ResponsiveImg from "./ResponsiveImg";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -198,7 +199,7 @@ export function Lightbox({ images, index, onIndexChange, onClose, alt }) {
               onClick={() => onIndexChange(() => i)}
               aria-label={t("gallery.viewImage", { number: i + 1 })}
             >
-              <img src={src} alt="" />
+              <ResponsiveImg src={src} sizes="96px" alt="" />
             </button>
           ))}
         </div>
@@ -259,7 +260,7 @@ export default function Gallery({ images, alt }) {
       >
         {/* Es la imagen principal de la ficha de propiedad — normalmente el
             LCP de la página — así que se carga eager, no lazy. */}
-        <img src={list[active]} alt={t("gallery.imageAlt", { alt, number: active + 1 })} decoding="async" fetchPriority="high" />
+        <ResponsiveImg src={list[active]} sizes="(min-width: 980px) 640px, 100vw" alt={t("gallery.imageAlt", { alt, number: active + 1 })} decoding="async" fetchPriority="high" />
         {list.length > 1 && <span className="gallery__counter">{t("gallery.counter", { current: active + 1, total: list.length })}</span>}
         <span className="gallery__expand-badge">⤢ {t("gallery.expand")}</span>
       </button>
@@ -279,7 +280,7 @@ export default function Gallery({ images, alt }) {
                 }}
                 aria-label={last ? t("gallery.seeAll", { count: list.length }) : t("gallery.viewImage", { number: index + 1 })}
               >
-                <img src={src} alt="" loading="lazy" decoding="async" />
+                <ResponsiveImg src={src} sizes="200px" alt="" loading="lazy" decoding="async" />
                 {last && <span className="gallery__more">{t("gallery.moreCount", { count: hidden })}</span>}
               </button>
             );
@@ -296,7 +297,7 @@ export default function Gallery({ images, alt }) {
               onClick={() => setActive(index)}
               aria-label={t("gallery.viewImage", { number: index + 1 })}
             >
-              <img src={src} alt="" loading="lazy" decoding="async" />
+              <ResponsiveImg src={src} sizes="96px" alt="" loading="lazy" decoding="async" />
             </button>
           ))}
         </div>

@@ -1,10 +1,13 @@
 import { StrictMode, useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import "./fonts.css";
 import "./index.css";
 import "./utilities.css";
 import "./i18n";
 import { installDialogFocus } from "./lib/dialogFocus";
+import { installErrorReporting } from "./lib/errorReporter";
+import { db } from "./lib/dataStore";
 import App from "./App.jsx";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -61,6 +64,8 @@ function Root() {
 
 // Foco del teclado en todas las ventanas emergentes (ver lib/dialogFocus.js).
 installDialogFocus();
+// Errores del navegador → /admin/errores (ver lib/errorReporter.js). En desarrollo no se mandan (ruido de recarga en caliente).
+if (!import.meta.env.DEV) installErrorReporting((payload) => db.reportClientError(payload));
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

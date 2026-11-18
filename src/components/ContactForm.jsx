@@ -59,8 +59,8 @@ export default function ContactForm() {
       window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
       setStatus("success");
       setForm(initialForm);
-    } catch {
-      setStatus("error");
+    } catch (err) {
+      setStatus(err?.code === "rate_limited" ? "serverLimited" : "error");
     }
   };
 
@@ -100,6 +100,7 @@ export default function ContactForm() {
       {status === "success" && <p className="form-hint text-success">{t("contact.success")}</p>}
       {status === "error" && <p className="form-error">{t("contact.error")}</p>}
       {status === "rateLimited" && <p className="form-error">{t("contact.rateLimited")}</p>}
+      {status === "serverLimited" && <p className="form-error" role="alert">{t("contact.serverLimited")}</p>}
 
       <p className="form-hint mb-4">
         {t("contact.privacyNotice")}{" "}

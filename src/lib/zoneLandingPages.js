@@ -29,3 +29,58 @@ export function propertyMatchesCity(property, city) {
   const normalizedCity = city.trim().toLowerCase();
   return zone === normalizedCity || zone.startsWith(`${normalizedCity} - `);
 }
+
+// ── Páginas por colonia ("/propiedades/zona/torreon/las-villas") ──
+
+// "Torreón - Las Villas" → { city: "Torreón", colony: "Las Villas" }; la zona de ciudad sola ("Torreón") o una zona que
+// no sigue el patrón → null (no tiene página de colonia).
+export function splitColonyZone(zoneName) {
+  const name = String(zoneName || "").trim();
+  for (const city of ZONE_LANDING_CITIES) {
+    const prefix = `${city} - `;
+    if (name.toLowerCase().startsWith(prefix.toLowerCase())) {
+      const colony = name.slice(prefix.length).trim();
+      return colony ? { city, colony } : null;
+    }
+  }
+  return null;
+}
+
+export function colonyPath(zoneName) {
+  const parts = splitColonyZone(zoneName);
+  if (!parts) return null;
+  return `/propiedades/zona/${slugify(parts.city)}/${slugify(parts.colony)}`;
+}
+
+// Nombre de zona (como está en el catálogo de /admin/zonas) que corresponde a la ciudad y colonia de la dirección.
+// `zoneNames`: nombres de zona del catálogo. null si no existe.
+export function findColonyZone(zoneNames, citySlug, colonySlug) {
+  if (!citySlug || !colonySlug) return null;
+  return (
+    (zoneNames || []).find((name) => {
+      const parts = splitColonyZone(name);
+      return parts && slugify(parts.city) === citySlug && slugify(parts.colony) === colonySlug;
+    }) || null
+  );
+}
+
+export function propertyMatchesZone(property, zoneName) {
+  const zone = String(property?.zone || "").trim().toLowerCase();
+  return Boolean(zone) && zone === String(zoneName || "").trim().toLowerCase();
+}
+
+// Colonias de una ciudad con propiedades disponibles, de la que más tiene a la que menos (y por nombre).
+// → [{ zone, colony, count, path }]
+export function coloniesWithListings(properties, city) {
+  const counts = new Map();
+  for (const property of properties || []) {
+    if (property.status !== "disponible" || property.active === false || !propertyMatchesCity(property, city)) continue;
+    const parts = splitColonyZone(property.zone);
+    if (!parts) continue;
+    const key = `${parts.city} - ${parts.colony}`;
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([zone, count]) => ({ zone, colony: splitColonyZone(zone).colony, count, path: colonyPath(zone) }))
+    .sort((a, b) => b.count - a.count || a.colony.localeCompare(b.colony, "es"));
+}

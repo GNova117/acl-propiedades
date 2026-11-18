@@ -61,3 +61,48 @@ describe("propertyMatchesCity", () => {
     expect(propertyMatchesCity({ zone: "" }, "Torreón")).toBe(false);
   });
 });
+
+describe("páginas por colonia", () => {
+  const zones = ["Torreón", "Torreón - Las Villas", "Torreón - Residencial del Parque", "Lerdo - Los Fresnos", "Colonia suelta"];
+
+  it("separa ciudad y colonia, y la ciudad sola o una zona suelta no tienen colonia", async () => {
+    const { splitColonyZone } = await import("./zoneLandingPages");
+    expect(splitColonyZone("Torreón - Las Villas")).toEqual({ city: "Torreón", colony: "Las Villas" });
+    expect(splitColonyZone("torreón - las villas")).toEqual({ city: "Torreón", colony: "las villas" });
+    expect(splitColonyZone("Torreón")).toBeNull();
+    expect(splitColonyZone("Torreón - ")).toBeNull();
+    expect(splitColonyZone("Colonia suelta")).toBeNull();
+    expect(splitColonyZone(null)).toBeNull();
+  });
+
+  it("arma la dirección con ciudad y colonia sin acentos", async () => {
+    const { colonyPath } = await import("./zoneLandingPages");
+    expect(colonyPath("Torreón - Residencial del Parque")).toBe("/propiedades/zona/torreon/residencial-del-parque");
+    expect(colonyPath("Torreón")).toBeNull();
+  });
+
+  it("encuentra la zona del catálogo a partir de las dos partes de la dirección", async () => {
+    const { findColonyZone } = await import("./zoneLandingPages");
+    expect(findColonyZone(zones, "torreon", "las-villas")).toBe("Torreón - Las Villas");
+    expect(findColonyZone(zones, "lerdo", "las-villas")).toBeNull();
+    expect(findColonyZone(zones, "torreon", "no-existe")).toBeNull();
+    expect(findColonyZone(zones, "torreon", "")).toBeNull();
+  });
+
+  it("lista solo las colonias con propiedades disponibles, de la que más tiene a la que menos", async () => {
+    const { coloniesWithListings } = await import("./zoneLandingPages");
+    const properties = [
+      { zone: "Torreón - Las Villas", status: "disponible" },
+      { zone: "Torreón - Las Villas", status: "disponible" },
+      { zone: "Torreón - Residencial del Parque", status: "disponible" },
+      { zone: "Torreón - Vendida", status: "vendida" },
+      { zone: "Torreón - Inactiva", status: "disponible", active: false },
+      { zone: "Torreón", status: "disponible" },
+      { zone: "Lerdo - Los Fresnos", status: "disponible" },
+    ];
+    expect(coloniesWithListings(properties, "Torreón")).toEqual([
+      { zone: "Torreón - Las Villas", colony: "Las Villas", count: 2, path: "/propiedades/zona/torreon/las-villas" },
+      { zone: "Torreón - Residencial del Parque", colony: "Residencial del Parque", count: 1, path: "/propiedades/zona/torreon/residencial-del-parque" },
+    ]);
+  });
+});

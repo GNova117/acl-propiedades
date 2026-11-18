@@ -3,7 +3,7 @@
 // compara una propiedad contra él. No usa el tabulador de valuación de
 // /admin/zonas (es una herramienta interna del asesor), solo lo que ya es
 // público en el sitio.
-import { propertyMatchesCity } from "./zoneLandingPages";
+import { propertyMatchesCity, propertyMatchesZone } from "./zoneLandingPages";
 
 // Con menos propiedades que esto la "mediana" es casi una sola casa.
 export const MIN_ZONE_COMPARABLES = 2;
@@ -72,11 +72,9 @@ export function comparePricePerM2(property, stats) {
   return { ownPerM2: Math.round(own), diffPct, verdict };
 }
 
-// Resumen de una ciudad para su página de aterrizaje.
-export function cityMarketSummary(properties, city) {
-  const available = (properties || []).filter(
-    (p) => p.status === "disponible" && p.active !== false && propertyMatchesCity(p, city),
-  );
+// Resumen para una página de aterrizaje (ciudad o colonia) a partir de sus propiedades ya filtradas.
+function marketSummary(properties, belongs) {
+  const available = (properties || []).filter((p) => p.status === "disponible" && p.active !== false && belongs(p));
   if (available.length === 0) return null;
 
   const perType = (type) => {
@@ -91,4 +89,14 @@ export function cityMarketSummary(properties, city) {
     casaPerM2: perType("casa"),
     departamentoPerM2: perType("departamento"),
   };
+}
+
+// Resumen de una ciudad para su página de aterrizaje.
+export function cityMarketSummary(properties, city) {
+  return marketSummary(properties, (p) => propertyMatchesCity(p, city));
+}
+
+// Resumen de una colonia («Ciudad - Colonia», nombre exacto de la zona) para su página.
+export function colonyMarketSummary(properties, zoneName) {
+  return marketSummary(properties, (p) => propertyMatchesZone(p, zoneName));
 }

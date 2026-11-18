@@ -1004,9 +1004,15 @@
 }
 
 @media (max-width: 640px) {
-  /* En el teléfono solo el número (el nombre del paso ya sale arriba, junto a «Paso 2 de 5»). */
+  /* En el teléfono solo el número a la vista (el nombre del paso ya sale arriba, junto a «Paso 2 de 5»); el nombre sigue ahí
+     para los lectores de pantalla (con display:none el botón se quedaba sin nombre). */
   .form-steps__tab:not(.is-current) .form-steps__name {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 }
 
@@ -1123,4 +1129,124 @@
     background: var(--color-surface);
     box-shadow: 0 1px 0 var(--color-border);
   }
+}
+
+/* Seguridad de la cuenta (/admin/seguridad) */
+.admin-security__card {
+  margin-bottom: var(--space-4);
+  padding: var(--space-5);
+  max-width: 44rem;
+}
+
+.admin-security__card h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+}
+
+.admin-security__list {
+  margin: var(--space-3) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-security__list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-security__list small {
+  color: var(--color-text-muted);
+}
+
+.admin-security__enroll ol {
+  padding-left: var(--space-5);
+}
+
+.admin-security__enroll li {
+  margin-bottom: var(--space-3);
+}
+
+.admin-security__qr {
+  margin-top: var(--space-2);
+  max-width: 11.5rem;
+  background: #fff;
+  border-radius: var(--radius-sm);
+}
+
+.admin-security__qr img,
+.admin-security__qr canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.admin-security__actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Errores del navegador (/admin/errores) */
+.admin-errors__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.admin-errors__list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-errors__item {
+  padding: var(--space-4);
+}
+
+.admin-errors__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  word-break: break-word;
+}
+
+.admin-errors__count {
+  flex: none;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  background: var(--color-bg-alt);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold, 600);
+}
+
+.admin-errors__stack {
+  max-height: 14rem;
+  overflow: auto;
+  margin: var(--space-2) 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-alt);
+  font-size: var(--text-xs);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.admin-errors__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.admin-errors__empty {
+  padding: var(--space-5);
 }

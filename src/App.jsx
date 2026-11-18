@@ -52,6 +52,8 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminCommissions = lazy(() => import("./pages/admin/AdminCommissions"));
 const AdminHelp = lazy(() => import("./pages/admin/AdminHelp"));
+const AdminSecurity = lazy(() => import("./pages/admin/AdminSecurity"));
+const AdminErrors = lazy(() => import("./pages/admin/AdminErrors"));
 const AdminPasswordReset = lazy(() => import("./pages/admin/AdminPasswordReset"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -180,6 +182,7 @@ export default function App() {
       <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
       <Route path="/propiedades" element={<PublicLayout><Properties excludeTypes={SPECIAL_SECTION_KEYS} /></PublicLayout>} />
       <Route path="/propiedades/zona/:zoneSlug" element={<PublicLayout><ZoneLanding /></PublicLayout>} />
+      <Route path="/propiedades/zona/:zoneSlug/:colonySlug" element={<PublicLayout><ZoneLanding /></PublicLayout>} />
       <Route path="/propiedades/:id" element={<PublicLayout><PropertyDetail /></PublicLayout>} />
       <Route path="/desarrollos/:slug" element={<PublicLayout><Development /></PublicLayout>} />
       <Route
@@ -327,6 +330,8 @@ export default function App() {
         <Route path="mi-perfil" element={<AdminMyProfile />} />
         <Route path="mi-dia" element={<AdminMyDay />} />
         <Route path="ayuda" element={<AdminHelp />} />
+        <Route path="seguridad" element={<AdminSecurity />} />
+        <Route path="errores" element={<RequireSection section="roles"><AdminErrors /></RequireSection>} />
         <Route path="zonas" element={<RequireSection section="zonas"><AdminZones /></RequireSection>} />
         <Route path="clientes" element={<RequireSection section="clientes"><AdminClients /></RequireSection>} />
         <Route path="clientes/nuevo" element={<RequireSection section="clientes"><AdminClientForm /></RequireSection>} />

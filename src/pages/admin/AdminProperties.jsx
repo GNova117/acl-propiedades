@@ -1,3 +1,4 @@
+import ResponsiveImg from "../../components/ResponsiveImg";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -534,7 +535,7 @@ export default function AdminProperties({
                         aria-label={t("bulkActions.selectRow")}
                       />
                     </td>
-                    <td className="cell-thumb">{property.main_image && <img src={property.main_image} alt="" />}</td>
+                    <td className="cell-thumb">{property.main_image && <ResponsiveImg src={property.main_image} sizes="64px" alt="" />}</td>
                     <td className="cell-code" {...col("code")}>{property.code || "—"}</td>
                     <td className="cell-title">
                       {property.title}

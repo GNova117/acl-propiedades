@@ -1,6 +1,10 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import ResponsiveImg from "./ResponsiveImg";
 import "./PropertyImageCarousel.css";
+
+// La tarjeta ocupa todo el ancho en teléfono y unos 400 px en computadora.
+const CARD_SIZES = "(max-width: 640px) 100vw, 400px";
 
 // Fotos deslizables dentro de la tarjeta del listado: con el dedo (el navegador
 // engancha cada foto al deslizar) y con flechas en computadora. Solo se baja la
@@ -13,7 +17,7 @@ export default function PropertyImageCarousel({ images, alt }) {
   const [activated, setActivated] = useState(false);
 
   if (images.length === 0) return null;
-  if (images.length === 1) return <img src={images[0]} alt={alt} loading="lazy" decoding="async" />;
+  if (images.length === 1) return <ResponsiveImg src={images[0]} sizes={CARD_SIZES} alt={alt} loading="lazy" decoding="async" />;
 
   const visible = activated ? images : images.slice(0, 1);
 
@@ -43,10 +47,11 @@ export default function PropertyImageCarousel({ images, alt }) {
     >
       <div className="card-carousel__track" ref={trackRef} onScroll={onScroll}>
         {visible.map((src, i) => (
-          <img
+          <ResponsiveImg
             key={src}
             className="card-carousel__slide"
             src={src}
+            sizes={CARD_SIZES}
             alt={i === 0 ? alt : ""}
             loading={i === 0 ? "lazy" : undefined}
             decoding="async"

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
+import { useLiveRefresh } from "../../lib/liveUpdates";
 import { whatsappDigits } from "../../lib/format";
 import { messageToProspectFields } from "../../lib/prospects";
 import { quickReplyTemplates } from "../../lib/messageTemplates";
@@ -55,8 +56,8 @@ export default function AdminMessages() {
   const [prospects, setProspects] = useState([]);
   const [promotingId, setPromotingId] = useState(null);
 
-  const load = () => {
-    setLoading(true);
+  const load = ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     // Las propiedades vienen con sus asesores incluidos (property_advisors),
     // así que no hace falta una consulta aparte de asesores: el mensaje
     // guarda property_id y de ahí se deriva a quién le toca. Derivado, no
@@ -70,7 +71,15 @@ export default function AdminMessages() {
     });
   };
 
-  useEffect(load, []);
+  useEffect(() => {
+    load();
+  }, []);
+
+  // Un mensaje nuevo aparece en la lista sin recargar (y sin el indicador de carga).
+  const liveTick = useLiveRefresh(["contact_messages"]);
+  useEffect(() => {
+    if (liveTick > 0) load({ silent: true });
+  }, [liveTick]);
 
   // Mensajes que ya son prospecto (para no ofrecer el botón dos veces).
   useEffect(() => {

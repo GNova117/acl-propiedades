@@ -7953,3 +7953,384 @@ $$;
 
 revoke all on function team_leaderboard() from public, anon;
 grant execute on function team_leaderboard() to authenticated;
+
+-- ─────────────────────────────────────────────
+-- Freno de envíos públicos en el servidor (2026-11-18)
+-- Hasta ahora el freno del formulario de contacto (campo trampa y espera de 60 s) vivía solo en el navegador: quien
+-- llamara a la API directo podía mandar mensajes sin límite (cada uno dispara un aviso por WhatsApp). Ahora la base
+-- cuenta los envíos anónimos por conexión (IP) y en total, y rechaza el exceso. Aplica a:
+--   · contact_messages (formulario de Contacto, solicitudes de visita y de información) — 10 por hora por IP, 200 por hora en total
+--   · property_alerts  (suscripción a avisos, que manda correos/WhatsApp a terceros)    — 10 por hora por IP, 100 por hora en total
+-- Solo cuenta a quien entra como anónimo (rol «anon»): el personal con sesión, el SQL Editor y las funciones del
+-- servidor (service role) no se frenan. Las reservas de visita ya tenían su propio freno (visit_booking_attempts).
+-- Limitaciones (a propósito): quien rote de IP puede seguir mandando hasta el tope global; y detrás de una misma red
+-- (oficina, datos móviles compartidos) varias personas comparten el cupo. Para frenar bots de verdad (no solo exceso)
+-- el siguiente paso sería Cloudflare Turnstile, que necesita una cuenta y llaves propias.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+create table if not exists public_rate_hits (
+  id bigserial primary key,
+  bucket text not null,
+  ip text,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_public_rate_hits_bucket_ip on public_rate_hits(bucket, ip, created_at desc);
+create index if not exists idx_public_rate_hits_bucket_time on public_rate_hits(bucket, created_at desc);
+
+-- Sin políticas: solo las funciones de abajo (security definer) leen y escriben.
+alter table public_rate_hits enable row level security;
+
+-- IP de quien llama, tal como la reporta el proxy de Supabase (primer valor de x-forwarded-for). null si no hay.
+create or replace function request_client_ip()
+returns text
+language plpgsql
+stable
+as $$
+declare
+  headers json;
+begin
+  begin
+    headers := nullif(current_setting('request.headers', true), '')::json;
+  exception when others then
+    return null;
+  end;
+  if headers is null then return null; end if;
+  return nullif(trim(split_part(coalesce(headers ->> 'x-forwarded-for', headers ->> 'cf-connecting-ip', ''), ',', 1)), '');
+end;
+$$;
+
+-- Cuenta un envío anónimo en `p_bucket` y lo rechaza (error 54429) si esa IP ya llegó a su tope o si el total pasó el suyo.
+create or replace function enforce_public_rate_limit(p_bucket text, p_ip_limit int, p_global_limit int, p_window interval default interval '1 hour')
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  caller_ip text;
+begin
+  -- Solo se frena a quien entra como anónimo.
+  if coalesce(auth.role(), '') <> 'anon' then
+    return;
+  end if;
+
+  caller_ip := request_client_ip();
+
+  if caller_ip is not null
+     and (select count(*) from public_rate_hits h where h.bucket = p_bucket and h.ip = caller_ip and h.created_at > now() - p_window) >= p_ip_limit then
+    raise exception 'Demasiados envíos desde tu conexión. Inténtalo de nuevo más tarde.' using errcode = '54429';
+  end if;
+
+  if (select count(*) from public_rate_hits h where h.bucket = p_bucket and h.created_at > now() - p_window) >= p_global_limit then
+    raise exception 'Estamos recibiendo demasiados envíos. Inténtalo de nuevo más tarde.' using errcode = '54429';
+  end if;
+
+  insert into public_rate_hits (bucket, ip) values (p_bucket, caller_ip);
+
+  -- Limpieza de pasada: casi nunca, y solo lo viejo.
+  if random() < 0.02 then
+    delete from public_rate_hits where created_at < now() - interval '2 days';
+  end if;
+end;
+$$;
+
+revoke all on function enforce_public_rate_limit(text, int, int, interval) from public, anon, authenticated;
+revoke all on function request_client_ip() from public;
+grant execute on function request_client_ip() to anon, authenticated;
+
+create or replace function trg_limit_contact_messages()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform enforce_public_rate_limit('contact_messages', 10, 200);
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_limit_contact_messages on contact_messages;
+create trigger trg_limit_contact_messages
+before insert on contact_messages
+for each row execute function trg_limit_contact_messages();
+
+create or replace function trg_limit_property_alerts()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform enforce_public_rate_limit('property_alerts', 10, 100);
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_limit_property_alerts on property_alerts;
+create trigger trg_limit_property_alerts
+before insert on property_alerts
+for each row execute function trg_limit_property_alerts();
+
+-- ─────────────────────────────────────────────
+-- Verificación en dos pasos y dispositivos del panel (2026-11-18)
+-- 1) mfa_ok(): verdadero si la sesión ya confirmó su código (aal2) o si la persona NO tiene la verificación activada.
+--    Así nadie queda fuera por no haberla activado todavía, pero quien SÍ la activó ya no puede leer los datos sensibles con
+--    una sesión que solo tenga la contraseña (aal1). Se aplica como política «restrictive» (se suma a las que ya existen) a:
+--      · clients (INE/CURP/contraseña del portal), client_documents y perfilamientos_comprador
+--      · el bucket privado de archivos de clientes (client-documents)
+--    Alcance: acceso directo a tablas y archivos. Las funciones del servidor (security definer) no pasan por aquí.
+-- 2) admin_devices: dispositivos que han entrado al panel (el navegador se registra solo al iniciar sesión).
+--    Supabase no deja a la app listar las sesiones reales, así que esta lista es de «dispositivos vistos»; cerrar las demás
+--    sesiones sí es real (signOut con scope «others») y además borra de la lista a los otros dispositivos.
+-- Requiere activar MFA (TOTP) en Supabase: Authentication → Sign In / Providers → Multi-Factor.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+create or replace function mfa_ok()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, auth
+as $$
+  select coalesce(auth.jwt() ->> 'aal', 'aal1') = 'aal2'
+    or not exists (select 1 from auth.mfa_factors f where f.user_id = auth.uid() and f.status = 'verified');
+$$;
+
+revoke all on function mfa_ok() from public;
+grant execute on function mfa_ok() to authenticated;
+
+drop policy if exists "Dos pasos para datos sensibles" on clients;
+create policy "Dos pasos para datos sensibles" on clients as restrictive for all to authenticated
+  using (mfa_ok()) with check (mfa_ok());
+
+drop policy if exists "Dos pasos para datos sensibles" on client_documents;
+create policy "Dos pasos para datos sensibles" on client_documents as restrictive for all to authenticated
+  using (mfa_ok()) with check (mfa_ok());
+
+do $$
+begin
+  if to_regclass('public.perfilamientos_comprador') is not null then
+    execute 'drop policy if exists "Dos pasos para datos sensibles" on perfilamientos_comprador';
+    execute 'create policy "Dos pasos para datos sensibles" on perfilamientos_comprador as restrictive for all to authenticated using (mfa_ok()) with check (mfa_ok())';
+  end if;
+end $$;
+
+drop policy if exists "Dos pasos para archivos de clientes" on storage.objects;
+create policy "Dos pasos para archivos de clientes" on storage.objects as restrictive for all to authenticated
+  using (bucket_id <> 'client-documents' or mfa_ok())
+  with check (bucket_id <> 'client-documents' or mfa_ok());
+
+create table if not exists admin_devices (
+  user_id uuid not null,
+  device_id text not null check (length(device_id) between 8 and 80),
+  label text not null default '' check (length(label) <= 120),
+  first_seen timestamptz not null default now(),
+  last_seen timestamptz not null default now(),
+  primary key (user_id, device_id)
+);
+
+alter table admin_devices enable row level security;
+
+drop policy if exists "Cada quien ve sus dispositivos" on admin_devices;
+create policy "Cada quien ve sus dispositivos" on admin_devices for select to authenticated
+  using (user_id = auth.uid());
+
+create or replace function touch_admin_device(p_device_id text, p_label text default '')
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null or p_device_id is null or length(p_device_id) not between 8 and 80 then
+    return;
+  end if;
+  insert into admin_devices (user_id, device_id, label)
+  values (auth.uid(), p_device_id, left(coalesce(p_label, ''), 120))
+  on conflict (user_id, device_id) do update set last_seen = now(), label = excluded.label;
+  -- Sin acumular: solo los 20 más recientes de cada persona.
+  delete from admin_devices d
+  where d.user_id = auth.uid()
+    and d.device_id in (select device_id from admin_devices where user_id = auth.uid() order by last_seen desc offset 20);
+end;
+$$;
+
+create or replace function forget_other_admin_devices(p_device_id text)
+returns int
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  removed int;
+begin
+  if auth.uid() is null then return 0; end if;
+  delete from admin_devices where user_id = auth.uid() and device_id <> coalesce(p_device_id, '');
+  get diagnostics removed = row_count;
+  return removed;
+end;
+$$;
+
+revoke all on function touch_admin_device(text, text) from public, anon;
+revoke all on function forget_other_admin_devices(text) from public, anon;
+grant execute on function touch_admin_device(text, text) to authenticated;
+grant execute on function forget_other_admin_devices(text) to authenticated;
+
+-- ─────────────────────────────────────────────
+-- Monitoreo de errores del navegador (2026-11-18)
+-- Hasta ahora un fallo en producción no avisaba a nadie. El sitio manda cada error del navegador (mensaje, pila, ruta sin
+-- datos personales ni enlaces secretos, navegador y versión) a report_client_error; se agrupan por «huella» (el mismo
+-- error cuenta como uno con su número de veces) y los administradores (apartado «roles») los ven en /admin/errores.
+-- La Edge Function errores-aviso, disparada por pg_cron cada 30 minutos, manda UN correo con los errores nuevos
+-- (o que reaparecieron tras marcarse como resueltos). Sin servicios de terceros.
+-- report_client_error es público (los visitantes no tienen cuenta) y usa el freno de envíos públicos de arriba
+-- (60 por hora por IP, 600 por hora en total). Requiere los secretos CRON_SECRET, RESEND_API_KEY (y opcional RESEND_FROM,
+-- SITE_URL, ERRORS_REPORT_TO) de la función; desplegarla con la verificación de JWT desactivada.
+-- (bloque re-ejecutable: cron.schedule con un nombre que ya existe actualiza ese job)
+-- ─────────────────────────────────────────────
+
+create table if not exists client_errors (
+  id uuid primary key default gen_random_uuid(),
+  fingerprint text not null unique,
+  message text not null,
+  stack text,
+  source text not null default 'window',
+  url text,
+  user_agent text,
+  release text,
+  count int not null default 1,
+  status text not null default 'nuevo' check (status in ('nuevo', 'resuelto', 'ignorado')),
+  first_seen timestamptz not null default now(),
+  last_seen timestamptz not null default now(),
+  notified_at timestamptz
+);
+
+create index if not exists idx_client_errors_status_seen on client_errors(status, last_seen desc);
+
+alter table client_errors enable row level security;
+
+drop policy if exists "Administradores leen errores" on client_errors;
+create policy "Administradores leen errores" on client_errors for select
+  using (has_admin_section('roles'));
+
+drop policy if exists "Administradores actualizan errores" on client_errors;
+create policy "Administradores actualizan errores" on client_errors for update
+  using (has_admin_section('roles')) with check (has_admin_section('roles'));
+
+drop policy if exists "Administradores borran errores" on client_errors;
+create policy "Administradores borran errores" on client_errors for delete
+  using (has_admin_section('roles'));
+
+create or replace function report_client_error(
+  p_fingerprint text,
+  p_message text,
+  p_stack text default null,
+  p_url text default null,
+  p_user_agent text default null,
+  p_release text default null,
+  p_source text default 'window'
+)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+begin
+  if p_fingerprint is null or p_fingerprint !~ '^[0-9a-f]{8}$' or coalesce(trim(p_message), '') = '' then
+    return;
+  end if;
+
+  perform enforce_public_rate_limit('client_errors', 60, 600);
+
+  insert into client_errors (fingerprint, message, stack, source, url, user_agent, release)
+  values (
+    p_fingerprint,
+    left(p_message, 500),
+    left(p_stack, 4000),
+    case when p_source in ('window', 'promise', 'react') then p_source else 'window' end,
+    left(p_url, 300),
+    left(p_user_agent, 300),
+    left(p_release, 40)
+  )
+  on conflict (fingerprint) do update set
+    count = client_errors.count + 1,
+    last_seen = now(),
+    url = excluded.url,
+    user_agent = excluded.user_agent,
+    release = excluded.release,
+    -- Si ya estaba resuelto y vuelve a pasar, reaparece como nuevo y se avisa otra vez.
+    status = case when client_errors.status = 'resuelto' then 'nuevo' else client_errors.status end,
+    notified_at = case when client_errors.status = 'resuelto' then null else client_errors.notified_at end;
+end;
+$$;
+
+revoke all on function report_client_error(text, text, text, text, text, text, text) from public;
+grant execute on function report_client_error(text, text, text, text, text, text, text) to anon, authenticated;
+
+select cron.schedule(
+  'errores-aviso',
+  '*/30 * * * *',
+  $$
+  select net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/errores-aviso',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'publishable_key'),
+      'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'agenda_cron_secret')
+    ),
+    body := '{}'::jsonb
+  );
+  $$
+);
+
+-- ─────────────────────────────────────────────
+-- Tiempo real del panel (2026-11-18)
+-- Mensajes de contacto y prospectos nuevos aparecen en el panel al instante, sin recargar ni cambiar de pantalla
+-- (Supabase Realtime, solo a las personas con sesión; las políticas de lectura de cada tabla siguen mandando: quien no puede
+-- leer una fila tampoco recibe su aviso). Solo hay que agregar las tablas a la publicación «supabase_realtime».
+-- Es lo único que hace este bloque; si prefieres, también se puede activar en el panel de Supabase:
+-- Database → Replication.
+-- (bloque re-ejecutable: no repite una tabla que ya está en la publicación)
+-- ─────────────────────────────────────────────
+
+do $$
+declare
+  t text;
+begin
+  if not exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+    return; -- fuera de Supabase (o con Realtime apagado): nada que hacer
+  end if;
+  foreach t in array array['contact_messages', 'prospectos'] loop
+    if to_regclass('public.' || t) is not null
+       and not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = t) then
+      execute format('alter publication supabase_realtime add table public.%I', t);
+    end if;
+  end loop;
+end $$;
+
+-- ─────────────────────────────────────────────
+-- Conteo de propiedades por tipo, sin bajar el catálogo (2026-11-18)
+-- El encabezado y el inicio del sitio bajaban TODAS las propiedades activas solo para contar cuántas hay de cada tipo (y el
+-- inicio, además, para elegir las destacadas). Ahora piden este número ya contado. Cuenta las propiedades activas (con
+-- cualquier estatus), igual que antes. Función de solo lectura que respeta las políticas de la tabla.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+create or replace function public_type_counts()
+returns jsonb
+language sql
+stable
+as $$
+  select coalesce(jsonb_object_agg(type, n), '{}'::jsonb)
+  from (select type, count(*)::int as n from properties where active group by type) t;
+$$;
+
+revoke all on function public_type_counts() from public;
+grant execute on function public_type_counts() to anon, authenticated;

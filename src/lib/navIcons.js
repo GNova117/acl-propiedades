@@ -40,6 +40,8 @@ export const ICON_BY_PATH = {
   "/admin/novedades": "megaphone",
   "/admin/roles": "shield",
   "/admin/ayuda": "help",
+  "/admin/seguridad": "shield",
+  "/admin/errores": "clipboard",
 };
 
 export const ICON_BY_GROUP = { propiedades: "home", clientes: "briefcase", herramientas: "calculator", obra: "hammer", oficina: "calendar" };

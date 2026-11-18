@@ -7,8 +7,8 @@ import { test, expect } from "./fixtures.js";
 // regla ya no falla, la prueba lo avisa para que no se quede una excepción de más). Ver también src/lib/contrast.test.js,
 // que revisa el contraste de las variables de color sin abrir el navegador.
 
-const PUBLICAS = ["/", "/propiedades", "/propiedades/prop-1", "/contacto", "/nosotros", "/favoritos", "/ruta-que-no-existe"];
-const PANEL = ["/admin/mi-dia", "/admin/propiedades", "/admin/prospectos", "/admin/agenda", "/admin/ayuda"];
+const PUBLICAS = ["/", "/propiedades", "/propiedades/prop-1", "/propiedades/zona/torreon", "/contacto", "/nosotros", "/favoritos", "/ruta-que-no-existe"];
+const PANEL = ["/admin/mi-dia", "/admin/propiedades", "/admin/propiedades/nueva", "/admin/prospectos", "/admin/agenda", "/admin/ayuda", "/admin/seguridad", "/admin/errores"];
 
 // ruta → { regla: motivo }. Vacío = la pantalla pasa limpia.
 const EXCEPCIONES = {};

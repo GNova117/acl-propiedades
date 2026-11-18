@@ -50,9 +50,10 @@ export function computeSalesStats(ventas, properties, now = Date.now()) {
 
 // Arma lo que pinta el inicio a partir de lo que devuelve la base. `null`
 // significa "no mostrar el bloque".
-export function buildTrustSummary(stats, properties) {
+// `availableCount`: cuántas propiedades hay disponibles (ya contadas por el servidor); si no se manda, se cuentan en `properties`.
+export function buildTrustSummary(stats, properties, { availableCount } = {}) {
   if (!stats || !(stats.total >= MIN_SALES_FOR_TRUST)) return null;
-  const available = (properties || []).filter((p) => p.status === "disponible" && p.active !== false).length;
+  const available = availableCount ?? (properties || []).filter((p) => p.status === "disponible" && p.active !== false).length;
   const byId = new Map((properties || []).map((p) => [p.id, p]));
   const recentSold = (stats.recent_property_ids || [])
     .map((id) => byId.get(id))

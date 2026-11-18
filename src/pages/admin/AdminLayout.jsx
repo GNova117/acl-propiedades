@@ -10,6 +10,8 @@ import InstallAppButton from "../../components/InstallAppButton";
 import NotificationBell from "../../components/NotificationBell";
 import QuickCapture from "../../components/QuickCapture";
 import OfflineBanner from "../../components/OfflineBanner";
+import IdleLogout from "../../components/IdleLogout";
+import MfaNudge from "../../components/MfaNudge";
 import TourBanner from "../../components/TourBanner";
 import NavIcon from "../../components/NavIcon";
 import { ICON_BY_GROUP, ICON_BY_PATH } from "../../lib/navIcons";
@@ -18,10 +20,14 @@ import { getQueue } from "../../lib/offlineQueue";
 import { startPrecache } from "../../lib/offlineShell";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
+import { liveBus, startLiveUpdates, useLiveRefresh } from "../../lib/liveUpdates";
+import { queries } from "../../lib/queries";
+import { revalidate } from "../../lib/dataCache";
+import { deviceLabel, getDeviceId } from "../../lib/deviceInfo";
 import { HOME_MY_DAY, mobileTabs } from "../../lib/adminHome";
 import { useAdminHome } from "../../lib/useAdminHome";
 import "./AdminLayout.css";
-import { confirmDialog } from "../../lib/toast";
+import { confirmDialog, notify } from "../../lib/toast";
 
 // Menú por carpetas. Cada item se muestra solo si el rol tiene ese apartado;
 // una carpeta sin ningún item visible no se dibuja. Los apartados sueltos
@@ -93,10 +99,12 @@ const NAV = [
       { section: "reportes", to: "/admin/reporte-mensual", labelKey: "monthly.title" },
       { section: "liquidaciones", to: "/admin/comisiones", labelKey: "commissions.navTitle" },
       { section: "roles", to: "/admin/actividad", labelKey: "activity.title" },
+      { section: "roles", to: "/admin/errores", labelKey: "errors.navTitle" },
       { section: "novedades", to: "/admin/novedades", labelKey: "novedades.admin.title" },
     ],
   },
   { section: "roles", to: "/admin/roles", labelKey: "accessControl.sections.roles" },
+  { section: null, to: "/admin/seguridad", labelKey: "security.navTitle" },
   { section: null, to: "/admin/ayuda", labelKey: "help.navTitle" },
 ];
 
@@ -141,6 +149,27 @@ export default function AdminLayout() {
 
   // Con señal, el panel se guarda en el dispositivo para que abra aunque se recargue sin conexión (lib/offlineShell.js).
   useEffect(() => startPrecache(), []);
+
+  // Registra este dispositivo en «Seguridad → dispositivos» (como mucho una vez cada 6 horas por navegador).
+  useEffect(() => {
+    if (!email) return;
+    try {
+      const key = "acl_device_touched";
+      const last = Number(localStorage.getItem(key)) || 0;
+      if (Date.now() - last < 6 * 3600_000) return;
+      db.touchDevice(getDeviceId(), deviceLabel())
+        .then(() => localStorage.setItem(key, String(Date.now())))
+        .catch(() => {});
+    } catch {
+      /* sin almacenamiento: no se registra */
+    }
+  }, [email]);
+
+  // Cierre por inactividad (lib/idleSession.js): no se cierra con capturas sin enviar guardadas en el dispositivo.
+  const expireIdle = async () => {
+    await logout();
+    navigate("/admin/login", { replace: true, state: { idle: true } });
+  };
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -265,18 +294,39 @@ export default function AdminLayout() {
     </div>
   );
 
-  // Se vuelve a consultar en cada cambio de ruta (no solo al montar) para
-  // que el aviso no se quede desactualizado si alguien pasa un rato largo
-  // en otra sección del panel sin recargar la página — es una consulta
-  // barata, no vale la pena montar un polling con setInterval solo para
-  // esto.
+  // Tiempo real (lib/liveUpdates.js): un solo canal mientras el panel está abierto. Los mensajes y prospectos nuevos llegan
+  // solos; antes el contador bajaba TODOS los mensajes en cada cambio de pantalla.
+  useEffect(() => startLiveUpdates(db), []);
+
+  // El contador del menú pide solo el número: al abrir, cuando llega un cambio y al volver a la pestaña (por si el canal se
+  // cortó mientras estaba en segundo plano).
+  const liveMessages = useLiveRefresh(["contact_messages"], { delayMs: 500 });
   useEffect(() => {
-    if (!hasSection("mensajes")) return;
-    db.getContactMessages()
-      .then((messages) => setNewMessagesCount(messages.filter((m) => (m.status || "nuevo") === "nuevo").length))
-      .catch(() => {});
+    if (!hasSection("mensajes")) return undefined;
+    const refresh = () => db.countNewContactMessages().then(setNewMessagesCount).catch(() => {});
+    refresh();
+    const onVisible = () => document.visibilityState === "visible" && refresh();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, [liveMessages]);
+
+  // La lista de prospectos que comparten las pantallas se actualiza sola cuando entra o cambia uno.
+  const liveProspects = useLiveRefresh(["prospectos"], { delayMs: 800 });
+  useEffect(() => {
+    if (liveProspects > 0 && hasSection("prospectos")) revalidate(queries.prospects.key, queries.prospects.fetch, { force: true }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveProspects]);
+
+  // Aviso discreto cuando llega algo nuevo de verdad (solo con Supabase: el modo demo no distingue altas de cambios).
+  useEffect(() => {
+    const stops = [
+      liveBus.subscribe(["contact_messages"], (e) => e.type === "INSERT" && hasSection("mensajes") && notify(t("live.newMessage", { name: e.record?.name || "" }))),
+      liveBus.subscribe(["prospectos"], (e) => e.type === "INSERT" && hasSection("prospectos") && notify(t("live.newProspect", { name: e.record?.name || "" }))),
+    ];
+    return () => stops.forEach((stop) => stop());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [t]);
 
   // Los recientes solo salen si NO se ven ya en el menú (una carpeta cerrada los esconde); así no se repite ningún enlace.
   const visiblePaths = new Set([...navWithoutPinned.filter((e) => !e.items).map((e) => e.to), ...navWithoutPinned.filter((e) => e.items && openGroups.includes(e.key)).flatMap((e) => e.items.map((i) => i.to))]);
@@ -372,11 +422,13 @@ export default function AdminLayout() {
         <main className="admin-layout__content">
           <OfflineBanner />
           <TourBanner />
+          <MfaNudge />
           <ErrorBoundary key={pathname} homePath="/admin">
             <Outlet />
           </ErrorBoundary>
         </main>
       </div>
+      <IdleLogout onExpire={expireIdle} canExpire={() => getQueue().length === 0} />
       {/* Teléfono: lo del día a día a un toque; «Más» abre el menú completo. */}
       <nav className="admin-tabbar" aria-label={t("adminTabs.label")}>
         {mobileTabs({ hasSection, home }).map((tab) => (

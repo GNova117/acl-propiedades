@@ -1,3 +1,5 @@
+import { buildHomeData } from "./homeData";
+import { generateSecret, otpauthUri, verifyTotp } from "./totp";
 import { ZONES, ADVISORS, PROPERTIES, VENTAS_SEED, VISITS_SEED, PROPERTY_TYPES_SEED, AMENITIES_SEED, DEMO_ADMIN, ADMIN_ROLES_SEED, ADMIN_ACCESS_SEED } from "./seedData";
 import { generateReportToken, REPORT_TOKEN_PATTERN } from "./visitReport";
 import { generatePortalToken, isExtractedDocType, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS } from "./clientPortal";
@@ -49,6 +51,9 @@ function clientExpedientePayload(data) {
   return Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, data[key] || null]));
 }
 
+// Marca (solo de esta pestaña/sesión del navegador) de que ya se confirmó el código de dos pasos en modo demo.
+const MFA_OK_KEY = "acl_local_mfa_ok";
+
 const KEYS = {
   properties: "acl_local_properties",
   selections: "acl_local_selecciones",
@@ -92,6 +97,9 @@ const KEYS = {
   agendaExpedientes: "acl_local_agenda_expedientes",
   amenities: "acl_local_amenities",
   propertyCodeSeq: "acl_local_property_code_seq",
+  mfa: "acl_local_mfa",
+  clientErrors: "acl_local_client_errors",
+  devices: "acl_local_devices",
   messages: "acl_local_messages",
   testimonials: "acl_local_testimonials",
   propertyChanges: "acl_local_property_changes",
@@ -160,6 +168,8 @@ function readStore(key, fallback) {
 
 function writeStore(key, value) {
   window.localStorage.setItem(key, JSON.stringify(value));
+  // Aviso para subscribeToChanges (tiempo real del modo demo): «storage» solo llega a las OTRAS pestañas.
+  if (typeof window.dispatchEvent === "function" && typeof CustomEvent === "function") window.dispatchEvent(new CustomEvent("acl-local-change", { detail: { key } }));
 }
 
 // Los videos de propiedad, guardados como data: URL en localStorage (igual
@@ -276,6 +286,19 @@ export const localBackend = {
     if (filters.pageSize == null) return sorted;
     const from = (filters.page || 0) * filters.pageSize;
     return { data: sorted.slice(from, from + filters.pageSize), total: sorted.length };
+  },
+
+  async getTypeCounts() {
+    return buildHomeData(await this.getProperties({ activeOnly: true })).counts;
+  },
+
+  async getHomeData() {
+    return buildHomeData(await this.getProperties({ activeOnly: true }));
+  },
+
+  async getPropertiesByIds(ids) {
+    const wanted = new Set((ids || []).filter(Boolean));
+    return (await this.getProperties({ activeOnly: true })).filter((p) => wanted.has(p.id));
   },
 
   async getPropertyById(id) {
@@ -994,6 +1017,24 @@ export const localBackend = {
     messages.push({ id: uid("msg"), ...data, status: "nuevo", created_at: new Date().toISOString() });
     writeStore(KEYS.messages, messages);
     return true;
+  },
+
+  async countNewContactMessages() {
+    return readStore(KEYS.messages, []).filter((m) => (m.status || "nuevo") === "nuevo").length;
+  },
+
+  // Tiempo real (demo): no hay servidor, pero lo que otra pestaña del mismo navegador guarda (evento «storage») o esta misma
+  // pestaña (evento propio de writeStore) se reparte igual, para poder ver el comportamiento sin Supabase.
+  subscribeToChanges(onEvent) {
+    const tableOf = { [KEYS.messages]: "contact_messages", [KEYS.prospects]: "prospectos" };
+    const fromStorage = (e) => tableOf[e.key] && onEvent({ table: tableOf[e.key], type: "CHANGE", record: null });
+    const fromSelf = (e) => tableOf[e.detail?.key] && onEvent({ table: tableOf[e.detail.key], type: "CHANGE", record: null });
+    window.addEventListener("storage", fromStorage);
+    window.addEventListener("acl-local-change", fromSelf);
+    return () => {
+      window.removeEventListener("storage", fromStorage);
+      window.removeEventListener("acl-local-change", fromSelf);
+    };
   },
 
   async getContactMessages() {
@@ -3275,6 +3316,11 @@ export const localBackend = {
     if (email === DEMO_ADMIN.email && password === DEMO_ADMIN.password) {
       const session = { user: { email } };
       writeStore(KEYS.session, session);
+      try {
+        window.sessionStorage.removeItem(MFA_OK_KEY); // cada inicio de sesión vuelve a pedir el código
+      } catch {
+        /* sin sessionStorage */
+      }
       notifyAuthListeners();
       return session;
     }
@@ -3292,7 +3338,95 @@ export const localBackend = {
 
   async signOut() {
     window.localStorage.removeItem(KEYS.session);
+    try {
+      window.sessionStorage.removeItem(MFA_OK_KEY);
+    } catch {
+      /* sin sessionStorage */
+    }
     notifyAuthListeners();
+  },
+
+  // ── Monitoreo de errores (demo): se agrupan por huella igual que en la base ──
+  async reportClientError(payload) {
+    const errors = readStore(KEYS.clientErrors, []);
+    const now = new Date().toISOString();
+    const known = errors.find((e) => e.fingerprint === payload.fingerprint);
+    if (known) {
+      Object.assign(known, { count: known.count + 1, last_seen: now, url: payload.url, release: payload.release, status: known.status === "resuelto" ? "nuevo" : known.status });
+    } else {
+      errors.push({ id: uid("error"), ...payload, count: 1, status: "nuevo", first_seen: now, last_seen: now, notified_at: null });
+    }
+    writeStore(KEYS.clientErrors, errors);
+  },
+
+  async getClientErrors() {
+    return [...readStore(KEYS.clientErrors, [])].sort((a, b) => String(b.last_seen).localeCompare(String(a.last_seen)));
+  },
+
+  async setClientErrorStatus(id, status) {
+    writeStore(KEYS.clientErrors, readStore(KEYS.clientErrors, []).map((e) => (e.id === id ? { ...e, status } : e)));
+  },
+
+  async deleteClientError(id) {
+    writeStore(KEYS.clientErrors, readStore(KEYS.clientErrors, []).filter((e) => e.id !== id));
+  },
+
+  // ── Verificación en dos pasos (demo): mismo recorrido que en Supabase, con un TOTP real guardado en este navegador ──
+  async getMfaStatus() {
+    const factors = readStore(KEYS.mfa, []).filter((f) => f.verified);
+    let confirmed = false;
+    try {
+      confirmed = window.sessionStorage.getItem(MFA_OK_KEY) === "1";
+    } catch {
+      /* sin sessionStorage */
+    }
+    return {
+      enrolled: factors.length > 0,
+      factors: factors.map((f) => ({ id: f.id, name: f.name, createdAt: f.createdAt })),
+      needsCode: factors.length > 0 && !confirmed,
+      factorId: factors[0]?.id || null,
+    };
+  },
+
+  async enrollMfa() {
+    const secret = generateSecret();
+    const factor = { id: uid("mfa"), secret, verified: false, name: "Autenticador (demo)", createdAt: new Date().toISOString() };
+    writeStore(KEYS.mfa, [...readStore(KEYS.mfa, []).filter((f) => f.verified), factor]);
+    const email = getSession()?.user?.email || "demo";
+    return { factorId: factor.id, secret, uri: otpauthUri(secret, email), qrSvg: null };
+  },
+
+  async verifyMfa(factorId, code) {
+    const factors = readStore(KEYS.mfa, []);
+    const factor = factors.find((f) => f.id === factorId);
+    if (!factor || !(await verifyTotp(factor.secret, code))) throw new Error("invalid_mfa_code");
+    writeStore(KEYS.mfa, factors.map((f) => (f.id === factorId ? { ...f, verified: true } : f)));
+    try {
+      window.sessionStorage.setItem(MFA_OK_KEY, "1");
+    } catch {
+      /* sin sessionStorage */
+    }
+    return true;
+  },
+
+  async removeMfa(factorId) {
+    writeStore(KEYS.mfa, readStore(KEYS.mfa, []).filter((f) => f.id !== factorId));
+  },
+
+  // Dispositivos (demo): solo este navegador, para poder ver la pantalla.
+  async touchDevice(deviceId, label) {
+    const now = new Date().toISOString();
+    const devices = readStore(KEYS.devices, []);
+    const known = devices.find((d) => d.device_id === deviceId);
+    writeStore(KEYS.devices, known ? devices.map((d) => (d.device_id === deviceId ? { ...d, label, last_seen: now } : d)) : [...devices, { device_id: deviceId, label, first_seen: now, last_seen: now }]);
+  },
+
+  async listDevices() {
+    return [...readStore(KEYS.devices, [])].sort((a, b) => String(b.last_seen).localeCompare(String(a.last_seen)));
+  },
+
+  async signOutOtherDevices(currentDeviceId) {
+    writeStore(KEYS.devices, readStore(KEYS.devices, []).filter((d) => d.device_id === currentDeviceId));
   },
 
   getCurrentSession() {

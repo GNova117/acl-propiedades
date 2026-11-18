@@ -235,7 +235,11 @@
     "searchThisArea": "Buscar en esta zona",
     "splitView": "Dividida",
     "splitViewTitle": "Lista y mapa a la vez",
-    "parking": "Estacionamiento"
+    "parking": "Estacionamiento",
+    "colonyTitle": "Propiedades en {{colony}}, {{city}}",
+    "colonySubtitle": "Casas, departamentos y terrenos disponibles en la colonia {{colony}}, en {{city}}.",
+    "colonyBack": "Ver todo {{city}}",
+    "coloniesTitle": "Colonias de {{city}} con propiedades"
   },
   "detail": {
     "compareCredits": {
@@ -373,7 +377,8 @@
     "invalidEmail": "Correo electrónico no válido",
     "privacyNotice": "Al enviar este formulario, tus datos serán tratados conforme a nuestro",
     "privacyLinkLabel": "Aviso de Privacidad",
-    "mapTitle": "Ubicación de ACL Propiedades"
+    "mapTitle": "Ubicación de ACL Propiedades",
+    "serverLimited": "Se enviaron demasiados mensajes desde tu conexión. Inténtalo de nuevo en un rato o llámanos por teléfono."
   },
   "messages": {
     "via_alerta": "Pidió avisos por WhatsApp",
@@ -4785,5 +4790,101 @@
     "contact": "Contacto",
     "favoritesCount_one": "{{count}} favorito",
     "favoritesCount_other": "{{count}} favoritos"
+  },
+  "security": {
+    "title": "Seguridad de la cuenta",
+    "navTitle": "Seguridad",
+    "subtitle": "Protege el panel: guarda INE, CURP y contraseñas de portales de tus clientes."
+  },
+  "mfa": {
+    "title": "Verificación en dos pasos",
+    "intro": "Además de tu contraseña, el panel pide un código de 6 dígitos de una app (Google Authenticator, Authy, Microsoft Authenticator…). Aunque alguien conozca tu contraseña, no puede entrar ni ver los datos de clientes sin tu teléfono.",
+    "demoNote": "Estás en modo demo: el código funciona de verdad, pero se guarda solo en este navegador.",
+    "unavailable": "No se pudo consultar el estado de la verificación.",
+    "active": "La verificación en dos pasos está activada.",
+    "inactive": "Todavía no la activas.",
+    "enable": "Activar verificación en dos pasos",
+    "factorName": "App de autenticación",
+    "remove": "Quitar",
+    "removeConfirm": "¿Quitar la verificación en dos pasos? Tu cuenta quedará protegida solo por la contraseña.",
+    "removed": "Verificación quitada",
+    "removeError": "No se pudo quitar.",
+    "step1": "Abre tu app de autenticación en el teléfono.",
+    "step2": "Escanea este código QR:",
+    "qrAlt": "Código QR para la app de autenticación",
+    "manualKey": "¿No puedes escanear? Escribe esta clave en la app:",
+    "step3": "Escribe aquí el código de 6 dígitos que muestra la app:",
+    "codeLabel": "Código de 6 dígitos",
+    "confirm": "Confirmar y activar",
+    "enabled": "Verificación en dos pasos activada",
+    "enrollError": "No se pudo iniciar la activación.",
+    "badCode": "Ese código no es correcto o ya venció. Revisa la hora de tu teléfono e inténtalo con el siguiente.",
+    "loginTitle": "Verificación en dos pasos",
+    "loginHint": "Escribe el código de 6 dígitos de tu app de autenticación.",
+    "verify": "Verificar",
+    "useOtherAccount": "Usar otra cuenta",
+    "nudge": "Protege el panel con verificación en dos pasos: guarda INE, CURP y contraseñas de portales.",
+    "nudgeAction": "Activarla",
+    "nudgeLater": "Más tarde"
+  },
+  "idle": {
+    "title": "¿Sigues ahí?",
+    "text_one": "Por seguridad, cerraremos tu sesión en {{count}} segundo por inactividad.",
+    "text_other": "Por seguridad, cerraremos tu sesión en {{count}} segundos por inactividad.",
+    "stay": "Seguir aquí",
+    "logoutNow": "Cerrar sesión ahora",
+    "expired": "Cerramos tu sesión por inactividad. Inicia sesión de nuevo.",
+    "sectionTitle": "Cierre por inactividad",
+    "sectionText": "La sesión se cierra sola tras {{minutes}} minutos sin actividad (con un aviso un minuto antes). No se cierra si hay capturas sin enviar guardadas en este dispositivo.",
+    "sectionOff": "El cierre por inactividad está desactivado."
+  },
+  "devices": {
+    "title": "Dispositivos con sesión",
+    "intro": "Navegadores desde los que se ha entrado al panel con tu cuenta.",
+    "empty": "Aún no hay dispositivos registrados.",
+    "unknown": "Dispositivo",
+    "thisOne": "este",
+    "lastSeen": "visto {{when}}",
+    "signOutOthers": "Cerrar sesión en los demás dispositivos",
+    "signOutOthersConfirm": "¿Cerrar la sesión en todos los demás dispositivos? Tendrán que volver a iniciar sesión.",
+    "signedOutOthers": "Se cerró la sesión en los demás dispositivos",
+    "error": "No se pudo completar.",
+    "limit": "La lista muestra los dispositivos que han entrado desde que existe esta pantalla. Por ahora solo se pueden cerrar todos los demás a la vez, no uno por uno."
+  },
+  "errors": {
+    "title": "Errores del sitio",
+    "navTitle": "Errores del sitio",
+    "subtitle": "Fallos que el navegador de los visitantes o del equipo encontró, agrupados. Los nuevos se avisan por correo a los administradores.",
+    "filterLabel": "Estado de los errores",
+    "status": {
+      "nuevo": "Nuevos",
+      "resuelto": "Resueltos",
+      "ignorado": "Ignorados"
+    },
+    "emptyNew": "No hay errores nuevos. 🎉",
+    "empty": "No hay errores en esta lista.",
+    "times_one": "Pasó {{count}} vez",
+    "times_other": "Pasó {{count}} veces",
+    "lastSeen": "visto {{when}}",
+    "release": "versión {{release}}",
+    "source": {
+      "window": "error de página",
+      "promise": "promesa sin atender",
+      "react": "error al mostrar una pantalla"
+    },
+    "noStack": "(sin detalle técnico)",
+    "showDetail": "Ver detalle",
+    "hideDetail": "Ocultar detalle",
+    "resolve": "Marcar resuelto",
+    "ignore": "Ignorar",
+    "reopen": "Reabrir",
+    "delete": "Borrar",
+    "deleteConfirm": "¿Borrar este error del registro?",
+    "loadError": "No se pudieron cargar los errores.",
+    "updateError": "No se pudo actualizar."
+  },
+  "live": {
+    "newMessage": "Llegó un mensaje nuevo {{name}}",
+    "newProspect": "Nuevo prospecto {{name}}"
   }
 }

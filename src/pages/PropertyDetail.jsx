@@ -37,6 +37,7 @@ import EmptyState from "../components/EmptyState";
 import { isCanonicalSlug, parsePropertyRef, propertyPath } from "../lib/propertyUrl.js";
 import { faqJsonLd } from "../lib/structuredData.js";
 import { siteOrigin } from "../lib/site.js";
+import { colonyPath } from "../lib/zoneLandingPages.js";
 
 // Leaflet (react-leaflet + leaflet, ~150KB) queda fuera del bundle
 // principal del sitio público — aquí siempre se termina mostrando (no es
@@ -375,7 +376,7 @@ export default function PropertyDetail() {
                 <div className="property-card__type">
                   <PropertyTypeIcon type={property.type} size={16} />
                   <span>{propertyTypeLabel(t, property.type)}</span>
-                  <span className="property-card__zone">· {property.zone}</span>
+                  <span className="property-card__zone">· {colonyPath(property.zone) ? <Link to={colonyPath(property.zone)}>{property.zone}</Link> : property.zone}</span>
                 </div>
                 <h1>{property.title}</h1>
                 <p className="property-detail__address">{property.address}</p>

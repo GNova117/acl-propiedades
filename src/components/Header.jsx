@@ -38,14 +38,9 @@ export default function Header() {
 
   useEffect(() => {
     db.getPropertyTypes().then(setPropertyTypes).catch(() => setPropertyTypes([]));
-    db.getProperties({ activeOnly: true, types: NAV_TYPE_KEYS })
-      .then((properties) => {
-        const next = {};
-        properties.forEach((p) => {
-          next[p.type] = (next[p.type] || 0) + 1;
-        });
-        setTypeCounts(next);
-      })
+    // Solo los conteos por tipo (antes bajaba todas las propiedades activas).
+    db.getTypeCounts()
+      .then((counts) => setTypeCounts(Object.fromEntries(NAV_TYPE_KEYS.map((key) => [key, counts[key] || 0]))))
       .catch(() => setTypeCounts(null));
   }, []);
 

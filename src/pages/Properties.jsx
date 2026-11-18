@@ -132,6 +132,8 @@ const NO_EXCLUDED_TYPES = [];
 // fija de i18n.
 // `headerExtra`: contenido opcional bajo el título (ZoneLanding pone ahí la
 // franja de mercado de la ciudad).
+// `zoneFilter`: nombre exacto de una zona/colonia («Torreón - Las Villas»), página de aterrizaje por colonia: va al
+// servidor como el filtro de zona normal. `noindex`: la página no debe indexarse (colonia sin propiedades).
 // `cityFilter`: filtro adicional por ciudad (ZoneLanding) aplicado en el
 // cliente sobre zona+dirección. No puede resolverse en queryFilters como el
 // resto de los filtros porque el filtro de `zone` del backend exige
@@ -146,6 +148,8 @@ export default function Properties({
   subtitle,
   headerExtra,
   cityFilter,
+  zoneFilter,
+  noindex = false,
 }) {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -290,7 +294,7 @@ export default function Properties({
       types: fixedType || filters.type ? undefined : sectionTypes,
       operation_type: fixedType ? undefined : filters.operationType || undefined,
       tipo_nave: fixedType === "nave_industrial" ? filters.tipoNave || undefined : undefined,
-      zone: filters.zone || undefined,
+      zone: zoneFilter || filters.zone || undefined,
       minPrice: filters.minPrice ? Number(filters.minPrice) : undefined,
       maxPrice: filters.maxPrice ? Number(filters.maxPrice) : undefined,
       minArea: filters.minArea ? Number(filters.minArea) : undefined,
@@ -303,7 +307,7 @@ export default function Properties({
       bounds: filters.bounds || undefined,
       sortBy: filters.sortBy,
     }),
-    [filters, fixedType, sectionTypes]
+    [filters, fixedType, sectionTypes, zoneFilter]
   );
 
   // Mapa, vista dividida y filtro por ciudad piden el conjunto completo (cada
@@ -397,7 +401,7 @@ export default function Properties({
 
   // Solo en el listado general, sin filtros ni mapa y en la primera página:
   // con una búsqueda activa las torres estorbarían a lo que la persona pidió.
-  const showDevelopments = !fixedType && !cityFilter && !hasActiveFilters && page === 0 && effectiveView === "list" && developments.length > 0;
+  const showDevelopments = !fixedType && !cityFilter && !zoneFilter && !hasActiveFilters && page === 0 && effectiveView === "list" && developments.length > 0;
 
   const pageTitle = title || t(titleKey);
   const pageSubtitle = subtitle || t(subtitleKey);
@@ -420,7 +424,7 @@ export default function Properties({
 
   return (
     <>
-      <Seo title={pageTitle} description={pageSubtitle} />
+      <Seo title={pageTitle} description={pageSubtitle} noindex={noindex} />
 
       <div className="container properties-page" onClickCapture={rememberScroll}>
         <div className="section-heading m-section">
