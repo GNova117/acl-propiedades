@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import useBusinessJsonLd from "../lib/useBusinessJsonLd";
 import Seo from "../components/Seo";
 import AdvisorCard from "../components/AdvisorCard";
 import { db } from "../lib/dataStore";
@@ -13,6 +14,7 @@ const GOOGLE_MAPS_BUSINESS_URL = "https://maps.app.goo.gl/3zYmxmYrREfk5fC78";
 
 export default function About() {
   const { t } = useTranslation();
+  const businessJsonLd = useBusinessJsonLd();
   const [advisors, setAdvisors] = useState([]);
 
   useEffect(() => {
@@ -21,7 +23,7 @@ export default function About() {
 
   return (
     <>
-      <Seo title={t("nav.about")} description={t("about.intro")} />
+      <Seo title={t("nav.about")} description={t("about.intro")} jsonLd={businessJsonLd} />
 
       <div className="container about-page">
         <div className="section-heading m-section">

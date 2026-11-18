@@ -27,6 +27,16 @@ const FORMULARIOS = [
 // Llena todos los campos visibles y editables del formulario con un valor
 // válido según su tipo. `marca` identifica el registro en el listado.
 async function rellenar(form, marca) {
+  // Los formularios por pasos (propiedades y naves) muestran un paso a la vez: se recorren todos.
+  const pasos = form.locator(".form-steps__tab");
+  const totalPasos = await pasos.count();
+  for (let paso = 0; paso < Math.max(totalPasos, 1); paso++) {
+    if (totalPasos) await pasos.nth(paso).click();
+    await rellenarVisibles(form, marca);
+  }
+}
+
+async function rellenarVisibles(form, marca) {
   const campos = form.locator("input, select, textarea");
   for (let i = 0; i < (await campos.count()); i++) {
     const campo = campos.nth(i);

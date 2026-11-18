@@ -14,6 +14,7 @@ import { rememberItem } from "../lib/mySpace";
 import { bookingToCalendarEvent, formatSlotDay, formatSlotTime } from "../lib/visitBookingUi";
 import "./PublicVisit.css";
 import LoadingState from "../components/LoadingState";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 // Página pública /visita/<token>: el cliente que reservó una visita desde la ficha
 // confirma que va a asistir, cambia el horario (con un horario libre del mismo
@@ -293,7 +294,7 @@ export default function PublicVisit() {
                   <div>
                     <strong>{label}</strong>
                     {property.address && <p className="form-hint">📍 {property.address}</p>}
-                    <Link to={`/propiedades/${property.id}`}>{t("visitPage.viewProperty")}</Link>
+                    <Link to={propertyPath(property)}>{t("visitPage.viewProperty")}</Link>
                   </div>
                 </div>
               )}
@@ -382,7 +383,7 @@ export default function PublicVisit() {
               <section className="card visit-page__card">
                 <p>{t(isPast ? "visitPage.pastNote" : `visitPage.statusNote.${status}`)}</p>
                 {property && !isRequested && (
-                  <Link className="btn btn-primary" to={`/propiedades/${property.id}`}>
+                  <Link className="btn btn-primary" to={propertyPath(property)}>
                     {t("visitPage.bookAnother")}
                   </Link>
                 )}

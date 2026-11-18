@@ -52,7 +52,7 @@ export default function Favorites() {
 
   return (
     <>
-      <Seo title={shared ? t("favoritesShare.sharedTitle") : t("favorites.title")} description={t("favorites.subtitle")} />
+      <Seo title={shared ? t("favoritesShare.sharedTitle") : t("favorites.title")} description={t("favorites.subtitle")} noindex />
 
       <div className="container properties-page">
         <div className="section-heading m-section">

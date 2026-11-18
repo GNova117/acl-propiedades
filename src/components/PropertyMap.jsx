@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { formatMXN, formatArea } from "../lib/format";
 import "leaflet/dist/leaflet.css";
 import "./PropertyMap.css";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 const TYPE_COLORS = {
   casa: "#1565c0",
@@ -172,7 +173,7 @@ function ClusteredMarkers({ properties }) {
               <strong>{property.title}</strong>
               <span className="map-popup__price">{formatMXN(property.price)}</span>
               <span className="map-popup__area">{formatArea(property.area_m2)}</span>
-              <Link to={`/propiedades/${property.id}`} className="btn btn-primary btn-sm">
+              <Link to={propertyPath(property)} className="btn btn-primary btn-sm">
                 {t("properties.viewDetail")}
               </Link>
             </div>

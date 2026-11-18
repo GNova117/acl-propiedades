@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import useBusinessJsonLd from "../lib/useBusinessJsonLd";
 import Seo from "../components/Seo";
 import SplitHero from "../components/SplitHero";
 import SearchBar from "../components/SearchBar";
@@ -29,6 +30,7 @@ const MAX_HOME_BLOG_POSTS = 3;
 
 export default function Home() {
   const { t, i18n } = useTranslation();
+  const businessJsonLd = useBusinessJsonLd();
   const [counts, setCounts] = useState(null);
   const [properties, setProperties] = useState([]);
   const [salesStats, setSalesStats] = useState(null);
@@ -95,6 +97,7 @@ export default function Home() {
       <Seo
         title={t("nav.home")}
         description="ACL Propiedades: compra y venta de casas, departamentos, naves industriales y terrenos en Torreón, Gómez Palacio y Lerdo."
+        jsonLd={businessJsonLd}
       />
 
       <SplitHero propertyTypes={propertyTypes} />

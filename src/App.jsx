@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Routes, Route, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import PublicTabBar from "./components/PublicTabBar";
 import ChatWidget from "./components/ChatWidget";
 import Toaster from "./components/Toaster";
 import { db } from "./lib/dataStore";
@@ -156,6 +157,7 @@ function PublicLayout({ children }) {
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>
       <Footer />
+      <PublicTabBar />
       <ChatWidget />
     </>
   );

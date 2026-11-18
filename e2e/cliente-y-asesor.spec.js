@@ -308,7 +308,7 @@ test.describe("«Visítala mañana» en las tarjetas", () => {
     const total = await page.locator(".property-card").count();
     expect(await etiquetas.count(), "no todas las propiedades tienen asesor con horario").toBeLessThan(total);
     // La apartada nunca la lleva.
-    const apartada = page.locator(".property-card", { has: page.locator('a[href="/propiedades/prop-3"]') });
+    const apartada = page.locator(".property-card", { has: page.locator('a[href$="-ACL-1003"]') });
     await expect(apartada.locator(".property-card__visit")).toHaveCount(0);
   });
 

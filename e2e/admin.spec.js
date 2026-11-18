@@ -103,16 +103,20 @@ test.describe("Propiedades", () => {
 
     await test.step("crear", async () => {
       await go("/admin/propiedades/nueva");
+      const siguiente = () => press(page.getByRole("button", { name: "Siguiente", exact: true }));
+      // Formulario por pasos: datos básicos → ubicación → características.
       await page.fill("#p-title", titulo);
       await page.fill("#p-description", "Descripción generada por prueba automática.");
       await page.fill("#p-price", "1234567");
       await page.fill("#p-area", "180");
-      await page.fill("#p-bedrooms", "3");
-      await page.fill("#p-bathrooms", "2");
+      await siguiente();
       await page.selectOption("#p-zone", { index: 1 });
       await page.fill("#p-address", "Calle Falsa 123");
       await page.fill("#p-lat", "25.54");
       await page.fill("#p-lng", "-103.41");
+      await siguiente();
+      await page.fill("#p-bedrooms", "3");
+      await page.fill("#p-bathrooms", "2");
       await press(page.locator("form.admin-form button[type=submit]").last());
       await page.waitForURL((u) => u.pathname === "/admin/propiedades");
       await expect(fila()).toHaveCount(1);

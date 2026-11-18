@@ -5,7 +5,9 @@ import { test, expect } from "./fixtures.js";
 // «Volver» en la dirección, calculadora de mensualidad, plano, «Cómo llegar» y
 // los gestos de la galería (deslizar, pellizcar, doble toque).
 
-const card = (page, id) => page.locator(".property-card", { has: page.locator(`a[href="/propiedades/${id}"]`) }).first();
+// Los enlaces a una ficha son legibles («casa-en-…-ACL-1001»): se reconocen por el código con el que terminan.
+const CODIGOS = { "prop-1": "ACL-1001", "prop-2": "ACL-1002", "prop-3": "ACL-1003", "prop-4": "ACL-1004", "prop-5": "ACL-1005", "prop-6": "ACL-1006" };
+const card = (page, id) => page.locator(".property-card", { has: page.locator(`a[href^="/propiedades/"][href$="-${CODIGOS[id]}"]`) }).first();
 
 // En móvil los filtros arrancan plegados.
 async function abrirFiltros(page, press, isMobile) {
@@ -314,6 +316,8 @@ test.describe("Ficha: calculadora, cómo llegar y plano", () => {
 
     await go("/admin/propiedades/prop-1");
     await expect(page.locator("#p-title")).toHaveValue(/Senderos/);
+    // El plano está en el último paso del formulario («Fotos y multimedia»).
+    await press(page.locator(".form-steps__tab").nth(4));
     // Un archivo que no es PNG/JPG se rechaza con un aviso.
     await page.setInputFiles('[data-testid="floor-plan-input"]', { name: "plano.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4") });
     await expect(page.locator(".floor-plan-field .form-error")).toContainText("PNG o JPG");
@@ -333,6 +337,7 @@ test.describe("Ficha: calculadora, cómo llegar y plano", () => {
 
     // Quitarlo desde el formulario.
     await go("/admin/propiedades/prop-1");
+    await press(page.locator(".form-steps__tab").nth(4));
     await expect(page.locator(".floor-plan-field__preview img")).toBeVisible();
     await press(page.locator(".floor-plan-field__preview button"));
     await expect(page.locator(".floor-plan-field__preview")).toHaveCount(0);

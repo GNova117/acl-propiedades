@@ -34,6 +34,9 @@ import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "..
 import "./PropertyDetail.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
+import { isCanonicalSlug, parsePropertyRef, propertyPath } from "../lib/propertyUrl.js";
+import { faqJsonLd } from "../lib/structuredData.js";
+import { siteOrigin } from "../lib/site.js";
 
 // Leaflet (react-leaflet + leaflet, ~150KB) queda fuera del bundle
 // principal del sitio público — aquí siempre se termina mostrando (no es
@@ -213,13 +216,21 @@ export default function PropertyDetail() {
   useEffect(() => {
     let active = true;
     setLoading(true);
-    db.getPropertyById(id)
+    // La dirección puede ser el slug legible («casa-en-senderos-ACL-12»), el código solo o el id de siempre (enlaces ya
+    // compartidos): todas llegan a la misma ficha y, si no es la forma canónica, se corrige la barra de direcciones.
+    const ref = parsePropertyRef(id);
+    (ref.kind === "code" ? db.getPropertyByCode(ref.code) : db.getPropertyById(ref.id))
       .then((data) => active && setProperty(data))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    if (property && !isCanonicalSlug(id, property)) navigate(`${propertyPath(property)}${location.search}`, { replace: true, state: location.state });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [property, id]);
 
   useEffect(() => {
     db.getAmenities().then(setAmenitiesCatalog).catch(() => setAmenitiesCatalog([]));
@@ -250,7 +261,8 @@ export default function PropertyDetail() {
 
   const jsonLd = useMemo(() => {
     if (!property || typeof window === "undefined") return undefined;
-    const url = `${window.location.origin}/propiedades/${property.id}`;
+    const origin = siteOrigin();
+    const url = `${origin}${propertyPath(property)}`;
     return [
       {
         "@context": "https://schema.org",
@@ -281,13 +293,14 @@ export default function PropertyDetail() {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Inicio", item: window.location.origin },
-          { "@type": "ListItem", position: 2, name: "Propiedades", item: `${window.location.origin}/propiedades` },
+          { "@type": "ListItem", position: 1, name: "Inicio", item: origin },
+          { "@type": "ListItem", position: 2, name: "Propiedades", item: `${origin}/propiedades` },
           { "@type": "ListItem", position: 3, name: property.title, item: url },
         ],
       },
-    ];
-  }, [property]);
+      faqJsonLd(buildFaq(property, t)),
+    ].filter(Boolean);
+  }, [property, t]);
 
   const propertyAmenities = useMemo(() => {
     if (!property?.amenities?.length) return [];
@@ -302,7 +315,7 @@ export default function PropertyDetail() {
     if (!property || typeof window === "undefined") return "";
     const lines = propertyShareLines(property, t);
     propertyAmenities.forEach((amenity) => lines.push(`${AMENITY_EMOJI[amenity.key] || "✅"} ${amenity.label}`));
-    lines.push("", `${window.location.origin}/propiedades/${property.id}`);
+    lines.push("", `${siteOrigin()}${propertyPath(property)}`);
     return lines.join("\n");
   }, [property, propertyAmenities, t]);
 
@@ -335,9 +348,12 @@ export default function PropertyDetail() {
     );
   }
 
+  // Mientras se corrige la dirección (el cambio de ruta vuelve a montar la página) no se muestra la ficha a medias.
+  if (!isCanonicalSlug(id, property)) return <LoadingState />;
+
   return (
     <>
-      <Seo title={seoTitle} description={seoDescription} image={`${window.location.origin}/api/og?id=${encodeURIComponent(property.id)}`} jsonLd={jsonLd} />
+      <Seo title={seoTitle} description={seoDescription} image={`${siteOrigin()}/api/og?id=${encodeURIComponent(property.id)}`} jsonLd={jsonLd} />
 
       <div className="container property-detail">
         <Link to={listFrom || "/propiedades"} onClick={handleBack} className="property-detail__back">
@@ -373,7 +389,7 @@ export default function PropertyDetail() {
                   <PropertyFlag property={property} />
                   <FavoriteButton propertyId={property.id} className="favorite-button--inline" />
                   <CompareButton propertyId={property.id} className="compare-button--inline" />
-                  <ShareButton title={seoTitle} text={shareText} url={`${window.location.origin}/propiedades/${property.id}`} propertyId={property.id} />
+                  <ShareButton title={seoTitle} text={shareText} url={`${siteOrigin()}${propertyPath(property)}`} propertyId={property.id} />
                 </div>
                 <span className="property-detail__price">{formatMXN(property.price)}</span>
                 {priceDrop && (

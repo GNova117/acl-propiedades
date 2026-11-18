@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import useBusinessJsonLd from "../lib/useBusinessJsonLd";
 import Seo from "../components/Seo";
 import ContactForm from "../components/ContactForm";
 import WhatsAppIcon from "../components/icons/WhatsAppIcon";
@@ -14,10 +15,11 @@ const OFFICE_EMAIL = "inmobiliaria@aclpropiedades.com";
 
 export default function Contact() {
   const { t } = useTranslation();
+  const businessJsonLd = useBusinessJsonLd();
 
   return (
     <>
-      <Seo title={t("nav.contact")} description={t("contact.subtitle")} />
+      <Seo title={t("nav.contact")} description={t("contact.subtitle")} jsonLd={businessJsonLd} />
 
       <div className="container contact-page">
         <div className="section-heading m-section">

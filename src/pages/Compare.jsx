@@ -8,6 +8,7 @@ import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./Compare.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 export default function Compare() {
   const { t } = useTranslation();
@@ -46,7 +47,7 @@ export default function Compare() {
 
   return (
     <>
-      <Seo title={t("compare.title")} description={t("compare.subtitle")} />
+      <Seo title={t("compare.title")} description={t("compare.subtitle")} noindex />
 
       <div className="container properties-page">
         <div className="section-heading m-section">
@@ -73,7 +74,7 @@ export default function Compare() {
                       <th key={property.id}>
                         <div className="compare-table__column-head">
                           {property.main_image && <img src={property.main_image} alt={property.title} loading="lazy" decoding="async" />}
-                          <Link to={`/propiedades/${property.id}`}>{property.title}</Link>
+                          <Link to={propertyPath(property)}>{property.title}</Link>
                           {property.code && <span className="compare-table__code">{property.code}</span>}
                           <button type="button" className="btn btn-outline btn-sm" onClick={() => removeFromCompare(property.id)}>
                             {t("compare.removeOne")}
@@ -96,7 +97,7 @@ export default function Compare() {
                     <th className="compare-table__row-label"></th>
                     {properties.map((property) => (
                       <td key={property.id}>
-                        <Link to={`/propiedades/${property.id}`} className="btn btn-primary btn-sm">
+                        <Link to={propertyPath(property)} className="btn btn-primary btn-sm">
                           {t("properties.viewDetail")}
                         </Link>
                       </td>

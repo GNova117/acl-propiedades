@@ -5,6 +5,7 @@ import { propertyTypeLabel } from "../lib/format";
 import { activeRangeKey, digitsOnly, formatCompactMXN, formatThousands, priceRangesFor } from "../lib/priceRanges";
 import { db } from "../lib/dataStore";
 import "./PropertyFilters.css";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 const MIN_OPTIONS = ["1", "2", "3", "4", "5"];
 
@@ -70,7 +71,7 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
     try {
       const found = await db.getPropertyByCode(codeInput);
       if (found) {
-        navigate(`/propiedades/${found.id}`);
+        navigate(propertyPath(found));
       } else {
         setCodeError(true);
       }

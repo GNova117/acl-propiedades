@@ -11,6 +11,8 @@
 //     reschedule_count, cancelled_by, client_confirmed_at,
 //     property: { id, title, code, address }, advisor: { name } }
 
+import { renderEmail } from "./emailLayout.js";
+
 export const TIMEZONE = "America/Mexico_City";
 export const DEFAULT_SITE_URL = "https://acl-propiedades.vercel.app";
 
@@ -170,33 +172,8 @@ export function toBase64(text) {
 
 // ── Correos ──
 
-const BRAND = "#1565c0";
-
 export function renderHtml({ preheader, heading, greeting, lines, details, buttons, footnote }) {
-  const detailRows = details
-    .map(([label, value]) => `<tr><td style="padding:6px 12px 6px 0;color:#5a6472;font-size:14px;white-space:nowrap;vertical-align:top">${esc(label)}</td><td style="padding:6px 0;color:#12161c;font-size:15px;font-weight:600">${value}</td></tr>`)
-    .join("");
-  const buttonHtml = buttons
-    .map(
-      (b) =>
-        `<a href="${esc(b.href)}" style="display:inline-block;margin:6px 8px 6px 0;padding:12px 20px;border-radius:8px;font-size:15px;font-weight:700;text-decoration:none;${b.primary ? `background:${BRAND};color:#ffffff;border:1px solid ${BRAND}` : `background:#ffffff;color:${BRAND};border:1px solid ${BRAND}`}">${esc(b.label)}</a>`
-    )
-    .join("");
-  return `<!doctype html>
-<html lang="es"><body style="margin:0;padding:0;background:#f4f6f9;font-family:Arial,Helvetica,sans-serif">
-<span style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(preheader)}</span>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f9;padding:24px 12px"><tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;border:1px solid #e2e6ec">
-<tr><td style="padding:20px 28px;border-bottom:3px solid ${BRAND};font-size:18px;font-weight:700;color:${BRAND}">ACL Propiedades</td></tr>
-<tr><td style="padding:24px 28px 8px">
-<h1 style="margin:0 0 12px;font-size:21px;color:#12161c">${esc(heading)}</h1>
-<p style="margin:0 0 14px;font-size:15px;color:#12161c;line-height:1.5">${esc(greeting)}</p>
-${lines.map((l) => `<p style="margin:0 0 14px;font-size:15px;color:#12161c;line-height:1.5">${l}</p>`).join("")}
-<table role="presentation" cellpadding="0" cellspacing="0" style="margin:4px 0 18px">${detailRows}</table>
-<div style="margin:0 0 8px">${buttonHtml}</div>
-</td></tr>
-<tr><td style="padding:12px 28px 24px;font-size:13px;color:#5a6472;line-height:1.5">${esc(footnote)}<br>ACL Propiedades · Torreón, Gómez Palacio y Lerdo</td></tr>
-</table></td></tr></table></body></html>`;
+  return renderEmail({ preheader, heading, greeting, lines, details, buttons, footnote });
 }
 
 export const stripLines = (lines) => lines.map((l) => l.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&"));

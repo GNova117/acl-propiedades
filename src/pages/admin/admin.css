@@ -899,6 +899,117 @@
   color: var(--color-text);
 }
 
+.admin-form__draft {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.admin-form__draft-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Formulario por pasos: barra de avance, pestañas numeradas y un solo paso visible a la vez. */
+.admin-form__step[hidden] {
+  display: none;
+}
+
+.admin-form__step-title {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-lg, 1.125rem);
+}
+
+.form-steps {
+  margin-bottom: var(--space-5);
+}
+
+.form-steps__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm, 0.875rem);
+}
+
+.form-steps__summary strong {
+  color: var(--color-text);
+}
+
+.form-steps__saved {
+  margin-left: auto;
+  font-size: var(--text-xs);
+}
+
+.form-steps__bar {
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.form-steps__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary-solid);
+  transition: width 0.25s ease;
+}
+
+.form-steps__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.form-steps__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.5rem;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm, 0.875rem);
+  cursor: pointer;
+}
+
+.form-steps__tab.is-current {
+  border-color: var(--color-primary-solid);
+  background: var(--color-primary-solid);
+  color: var(--color-on-primary);
+}
+
+.form-steps__tab.has-error {
+  border-color: var(--color-danger-solid);
+}
+
+.form-steps__number {
+  display: inline-grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 640px) {
+  /* En el teléfono solo el número (el nombre del paso ya sale arriba, junto a «Paso 2 de 5»). */
+  .form-steps__tab:not(.is-current) .form-steps__name {
+    display: none;
+  }
+}
+
 .property-flags {
   display: flex;
   flex-wrap: wrap;

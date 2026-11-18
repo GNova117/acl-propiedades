@@ -45,7 +45,7 @@ export default function AdminPasswordReset() {
 
   return (
     <div className="admin-login">
-      <Seo title={t("passwordReset.title")} />
+      <Seo title={t("passwordReset.title")} noindex />
       <form className="admin-login__card card" onSubmit={submit} noValidate>
         <div className="admin-login__logo">
           <Logo size="lg" />

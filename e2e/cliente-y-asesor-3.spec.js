@@ -182,6 +182,7 @@ test.describe("Propiedades: ofertas, apartado, duplicar, lote y ficha completa",
     await expect(page.getByRole("status").filter({ hasText: "Estás creando una copia" })).toContainText(SENDEROS);
     await expect(page.locator("#p-title")).toHaveValue(`${SENDEROS} (copia)`);
     await expect(page.locator("#p-price")).toHaveValue("2450000");
+    await press(page.locator(".form-steps__tab").nth(3)); // «Publicación y equipo»
     await expect(page.getByRole("checkbox", { name: /^Activ/ })).not.toBeChecked();
 
     // Al guardar nace una propiedad NUEVA e inactiva, sin las fotos de la original; la original queda igual.

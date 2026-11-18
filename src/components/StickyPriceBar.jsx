@@ -4,6 +4,7 @@ import { formatMXN } from "../lib/format";
 import { OFFICE_WHATSAPP } from "../lib/office";
 import { OPEN_SCHEDULE_EVENT, SCHEDULE_TARGET_ID } from "./MobileContactBar";
 import "./StickyPriceBar.css";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 // Barra con el precio y los botones de contacto que aparece BAJO el encabezado del sitio cuando el bloque del precio de la
 // ficha ya salió de la pantalla (solo en computadora: en el teléfono está la barra de abajo, MobileContactBar). Así el
@@ -31,7 +32,7 @@ export default function StickyPriceBar({ property, anchorSelector = ".property-d
   }, [anchorSelector, property.id]);
 
   const label = property.code ? `${property.title.trim()} (${property.code})` : property.title.trim();
-  const text = `${t("mobileBar.whatsappText", { property: label })}\n${window.location.origin}/propiedades/${property.id}`;
+  const text = `${t("mobileBar.whatsappText", { property: label })}\n${window.location.origin}${propertyPath(property)}`;
   const whatsappUrl = `https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(text)}`;
   const schedule = () => {
     window.dispatchEvent(new Event(OPEN_SCHEDULE_EVENT));

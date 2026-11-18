@@ -61,7 +61,7 @@ export default function AdminLogin() {
 
   return (
     <div className="admin-login">
-      <Seo title={t("admin.loginTitle")} />
+      <Seo title={t("admin.loginTitle")} noindex />
       <form className="admin-login__card card" onSubmit={forgot ? handleForgot : handleSubmit}>
         <div className="admin-login__logo">
           <Logo size="lg" />

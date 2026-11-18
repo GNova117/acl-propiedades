@@ -8,6 +8,7 @@ import { COMPARE_DEFAULTS, compareCredits } from "../lib/creditCompare";
 import { isValidPhone, sendLead } from "../lib/lead";
 import "./PublicForms.css";
 import "./CreditCompare.css";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 // Comparador de opciones de compra (Infonavit, banco y contado) para una casa
 // concreta. Se llega desde la ficha de una propiedad (?propiedad=<id>, que trae
@@ -135,7 +136,7 @@ export default function CreditCompare() {
           {property && (
             <p className="credit-compare__property">
               {t("creditCompare.forProperty")}{" "}
-              <Link to={`/propiedades/${property.id}`}>
+              <Link to={propertyPath(property)}>
                 <strong>{property.title}</strong>
               </Link>
             </p>

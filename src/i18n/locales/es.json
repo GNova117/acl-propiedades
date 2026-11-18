@@ -4702,7 +4702,23 @@
     "switchLanguage": "Cambiar idioma / Switch language"
   },
   "propertyForm": {
-    "descriptionHint": "Deja una línea en blanco para separar párrafos y empieza una línea con «- » para hacer una lista (con «1. » para numerarla). En el sitio se ve con sus párrafos y viñetas."
+    "descriptionHint": "Deja una línea en blanco para separar párrafos y empieza una línea con «- » para hacer una lista (con «1. » para numerarla). En el sitio se ve con sus párrafos y viñetas.",
+    "steps": {
+      "basics": "Datos básicos",
+      "location": "Ubicación y estado",
+      "specs": "Características",
+      "publish": "Publicación y equipo",
+      "media": "Fotos y multimedia"
+    },
+    "stepLabel": "Paso {{current}} de {{total}}",
+    "progress": "Avance del formulario",
+    "stepHasErrors": "(tiene campos por corregir)",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "draftSaved": "Borrador guardado en este navegador",
+    "draftFound": "Quedó un borrador sin guardar de {{when}}.",
+    "draftRestore": "Recuperar borrador",
+    "draftDiscard": "Descartar"
   },
   "stickyBar": {
     "label": "Precio y contacto"
@@ -4723,7 +4739,11 @@
     "text": "La página que buscas no existe o cambió de lugar.",
     "home": "Volver al inicio",
     "browse": "Ver propiedades",
-    "seoDescription": "Página no encontrada"
+    "seoDescription": "Página no encontrada",
+    "searchLabel": "Buscar propiedades",
+    "searchPlaceholder": "Zona, colonia o código",
+    "search": "Buscar",
+    "featured": "Mientras tanto, mira estas propiedades"
   },
   "propertyMap": {
     "cluster": "{{count}} propiedades juntas: acercar el mapa"
@@ -4757,5 +4777,13 @@
     "columns": "Columnas",
     "showAll": "Mostrar todas",
     "sortBy": "Ordenar por {{column}}"
+  },
+  "tabBar": {
+    "label": "Navegación rápida",
+    "search": "Buscar",
+    "favorites": "Favoritos",
+    "contact": "Contacto",
+    "favoritesCount_one": "{{count}} favorito",
+    "favoritesCount_other": "{{count}} favoritos"
   }
 }

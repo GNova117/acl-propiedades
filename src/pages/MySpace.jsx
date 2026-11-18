@@ -29,7 +29,7 @@ export default function MySpace() {
 
   return (
     <>
-      <Seo title={t("mySpace.title")} description={t("mySpace.subtitle")} />
+      <Seo title={t("mySpace.title")} description={t("mySpace.subtitle")} noindex />
       <div className="container my-space">
         <div className="section-heading m-section">
           <h2>{t("mySpace.title")}</h2>

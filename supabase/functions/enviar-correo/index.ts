@@ -12,6 +12,8 @@
 // supabase.functions.invoke(), y el gateway de Supabase ya rechaza la
 // llamada antes de que este código corra si no hay una sesión válida.
 
+import { brandedHtml } from "../_shared/emailLayout.js";
+
 const RESEND_URL = "https://api.resend.com/emails";
 
 Deno.serve(async (req) => {
@@ -37,7 +39,7 @@ Deno.serve(async (req) => {
   }
 
   const from = Deno.env.get("RESEND_FROM") || "ACL Propiedades <avisos@aclpropiedades.com>";
-  const body: Record<string, unknown> = { from, to, subject, html };
+  const body: Record<string, unknown> = { from, to, subject, html: brandedHtml(subject, html) };
 
   const attachment = payload.attachment;
   if (attachment?.filename && attachment?.contentBase64) {

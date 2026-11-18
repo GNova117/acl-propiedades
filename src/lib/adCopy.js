@@ -9,6 +9,7 @@
 // en Node sin Vite: los imports llevan la extensión .js y solo van a archivos que a
 // su vez no importan nada sin ella (por eso la URL se arma aquí y no con socialPost.js).
 import { OFFICE_WHATSAPP } from "./office.js";
+import { propertyPath } from "./propertyUrl.js";
 
 export const AD_CHANNELS = ["whatsapp", "facebook", "instagram", "portal"];
 export const AD_TONES = ["cercano", "profesional", "aspiracional"];
@@ -16,7 +17,7 @@ export const MAX_EXTRA_CHARS = 300;
 
 const OFFICE_PHONE_TEXT = `${OFFICE_WHATSAPP.slice(2, 5)} ${OFFICE_WHATSAPP.slice(5, 8)} ${OFFICE_WHATSAPP.slice(8)}`;
 
-const propertyUrl = (property, origin) => `${origin}/propiedades/${property.id}`;
+const propertyUrl = (property, origin) => `${origin}${propertyPath(property)}`;
 
 const TYPE_LABELS = { casa: "casa", departamento: "departamento", nave_industrial: "nave industrial", terreno: "terreno" };
 

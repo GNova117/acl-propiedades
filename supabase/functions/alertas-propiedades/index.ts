@@ -12,6 +12,8 @@
 // criterios está duplicada en src/lib/alertMatch.js (el sitio la usa para decir
 // "hoy hay N propiedades que coinciden"); las pruebas comparan ambas.
 
+import { escapeHtml, renderEmail } from "../_shared/emailLayout.js";
+
 const GRAPH_VERSION = "v25.0";
 const DEFAULT_SITE_URL = "https://acl-propiedades.com";
 const MAX_ITEMS_IN_MESSAGE = 3;
@@ -200,12 +202,15 @@ export function buildEmailContent(n: Notification, siteUrl = DEFAULT_SITE_URL): 
   const first = n.alert.name.trim().split(/\s+/)[0] || n.alert.name;
   const unsubUrl = `${siteUrl}/alertas/baja/${n.alert.unsubscribe_token}`;
   const subject = n.kind === "price" ? "Bajó de precio una propiedad que te interesó" : "Hay novedades en tu búsqueda de propiedades";
-  const html = `
-    <p>Hola ${first},</p>
-    <p>Te escribimos de ACL Propiedades porque ${n.aviso}</p>
-    <p><a href="${n.link}">Ver en el sitio</a></p>
-    <p style="color:#888;font-size:12px;margin-top:2rem;">Si ya no quieres recibir estos avisos, <a href="${unsubUrl}">date de baja aquí</a>.</p>
-  `.trim();
+  const html = renderEmail({
+    preheader: subject,
+    heading: subject,
+    greeting: `Hola ${first},`,
+    // El aviso lleva el título de la propiedad (texto capturado en el panel): se escapa antes de ir en el HTML.
+    lines: [`Te escribimos de ACL Propiedades porque ${escapeHtml(n.aviso)}`],
+    buttons: [{ href: n.link, label: "Ver en el sitio", primary: true }],
+    footerHtml: `Si ya no quieres recibir estos avisos, <a href="${escapeHtml(unsubUrl)}" style="color:#1565c0">date de baja aquí</a>.`,
+  });
   return { subject, html };
 }
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { propertyTypeLabel } from "../lib/format";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 // Datos de la oficina que lleva la ficha en PDF (en lugar de los del asesor, que no se publican).
 const OFFICE_CONTACT = { phone: "871 324 3271", email: "inmobiliaria@aclpropiedades.com" };
@@ -21,7 +22,7 @@ export default function DownloadFichaButton({ property }) {
         typeLabel: propertyTypeLabel(t, property.type),
         statusLabel: t(`propertyStatus.${property.status}`),
         publicVersion: true,
-        office: { ...OFFICE_CONTACT, url: `${window.location.origin}/propiedades/${property.id}` },
+        office: { ...OFFICE_CONTACT, url: `${window.location.origin}${propertyPath(property)}` },
       });
     } catch {
       setFailed(true);

@@ -11,11 +11,11 @@
 }
 
 .property-flag--new {
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
 }
 
 .property-flag--priceDrop {
-  background: var(--color-danger);
+  background: var(--color-danger-solid);
 }
 
 .property-flag--card {

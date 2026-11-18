@@ -15,6 +15,7 @@ import "./Properties.css";
 import "./PublicVisitReport.css";
 import "./PublicSelection.css";
 import LoadingState from "../components/LoadingState";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 const seenKey = (token) => `acl_selection_seen_${token}`;
 
@@ -117,7 +118,7 @@ export default function PublicSelection() {
   const url = typeof window !== "undefined" ? selectionUrl(window.location.origin, token) : "";
   const interestLink = (property) =>
     hasAdvisorWhatsApp
-      ? whatsappUrl(advisorPhone, t("selection.public.interestMessage", { lng: "es", title: property.title, url: `${window.location.origin}/propiedades/${property.id}` }))
+      ? whatsappUrl(advisorPhone, t("selection.public.interestMessage", { lng: "es", title: property.title, url: `${window.location.origin}${propertyPath(property)}` }))
       : null;
   const generalLink = hasAdvisorWhatsApp ? whatsappUrl(advisorPhone, t("selection.public.generalMessage", { lng: "es", url })) : null;
   const expiresOn = selection?.expires_at ? new Date(selection.expires_at).toLocaleDateString(i18n.language === "en" ? "en-US" : "es-MX", { day: "numeric", month: "long" }) : "";

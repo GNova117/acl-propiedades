@@ -4702,7 +4702,23 @@
     "switchLanguage": "Cambiar idioma / Switch language"
   },
   "propertyForm": {
-    "descriptionHint": "Leave a blank line to separate paragraphs and start a line with “- ” to make a list (with “1. ” to number it). On the site it shows with its paragraphs and bullets."
+    "descriptionHint": "Leave a blank line to separate paragraphs and start a line with “- ” to make a list (with “1. ” to number it). On the site it shows with its paragraphs and bullets.",
+    "steps": {
+      "basics": "Basics",
+      "location": "Location and status",
+      "specs": "Features",
+      "publish": "Publishing and team",
+      "media": "Photos and media"
+    },
+    "stepLabel": "Step {{current}} of {{total}}",
+    "progress": "Form progress",
+    "stepHasErrors": "(has fields to fix)",
+    "prev": "Back",
+    "next": "Next",
+    "draftSaved": "Draft saved in this browser",
+    "draftFound": "An unsaved draft from {{when}} was left behind.",
+    "draftRestore": "Restore draft",
+    "draftDiscard": "Discard"
   },
   "stickyBar": {
     "label": "Price and contact"
@@ -4723,7 +4739,11 @@
     "text": "The page you are looking for does not exist or has moved.",
     "home": "Back to home",
     "browse": "See properties",
-    "seoDescription": "Page not found"
+    "seoDescription": "Page not found",
+    "searchLabel": "Search properties",
+    "searchPlaceholder": "Area, neighborhood or code",
+    "search": "Search",
+    "featured": "In the meantime, take a look at these properties"
   },
   "propertyMap": {
     "cluster": "{{count}} properties together: zoom in"
@@ -4757,5 +4777,13 @@
     "columns": "Columns",
     "showAll": "Show all",
     "sortBy": "Sort by {{column}}"
+  },
+  "tabBar": {
+    "label": "Quick navigation",
+    "search": "Search",
+    "favorites": "Favorites",
+    "contact": "Contact",
+    "favoritesCount_one": "{{count}} favorite",
+    "favoritesCount_other": "{{count}} favorites"
   }
 }

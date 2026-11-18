@@ -1,4 +1,7 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { alternateLinks, languageUrl, siteOrigin } from "../lib/site";
 
 const SITE_NAME = "ACL Propiedades";
 
@@ -32,7 +35,34 @@ function upsertMeta(attr, key, content) {
   tag.setAttribute("content", content);
 }
 
-export default function Seo({ title, description, image, jsonLd }) {
+// <link rel="canonical"> y los <link rel="alternate" hreflang>: se reemplazan en cada página y se quitan si no aplican.
+function setLinks(canonical, alternates) {
+  document.querySelectorAll('link[data-seo-link]').forEach((node) => node.remove());
+  const add = (attrs) => {
+    const link = document.createElement("link");
+    Object.entries(attrs).forEach(([k, v]) => link.setAttribute(k, v));
+    link.setAttribute("data-seo-link", "");
+    document.head.appendChild(link);
+  };
+  if (canonical) add({ rel: "canonical", href: canonical });
+  alternates.forEach(({ hreflang, href }) => add({ rel: "alternate", hreflang, href }));
+}
+
+// `noindex`: páginas privadas o de utilería (404, enlaces personales): sin canonical ni hreflang y con robots noindex.
+// `jsonLd` también acepta varios objetos; Seo no los mezcla, quien llama arma el arreglo.
+export default function Seo({ title, description, image, jsonLd, noindex = false }) {
+  const { i18n } = useTranslation();
+  const { pathname } = useLocation();
+  const lang = i18n.resolvedLanguage === "en" ? "en" : "es";
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    const origin = siteOrigin();
+    setLinks(noindex ? null : languageUrl(origin, pathname, lang), noindex ? [] : alternateLinks(origin, pathname));
+    upsertMeta("name", "robots", noindex ? "noindex, nofollow" : "");
+    upsertMeta("property", "og:locale", lang === "en" ? "en_US" : "es_MX");
+  }, [lang, noindex, pathname]);
+
   useEffect(() => {
     const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
     document.title = fullTitle;
@@ -53,7 +83,7 @@ export default function Seo({ title, description, image, jsonLd }) {
     upsertMeta("property", "og:site_name", SITE_NAME);
     upsertMeta("property", "og:title", fullTitle);
     upsertMeta("property", "og:description", description);
-    upsertMeta("property", "og:url", window.location.href);
+    upsertMeta("property", "og:url", noindex ? window.location.href : languageUrl(siteOrigin(), window.location.pathname, lang));
     upsertMeta("property", "og:image", resolvedImage);
     upsertMeta("name", "twitter:card", "summary_large_image");
     upsertMeta("name", "twitter:title", fullTitle);

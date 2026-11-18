@@ -15,16 +15,21 @@
 // ejecuta JS) sigue exactamente el mismo camino de siempre — `next()` la
 // deja pasar sin tocarla.
 import { next } from "@vercel/functions";
+import { resolveSiteUrl } from "./server/siteUrl.js";
+import { parsePropertyRef, propertyPath } from "./src/lib/propertyUrl.js";
 
 export const config = {
   matcher: ["/", "/propiedades", "/propiedades/:id", "/terrenos", "/naves-industriales", "/nosotros", "/contacto", "/guia-del-comprador", "/seleccion/:token", "/favoritos"],
 };
 
-const SITE_URL = "https://acl-propiedades.vercel.app";
+// Dirección pública (variable SITE_URL / VITE_SITE_URL; ver server/siteUrl.js).
+const SITE_URL = resolveSiteUrl(process.env);
 
-// Solo bots de vista previa de links — no incluye navegadores normales.
+// Solo bots de vista previa de links — no incluye navegadores normales. NO incluye a Google, Bing ni Apple (googlebot,
+// bingbot, applebot): esos EJECUTAN JavaScript y deben ver el sitio de verdad (fotos, enlaces, datos estructurados), no
+// el HTML mínimo de título y descripción que se les servía antes y que los dejaba con una página casi vacía.
 const PREVIEW_BOT_PATTERN =
-  /whatsapp|facebookexternalhit|facebot|twitterbot|linkedinbot|slackbot|telegrambot|discordbot|pinterest|redditbot|skypeuripreview|vkshare|googlebot|bingbot|applebot|whatsapp/i;
+  /whatsapp|facebookexternalhit|facebot|twitterbot|linkedinbot|slackbot|telegrambot|discordbot|pinterest|redditbot|skypeuripreview|vkshare/i;
 
 // Imagen de la marca (logo y texto sobre azul, hecha con scripts/build-og-image.mjs): para el inicio y las páginas sin
 // foto propia. Las propiedades usan /api/og?id=… (su foto con el precio y los datos encima; si algo falla, esa función
@@ -112,18 +117,23 @@ ${imageTag}
 `;
 }
 
-async function propertyPreviewResponse(id) {
+async function propertyPreviewResponse(param) {
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
   if (!supabaseUrl || !supabaseKey) return null;
+  const ref = parsePropertyRef(param);
+  if (!ref) return null;
 
+  // La dirección puede traer el identificador (las de siempre) o el título y el código (las legibles).
+  const filter = ref.kind === "code" ? `code=eq.${encodeURIComponent(ref.code)}` : `id=eq.${encodeURIComponent(ref.id)}`;
   const res = await fetch(
-    `${supabaseUrl}/rest/v1/properties?id=eq.${encodeURIComponent(id)}&select=title,description,price,main_image`,
+    `${supabaseUrl}/rest/v1/properties?${filter}&select=id,code,title,description,price,main_image`,
     { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
   );
   if (!res.ok) return null;
   const [property] = await res.json();
   if (!property) return null;
+  const id = property.id;
 
   const price = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(
     Number(property.price) || 0
@@ -131,7 +141,7 @@ async function propertyPreviewResponse(id) {
   const html = renderPreviewHtml({
     title: `${property.title} — ${price}`,
     description: (property.description || "").replace(/\s+/g, " ").trim().slice(0, 200),
-    url: `${SITE_URL}/propiedades/${id}`,
+    url: `${SITE_URL}${propertyPath(property)}`,
     image: `${SITE_URL}/api/og?id=${encodeURIComponent(id)}`,
   });
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });

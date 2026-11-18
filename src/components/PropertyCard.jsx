@@ -14,6 +14,7 @@ import { getPropertyBadge } from "../lib/propertyBadges";
 import { nextVisitTag } from "../lib/nextVisit";
 import { estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import "./PropertyCard.css";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 // `nextVisitSlot`: primer horario libre para visitarla ({ fecha, hora }); sale «Visítala hoy / mañana / el jueves».
 // `soldInDays`: en «Vendidas recientemente», cuántos días tardó en venderse.
@@ -26,7 +27,7 @@ export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
   const badge = getPropertyBadge(property);
   const monthly = estimateMonthlyPayment(property);
   const visitTag = property.status === "disponible" ? nextVisitTag(nextVisitSlot) : null;
-  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/propiedades/${property.id}` : "";
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${propertyPath(property)}` : "";
   // Mismo formato que el botón de Compartir de la ficha de propiedad, pero
   // sin amenidades (la tarjeta de listado no las trae cargadas) — para que
   // alguien pueda reenviar una propiedad desde los resultados o sus
@@ -39,7 +40,7 @@ export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
 
   return (
     <article className="property-card card">
-      <Link to={`/propiedades/${property.id}`} state={linkState} className="property-card__image-link">
+      <Link to={propertyPath(property)} state={linkState} className="property-card__image-link">
         <PropertyImageCarousel images={cardImages(property)} alt={property.title} />
         <span className={`badge badge-${property.status === "disponible" ? "available" : property.status === "apartada" ? "reserved" : "sold"} property-card__badge`}>
           {t(`propertyStatus.${property.status}`)}
@@ -55,7 +56,7 @@ export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
           <span className="property-card__zone">· {property.zone}</span>
         </div>
         <h3 className="property-card__title">
-          <Link to={`/propiedades/${property.id}`} state={linkState}>{property.title}</Link>
+          <Link to={propertyPath(property)} state={linkState}>{property.title}</Link>
         </h3>
         <p className="property-card__price">
           {badge?.kind === "priceDrop" && <s className="property-price-was">{formatMXN(badge.previousPrice)}</s>}
@@ -97,7 +98,7 @@ export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
           )}
           <div className="property-card__footer-actions">
             <ShareButton title={property.title} text={shareText} url={shareUrl} openUpward propertyId={property.id} />
-            <Link to={`/propiedades/${property.id}`} state={linkState} className="btn btn-outline btn-sm">
+            <Link to={propertyPath(property)} state={linkState} className="btn btn-outline btn-sm">
               {t("properties.viewDetail")}
             </Link>
           </div>
