@@ -1,17 +1,18 @@
 // Datos estructurados (vocabulario schema.org, en JSON-LD) para Google: la inmobiliaria como negocio local y las
 // preguntas frecuentes de una ficha. Funciones puras; Seo.jsx los pone en la página.
+import { OFFICE } from "./office.js";
 
 export const BUSINESS = {
-  name: "ACL Propiedades",
-  phone: "+52 871 324 3271",
-  email: "inmobiliaria@aclpropiedades.com",
-  streetAddress: "Blvd. Independencia 2600, Local 16, Plaza San Luciano, Estrella",
-  postalCode: "27010",
-  city: "Torreón",
-  region: "Coahuila",
-  country: "MX",
-  areaServed: ["Torreón", "Gómez Palacio", "Lerdo"],
-  sameAs: ["https://www.facebook.com/Aclpropiedadess/"],
+  name: OFFICE.name,
+  phone: `+52 ${OFFICE.phoneDisplay}`,
+  email: OFFICE.email,
+  streetAddress: OFFICE.streetAddress,
+  postalCode: OFFICE.postalCode,
+  city: OFFICE.city,
+  region: OFFICE.region,
+  country: OFFICE.country,
+  areaServed: OFFICE.areaServed,
+  sameAs: [OFFICE.facebook],
 };
 
 // Inmobiliaria como negocio local. `siteUrl` sin «/» al final; `socials`: direcciones extra (LinkedIn, Instagram).

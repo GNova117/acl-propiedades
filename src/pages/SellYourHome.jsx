@@ -7,6 +7,7 @@ import { formatArea, formatMXN, propertyTypeLabel } from "../lib/format";
 import { sellEstimate } from "../lib/sellEstimate";
 import { isValidPhone, sendLead } from "../lib/lead";
 import "./PublicForms.css";
+import { trackConversion } from "../lib/conversions";
 
 const INITIAL = { name: "", phone: "", type: "casa", zoneId: "", address: "", landArea: "", builtArea: "", expectedPrice: "", comments: "", empresa: "" };
 
@@ -80,6 +81,7 @@ export default function SellYourHome() {
     });
     setStatus(outcome);
     if (outcome === "success") {
+      trackConversion("lead_form", { form: "vende_tu_casa" });
       setSentEstimate(estimate);
       setForm(INITIAL);
     }

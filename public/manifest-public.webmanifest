@@ -1,0 +1,24 @@
+{
+  "id": "/",
+  "name": "ACL Propiedades",
+  "short_name": "ACL",
+  "description": "Casas, departamentos, terrenos y naves industriales en Torreón, Gómez Palacio y Lerdo. Busca, guarda tus favoritos y agenda tu visita.",
+  "start_url": "/?origen=app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "es-MX",
+  "background_color": "#ffffff",
+  "theme_color": "#0d3b73",
+  "categories": ["business", "lifestyle"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Buscar propiedades", "short_name": "Buscar", "url": "/propiedades", "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Mis favoritos", "short_name": "Favoritos", "url": "/favoritos", "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Contacto", "short_name": "Contacto", "url": "/contacto", "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }] }
+  ]
+}

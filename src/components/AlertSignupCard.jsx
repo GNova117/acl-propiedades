@@ -6,6 +6,7 @@ import { formatMXN, propertyTypeLabel } from "../lib/format";
 import { describeCriteria } from "../lib/alertMatch";
 import { isValidPhone } from "../lib/lead";
 import "./AlertSignupCard.css";
+import { trackConversion } from "../lib/conversions";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -99,6 +100,7 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
         /* sin almacenamiento */
       }
       setStatus(result?.duplicate ? "duplicate" : "success");
+      if (!result?.duplicate) trackConversion("alert_signup", { mode, property_id: mode === "price" ? property?.id : undefined });
       // Aviso interno: llega a Mensajes (y de ahí a Prospectos) para que el equipo sepa que hay un interesado.
       db.submitContactMessage({
         name: form.name.trim(),

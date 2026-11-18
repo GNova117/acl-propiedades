@@ -49,6 +49,6 @@ describe("vercel.json: cabeceras de seguridad", () => {
 
   it("conserva las reglas de /sw.js y del manifiesto", () => {
     expect(config.headers.find((h) => h.source === "/sw.js")?.headers.some((h) => h.key === "Cache-Control")).toBe(true);
-    expect(config.headers.some((h) => h.source === "/manifest.webmanifest")).toBe(true);
+    expect(config.headers.some((h) => h.source === "/(manifest|manifest-public).webmanifest")).toBe(true);
   });
 });

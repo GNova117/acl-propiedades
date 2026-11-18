@@ -4,6 +4,7 @@ import Logo from "./Logo";
 import WhatsAppIcon from "./icons/WhatsAppIcon";
 import { slugify, ZONE_LANDING_CITIES } from "../lib/zoneLandingPages";
 import "./Footer.css";
+import { OFFICE } from "../lib/office";
 
 // Redes con dirección configurada en el build (variables VITE_*, ver .env.example); sin ella, el icono no se muestra.
 const httpsOnly = (value) => {
@@ -85,10 +86,10 @@ export default function Footer() {
         <div>
           <h4>{t("footer.contactInfo")}</h4>
           <ul className="site-footer__links">
-            <li>Blvd. Independencia, Local 16, Plaza San Luciano</li>
-            <li>Torreón, Coahuila</li>
-            <li><a href="tel:+528713243271">871 324 3271</a></li>
-            <li><a href="mailto:inmobiliaria@aclpropiedades.com">inmobiliaria@aclpropiedades.com</a></li>
+            <li>{OFFICE.addressShort}</li>
+            <li>{OFFICE.addressCity}</li>
+            <li><a href={`tel:${OFFICE.phoneTel}`}>{OFFICE.phoneDisplay}</a></li>
+            <li><a href={`mailto:${OFFICE.email}`}>{OFFICE.email}</a></li>
           </ul>
         </div>
 
@@ -110,7 +111,7 @@ export default function Footer() {
                 <InstagramIcon />
               </a>
             )}
-            <a href="https://wa.me/528713243271" target="_blank" rel="noreferrer" aria-label="WhatsApp">
+            <a href={OFFICE.whatsappUrl} target="_blank" rel="noreferrer" aria-label="WhatsApp">
               <WhatsAppIcon />
             </a>
           </div>

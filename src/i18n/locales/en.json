@@ -355,7 +355,6 @@
     "hours1": "Monday to Friday: 8:00 AM - 2:00 PM",
     "hours2": "Monday to Friday: 4:00 PM - 6:00 PM",
     "addressTitle": "Location",
-    "address": "Blvd. Independencia, Local 16, Plaza San Luciano",
     "viewOnMaps": "View on Google Maps",
     "paymentMethodsTitle": "Payment methods",
     "paymentMethodsBody": "We accept cash payment, bank financing, INFONAVIT credit, and FOVISSSTE credit, subject to each institution's conditions and required documentation. Check with your advisor for the options available for each property."
@@ -2467,8 +2466,6 @@
     "ssv": "Savings in your Housing Subaccount (optional)",
     "ssvHint": "You can check it in the Mi Cuenta Infonavit app. If you don't know it, leave it at 0.",
     "term": "Term",
-    "years_one": "{{count}} year",
-    "years_other": "{{count}} years",
     "seeProperties": "See properties within my budget",
     "disclaimer": "This is an informational estimate using the current UMA ({{uma}}/month) and a reference payment of 20% of your salary. Infonavit confirms the actual amount when you apply.",
     "leadTitle": "Want us to help with your credit?",
@@ -2898,7 +2895,11 @@
   },
   "installApp": {
     "button": "Install app",
-    "iosHint": "On iPhone or iPad: tap the browser's Share button and choose “Add to Home Screen”."
+    "iosHint": "On iPhone or iPad: tap the browser's Share button and choose “Add to Home Screen”.",
+    "title": "Install ACL Propiedades on your phone",
+    "text": "Open it with one tap, keep your favorites and book your visit without searching for the site again.",
+    "install": "Install",
+    "later": "Not now"
   },
   "valuation": {
     "title": "Value estimate",

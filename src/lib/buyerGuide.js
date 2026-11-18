@@ -5,6 +5,7 @@
 // (COMPARE_DEFAULTS / ratios de creditCompare.js), para que el sitio no diga
 // una cosa en la guía y otra en la calculadora.
 import { BANK_INCOME_RATIO, COMPARE_DEFAULTS, INFONAVIT_INCOME_RATIO } from "./creditCompare";
+import { OFFICE } from "./office.js";
 
 const pct = (ratio) => Math.round(ratio * 100);
 
@@ -94,8 +95,8 @@ export const BUYER_GUIDE = {
   contactTitle: "¿Te acompañamos?",
   contact: [
     "ACL Propiedades",
-    "Tel. y WhatsApp: 871 324 3271",
-    "inmobiliaria@aclpropiedades.com",
+    `Tel. y WhatsApp: ${OFFICE.phoneDisplay}`,
+    OFFICE.email,
   ],
   disclaimer:
     "Esta guía es información general y de referencia; no constituye asesoría legal, fiscal ni financiera, ni una oferta o aprobación de crédito. Las condiciones de los créditos y los costos cambian: confírmalos con tu asesor, la institución financiera y el notario.",

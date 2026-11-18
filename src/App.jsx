@@ -4,6 +4,8 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import PublicTabBar from "./components/PublicTabBar";
+import PublicInstallBanner from "./components/PublicInstallBanner";
+import { applyManifest } from "./lib/manifest";
 import ChatWidget from "./components/ChatWidget";
 import Toaster from "./components/Toaster";
 import { db } from "./lib/dataStore";
@@ -23,6 +25,7 @@ import { initAnalytics, trackPageview } from "./lib/analytics";
 // primera impresión.
 import Home from "./pages/Home";
 import LoadingState from "./components/LoadingState";
+import { installConversionClicks } from "./lib/conversions";
 const Properties = lazy(() => import("./pages/Properties"));
 const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
 const ZoneLanding = lazy(() => import("./pages/ZoneLanding"));
@@ -150,6 +153,9 @@ function PublicLayout({ children }) {
     trackPageview(pathname);
   }, [pathname]);
 
+  // Toques a WhatsApp o al teléfono de la oficina, en cualquier parte del sitio público (lib/conversions.js).
+  useEffect(() => installConversionClicks(), []);
+
   return (
     <>
       <a href="#main-content" className="skip-link">{t("a11y.skipToContent")}</a>
@@ -158,6 +164,7 @@ function PublicLayout({ children }) {
       <main id="main-content" key={pathname} className="page-transition" style={{ flex: 1 }}>
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>
+      <PublicInstallBanner />
       <Footer />
       <PublicTabBar />
       <ChatWidget />
@@ -167,6 +174,9 @@ function PublicLayout({ children }) {
 
 export default function App() {
   const { pathname } = useLocation();
+
+  // Qué app instalable se ofrece según la zona (pública o panel): ver lib/manifest.js.
+  useEffect(() => applyManifest(pathname), [pathname]);
 
   // Nombres de tipos de propiedad editables desde /admin/zonas: se inyectan en
   // las traducciones para que se vean en todo el sitio (ver propertyTypeLabels.js).

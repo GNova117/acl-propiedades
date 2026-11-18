@@ -43,7 +43,7 @@
       ]
     },
     {
-      "source": "/manifest.webmanifest",
+      "source": "/(manifest|manifest-public).webmanifest",
       "headers": [
         {
           "key": "Content-Type",

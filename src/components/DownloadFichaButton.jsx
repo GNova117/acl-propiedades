@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { propertyTypeLabel } from "../lib/format";
 import { propertyPath } from "../lib/propertyUrl.js";
+import { OFFICE } from "../lib/office";
+import { trackConversion } from "../lib/conversions";
 
 // Datos de la oficina que lleva la ficha en PDF (en lugar de los del asesor, que no se publican).
-const OFFICE_CONTACT = { phone: "871 324 3271", email: "inmobiliaria@aclpropiedades.com" };
+const OFFICE_CONTACT = { phone: OFFICE.phoneDisplay, email: OFFICE.email };
 
 // «Descargar ficha en PDF» de la ficha pública: la misma hoja membretada que arma el panel, sin
 // los datos de los asesores. pdf-lib y la plantilla se cargan hasta que alguien lo pide.
@@ -24,6 +26,7 @@ export default function DownloadFichaButton({ property }) {
         publicVersion: true,
         office: { ...OFFICE_CONTACT, url: `${window.location.origin}${propertyPath(property)}` },
       });
+      trackConversion("pdf_download", { property_id: property.id, property_type: property.type });
     } catch {
       setFailed(true);
     } finally {

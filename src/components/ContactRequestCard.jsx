@@ -5,6 +5,7 @@ import { db } from "../lib/dataStore";
 import { OFFICE_WHATSAPP } from "../lib/office";
 import "./ContactRequestCard.css";
 import { propertyPath } from "../lib/propertyUrl.js";
+import { trackConversion } from "../lib/conversions";
 
 // Reemplaza a las tarjetas de asesor (nombre + teléfono + correo + botones
 // de llamar/WhatsApp) que antes se mostraban en la ficha de cada
@@ -94,6 +95,7 @@ export default function ContactRequestCard({ property }) {
       });
       window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
       setVia("form");
+      trackConversion("lead_form", { form: "info_propiedad", property_id: property.id, property_type: property.type });
       setStatus("success");
       setForm({ name: "", phone: "", empresa: "" });
     } catch {
@@ -131,6 +133,7 @@ export default function ContactRequestCard({ property }) {
       /* el chat ya se abrió */
     }
     setVia("whatsapp");
+    trackConversion("whatsapp_click", { location: "ficha_formulario", property_id: property.id, property_type: property.type });
     setStatus("success");
     setForm({ name: "", phone: "", empresa: "" });
   };

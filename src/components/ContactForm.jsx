@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
+import { trackConversion } from "../lib/conversions";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -56,6 +57,7 @@ export default function ContactForm() {
     try {
       const { empresa: _empresa, ...payload } = form;
       await db.submitContactMessage(payload);
+      trackConversion("lead_form", { form: "contacto" });
       window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
       setStatus("success");
       setForm(initialForm);

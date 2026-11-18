@@ -18,6 +18,7 @@ import { db } from "../lib/dataStore";
 import "./Properties.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
+import { OFFICE_WHATSAPP } from "../lib/office";
 
 // Leaflet (react-leaflet + leaflet, ~150KB) pesa bastante para algo que
 // la mayoría de las visitas nunca activa (por default se ve la lista, no
@@ -89,10 +90,7 @@ function rememberScroll(event) {
   }
 }
 
-// Número de oficina — mismo que usa Contact.jsx/Footer.jsx/
-// ChatWidget.jsx (cada uno lo tiene por separado, no hay una
-// constante compartida en el proyecto todavía).
-const OFFICE_WHATSAPP = "528713243271";
+// El número de la oficina sale de lib/office.js (única fuente).
 
 // CTA para cuando un listado queda vacío (sin resultados con los filtros
 // actuales, o un apartado tipo Naves Industriales aún deshabilitado): sin

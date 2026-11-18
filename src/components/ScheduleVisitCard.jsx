@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
-import { trackEvent } from "../lib/analytics";
+import { trackConversion } from "../lib/conversions";
 import { requestSlotError } from "../lib/visitSlots";
 import { bookingErrorKey, formatSlotDay, formatSlotTime } from "../lib/visitBookingUi";
 import { OPEN_SCHEDULE_EVENT, SCHEDULE_TARGET_ID } from "./MobileContactBar";
@@ -92,7 +92,7 @@ function VisitRequestForm({ property, onBack, noSlots }) {
       }
       if (result?.ok) {
         window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
-        trackEvent("visit_requested", { property_id: property.id, property_type: property.type });
+        trackConversion("visit_requested", { property_id: property.id, property_type: property.type });
         setDone({ ...result });
         setForm(initialForm);
         setStatus("idle");

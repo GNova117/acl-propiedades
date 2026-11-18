@@ -102,7 +102,7 @@ export default function Seo({ title, description, image, jsonLd, noindex = false
     } else if (script) {
       script.remove();
     }
-  }, [title, description, image, jsonLd]);
+  }, [title, description, image, jsonLd, noindex, lang]);
 
   return null;
 }

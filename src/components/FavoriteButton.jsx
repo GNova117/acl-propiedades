@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useFavorites } from "../context/FavoritesContext";
 import { trackPropertyEvent } from "../lib/propertyEvents";
 import "./FavoriteButton.css";
+import { trackConversion } from "../lib/conversions";
 
 // Se usa tanto flotando sobre la imagen de PropertyCard como en línea en
 // la ficha de propiedad — el posicionamiento (absoluto vs. en línea) lo
@@ -17,7 +18,10 @@ export default function FavoriteButton({ propertyId, className = "" }) {
     e.preventDefault();
     e.stopPropagation();
     // Solo cuenta al guardarla, no al quitarla (cifra del informe del vendedor).
-    if (!active) trackPropertyEvent("favorite", propertyId);
+    if (!active) {
+      trackPropertyEvent("favorite", propertyId);
+      trackConversion("favorite_add", { property_id: propertyId });
+    }
     toggleFavorite(propertyId);
   };
 

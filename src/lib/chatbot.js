@@ -3,17 +3,17 @@
 // necesita la llave de Anthropic ni Supabase vive aquí para poder probarse
 // con vitest; la llamada real a Claude (el loop de herramientas) vive en
 // server/chatbot.js, que importa estas mismas piezas.
-import { OFFICE_WHATSAPP } from "./office.js";
+import { OFFICE, OFFICE_WHATSAPP } from "./office.js";
 import { formatMXN } from "./format.js";
 import { addDays, bookingFieldErrors, hhmm, mexicoParts, weekdayOf } from "./visitSlots.js";
 
 export const CHAT_MODEL_DEFAULT = "claude-haiku-5-5";
 
 export const OFFICE_INFO = {
-  phone: "871 324 3271",
+  phone: OFFICE.phoneDisplay,
   whatsapp: OFFICE_WHATSAPP,
-  email: "inmobiliaria@aclpropiedades.com",
-  address: "Blvd. Independencia, Local 16, Plaza San Luciano, Torreón, Coahuila",
+  email: OFFICE.email,
+  address: `${OFFICE.addressShort}, ${OFFICE.addressCity}`,
   zones: "Torreón, Gómez Palacio y Lerdo (La Comarca Lagunera)",
 };
 
