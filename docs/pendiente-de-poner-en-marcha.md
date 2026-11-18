@@ -10,7 +10,9 @@ Es seguro aunque a tu base ya le falte o ya tenga parte de lo anterior: cada blo
 
 Verificado contra un Postgres 16 real **partiendo de tres estados distintos** (base hasta la migración 0098, hasta la 0105 y completa): se aplica sin errores en los tres y pasan las pruebas de SQL. **No verificado contra tu Supabase real.** Si falla con otro «relation … does not exist», significa que a tu base le falta algo todavía más antiguo: pásame el mensaje exacto.
 
-Después, **una sola vez**, desde tu computadora (necesita `psql` y la cadena de conexión «Session pooler»):
+**Camino fácil (sin instalar nada):** pega `supabase/marcar-migraciones-aplicadas.sql` en el SQL Editor y ejecútalo; al final debe devolver **114**. Es lo mismo que los comandos de abajo.
+
+**Camino con comandos:** una sola vez, desde tu computadora (necesita `psql` y la cadena de conexión «Session pooler»):
 
 ```bash
 export DATABASE_URL='postgresql://postgres.…@…pooler.supabase.com:5432/postgres'
