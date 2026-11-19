@@ -47,7 +47,7 @@ jobs:
           tar -C backup -cf - storage | gpg --batch --yes --quiet --pinentry-mode loopback --symmetric --cipher-algo AES256 --passphrase "$BACKUP_PASSPHRASE" --output "backup/storage-$(date -u +%Y-%m-%d).tar.gpg"
           rm -rf backup/storage # nunca se sube nada sin cifrar
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: respaldo-${{ github.run_id }}
           path: backup/
