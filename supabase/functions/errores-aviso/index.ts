@@ -1,5 +1,7 @@
 // Se ejecuta cada 30 minutos (vía pg_cron, ver el bloque «Monitoreo de errores del navegador» en schema.sql) y manda a los
 // administradores UN correo con los errores del navegador que aún no se han avisado (status «nuevo» y notified_at nulo).
+// Los reportes que manda el equipo con el botón «Reportar un problema» (source «usuario») NO se avisan por correo: se quedan
+// solo en /admin/errores.
 // Igual que reporte-semanal: valida con su propio x-cron-secret (se despliega con la verificación de JWT desactivada) y lee
 // con la service role key inyectada por Supabase. La lógica del correo está en digest.js, que sí tiene pruebas.
 //
@@ -34,8 +36,9 @@ async function handler(req: Request): Promise<Response> {
 
   const { data: errors, error } = await supabase
     .from("client_errors")
-    .select("id, message, url, count, release, last_seen, source, reported_by")
+    .select("id, message, url, count, release, last_seen")
     .eq("status", "nuevo")
+    .neq("source", "usuario")
     .is("notified_at", null)
     .order("last_seen", { ascending: false })
     .limit(200);

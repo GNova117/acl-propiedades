@@ -9,7 +9,7 @@
 -- que no hace lo que debe) con el botón «Reportar un problema» del panel. El reporte se guarda en la MISMA tabla que los
 -- errores del navegador (client_errors) para verse juntos en /admin/errores, pero con origen «usuario» y la etiqueta de QUIÉN lo
 -- mandó (reported_by = su correo, tomado de la sesión: no lo escribe la persona). Cada reporte es independiente (no se agrupa) y
--- entra al mismo aviso por correo a los administradores (errores-aviso). Solo el personal con sesión puede mandarlos: máximo
+-- NO se avisa por correo (errores-aviso los excluye): se consultan solo en /admin/errores. Solo el personal con sesión puede mandarlos: máximo
 -- 10 por hora por persona. No cambia nada de lo anterior.
 -- (bloque re-ejecutable)
 

@@ -31,7 +31,7 @@ Si ya aplicaste lo de la sección 1, esto es **un cambio más**:
    insert into supabase_migrations.schema_migrations (version, name)
    values ('0115', 'reportes_de_problemas_del_equipo_desde_el_panel') on conflict do nothing;
    ```
-2. **Función:** volver a desplegar `errores-aviso` para que el correo distinga los reportes:
+2. **Función:** volver a desplegar `errores-aviso` para que el correo deje fuera los reportes del equipo (esos se ven solo en «Errores del sitio»):
    ```powershell
    npx supabase@latest functions deploy errores-aviso --no-verify-jwt --remote=TU-CODIGO-DE-PROYECTO
    ```

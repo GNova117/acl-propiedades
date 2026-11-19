@@ -9,7 +9,7 @@ import "./PropertyProspectsModal.css";
 import "./PropertyOffersModal.css";
 
 // Botón «Reportar un problema» del panel: cualquiera del equipo con sesión cuenta qué notó. Queda en «Errores del sitio»
-// (junto a los errores automáticos) con su correo como etiqueta y avisa a los administradores. Ver lib/problemReport.js.
+// (junto a los errores automáticos) con su correo como etiqueta. No se manda por correo: se consulta en esa pantalla. Ver lib/problemReport.js.
 export default function ReportProblem({ compact = false }) {
   const { t } = useTranslation();
   const { session } = useAuth();
