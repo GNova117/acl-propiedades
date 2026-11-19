@@ -15,6 +15,6 @@ describe("withSiteUrl", () => {
   it("la plantilla de public/robots.txt sigue teniendo su línea Sitemap y no deja entrar a lo privado", () => {
     const template = readFileSync(new URL("../public/robots.txt", import.meta.url), "utf8");
     expect(template).toMatch(/^Sitemap: https:\/\/.+\/sitemap\.xml$/m);
-    for (const path of ["/admin", "/seleccion/", "/opinion/", "/visita/", "/documentos/", "/firmar/"]) expect(template).toContain(`Disallow: ${path}`);
+    for (const path of ["/admin", "/seleccion/", "/registro/", "/opinion/", "/visita/", "/documentos/", "/firmar/"]) expect(template).toContain(`Disallow: ${path}`);
   });
 });

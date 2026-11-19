@@ -1,6 +1,7 @@
 // Backend de modo demo (localStorage): métodos de «clients» (33). Se juntan en localBackend.js; `this` es el objeto completo, así que
 // un método puede llamar a los de otros módulos como siempre.
 import { DEMO_ADMIN } from "../../seedData";
+import { generateIntakeToken, intakeExpiry, intakeState, INTAKE_TOKEN_PATTERN, validateIntake, intakePayload } from "../../clientIntake";
 import { generatePortalToken, isExtractedDocType, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS } from "../../clientPortal";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "../../perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "../../perfilamientoComprador";
@@ -172,6 +173,85 @@ export const clientsMethods = {
       KEYS.clientPortalTokens,
       tokens.map((t) => (t.client_id === clientId ? { ...t, active: false } : t))
     );
+  },
+
+  // ── Enlace para que el cliente mismo capture sus datos — modo demo ──
+  async getClientIntakeLinks() {
+    const clients = readStore(KEYS.clients, []);
+    return readStore(KEYS.clientIntakeLinks, [])
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 50)
+      .map((l) => ({ ...l, client_name: clients.find((c) => c.id === l.client_id)?.name || null }));
+  },
+
+  async createClientIntakeLink({ type, label, advisorId }) {
+    const record = {
+      id: uid("intake"),
+      token: generateIntakeToken(),
+      type,
+      label: label?.trim() ? label.trim() : null,
+      created_by: DEMO_ADMIN.email,
+      advisor_id: advisorId || null,
+      created_at: new Date().toISOString(),
+      expires_at: intakeExpiry(),
+      revoked_at: null,
+      seen_at: null,
+      submitted_at: null,
+      client_id: null,
+    };
+    writeStore(KEYS.clientIntakeLinks, [...readStore(KEYS.clientIntakeLinks, []), record]);
+    return record;
+  },
+
+  async revokeClientIntakeLink(id) {
+    writeStore(
+      KEYS.clientIntakeLinks,
+      readStore(KEYS.clientIntakeLinks, []).map((l) => (l.id === id && !l.submitted_at ? { ...l, revoked_at: new Date().toISOString() } : l)),
+    );
+  },
+
+  async markClientIntakesSeen(ids) {
+    if (!ids?.length) return;
+    const now = new Date().toISOString();
+    writeStore(KEYS.clientIntakeLinks, readStore(KEYS.clientIntakeLinks, []).map((l) => (ids.includes(l.id) && !l.seen_at ? { ...l, seen_at: now } : l)));
+  },
+
+  async getClientIntakeStatus(token) {
+    if (!INTAKE_TOKEN_PATTERN.test(token || "")) return { status: "invalido" };
+    const link = readStore(KEYS.clientIntakeLinks, []).find((l) => l.token === token);
+    if (!link) return { status: "invalido" };
+    const state = intakeState(link);
+    if (state === "pending") return { status: "activo", type: link.type, advisor_id: link.advisor_id || null };
+    return { status: { revoked: "revocado", used: "usado", expired: "expirado" }[state] };
+  },
+
+  // Mismas reglas que client_intake_submit: el tipo lo pone el enlace y solo se guardan los campos de su lista.
+  async submitClientIntake(token, data, consentVersion) {
+    const links = readStore(KEYS.clientIntakeLinks, []);
+    const link = links.find((l) => l.token === token);
+    if (!INTAKE_TOKEN_PATTERN.test(token || "") || !link) return { ok: false, error: "invalido" };
+    const state = intakeState(link);
+    if (state !== "pending") return { ok: false, error: { revoked: "revocado", used: "usado", expired: "expirado" }[state] };
+    const problem = validateIntake(data, { consent: Boolean(consentVersion) });
+    if (problem) return { ok: false, error: problem.code };
+    const clients = readStore(KEYS.clients, []);
+    const now = new Date().toISOString();
+    const record = {
+      id: uid("client"),
+      ...clientExpedientePayload(intakePayload(data, link.type)),
+      name: data.name.trim(),
+      type: link.type,
+      email: data.email?.trim().toLowerCase() || null,
+      phone: data.phone.trim(),
+      notes: `Datos capturados por el cliente desde el enlace de registro${link.label ? ` («${link.label}»)` : ""}.`,
+      active: true,
+      financiamiento: null,
+      created_at: now,
+      updated_at: now,
+    };
+    writeStore(KEYS.clients, [...clients, record]);
+    writeStore(KEYS.clientIntakeLinks, links.map((l) => (l.id === link.id ? { ...l, submitted_at: now, seen_at: null, client_id: record.id } : l)));
+    return { ok: true };
   },
 
   async getClientTramite(clientId) {

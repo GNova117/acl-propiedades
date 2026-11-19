@@ -8397,3 +8397,269 @@ $$;
 
 revoke all on function report_user_problem(text, text, text, text) from public, anon;
 grant execute on function report_user_problem(text, text, text, text) to authenticated;
+
+-- ─────────────────────────────────────────────
+-- Enlace para que el cliente mismo capture sus datos (2026-11-19)
+-- El asesor genera un enlace (/registro/<token>) desde Clientes y se lo manda al cliente por WhatsApp o correo. El asesor
+-- decide ANTES si es comprador, vendedor o ambos (el cliente no lo elige); el cliente, sin iniciar sesión, llena nombre,
+-- teléfono, correo y sus datos personales, acepta el aviso de privacidad y al enviar se crea el cliente en el panel.
+-- · client_intake_links: un enlace por cliente nuevo, de un solo uso, vence a los 7 días (el asesor puede desactivarlo).
+-- · client_intake_status(token): qué mostrar en la página pública (sin datos de nadie).
+-- · client_intake_submit(token, datos, versión del aviso): valida, crea la fila en clients, marca el enlace como usado y
+--   deja constancia del consentimiento (privacy_consents, con IP y navegador). Solo acepta una lista fija de campos: NO se
+--   pide la contraseña del portal de crédito ni nada del trámite; eso lo captura el equipo.
+-- · Freno de envíos: 10 por hora por IP y 100 por hora en total (enforce_public_rate_limit, bloque «Freno de envíos públicos»).
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+create table if not exists client_intake_links (
+  id uuid primary key default gen_random_uuid(),
+  token text not null unique check (token ~ '^[0-9a-f]{32}$'),
+  type text not null check (type in ('comprador', 'vendedor', 'ambos')),
+  label text check (label is null or char_length(label) <= 120),   -- nota interna del asesor («Pareja de Juan»)
+  created_by text,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default (now() + interval '7 days'),
+  revoked_at timestamptz,
+  submitted_at timestamptz,
+  client_id uuid references clients(id) on delete set null
+);
+
+create index if not exists idx_client_intake_links_created on client_intake_links(created_at desc);
+
+alter table client_intake_links enable row level security;
+
+drop policy if exists "Rol con apartado clientes maneja client_intake_links" on client_intake_links;
+create policy "Rol con apartado clientes maneja client_intake_links" on client_intake_links for all
+  using (has_admin_section('clientes')) with check (has_admin_section('clientes'));
+
+-- La constancia de consentimiento también puede venir de un enlace de registro (no solo del portal de documentos).
+alter table privacy_consents add column if not exists intake_link_id uuid references client_intake_links(id) on delete set null;
+
+-- ── Público (con token): qué mostrar ──
+create or replace function client_intake_status(p_token text)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  l client_intake_links;
+begin
+  select * into l from client_intake_links where token = p_token;
+  if not found then return jsonb_build_object('status', 'invalido'); end if;
+  if l.revoked_at is not null then return jsonb_build_object('status', 'revocado'); end if;
+  if l.submitted_at is not null then return jsonb_build_object('status', 'usado'); end if;
+  if now() > l.expires_at then return jsonb_build_object('status', 'expirado'); end if;
+  return jsonb_build_object('status', 'activo', 'type', l.type);
+end;
+$$;
+
+revoke all on function client_intake_status(text) from public;
+grant execute on function client_intake_status(text) to anon, authenticated;
+
+-- ── Público (con token): el cliente envía sus datos ──
+-- Regresa { ok: true } o { ok: false, error: '<código>' } (la pantalla lo traduce). Un enlace que ya no sirve responde con el
+-- mismo estado que client_intake_status. Un campo en blanco queda en null; RFC y CURP se guardan en mayúsculas.
+create or replace function client_intake_submit(p_token text, p_data jsonb, p_consent_version text)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  l client_intake_links;
+  d jsonb := coalesce(p_data, '{}'::jsonb);
+  nm text := left(btrim(coalesce(d ->> 'name', '')), 120);
+  ph text := left(btrim(coalesce(d ->> 'phone', '')), 30);
+  em text := lower(left(btrim(coalesce(d ->> 'email', '')), 160));
+  bd_text text := btrim(coalesce(d ->> 'fecha_nacimiento', ''));
+  bd date;
+  civil text := btrim(coalesce(d ->> 'estado_civil', ''));
+  v_rfc text := upper(btrim(coalesce(d ->> 'rfc', '')));
+  v_curp text := upper(btrim(coalesce(d ->> 'curp', '')));
+  buyer boolean;
+  seller boolean;
+  new_id uuid;
+  headers json;
+  ip text;
+  agent text;
+begin
+  perform enforce_public_rate_limit('client_intake', 10, 100);
+
+  select * into l from client_intake_links where token = p_token for update;
+  if not found then return jsonb_build_object('ok', false, 'error', 'invalido'); end if;
+  if l.revoked_at is not null then return jsonb_build_object('ok', false, 'error', 'revocado'); end if;
+  if l.submitted_at is not null then return jsonb_build_object('ok', false, 'error', 'usado'); end if;
+  if now() > l.expires_at then return jsonb_build_object('ok', false, 'error', 'expirado'); end if;
+
+  if coalesce(btrim(p_consent_version), '') = '' then return jsonb_build_object('ok', false, 'error', 'consent_required'); end if;
+  if char_length(nm) < 3 then return jsonb_build_object('ok', false, 'error', 'name_required'); end if;
+  if char_length(regexp_replace(ph, '\D', '', 'g')) < 10 then return jsonb_build_object('ok', false, 'error', 'phone_invalid'); end if;
+  if em <> '' and em !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then return jsonb_build_object('ok', false, 'error', 'email_invalid'); end if;
+  if v_rfc <> '' and v_rfc !~ '^[A-ZÑ&]{4}[0-9]{6}[A-Z0-9]{3}$' then return jsonb_build_object('ok', false, 'error', 'rfc_invalid'); end if;
+  if v_curp <> '' and v_curp !~ '^[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[A-Z0-9]{2}$' then return jsonb_build_object('ok', false, 'error', 'curp_invalid'); end if;
+  if civil <> '' and civil not in ('Soltero', 'Casado', 'Divorciado', 'Viudo', 'Unión libre') then return jsonb_build_object('ok', false, 'error', 'civil_invalid'); end if;
+  if bd_text <> '' then
+    begin
+      bd := bd_text::date;
+    exception when others then
+      return jsonb_build_object('ok', false, 'error', 'date_invalid');
+    end;
+    if bd > current_date or bd < date '1900-01-01' then return jsonb_build_object('ok', false, 'error', 'date_invalid'); end if;
+  end if;
+
+  buyer := l.type <> 'vendedor';
+  seller := l.type <> 'comprador';
+
+  insert into clients (
+    name, type, email, phone, notes, active,
+    fecha_nacimiento, estado_civil, domicilio, rfc, curp, identificacion_oficial,
+    nss, razon_social, registro_patronal, tel_empresa,
+    referencia1_nombre, referencia1_telefono, referencia1_correo, referencia1_direccion,
+    referencia2_nombre, referencia2_telefono, referencia2_correo, referencia2_direccion,
+    numero_credito
+  ) values (
+    nm, l.type, nullif(em, ''), ph,
+    'Datos capturados por el cliente desde el enlace de registro' || case when l.label is null then '.' else ' («' || l.label || '»).' end,
+    true,
+    bd, nullif(civil, ''),
+    nullif(left(btrim(coalesce(d ->> 'domicilio', '')), 300), ''),
+    nullif(v_rfc, ''), nullif(v_curp, ''),
+    nullif(left(btrim(coalesce(d ->> 'identificacion_oficial', '')), 60), ''),
+    case when buyer then nullif(left(btrim(coalesce(d ->> 'nss', '')), 20), '') end,
+    case when buyer then nullif(left(btrim(coalesce(d ->> 'razon_social', '')), 160), '') end,
+    case when buyer then nullif(left(btrim(coalesce(d ->> 'registro_patronal', '')), 40), '') end,
+    case when buyer then nullif(left(btrim(coalesce(d ->> 'tel_empresa', '')), 30), '') end,
+    case when buyer then nullif(left(btrim(coalesce(d ->> 'referencia1_nombre', '')), 120), '') end,
+    case when buyer then nullif(left(btrim(coalesce(d ->> 'referencia1_telefono', '')), 30), '') end,
+    case when buyer then nullif(left(btrim(coalesce(d ->> 'referencia1_correo', '')), 160), '') end,
+    case when buyer then nullif(left(btrim(coalesce(d ->> 'referencia1_direccion', '')), 300), '') end,
+    case when buyer then nullif(left(btrim(coalesce(d ->> 'referencia2_nombre', '')), 120), '') end,
+    case when buyer then nullif(left(btrim(coalesce(d ->> 'referencia2_telefono', '')), 30), '') end,
+    case when buyer then nullif(left(btrim(coalesce(d ->> 'referencia2_correo', '')), 160), '') end,
+    case when buyer then nullif(left(btrim(coalesce(d ->> 'referencia2_direccion', '')), 300), '') end,
+    case when seller then nullif(left(btrim(coalesce(d ->> 'numero_credito', '')), 40), '') end
+  ) returning id into new_id;
+
+  update client_intake_links set submitted_at = now(), client_id = new_id where id = l.id;
+
+  headers := nullif(current_setting('request.headers', true), '')::json;
+  ip := nullif(trim(split_part(coalesce(headers ->> 'x-forwarded-for', headers ->> 'cf-connecting-ip', ''), ',', 1)), '');
+  agent := left(coalesce(headers ->> 'user-agent', ''), 300);
+  insert into privacy_consents (client_id, intake_link_id, consent_version, accepted_ip, accepted_agent)
+  values (new_id, l.id, p_consent_version, ip, agent);
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+revoke all on function client_intake_submit(text, jsonb, text) from public;
+grant execute on function client_intake_submit(text, jsonb, text) to anon, authenticated;
+
+-- ─────────────────────────────────────────────
+-- Aviso al asesor cuando el cliente llena su registro (2026-11-19)
+-- Cuando el cliente envía su registro (migración 0116) el equipo se entera:
+-- · client_intake_links.advisor_id: el asesor que generó el enlace (lo manda el panel). Sin asesor (lo generó la oficina) el aviso
+--   va a la oficina. También sirve para que, al terminar, el cliente pueda escribirle por WhatsApp a ese asesor.
+-- · client_intake_links.seen_at: se llena cuando el equipo abre «Enlace de registro» en Clientes; mientras esté vacío, el registro
+--   cuenta como pendiente en la campana y en «Pendientes de hoy».
+-- · client_intake_status también regresa advisor_id (dato que ya es público: los asesores se ven en el sitio).
+-- · Aviso push (Edge Function enviar-push, igual que los mensajes de contacto): al asesor del enlace, o a la oficina si no tiene.
+--   Quien no haya activado las notificaciones en su dispositivo lo ve solo dentro del panel. Un fallo del aviso NUNCA impide que el
+--   cliente quede registrado.
+-- · client_intake_links entra a la publicación de tiempo real: la campana se actualiza sola, sin recargar.
+-- (bloque re-ejecutable: puede copiarse y pegarse solo en el SQL Editor)
+-- ─────────────────────────────────────────────
+
+alter table client_intake_links add column if not exists advisor_id uuid references advisors(id) on delete set null;
+alter table client_intake_links add column if not exists seen_at timestamptz;
+
+-- Los registros que ya estaban llenos antes de este bloque no se vuelven «pendientes».
+update client_intake_links set seen_at = now() where submitted_at is not null and seen_at is null;
+
+create or replace function client_intake_status(p_token text)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  l client_intake_links;
+begin
+  select * into l from client_intake_links where token = p_token;
+  if not found then return jsonb_build_object('status', 'invalido'); end if;
+  if l.revoked_at is not null then return jsonb_build_object('status', 'revocado'); end if;
+  if l.submitted_at is not null then return jsonb_build_object('status', 'usado'); end if;
+  if now() > l.expires_at then return jsonb_build_object('status', 'expirado'); end if;
+  return jsonb_build_object('status', 'activo', 'type', l.type, 'advisor_id', l.advisor_id);
+end;
+$$;
+
+revoke all on function client_intake_status(text) from public;
+grant execute on function client_intake_status(text) to anon, authenticated;
+
+-- Push al asesor (o a la oficina) cuando un enlace pasa a «ya lo llenó».
+create or replace function notify_client_intake_submitted()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  who text;
+  body jsonb;
+begin
+  if old.submitted_at is not null or new.submitted_at is null then
+    return new;
+  end if;
+
+  begin
+    select name into who from clients where id = new.client_id;
+    body := jsonb_build_object(
+      'title', 'Cliente nuevo: ' || coalesce(who, 'sin nombre'),
+      'body', 'Llenó su registro como ' || case new.type when 'comprador' then 'comprador' when 'vendedor' then 'vendedor' else 'comprador y vendedor' end || '.',
+      'url', '/admin/clientes?registros=1'
+    );
+    if new.advisor_id is not null then
+      body := body || jsonb_build_object('advisorId', new.advisor_id);
+    else
+      body := body || jsonb_build_object('section', 'clientes', 'office', true);
+    end if;
+
+    perform net.http_post(
+      url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/enviar-push',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'publishable_key'),
+        'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'agenda_cron_secret')
+      ),
+      body := body
+    );
+  exception when others then
+    -- Sin push (secretos sin configurar, pg_net apagado…) el cliente queda registrado igual; el aviso sale en el panel.
+    null;
+  end;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_notify_client_intake_submitted on client_intake_links;
+create trigger trg_notify_client_intake_submitted
+after update of submitted_at on client_intake_links
+for each row execute function notify_client_intake_submitted();
+
+-- Tiempo real: la campana del panel se entera al instante.
+do $$
+begin
+  if not exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+    return; -- fuera de Supabase (o con Realtime apagado): nada que hacer
+  end if;
+  if to_regclass('public.client_intake_links') is not null
+     and not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'client_intake_links') then
+    alter publication supabase_realtime add table public.client_intake_links;
+  end if;
+end $$;

@@ -270,7 +270,7 @@ export const contentMethods = {
   // Tiempo real (Supabase Realtime): avisa de cada cambio en mensajes y prospectos mientras haya sesión. Devuelve cómo cerrarlo.
   subscribeToChanges(onEvent) {
     const channel = supabase.channel("admin-live");
-    for (const table of ["contact_messages", "prospectos"]) {
+    for (const table of ["contact_messages", "prospectos", "client_intake_links"]) {
       channel.on("postgres_changes", { event: "*", schema: "public", table }, (payload) => onEvent({ table, type: payload.eventType, record: payload.new || null }));
     }
     channel.subscribe();

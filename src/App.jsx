@@ -125,6 +125,7 @@ const PortalDocuments = lazy(() => import("./pages/PortalDocuments"));
 const PublicVisit = lazy(() => import("./pages/PublicVisit"));
 const PublicSurvey = lazy(() => import("./pages/PublicSurvey"));
 const PublicSelection = lazy(() => import("./pages/PublicSelection"));
+const PublicClientIntake = lazy(() => import("./pages/PublicClientIntake"));
 const AdminSignatures = lazy(() => import("./pages/admin/AdminSignatures"));
 const AdminFunnel = lazy(() => import("./pages/admin/AdminFunnel"));
 const AdminMonthlyReport = lazy(() => import("./pages/admin/AdminMonthlyReport"));
@@ -235,6 +236,7 @@ export default function App() {
       <Route path="/visita/:token" element={<ErrorBoundary><PublicVisit /></ErrorBoundary>} />
       <Route path="/opinion/:token" element={<ErrorBoundary><PublicSurvey /></ErrorBoundary>} />
       <Route path="/seleccion/:token" element={<ErrorBoundary><PublicSelection /></ErrorBoundary>} />
+      <Route path="/registro/:token" element={<ErrorBoundary><PublicClientIntake /></ErrorBoundary>} />
 
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/restablecer" element={<AdminPasswordReset />} />
