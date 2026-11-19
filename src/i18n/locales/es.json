@@ -2269,6 +2269,24 @@
       "monthlyReports": "Informes del mes por enviar a propietarios"
     }
   },
+  "sectionSearch": {
+    "open": "Buscar apartados del panel",
+    "title": "Buscar en el panel",
+    "close": "Cerrar búsqueda",
+    "placeholder": "Escribe una palabra: crédito, gastos, firma…",
+    "hint": "Escribe una palabra clave y te mostramos todas las pantallas relacionadas. Por ejemplo: «crédito», «gastos» o «contrato».",
+    "noResults": "No encontramos nada para \"{{query}}\". Prueba con otra palabra.",
+    "count_one": "{{count}} resultado",
+    "count_other": "{{count}} resultados",
+    "extra": {
+      "expenseHistory": "Historial de gastos",
+      "newProperty": "Nueva propiedad",
+      "newClient": "Nuevo cliente",
+      "newProspect": "Nuevo prospecto",
+      "newVisit": "Registrar visita",
+      "newAppointment": "Nueva cita"
+    }
+  },
   "search": {
     "call": "Llamar",
     "callTo": "Llamar a {{name}}",

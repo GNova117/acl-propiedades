@@ -235,8 +235,23 @@
     top: 0;
     z-index: 900;
     height: 56px;
-    padding: 0 0.75rem;
-    gap: 0.5rem;
+    padding: 0 0.5rem;
+    gap: 0.25rem;
+  }
+
+  /* Con la lupa de apartados hay un botón más a la derecha: se compactan para que la caja de búsqueda de datos
+     conserve un área tocable (al enfocarla se extiende sobre toda la barra). */
+  .admin-layout__topbar-actions {
+    gap: 0.25rem;
+  }
+
+  .admin-layout__topbar-actions .icon-toggle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .admin-layout__topbar-actions .btn {
+    padding-inline: 0.45rem;
   }
 
   .admin-layout__menu-btn {

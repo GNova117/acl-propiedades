@@ -2269,6 +2269,24 @@
       "monthlyReports": "Monthly owner reports to send"
     }
   },
+  "sectionSearch": {
+    "open": "Search panel sections",
+    "title": "Search the panel",
+    "close": "Close search",
+    "placeholder": "Type a word: credit, expenses, signature…",
+    "hint": "Type a keyword and we'll show every related screen. For example: “credit”, “expenses” or “contract”.",
+    "noResults": "Nothing found for \"{{query}}\". Try another word.",
+    "count_one": "{{count}} result",
+    "count_other": "{{count}} results",
+    "extra": {
+      "expenseHistory": "Expense history",
+      "newProperty": "New property",
+      "newClient": "New client",
+      "newProspect": "New prospect",
+      "newVisit": "Log a visit",
+      "newAppointment": "New appointment"
+    }
+  },
   "search": {
     "call": "Call",
     "callTo": "Call {{name}}",
