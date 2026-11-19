@@ -37,6 +37,17 @@ Si ya aplicaste lo de la sección 1, esto es **un cambio más**:
    ```
 3. **Sitio:** el botón «Reportar un problema» sale en el menú lateral del panel cuando se despliegue este PR.
 
+## 1C. «Enlace de registro del cliente» (migración 0116) — agregado después
+
+Un cambio más, **solo SQL** (no hay funciones ni variables nuevas):
+
+1. Pega en el SQL Editor el archivo `supabase/migrations/0116_enlace_para_que_el_cliente_mismo_capture_sus_datos.sql` y ejecútalo (es re-ejecutable). Después anótalo:
+   ```sql
+   insert into supabase_migrations.schema_migrations (version, name)
+   values ('0116', 'enlace_para_que_el_cliente_mismo_capture_sus_datos') on conflict do nothing;
+   ```
+2. **Sitio:** al desplegar este PR aparece el botón **«Enlace de registro»** en Clientes. Sin la migración, el botón sale pero al generar un enlace marcará error.
+
 ## 2. Supabase (panel)
 
 1. **Authentication → Multi-Factor:** activar **TOTP**. Sin esto, «Seguridad → verificación en dos pasos» no funciona.

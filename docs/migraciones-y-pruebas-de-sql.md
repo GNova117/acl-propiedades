@@ -2,7 +2,7 @@
 
 ## Cómo está organizado
 
-- `supabase/migrations/NNNN_titulo.sql` — **la fuente**: una migración por bloque, en orden (hoy 114).
+- `supabase/migrations/NNNN_titulo.sql` — **la fuente**: una migración por bloque, en orden (hoy 116).
 - `supabase/schema.sql` — se **genera** uniendo las migraciones (`npm run schema:build`). Sigue sirviendo para pegarlo completo en
   el SQL Editor de una base nueva. CI falla si no coincide con las migraciones (`npm run schema:check`).
 - `scripts/migrate.mjs` aplica las pendientes y lleva la cuenta en `supabase_migrations.schema_migrations` (la misma tabla que usa la

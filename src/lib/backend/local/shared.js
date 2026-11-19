@@ -61,6 +61,7 @@ export const KEYS = {
   siteUpdates: "acl_local_site_updates",
   blogPosts: "acl_local_blog_posts",
   clientPortalTokens: "acl_local_client_portal_tokens",
+  clientIntakeLinks: "acl_local_client_intake_links",
   clientTramites: "acl_local_client_tramites",
   documentAccessLog: "acl_local_document_access_log",
   privacyConsents: "acl_local_privacy_consents",

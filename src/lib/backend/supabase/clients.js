@@ -4,6 +4,7 @@ import { supabase } from "../../supabaseClient";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "../../perfilamientoVendedor";
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "../../perfilamientoComprador";
 import { generatePortalToken, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS, PortalUploadError, blobToBase64 } from "../../clientPortal";
+import { generateIntakeToken, intakeExpiry, INTAKE_TOKEN_PATTERN } from "../../clientIntake";
 import { clientExpedientePayload } from "./shared.js";
 
 export const clientsMethods = {
@@ -194,6 +195,52 @@ export const clientsMethods = {
   async revokeClientPortalToken(clientId) {
     const { error } = await supabase.from("client_portal_tokens").update({ active: false }).eq("client_id", clientId);
     if (error) throw error;
+  },
+
+  // ── Enlace para que el cliente mismo capture sus datos (/registro/<token>) ──
+  // Lado del asesor: crear, listar y desactivar enlaces (políticas RLS del apartado «clientes»). El TIPO lo elige el asesor aquí;
+  // el cliente no lo cambia.
+  async getClientIntakeLinks() {
+    const { data, error } = await supabase.from("client_intake_links").select("*").order("created_at", { ascending: false }).limit(50);
+    if (error) throw error;
+    return data || [];
+  },
+
+  async createClientIntakeLink({ type, label }) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const row = {
+      token: generateIntakeToken(),
+      type,
+      label: label?.trim() ? label.trim() : null,
+      created_by: sessionData?.session?.user?.email || null,
+      expires_at: intakeExpiry(),
+    };
+    const { data, error } = await supabase.from("client_intake_links").insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async revokeClientIntakeLink(id) {
+    const { error } = await supabase.from("client_intake_links").update({ revoked_at: new Date().toISOString() }).eq("id", id).is("submitted_at", null);
+    if (error) throw error;
+  },
+
+  // Lado del cliente (sin sesión, solo token): funciones security definer, la tabla sigue cerrada.
+  async getClientIntakeStatus(token) {
+    if (!INTAKE_TOKEN_PATTERN.test(token || "")) return { status: "invalido" };
+    const { data, error } = await supabase.rpc("client_intake_status", { p_token: token });
+    if (error) throw error;
+    return data || { status: "invalido" };
+  },
+
+  // { ok: true } o { ok: false, error: '<código>' } (ver client_intake_submit). Un 54429 (demasiados envíos) llega como error.
+  async submitClientIntake(token, data, consentVersion) {
+    const { data: result, error } = await supabase.rpc("client_intake_submit", { p_token: token, p_data: data, p_consent_version: consentVersion });
+    if (error) {
+      if (error.code === "54429") return { ok: false, error: "rate_limited" };
+      throw error;
+    }
+    return result || { ok: false, error: "invalido" };
   },
 
   // Estatus del trámite y documentos que se le piden al cliente en el

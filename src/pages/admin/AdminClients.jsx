@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import ClientPdfModal from "../../components/ClientPdfModal";
+import ClientIntakePanel from "../../components/ClientIntakePanel";
 import BulkActionsBar from "../../components/BulkActionsBar";
 import AdminFilters from "../../components/AdminFilters";
 import RowMore from "../../components/RowMore";
@@ -46,6 +47,7 @@ export default function AdminClients() {
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [showPdfModal, setShowPdfModal] = useState(false);
+  const [showIntake, setShowIntake] = useState(false);
   const [selected, setSelected] = useState(() => new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
 
@@ -156,6 +158,9 @@ export default function AdminClients() {
             onToggle={(key) => changeColumns(toggleColumn(hiddenCols, key, HIDEABLE))}
             onReset={() => changeColumns(new Set())}
           />
+          <button type="button" className="btn btn-outline" onClick={() => setShowIntake((v) => !v)} aria-expanded={showIntake}>
+            {t("clientIntake.button")}
+          </button>
           <button type="button" className="btn btn-outline" onClick={handleExport} disabled={filteredClients.length === 0}>
             {t("common.exportCsv")}
           </button>
@@ -164,6 +169,8 @@ export default function AdminClients() {
           </button>
         </div>
       </div>
+
+      {showIntake && <ClientIntakePanel onClose={() => setShowIntake(false)} onClientCreated={load} />}
 
       {showPdfModal && <ClientPdfModal initialTypeFilter={typeFilter} onClose={() => setShowPdfModal(false)} />}
 

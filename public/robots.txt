@@ -3,6 +3,7 @@ Allow: /
 Disallow: /admin
 Disallow: /informe/
 Disallow: /seleccion/
+Disallow: /registro/
 Disallow: /opinion/
 Disallow: /visita/
 Disallow: /documentos/
