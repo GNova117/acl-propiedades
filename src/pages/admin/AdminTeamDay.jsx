@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import { buildTeamDay } from "../../lib/teamDay";
+import AutoAssignPanel from "../../components/AutoAssignPanel";
 import "./admin.css";
 import "./AdminTeamDay.css";
 
@@ -23,6 +24,8 @@ export default function AdminTeamDay() {
   const prospectsQ = useQuery(queries.prospects);
   const citasQ = useQuery(queries.citas, { enabled: canAgenda });
   const advisorsQ = useQuery(queries.advisors);
+  const propertiesQ = useQuery(queries.properties);
+  const [assignOpen, setAssignOpen] = useState(false);
   const [now, setNow] = useState(() => new Date());
 
   // El resumen se recalcula cada minuto (las horas de las citas y «sin atender» avanzan solas).
@@ -92,6 +95,11 @@ export default function AdminTeamDay() {
               {t("team.viewProspects", { count: row.open })}
             </Link>
           )}
+          {unassigned && row.open > 0 && (
+            <button type="button" className="btn btn-primary btn-sm" aria-expanded={assignOpen} onClick={() => setAssignOpen((open) => !open)}>
+              {t("autoAssign.open")}
+            </button>
+          )}
           {row.attention > 0 && row.open > 0 && (
             <Link to={link(advisor, { filtro: firstProblem, seleccionar: "1" })} className="btn btn-outline btn-sm">
               {t("team.reassign")}
@@ -150,10 +158,24 @@ export default function AdminTeamDay() {
           {day.rows.length === 0 && day.unassigned.open === 0 ? (
             <p className="form-hint">{t("team.empty")}</p>
           ) : (
+            <>
+              {assignOpen && (
+                <AutoAssignPanel
+                  prospects={prospectsQ.data ?? NONE}
+                  advisors={advisorsQ.data ?? NONE}
+                  properties={propertiesQ.data ?? NONE}
+                  onApplied={(updated) => {
+                    const byId = new Map(updated.map((r) => [r.id, r]));
+                    prospectsQ.mutate((prev) => (prev || []).map((p) => byId.get(p.id) ?? p));
+                  }}
+                  onClose={() => setAssignOpen(false)}
+                />
+              )}
             <div className="team-grid">
               {day.unassigned.open > 0 && card(null, day.unassigned, { unassigned: true })}
               {day.rows.map((row) => card(row.advisor, row))}
             </div>
+            </>
           )}
         </>
       )}

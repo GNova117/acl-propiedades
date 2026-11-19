@@ -831,7 +831,432 @@
 
 .quick-chip.is-active {
   border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: #fff;
+  background: var(--color-primary-solid);
+  color: var(--color-on-primary);
   font-weight: 600;
+}
+
+/* Ficha completa: barra y lo que falta, bajo el título de la propiedad en la lista */
+.property-completeness {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.property-completeness__bar {
+  width: 56px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.property-completeness__bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-success);
+}
+
+.property-completeness--mid .property-completeness__bar span {
+  background: var(--color-attention);
+}
+
+.property-completeness--low .property-completeness__bar span {
+  background: var(--color-danger);
+}
+
+.property-completeness__missing {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+/* Precio y asesor en la barra de acciones en lote */
+.bulk-actions-bar__group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.bulk-actions-bar__amount {
+  width: 6.5rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.admin-form__notice {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  color: var(--color-text);
+}
+
+.admin-form__draft {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.admin-form__draft-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Formulario por pasos: barra de avance, pestañas numeradas y un solo paso visible a la vez. */
+.admin-form__step[hidden] {
+  display: none;
+}
+
+.admin-form__step-title {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-lg, 1.125rem);
+}
+
+.form-steps {
+  margin-bottom: var(--space-5);
+}
+
+.form-steps__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm, 0.875rem);
+}
+
+.form-steps__summary strong {
+  color: var(--color-text);
+}
+
+.form-steps__saved {
+  margin-left: auto;
+  font-size: var(--text-xs);
+}
+
+.form-steps__bar {
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.form-steps__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary-solid);
+  transition: width 0.25s ease;
+}
+
+.form-steps__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.form-steps__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.5rem;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm, 0.875rem);
+  cursor: pointer;
+}
+
+.form-steps__tab.is-current {
+  border-color: var(--color-primary-solid);
+  background: var(--color-primary-solid);
+  color: var(--color-on-primary);
+}
+
+.form-steps__tab.has-error {
+  border-color: var(--color-danger-solid);
+}
+
+.form-steps__number {
+  display: inline-grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 640px) {
+  /* En el teléfono solo el número a la vista (el nombre del paso ya sale arriba, junto a «Paso 2 de 5»); el nombre sigue ahí
+     para los lectores de pantalla (con display:none el botón se quedaba sin nombre). */
+  .form-steps__tab:not(.is-current) .form-steps__name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
+.property-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.25rem;
+}
+
+/* Centro de ayuda */
+.help-topics {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.help-topic {
+  padding: 0.75rem 1rem;
+}
+
+.help-topic summary {
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.help-topic ul {
+  margin: 0.6rem 0;
+  padding-left: 1.25rem;
+}
+
+.help-topic li {
+  margin-bottom: 0.35rem;
+}
+
+/* ── Tablas del panel: encabezado fijo, columnas ordenables y elegibles ──────────────────────────────────────────── */
+/* Una columna oculta con «Columnas» lleva el atributo hidden; esto lo hace valer aunque otra regla le dé display. */
+.admin-table [hidden] {
+  display: none !important;
+}
+
+.sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.sort-button:hover {
+  color: var(--color-primary);
+}
+
+.sort-button__arrow {
+  font-size: 0.7em;
+  opacity: 0.55;
+}
+
+.sort-button__arrow--ascending,
+.sort-button__arrow--descending {
+  color: var(--color-primary);
+  opacity: 1;
+}
+
+.column-picker {
+  position: relative;
+}
+
+.column-picker summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.column-picker summary::-webkit-details-marker {
+  display: none;
+}
+
+.column-picker__panel {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 12rem;
+  padding: var(--space-3);
+}
+
+.column-picker__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+/* En pantallas anchas el encabezado de la tabla se queda arriba al bajar por una lista larga: la tabla hace su propio scroll. */
+@media (min-width: 861px) {
+  .admin-table-wrapper {
+    max-height: calc(100vh - 15rem);
+    overflow: auto;
+  }
+
+  .admin-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--color-surface);
+    box-shadow: 0 1px 0 var(--color-border);
+  }
+}
+
+/* Seguridad de la cuenta (/admin/seguridad) */
+.admin-security__card {
+  margin-bottom: var(--space-4);
+  padding: var(--space-5);
+  max-width: 44rem;
+}
+
+.admin-security__card h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+}
+
+.admin-security__list {
+  margin: var(--space-3) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-security__list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-security__list small {
+  color: var(--color-text-muted);
+}
+
+.admin-security__enroll ol {
+  padding-left: var(--space-5);
+}
+
+.admin-security__enroll li {
+  margin-bottom: var(--space-3);
+}
+
+.admin-security__qr {
+  margin-top: var(--space-2);
+  max-width: 11.5rem;
+  background: #fff;
+  border-radius: var(--radius-sm);
+}
+
+.admin-security__qr img,
+.admin-security__qr canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.admin-security__actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Errores del navegador (/admin/errores) */
+.admin-errors__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.admin-errors__list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-errors__item {
+  padding: var(--space-4);
+}
+
+.admin-errors__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  word-break: break-word;
+}
+
+.admin-errors__count {
+  flex: none;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  background: var(--color-bg-alt);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold, 600);
+}
+
+.admin-errors__stack {
+  max-height: 14rem;
+  overflow: auto;
+  margin: var(--space-2) 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-alt);
+  font-size: var(--text-xs);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.admin-errors__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.admin-errors__empty {
+  padding: var(--space-5);
+}
+
+.admin-errors__who {
+  flex: none;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  background: var(--color-primary-solid);
+  color: var(--color-on-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold, 600);
 }

@@ -45,7 +45,7 @@ export default function ImageUploader({ existingImages, files, mainIndex, onRemo
                 type="button"
                 className="image-uploader__remove"
                 onClick={() => (item.kind === "existing" ? onRemoveExisting(item.index) : onRemoveNew(item.index))}
-                aria-label="Eliminar imagen"
+                aria-label={t("a11y.removeImage")}
               >
                 ×
               </button>

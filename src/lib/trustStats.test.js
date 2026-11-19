@@ -42,6 +42,34 @@ describe("computeSalesStats", () => {
   });
 });
 
+describe("días que tardó cada venta reciente", () => {
+  it("la base y el espejo local dan los mismos días, y las ventas del mismo día del alta quedan en null", () => {
+    const properties = [prop("a", 100), prop("b", 10)];
+    const ventas = [
+      { property_id: "a", fecha_venta: dayStr(40) }, // 60 días
+      { property_id: "b", fecha_venta: dayStr(10) }, // 0 días
+    ];
+    const { recent_sold } = computeSalesStats(ventas, properties, NOW);
+    expect(recent_sold).toEqual([
+      { property_id: "b", days: null },
+      { property_id: "a", days: 60 },
+    ]);
+  });
+
+  it("el resumen los trae por propiedad, sin los dudosos", () => {
+    const properties = [prop("a", 100), prop("b", 100), prop("c", 100)];
+    const stats = {
+      total: 3,
+      last_12_months: 3,
+      avg_days_to_sell: 45,
+      recent_property_ids: ["a", "b", "c"],
+      recent_sold: [{ property_id: "a", days: 42.4 }, { property_id: "b", days: null }, { property_id: "c", days: 0 }, { days: 9 }],
+    };
+    expect(buildTrustSummary(stats, properties).soldDays).toEqual({ a: 42 });
+    expect(buildTrustSummary({ ...stats, recent_sold: undefined }, properties).soldDays).toEqual({});
+  });
+});
+
 describe("buildTrustSummary", () => {
   const properties = [prop("a", 100), prop("b", 100), prop("c", 100), prop("d", 100), { ...prop("e", 3), status: "disponible" }];
   const stats = { total: 4, last_12_months: 3, avg_days_to_sell: 45, recent_property_ids: ["a", "b", "c", "d"] };

@@ -40,7 +40,7 @@
 
 .client-history__date {
   font-size: 0.78rem;
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
 }
 
 .client-history__kind {
@@ -56,11 +56,11 @@
   font-size: 0.82rem;
 }
 
-.kind-client { --kind-color: #7a8598; }
-.kind-message { --kind-color: #1e8e5a; }
-.kind-prospect { --kind-color: #f0a500; }
+.kind-client { --kind-color: var(--color-muted-soft); }
+.kind-message { --kind-color: var(--color-success); }
+.kind-prospect { --kind-color: var(--color-attention); }
 .kind-visit { --kind-color: #1565c0; }
 .kind-valuation { --kind-color: #8e44ad; }
 .kind-agenda { --kind-color: #d35400; }
 .kind-document { --kind-color: #16a085; }
-.kind-signing { --kind-color: #c0392b; }
+.kind-signing { --kind-color: var(--color-danger); }

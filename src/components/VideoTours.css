@@ -35,7 +35,7 @@
   border: 0;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.55);
-  color: #fff;
+  color: var(--color-on-primary);
   font-size: 1.3rem;
   cursor: pointer;
 }
@@ -55,7 +55,7 @@
   gap: 0.15rem;
   padding: 2.5rem 0.75rem 0.75rem;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-  color: #fff;
+  color: var(--color-on-primary);
   pointer-events: none;
 }
 

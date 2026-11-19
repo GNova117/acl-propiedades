@@ -238,7 +238,7 @@ export default function AdminFunnel() {
                 ))}
               </ul>
             )}
-            <p className="form-hint" style={{ marginBottom: 0 }}>{t("funnel.lostTip")}</p>
+            <p className="form-hint mb-0">{t("funnel.lostTip")}</p>
           </div>
           <p className="form-hint">{t("funnel.historyNote")}</p>
         </>

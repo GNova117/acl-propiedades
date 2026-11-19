@@ -3,16 +3,17 @@
 // necesita la llave de Anthropic ni Supabase vive aquí para poder probarse
 // con vitest; la llamada real a Claude (el loop de herramientas) vive en
 // server/chatbot.js, que importa estas mismas piezas.
-import { OFFICE_WHATSAPP } from "./office.js";
+import { OFFICE, OFFICE_WHATSAPP } from "./office.js";
 import { formatMXN } from "./format.js";
+import { addDays, bookingFieldErrors, hhmm, mexicoParts, weekdayOf } from "./visitSlots.js";
 
 export const CHAT_MODEL_DEFAULT = "claude-haiku-5-5";
 
 export const OFFICE_INFO = {
-  phone: "871 324 3271",
+  phone: OFFICE.phoneDisplay,
   whatsapp: OFFICE_WHATSAPP,
-  email: "inmobiliaria@aclpropiedades.com",
-  address: "Blvd. Independencia, Local 16, Plaza San Luciano, Torreón, Coahuila",
+  email: OFFICE.email,
+  address: `${OFFICE.addressShort}, ${OFFICE.addressCity}`,
   zones: "Torreón, Gómez Palacio y Lerdo (La Comarca Lagunera)",
 };
 
@@ -47,6 +48,8 @@ Reglas:
 - Si la persona muestra interés real (quiere que la contacten, agendar una visita, más información de una propiedad específica), usa la herramienta capturar_lead para guardar su nombre y teléfono o correo. Pídeselos de forma natural dentro de la conversación, no como un formulario.
 - Nunca inventes información legal, de crédito o de trámites específica (tasas, requisitos exactos de INFONAVIT, montos de escrituración). Para eso, invita a usar la calculadora/simulador del sitio o a hablar con un asesor.
 - Si no puedes resolver algo, si la persona lo pide explícitamente, o si la conversación se está complicando, dile con naturalidad que puede escribirle directo a un asesor por WhatsApp (el botón ya está visible en el chat, no hace falta que des el número).
+- Para AGENDAR UNA VISITA a una propiedad: primero consulta horarios_visita con su código (lo ves en los resultados de buscar_propiedades); ofrece 2 o 3 horarios de los que devuelva, NUNCA inventes uno. Cuando la persona elija uno, pídele (si aún no los tienes) nombre completo, correo y teléfono, confírmale el resumen y SOLO entonces usa agendar_visita. Si la propiedad no tiene horarios en línea, o agendar_visita falla dos veces, usa pasar_a_asesor.
+- Usa pasar_a_asesor cuando la persona pida hablar con un asesor o una persona, cuando no puedas resolver lo que necesita o cuando la conversación se complique. Avísale con naturalidad que un asesor le escribirá y que también puede seguir por WhatsApp desde el botón del chat.
 - Nunca pidas contraseñas, datos bancarios completos ni documentos de identidad por este chat.`;
 }
 
@@ -79,6 +82,49 @@ export const CHAT_TOOLS = [
         interes: { type: "string", description: "Qué busca o en qué propiedad está interesado, en una frase" },
       },
       required: ["nombre"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "horarios_visita",
+    description: "Consulta los próximos horarios libres para visitar una propiedad (por su código, ej. ACL-12). Úsala antes de ofrecer una visita; solo ofrece horarios que esta herramienta devuelva.",
+    input_schema: {
+      type: "object",
+      properties: { codigo: { type: "string", description: "Código de la propiedad, tal como aparece en los resultados de buscar_propiedades" } },
+      required: ["codigo"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "agendar_visita",
+    description: "Agenda una visita en uno de los horarios que devolvió horarios_visita. Requiere nombre, correo y teléfono reales que la persona te dio; confirma el resumen con ella antes de usarla. Le llega un correo con el enlace para cambiarla o cancelarla.",
+    input_schema: {
+      type: "object",
+      properties: {
+        codigo: { type: "string" },
+        fecha: { type: "string", description: "AAAA-MM-DD, exactamente como la devolvió horarios_visita" },
+        hora: { type: "string", description: "HH:MM, exactamente como la devolvió horarios_visita" },
+        nombre: { type: "string" },
+        correo: { type: "string" },
+        telefono: { type: "string" },
+        nota: { type: "string", description: "Algo que la persona quiera que el asesor sepa (opcional)" },
+      },
+      required: ["codigo", "fecha", "hora", "nombre", "correo", "telefono"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "pasar_a_asesor",
+    description: "Marca que la persona necesita a un asesor humano (lo pidió, no pudiste resolverlo o la conversación se complicó). Si te dio teléfono o correo, también se guarda para que un asesor le escriba.",
+    input_schema: {
+      type: "object",
+      properties: {
+        motivo: { type: "string", description: "En una frase, qué necesita o por qué pasa a un asesor" },
+        nombre: { type: "string" },
+        telefono: { type: "string" },
+        correo: { type: "string" },
+      },
+      required: ["motivo"],
       additionalProperties: false,
     },
   },
@@ -193,3 +239,89 @@ export function buildWhatsappHandoffMessage(messages) {
 }
 
 export const typeLabel = (type) => TYPE_LABELS[type] || type;
+
+
+// ── Agendar visitas desde el chat ──
+const PROPERTY_CODE = /^[A-Za-z0-9-]{2,30}$/;
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_ONLY = /^\d{1,2}:\d{2}$/;
+const WEEKDAYS = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+export const CHAT_MAX_SLOT_DAYS = 4; // cuántos días de horarios se le muestran al modelo (cada uno cuesta tokens)
+export const CHAT_MAX_SLOTS_PER_DAY = 6;
+
+// Código de propiedad limpio y en mayúsculas, o null (nunca se arma una consulta con texto libre).
+export function normalizePropertyCode(value) {
+  const code = String(value ?? "").trim();
+  return PROPERTY_CODE.test(code) ? code.toUpperCase() : null;
+}
+
+// Lo que la base devuelve en get_visit_slots → texto corto para el modelo: un renglón por día.
+export function summarizeSlotsForChat(slots, { property } = {}) {
+  const list = Array.isArray(slots) ? slots : [];
+  if (list.length === 0) {
+    return "Esa propiedad no tiene horarios para visitar en línea por ahora. No inventes uno: usa pasar_a_asesor para que un asesor la agende.";
+  }
+  const byDate = new Map();
+  for (const slot of list) {
+    if (!slot?.fecha || !slot?.hora) continue;
+    byDate.set(slot.fecha, [...(byDate.get(slot.fecha) || []), hhmm(slot.hora)]);
+  }
+  const lines = [...byDate.entries()].slice(0, CHAT_MAX_SLOT_DAYS).map(([fecha, horas]) => {
+    const more = horas.length > CHAT_MAX_SLOTS_PER_DAY ? ` (+${horas.length - CHAT_MAX_SLOTS_PER_DAY} más)` : "";
+    return `- ${WEEKDAYS[weekdayOf(fecha)]} ${fecha}: ${horas.slice(0, CHAT_MAX_SLOTS_PER_DAY).join(", ")}${more}`;
+  });
+  return `${property ? `Horarios libres para ${property}:\n` : "Horarios libres:\n"}${lines.join("\n")}\nOfrece solo estos horarios. Al agendar usa fecha y hora exactamente como aparecen.`;
+}
+
+// Argumentos de agendar_visita → { value } listo para book_visit o { error } en texto para el modelo.
+// Mismas reglas de nombre/correo/teléfono que la base (bookingFieldErrors); el horario lo valida la base.
+export function validateBookingArgs(args, now = new Date()) {
+  const code = normalizePropertyCode(args?.codigo);
+  if (!code) return { error: "Falta el código de la propiedad (el de buscar_propiedades)." };
+  const fecha = String(args?.fecha ?? "").trim();
+  const hora = String(args?.hora ?? "").trim();
+  if (!DATE_ONLY.test(fecha) || !TIME_ONLY.test(hora)) return { error: "La fecha debe ser AAAA-MM-DD y la hora HH:MM, tal como las devolvió horarios_visita." };
+  const today = mexicoParts(now).date;
+  if (fecha < today || fecha > addDays(today, 60)) return { error: "Esa fecha no es válida; elige uno de los horarios que devolvió horarios_visita." };
+  const errors = bookingFieldErrors({ name: args?.nombre, email: args?.correo, phone: args?.telefono, note: args?.nota });
+  const missing = [errors.name && "nombre completo", errors.email && "correo válido", errors.phone && "teléfono de 10 dígitos", errors.note && "nota más corta (máx. 500 caracteres)"].filter(Boolean);
+  if (missing.length > 0) return { error: `Faltan o son inválidos: ${missing.join(", ")}. Pídeselos a la persona; no los inventes.` };
+  return {
+    value: {
+      code,
+      fecha,
+      hora: hhmm(hora),
+      name: String(args.nombre).trim(),
+      email: String(args.correo).trim().toLowerCase(),
+      phone: String(args.telefono).trim(),
+      note: String(args?.nota ?? "").trim() || null,
+    },
+  };
+}
+
+const BOOKING_ERRORS = {
+  invalid_name: "El nombre no es válido; pídeselo completo.",
+  invalid_email: "El correo no es válido; pídeselo de nuevo.",
+  invalid_phone: "El teléfono no es válido; necesita 10 dígitos.",
+  invalid_note: "La nota es demasiado larga.",
+  invalid_slot: "Ese horario no es válido; consulta horarios_visita y ofrece otro.",
+  slot_unavailable: "Ese horario ya no está libre. Consulta horarios_visita otra vez y ofrece otro.",
+  property_unavailable: "Esa propiedad ya no está disponible para visitas.",
+  rate_limited: "Se hicieron muchas solicitudes seguidas. Pídele que espere unos minutos o usa pasar_a_asesor.",
+  too_many_active: "Esa persona ya tiene visitas activas desde el sitio; usa pasar_a_asesor para que un asesor lo resuelva.",
+};
+
+// Respuesta de book_visit → { text, booked }. Nunca se le da al modelo el enlace privado de la visita (le llega por correo).
+export function summarizeBookingResult(result) {
+  if (result?.ok) {
+    return { booked: true, text: `Visita agendada para el ${result.fecha} a las ${hhmm(result.hora)}. Le llegó un correo de confirmación con el enlace para cambiarla o cancelarla. Confírmaselo con naturalidad.` };
+  }
+  return { booked: false, text: BOOKING_ERRORS[result?.error] || "No se pudo agendar. Ofrece otro horario o usa pasar_a_asesor." };
+}
+
+// Argumentos de pasar_a_asesor → { reason, lead } (lead solo si dejó un dato de contacto real).
+export function validateHandoffArgs(args) {
+  const reason = String(args?.motivo ?? "").trim().slice(0, 200) || "Pide hablar con un asesor";
+  const lead = validateLeadArgs({ nombre: args?.nombre || "Contacto del chat", telefono: args?.telefono, correo: args?.correo, interes: `PIDE UN ASESOR: ${reason}` });
+  return { reason, lead };
+}

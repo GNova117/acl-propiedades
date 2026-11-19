@@ -161,7 +161,7 @@ test.describe("Mi día como inicio y barra de abajo en el teléfono", () => {
 
     // En el menú, Mi día va primero y el Panel principal se movió a /admin/panel.
     if (isMobile) await press(page.locator(".admin-layout__menu-btn"));
-    const enlaces = page.locator(".admin-layout__sidebar nav > a");
+    const enlaces = page.locator(".admin-layout__sidebar nav a");
     await expect(enlaces.first()).toHaveAttribute("href", "/admin/mi-dia");
     await press(page.locator('.admin-layout__sidebar a[href="/admin/panel"]'));
     await page.waitForURL("**/admin/panel");

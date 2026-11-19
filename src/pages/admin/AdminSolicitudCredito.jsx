@@ -13,6 +13,8 @@ import {
 } from "../../lib/solicitudCredito";
 import "./AdminClientProfiling.css";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 export default function AdminSolicitudCredito() {
   const { t } = useTranslation();
@@ -156,7 +158,7 @@ export default function AdminSolicitudCredito() {
         await downloadSolicitudCreditoPdf(full, solicitudCreditoNombre(full));
       }
     } catch (err) {
-      window.alert(err.message || t("solicitudCredito.saveError"));
+      notify(err.message || t("solicitudCredito.saveError"));
     } finally {
       setSaving(false);
     }
@@ -169,14 +171,14 @@ export default function AdminSolicitudCredito() {
       if (!full) throw new Error(t("solicitudCredito.notFound"));
       await downloadSolicitudCreditoPdf(full, solicitudCreditoNombre(full));
     } catch (err) {
-      window.alert(err.message || t("solicitudCredito.pdfError"));
+      notify(err.message || t("solicitudCredito.pdfError"));
     } finally {
       setBusyPdfId(null);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     await db.deleteSolicitudCredito(id);
     if (current?.id === id) {
       setCurrent(null);
@@ -185,7 +187,7 @@ export default function AdminSolicitudCredito() {
     load();
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div>

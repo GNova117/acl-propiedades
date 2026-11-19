@@ -5,6 +5,7 @@ import Reveal from "./Reveal";
 import { formatMXN } from "../lib/format";
 import { pickVideoTours, posterFrameUrl } from "../lib/videoTours";
 import "./VideoTours.css";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 function TourCard({ property, src, active, onPlay }) {
   const { t } = useTranslation();
@@ -38,7 +39,7 @@ function TourCard({ property, src, active, onPlay }) {
           <span aria-hidden="true">▶</span>
         </button>
       )}
-      <Link to={`/propiedades/${property.id}`} className="video-tours__info">
+      <Link to={propertyPath(property)} className="video-tours__info">
         <strong>{property.title}</strong>
         <span>{formatMXN(property.price)} · {property.zone}</span>
       </Link>

@@ -5,6 +5,8 @@ import { whatsappDigits } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
 import VisitScheduleEditor from "../../components/VisitScheduleEditor";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { notify } from "../../lib/toast";
 
 const EMPTY = { name: "", phone: "", email: "", whatsapp: "", bio: "" };
 
@@ -93,14 +95,14 @@ export default function AdminMyProfile() {
       setPhotoFile(null);
       setSaved(true);
     } catch (err) {
-      window.alert(err.message || "Error al guardar");
+      notify(err.message || "Error al guardar");
     } finally {
       setSaving(false);
     }
   };
 
   if (advisorId == null) return <div className="empty-state">{t("accessControl.restricted")}</div>;
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
   if (notFound) return <div className="empty-state">{t("accessControl.restricted")}</div>;
 
   return (

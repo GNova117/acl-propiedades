@@ -6,6 +6,7 @@ import { docTypesForClientType, isPdfDoc } from "../../lib/format";
 import { downloadClientDocumentAsPdf } from "../../lib/clientDocPdf";
 import DocumentPreviewModal from "../../components/DocumentPreviewModal";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
 
 function clientTypeLabel(t, type) {
   return t(`clients.${type === "comprador" ? "buyer" : type === "vendedor" ? "seller" : "both"}`);
@@ -75,7 +76,7 @@ export default function AdminClientJoint() {
     }
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   if (!link || !clientA || !clientB) {
     return (
@@ -114,7 +115,7 @@ export default function AdminClientJoint() {
         </Link>
       </div>
 
-      <div className="admin-dashboard-panels" style={{ marginBottom: "1.5rem" }}>
+      <div className="admin-dashboard-panels mb-6">
         {people.map((person) => (
           <div className="card admin-dashboard-panel" key={person.id}>
             <div className="admin-dashboard-panel__header">
@@ -123,10 +124,10 @@ export default function AdminClientJoint() {
                 {t("common.edit")}
               </Link>
             </div>
-            <p className="form-hint" style={{ marginTop: 0 }}>{clientTypeLabel(t, person.type)}</p>
+            <p className="form-hint mt-0">{clientTypeLabel(t, person.type)}</p>
             <p style={{ margin: "0.2rem 0" }}>{person.phone || "—"}</p>
             <p style={{ margin: "0.2rem 0" }}>{person.email || "—"}</p>
-            <div className="admin-form__actions" style={{ marginTop: "0.75rem" }}>
+            <div className="admin-form__actions mt-3">
               <Link to={`/admin/clientes/${person.id}/perfilamiento`} className="btn btn-outline btn-sm">
                 {t("profiling.title")}
               </Link>

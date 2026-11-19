@@ -5,11 +5,12 @@
 
 import { buildVisitEmail, DEFAULT_SITE_URL } from "../_shared/visitEmail.js";
 
-export const KINDS = ["solicitud", "confirmacion", "reprogramada", "cancelacion"];
+export const KINDS = ["solicitud", "confirmacion", "reprogramada", "cancelacion", "encuesta"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Devuelve { status, body }. Lanza solo si falla la carga o el envío (el servidor responde 500).
-export async function handleVisitEmail({ cita_id: citaId, kind } = {}, { loadCita, sendEmail, siteUrl = DEFAULT_SITE_URL, now = new Date() }) {
+// `claimSurvey(citaId)` → true solo la primera vez (la encuesta no se manda dos veces si se marca «Realizada» de nuevo).
+export async function handleVisitEmail({ cita_id: citaId, kind } = {}, { loadCita, sendEmail, claimSurvey, siteUrl = DEFAULT_SITE_URL, now = new Date() }) {
   if (!citaId || !KINDS.includes(kind)) return { status: 400, body: { error: "Faltan cita_id o kind válido" } };
 
   const cita = await loadCita(citaId);
@@ -20,8 +21,10 @@ export async function handleVisitEmail({ cita_id: citaId, kind } = {}, { loadCit
 
   // El trigger manda el aviso al cambiar la fila; si para cuando corre esto la cita ya cambió otra
   // vez (p. ej. se canceló justo después de reservar), se manda lo que corresponde a su estado actual.
-  const expected = kind === "cancelacion" ? "cancelada" : kind === "solicitud" ? "solicitada" : "confirmada";
+  const expected = kind === "cancelacion" ? "cancelada" : kind === "solicitud" ? "solicitada" : kind === "encuesta" ? "realizada" : "confirmada";
   if ((cita.status || "confirmada") !== expected) return { status: 200, body: { skipped: `la cita ya está ${cita.status}` } };
+
+  if (kind === "encuesta" && claimSurvey && !(await claimSurvey(citaId))) return { status: 200, body: { skipped: "la encuesta ya se mandó" } };
 
   const email = buildVisitEmail(kind, cita, { siteUrl, now });
   const sent = await sendEmail({ to, subject: email.subject, html: email.html, text: email.text, attachments: email.attachments });

@@ -38,14 +38,9 @@ export default function Header() {
 
   useEffect(() => {
     db.getPropertyTypes().then(setPropertyTypes).catch(() => setPropertyTypes([]));
-    db.getProperties({ activeOnly: true, types: NAV_TYPE_KEYS })
-      .then((properties) => {
-        const next = {};
-        properties.forEach((p) => {
-          next[p.type] = (next[p.type] || 0) + 1;
-        });
-        setTypeCounts(next);
-      })
+    // Solo los conteos por tipo (antes bajaba todas las propiedades activas).
+    db.getTypeCounts()
+      .then((counts) => setTypeCounts(Object.fromEntries(NAV_TYPE_KEYS.map((key) => [key, counts[key] || 0]))))
       .catch(() => setTypeCounts(null));
   }, []);
 
@@ -65,7 +60,7 @@ export default function Header() {
           <Logo size="sm" />
         </NavLink>
 
-        <nav className={`site-nav ${open ? "site-nav--open" : ""}`} aria-label="Navegación principal">
+        <nav className={`site-nav ${open ? "site-nav--open" : ""}`} aria-label={t("a11y.mainNav")}>
           <ul>
             {visibleNavItems.map((item) => (
               <li key={item.to}>
@@ -86,7 +81,7 @@ export default function Header() {
             type="button"
             className="site-header__burger"
             onClick={() => setOpen((v) => !v)}
-            aria-label="Abrir menú"
+            aria-label={t("a11y.openMenu")}
             aria-expanded={open}
           >
             <span />

@@ -1,0 +1,68 @@
+.sticky-price-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 150; /* debajo del encabezado del sitio (200) */
+  display: none; /* solo en computadora */
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-110%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.sticky-price-bar.is-visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (min-width: 981px) {
+  .sticky-price-bar {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sticky-price-bar {
+    transition: none;
+  }
+}
+
+.sticky-price-bar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+
+.sticky-price-bar__info {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.sticky-price-bar__price {
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  white-space: nowrap;
+}
+
+.sticky-price-bar__title {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sticky-price-bar__actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-2);
+}

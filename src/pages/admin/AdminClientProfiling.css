@@ -23,7 +23,7 @@
   grid-column: 1 / -1;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 860px) {
   .profiling-grid {
     grid-template-columns: 1fr;
   }
@@ -44,7 +44,7 @@
   margin: 0;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 860px) {
   .profiling-read {
     grid-template-columns: 1fr;
   }

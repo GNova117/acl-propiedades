@@ -16,7 +16,7 @@ export const firstStageWithProspects = (prospects) =>
   PROSPECT_STAGES.find((stage) => prospects.some((p) => p.stage === stage)) ||
   PROSPECT_STAGES[0];
 
-export const todayISO = () => new Date().toLocaleDateString("en-CA");
+export const todayISO = (now = new Date()) => now.toLocaleDateString("en-CA");
 
 // Días enteros desde una fecha/hora ISO (0 = hoy). null si no hay fecha.
 export function daysSince(iso) {

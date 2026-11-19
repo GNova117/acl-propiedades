@@ -7,8 +7,8 @@
   height: 3.5rem;
   border: 0;
   border-radius: 50%;
-  background: var(--color-primary);
-  color: #fff;
+  background: var(--color-primary-solid);
+  color: var(--color-on-primary);
   font-size: 2rem;
   line-height: 1;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
@@ -82,7 +82,7 @@
 .quick-capture__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(5, 10, 20, 0.6);
+  background: var(--color-scrim);
 }
 
 /* En celular sube desde abajo como una hoja; en pantalla grande queda centrada. */
@@ -95,7 +95,7 @@
   border-radius: 14px 14px 0 0;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 641px) {
   .quick-capture {
     align-items: center;
     padding: 1rem;

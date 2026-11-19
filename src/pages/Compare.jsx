@@ -6,6 +6,9 @@ import { useCompare } from "../context/CompareContext";
 import { db } from "../lib/dataStore";
 import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./Compare.css";
+import LoadingState from "../components/LoadingState";
+import EmptyState from "../components/EmptyState";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 export default function Compare() {
   const { t } = useTranslation();
@@ -44,23 +47,22 @@ export default function Compare() {
 
   return (
     <>
-      <Seo title={t("compare.title")} description={t("compare.subtitle")} />
+      <Seo title={t("compare.title")} description={t("compare.subtitle")} noindex />
 
       <div className="container properties-page">
-        <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
+        <div className="section-heading m-section">
           <h2>{t("compare.title")}</h2>
           <p>{t("compare.subtitle")}</p>
         </div>
 
         {loading ? (
-          <div className="empty-state">{t("common.loading")}</div>
+          <LoadingState />
         ) : properties.length === 0 ? (
-          <div className="empty-state">
-            <p>{t("compare.empty")}</p>
+          <EmptyState illustration="compare" title={t("emptyState.compareTitle")} text={t("compare.empty")}>
             <Link to="/propiedades" className="btn btn-primary">
               {t("compare.browseCta")}
             </Link>
-          </div>
+          </EmptyState>
         ) : (
           <>
             <div className="compare-table-wrapper">
@@ -72,7 +74,7 @@ export default function Compare() {
                       <th key={property.id}>
                         <div className="compare-table__column-head">
                           {property.main_image && <img src={property.main_image} alt={property.title} loading="lazy" decoding="async" />}
-                          <Link to={`/propiedades/${property.id}`}>{property.title}</Link>
+                          <Link to={propertyPath(property)}>{property.title}</Link>
                           {property.code && <span className="compare-table__code">{property.code}</span>}
                           <button type="button" className="btn btn-outline btn-sm" onClick={() => removeFromCompare(property.id)}>
                             {t("compare.removeOne")}
@@ -95,7 +97,7 @@ export default function Compare() {
                     <th className="compare-table__row-label"></th>
                     {properties.map((property) => (
                       <td key={property.id}>
-                        <Link to={`/propiedades/${property.id}`} className="btn btn-primary btn-sm">
+                        <Link to={propertyPath(property)} className="btn btn-primary btn-sm">
                           {t("properties.viewDetail")}
                         </Link>
                       </td>

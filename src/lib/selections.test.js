@@ -6,8 +6,13 @@ import {
   SELECTION_VALID_DAYS,
   TITLE_MAX,
   agoText,
+  REACTION_COMMENT_MAX,
+  cleanReaction,
   cleanSelectionInput,
   defaultSelectionTitle,
+  nextReaction,
+  reactionOf,
+  reactionSummary,
   openedSelection,
   selectionState,
   selectionUrl,
@@ -160,5 +165,35 @@ describe("selectionShareMessage", () => {
     expect(text).toContain("Hola,");
     expect(text).toContain("una propiedad");
     expect(text).not.toContain("— ");
+  });
+});
+
+describe("reacciones del cliente", () => {
+  it("limpia el comentario y valida la reacción", () => {
+    expect(cleanReaction({ reaction: "like", comment: "  Me encanta  " })).toEqual({ reaction: "like", comment: "Me encanta" });
+    expect(cleanReaction({ reaction: null, comment: "   " })).toEqual({ reaction: null, comment: null });
+    expect(cleanReaction({})).toEqual({ reaction: null, comment: null });
+    expect(cleanReaction({ reaction: "maybe" }).error).toBe("invalid_reaction");
+    expect(cleanReaction({ comment: "x".repeat(REACTION_COMMENT_MAX + 1) }).error).toBe("invalid_comment");
+    expect(cleanReaction({ comment: "x".repeat(REACTION_COMMENT_MAX) }).error).toBeUndefined();
+  });
+
+  it("tocar la reacción puesta la quita; tocar la otra la cambia", () => {
+    expect(nextReaction(null, "like")).toBe("like");
+    expect(nextReaction("like", "like")).toBeNull();
+    expect(nextReaction("like", "dislike")).toBe("dislike");
+  });
+
+  it("resume solo las propiedades de la selección", () => {
+    const reactions = {
+      a: { r: "like", c: "Bonita" },
+      b: { r: "dislike", c: null },
+      c: { r: null, c: "Pregunta por el precio" },
+      fuera: { r: "like", c: "No está en la selección" },
+    };
+    expect(reactionSummary(reactions, ["a", "b", "c", "d"])).toEqual({ like: 1, dislike: 1, comments: 2 });
+    expect(reactionSummary(null, ["a"])).toEqual({ like: 0, dislike: 0, comments: 0 });
+    expect(reactionOf(reactions, "a")).toEqual({ r: "like", c: "Bonita" });
+    expect(reactionOf(reactions, "zzz")).toBeNull();
   });
 });

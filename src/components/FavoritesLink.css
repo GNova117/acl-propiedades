@@ -10,8 +10,8 @@
   height: 16px;
   padding: 0 3px;
   border-radius: 999px;
-  background: #e0245e;
-  color: #fff;
+  background: var(--color-favorite);
+  color: var(--color-on-primary);
   font-size: 0.65rem;
   font-weight: 700;
   line-height: 16px;

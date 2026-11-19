@@ -19,6 +19,7 @@ import {
 } from "../../lib/visitReport";
 import "./admin.css";
 import "./AdminVisits.css";
+import LoadingState from "../../components/LoadingState";
 
 // Registrar o corregir una visita. Se abre desde /admin/visitas (con "Registrar
 // visita") o desde el informe de una propiedad (?propiedad=<id>, que deja la
@@ -143,7 +144,7 @@ export default function AdminVisitForm() {
     return <span className="form-error">{errors[field] === "future" ? t("visits.form.futureDate") : t("contact.required")}</span>;
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   // Sin señal la visita/cita quedó en la cola de este dispositivo (lib/offlineQueue.js): se avisa en vez de navegar a algo que todavía no existe.
   if (savedOffline) {

@@ -120,7 +120,11 @@ function fitImage(img, maxWidth, maxHeight) {
 
 // `template` permite inyectar los bytes de la plantilla (pruebas fuera del
 // navegador); en la app se descarga desde /public.
-export async function buildFichaTecnicaPdf(property, { typeLabel, statusLabel, template } = {}) {
+// `publicVersion`: la que descarga el cliente desde la ficha pública. NO lleva los datos de los
+// asesores (la ficha pública a propósito no publica su teléfono ni correo: el interesado deja
+// sus datos y el asesor le marca); en su lugar va el contacto de la oficina y la dirección de
+// la ficha en línea (`office`: { phone, email, url }).
+export async function buildFichaTecnicaPdf(property, { typeLabel, statusLabel, template, publicVersion = false, office } = {}) {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
 
   const templateBytes =
@@ -273,7 +277,7 @@ export async function buildFichaTecnicaPdf(property, { typeLabel, statusLabel, t
     sidebarBottomY = sy;
   };
 
-  await drawAdvisorsSidebar(property.advisors || []);
+  await drawAdvisorsSidebar(publicVersion ? [] : property.advisors || []);
 
   await drawTitle("FICHA TECNICA DE LA PROPIEDAD");
   await drawSubtitle(sanitize(property.title).toUpperCase());
@@ -314,6 +318,14 @@ export async function buildFichaTecnicaPdf(property, { typeLabel, statusLabel, t
     }
   }
 
+  if (publicVersion && office) {
+    y -= LINE_HEIGHT * 0.5;
+    await drawSubtitle("CONTACTO");
+    if (office.phone) await drawField("Telefono y WhatsApp", office.phone);
+    if (office.email) await drawField("Correo", office.email);
+    if (office.url) await drawField("Ficha en linea", office.url);
+  }
+
   return doc.save();
 }
 
@@ -337,7 +349,7 @@ export async function downloadFichaTecnicaPdf(property, options) {
   const safeName = fileSafe(property.title) || "Propiedad";
   const link = document.createElement("a");
   link.href = url;
-  link.download = `FichaTecnica_${safeName}_${stamp}.pdf`;
+  link.download = `${options?.publicVersion ? "Ficha" : "FichaTecnica"}_${safeName}_${stamp}.pdf`;
   document.body.appendChild(link);
   link.click();
   link.remove();

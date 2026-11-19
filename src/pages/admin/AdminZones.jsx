@@ -6,6 +6,7 @@ import { applyPropertyTypeLabels } from "../../lib/propertyTypeLabels";
 import InlineRename from "../../components/InlineRename";
 import { LAGUNA_CITIES, cityOfZone } from "../../lib/zones";
 import "./admin.css";
+import { confirmDialog, notify } from "../../lib/toast";
 
 const normalize = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
@@ -74,7 +75,7 @@ export default function AdminZones() {
       setTimeout(() => setSavedId(null), 1500);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al guardar la zona");
+      notify(err.message || "Error al guardar la zona");
     } finally {
       setSavingId(null);
     }
@@ -84,7 +85,7 @@ export default function AdminZones() {
   // renombra también (ver db.renameZone), así que se avisa antes si hay alguna.
   const handleRenameZone = async (zone, name) => {
     const inUse = propertyCountByZone(zone.name);
-    if (inUse > 0 && !window.confirm(t("zones.renameConfirm", { count: inUse, name }))) return;
+    if (inUse > 0 && !await confirmDialog(t("zones.renameConfirm", { count: inUse, name }))) return;
     await db.renameZone(zone.id, name);
     load();
   };
@@ -110,20 +111,20 @@ export default function AdminZones() {
       setNewLandPrice("");
       load();
     } catch (err) {
-      window.alert(err.message || "Error al agregar la zona");
+      notify(err.message || "Error al agregar la zona");
     } finally {
       setAdding(false);
     }
   };
 
   const handleDelete = async (zone) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     setDeletingId(zone.id);
     try {
       await db.deleteZone(zone.id);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al eliminar la zona");
+      notify(err.message || "Error al eliminar la zona");
     } finally {
       setDeletingId(null);
     }
@@ -138,20 +139,20 @@ export default function AdminZones() {
       setNewTypeLabel("");
       load();
     } catch (err) {
-      window.alert(err.message || "Error al agregar el tipo de propiedad");
+      notify(err.message || "Error al agregar el tipo de propiedad");
     } finally {
       setAddingType(false);
     }
   };
 
   const handleDeleteType = async (type) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     setDeletingTypeId(type.id);
     try {
       await db.deletePropertyType(type.id);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al eliminar el tipo de propiedad");
+      notify(err.message || "Error al eliminar el tipo de propiedad");
     } finally {
       setDeletingTypeId(null);
     }
@@ -163,7 +164,7 @@ export default function AdminZones() {
       await db.togglePropertyTypeActive(type.id, type.active === false);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al cambiar el estado del tipo de propiedad");
+      notify(err.message || "Error al cambiar el estado del tipo de propiedad");
     } finally {
       setTogglingTypeId(null);
     }
@@ -176,7 +177,7 @@ export default function AdminZones() {
       await db.updatePropertyTypeImage(type.id, file);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al subir la imagen");
+      notify(err.message || "Error al subir la imagen");
     } finally {
       setUploadingImageId(null);
     }
@@ -191,20 +192,20 @@ export default function AdminZones() {
       setNewAmenityLabel("");
       load();
     } catch (err) {
-      window.alert(err.message || "Error al agregar la amenidad");
+      notify(err.message || "Error al agregar la amenidad");
     } finally {
       setAddingAmenity(false);
     }
   };
 
   const handleDeleteAmenity = async (amenity) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     setDeletingAmenityId(amenity.id);
     try {
       await db.deleteAmenity(amenity.id);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al eliminar la amenidad");
+      notify(err.message || "Error al eliminar la amenidad");
     } finally {
       setDeletingAmenityId(null);
     }
@@ -215,7 +216,7 @@ export default function AdminZones() {
       <div className="admin-header">
         <h1>{t("admin.zones")}</h1>
       </div>
-      <p className="form-hint" style={{ marginTop: "-0.5rem", marginBottom: "1.25rem" }}>{t("zones.pricesDisclaimer")}</p>
+      <p className="form-hint mt-n2 mb-5">{t("zones.pricesDisclaimer")}</p>
 
       <form className="card admin-form" onSubmit={handleAdd} style={{ maxWidth: 480, marginBottom: "1.5rem" }}>
         <h2 className="profiling-section-title">{t("admin.newZone")}</h2>
@@ -333,7 +334,7 @@ export default function AdminZones() {
         })}
       </div>
 
-      <div className="admin-header" style={{ marginTop: "2.5rem" }}>
+      <div className="admin-header mt-10">
         <h1>{t("admin.propertyTypes")}</h1>
       </div>
 
@@ -401,7 +402,7 @@ export default function AdminZones() {
         })}
       </div>
 
-      <div className="admin-header" style={{ marginTop: "2.5rem" }}>
+      <div className="admin-header mt-10">
         <h1>{t("admin.amenities")}</h1>
       </div>
 

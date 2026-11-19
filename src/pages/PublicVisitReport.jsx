@@ -9,6 +9,8 @@ import { db } from "../lib/dataStore";
 import { formatVisitDate } from "../lib/visitReport";
 import { visitPdfLabels } from "../lib/visitReportLabels";
 import "./PublicVisitReport.css";
+import LoadingState from "../components/LoadingState";
+import { notify } from "../lib/toast";
 
 // Informe de visitas que recibe el vendedor por un enlace privado
 // (/informe/<token>): solo lectura, sin iniciar sesión, sin nombres de
@@ -66,7 +68,7 @@ export default function PublicVisitReport() {
       const { payload } = state;
       await downloadVisitReportPdf(payload, visitPdfLabels(t, i18n.language, payload, new Date()), `informe-visitas-${payload.property.code || "acl"}`);
     } catch (err) {
-      window.alert(err.message || t("visits.report.pdfError"));
+      notify(err.message || t("visits.report.pdfError"));
     } finally {
       setPdfBusy(false);
     }
@@ -87,7 +89,7 @@ export default function PublicVisitReport() {
       <main className="public-report__main">
         <h1>{t("visits.public.title")}</h1>
 
-        {state.status === "loading" && <p className="public-report__status">{t("common.loading")}</p>}
+        {state.status === "loading" && <LoadingState variant="lines" />}
 
         {state.status === "invalid" && (
           <div className="card public-report__notice">

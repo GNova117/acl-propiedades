@@ -1,0 +1,33 @@
+.rich-description p,
+.rich-description ul,
+.rich-description ol {
+  margin: 0 0 var(--space-3);
+}
+
+.rich-description p {
+  line-height: var(--leading-relaxed);
+}
+
+.rich-description ul,
+.rich-description ol {
+  padding-left: var(--space-6);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+}
+
+/* index.css quita las viñetas de todas las listas; aquí sí se ven. */
+.rich-description ul {
+  list-style: disc;
+}
+
+.rich-description ol {
+  list-style: decimal;
+}
+
+.rich-description li {
+  margin-bottom: var(--space-1);
+}
+
+.rich-description > :last-child {
+  margin-bottom: 0;
+}

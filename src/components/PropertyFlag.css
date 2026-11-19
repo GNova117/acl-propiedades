@@ -6,16 +6,16 @@
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.03em;
-  color: #ffffff;
+  color: var(--color-on-primary);
   white-space: nowrap;
 }
 
 .property-flag--new {
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
 }
 
 .property-flag--priceDrop {
-  background: var(--color-danger);
+  background: var(--color-danger-solid);
 }
 
 .property-flag--card {
@@ -25,7 +25,7 @@
 }
 
 .property-price-was {
-  color: var(--color-text-muted, #6b7280);
+  color: var(--color-text-muted);
   font-size: 0.85rem;
   font-weight: 500;
   text-decoration: line-through;

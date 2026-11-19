@@ -25,6 +25,8 @@ import {
 } from "../../lib/propertyLog";
 import "./admin.css";
 import "./AdminPropertyBitacora.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 const emptyForm = (kind = "gasto", entry_date = todayIso()) => ({
   kind,
@@ -212,13 +214,13 @@ export default function AdminPropertyBitacora({ listPath = "/admin/propiedades" 
   };
 
   const handleDelete = async (entry) => {
-    if (!window.confirm(t("propertyLog.confirmDelete"))) return;
+    if (!await confirmDialog(t("propertyLog.confirmDelete"))) return;
     try {
       await db.deletePropertyLogEntry(entry.id);
       if (editing?.id === entry.id) resetForm();
       load();
     } catch (err) {
-      window.alert(err.message || t("propertyLog.saveError"));
+      notify(err.message || t("propertyLog.saveError"));
     }
   };
 
@@ -232,7 +234,7 @@ export default function AdminPropertyBitacora({ listPath = "/admin/propiedades" 
       setBudgetSaved(true);
       setTimeout(() => setBudgetSaved(false), 2000);
     } catch (err) {
-      window.alert(err.message || t("propertyLog.saveError"));
+      notify(err.message || t("propertyLog.saveError"));
     } finally {
       setBudgetSaving(false);
     }
@@ -250,7 +252,7 @@ export default function AdminPropertyBitacora({ listPath = "/admin/propiedades" 
     ]);
   };
 
-  if (loading && !property) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading && !property) return <LoadingState />;
 
   const isGasto = form.kind === "gasto";
 

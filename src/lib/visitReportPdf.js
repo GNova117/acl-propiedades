@@ -69,6 +69,7 @@ function wrapText(text, font, size, maxWidth) {
 // labels: {
 //   title, propertyLine, zoneStatusLine, generatedLine,
 //   summary, daysOnMarket, totalVisits, interested, discarded, withOfferNote (string|null), untilSale (string|null),
+//   onlineTitle, onlineVisitors, onlineWeek, onlineFavorites, onlineShares (opcionales: el bloque «Interés en línea»),
 //   reasonsTitle, reasonsNote, reasonsEmpty, reasonLabel(key), reasonsPrefix,
 //   logTitle, logNote, logEmpty, interestLabel(key), formatDateTime(iso)
 // }
@@ -148,16 +149,31 @@ export async function buildVisitReportPdf(payload, labels, { template, now = new
   const tileGap = 10;
   const tileW = (CONTENT_WIDTH - tileGap * 3) / 4;
   const tileH = 56;
-  await ensureSpace(tileH + 12);
-  const tilesTop = y;
-  tiles.forEach((tile, i) => {
-    const x = MARGIN_LEFT + i * (tileW + tileGap);
-    page.drawRectangle({ x, y: tilesTop - tileH, width: tileW, height: tileH, borderColor: hairline, borderWidth: 0.75, color: pale });
-    page.drawText(sanitize(tile.label), { x: x + 8, y: tilesTop - 15, size: 8, font: regular, color: gray });
-    page.drawText(sanitize(String(tile.value)), { x: x + 8, y: tilesTop - 38, size: 22, font: bold, color: black });
-    if (tile.note) page.drawText(sanitize(tile.note), { x: x + 8, y: tilesTop - 50, size: 7.5, font: regular, color: gray });
-  });
-  y = tilesTop - tileH - LINE_HEIGHT * 1.2;
+  const drawTiles = async (row) => {
+    await ensureSpace(tileH + 12);
+    const tilesTop = y;
+    row.forEach((tile, i) => {
+      const x = MARGIN_LEFT + i * (tileW + tileGap);
+      page.drawRectangle({ x, y: tilesTop - tileH, width: tileW, height: tileH, borderColor: hairline, borderWidth: 0.75, color: pale });
+      page.drawText(sanitize(tile.label), { x: x + 8, y: tilesTop - 15, size: 8, font: regular, color: gray });
+      page.drawText(sanitize(String(tile.value)), { x: x + 8, y: tilesTop - 38, size: 22, font: bold, color: black });
+      if (tile.note) page.drawText(sanitize(tile.note), { x: x + 8, y: tilesTop - 50, size: 7.5, font: regular, color: gray });
+    });
+    y = tilesTop - tileH - LINE_HEIGHT * 1.2;
+  };
+  await drawTiles(tiles);
+
+  // ── Interés en línea (solo si el informe lo trae y hay con qué rotularlo) ──
+  const interest = payload?.interest;
+  if (interest && labels.onlineTitle) {
+    await drawSubtitle(labels.onlineTitle);
+    await drawTiles([
+      { label: labels.onlineVisitors, value: interest.unique_visitors ?? 0 },
+      { label: labels.onlineWeek, value: interest.views_7d ?? 0 },
+      { label: labels.onlineFavorites, value: interest.favorites ?? 0 },
+      { label: labels.onlineShares, value: interest.shares ?? 0 },
+    ]);
+  }
 
   // ── Motivos ──
   await drawSubtitle(labels.reasonsTitle);

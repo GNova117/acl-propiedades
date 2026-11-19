@@ -7,6 +7,7 @@ import { buildMonthlyReport } from "../../lib/monthlyReport";
 import { KPI_ROWS, downloadMonthlyReportPdf, formatChange } from "../../lib/monthlyReportPdf";
 import "./admin.css";
 import "./AdminMonthlyReport.css";
+import { notify } from "../../lib/toast";
 
 const MONTHS_BACK = 18;
 
@@ -93,7 +94,7 @@ export default function AdminMonthlyReport() {
     try {
       await downloadMonthlyReportPdf(report, pdfLabels());
     } catch (err) {
-      window.alert(err.message || t("monthly.pdfError"));
+      notify(err.message || t("monthly.pdfError"));
     } finally {
       setBusy(false);
     }
@@ -172,7 +173,7 @@ export default function AdminMonthlyReport() {
                 </tbody>
               </table>
             </div>
-            <p className="form-hint" style={{ marginBottom: 0 }}>
+            <p className="form-hint mb-0">
               {t("monthly.scopeNote")}
             </p>
           </div>

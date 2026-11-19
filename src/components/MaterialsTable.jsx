@@ -5,6 +5,7 @@ import { db } from "../lib/dataStore";
 import { formatMXN } from "../lib/format";
 import { computeMaterialsTotals } from "../lib/materialsTotals";
 import "./MaterialsTable.css";
+import LoadingState from "./LoadingState";
 
 function uid() {
   return `mat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -79,7 +80,7 @@ export default function MaterialsTable({ materials, onChange }) {
       (row.unit_price_external !== "" && row.unit_price_external != null)
   );
 
-  if (loadingCatalog) return <p className="form-hint">{t("common.loading")}</p>;
+  if (loadingCatalog) return <LoadingState variant="lines" />;
 
   if (catalog.length === 0) {
     return (

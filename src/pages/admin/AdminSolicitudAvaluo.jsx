@@ -20,6 +20,8 @@ import {
 } from "../../lib/solicitudAvaluo";
 import "./AdminClientProfiling.css";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 export default function AdminSolicitudAvaluo() {
   const { t } = useTranslation();
@@ -182,7 +184,7 @@ export default function AdminSolicitudAvaluo() {
         await downloadSolicitudAvaluoOfficialPdf(full, solicitudAvaluoNombre(full));
       }
     } catch (err) {
-      window.alert(err.message || t("solicitudAvaluo.saveError"));
+      notify(err.message || t("solicitudAvaluo.saveError"));
     } finally {
       setSaving(false);
     }
@@ -195,14 +197,14 @@ export default function AdminSolicitudAvaluo() {
       if (!full) throw new Error(t("solicitudAvaluo.notFound"));
       await downloadSolicitudAvaluoOfficialPdf(full, solicitudAvaluoNombre(full));
     } catch (err) {
-      window.alert(err.message || t("solicitudAvaluo.pdfError"));
+      notify(err.message || t("solicitudAvaluo.pdfError"));
     } finally {
       setBusyPdfId(null);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     await db.deleteSolicitudAvaluo(id);
     if (current?.id === id) {
       setCurrent(null);
@@ -211,7 +213,7 @@ export default function AdminSolicitudAvaluo() {
     load();
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div>

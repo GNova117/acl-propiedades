@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import "./InlineRename.css";
+import { notify } from "../lib/toast";
 
 // Título de una tarjeta del admin con un botón "Editar" que lo vuelve un campo
 // de texto. `value` es lo que se muestra; `editValue` es con lo que arranca el
@@ -30,7 +31,7 @@ export default function InlineRename({ value, editValue = value, onSave, label }
       await onSave(next);
       setEditing(false);
     } catch (err) {
-      window.alert(err.message || "Error");
+      notify(err.message || "Error");
     } finally {
       setSaving(false);
     }

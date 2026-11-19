@@ -15,6 +15,7 @@ import {
 } from "../lib/marketStats";
 import { MarketDots, MarketScatter } from "./MarketChart";
 import "./MarketComparables.css";
+import { confirmDialog, notify } from "../lib/toast";
 
 const MUNICIPALITY_OPTIONS = MUNICIPALITIES.filter((m) => m !== "Otro");
 const MAX_NEGOTIATION_PCT = 30;
@@ -139,7 +140,7 @@ export default function MarketComparables({ zoneName, builtArea, landArea, tabul
     });
 
   const handleDelete = async () => {
-    if (!snapshot?.id || !window.confirm(t("valuation.market.confirmDelete"))) return;
+    if (!snapshot?.id || !await confirmDialog(t("valuation.market.confirmDelete"))) return;
     try {
       await db.deleteMarketSnapshot(snapshot.id);
       const rest = history.filter((s) => s.id !== snapshot.id);
@@ -147,7 +148,7 @@ export default function MarketComparables({ zoneName, builtArea, landArea, tabul
       setSnapshot(rest[0] || null);
       setExcluded(new Set());
     } catch (err) {
-      window.alert(err.message || t("valuation.market.deleteError"));
+      notify(err.message || t("valuation.market.deleteError"));
     }
   };
 

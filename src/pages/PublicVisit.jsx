@@ -10,8 +10,11 @@ import { OFFICE_WHATSAPP } from "../lib/office";
 import { citaToIcs, downloadIcs, mapsUrl } from "../lib/calendarEvent";
 import { MAX_RESCHEDULES } from "../lib/visitSlots";
 import { useSlotSelection } from "../lib/useSlotSelection";
+import { rememberItem } from "../lib/mySpace";
 import { bookingToCalendarEvent, formatSlotDay, formatSlotTime } from "../lib/visitBookingUi";
 import "./PublicVisit.css";
+import LoadingState from "../components/LoadingState";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 // Página pública /visita/<token>: el cliente que reservó una visita desde la ficha
 // confirma que va a asistir, cambia el horario (con un horario libre del mismo
@@ -199,6 +202,12 @@ export default function PublicVisit() {
   const address = property?.address || data?.lugar || "";
   const when = data?.fecha ? `${formatSlotDay(data.fecha, locale)} · ${formatSlotTime(data.hora, locale)}` : "";
 
+  // «Mi espacio»: queda anotada esta visita en el dispositivo (ver lib/mySpace.js).
+  useEffect(() => {
+    if (state.status === "loading" || state.status === "invalido" || state.status === "error" || !label) return;
+    rememberItem({ kind: "visit", token, title: label, detail: when });
+  }, [state.status, token, label, when]);
+
   const confirmAttendance = async () => {
     setBusy(true);
     setNotice(null);
@@ -246,7 +255,7 @@ export default function PublicVisit() {
       </header>
 
       <main className="visit-page__main">
-        {status === "loading" && <p className="form-hint">{t("common.loading")}</p>}
+        {status === "loading" && <LoadingState variant="lines" />}
 
         {status === "invalido" && (
           <div className="card visit-page__notice">
@@ -285,7 +294,7 @@ export default function PublicVisit() {
                   <div>
                     <strong>{label}</strong>
                     {property.address && <p className="form-hint">📍 {property.address}</p>}
-                    <Link to={`/propiedades/${property.id}`}>{t("visitPage.viewProperty")}</Link>
+                    <Link to={propertyPath(property)}>{t("visitPage.viewProperty")}</Link>
                   </div>
                 </div>
               )}
@@ -374,7 +383,7 @@ export default function PublicVisit() {
               <section className="card visit-page__card">
                 <p>{t(isPast ? "visitPage.pastNote" : `visitPage.statusNote.${status}`)}</p>
                 {property && !isRequested && (
-                  <Link className="btn btn-primary" to={`/propiedades/${property.id}`}>
+                  <Link className="btn btn-primary" to={propertyPath(property)}>
                     {t("visitPage.bookAnother")}
                   </Link>
                 )}

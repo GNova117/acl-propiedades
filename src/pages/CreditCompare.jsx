@@ -8,6 +8,7 @@ import { COMPARE_DEFAULTS, compareCredits } from "../lib/creditCompare";
 import { isValidPhone, sendLead } from "../lib/lead";
 import "./PublicForms.css";
 import "./CreditCompare.css";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 // Comparador de opciones de compra (Infonavit, banco y contado) para una casa
 // concreta. Se llega desde la ficha de una propiedad (?propiedad=<id>, que trae
@@ -126,7 +127,7 @@ export default function CreditCompare() {
     <>
       <Seo title={t("creditCompare.seoTitle")} description={t("creditCompare.subtitle")} />
       <div className="container public-form-page credit-compare">
-        <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
+        <div className="section-heading m-section">
           <h1 style={{ fontSize: "2rem" }}>{t("creditCompare.title")}</h1>
           <p>{t("creditCompare.subtitle")}</p>
         </div>
@@ -135,7 +136,7 @@ export default function CreditCompare() {
           {property && (
             <p className="credit-compare__property">
               {t("creditCompare.forProperty")}{" "}
-              <Link to={`/propiedades/${property.id}`}>
+              <Link to={propertyPath(property)}>
                 <strong>{property.title}</strong>
               </Link>
             </p>
@@ -205,7 +206,7 @@ export default function CreditCompare() {
             return (
               <article key={key} className={`card credit-option credit-option--${key}${unavailable ? " is-disabled" : ""}`}>
                 <h2>{t(`creditCompare.options.${key}`)}</h2>
-                <p className="form-hint" style={{ marginTop: 0 }}>
+                <p className="form-hint mt-0">
                   {t(`creditCompare.optionsHint.${key}`)}
                 </p>
                 {unavailable ? (
@@ -234,16 +235,16 @@ export default function CreditCompare() {
 
         <p className="form-hint">{t("creditCompare.disclaimer", { closing: form.closingCostsPct })}</p>
 
-        <div className="card public-form-card" style={{ marginTop: "1.5rem" }}>
-          <h2 style={{ marginTop: 0 }}>{t("creditCompare.leadTitle")}</h2>
+        <div className="card public-form-card mt-6">
+          <h2 className="mt-0">{t("creditCompare.leadTitle")}</h2>
           <p className="form-hint">{t("creditCompare.leadSubtitle")}</p>
           {status === "success" ? (
-            <p className="form-hint" style={{ color: "var(--color-success)" }}>
+            <p className="form-hint text-success">
               {t("creditSim.leadSuccess")}
             </p>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
-              <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}>
+              <div aria-hidden="true" className="hp-field">
                 <label htmlFor="cc-empresa">Empresa</label>
                 <input id="cc-empresa" name="empresa" value={lead.empresa} onChange={changeLead} tabIndex={-1} autoComplete="off" />
               </div>
@@ -275,7 +276,7 @@ export default function CreditCompare() {
                 {status === "sending" ? <span className="spinner" /> : null}
                 {status === "sending" ? t("contact.sending") : t("creditSim.leadSubmit")}
               </button>
-              <p className="form-hint" style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+              <p className="form-hint mt-3 mb-0">
                 {t("contact.privacyNotice")} <Link to="/aviso-de-privacidad">{t("contact.privacyLinkLabel")}</Link>.
               </p>
             </form>

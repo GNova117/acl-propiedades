@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatArea } from "../../lib/format";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog } from "../../lib/toast";
 
 export default function AdminRemodelProjects() {
   const { t } = useTranslation();
@@ -23,7 +25,7 @@ export default function AdminRemodelProjects() {
   useEffect(load, []);
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     await db.deleteRemodelProject(id);
     load();
   };
@@ -52,7 +54,7 @@ export default function AdminRemodelProjects() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={4}>{t("common.loading")}</td>
+                <td colSpan={4}><LoadingState variant="rows" /></td>
               </tr>
             ) : projects.length === 0 ? (
               <tr>

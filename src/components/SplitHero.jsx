@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { browserVideoConditions, heroMedia, shouldPlayVideo } from "../lib/heroMedia";
 import "./SplitHero.css";
+
+// Foto o video propio de La Laguna (variables VITE_HERO_*, ver lib/heroMedia.js): reemplaza a la foto de stock del panel
+// «Propiedades». Sin ellas, todo queda como siempre.
+const HERO = heroMedia(import.meta.env);
 
 const PANELS = [
   { key: "properties", path: "/propiedades", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1400&q=80" },
@@ -19,9 +24,11 @@ const PANELS = [
 export default function SplitHero({ propertyTypes = [] }) {
   const { t } = useTranslation();
   const [hovered, setHovered] = useState(null);
+  // El video solo se reproduce si la persona no pidió menos movimiento, no ahorra datos y la conexión aguanta.
+  const playVideo = Boolean(HERO.video) && shouldPlayVideo(browserVideoConditions());
 
   const panels = PANELS.map((panel) => {
-    if (!panel.typeKey) return { ...panel, active: true };
+    if (!panel.typeKey) return { ...panel, image: HERO.image || panel.image, video: playVideo ? HERO.video : null, poster: HERO.poster, active: true };
     const type = propertyTypes.find((pt) => pt.key === panel.typeKey);
     return { ...panel, image: type?.image_url || panel.image, active: !type || type.active !== false };
   });
@@ -56,6 +63,7 @@ export default function SplitHero({ propertyTypes = [] }) {
             onBlur={() => setHovered(null)}
           >
             <div className="split-hero__image" style={{ backgroundImage: `url(${panel.image})` }} />
+            {panel.video && <video className="split-hero__video" src={panel.video} poster={panel.poster || undefined} autoPlay muted loop playsInline preload="metadata" aria-hidden="true" tabIndex={-1} />}
             <div className="split-hero__overlay" />
             <div className="split-hero__content">
               <h2>{t(`splitHero.${panel.key}.title`)}</h2>

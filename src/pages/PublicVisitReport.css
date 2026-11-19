@@ -80,7 +80,7 @@
   color: var(--color-text-muted);
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .public-report__actions .btn {
     width: 100%;
   }

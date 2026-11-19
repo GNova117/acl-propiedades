@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOfflineQueue } from "../lib/useOfflineQueue";
 import "./OfflineBanner.css";
+import { confirmDialog } from "../lib/toast";
 
 const formatWhen = (iso) => new Date(iso).toLocaleString("es-MX", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
 
@@ -73,8 +74,8 @@ export default function OfflineBanner() {
                 <button
                   type="button"
                   className="btn btn-outline btn-sm"
-                  onClick={() => {
-                    if (window.confirm(t("offline.op.confirmDiscard"))) discard(op.id);
+                  onClick={async () => {
+                    if (await confirmDialog(t("offline.op.confirmDiscard"))) discard(op.id);
                   }}
                 >
                   {t("offline.op.discard")}

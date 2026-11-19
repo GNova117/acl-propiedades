@@ -6,6 +6,7 @@ import { formatMXN, propertyTypeLabel } from "../lib/format";
 import { describeCriteria } from "../lib/alertMatch";
 import { isValidPhone } from "../lib/lead";
 import "./AlertSignupCard.css";
+import { trackConversion } from "../lib/conversions";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -99,6 +100,7 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
         /* sin almacenamiento */
       }
       setStatus(result?.duplicate ? "duplicate" : "success");
+      if (!result?.duplicate) trackConversion("alert_signup", { mode, property_id: mode === "price" ? property?.id : undefined });
       // Aviso interno: llega a Mensajes (y de ahí a Prospectos) para que el equipo sepa que hay un interesado.
       db.submitContactMessage({
         name: form.name.trim(),
@@ -120,7 +122,7 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
     return (
       <div className="card alert-signup">
         <h2 className="alert-signup__title">{t(`alerts.${variant}.title`)}</h2>
-        <p className="form-hint" style={{ color: "var(--color-success)", marginBottom: 0 }}>
+        <p className="form-hint text-success mb-0">
           {t(status === "duplicate" ? "alerts.duplicate" : `alerts.${variant}.success`, { channel })}
         </p>
       </div>
@@ -155,7 +157,7 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
       )}
 
       <form onSubmit={handleSubmit} noValidate>
-        <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}>
+        <div aria-hidden="true" className="hp-field">
           <label htmlFor={`alert-${mode}-empresa`}>Empresa</label>
           <input id={`alert-${mode}-empresa`} name="empresa" value={form.empresa} onChange={change} tabIndex={-1} autoComplete="off" />
         </div>
@@ -215,7 +217,7 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
           {status === "sending" ? <span className="spinner" /> : null}
           {t(`alerts.${variant}.submit`)}
         </button>
-        <p className="form-hint" style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+        <p className="form-hint mt-3 mb-0">
           {t("alerts.consent", { channel })} <Link to="/aviso-de-privacidad">{t("contact.privacyLinkLabel")}</Link>.
         </p>
       </form>

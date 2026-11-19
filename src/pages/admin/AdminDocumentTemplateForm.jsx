@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { AVAILABLE_PLACEHOLDERS } from "../../lib/documentTemplates";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { notify } from "../../lib/toast";
 
 const EMPTY = { name: "", body: "", custom_fields: [], requires_signatures: true, active: true };
 const FIELD_TYPES = ["text", "number", "date"];
@@ -100,13 +102,13 @@ export default function AdminDocumentTemplateForm() {
       }
       navigate("/admin/plantillas-documentos");
     } catch (err) {
-      window.alert(err.message || t("documentTemplates.saveError"));
+      notify(err.message || t("documentTemplates.saveError"));
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div>
@@ -126,7 +128,7 @@ export default function AdminDocumentTemplateForm() {
           <textarea id="dt-body" ref={bodyRef} rows={14} value={form.body} onChange={handleChange("body")} />
           <p className="form-hint">{t("documentTemplates.fields.bodyHint")}</p>
           {errors.body && <span className="form-error">{errors.body}</span>}
-          <div className="admin-zones-grid" style={{ marginTop: "0.75rem" }}>
+          <div className="admin-zones-grid mt-3">
             {AVAILABLE_PLACEHOLDERS.map((ph) => (
               <button
                 key={ph.key}
@@ -195,7 +197,7 @@ export default function AdminDocumentTemplateForm() {
 
         <div className="form-field">
           <label>
-            <input type="checkbox" checked={form.requires_signatures} onChange={handleChange("requires_signatures")} style={{ marginRight: "0.5rem" }} />
+            <input type="checkbox" checked={form.requires_signatures} onChange={handleChange("requires_signatures")} className="mr-2" />
             {t("documentTemplates.fields.requiresSignatures")}
           </label>
           <p className="form-hint">{t("documentTemplates.fields.requiresSignaturesHint")}</p>
@@ -203,7 +205,7 @@ export default function AdminDocumentTemplateForm() {
 
         <div className="form-field">
           <label>
-            <input type="checkbox" checked={form.active} onChange={handleChange("active")} style={{ marginRight: "0.5rem" }} />
+            <input type="checkbox" checked={form.active} onChange={handleChange("active")} className="mr-2" />
             {t("common.active")}
           </label>
           <p className="form-hint">{t("documentTemplates.fields.activeHint")}</p>

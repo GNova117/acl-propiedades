@@ -16,6 +16,7 @@ import {
 import "../../components/VisitReportView.css";
 import "./admin.css";
 import "./AdminVisits.css";
+import LoadingState from "../../components/LoadingState";
 
 // Informes del mes para los propietarios: una fila por propiedad con lo que
 // pasó ese mes (visitas, interesados, motivo más repetido) y desde ahí se abre
@@ -107,7 +108,7 @@ export default function AdminVisitReports() {
           <tbody>
             {!rows ? (
               <tr>
-                <td colSpan={7}>{t("common.loading")}</td>
+                <td colSpan={7}><LoadingState variant="rows" /></td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>

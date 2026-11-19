@@ -5,6 +5,8 @@ import { useAuth } from "../../context/AuthContext";
 import { formatMXN, propertyTypeLabel, whatsappDigits } from "../../lib/format";
 import { describeCriteria } from "../../lib/alertMatch";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 // Alertas que pidieron los visitantes del sitio (avisos por WhatsApp de propiedades
 // nuevas y de bajas de precio). El personal las ve, las apaga o borra y puede pasar
@@ -43,15 +45,15 @@ export default function AdminAlerts() {
     try {
       await action();
     } catch (err) {
-      window.alert(err.message || t("alerts.admin.actionError"));
+      notify(err.message || t("alerts.admin.actionError"));
     } finally {
       setBusyId(null);
     }
   };
 
   const toggle = (a) => run(a.id, async () => { await db.setAlertActive(a.id, !a.active); load(); });
-  const remove = (a) => {
-    if (!window.confirm(t("alerts.admin.confirmDelete"))) return;
+  const remove = async (a) => {
+    if (!await confirmDialog(t("alerts.admin.confirmDelete"))) return;
     return run(a.id, async () => { await db.deleteAlert(a.id); load(); });
   };
 
@@ -61,7 +63,7 @@ export default function AdminAlerts() {
       return p ? (
         <>
           <strong>{p.title}</strong>
-          <span className="form-hint" style={{ display: "block", margin: 0 }}>
+          <span className="form-hint d-block m-0">
             {t("alerts.admin.priceThen")}: {formatMXN(a.price_at_subscribe)} → {t("alerts.admin.priceNow")}: {formatMXN(p.price)}
           </span>
         </>
@@ -79,7 +81,7 @@ export default function AdminAlerts() {
   const makeProspect = (a) =>
     run(a.id, async () => {
       const existing = prospects.find((p) => last10(p.phone) && last10(p.phone) === last10(a.phone));
-      if (existing && !window.confirm(t("alerts.admin.prospectExists", { name: existing.name }))) return;
+      if (existing && !await confirmDialog(t("alerts.admin.prospectExists", { name: existing.name }))) return;
       const summary = a.kind === "price" ? propertyById[a.property_id]?.title || "" : detail(a);
       await db.addProspect({
         name: a.name,
@@ -98,7 +100,7 @@ export default function AdminAlerts() {
         next_followup_at: null,
         lost_reason: null,
       });
-      window.alert(t("alerts.admin.prospectCreated"));
+      notify(t("alerts.admin.prospectCreated"));
       load();
     });
 
@@ -139,7 +141,7 @@ export default function AdminAlerts() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6}>{t("common.loading")}</td>
+                <td colSpan={6}><LoadingState variant="rows" /></td>
               </tr>
             ) : shown.length === 0 ? (
               <tr>
@@ -150,7 +152,7 @@ export default function AdminAlerts() {
                 <tr key={a.id}>
                   <td>
                     <strong>{a.name}</strong>
-                    <span className="form-hint" style={{ display: "block", margin: 0 }}>
+                    <span className="form-hint d-block m-0">
                       {a.contact_method === "email" ? (
                         <a href={`mailto:${a.email}`}>{a.email}</a>
                       ) : (
@@ -162,9 +164,9 @@ export default function AdminAlerts() {
                   </td>
                   <td>{t(`alerts.admin.kind_${a.kind}`)}</td>
                   <td style={{ whiteSpace: "normal", maxWidth: 320 }}>{detail(a)}</td>
-                  <td className="form-hint" style={{ whiteSpace: "normal" }}>
+                  <td className="form-hint ws-normal">
                     {t("alerts.admin.created")}: {fmt(a.created_at)}
-                    <span style={{ display: "block" }}>
+                    <span className="d-block">
                       {t("alerts.admin.lastNotified")}: {fmt(a.last_notified_at)}
                     </span>
                   </td>

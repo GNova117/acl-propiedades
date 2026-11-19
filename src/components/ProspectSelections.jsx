@@ -5,7 +5,9 @@ import { queries } from "../lib/queries";
 import { useQuery } from "../lib/useQuery";
 import { whatsappDigits, whatsappUrl } from "../lib/format";
 import { selectionShareMessage } from "../lib/propertyShare";
-import { agoText, defaultSelectionTitle, selectionState, selectionUrl, selectionsFor } from "../lib/selections";
+import { agoText, defaultSelectionTitle, reactionSummary, selectionState, selectionUrl, selectionsFor } from "../lib/selections";
+import "./SelectionReaction.css";
+import { confirmDialog } from "../lib/toast";
 
 const NONE = [];
 
@@ -17,6 +19,8 @@ const NONE = [];
 export default function ProspectSelections({ prospect, advisorName = "", onNew, onSent }) {
   const { t, i18n } = useTranslation();
   const selectionsQ = useQuery(queries.selections);
+  const propertiesQ = useQuery(queries.properties);
+  const titleOf = (id) => (propertiesQ.data ?? NONE).find((p) => p.id === id)?.title || "—";
   const mine = useMemo(() => selectionsFor(prospect.id, selectionsQ.data ?? NONE), [prospect.id, selectionsQ.data]);
   const [copied, setCopied] = useState("");
   const [error, setError] = useState("");
@@ -40,7 +44,7 @@ export default function ProspectSelections({ prospect, advisorName = "", onNew, 
   };
 
   const revoke = async (selection) => {
-    if (!window.confirm(t("selection.list.confirmRevoke"))) return;
+    if (!await confirmDialog(t("selection.list.confirmRevoke"))) return;
     setError("");
     try {
       const updated = await db.revokeSelection(selection.id);
@@ -92,6 +96,32 @@ export default function ProspectSelections({ prospect, advisorName = "", onNew, 
                 </span>
                 {active && <span className="form-hint">{t("selection.list.validUntil", { date: day(selection.expires_at) })}</span>}
               </div>
+              {(() => {
+                const summary = reactionSummary(selection.reactions, selection.property_ids);
+                if (summary.like + summary.dislike + summary.comments === 0) return null;
+                const entries = selection.property_ids.filter((id) => selection.reactions?.[id]);
+                return (
+                  <details className="selection-feedback">
+                    <summary>
+                      {t("selectionReactions.summary", { like: summary.like, dislike: summary.dislike, comments: summary.comments })}
+                    </summary>
+                    <ul>
+                      {entries.map((id) => {
+                        const entry = selection.reactions[id];
+                        return (
+                          <li key={id}>
+                            <span>
+                              {entry.r === "like" ? "👍 " : entry.r === "dislike" ? "👎 " : "💬 "}
+                              <strong>{titleOf(id)}</strong>
+                            </span>
+                            {entry.c && <span>“{entry.c}”</span>}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </details>
+                );
+              })()}
               <div className="prospect-selections__actions">
                 {active && (
                   <button type="button" className="btn btn-outline btn-sm" onClick={() => copyLink(selection)}>

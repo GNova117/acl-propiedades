@@ -8,6 +8,7 @@ import { buildContractPdf, downloadContractPdf } from "../lib/contractPdf";
 import SignatureModal from "./SignatureModal";
 import SigningCredentials from "./SigningCredentials";
 import { bytesToBase64 } from "../lib/signing";
+import { notify } from "../lib/toast";
 
 // Generador de documentos con datos del cliente y de la propiedad (recibo de
 // apartado, autorización de venta, carta oferta). Vive en Documentos legales.
@@ -76,7 +77,7 @@ export default function ContractGenerator() {
     try {
       await downloadContractPdf(content);
     } catch (err) {
-      window.alert(err.message || t("contracts.error"));
+      notify(err.message || t("contracts.error"));
     } finally {
       setBusy(false);
     }
@@ -103,7 +104,7 @@ export default function ContractGenerator() {
       });
       setCredentials({ request: { ...created, title, signer_name: client.name }, phone: client.phone });
     } catch (err) {
-      window.alert(err.message || t("contracts.sendError"));
+      notify(err.message || t("contracts.sendError"));
     } finally {
       setBusy(false);
     }
@@ -121,7 +122,7 @@ export default function ContractGenerator() {
       await db.addClientDocument({ client_id: client.id, doc_type: "contrato", blob, quality_metrics: {} });
       setSavedTo(client.id);
     } catch (err) {
-      window.alert(err.message || t("contracts.saveError"));
+      notify(err.message || t("contracts.saveError"));
     } finally {
       setBusy(false);
     }
@@ -178,9 +179,9 @@ export default function ContractGenerator() {
 
   return (
     <div className="card" style={{ padding: "1.25rem", marginTop: "2rem" }}>
-      <h2 style={{ marginTop: 0 }}>{t("contracts.title")}</h2>
+      <h2 className="mt-0">{t("contracts.title")}</h2>
       <p className="form-hint">{t("contracts.subtitle")}</p>
-      <p className="form-hint" style={{ color: "var(--color-danger)" }}>
+      <p className="form-hint text-danger">
         {t("contracts.disclaimer")}
       </p>
 
@@ -245,7 +246,7 @@ export default function ContractGenerator() {
 
       <fieldset className="form-field" style={{ border: "1px solid var(--color-border)", borderRadius: "var(--radius-md, 10px)", padding: "0.9rem" }}>
         <legend style={{ padding: "0 0.4rem", fontWeight: 600 }}>{t("contracts.signaturesTitle")}</legend>
-        <p className="form-hint" style={{ marginTop: 0 }}>{t("contracts.signaturesHint")}</p>
+        <p className="form-hint mt-0">{t("contracts.signaturesHint")}</p>
         {["client", "office"].map((role) => (
           <div key={role} style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
             <span style={{ minWidth: 150 }}>{t(`contracts.signer_${role}`)}</span>
@@ -268,7 +269,7 @@ export default function ContractGenerator() {
             )}
           </div>
         ))}
-        <p className="form-hint" style={{ marginBottom: 0 }}>{t("contracts.signatureNote")}</p>
+        <p className="form-hint mb-0">{t("contracts.signatureNote")}</p>
       </fieldset>
 
       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
@@ -284,12 +285,12 @@ export default function ContractGenerator() {
         </button>
       </div>
       {credentials && (
-        <div style={{ marginTop: "1rem" }}>
+        <div className="mt-4">
           <SigningCredentials request={credentials.request} phone={credentials.phone} onClose={() => setCredentials(null)} />
         </div>
       )}
       {savedTo && (
-        <p className="form-hint" style={{ color: "var(--color-success)", marginTop: "0.75rem" }}>
+        <p className="form-hint text-success mt-3">
           {t("contracts.saved")} <Link to={`/admin/clientes/${savedTo}/documentos`}>{t("contracts.openFile")}</Link>
         </p>
       )}

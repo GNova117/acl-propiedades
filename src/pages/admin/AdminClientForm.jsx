@@ -7,6 +7,8 @@ import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteGroups, clientSheetData, client
 import { downloadMultiPerfilamientoPdf } from "../../lib/perfilamientoPdf";
 import InternalNotes from "../../components/InternalNotes";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 // Mismos tipos que soporta el perfilamiento (ver FieldInput en
 // PerfilamientoManager.jsx). Un campo sensible (la contraseña del portal de
@@ -146,7 +148,7 @@ export default function AdminClientForm() {
       }
       await downloadMultiPerfilamientoPdf(entries, "Cliente");
     } catch (err) {
-      window.alert(err.message || "Error al generar el PDF");
+      notify(err.message || "Error al generar el PDF");
     } finally {
       setDownloadingPdf(false);
     }
@@ -175,7 +177,7 @@ export default function AdminClientForm() {
       }
       navigate("/admin/clientes");
     } catch (err) {
-      window.alert(err.message || "Error al guardar");
+      notify(err.message || "Error al guardar");
     } finally {
       setSaving(false);
     }
@@ -187,7 +189,7 @@ export default function AdminClientForm() {
     try {
       const targetAlreadyLinked = await db.getClientLink(linkTargetId);
       if (targetAlreadyLinked) {
-        window.alert(t("clients.linkTargetAlreadyLinked", { name: targetAlreadyLinked.other_client?.name || targetAlreadyLinked.client_a_id }));
+        notify(t("clients.linkTargetAlreadyLinked", { name: targetAlreadyLinked.other_client?.name || targetAlreadyLinked.client_a_id }));
         return;
       }
       const created = await db.linkClients(id, linkTargetId, linkLabel);
@@ -196,26 +198,26 @@ export default function AdminClientForm() {
       setLinkTargetId("");
       setLinkLabel("");
     } catch (err) {
-      window.alert(err.message || "Error al vincular");
+      notify(err.message || "Error al vincular");
     } finally {
       setLinkBusy(false);
     }
   };
 
   const handleUnlink = async () => {
-    if (!link || !window.confirm(t("clients.confirmUnlink"))) return;
+    if (!link || !await confirmDialog(t("clients.confirmUnlink"))) return;
     setLinkBusy(true);
     try {
       await db.unlinkClients(link.id);
       setLink(null);
     } catch (err) {
-      window.alert(err.message || "Error al quitar el vínculo");
+      notify(err.message || "Error al quitar el vínculo");
     } finally {
       setLinkBusy(false);
     }
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div>
@@ -319,7 +321,7 @@ export default function AdminClientForm() {
         {form.financiamiento === "infonavit" && (
           <>
             <h3 style={{ margin: "0.5rem 0 0" }}>{t("clients.expedienteSection")}</h3>
-            <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{t("clients.expedienteSectionHint")}</p>
+            <p className="form-hint mt-n2">{t("clients.expedienteSectionHint")}</p>
             {clientExpedienteGroups(form.type)
               .filter((group) => group.key !== "personal")
               .map((group) => (
@@ -341,7 +343,7 @@ export default function AdminClientForm() {
 
         <div className="form-field">
           <label>
-            <input type="checkbox" checked={form.active} onChange={handleChange("active")} style={{ marginRight: "0.5rem" }} />
+            <input type="checkbox" checked={form.active} onChange={handleChange("active")} className="mr-2" />
             {t("common.active")}
           </label>
         </div>
@@ -357,9 +359,9 @@ export default function AdminClientForm() {
         </div>
       </form>
 
-      <div className="card admin-form" style={{ marginTop: "1.25rem" }}>
-        <h3 style={{ marginTop: 0 }}>{t("clients.jointTitle")}</h3>
-        <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{t("clients.jointSubtitle")}</p>
+      <div className="card admin-form mt-5">
+        <h3 className="mt-0">{t("clients.jointTitle")}</h3>
+        <p className="form-hint mt-n2">{t("clients.jointSubtitle")}</p>
 
         {link ? (
           <>

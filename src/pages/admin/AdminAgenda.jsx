@@ -8,10 +8,15 @@ import { citaToIcs, downloadIcs, mapsUrl } from "../../lib/calendarEvent";
 import { canRegisterVisit, citaContact, citaStatus, citaToVisitPrefill, isFromSite, isOpenRequest, isPending, statusActions, visitLink, visitLinkTextKey } from "../../lib/agendaCitas";
 import { formatIsoDate } from "../../lib/propertyLog";
 import CopyVisitLinkButton from "../../components/CopyVisitLinkButton";
+import AgendaTimeGrid from "../../components/AgendaTimeGrid";
+import AgendaFeedCard from "../../components/AgendaFeedCard";
+import { shiftIso, weekDays } from "../../lib/agendaWeek";
 import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
 import "./AdminAgenda.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 const pad2 = (n) => String(n).padStart(2, "0");
 const isoOf = (date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
@@ -56,6 +61,7 @@ export default function AdminAgenda() {
   // pinta al instante y se actualiza al llegar lo nuevo. Las visitas registradas (para saber qué citas
   // ya tienen la suya) solo se piden con el apartado Visitas.
   const citasQ = useQuery(queries.citas);
+  const feedbackQ = useQuery(queries.visitFeedback);
   const advisorsQ = useQuery(queries.advisors);
   const clientsQ = useQuery(queries.clients());
   const propertiesQ = useQuery(queries.properties);
@@ -73,12 +79,13 @@ export default function AdminAgenda() {
   // El calendario es la vista de entrada; la lista (con todas las acciones) queda a un toque y se recuerda en
   // la dirección (?vista=lista) para que «atrás» desde una cita regrese a la misma vista.
   const [searchParams, setSearchParams] = useSearchParams();
-  const view = searchParams.get("vista") === "lista" ? "list" : "calendar";
+  const VIEW_PARAM = { list: "lista", week: "semana", day: "dia" };
+  const view = { lista: "list", semana: "week", dia: "day" }[searchParams.get("vista")] || "calendar";
   const setView = (next) =>
     setSearchParams(
       (prev) => {
         const params = new URLSearchParams(prev);
-        if (next === "list") params.set("vista", "lista");
+        if (VIEW_PARAM[next]) params.set("vista", VIEW_PARAM[next]);
         else params.delete("vista");
         return params;
       },
@@ -97,7 +104,7 @@ export default function AdminAgenda() {
   const load = () => citasQ.reload().catch(() => {});
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     await db.deleteAgendaCita(id);
     load();
   };
@@ -133,13 +140,13 @@ export default function AdminAgenda() {
   // toma para sí; administración (sin asesor vinculado) la asigna a quien elija. Gana la primera persona que llega.
   const takeRequest = async (cita, chosenId) => {
     if (!chosenId) return;
-    if (!window.confirm(t(seesAll ? "agenda.assignConfirm" : "agenda.takeConfirm", { when: whenLabel(cita), name: advisorName(chosenId) }))) return;
+    if (!await confirmDialog(t(seesAll ? "agenda.assignConfirm" : "agenda.takeConfirm", { when: whenLabel(cita), name: advisorName(chosenId) }))) return;
     setBusyId(cita.id);
     try {
       const res = await db.claimVisitRequest(cita.id, { advisorId: chosenId });
-      if (res?.error) window.alert(t(res.error === "already_taken" || res.error === "not_found" ? "agenda.alreadyTaken" : "agenda.takeError"));
+      if (res?.error) notify(t(res.error === "already_taken" || res.error === "not_found" ? "agenda.alreadyTaken" : "agenda.takeError"));
     } catch {
-      window.alert(t("agenda.takeError"));
+      notify(t("agenda.takeError"));
     }
     setBusyId(null);
     load();
@@ -163,13 +170,13 @@ export default function AdminAgenda() {
     try {
       await db.setAgendaCitaStatus(cita.id, status, { reason });
     } catch (err) {
-      window.alert(err.message || t("agenda.statusError"));
+      notify(err.message || t("agenda.statusError"));
       setBusyId(null);
       return;
     }
     setBusyId(null);
     // Al cerrar una visita como realizada se ofrece registrarla (así alimenta el informe de la propiedad).
-    if (status === "realizada" && canLogVisits && canRegisterVisit(cita) && !visitByCita.has(cita.id) && window.confirm(t("agenda.registerVisitPrompt"))) {
+    if (status === "realizada" && canLogVisits && canRegisterVisit(cita) && !visitByCita.has(cita.id) && await confirmDialog(t("agenda.registerVisitPrompt"))) {
       registerVisit(cita);
       return;
     }
@@ -178,7 +185,7 @@ export default function AdminAgenda() {
       // Una visita reservada desde el sitio con correo: el cliente ya recibe el aviso por correo (trigger
       // notify_visit_email); aquí solo se ofrece, además, avisarle por WhatsApp.
       const emailed = isFromSite(cita) && contact.email;
-      if (contact.phone && window.confirm(t(emailed ? "agenda.notifyCancelledEmailed" : "agenda.notifyCancelled"))) {
+      if (contact.phone && await confirmDialog(t(emailed ? "agenda.notifyCancelledEmailed" : "agenda.notifyCancelled"))) {
         openWhatsApp(contact.phone, t("agenda.cancelledText", { name: contact.name.split(/\s+/)[0], title: cita.titulo, when: whenLabel(cita), advisor: advisorName(cita.advisor_id) }));
       }
     }
@@ -194,6 +201,7 @@ export default function AdminAgenda() {
 
   // Visita ya registrada de cada cita (agenda_citas ↔ property_visits.cita_id).
   const visitByCita = new Map(visits.filter((v) => v.cita_id).map((v) => [v.cita_id, v]));
+  const feedbackByCita = new Map((feedbackQ.data ?? []).map((f) => [f.cita_id, f]));
   const canLogVisits = hasSection("visitas");
   // "Registrar visita": abre el formulario ya prellenado con los datos de la cita.
   const registerVisit = (cita) =>
@@ -243,6 +251,14 @@ export default function AdminAgenda() {
     if (date.getMonth() !== cursor.month || date.getFullYear() !== cursor.year) setCursor({ year: date.getFullYear(), month: date.getMonth() });
   };
   const selectedCitas = citasByDate.get(selectedIso) || [];
+  // Semana y día: se navega de 7 en 7 o de 1 en 1 días a partir del día elegido.
+  const gridDays = view === "week" ? weekDays(selectedIso) : [selectedIso];
+  const stepGrid = (dir) => setSelectedIso((iso) => shiftIso(iso, dir * (view === "week" ? 7 : 1)));
+  const gridDayLabel = (iso) => formatIsoDate(iso, i18n.language, { weekday: "short", day: "numeric", month: "short" });
+  const gridTitle =
+    view === "week"
+      ? `${formatIsoDate(gridDays[0], i18n.language, { day: "numeric", month: "short" })} – ${formatIsoDate(gridDays[6], i18n.language, { day: "numeric", month: "short", year: "numeric" })}`
+      : formatIsoDate(selectedIso, i18n.language, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const selectedTitle = formatIsoDate(selectedIso, i18n.language, { weekday: "long", day: "numeric", month: "long" });
 
   return (
@@ -253,6 +269,12 @@ export default function AdminAgenda() {
           <div className="agenda-view-toggle" role="group" aria-label={t("agenda.viewToggle")}>
             <button type="button" className={`btn btn-sm ${view === "calendar" ? "btn-primary" : "btn-outline"}`} aria-pressed={view === "calendar"} onClick={() => setView("calendar")}>
               {t("agenda.viewCalendar")}
+            </button>
+            <button type="button" className={`btn btn-sm ${view === "week" ? "btn-primary" : "btn-outline"}`} aria-pressed={view === "week"} onClick={() => setView("week")}>
+              {t("agenda.viewWeek")}
+            </button>
+            <button type="button" className={`btn btn-sm ${view === "day" ? "btn-primary" : "btn-outline"}`} aria-pressed={view === "day"} onClick={() => setView("day")}>
+              {t("agenda.viewDay")}
             </button>
             <button type="button" className={`btn btn-sm ${view === "list" ? "btn-primary" : "btn-outline"}`} aria-pressed={view === "list"} onClick={() => setView("list")}>
               {t("agenda.viewList")}
@@ -305,7 +327,7 @@ export default function AdminAgenda() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={seesAll ? 5 : 4}>{t("common.loading")}</td>
+                  <td colSpan={seesAll ? 5 : 4}><LoadingState variant="rows" /></td>
                 </tr>
               ) : visibleCitas.length === 0 ? (
                 <tr>
@@ -358,6 +380,15 @@ export default function AdminAgenda() {
                           )}
                           {visitByCita.has(cita.id) && cita.prospecto_id && hasSection("prospectos") && " · "}
                           {cita.prospecto_id && hasSection("prospectos") && <Link to={`/admin/prospectos/${cita.prospecto_id}`}>{t("agenda.viewProspect")}</Link>}
+                        </div>
+                      )}
+                      {feedbackByCita.has(cita.id) && (
+                        <div className="agenda-feedback">
+                          <span aria-label={t("surveyAdmin.ratingAria", { rating: feedbackByCita.get(cita.id).rating })}>
+                            {"★".repeat(feedbackByCita.get(cita.id).rating)}
+                            <span className="agenda-feedback__off">{"★".repeat(5 - feedbackByCita.get(cita.id).rating)}</span>
+                          </span>{" "}
+                          {feedbackByCita.get(cita.id).comment ? `“${feedbackByCita.get(cita.id).comment}”` : t("surveyAdmin.noComment")}
                         </div>
                       )}
                       {cita.lugar && (
@@ -453,6 +484,33 @@ export default function AdminAgenda() {
             </tbody>
           </table>
         </div>
+      ) : view === "week" || view === "day" ? (
+        <div className="card agenda-calendar">
+          <div className="agenda-calendar__nav">
+            <button type="button" className="btn btn-outline btn-sm" onClick={() => stepGrid(-1)} aria-label={t(view === "week" ? "agenda.prevWeek" : "agenda.prevDay")}>
+              ‹
+            </button>
+            <strong className="agenda-calendar__title">{gridTitle}</strong>
+            <button type="button" className="btn btn-outline btn-sm" onClick={() => stepGrid(1)} aria-label={t(view === "week" ? "agenda.nextWeek" : "agenda.nextDay")}>
+              ›
+            </button>
+            <button type="button" className="btn btn-outline btn-sm agenda-calendar__today" onClick={goToday}>
+              {t("agenda.today")}
+            </button>
+          </div>
+          {loading ? (
+            <LoadingState variant="lines" />
+          ) : (
+            <AgendaTimeGrid
+              days={gridDays}
+              citasByDate={citasByDate}
+              todayIso={todayIso}
+              dayLabel={gridDayLabel}
+              contactName={(cita) => contactOf(cita).name}
+              onOpenRequest={() => setView("list")}
+            />
+          )}
+        </div>
       ) : (
         <div className="card agenda-calendar">
           <div className="agenda-calendar__nav">
@@ -528,7 +586,7 @@ export default function AdminAgenda() {
           <section className="agenda-day" aria-live="polite">
             <h2 className="agenda-day__title">{selectedTitle}</h2>
             {loading ? (
-              <p className="form-hint">{t("common.loading")}</p>
+              <LoadingState variant="lines" />
             ) : selectedCitas.length === 0 ? (
               <p className="form-hint">{t("agenda.noAppointmentsDay")}</p>
             ) : (
@@ -572,6 +630,7 @@ export default function AdminAgenda() {
           </section>
         </div>
       )}
+      <AgendaFeedCard />
     </div>
   );
 }

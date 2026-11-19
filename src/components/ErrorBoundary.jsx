@@ -1,6 +1,7 @@
 import { Component } from "react";
 import i18n from "../i18n";
 import { trackException } from "../lib/analytics";
+import { reportError } from "../lib/errorReporter";
 import "./ErrorBoundary.css";
 
 // Evita que un error de render en una página deje al visitante viendo una
@@ -19,6 +20,7 @@ export default class ErrorBoundary extends Component {
 
   componentDidCatch(error, info) {
     trackException(error);
+    reportError(error, { source: "react" });
     if (import.meta.env.DEV) {
       // eslint-disable-next-line no-console
       console.error(error, info);

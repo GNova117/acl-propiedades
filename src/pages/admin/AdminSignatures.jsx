@@ -7,6 +7,8 @@ import { SIGNING_MAX_PDF_BYTES, effectiveStatus, fileToBase64, imageFileToFinger
 import { whatsappDigits } from "../../lib/format";
 import { buildSignedPdf, downloadSignedPdf } from "../../lib/signedPdf";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 const STATUS_CLASS = { pendiente: "badge-reserved", firmado: "badge-available", cancelado: "badge-sold", expirado: "badge-sold", bloqueado: "badge-sold" };
 
@@ -103,7 +105,7 @@ export default function AdminSignatures() {
     try {
       await action();
     } catch (err) {
-      window.alert(err.message || fallback);
+      notify(err.message || fallback);
     } finally {
       setBusyId(null);
     }
@@ -116,16 +118,16 @@ export default function AdminSignatures() {
       load();
     }, t("signing.admin.actionError"));
 
-  const cancel = (r) => {
-    if (!window.confirm(t("signing.admin.confirmCancel"))) return;
+  const cancel = async (r) => {
+    if (!await confirmDialog(t("signing.admin.confirmCancel"))) return;
     return run(r.id, async () => {
       await db.updateSigningRequest(r.id, { status: "cancelado" });
       load();
     }, t("signing.admin.actionError"));
   };
 
-  const remove = (r) => {
-    if (!window.confirm(t("signing.admin.confirmDelete"))) return;
+  const remove = async (r) => {
+    if (!await confirmDialog(t("signing.admin.confirmDelete"))) return;
     return run(r.id, async () => {
       await db.deleteSigningRequest(r.id);
       load();
@@ -153,7 +155,7 @@ export default function AdminSignatures() {
       await db.addClientDocument({ client_id: r.client_id, doc_type: "contrato", blob, quality_metrics: {} });
       await db.updateSigningRequest(r.id, { sealed_at: new Date().toISOString() });
       load();
-      window.alert(t("signing.admin.savedToFile"));
+      notify(t("signing.admin.savedToFile"));
     }, t("signing.admin.actionError"));
 
   // ── Huella ──
@@ -166,7 +168,7 @@ export default function AdminSignatures() {
     try {
       setFingerprintPreview(await imageFileToFingerprintPng(imageFile));
     } catch {
-      window.alert(t("signing.admin.badImage"));
+      notify(t("signing.admin.badImage"));
     }
   };
 
@@ -211,14 +213,14 @@ export default function AdminSignatures() {
         </div>
       </div>
 
-      <p className="form-hint" style={{ color: "var(--color-danger)" }}>
+      <p className="form-hint text-danger">
         {t("signing.admin.legalNote")}
       </p>
 
       {credentials && <SigningCredentials request={credentials.request} phone={credentials.phone} onClose={() => setCredentials(null)} />}
 
       {showForm && (
-        <form className="card admin-form" onSubmit={handleCreate} noValidate style={{ marginBottom: "1.5rem" }}>
+        <form className="card admin-form mb-6" onSubmit={handleCreate} noValidate>
           <div className="form-row">
             <div className="form-field">
               <label htmlFor="sg-client">{t("signing.admin.client")} *</label>
@@ -277,7 +279,7 @@ export default function AdminSignatures() {
 
       {fingerprintFor && (
         <div className="card" style={{ padding: "1.25rem", marginBottom: "1.5rem" }}>
-          <h3 style={{ marginTop: 0 }}>{t("signing.admin.fingerprintTitle", { title: fingerprintFor.title })}</h3>
+          <h3 className="mt-0">{t("signing.admin.fingerprintTitle", { title: fingerprintFor.title })}</h3>
           <p className="form-hint">{t("signing.admin.fingerprintHint")}</p>
           <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
             <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && loadFingerprintImage(e.target.files[0])} />
@@ -293,7 +295,7 @@ export default function AdminSignatures() {
               {t("common.cancel")}
             </button>
           </div>
-          <p className="form-hint" style={{ marginBottom: 0, marginTop: "0.75rem" }}>
+          <p className="form-hint mb-0 mt-3">
             {t("signing.admin.fingerprintNote")}
           </p>
         </div>
@@ -315,7 +317,7 @@ export default function AdminSignatures() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5}>{t("common.loading")}</td>
+                <td colSpan={5}><LoadingState variant="rows" /></td>
               </tr>
             ) : requests.length === 0 ? (
               <tr>
@@ -328,7 +330,7 @@ export default function AdminSignatures() {
                   <tr key={r.id}>
                     <td style={{ whiteSpace: "normal", maxWidth: 260 }}>
                       <strong>{r.title}</strong>
-                      <span className="form-hint" style={{ display: "block", margin: 0 }}>
+                      <span className="form-hint d-block m-0">
                         {r.signer_name}
                       </span>
                     </td>
@@ -340,18 +342,18 @@ export default function AdminSignatures() {
                           {t("signing.admin.waiting", { count: signingAgeDays(r) })}
                         </span>
                       )}
-                      {r.fingerprint_at && <span className="form-hint" style={{ display: "block", margin: 0 }}>{t("signing.admin.withFingerprint")}</span>}
+                      {r.fingerprint_at && <span className="form-hint d-block m-0">{t("signing.admin.withFingerprint")}</span>}
                     </td>
-                    <td className="form-hint" style={{ whiteSpace: "normal" }}>
+                    <td className="form-hint ws-normal">
                       {status === "firmado" ? (
                         <>
                           {t("signing.admin.signedAt")}: {fmt(r.signed_at)}
-                          {r.signer_ip ? <span style={{ display: "block" }}>IP {r.signer_ip}</span> : null}
+                          {r.signer_ip ? <span className="d-block">IP {r.signer_ip}</span> : null}
                         </>
                       ) : (
                         <>
                           {t("signing.admin.createdAt")}: {fmt(r.created_at)}
-                          <span style={{ display: "block" }}>
+                          <span className="d-block">
                             {t("signing.admin.expiresAt")}: {fmt(r.expires_at)}
                           </span>
                         </>

@@ -16,8 +16,60 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      # Tipos: los .ts en modo estricto y, de forma gradual, los .js de scripts/typecheck-js-files.txt.
+      - run: npm run typecheck
+      - run: npm run typecheck:js
+      # supabase/schema.sql debe ser la unión de supabase/migrations/ (npm run schema:build).
+      - run: npm run schema:check
       - run: npm run test
       - run: npm run build
+      # Presupuesto de peso: lo que se baja al abrir el sitio no debe crecer sin que se decida (scripts/bundle-budget.json).
+      - run: node scripts/bundleBudget.mjs
+
+  # El SQL del proyecto contra un Postgres de verdad (con lo que Supabase ya trae simulado, ver supabase/testdb/README.md):
+  # se aplican TODAS las migraciones desde cero, una segunda corrida no debe tener nada pendiente y pasan las pruebas de SQL.
+  sql:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Postgres de pruebas
+        run: |
+          sudo systemctl start postgresql.service
+          sudo -u postgres psql -c "alter user postgres password 'postgres'" -c "create database acltest"
+          PGBIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)"
+          sudo env "PATH=$PGBIN:$PATH" bash supabase/testdb/install-stub-extensions.sh
+      - name: Migraciones y pruebas de SQL
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/acltest
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -f supabase/testdb/stubs.sql
+          node scripts/migrate.mjs up
+          node scripts/migrate.mjs up
+          node scripts/testDb.mjs
+
+  # Lighthouse (rendimiento, accesibilidad, SEO) sobre el build, en PC. Falla por accesibilidad < 0.9 o desplazamiento de diseño
+  # > 0.1; lo demás solo avisa. Aviso: la config (lighthouserc.json) NO se ha corrido todavía: los umbrales son una primera
+  # propuesta y puede haber que ajustarlos tras el primer resultado real.
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: ./lighthouserc.json
+          uploadArtifacts: true
 
   # Pruebas de navegador en PC y móvil (ver e2e/README.md). Job aparte para no
   # alargar el de arriba; corren en modo demo, sin tocar ninguna base real.

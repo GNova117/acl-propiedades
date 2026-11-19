@@ -32,7 +32,7 @@ export default function AlertUnsubscribe() {
 
   return (
     <>
-      <Seo title={t("alerts.unsubscribe.title")} description={t("alerts.unsubscribe.text")} />
+      <Seo title={t("alerts.unsubscribe.title")} description={t("alerts.unsubscribe.text")} noindex />
       <div className="container public-form-page">
         <div className="card public-form-card" style={{ marginTop: "2.5rem", textAlign: "center" }}>
           {state === "done" ? (

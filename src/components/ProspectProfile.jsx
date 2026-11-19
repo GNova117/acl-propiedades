@@ -14,6 +14,7 @@ import ProspectMatches from "./ProspectMatches";
 import ProspectSelections from "./ProspectSelections";
 import SelectionBuilder from "./SelectionBuilder";
 import { FollowChip, UnattendedChip } from "./ProspectChips";
+import { confirmDialog } from "../lib/toast";
 
 // Ficha de un prospecto: lo que hay que saber de él y lo que se le hace, sin
 // pasar por el formulario de edición (que queda plegado debajo). Resumen
@@ -66,7 +67,7 @@ export default function ProspectProfile({ prospect: p, properties, advisors, onU
     setBusy(true);
     setError("");
     try {
-      const clientId = await convertProspectToClient(db, p, (existing) => window.confirm(t("prospects.convertExisting", { name: existing.name })));
+      const clientId = await convertProspectToClient(db, p, async (existing) => await confirmDialog(t("prospects.convertExisting", { name: existing.name })));
       if (clientId) navigate(`/admin/clientes/${clientId}`);
     } catch (err) {
       setError(err.message || t("prospects.convertError"));

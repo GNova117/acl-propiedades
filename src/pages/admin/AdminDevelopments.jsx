@@ -5,6 +5,8 @@ import { db } from "../../lib/dataStore";
 import { developmentStats } from "../../lib/developments";
 import { formatMXN } from "../../lib/format";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 export default function AdminDevelopments() {
   const { t } = useTranslation();
@@ -22,13 +24,13 @@ export default function AdminDevelopments() {
   useEffect(load, []);
 
   const handleDelete = async (development) => {
-    if (!window.confirm(t("developments.admin.deleteConfirm"))) return;
+    if (!await confirmDialog(t("developments.admin.deleteConfirm"))) return;
     setDeletingId(development.id);
     try {
       await db.deleteDevelopment(development.id);
       load();
     } catch (err) {
-      window.alert(err.message || t("developments.admin.saveError"));
+      notify(err.message || t("developments.admin.saveError"));
     } finally {
       setDeletingId(null);
     }
@@ -44,12 +46,12 @@ export default function AdminDevelopments() {
           </Link>
         </div>
       </div>
-      <p className="form-hint" style={{ marginTop: "-0.75rem", marginBottom: "1.25rem" }}>
+      <p className="form-hint mt-n3 mb-5">
         {t("developments.admin.subtitle")}
       </p>
 
       {loading ? (
-        <p className="form-hint">{t("common.loading")}</p>
+        <LoadingState variant="lines" />
       ) : developments.length === 0 ? (
         <p className="form-hint">{t("developments.admin.empty")}</p>
       ) : (
@@ -63,7 +65,7 @@ export default function AdminDevelopments() {
                 <span className={`badge ${development.published ? "badge-available" : "badge-sold"}`}>
                   {development.published ? t("developments.admin.published") : t("developments.admin.draft")}
                 </span>
-                <p className="form-hint" style={{ marginTop: "0.5rem" }}>
+                <p className="form-hint mt-2">
                   {development.zone} · {stats.total} deptos
                   {stats.fromPrice != null && <> · {t("developments.card.from", { price: formatMXN(stats.fromPrice) })}</>}
                   <br />

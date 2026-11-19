@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { notify } from "../../lib/toast";
 
 const EMPTY = { title: "", excerpt: "", body: "", published: false };
 
@@ -70,13 +72,13 @@ export default function AdminBlogForm() {
       }
       navigate("/admin/blog");
     } catch (err) {
-      window.alert(err.message || "Error al guardar el artículo");
+      notify(err.message || "Error al guardar el artículo");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div>
@@ -106,12 +108,11 @@ export default function AdminBlogForm() {
         <div className="form-field">
           <label>{t("blog.admin.fields.cover")}</label>
           {preview && (
-            <div style={{ marginBottom: "0.75rem" }}>
+            <div className="mb-3">
               <img src={preview} alt="" style={{ width: "100%", maxWidth: 360, borderRadius: 8, objectFit: "cover" }} />
               <button
                 type="button"
-                className="btn btn-outline btn-sm"
-                style={{ marginTop: "0.5rem" }}
+                className="btn btn-outline btn-sm mt-2"
                 onClick={() => {
                   setCoverFile(null);
                   setRemoveCover(true);
@@ -133,7 +134,7 @@ export default function AdminBlogForm() {
 
         <div className="form-field">
           <label>
-            <input type="checkbox" checked={form.published} onChange={handleChange("published")} style={{ marginRight: "0.5rem" }} />
+            <input type="checkbox" checked={form.published} onChange={handleChange("published")} className="mr-2" />
             {t("blog.admin.fields.published")}
           </label>
           <p className="form-hint">{t("blog.admin.fields.publishedHint")}</p>

@@ -1,9 +1,13 @@
 import { lazy, Suspense, useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import PublicTabBar from "./components/PublicTabBar";
+import PublicInstallBanner from "./components/PublicInstallBanner";
+import { applyManifest } from "./lib/manifest";
 import ChatWidget from "./components/ChatWidget";
+import Toaster from "./components/Toaster";
 import { db } from "./lib/dataStore";
 import { applyPropertyTypeLabels } from "./lib/propertyTypeLabels";
 import RequireSection from "./components/RequireSection";
@@ -20,6 +24,8 @@ import { initAnalytics, trackPageview } from "./lib/analytics";
 // de red por otra y de paso metería un parpadeo de "cargando" en la
 // primera impresión.
 import Home from "./pages/Home";
+import LoadingState from "./components/LoadingState";
+import { installConversionClicks } from "./lib/conversions";
 const Properties = lazy(() => import("./pages/Properties"));
 const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
 const ZoneLanding = lazy(() => import("./pages/ZoneLanding"));
@@ -27,11 +33,13 @@ const Development = lazy(() => import("./pages/Development"));
 const Calculator = lazy(() => import("./pages/Calculator"));
 const SellYourHome = lazy(() => import("./pages/SellYourHome"));
 const CreditCompare = lazy(() => import("./pages/CreditCompare"));
+const CreditSimulator = lazy(() => import("./pages/CreditSimulator"));
 const BuyerGuide = lazy(() => import("./pages/BuyerGuide"));
 const AlertUnsubscribe = lazy(() => import("./pages/AlertUnsubscribe"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Favorites = lazy(() => import("./pages/Favorites"));
+const MySpace = lazy(() => import("./pages/MySpace"));
 const Compare = lazy(() => import("./pages/Compare"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Rights = lazy(() => import("./pages/Rights"));
@@ -45,6 +53,11 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 // páginas del admin mientras cargan datos) cubre el instante de red que
 // tarda en bajar el chunk la primera vez que alguien entra a /admin.
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
+const AdminCommissions = lazy(() => import("./pages/admin/AdminCommissions"));
+const AdminHelp = lazy(() => import("./pages/admin/AdminHelp"));
+const AdminSecurity = lazy(() => import("./pages/admin/AdminSecurity"));
+const AdminErrors = lazy(() => import("./pages/admin/AdminErrors"));
+const AdminPasswordReset = lazy(() => import("./pages/admin/AdminPasswordReset"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminHome = lazy(() => import("./pages/admin/AdminHome"));
@@ -110,6 +123,7 @@ const PublicSign = lazy(() => import("./pages/PublicSign"));
 // ruta /documentos/:token más abajo, igual patrón que /informe/:token y /firmar/:token.
 const PortalDocuments = lazy(() => import("./pages/PortalDocuments"));
 const PublicVisit = lazy(() => import("./pages/PublicVisit"));
+const PublicSurvey = lazy(() => import("./pages/PublicSurvey"));
 const PublicSelection = lazy(() => import("./pages/PublicSelection"));
 const AdminSignatures = lazy(() => import("./pages/admin/AdminSignatures"));
 const AdminFunnel = lazy(() => import("./pages/admin/AdminFunnel"));
@@ -123,6 +137,7 @@ const AdminNovedadesForm = lazy(() => import("./pages/admin/AdminNovedadesForm")
 const SPECIAL_SECTION_KEYS = Object.keys(SPECIAL_SECTION_TYPES);
 
 function PublicLayout({ children }) {
+  const { t } = useTranslation();
   // key={pathname}, no location.search: cambiar de página desvanece el
   // contenido de entrada, pero cambiar solo un filtro (?tipo=casa) en la
   // misma página no — eso ya lo maneja cada página por su cuenta.
@@ -138,23 +153,30 @@ function PublicLayout({ children }) {
     trackPageview(pathname);
   }, [pathname]);
 
+  // Toques a WhatsApp o al teléfono de la oficina, en cualquier parte del sitio público (lib/conversions.js).
+  useEffect(() => installConversionClicks(), []);
+
   return (
     <>
-      <a href="#main-content" className="skip-link">Saltar al contenido</a>
+      <a href="#main-content" className="skip-link">{t("a11y.skipToContent")}</a>
       <Header />
       <SeasonalGarland />
       <main id="main-content" key={pathname} className="page-transition" style={{ flex: 1 }}>
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>
+      <PublicInstallBanner />
       <Footer />
+      <PublicTabBar />
       <ChatWidget />
     </>
   );
 }
 
 export default function App() {
-  const { t } = useTranslation();
   const { pathname } = useLocation();
+
+  // Qué app instalable se ofrece según la zona (pública o panel): ver lib/manifest.js.
+  useEffect(() => applyManifest(pathname), [pathname]);
 
   // Nombres de tipos de propiedad editables desde /admin/zonas: se inyectan en
   // las traducciones para que se vean en todo el sitio (ver propertyTypeLabels.js).
@@ -163,12 +185,14 @@ export default function App() {
   }, []);
 
   return (
-    <Suspense fallback={<div className="empty-state">{t("common.loading")}</div>}>
+    <>
+    <Suspense fallback={<LoadingState />}>
     {!pathname.startsWith("/admin") && !pathname.startsWith("/informe/") && <SeasonalParticles />}
     <Routes>
       <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
       <Route path="/propiedades" element={<PublicLayout><Properties excludeTypes={SPECIAL_SECTION_KEYS} /></PublicLayout>} />
       <Route path="/propiedades/zona/:zoneSlug" element={<PublicLayout><ZoneLanding /></PublicLayout>} />
+      <Route path="/propiedades/zona/:zoneSlug/:colonySlug" element={<PublicLayout><ZoneLanding /></PublicLayout>} />
       <Route path="/propiedades/:id" element={<PublicLayout><PropertyDetail /></PublicLayout>} />
       <Route path="/desarrollos/:slug" element={<PublicLayout><Development /></PublicLayout>} />
       <Route
@@ -190,11 +214,13 @@ export default function App() {
       <Route path="/calculadora" element={<PublicLayout><Calculator /></PublicLayout>} />
       <Route path="/vende-tu-casa" element={<PublicLayout><SellYourHome /></PublicLayout>} />
       <Route path="/comparar-creditos" element={<PublicLayout><CreditCompare /></PublicLayout>} />
+      <Route path="/simulador-credito" element={<PublicLayout><CreditSimulator /></PublicLayout>} />
       <Route path="/guia-del-comprador" element={<PublicLayout><BuyerGuide /></PublicLayout>} />
       <Route path="/alertas/baja/:token" element={<PublicLayout><AlertUnsubscribe /></PublicLayout>} />
       <Route path="/nosotros" element={<PublicLayout><About /></PublicLayout>} />
       <Route path="/contacto" element={<PublicLayout><Contact /></PublicLayout>} />
       <Route path="/favoritos" element={<PublicLayout><Favorites /></PublicLayout>} />
+      <Route path="/mi-espacio" element={<PublicLayout><MySpace /></PublicLayout>} />
       <Route path="/comparar" element={<PublicLayout><Compare /></PublicLayout>} />
       <Route path="/aviso-de-privacidad" element={<PublicLayout><Privacy /></PublicLayout>} />
       <Route path="/carta-de-derechos" element={<PublicLayout><Rights /></PublicLayout>} />
@@ -207,9 +233,11 @@ export default function App() {
       <Route path="/firmar/:token" element={<ErrorBoundary><PublicSign /></ErrorBoundary>} />
       <Route path="/documentos/:token" element={<ErrorBoundary><PortalDocuments /></ErrorBoundary>} />
       <Route path="/visita/:token" element={<ErrorBoundary><PublicVisit /></ErrorBoundary>} />
+      <Route path="/opinion/:token" element={<ErrorBoundary><PublicSurvey /></ErrorBoundary>} />
       <Route path="/seleccion/:token" element={<ErrorBoundary><PublicSelection /></ErrorBoundary>} />
 
       <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/restablecer" element={<AdminPasswordReset />} />
       <Route
         path="/admin"
         element={
@@ -239,6 +267,14 @@ export default function App() {
           element={
             <RequireSection section="bitacora">
               <AdminPropertyBitacora listPath="/admin/naves-industriales" />
+            </RequireSection>
+          }
+        />
+        <Route
+          path="comisiones"
+          element={
+            <RequireSection section="liquidaciones">
+              <AdminCommissions />
             </RequireSection>
           }
         />
@@ -303,6 +339,9 @@ export default function App() {
         <Route path="asesores/:id" element={<RequireSection section="asesores"><AdminAdvisorForm /></RequireSection>} />
         <Route path="mi-perfil" element={<AdminMyProfile />} />
         <Route path="mi-dia" element={<AdminMyDay />} />
+        <Route path="ayuda" element={<AdminHelp />} />
+        <Route path="seguridad" element={<AdminSecurity />} />
+        <Route path="errores" element={<RequireSection section="roles"><AdminErrors /></RequireSection>} />
         <Route path="zonas" element={<RequireSection section="zonas"><AdminZones /></RequireSection>} />
         <Route path="clientes" element={<RequireSection section="clientes"><AdminClients /></RequireSection>} />
         <Route path="clientes/nuevo" element={<RequireSection section="clientes"><AdminClientForm /></RequireSection>} />
@@ -368,5 +407,7 @@ export default function App() {
       <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />
     </Routes>
     </Suspense>
+    <Toaster />
+    </>
   );
 }

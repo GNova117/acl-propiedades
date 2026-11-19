@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { followUpState, unattendedAge, unattendedState } from "../lib/prospects";
 import { agoText, openedSelection } from "../lib/selections";
+import { sequenceMessage } from "../lib/prospectSequence";
 
 // Prospecto que llegó solo y nadie ha contactado: amarillo desde la primera
 // hora, rojo desde las 4.
@@ -35,4 +36,54 @@ export function SelectionChip({ prospect, selections }) {
   const selection = openedSelection(prospect, selections || []);
   if (!selection) return null;
   return <span className="prospect-chip prospect-chip--today">{t("selection.chip.opened", { ago: agoText(selection.last_opened_at, i18n.language) })}</span>;
+}
+
+// Calificación automática (lib/prospectScore.js): caliente, tibio o frío; al pasar el cursor (o con el dedo mantenido) explica por qué.
+const SCORE_ICON = { hot: "🔥", warm: "🌤️", cold: "❄️" };
+export function ScoreChip({ score }) {
+  const { t } = useTranslation();
+  if (!score) return null;
+  const why = score.reasons
+    .slice()
+    .sort((a, b) => Math.abs(b.points) - Math.abs(a.points))
+    .map((r) => `${r.points > 0 ? "+" : ""}${r.points} ${t(`prospectScore.reasons.${r.key}`, { defaultValue: r.key })}`)
+    .join("\n");
+  return (
+    <span className={`prospect-chip prospect-score prospect-score--${score.level}`} title={`${t("prospectScore.title", { score: score.score })}\n${why}`}>
+      <span aria-hidden="true">{SCORE_ICON[score.level]}</span> {t(`prospectScore.levels.${score.level}`)}
+    </span>
+  );
+}
+
+// Secuencia de seguimiento sugerida (lib/prospectSequence.js): qué paso toca y, si ya toca, el mensaje listo en WhatsApp.
+// No manda nada solo; al abrir WhatsApp se ofrece registrar el contacto (eso es lo que avanza la secuencia).
+export function SequenceBlock({ prospect, sequence, whatsappUrl, propertyTitle, advisorName, onWrite }) {
+  const { t, i18n } = useTranslation();
+  if (!sequence) return null;
+  if (sequence.state === "finished") {
+    return (
+      <div className="prospect-sequence">
+        <span className="prospect-chip">{t("sequence.finished")}</span>
+      </div>
+    );
+  }
+  const when =
+    sequence.state === "due"
+      ? sequence.daysLate > 0
+        ? t("sequence.late", { count: sequence.daysLate })
+        : t("sequence.today")
+      : t("sequence.on", { date: new Date(`${sequence.dueOn}T00:00:00`).toLocaleDateString(i18n.language === "en" ? "en-US" : "es-MX", { day: "numeric", month: "short" }) });
+  const text = sequenceMessage(t, sequence.step, { name: prospect.name, propertyTitle, advisorName });
+  return (
+    <div className="prospect-sequence">
+      <span className={`prospect-chip${sequence.state === "due" ? " prospect-chip--today" : ""}`}>
+        {t("sequence.step", { n: sequence.index + 1, total: sequence.total })} · {when}
+      </span>
+      {sequence.state === "due" && whatsappUrl && (
+        <a className="btn btn-outline btn-sm" target="_blank" rel="noopener noreferrer" href={`${whatsappUrl}?text=${encodeURIComponent(text)}`} onClick={() => onWrite?.("whatsapp")}>
+          {t("sequence.write", { step: t(`sequence.stepName.${sequence.step.key}`) })}
+        </a>
+      )}
+    </div>
+  );
 }

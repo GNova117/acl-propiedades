@@ -21,6 +21,7 @@ import { estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import { OFFICE_WHATSAPP } from "../lib/office";
 import "../components/development/development.css";
 import "./Development.css";
+import LoadingState from "../components/LoadingState";
 
 const SORT_OPTIONS = ["floor_desc", "floor_asc", "price_asc", "price_desc"];
 const PAGE_SIZE = 12;
@@ -106,7 +107,7 @@ export default function Development() {
     document.getElementById("departamentos")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
   if (!development) {
     return (
       <div className="container empty-state">

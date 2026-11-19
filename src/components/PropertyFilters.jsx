@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { propertyTypeLabel } from "../lib/format";
+import { activeRangeKey, digitsOnly, formatCompactMXN, formatThousands, priceRangesFor } from "../lib/priceRanges";
 import { db } from "../lib/dataStore";
 import "./PropertyFilters.css";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 const MIN_OPTIONS = ["1", "2", "3", "4", "5"];
 
@@ -36,6 +38,23 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
 
   const handle = (field) => (e) => onChange({ ...filters, [field]: e.target.value });
 
+  // Precio: el campo muestra comas (1,500,000) pero guarda solo los dígitos.
+  const handlePrice = (field) => (e) => onChange({ ...filters, [field]: digitsOnly(e.target.value) });
+  const ranges = priceRangesFor(filters.operationType);
+  const activeRange = activeRangeKey(ranges, filters.minPrice, filters.maxPrice);
+  const rangeLabel = (range) => {
+    if (range.min == null) return t("priceRanges.upTo", { max: formatCompactMXN(range.max) });
+    if (range.max == null) return t("priceRanges.from", { min: formatCompactMXN(range.min) });
+    return t("priceRanges.between", { min: formatCompactMXN(range.min), max: formatCompactMXN(range.max) });
+  };
+  // Tocar el rango activo lo quita; tocar otro reemplaza el precio capturado.
+  const toggleRange = (range) =>
+    onChange({
+      ...filters,
+      minPrice: activeRange === range.key || range.min == null ? "" : String(range.min),
+      maxPrice: activeRange === range.key || range.max == null ? "" : String(range.max),
+    });
+
   const toggleAmenity = (key) => {
     const current = filters.amenities || [];
     onChange({
@@ -52,7 +71,7 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
     try {
       const found = await db.getPropertyByCode(codeInput);
       if (found) {
-        navigate(`/propiedades/${found.id}`);
+        navigate(propertyPath(found));
       } else {
         setCodeError(true);
       }
@@ -148,14 +167,37 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
         </datalist>
       </div>
 
+      <div className="form-field">
+        <span className="property-filters__label" id="filter-price-label">{t("properties.priceRange")}</span>
+        <div className="property-filters__ranges" role="group" aria-labelledby="filter-price-label">
+          {ranges.map((range) => (
+            <button
+              key={range.key}
+              type="button"
+              className={`property-filters__range${activeRange === range.key ? " is-active" : ""}`}
+              aria-pressed={activeRange === range.key}
+              onClick={() => toggleRange(range)}
+            >
+              {rangeLabel(range)}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="form-row">
         <div className="form-field">
           <label htmlFor="filter-min-price">{t("properties.minPrice")}</label>
-          <input id="filter-min-price" type="number" min="0" value={filters.minPrice} onChange={handle("minPrice")} />
+          <div className="property-filters__money">
+            <span aria-hidden="true">$</span>
+            <input id="filter-min-price" type="text" inputMode="numeric" autoComplete="off" placeholder="0" value={formatThousands(filters.minPrice)} onChange={handlePrice("minPrice")} />
+          </div>
         </div>
         <div className="form-field">
           <label htmlFor="filter-max-price">{t("properties.maxPrice")}</label>
-          <input id="filter-max-price" type="number" min="0" value={filters.maxPrice} onChange={handle("maxPrice")} />
+          <div className="property-filters__money">
+            <span aria-hidden="true">$</span>
+            <input id="filter-max-price" type="text" inputMode="numeric" autoComplete="off" placeholder={t("properties.noLimit")} value={formatThousands(filters.maxPrice)} onChange={handlePrice("maxPrice")} />
+          </div>
         </div>
       </div>
 

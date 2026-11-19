@@ -164,15 +164,17 @@ test.describe("Captura sin señal", () => {
     await go("/admin/mi-dia");
     await expect(aviso(page)).toContainText("1 no se pudo enviar.");
 
-    let mensaje = "";
-    page.once("dialog", (d) => {
-      mensaje = d.message();
+    // Aquí sí se mira la confirmación (por omisión las pruebas la aceptan solas).
+    await page.evaluate(() => {
+      window.__ACL_AUTO_CONFIRM__ = false;
     });
     if (isMobile) await press(page.locator(".admin-layout__menu-btn"));
     await press(page.locator(".admin-layout__logout"));
-    await expect.poll(() => mensaje).toContain("1 cambio sin enviar");
-    expect(mensaje).toContain("se queda en este dispositivo");
-    // La prueba acepta los avisos sola: sale, y lo pendiente sigue guardado para cuando vuelva a entrar.
+    const confirmacion = page.getByRole("alertdialog");
+    await expect(confirmacion).toContainText("1 cambio sin enviar");
+    await expect(confirmacion).toContainText("se queda en este dispositivo");
+    await press(confirmacion.getByRole("button", { name: "Aceptar" }));
+    // Sale, y lo pendiente sigue guardado para cuando vuelva a entrar.
     await page.waitForURL("**/admin/login");
     expect(await leer(page, COLA)).toHaveLength(1);
   });

@@ -4,6 +4,8 @@ import { db } from "../../lib/dataStore";
 import BackupCard from "../../components/BackupCard";
 import { SECTION_KEYS, ADMIN_ROLE_SLUG } from "../../lib/accessControl";
 import "./admin.css";
+import "./AdminLogin.css";
+import { confirmDialog, notify } from "../../lib/toast";
 
 export default function AdminRoles() {
   const { t } = useTranslation();
@@ -22,6 +24,9 @@ export default function AdminRoles() {
   const [newAccessRoleId, setNewAccessRoleId] = useState("");
   const [newAccessAdvisorId, setNewAccessAdvisorId] = useState("");
   const [addingAccess, setAddingAccess] = useState(false);
+  const [sendInvite, setSendInvite] = useState(true);
+  const [inviteMessage, setInviteMessage] = useState("");
+  const [invitingId, setInvitingId] = useState(null);
   const [deletingAccessId, setDeletingAccessId] = useState(null);
   const [changingAccessId, setChangingAccessId] = useState(null);
 
@@ -49,7 +54,7 @@ export default function AdminRoles() {
       setNewRoleSections([]);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al crear el rol");
+      notify(err.message || "Error al crear el rol");
     } finally {
       setAddingRole(false);
     }
@@ -74,22 +79,34 @@ export default function AdminRoles() {
       setEditingRoleId(null);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al guardar el rol");
+      notify(err.message || "Error al guardar el rol");
     } finally {
       setSavingRole(false);
     }
   };
 
   const handleDeleteRole = async (role) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     setDeletingRoleId(role.id);
     try {
       await db.deleteRole(role.id);
       load();
     } catch (err) {
-      window.alert(err.message || t("accessControl.roleInUse"));
+      notify(err.message || t("accessControl.roleInUse"));
     } finally {
       setDeletingRoleId(null);
+    }
+  };
+
+  // Invitación por correo (Edge Function invitar-usuario). Nunca lanza: deja un mensaje para quien la manda.
+  const invite = async (email) => {
+    setInviteMessage("");
+    try {
+      const { alreadyHasAccount } = await db.inviteUser(email);
+      setInviteMessage(t(alreadyHasAccount ? "accessControl.inviteExists" : "accessControl.inviteSent", { email }));
+    } catch (err) {
+      const reason = /^invite:(\w+)$/.exec(String(err?.message || ""))?.[1];
+      setInviteMessage(t(`accessControl.inviteErrors.${reason}`, { defaultValue: t("accessControl.inviteErrors.failed") }));
     }
   };
 
@@ -98,13 +115,16 @@ export default function AdminRoles() {
     if (!newAccessEmail.trim() || !newAccessRoleId) return;
     setAddingAccess(true);
     try {
+      const addedEmail = newAccessEmail;
       await db.addAccess({ email: newAccessEmail, role_id: newAccessRoleId, advisor_id: newAccessAdvisorId || null });
+      // El acceso ya quedó dado; mandar la invitación es un paso aparte que puede fallar sin deshacerlo.
+      if (sendInvite) await invite(addedEmail);
       setNewAccessEmail("");
       setNewAccessRoleId("");
       setNewAccessAdvisorId("");
       load();
     } catch (err) {
-      window.alert(err.message || "Error al dar acceso");
+      notify(err.message || "Error al dar acceso");
     } finally {
       setAddingAccess(false);
     }
@@ -116,7 +136,7 @@ export default function AdminRoles() {
       await db.updateAccess(accessRow.id, { role_id: roleId });
       load();
     } catch (err) {
-      window.alert(err.message || "Error al cambiar el rol");
+      notify(err.message || "Error al cambiar el rol");
     } finally {
       setChangingAccessId(null);
     }
@@ -128,14 +148,14 @@ export default function AdminRoles() {
       await db.updateAccess(accessRow.id, { advisor_id: advisorId || null });
       load();
     } catch (err) {
-      window.alert(err.message || "Error al vincular el asesor");
+      notify(err.message || "Error al vincular el asesor");
     } finally {
       setChangingAccessId(null);
     }
   };
 
   const handleDeleteAccess = async (accessRow) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     setDeletingAccessId(accessRow.id);
     try {
       await db.deleteAccess(accessRow.id);
@@ -245,7 +265,7 @@ export default function AdminRoles() {
         {roles.length === 0 && <p className="form-hint">{t("accessControl.noRoles")}</p>}
       </div>
 
-      <div className="admin-header" style={{ marginTop: "2.5rem" }}>
+      <div className="admin-header mt-10">
         <h1>{t("accessControl.accessesTitle")}</h1>
       </div>
 
@@ -286,6 +306,10 @@ export default function AdminRoles() {
             <span className="form-hint">{t("accessControl.accessAdvisorHint")}</span>
           </div>
         </div>
+        <label className="admin-login__show">
+          <input type="checkbox" checked={sendInvite} onChange={(e) => setSendInvite(e.target.checked)} /> {t("accessControl.sendInvite")}
+        </label>
+        <p className="form-hint">{t("accessControl.sendInviteHint")}</p>
         <div className="admin-form__actions">
           <button type="submit" className="btn btn-primary" disabled={addingAccess || !newAccessEmail.trim() || !newAccessRoleId}>
             {addingAccess ? <span className="spinner" /> : null}
@@ -293,6 +317,12 @@ export default function AdminRoles() {
           </button>
         </div>
       </form>
+
+      {inviteMessage && (
+        <p className="card" role="status" style={{ padding: "0.75rem 1rem", marginBottom: "1rem" }}>
+          {inviteMessage}
+        </p>
+      )}
 
       <div className="admin-table-wrapper">
         <table className="admin-table">
@@ -332,6 +362,18 @@ export default function AdminRoles() {
                   </select>
                 </td>
                 <td className="admin-table__actions">
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    disabled={invitingId === row.id}
+                    onClick={async () => {
+                      setInvitingId(row.id);
+                      await invite(row.email);
+                      setInvitingId(null);
+                    }}
+                  >
+                    {t("accessControl.resendInvite")}
+                  </button>
                   <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDeleteAccess(row)} disabled={deletingAccessId === row.id}>
                     {t("accessControl.removeAccess")}
                   </button>

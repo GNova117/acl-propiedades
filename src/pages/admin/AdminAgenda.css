@@ -1,5 +1,7 @@
 .agenda-view-toggle {
   display: flex;
+  flex-wrap: wrap; /* cuatro vistas (calendario, semana, día, lista): en el teléfono pasan a un segundo renglón */
+  max-width: 100%;
   gap: 0.4rem;
 }
 
@@ -121,9 +123,18 @@
   color: var(--color-text-muted);
 }
 
+/* Días del mes vecino: fondo apagado y número gris (con opacidad el número no pasaba el contraste mínimo). */
 .agenda-calendar__day--out {
-  opacity: 0.4;
   background: var(--color-bg-alt);
+}
+
+.agenda-calendar__day--out .agenda-calendar__day-number {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.agenda-calendar__day--out .agenda-calendar__chips {
+  opacity: 0.75;
 }
 
 .agenda-calendar__day--today {
@@ -249,7 +260,7 @@
 
 /* Teléfono: cuadros compactos con el número y un puntito por cita (no se lee
    el título en 50 px de ancho); las citas se ven completas abajo al tocar el día. */
-@media (max-width: 720px) {
+@media (max-width: 860px) {
   .agenda-calendar {
     padding: 0.75rem 0.6rem 1rem;
   }
@@ -420,7 +431,7 @@
 }
 
 /* Teléfono: los dos filtros lado a lado para que el calendario quede más arriba. */
-@media (max-width: 720px) {
+@media (max-width: 860px) {
   .agenda-filters {
     gap: 0.6rem;
     margin-bottom: 0.9rem;
@@ -430,4 +441,19 @@
     min-width: 0;
     flex: 1 1 9rem;
   }
+}
+
+/* Opinión que dejó el cliente tras su visita (encuesta /opinion/<token>) */
+.agenda-feedback {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.agenda-feedback span[aria-label] {
+  color: var(--color-attention);
+}
+
+.agenda-feedback__off {
+  color: var(--color-border);
 }

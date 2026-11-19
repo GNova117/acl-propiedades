@@ -5,6 +5,8 @@ import { db } from "../../lib/dataStore";
 import { buildInspectionLabels, downloadInspectionPdf } from "../../lib/inspectionPdf";
 import "./admin.css";
 import "./AdminInspections.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 const STATUS_KEY = { verde: "green", amarillo: "yellow", rojo: "red" };
 
@@ -38,12 +40,12 @@ export default function AdminInspections() {
     new Date(iso).toLocaleString(i18n.language?.startsWith("en") ? "en-US" : "es-MX", { dateStyle: "medium", timeStyle: "short" });
 
   const handleDelete = async (inspection) => {
-    if (!window.confirm(t("inspections.confirmDelete"))) return;
+    if (!await confirmDialog(t("inspections.confirmDelete"))) return;
     try {
       await db.deleteInspection(inspection.id);
       load();
     } catch (err) {
-      window.alert(err.message || t("inspections.form.saveError"));
+      notify(err.message || t("inspections.form.saveError"));
     }
   };
 
@@ -53,7 +55,7 @@ export default function AdminInspections() {
       const fresh = await db.getInspectionById(inspection.id);
       await downloadInspectionPdf(fresh, buildInspectionLabels(t, i18n, fresh));
     } catch (err) {
-      window.alert(err.message || t("inspections.form.pdfError"));
+      notify(err.message || t("inspections.form.pdfError"));
     } finally {
       setBusyPdfId(null);
     }
@@ -100,7 +102,7 @@ export default function AdminInspections() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7}>{t("common.loading")}</td>
+                <td colSpan={7}><LoadingState variant="rows" /></td>
               </tr>
             ) : visible.length === 0 ? (
               <tr>

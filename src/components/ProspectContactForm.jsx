@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CONTACT_CHANNELS, CONTACT_OUTCOMES, FOLLOWUP_KEEP, FOLLOWUP_NONE, followupArg, outcomeValues, validateContact } from "../lib/prospectContacts";
 import { FOLLOWUP_OPTIONS, addDaysISO, isOpenStage, todayISO } from "../lib/prospects";
+import DictationButton from "./DictationButton";
+import { appendDictation } from "../lib/dictation";
 import "./ProspectContactForm.css";
 
 // "Registrar contacto" de la tarjeta de un prospecto: canal (obligatorio), nota
@@ -88,6 +90,7 @@ export default function ProspectContactForm({ prospect, defaultChannel = "", sav
           onChange={(e) => setNote(e.target.value)}
           placeholder={t("prospects.contact.notePlaceholder")}
         />
+        <DictationButton onText={(text) => setNote((prev) => appendDictation(prev, text, 200))} disabled={saving} />
       </div>
 
       {askFollowup && (

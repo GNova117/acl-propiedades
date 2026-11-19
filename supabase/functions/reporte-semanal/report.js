@@ -5,6 +5,8 @@
 // Deno lo importa tal cual y vitest también.
 // Igual que el reporte mensual, NO incluye utilidades ni datos de liquidaciones.
 
+import { renderEmail } from "../_shared/emailLayout.js";
+
 export const TIMEZONE = "America/Mexico_City";
 const DAY_MS = 86400000;
 const INTERESTED = ["muy_interesado", "interesado", "oferta_realizada"];
@@ -167,10 +169,8 @@ export function renderWeeklyEmail(report, { siteUrl = "https://acl-propiedades.v
   if (report.attention.overdueFollowUps > 0) attention.push(`${report.attention.overdueFollowUps} seguimiento(s) de prospectos vencido(s)`);
 
   const td = "padding:8px 10px;border-bottom:1px solid #e2e6ec;";
-  const html = `
-<div style="font-family:Arial,Helvetica,sans-serif;color:#12161c;max-width:640px;margin:0 auto;">
-  <h2 style="margin:0 0 4px;">Resumen semanal</h2>
-  <p style="margin:0 0 16px;color:#5a6472;">${escapeHtml(range)} · comparado con los 7 días anteriores</p>
+  const body = `
+  <p style="margin:0 0 16px;color:#5a6472;font-size:14px;">${escapeHtml(range)} · comparado con los 7 días anteriores</p>
   <table style="width:100%;border-collapse:collapse;font-size:14px;">
     ${rows
       .map(
@@ -200,8 +200,15 @@ export function renderWeeklyEmail(report, { siteUrl = "https://acl-propiedades.v
       ? `<h3 style="margin:20px 0 6px;color:#c0392b;">Para atender</h3><ul style="margin:0;padding-left:20px;">${attention.map((a) => `<li>${escapeHtml(a)}</li>`).join("")}</ul>`
       : ""
   }
-  <p style="margin-top:28px;color:#888;font-size:12px;">Este resumen se envía cada lunes a quienes tienen el apartado Ventas y reportes. No incluye utilidades ni liquidaciones. Detalle en <a href="${siteUrl}/admin/reportes">el panel</a>.</p>
-</div>`.trim();
+`.trim();
+  const html = renderEmail({
+    preheader: `Resumen semanal: ${range}`,
+    heading: "Resumen semanal",
+    body,
+    buttons: [{ href: `${siteUrl}/admin/reportes`, label: "Abrir el panel", primary: true }],
+    footnote: "Este resumen se envía cada lunes a quienes tienen el apartado Ventas y reportes. No incluye utilidades ni liquidaciones.",
+    maxWidth: 640,
+  });
 
   const text = [
     `Resumen semanal de ACL Propiedades — ${range}`,

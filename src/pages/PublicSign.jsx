@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { rememberItem } from "../lib/mySpace";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Logo from "../components/Logo";
@@ -8,6 +9,8 @@ import { db } from "../lib/dataStore";
 import { base64ToBytes, dataUrlToBase64 } from "../lib/signing";
 import { buildSignedPdf, signedPdfFileName } from "../lib/signedPdf";
 import "./PublicSign.css";
+import LoadingState from "../components/LoadingState";
+import { notify } from "../lib/toast";
 
 // Página pública /firmar/<token>: el cliente abre el enlace privado, pone el
 // código que le dio su asesor, lee el PDF y lo firma en pantalla. No hay inicio
@@ -46,6 +49,11 @@ export default function PublicSign() {
       .then(setInfo)
       .catch(() => setInfo(null));
   }, [token]);
+
+  // «Mi espacio»: queda anotado este documento por firmar (solo su título; ver lib/mySpace.js).
+  useEffect(() => {
+    if (info?.title) rememberItem({ kind: "sign", token, title: info.title, detail: t(`mySpace.signStatus.${info.status}`, { defaultValue: "" }) });
+  }, [info?.title, info?.status, token, t]);
 
   const blobUrl = useMemo(() => (doc ? URL.createObjectURL(new Blob([base64ToBytes(doc.document_b64)], { type: "application/pdf" })) : ""), [doc]);
   useEffect(() => {
@@ -117,7 +125,7 @@ export default function PublicSign() {
       link.remove();
       URL.revokeObjectURL(url);
     } catch {
-      window.alert(t("signing.public.errGeneric"));
+      notify(t("signing.public.errGeneric"));
     } finally {
       setDownloading(false);
     }
@@ -125,14 +133,14 @@ export default function PublicSign() {
 
   let body;
   if (info === undefined) {
-    body = <p className="form-hint">{t("common.loading")}</p>;
+    body = <LoadingState variant="lines" />;
   } else if (info === null) {
     body = <Message title={t("signing.public.notFoundTitle")} text={t("signing.public.notFoundText")} />;
   } else if (done) {
     body = (
       <>
         <h1>{t("signing.public.doneTitle")}</h1>
-        <p className="form-hint" style={{ color: "var(--color-success)" }}>
+        <p className="form-hint text-success">
           {t("signing.public.doneText", { title: doc.title })}
         </p>
         <p className="form-hint">
@@ -203,7 +211,7 @@ export default function PublicSign() {
           </div>
 
           <div className="form-field">
-            <span style={{ fontWeight: 600 }}>{t("signing.public.yourSignature")}</span>
+            <span className="fw-semibold">{t("signing.public.yourSignature")}</span>
             {signature ? <img className="public-sign__signature" src={signature.image} alt={t("signing.public.yourSignature")} /> : <span className="form-hint">{t("signing.public.noSignature")}</span>}
             <button type="button" className="btn btn-outline btn-sm" style={{ alignSelf: "flex-start" }} onClick={() => setShowPad(true)}>
               {signature ? t("signing.public.signAgain") : t("signing.public.sign")}
@@ -215,7 +223,7 @@ export default function PublicSign() {
             {signing ? <span className="spinner" /> : null}
             {t("signing.public.submit")}
           </button>
-          <p className="form-hint" style={{ marginBottom: 0 }}>
+          <p className="form-hint mb-0">
             {t("signing.public.evidenceNote")}
           </p>
         </div>

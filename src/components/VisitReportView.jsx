@@ -168,6 +168,19 @@ export default function VisitReportView({ payload, now, periodLabel }) {
         <Tile label={t("visits.report.discarded")} value={report.discarded} />
       </dl>
 
+      {payload?.interest && (
+        <section className="vr-card" aria-labelledby="vr-online-title">
+          <h3 id="vr-online-title">{t("onlineInterest.title")}</h3>
+          <p className="vr-muted">{t("onlineInterest.note")}</p>
+          <dl className="vr-tiles">
+            <Tile label={t("onlineInterest.visitors")} value={payload.interest.unique_visitors ?? 0} />
+            <Tile label={t("onlineInterest.week")} value={payload.interest.views_7d ?? 0} />
+            <Tile label={t("onlineInterest.favorites")} value={payload.interest.favorites ?? 0} />
+            <Tile label={t("onlineInterest.shares")} value={payload.interest.shares ?? 0} />
+          </dl>
+        </section>
+      )}
+
       <ReasonsChart report={report} />
       <VisitLog report={report} />
     </div>

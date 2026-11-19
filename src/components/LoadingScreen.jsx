@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Logo from "./Logo";
 import "./LoadingScreen.css";
 
 export default function LoadingScreen() {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
 
@@ -21,7 +23,7 @@ export default function LoadingScreen() {
     <div className={`loading-screen ${fadeOut ? "loading-screen--out" : ""}`} role="status" aria-live="polite">
       <div className="loading-screen__content">
         <Logo size="lg" />
-        <span className="visually-hidden">Cargando ACL Propiedades...</span>
+        <span className="visually-hidden">{t("a11y.loadingSite")}</span>
       </div>
     </div>
   );

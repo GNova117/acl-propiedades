@@ -25,7 +25,7 @@ function render(matrix, scale = 6) {
 
 describe("qrTargetUrl", () => {
   it("lleva a la ficha pública con la campaña del código de la propiedad", () => {
-    expect(qrTargetUrl(property, origin)).toBe(`https://acl.mx/propiedades/${property.id}?utm_source=qr&utm_medium=impreso&utm_campaign=ACL-1001`);
+    expect(qrTargetUrl(property, origin)).toBe(`https://acl.mx/propiedades/casa-en-residencial-senderos-ACL-1001?utm_source=qr&utm_medium=impreso&utm_campaign=ACL-1001`);
   });
   it("sin código usa el id, y escapa lo que no sea seguro en una URL", () => {
     expect(qrTargetUrl({ id: "7", code: "A B&C" }, origin)).toContain("utm_campaign=A%20B%26C");

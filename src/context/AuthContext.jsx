@@ -18,6 +18,8 @@ export function AuthProvider({ children }) {
   const [role, setRole] = useState(null);
   const [advisorId, setAdvisorId] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Verificación en dos pasos: hay sesión con contraseña pero falta confirmar el código ({ factorId }); null = nada pendiente.
+  const [mfaPending, setMfaPending] = useState(null);
 
   // El caché de listas (ver dataCache.js) es de una cuenta: al cerrar sesión o entrar con otra se vacía.
   const cacheOwner = useRef(undefined);
@@ -51,6 +53,23 @@ export function AuthProvider({ children }) {
     setAdvisorId(access.advisorId);
   };
 
+  // ¿La cuenta tiene la verificación activada y esta sesión aún no confirmó su código? Sin señal (sesión recordada) o si no
+  // se puede preguntar, no se bloquea el panel: la base de datos igual protege lo sensible (ver mfa_ok en schema.sql).
+  const checkMfa = async (newSession) => {
+    if (!newSession?.user?.email || offlineSession.current) {
+      setMfaPending(null);
+      return null;
+    }
+    try {
+      const status = await db.getMfaStatus();
+      setMfaPending(status.needsCode ? { factorId: status.factorId } : null);
+      return status;
+    } catch {
+      setMfaPending(null);
+      return null;
+    }
+  };
+
   useEffect(() => {
     let unsub = () => {};
     (async () => {
@@ -64,6 +83,7 @@ export function AuthProvider({ children }) {
       } catch {
         // Sin rol conocido (y sin poder preguntarlo): el panel muestra «sin acceso» en vez de quedarse cargando.
       }
+      await checkMfa(current);
       setLoading(false);
     })();
     unsub = db.onAuthStateChange(async (newSession, event) => {
@@ -78,6 +98,7 @@ export function AuthProvider({ children }) {
       } catch {
         /* igual que arriba */
       }
+      await checkMfa(newSession);
     });
     return () => unsub();
   }, []);
@@ -95,11 +116,13 @@ export function AuthProvider({ children }) {
           setSession(null);
           setRole(null);
           setAdvisorId(null);
+          setMfaPending(null);
           return;
         }
         offlineSession.current = false;
         setSession(current);
         await loadRole(current);
+        await checkMfa(current);
       } catch {
         /* sigue sin red de verdad: se reintenta la próxima vez que vuelva */
       }
@@ -112,7 +135,14 @@ export function AuthProvider({ children }) {
     const newSession = await db.signIn(email, password);
     setSession(newSession);
     await loadRole(newSession);
+    await checkMfa(newSession);
     return newSession;
+  };
+
+  // Confirma el código de la app de autenticación; al lograrlo el panel se abre solo (isAuthenticated pasa a verdadero).
+  const verifyMfaCode = async (code) => {
+    await db.verifyMfa(mfaPending.factorId, code);
+    setMfaPending(null);
   };
 
   const logout = async () => {
@@ -122,13 +152,17 @@ export function AuthProvider({ children }) {
     setSession(null);
     setRole(null);
     setAdvisorId(null);
+    setMfaPending(null);
   };
 
   const sections = role?.sections || [];
 
   const value = {
     session,
-    isAuthenticated: Boolean(session),
+    isAuthenticated: Boolean(session) && !mfaPending,
+    mfaPending,
+    verifyMfaCode,
+    refreshMfa: () => checkMfa(session),
     role,
     sections,
     hasSection: (key) => sections.includes(key),

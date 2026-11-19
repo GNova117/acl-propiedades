@@ -8,6 +8,7 @@ import { isBackupStale } from "../../lib/backup";
 import { OPEN_STAGES } from "../../lib/prospects";
 import { activeCitas } from "../../lib/agendaCitas";
 import PendingToday from "../../components/PendingToday";
+import DashboardCharts from "../../components/DashboardCharts";
 import "./admin.css";
 
 export default function AdminDashboard() {
@@ -203,6 +204,8 @@ export default function AdminDashboard() {
             </div>
           ))}
       </div>
+
+      <DashboardCharts />
 
       {(hasSection("agenda") || hasSection("propiedades") || analytics.data || advisorId != null) && (
         <div className="admin-dashboard-panels">

@@ -12,7 +12,8 @@
     "land": "Terrenos",
     "about": "Nosotros",
     "contact": "Contacto",
-    "admin": "Panel Admin"
+    "admin": "Panel Admin",
+    "mySpace": "Mi espacio"
   },
   "hero": {
     "title": "Encuentra tu próxima propiedad en La Comarca Lagunera",
@@ -54,7 +55,9 @@
     "avgDays": "días en promedio para vender",
     "available_one": "propiedad disponible hoy",
     "available_other": "propiedades disponibles hoy",
-    "recentTitle": "Vendidas recientemente"
+    "recentTitle": "Vendidas recientemente",
+    "soldInDays_one": "Vendida en {{count}} día",
+    "soldInDays_other": "Vendida en {{count}} días"
   },
   "mobileBar": {
     "schedule": "Agendar visita",
@@ -224,7 +227,19 @@
     "codeNotFound": "No se encontró ninguna propiedad con ese código.",
     "showFilters": "Filtros",
     "hideFilters": "Ocultar filtros",
-    "viewResults": "Ver resultados"
+    "viewResults": "Ver resultados",
+    "priceRange": "Precio",
+    "noLimit": "Sin límite",
+    "searchLabel": "Buscar propiedades",
+    "searchPlaceholder": "Busca por colonia, calle o palabra: alberca, Senderos…",
+    "searchThisArea": "Buscar en esta zona",
+    "splitView": "Dividida",
+    "splitViewTitle": "Lista y mapa a la vez",
+    "parking": "Estacionamiento",
+    "colonyTitle": "Propiedades en {{colony}}, {{city}}",
+    "colonySubtitle": "Casas, departamentos y terrenos disponibles en la colonia {{colony}}, en {{city}}.",
+    "colonyBack": "Ver todo {{city}}",
+    "coloniesTitle": "Colonias de {{city}} con propiedades"
   },
   "detail": {
     "compareCredits": {
@@ -340,7 +355,6 @@
     "hours1": "Lunes a viernes: 8:00 AM - 2:00 PM",
     "hours2": "Lunes a viernes: 4:00 PM - 6:00 PM",
     "addressTitle": "Ubicación",
-    "address": "Blvd. Independencia, Local 16, Plaza San Luciano",
     "viewOnMaps": "Ver en Google Maps",
     "paymentMethodsTitle": "Formas de pago",
     "paymentMethodsBody": "Aceptamos pago de contado, crédito bancario, crédito INFONAVIT y crédito FOVISSSTE, sujetos a las condiciones y documentación que exija cada institución. Consulta con tu asesor las opciones disponibles para cada propiedad."
@@ -361,7 +375,9 @@
     "required": "Este campo es obligatorio",
     "invalidEmail": "Correo electrónico no válido",
     "privacyNotice": "Al enviar este formulario, tus datos serán tratados conforme a nuestro",
-    "privacyLinkLabel": "Aviso de Privacidad"
+    "privacyLinkLabel": "Aviso de Privacidad",
+    "mapTitle": "Ubicación de ACL Propiedades",
+    "serverLimited": "Se enviaron demasiados mensajes desde tu conexión. Inténtalo de nuevo en un rato o llámanos por teléfono."
   },
   "messages": {
     "via_alerta": "Pidió avisos por WhatsApp",
@@ -871,7 +887,9 @@
     "industrialSpecsHint": "Datos técnicos específicos de naves industriales. Opcionales — se muestran en la ficha pública si se capturan.",
     "messages": "Mensajes",
     "testimonials": "Testimonios",
-    "blog": "Blog"
+    "blog": "Blog",
+    "showPassword": "Mostrar",
+    "hidePassword": "Ocultar"
   },
   "accessControl": {
     "restricted": "No tienes acceso a este apartado.",
@@ -919,7 +937,19 @@
     "accessAdvisorHint": "Solo aplica a los apartados Agenda y Visitas: vincula este correo con su propio asesor para que solo vea y edite sus propias citas y visitas. Déjalo vacío para que vea las de todos.",
     "addAccess": "Dar acceso",
     "removeAccess": "Quitar acceso",
-    "noAccess": "Aún no hay correos con acceso asignado."
+    "noAccess": "Aún no hay correos con acceso asignado.",
+    "sendInvite": "Enviarle una invitación por correo",
+    "sendInviteHint": "Le llega un enlace para elegir su contraseña; no hace falta crear la cuenta a mano en Supabase.",
+    "resendInvite": "Invitar",
+    "inviteSent": "Invitación enviada a {{email}}. Le llegará un correo con el enlace para elegir su contraseña.",
+    "inviteExists": "{{email}} ya tiene cuenta. Si no recuerda su contraseña, puede usar «¿Olvidaste tu contraseña?» al iniciar sesión.",
+    "inviteErrors": {
+      "failed": "No se pudo mandar la invitación (el acceso sí quedó dado). Inténtalo de nuevo con «Invitar».",
+      "demo": "En modo demo no se mandan invitaciones: no hay cuentas reales.",
+      "forbidden": "Solo quien tiene el apartado Roles puede invitar.",
+      "no_access_row": "Ese correo no tiene acceso dado en Roles.",
+      "invalid_email": "Ese correo no es válido."
+    }
   },
   "zones": {
     "name": "Nombre de la zona",
@@ -2208,7 +2238,10 @@
         "email": "El correo no es válido.",
         "budgetRange": "El precio mínimo no puede ser mayor que el máximo."
       }
-    }
+    },
+    "dragHint": "Arrastra una tarjeta a otra columna para cambiar su etapa (en el teléfono, usa «Más» → etapa).",
+    "deletedUndo": "Prospecto «{{name}}» eliminado.",
+    "boardLabel": "Tablero de prospectos por etapa"
   },
   "pending": {
     "title": "Pendientes de hoy",
@@ -2433,8 +2466,6 @@
     "ssv": "Ahorro en tu Subcuenta de Vivienda (opcional)",
     "ssvHint": "Lo consultas en la app Mi Cuenta Infonavit. Si no lo sabes, déjalo en 0.",
     "term": "Plazo",
-    "years_one": "{{count}} año",
-    "years_other": "{{count}} años",
     "seeProperties": "Ver propiedades dentro de mi presupuesto",
     "disclaimer": "Es una estimación informativa con la UMA vigente ({{uma}}/mes) y una cuota de referencia del 20% de tu salario. El monto real lo confirma Infonavit al tramitar tu crédito.",
     "leadTitle": "¿Quieres que te ayudemos con tu crédito?",
@@ -2452,7 +2483,9 @@
       "estimatedTotal": "Subcuenta de vivienda estimada",
       "useInSimulator": "Usar este total en el simulador",
       "disclaimer": "Estimación simple (salario diario × 30.4 = mes × 12 = año × 5%, por los años trabajados en cada empleo). No incluye intereses ni retiros; tu saldo real lo confirma la app Mi Cuenta Infonavit."
-    }
+    },
+    "years_one": "{{count}} año",
+    "years_other": "{{count}} años"
   },
   "sellHome": {
     "seoTitle": "Vende tu casa o conoce cuánto vale",
@@ -2862,7 +2895,11 @@
   },
   "installApp": {
     "button": "Instalar app",
-    "iosHint": "En iPhone o iPad: toca el botón Compartir del navegador y elige «Añadir a pantalla de inicio»."
+    "iosHint": "En iPhone o iPad: toca el botón Compartir del navegador y elige «Añadir a pantalla de inicio».",
+    "title": "Instala ACL Propiedades en tu teléfono",
+    "text": "Entra con un toque, guarda tus favoritos y agenda tu visita sin buscar el sitio otra vez.",
+    "install": "Instalar",
+    "later": "Ahora no"
   },
   "valuation": {
     "title": "Estimación de valor",
@@ -3168,7 +3205,11 @@
     "counter": "{{current}} / {{total}}",
     "prev": "Foto anterior",
     "next": "Foto siguiente",
-    "zoomHint": "Clic en la foto para acercar · flechas o desliza para cambiar · Esc para cerrar"
+    "zoomHint": "Clic o doble toque para acercar (pellizca en el celular) · flechas o desliza para cambiar · Esc para cerrar",
+    "viewImage": "Ver imagen {{number}}",
+    "imageAlt": "{{alt}} - imagen {{number}}",
+    "moreCount": "+{{count}} fotos",
+    "seeAll": "Ver las {{count}} fotos"
   },
   "panorama360": {
     "title": "Recorrido 360°",
@@ -3400,7 +3441,15 @@
     "directions": "Cómo llegar",
     "addToCalendar": "A mi calendario",
     "addToCalendarTitle": "Descargar para tu calendario (te avisa 1 hora y 15 minutos antes)",
-    "reminderPlace": "Nos vemos en: {{place}}"
+    "reminderPlace": "Nos vemos en: {{place}}",
+    "viewWeek": "Semana",
+    "viewDay": "Día",
+    "prevWeek": "Semana anterior",
+    "nextWeek": "Semana siguiente",
+    "prevDay": "Día anterior",
+    "nextDay": "Día siguiente",
+    "timeGrid": "Citas por hora",
+    "allDay": "Todo el día"
   },
   "sendProperty": {
     "button": "Enviar",
@@ -3958,6 +4007,910 @@
     },
     "navidad": {
       "greeting": "¡Feliz Navidad y próspero Año Nuevo! Les desea ACL Propiedades."
+    }
+  },
+  "priceRanges": {
+    "upTo": "Hasta {{max}}",
+    "from": "Más de {{min}}",
+    "between": "{{min}} – {{max}}"
+  },
+  "activeFilters": {
+    "label": "Filtros activos",
+    "remove": "Quitar filtro: {{filter}}",
+    "clearAll": "Limpiar todo",
+    "search": "«{{text}}»",
+    "priceBetween": "{{min}} – {{max}}",
+    "priceFrom": "Desde {{min}}",
+    "priceUpTo": "Hasta {{max}}",
+    "areaBetween": "{{min}}–{{max}} m²",
+    "areaFrom": "Desde {{min}} m²",
+    "areaUpTo": "Hasta {{max}} m²",
+    "bedrooms": "{{count}}+ recámaras",
+    "bathrooms": "{{count}}+ baños",
+    "parking": "{{count}}+ estacionamientos",
+    "mapArea": "Zona del mapa"
+  },
+  "mortgageCalc": {
+    "title": "Calcula tu mensualidad",
+    "reset": "Valores de referencia",
+    "adjust": "Personalizar",
+    "down": "Enganche",
+    "years": "Plazo",
+    "yearsValue": "{{count}} años",
+    "rate": "Tasa anual",
+    "monthly": "Mensualidad estimada",
+    "loan": "Monto del crédito",
+    "interest": "Intereses totales",
+    "totalPaid": "Total a pagar",
+    "note": "Cálculo de referencia con cuota fija. Cada banco ofrece condiciones distintas: no es una oferta ni una aprobación de crédito, y no incluye seguros, comisiones ni gastos de escrituración."
+  },
+  "mapLinks": {
+    "directions": "Cómo llegar",
+    "streetView": "Ver en Street View",
+    "waze": "Abrir en Waze"
+  },
+  "floorPlan": {
+    "title": "Plano",
+    "open": "Ampliar el plano",
+    "alt": "Plano de {{title}}",
+    "note": "Plano de referencia: las medidas son aproximadas y pueden variar.",
+    "adminLabel": "Plano de la propiedad",
+    "adminHint": "Opcional. Imagen PNG o JPG del plano; se ve en la ficha pública. También se puede publicar desde Construcción («Publicar en la ficha»).",
+    "upload": "Subir plano",
+    "replace": "Cambiar plano",
+    "remove": "Quitar plano",
+    "previewAlt": "Vista previa del plano",
+    "invalidType": "Sube una imagen PNG o JPG.",
+    "tooBig": "El plano pesa demasiado (máximo {{mb}} MB).",
+    "saveFailed": "La propiedad se guardó, pero el plano no: {{message}}"
+  },
+  "downloadFicha": {
+    "button": "Descargar ficha en PDF",
+    "error": "No se pudo generar el PDF. Intenta de nuevo."
+  },
+  "favoritesShare": {
+    "sharedTitle": "Lista compartida",
+    "sharedSubtitle": "Alguien te compartió estas propiedades.",
+    "sharedBanner_one": "Te compartieron {{count}} propiedad.",
+    "sharedBanner_other": "Te compartieron {{count}} propiedades.",
+    "saveAll": "Guardar en mis favoritos",
+    "saved": "Listo: ya están en tus favoritos.",
+    "viewMine": "Ver mi lista",
+    "sharedEmpty": "Esta lista ya no tiene propiedades disponibles.",
+    "shareText": "Mi lista de propiedades en ACL Propiedades:",
+    "shareHint": "Con el enlace se abre esta lista en cualquier dispositivo y se puede guardar."
+  },
+  "travelTime": {
+    "title": "¿A cuánto queda de tu trabajo o escuela?",
+    "prompt": "Escribe una dirección y te decimos cuánto tardas en auto hasta esta propiedad.",
+    "placeholder": "Ej. Blvd. Independencia 1200, Torreón",
+    "calculate": "Calcular",
+    "calculating": "Calculando…",
+    "from": "Desde: {{place}}",
+    "change": "Cambiar",
+    "minutes": "{{minutes}} min",
+    "hoursMinutes": "{{hours}} h {{minutes}} min",
+    "approx": "≈ {{duration}}",
+    "byCar": "en auto · {{km}} km",
+    "estimateNote": "Estimación a partir de la distancia: no pudimos consultar la ruta. El tiempo real depende del tráfico.",
+    "notFound": "No encontramos esa dirección. Prueba con la calle y la colonia.",
+    "error": "No se pudo calcular ahora. Intenta de nuevo en un momento.",
+    "privacy": "Al calcular, la dirección se envía a OpenStreetMap y a un servicio de rutas; no la guardamos en nuestros servidores. Se recuerda solo en este dispositivo."
+  },
+  "mySpace": {
+    "title": "Mi espacio",
+    "subtitle": "Tus visitas, documentos y listas en un solo lugar.",
+    "favorites": "Mis favoritos",
+    "favoritesCount_one": "Tienes {{count}} propiedad guardada.",
+    "favoritesCount_other": "Tienes {{count}} propiedades guardadas.",
+    "openFavorites": "Ver mis favoritos",
+    "kinds": {
+      "visit": "Mis visitas",
+      "portal": "Mis documentos",
+      "sign": "Documentos por firmar",
+      "selection": "Listas de mi asesor"
+    },
+    "defaultTitle": {
+      "visit": "Visita agendada",
+      "portal": "Documentos de mi trámite",
+      "sign": "Documento por firmar",
+      "selection": "Propiedades para ti"
+    },
+    "openedOn": "Abierto el {{date}}",
+    "forget": "Quitar",
+    "forgetOne": "Quitar «{{title}}» de Mi espacio",
+    "forgetAll": "Quitar todo",
+    "forgetAllConfirm": "¿Quitar todos los enlaces de Mi espacio en este dispositivo? Los enlaces siguen funcionando si los vuelves a abrir.",
+    "empty": "Todavía no hay nada aquí. Cuando abras el enlace de una visita, de tus documentos o de una lista que te mande tu asesor, aparecerá en este espacio.",
+    "privacy": "Esta lista vive solo en este dispositivo: no tiene cuenta ni se envía a ningún servidor. Guardamos únicamente el enlace y un título corto, nunca tu nombre ni lo que escribes.",
+    "portalDetail": "{{todo}} pendientes de {{total}}",
+    "selectionDetail_one": "{{count}} propiedad",
+    "selectionDetail_other": "{{count}} propiedades",
+    "signStatus": {
+      "pendiente": "Pendiente de firma",
+      "firmado": "Firmado",
+      "expirado": "Expirado",
+      "bloqueado": "Bloqueado"
+    }
+  },
+  "nextVisit": {
+    "today": "Visítala hoy",
+    "tomorrow": "Visítala mañana",
+    "weekday": "Visítala el {{day}}"
+  },
+  "selectionReactions": {
+    "like": "Me gusta",
+    "dislike": "No es para mí",
+    "addComment": "Agregar comentario",
+    "editComment": "Editar comentario",
+    "groupLabel": "Tu opinión sobre {{title}}",
+    "commentLabel": "Comentario sobre {{title}}",
+    "commentPlaceholder": "Cuéntale a tu asesor qué te pareció…",
+    "saveComment": "Guardar comentario",
+    "saved": "Listo, tu asesor lo verá.",
+    "errors": {
+      "generic": "No se pudo guardar. Intenta de nuevo.",
+      "unavailable": "Este enlace ya no está disponible.",
+      "invalid_property": "Esa propiedad no está en tu lista.",
+      "invalid_reaction": "No se pudo guardar tu opinión.",
+      "invalid_comment": "El comentario es demasiado largo (máximo 300 caracteres)."
+    },
+    "summary": "👍 {{like}} · 👎 {{dislike}} · 💬 {{comments}} — ver respuestas"
+  },
+  "onlineInterest": {
+    "title": "Interés en línea",
+    "note": "Personas que vieron la propiedad en el sitio. Las visitas en persona están arriba.",
+    "visitors": "Personas que vieron la ficha",
+    "week": "En los últimos 7 días",
+    "favorites": "La guardaron en favoritos",
+    "shares": "Veces compartida"
+  },
+  "portalAvisos": {
+    "label": "Avisar por correo al cliente",
+    "hint": "Le llega un correo cuando cambias la etapa de su trámite y, mientras le falte algún documento, un recordatorio cada 7 días (máximo 3 por etapa). Solo si tiene correo y un enlace de portal vigente.",
+    "noEmail": "Este cliente no tiene correo: no se le podrá avisar. Agrégalo en su ficha."
+  },
+  "sellEstimate": {
+    "title": "Tu estimado orientativo",
+    "range": "Entre {{low}} y {{high}}",
+    "note": "Es una referencia por zona y superficie, sin haber visto la propiedad. El valor real depende del estado, la ubicación exacta y el mercado; un asesor te da una valuación sin costo.",
+    "hint": "Elige tu zona y captura los metros de terreno y de construcción para ver un estimado al instante.",
+    "afterSend": "Tu estimado orientativo: entre {{low}} y {{high}}."
+  },
+  "survey": {
+    "pageTitle": "Tu opinión",
+    "title": "¿Cómo te fue en tu visita?",
+    "intro": "Son 30 segundos y nos ayuda a mejorar.",
+    "ratingLabel": "Tu calificación",
+    "starAria_one": "{{count}} estrella",
+    "starAria_other": "{{count}} estrellas",
+    "words": {
+      "1": "Mala experiencia",
+      "2": "Podría mejorar",
+      "3": "Regular",
+      "4": "Buena",
+      "5": "Excelente"
+    },
+    "commentLabel": "¿Quieres contarnos algo más? (opcional)",
+    "commentPlaceholder": "Qué te gustó, qué mejorarías…",
+    "privacy": "Solo lo ve el equipo de ACL Propiedades; no se publica.",
+    "submit": "Enviar mi opinión",
+    "pickRating": "Elige de 1 a 5 estrellas.",
+    "thanksTitle": "¡Gracias por tu opinión!",
+    "thanksHappy": "Nos da mucho gusto que tu visita haya salido bien. Si quieres, cuéntalo también en Google: ayuda a otras familias a encontrarnos.",
+    "thanksOther": "Gracias por la franqueza: la revisaremos para mejorar. Si quieres que un asesor te contacte, escríbenos por WhatsApp.",
+    "googleCta": "Dejar una reseña en Google",
+    "backHome": "Ir al inicio",
+    "errors": {
+      "generic": "No se pudo enviar. Intenta de nuevo.",
+      "invalid_rating": "Elige de 1 a 5 estrellas.",
+      "invalid_comment": "El comentario es demasiado largo (máximo 500 caracteres).",
+      "not_ready": "Esta visita todavía no se marca como realizada.",
+      "invalid": "Este enlace no es válido."
+    },
+    "notice": {
+      "invalido": {
+        "title": "Enlace no válido",
+        "body": "Revisa que sea el enlace completo del correo que te mandamos."
+      },
+      "error": {
+        "title": "No se pudo cargar",
+        "body": "Intenta de nuevo en un momento."
+      },
+      "no_disponible": {
+        "title": "Todavía no está disponible",
+        "body": "La encuesta se abre cuando tu visita se marca como realizada. Vuelve a intentarlo después."
+      },
+      "respondida": {
+        "title": "¡Ya recibimos tu opinión!",
+        "body": "Gracias por tomarte el tiempo."
+      }
+    }
+  },
+  "surveyAdmin": {
+    "ratingAria": "{{rating}} de 5 estrellas",
+    "noComment": "Sin comentario"
+  },
+  "prospectScore": {
+    "title": "Calificación {{score}}/100",
+    "levels": {
+      "hot": "Caliente",
+      "warm": "Tibio",
+      "cold": "Frío"
+    },
+    "hotOnly": "Solo calientes",
+    "sortLabel": "Ordenar prospectos",
+    "sortRecent": "Orden: más recientes",
+    "sortTemperature": "Orden: más calientes primero",
+    "reasons": {
+      "stage_nuevo": "Prospecto nuevo",
+      "stage_contactado": "Ya lo contactaste",
+      "stage_interesado": "Está interesado",
+      "stage_negociacion": "En negociación",
+      "source_visita_agendada": "Agendó una visita",
+      "source_simulador": "Usó el simulador de crédito",
+      "source_estimacion": "Pidió una estimación",
+      "source_comparador": "Usó el comparador de créditos",
+      "source_whatsapp": "Escribió por WhatsApp",
+      "source_chatbot": "Habló con el chat",
+      "source_visita": "Fue a una visita",
+      "source_alerta": "Pidió alertas",
+      "source_sitio": "Llegó por el sitio",
+      "hasProperty": "Tiene una propiedad de interés",
+      "hasBudget": "Dio su presupuesto",
+      "hasMatches": "Hay propiedades que le encajan",
+      "openedSelection": "Abrió la selección que le mandaste",
+      "recentContact": "Lo contactaste hace poco",
+      "stale": "Sin contacto hace más de 2 semanas",
+      "followOverdue": "Seguimiento vencido"
+    }
+  },
+  "sequence": {
+    "step": "Secuencia: paso {{n}} de {{total}}",
+    "today": "toca hoy",
+    "late_one": "{{count}} día de retraso",
+    "late_other": "{{count}} días de retraso",
+    "on": "toca el {{date}}",
+    "finished": "Secuencia completa",
+    "write": "Escribir: {{step}}",
+    "dueOnly": "Secuencia que toca hoy",
+    "stepName": {
+      "first": "primer mensaje",
+      "day1": "seguimiento del día 1",
+      "day3": "seguimiento del día 3",
+      "day7": "último seguimiento"
+    },
+    "messages": {
+      "first": "Hola {{name}}, soy {{advisor}} de ACL Propiedades. Vi que te interesó {{property}}. ¿Te puedo ayudar con más información o agendar una visita?",
+      "firstGeneric": "Hola {{name}}, soy {{advisor}} de ACL Propiedades. Gracias por tu interés. ¿Qué tipo de propiedad estás buscando? Con gusto te ayudo.",
+      "day1": "Hola {{name}}, te escribo de ACL Propiedades para dar seguimiento. ¿Pudiste ver la información? Si quieres, agendamos una visita esta semana.",
+      "day3": "Hola {{name}}, ¿cómo vas con tu búsqueda? Tenemos opciones nuevas que podrían interesarte; dime tu presupuesto y la zona y te mando las mejores.",
+      "day7": "Hola {{name}}, no quiero ser insistente: solo confirmo si todavía te interesa. Si cambiaste de plan, no hay problema; aquí sigo para cuando lo necesites."
+    }
+  },
+  "autoAssign": {
+    "open": "Asignar automáticamente",
+    "title": "Asignación automática",
+    "hint": "Propone un asesor para cada prospecto abierto sin dueño: si viene de una propiedad, uno de sus asesores; si no, quien menos prospectos abiertos tiene. No se guarda nada hasta que lo confirmes.",
+    "reason": {
+      "property": "por su propiedad",
+      "load": "por carga"
+    },
+    "apply": "Asignar los {{count}} prospectos",
+    "more": "…y {{count}} más con la misma regla.",
+    "nothing": "No hay prospectos abiertos sin asesor.",
+    "done_one": "Listo: se asignó {{count}} prospecto.",
+    "done_other": "Listo: se asignaron {{count}} prospectos.",
+    "partial": "Se asignaron {{done}}; {{failed}} no se pudieron guardar (inténtalo de nuevo)."
+  },
+  "completeness": {
+    "label": "Ficha {{percent}} %",
+    "complete": "Ficha completa",
+    "missing": "Falta: {{items}}",
+    "onlyIncomplete": "Solo fichas incompletas",
+    "items": {
+      "photos": "fotos (mínimo 5)",
+      "description": "descripción más larga",
+      "location": "dirección y ubicación en el mapa",
+      "basics": "precio y superficie",
+      "specs": "datos de la propiedad (recámaras, baños…)",
+      "zone": "zona",
+      "advisor": "asesor asignado",
+      "media": "video o recorrido 360°",
+      "amenities": "amenidades",
+      "plan": "plano"
+    }
+  },
+  "bulkProperties": {
+    "priceLabel": "Cambio de precio",
+    "amountLabel": "Cantidad",
+    "modes": {
+      "percentDown": "Bajar %",
+      "percentUp": "Subir %",
+      "exact": "Precio exacto"
+    },
+    "applyPrice": "Cambiar precio",
+    "confirmPrice": "¿Cambiar el precio de {{count}} propiedades? Por ejemplo: {{title}}: {{from}} → {{to}}.",
+    "skipped": "{{count}} se omiten porque no se pudo calcular su precio.",
+    "advisorLabel": "Asesor",
+    "advisorPick": "Asesor…",
+    "addAdvisor": "Agregar asesor",
+    "replaceAdvisor": "Reemplazar asesores",
+    "confirmReplace": "Esto deja SOLO a {{name}} como asesor de {{count}} propiedades (se quita a los demás). ¿Continuar?",
+    "nothingToChange": "Ninguna de las seleccionadas necesita el cambio.",
+    "errors": {
+      "amount": "Escribe una cantidad mayor que cero.",
+      "percent": "El porcentaje no puede pasar de 50 %.",
+      "current": "Esas propiedades no tienen un precio con el que calcular.",
+      "nochange": "Ese cambio no modifica el precio.",
+      "mode": "Elige cómo cambiar el precio."
+    }
+  },
+  "duplicate": {
+    "button": "Duplicar",
+    "titleSuffix": " (copia)",
+    "banner": "Estás creando una copia de «{{title}}»: se copiaron sus datos, pero no las fotos, videos ni el plano. Queda inactiva hasta que la publiques."
+  },
+  "dictation": {
+    "start": "Dictar",
+    "stop": "Detener",
+    "listening": "Escuchando…",
+    "denied": "El navegador no tiene permiso para usar el micrófono.",
+    "error": "No se pudo dictar. Escribe la nota a mano.",
+    "privacy": "Usa el reconocimiento de voz de tu navegador: según el navegador, el audio lo transcribe un servicio de su proveedor. Solo escucha mientras está activo."
+  },
+  "offers": {
+    "button": "Ofertas y apartado",
+    "title": "Ofertas y apartado",
+    "subtitle": "{{title}} · precio de lista {{price}}",
+    "offersTitle": "Ofertas y contraofertas",
+    "none": "Todavía no hay ofertas.",
+    "best": "Mejor oferta abierta del cliente: {{amount}} ({{name}})",
+    "aboveList": "{{pct}} % por encima de la lista",
+    "belowList": "{{pct}} % por debajo de la lista",
+    "party": "De",
+    "buyer": "Comprador",
+    "amount": "Monto",
+    "note": "Nota (opcional)",
+    "add": "Agregar oferta",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "parties": {
+      "cliente": "Cliente",
+      "propietario": "Contraoferta del propietario"
+    },
+    "statuses": {
+      "abierta": "Abierta",
+      "aceptada": "Aceptada",
+      "rechazada": "Rechazada",
+      "retirada": "Retirada"
+    },
+    "hold": {
+      "title": "Apartado",
+      "hint": "Al apartar, la propiedad queda «apartada» en el sitio. Solo puede haber un apartado vigente a la vez.",
+      "buyer": "Quién aparta",
+      "phone": "Teléfono (opcional)",
+      "amount": "Monto del apartado",
+      "due": "Fecha límite",
+      "save": "Registrar apartado",
+      "summary": "{{amount}} · vence el {{date}}",
+      "complete": "Se concretó",
+      "cancel": "Cancelar apartado",
+      "confirmCancel": "¿Cancelar el apartado? La propiedad vuelve a «disponible».",
+      "dueToday": "Vence hoy",
+      "dueSoon_one": "Vence en {{count}} día",
+      "dueSoon_other": "Vence en {{count}} días",
+      "overdue_one": "Venció hace {{count}} día",
+      "overdue_other": "Venció hace {{count}} días",
+      "states": {
+        "vigente": "Vigente",
+        "porVencer": "Por vencer",
+        "vencido": "Vencido",
+        "concretado": "Concretado",
+        "cancelado": "Cancelado"
+      },
+      "pastItem": "{{name}} · {{amount}} · {{status}}"
+    },
+    "errors": {
+      "generic": "No se pudo guardar. Inténtalo de nuevo.",
+      "offer": {
+        "party": "Elige de quién es la oferta.",
+        "name": "Escribe el nombre del comprador.",
+        "amount": "Escribe un monto mayor que cero.",
+        "status": "Estado no válido."
+      },
+      "hold": {
+        "name": "Escribe quién aparta.",
+        "amount": "El monto no puede ser negativo.",
+        "date": "Elige la fecha límite.",
+        "pastDate": "La fecha límite no puede ser anterior a hoy.",
+        "exists": "Esa propiedad ya tiene un apartado vigente.",
+        "status": "Estado no válido."
+      }
+    }
+  },
+  "dayRoute": {
+    "title": "Ruta de hoy",
+    "hint": "Tus visitas que faltan hoy, en orden de hora. El enlace abre Google Maps con todas las paradas.",
+    "open": "Abrir ruta en Google Maps",
+    "openOne": "Cómo llegar",
+    "truncated_one": "Se omite {{count}} parada más (Google Maps admite 10).",
+    "truncated_other": "Se omiten {{count}} paradas más (Google Maps admite 10).",
+    "unplaced_one": "{{count}} visita de hoy no tiene una dirección que se pueda poner en la ruta.",
+    "unplaced_other": "{{count}} visitas de hoy no tienen una dirección que se pueda poner en la ruta."
+  },
+  "newMatches": {
+    "title": "Propiedades nuevas para tus prospectos",
+    "hint": "Publicadas esta semana y que encajan con lo que busca un prospecto abierto. Tú decides si le avisas.",
+    "notify": "Avisarle",
+    "hide": "Ocultar",
+    "more_one": "…y {{count}} prospecto más.",
+    "more_other": "…y {{count}} prospectos más."
+  },
+  "holdsDue": {
+    "title": "Apartados por vencer",
+    "hint": "Vencen en 3 días o menos, o ya vencieron. Se cierran desde «Ofertas y apartado» en Propiedades.",
+    "property": "Propiedad"
+  },
+  "agendaFeed": {
+    "open": "Ver mi Agenda en Google, Apple u Outlook",
+    "hint": "Una dirección secreta que tu calendario lee solo, cada cierto tiempo: tus citas confirmadas aparecen ahí y se actualizan cuando cambian en el sitio.",
+    "privacy": "Es de solo lectura y en un sentido: lo que cambies en el calendario externo NO llega al sitio. Quien tenga la dirección puede ver tus citas (título, hora, lugar y actividades; no los teléfonos de clientes): no la compartas, y si se filtra, genera otra.",
+    "create": "Crear mi dirección",
+    "urlLabel": "Dirección del calendario",
+    "copy": "Copiar",
+    "copied": "Copiada",
+    "regenerate": "Generar otra (invalida la anterior)",
+    "confirmRegenerate": "La dirección anterior dejará de funcionar y tendrás que suscribir el calendario de nuevo con la nueva. ¿Continuar?",
+    "howTo": "En Google Calendar: Otros calendarios → Desde URL. En Apple Calendar: Archivo → Nueva suscripción a calendario. En Outlook: Agregar calendario → Suscribirse desde la web. Pueden tardar hasta unas horas en actualizarse.",
+    "demo": "En modo demo no está disponible: necesita el servidor del sitio.",
+    "error": "No se pudo crear la dirección. Inténtalo de nuevo.",
+    "copyError": "No se pudo copiar; selecciónala y cópiala a mano."
+  },
+  "passwordReset": {
+    "forgot": "¿Olvidaste tu contraseña?",
+    "sendLink": "Enviarme el enlace",
+    "backToLogin": "Volver a iniciar sesión",
+    "needEmail": "Escribe tu correo arriba para mandarte el enlace.",
+    "sent": "Si ese correo tiene una cuenta, te llegará un enlace para elegir una contraseña nueva. Revisa también el correo no deseado.",
+    "demo": "En modo demo no hay cuentas reales: no se puede restablecer la contraseña.",
+    "title": "Contraseña nueva",
+    "hint": "Elige una contraseña de al menos 8 caracteres.",
+    "newPassword": "Contraseña nueva",
+    "confirm": "Repite la contraseña",
+    "save": "Guardar contraseña",
+    "done": "Listo: tu contraseña se cambió. Entrando al panel…",
+    "invalidLink": "Este enlace ya no sirve (venció o ya se usó). Pide uno nuevo desde «¿Olvidaste tu contraseña?».",
+    "errors": {
+      "short": "Usa al menos 8 caracteres.",
+      "spaces": "La contraseña no puede empezar ni terminar con espacios.",
+      "mismatch": "Las dos contraseñas no coinciden.",
+      "generic": "No se pudo cambiar la contraseña. Pide un enlace nuevo e inténtalo de nuevo."
+    }
+  },
+  "contract": {
+    "button": "Contrato",
+    "title": "Contrato de intermediación",
+    "hint": "Para {{title}}. Es un dato interno: no se publica en el sitio.",
+    "kind": "Tipo",
+    "expires": "Vence el",
+    "kinds": {
+      "exclusiva": "Exclusiva",
+      "abierta": "Abierta"
+    },
+    "remove": "Quitar contrato",
+    "confirmRemove": "¿Quitar el contrato de esta propiedad?",
+    "chip": "{{kind}} · {{state}}",
+    "states": {
+      "vigente": "Vigente",
+      "porVencer_one": "Vence en {{count}} día",
+      "porVencer_other": "Vence en {{count}} días",
+      "urgente_one": "Vence en {{count}} día",
+      "urgente_other": "Vence en {{count}} días",
+      "vencido_one": "Venció hace {{count}} día",
+      "vencido_other": "Venció hace {{count}} días"
+    },
+    "errors": {
+      "kind": "Elige el tipo de contrato.",
+      "date": "Elige la fecha de vencimiento.",
+      "generic": "No se pudo guardar. Inténtalo de nuevo."
+    }
+  },
+  "contractsDue": {
+    "title": "Exclusivas por vencer",
+    "hint": "Contratos con el propietario que vencen en 30 días o menos, o que ya vencieron. Renuévalos desde «Contrato» en Propiedades.",
+    "open": "Ir a Propiedades"
+  },
+  "stalled": {
+    "filter": "Sin movimiento",
+    "any": "Cualquiera",
+    "days": "{{count}}+ días",
+    "chip": "Sin movimiento hace {{count}} días",
+    "hint": "Movimiento: cambios en la ficha, visitas, citas o prospectos nuevos de esa propiedad."
+  },
+  "commissions": {
+    "navTitle": "Comisiones",
+    "title": "Comisiones por asesor",
+    "hint": "Salen de la liquidación de arriba. «Registrar» guarda el monto de este momento; después se marca como pagada con su fecha.",
+    "none": "Esta liquidación todavía no deja comisión para ningún asesor.",
+    "pageHint": "Las comisiones registradas desde las liquidaciones. Solo las ven los socios; cada asesor ve las suyas en Mi día.",
+    "concepts": {
+      "captacion": "Captación",
+      "venta": "Venta"
+    },
+    "pending": "Pendiente",
+    "paidState": "Pagada",
+    "paidOn": "Pagada el {{date}}",
+    "register": "Registrar",
+    "update": "Actualizar monto",
+    "changed": "El cálculo ahora da {{amount}} para {{name}}.",
+    "payDate": "Fecha de pago",
+    "markPaid": "Marcar pagada",
+    "undoPaid": "Regresar a pendiente",
+    "confirmUndo": "¿Regresar esta comisión a pendiente?",
+    "advisor": "Asesor",
+    "status": "Estado",
+    "all": "Todos",
+    "empty": "No hay comisiones con ese filtro.",
+    "owed": "Pendiente: {{amount}}",
+    "paidTotal": "Pagado: {{amount}}",
+    "mineTitle": "Mis comisiones",
+    "lastPaid": "último pago {{date}}",
+    "errors": {
+      "generic": "No se pudo guardar. Inténtalo de nuevo.",
+      "paid": "Esa comisión ya está pagada: no se puede cambiar.",
+      "invalid": "Datos de la comisión no válidos.",
+      "date": "Elige la fecha de pago.",
+      "future": "La fecha de pago no puede ser futura."
+    }
+  },
+  "mergeDuplicates": {
+    "title": "Posibles duplicados",
+    "merge": "Fusionar aquí",
+    "confirm": "Se conservará «{{keep}}» y «{{remove}}» se fusionará en él: sus etapas, contactos, citas, selecciones y notas pasan a este prospecto, los datos que falten se completan y «{{remove}}» se elimina. No se puede deshacer. ¿Continuar?",
+    "hint": "Mismo teléfono o correo. Fusionar conserva este prospecto y le pasa toda la historia del otro. Los clientes y los prospectos de otro asesor solo se avisan.",
+    "errors": {
+      "forbidden": "Solo puedes fusionar prospectos que son tuyos.",
+      "not_found": "Ese prospecto ya no existe.",
+      "invalid": "No se pueden fusionar esos dos.",
+      "generic": "No se pudo fusionar. Inténtalo de nuevo."
+    }
+  },
+  "savedViews": {
+    "title": "Mis vistas",
+    "save": "Guardar esta vista",
+    "nothingToSave": "Pon algún filtro para poder guardarlo.",
+    "nameLabel": "Nombre de la vista",
+    "namePlaceholder": "Nombre (p. ej. «Calientes de hoy»)",
+    "remove": "Quitar la vista {{name}}",
+    "confirmRemove": "¿Quitar la vista «{{name}}»?",
+    "confirmReplace": "Ya hay una vista llamada «{{name}}». ¿Reemplazarla con los filtros de ahora?",
+    "errors": {
+      "name": "Escribe un nombre.",
+      "full": "Ya tienes 8 vistas: quita alguna para guardar otra."
+    }
+  },
+  "leaderboard": {
+    "title": "Tabla del mes",
+    "hint": "Puntos del mes: {{contacts}} por contacto, {{visits}} por visita, {{prospects}} por prospecto captado y {{sales}} por venta. Solo se cuentan números; no se muestran clientes ni montos.",
+    "place": "Lugar {{count}}",
+    "you": "Tú",
+    "goalsMet": "Metas cumplidas",
+    "points_one": "{{count}} punto",
+    "points_other": "{{count}} puntos",
+    "detail": "{{contacts}} contactos · {{visits}} visitas · {{prospects}} prospectos · {{sales}} ventas"
+  },
+  "help": {
+    "navTitle": "Ayuda",
+    "title": "Ayuda",
+    "hint": "Cómo usar cada parte del panel. Solo salen los temas de los apartados que tu rol tiene.",
+    "search": "Buscar en la ayuda…",
+    "empty": "No hay temas con esa búsqueda.",
+    "goThere": "Ir allí",
+    "banner": {
+      "label": "Recorrido guiado",
+      "text": "¿Primera vez en el panel? Un recorrido de un minuto te enseña dónde está lo importante.",
+      "start": "Hacer el recorrido",
+      "later": "Ahora no"
+    },
+    "tour": {
+      "start": "Ver el recorrido guiado",
+      "progress": "Paso {{current}} de {{total}}",
+      "goThere": "Ir allí",
+      "skip": "Salir",
+      "back": "Atrás",
+      "next": "Siguiente",
+      "finish": "Terminar",
+      "steps": {
+        "welcome": {
+          "title": "Bienvenido al panel",
+          "body": "Aquí llevas tus prospectos, tu agenda y tus propiedades. Este recorrido es corto y puedes repetirlo cuando quieras desde Ayuda."
+        },
+        "myDay": {
+          "title": "Mi día",
+          "body": "Empieza aquí: tus citas de hoy en orden, la ruta para llegar a ellas, los prospectos a los que toca escribirles y los avisos importantes."
+        },
+        "prospects": {
+          "title": "Prospectos",
+          "body": "Cada persona interesada es una tarjeta que se arrastra de una etapa a otra. Registra cada contacto para que se calcule cuándo darle seguimiento."
+        },
+        "agenda": {
+          "title": "Agenda",
+          "body": "Tus visitas y citas por mes, semana o día. Puedes ver tu agenda también en Google, Apple u Outlook con una dirección de solo lectura."
+        },
+        "properties": {
+          "title": "Propiedades",
+          "body": "Las fichas del sitio. Cada una muestra qué tan completa está y qué le falta; desde ahí registras ofertas, apartados y el contrato con el propietario."
+        },
+        "help": {
+          "title": "¿Dudas?",
+          "body": "En «Ayuda» (en el menú) está todo explicado por temas y con buscador, y desde ahí puedes repetir este recorrido."
+        }
+      }
+    },
+    "topics": {
+      "myDay": {
+        "title": "Mi día",
+        "points": ["Junta lo de hoy: citas en orden de hora, prospectos sin atender, seguimientos vencidos y los de hoy.", "«Ruta de hoy» abre Google Maps con todas tus visitas que faltan como paradas.", "«Propiedades nuevas para tus prospectos» muestra lo publicado esta semana que le encaja a alguien; tú decides si le avisas.", "Aquí también salen los apartados y las exclusivas por vencer, tus comisiones y la tabla del mes del equipo."]
+      },
+      "prospects": {
+        "title": "Prospectos",
+        "points": ["Arrastra la tarjeta a otra columna para cambiar su etapa (en el teléfono, usa «Más»).", "«Registrar contacto» guarda el canal y una nota, y fija el siguiente seguimiento; puedes dictar la nota con el micrófono.", "El chip 🔥 tibio ❄️ explica con puntos por qué un prospecto está caliente o frío; pasa el cursor para verlo.", "«Mis vistas» guarda tus filtros de siempre (en este dispositivo) para volver a ellos con un toque.", "Si dos prospectos son la misma persona (mismo teléfono o correo), abre uno y usa «Fusionar aquí»: conserva su historia completa."]
+      },
+      "agenda": {
+        "title": "Agenda",
+        "points": ["Cambia entre mes, semana, día y lista con los botones de arriba; en semana y día las citas se colocan en su hora.", "Una solicitud de visita sin asesor la ve todo el equipo: quien la toma primero se la queda.", "Al final de la pantalla puedes crear la dirección secreta para ver tu agenda en Google, Apple u Outlook. Es de solo lectura: lo que cambies allá no llega al panel."]
+      },
+      "properties": {
+        "title": "Propiedades",
+        "points": ["La barra «Ficha N %» dice qué falta (fotos, descripción, ubicación…); «Solo fichas incompletas» filtra las pendientes.", "«Duplicar» crea una copia inactiva sin fotos para capturar una parecida más rápido.", "Selecciona varias filas para cambiar precio (con un tope de 50 % por vez) o asesor de todas a la vez; se pide confirmar.", "«Ofertas y apartado» guarda las ofertas y el apartado (uno vigente por propiedad); «Contrato» guarda si es exclusiva y cuándo vence.", "Las fichas sin visitas, citas ni cambios en 30 días salen marcadas «Sin movimiento» (solo para la oficina)."]
+      },
+      "visits": {
+        "title": "Visitas",
+        "points": ["Registra cada visita para alimentar el informe que se le entrega al propietario.", "Al marcar «Realizada» una visita reservada desde el sitio, el cliente recibe una encuesta y su opinión aparece en tu Agenda."]
+      },
+      "commissions": {
+        "title": "Comisiones",
+        "points": ["Cada liquidación guardada calcula la comisión de captación y la de venta de cada asesor.", "«Registrar» guarda el monto de ese momento; después se marca como pagada con su fecha.", "Solo los socios ven todas; cada asesor ve las suyas en Mi día."]
+      },
+      "roles": {
+        "title": "Roles y accesos",
+        "points": ["Un rol agrupa los apartados que se pueden ver; un acceso liga un correo con un rol (y con un asesor).", "Al dar un acceso nuevo puedes enviar una invitación por correo: la persona elige su contraseña con el enlace y no hay que crear la cuenta a mano.", "«Invitar» en la tabla vuelve a mandar la invitación."]
+      },
+      "account": {
+        "title": "Mi cuenta",
+        "points": ["¿Olvidaste tu contraseña? En el inicio de sesión usa «¿Olvidaste tu contraseña?»: te llega un enlace para elegir una nueva.", "El botón «Mostrar» junto a la contraseña deja ver lo que escribes (útil en el teléfono).", "El idioma y el modo claro u oscuro se cambian arriba a la derecha."]
+      }
+    }
+  },
+  "toast": {
+    "close": "Cerrar aviso",
+    "cancel": "Cancelar",
+    "confirm": "Aceptar",
+    "undo": "Deshacer",
+    "region": "Avisos"
+  },
+  "adminNav": {
+    "pin": "Fijar arriba",
+    "unpin": "Quitar de fijados",
+    "pinned": "Fijados",
+    "recent": "Recientes",
+    "compact": "Compactar menú",
+    "expand": "Expandir menú"
+  },
+  "a11y": {
+    "skipToContent": "Saltar al contenido",
+    "mainNav": "Navegación principal",
+    "openMenu": "Abrir menú",
+    "loadingSite": "Cargando ACL Propiedades…",
+    "removeImage": "Eliminar imagen",
+    "removeVideo": "Eliminar video",
+    "switchLanguage": "Cambiar idioma / Switch language"
+  },
+  "propertyForm": {
+    "descriptionHint": "Deja una línea en blanco para separar párrafos y empieza una línea con «- » para hacer una lista (con «1. » para numerarla). En el sitio se ve con sus párrafos y viñetas.",
+    "steps": {
+      "basics": "Datos básicos",
+      "location": "Ubicación y estado",
+      "specs": "Características",
+      "publish": "Publicación y equipo",
+      "media": "Fotos y multimedia"
+    },
+    "stepLabel": "Paso {{current}} de {{total}}",
+    "progress": "Avance del formulario",
+    "stepHasErrors": "(tiene campos por corregir)",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "draftSaved": "Borrador guardado en este navegador",
+    "draftFound": "Quedó un borrador sin guardar de {{when}}.",
+    "draftRestore": "Recuperar borrador",
+    "draftDiscard": "Descartar"
+  },
+  "stickyBar": {
+    "label": "Precio y contacto"
+  },
+  "emptyState": {
+    "noResultsTitle": "No encontramos propiedades con esos filtros",
+    "emptySectionTitle": "Aún no hay propiedades aquí",
+    "comingSoonTitle": "Muy pronto",
+    "favoritesTitle": "Todavía no tienes favoritas",
+    "compareTitle": "Nada que comparar todavía",
+    "propertyGoneTitle": "Esta propiedad ya no está disponible",
+    "postGoneTitle": "No encontramos ese artículo",
+    "blogTitle": "Pronto habrá artículos",
+    "mySpaceTitle": "Aquí verás lo que tengas pendiente"
+  },
+  "notFound": {
+    "title": "Esta página no existe",
+    "text": "La página que buscas no existe o cambió de lugar.",
+    "home": "Volver al inicio",
+    "browse": "Ver propiedades",
+    "seoDescription": "Página no encontrada",
+    "searchLabel": "Buscar propiedades",
+    "searchPlaceholder": "Zona, colonia o código",
+    "search": "Buscar",
+    "featured": "Mientras tanto, mira estas propiedades"
+  },
+  "propertyMap": {
+    "cluster": "{{count}} propiedades juntas: acercar el mapa"
+  },
+  "charts": {
+    "title": "Gráficas",
+    "viewData": "Ver los datos",
+    "item": "Concepto",
+    "value": "Valor",
+    "empty": "Todavía no hay datos para esta gráfica.",
+    "none": "ninguna",
+    "otherSources": "Otras fuentes",
+    "prospects": "Prospectos",
+    "sales": "Ventas",
+    "stagesTitle": "Embudo de prospectos",
+    "stagesSubtitle": "Prospectos por etapa (hoy)",
+    "stagesAria": "Prospectos por etapa: {{summary}}",
+    "fullFunnel": "Embudo completo",
+    "noProspects": "Todavía no hay prospectos.",
+    "sourcesTitle": "Prospectos por fuente",
+    "sourcesSubtitle": "De dónde llegan los prospectos",
+    "sourcesAria": "Prospectos por fuente: {{summary}}",
+    "salesTitle": "Ventas por mes",
+    "salesSubtitle_one": "Últimos 12 meses: {{count}} venta",
+    "salesSubtitle_other": "Últimos 12 meses: {{count}} ventas",
+    "salesAria": "Ventas por mes en los últimos 12 meses: {{summary}}",
+    "salesReport": "Reporte de ventas",
+    "noSales": "Todavía no hay ventas en los últimos 12 meses."
+  },
+  "tableTools": {
+    "columns": "Columnas",
+    "showAll": "Mostrar todas",
+    "sortBy": "Ordenar por {{column}}"
+  },
+  "tabBar": {
+    "label": "Navegación rápida",
+    "search": "Buscar",
+    "favorites": "Favoritos",
+    "contact": "Contacto",
+    "favoritesCount_one": "{{count}} favorito",
+    "favoritesCount_other": "{{count}} favoritos"
+  },
+  "security": {
+    "title": "Seguridad de la cuenta",
+    "navTitle": "Seguridad",
+    "subtitle": "Protege el panel: guarda INE, CURP y contraseñas de portales de tus clientes."
+  },
+  "mfa": {
+    "title": "Verificación en dos pasos",
+    "intro": "Además de tu contraseña, el panel pide un código de 6 dígitos de una app (Google Authenticator, Authy, Microsoft Authenticator…). Aunque alguien conozca tu contraseña, no puede entrar ni ver los datos de clientes sin tu teléfono.",
+    "demoNote": "Estás en modo demo: el código funciona de verdad, pero se guarda solo en este navegador.",
+    "unavailable": "No se pudo consultar el estado de la verificación.",
+    "active": "La verificación en dos pasos está activada.",
+    "inactive": "Todavía no la activas.",
+    "enable": "Activar verificación en dos pasos",
+    "factorName": "App de autenticación",
+    "remove": "Quitar",
+    "removeConfirm": "¿Quitar la verificación en dos pasos? Tu cuenta quedará protegida solo por la contraseña.",
+    "removed": "Verificación quitada",
+    "removeError": "No se pudo quitar.",
+    "step1": "Abre tu app de autenticación en el teléfono.",
+    "step2": "Escanea este código QR:",
+    "qrAlt": "Código QR para la app de autenticación",
+    "manualKey": "¿No puedes escanear? Escribe esta clave en la app:",
+    "step3": "Escribe aquí el código de 6 dígitos que muestra la app:",
+    "codeLabel": "Código de 6 dígitos",
+    "confirm": "Confirmar y activar",
+    "enabled": "Verificación en dos pasos activada",
+    "enrollError": "No se pudo iniciar la activación.",
+    "badCode": "Ese código no es correcto o ya venció. Revisa la hora de tu teléfono e inténtalo con el siguiente.",
+    "loginTitle": "Verificación en dos pasos",
+    "loginHint": "Escribe el código de 6 dígitos de tu app de autenticación.",
+    "verify": "Verificar",
+    "useOtherAccount": "Usar otra cuenta",
+    "nudge": "Protege el panel con verificación en dos pasos: guarda INE, CURP y contraseñas de portales.",
+    "nudgeAction": "Activarla",
+    "nudgeLater": "Más tarde"
+  },
+  "idle": {
+    "title": "¿Sigues ahí?",
+    "text_one": "Por seguridad, cerraremos tu sesión en {{count}} segundo por inactividad.",
+    "text_other": "Por seguridad, cerraremos tu sesión en {{count}} segundos por inactividad.",
+    "stay": "Seguir aquí",
+    "logoutNow": "Cerrar sesión ahora",
+    "expired": "Cerramos tu sesión por inactividad. Inicia sesión de nuevo.",
+    "sectionTitle": "Cierre por inactividad",
+    "sectionText": "La sesión se cierra sola tras {{minutes}} minutos sin actividad (con un aviso un minuto antes). No se cierra si hay capturas sin enviar guardadas en este dispositivo.",
+    "sectionOff": "El cierre por inactividad está desactivado."
+  },
+  "devices": {
+    "title": "Dispositivos con sesión",
+    "intro": "Navegadores desde los que se ha entrado al panel con tu cuenta.",
+    "empty": "Aún no hay dispositivos registrados.",
+    "unknown": "Dispositivo",
+    "thisOne": "este",
+    "lastSeen": "visto {{when}}",
+    "signOutOthers": "Cerrar sesión en los demás dispositivos",
+    "signOutOthersConfirm": "¿Cerrar la sesión en todos los demás dispositivos? Tendrán que volver a iniciar sesión.",
+    "signedOutOthers": "Se cerró la sesión en los demás dispositivos",
+    "error": "No se pudo completar.",
+    "limit": "La lista muestra los dispositivos que han entrado desde que existe esta pantalla. Por ahora solo se pueden cerrar todos los demás a la vez, no uno por uno."
+  },
+  "errors": {
+    "title": "Errores del sitio",
+    "navTitle": "Errores del sitio",
+    "subtitle": "Fallos que el navegador de los visitantes o del equipo encontró, agrupados. Los nuevos se avisan por correo a los administradores.",
+    "filterLabel": "Estado de los errores",
+    "status": {
+      "nuevo": "Nuevos",
+      "resuelto": "Resueltos",
+      "ignorado": "Ignorados"
+    },
+    "emptyNew": "No hay errores nuevos. 🎉",
+    "empty": "No hay errores en esta lista.",
+    "times_one": "Pasó {{count}} vez",
+    "times_other": "Pasó {{count}} veces",
+    "lastSeen": "visto {{when}}",
+    "release": "versión {{release}}",
+    "source": {
+      "window": "error de página",
+      "promise": "promesa sin atender",
+      "react": "error al mostrar una pantalla"
+    },
+    "noStack": "(sin detalle técnico)",
+    "showDetail": "Ver detalle",
+    "hideDetail": "Ocultar detalle",
+    "resolve": "Marcar resuelto",
+    "ignore": "Ignorar",
+    "reopen": "Reabrir",
+    "delete": "Borrar",
+    "deleteConfirm": "¿Borrar este error del registro?",
+    "loadError": "No se pudieron cargar los errores.",
+    "updateError": "No se pudo actualizar.",
+    "kindLabel": "Tipo de aviso",
+    "kind": {
+      "todos": "Todos",
+      "automatico": "Errores automáticos",
+      "usuario": "Reportes del equipo"
+    },
+    "reportedBy": "Reportó: {{email}}",
+    "unknownPerson": "alguien del equipo"
+  },
+  "live": {
+    "newMessage": "Llegó un mensaje nuevo {{name}}",
+    "newProspect": "Nuevo prospecto {{name}}"
+  },
+  "reportProblem": {
+    "button": "Reportar un problema",
+    "title": "Reportar un problema",
+    "hint": "¿Algo no salió bien, un dato se ve raro o un botón no hace lo que debe? Cuéntanoslo con tus palabras. Lo verán los administradores.",
+    "label": "¿Qué pasó?",
+    "placeholder": "Por ejemplo: «Al guardar el prospecto me sale un error» o «La agenda de hoy no muestra la cita de las 4».",
+    "counter": "{{count}} de {{max}} caracteres",
+    "attached": "Se enviará con tu correo ({{email}}), la pantalla en la que estás ({{screen}}) y tu navegador.",
+    "send": "Enviar reporte",
+    "thanks": "¡Gracias! Ya lo recibimos. Los administradores lo verán en «Errores del sitio».",
+    "errors": {
+      "empty": "Escribe qué pasó.",
+      "short": "Cuéntanos un poco más (al menos 10 caracteres).",
+      "rateLimited": "Ya mandaste varios reportes seguidos. Inténtalo de nuevo en un rato.",
+      "generic": "No se pudo enviar el reporte. Inténtalo de nuevo."
     }
   }
 }

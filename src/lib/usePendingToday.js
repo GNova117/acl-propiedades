@@ -6,6 +6,7 @@ import { activeCitas } from "./agendaCitas";
 import { daysSince, followUpState, todayISO, unattendedAge, unattendedState } from "./prospects";
 import { effectiveStatus, signingAgeDays } from "./signing";
 import { postsaleDue } from "./postsale";
+import { useLiveRefresh } from "./liveUpdates";
 import { isReportSent, monthLabel, previousMonthValue, reportableProperties } from "./visitMonthly";
 
 const KEY_LATE_DAYS = 2; // una llave con 2 días o más fuera se marca como atrasada
@@ -20,6 +21,8 @@ export function usePendingToday() {
   const { t, i18n } = useTranslation();
   const { hasSection, advisorId } = useAuth();
   const [items, setItems] = useState(null);
+  // Llega un mensaje o prospecto nuevo → se vuelve a calcular (con un retardo para juntar ráfagas).
+  const liveTick = useLiveRefresh(["contact_messages", "prospectos"], { delayMs: 1500 });
   const sectionsKey = ["mensajes", "agenda", "visitas", "secretaria", "prospectos", "propiedades", "documentos_legales"].map((s) => hasSection(s)).join();
 
   useEffect(() => {
@@ -167,7 +170,7 @@ export function usePendingToday() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sectionsKey]);
+  }, [sectionsKey, liveTick]);
 
   return { items, sectionsKey };
 }

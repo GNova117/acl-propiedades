@@ -7,6 +7,7 @@ import { VENDEDOR_SECTIONS, vendedorExtraRules, vendedorInitialValues } from "..
 import { COMPRADOR_SECTIONS, compradorInitialValues } from "../../lib/perfilamientoComprador";
 import "./AdminClientProfiling.css";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
 
 export default function AdminClientProfiling() {
   const { id } = useParams();
@@ -30,7 +31,7 @@ export default function AdminClientProfiling() {
     setSearchParams(next === "comprador" ? { tipo: "comprador" } : {}, { replace: true });
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div>

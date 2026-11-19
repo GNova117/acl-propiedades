@@ -49,7 +49,7 @@ export const ALARM_MINUTES = [60, 15];
 
 // `cita`: fila de agenda_citas ({ id, titulo, fecha "YYYY-MM-DD", hora "HH:MM[:SS]" | null, duracion_min, lugar, actividades }).
 // `extra`: { clientName, clientPhone, advisorName } para armar la descripción.
-export function citaToIcs(cita, { clientName = "", clientPhone = "", advisorName = "", now = new Date() } = {}) {
+function citaToVevent(cita, { clientName = "", clientPhone = "", advisorName = "", now = new Date() } = {}) {
   const [y, m, d] = String(cita.fecha).split("-").map(Number);
   const timed = Boolean(cita.hora);
   const [hh, mm] = timed ? String(cita.hora).split(":").map(Number) : [0, 0];
@@ -78,8 +78,23 @@ export function citaToIcs(cita, { clientName = "", clientPhone = "", advisorName
     lines.push("BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${escapeText(cita.titulo)}`, `TRIGGER:${trigger}`, "END:VALARM");
   }
   lines.push("END:VEVENT");
+  return lines;
+}
 
-  return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//ACL Propiedades//Agenda//ES", "CALSCALE:GREGORIAN", ...lines, "END:VCALENDAR"].map(fold).join("\r\n") + "\r\n";
+const calendar = (events, extraHeaders = []) =>
+  ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//ACL Propiedades//Agenda//ES", "CALSCALE:GREGORIAN", ...extraHeaders, ...events.flat(), "END:VCALENDAR"].map(fold).join("\r\n") + "\r\n";
+
+export function citaToIcs(cita, extra = {}) {
+  return calendar([citaToVevent(cita, extra)]);
+}
+
+// Calendario suscribible (una URL que Google/Apple/Outlook vuelven a leer solos): todas las citas dadas en un
+// solo .ics. A propósito NO lleva el teléfono del cliente: ese calendario vive en servicios de terceros.
+export function citasToIcsFeed(citas, { name = "Agenda ACL Propiedades", now = new Date() } = {}) {
+  return calendar(
+    citas.map((cita) => citaToVevent(cita, { now })),
+    [`X-WR-CALNAME:${escapeText(name)}`, "REFRESH-INTERVAL;VALUE=DURATION:PT1H", "X-PUBLISHED-TTL:PT1H"]
+  );
 }
 
 // Descarga el .ics en el navegador.

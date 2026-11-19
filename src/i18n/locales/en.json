@@ -12,7 +12,8 @@
     "land": "Land",
     "about": "About",
     "contact": "Contact",
-    "admin": "Admin Panel"
+    "admin": "Admin Panel",
+    "mySpace": "My space"
   },
   "hero": {
     "title": "Find your next property in La Comarca Lagunera",
@@ -54,7 +55,9 @@
     "avgDays": "average days to sell",
     "available_one": "property available today",
     "available_other": "properties available today",
-    "recentTitle": "Recently sold"
+    "recentTitle": "Recently sold",
+    "soldInDays_one": "Sold in {{count}} day",
+    "soldInDays_other": "Sold in {{count}} days"
   },
   "mobileBar": {
     "schedule": "Schedule a visit",
@@ -224,7 +227,19 @@
     "codeNotFound": "No property was found with that code.",
     "showFilters": "Filters",
     "hideFilters": "Hide filters",
-    "viewResults": "View results"
+    "viewResults": "View results",
+    "priceRange": "Price",
+    "noLimit": "No limit",
+    "searchLabel": "Search properties",
+    "searchPlaceholder": "Search by neighborhood, street or keyword: pool, Senderos…",
+    "searchThisArea": "Search this area",
+    "splitView": "Split",
+    "splitViewTitle": "List and map side by side",
+    "parking": "Parking",
+    "colonyTitle": "Properties in {{colony}}, {{city}}",
+    "colonySubtitle": "Houses, apartments and land available in the {{colony}} neighborhood, in {{city}}.",
+    "colonyBack": "See all of {{city}}",
+    "coloniesTitle": "Neighborhoods in {{city}} with listings"
   },
   "detail": {
     "compareCredits": {
@@ -340,7 +355,6 @@
     "hours1": "Monday to Friday: 8:00 AM - 2:00 PM",
     "hours2": "Monday to Friday: 4:00 PM - 6:00 PM",
     "addressTitle": "Location",
-    "address": "Blvd. Independencia, Local 16, Plaza San Luciano",
     "viewOnMaps": "View on Google Maps",
     "paymentMethodsTitle": "Payment methods",
     "paymentMethodsBody": "We accept cash payment, bank financing, INFONAVIT credit, and FOVISSSTE credit, subject to each institution's conditions and required documentation. Check with your advisor for the options available for each property."
@@ -361,7 +375,9 @@
     "required": "This field is required",
     "invalidEmail": "Invalid email address",
     "privacyNotice": "By submitting this form, your data will be handled according to our",
-    "privacyLinkLabel": "Privacy Notice"
+    "privacyLinkLabel": "Privacy Notice",
+    "mapTitle": "ACL Propiedades location",
+    "serverLimited": "Too many messages were sent from your connection. Please try again later or call us."
   },
   "messages": {
     "via_alerta": "Asked for WhatsApp alerts",
@@ -871,7 +887,9 @@
     "industrialSpecsHint": "Technical data specific to industrial warehouses. Optional — shown on the public page when filled in.",
     "messages": "Messages",
     "testimonials": "Testimonials",
-    "blog": "Blog"
+    "blog": "Blog",
+    "showPassword": "Show",
+    "hidePassword": "Hide"
   },
   "accessControl": {
     "restricted": "You don't have access to this section.",
@@ -919,7 +937,19 @@
     "accessAdvisorHint": "Only applies to the Agenda and Visits sections: link this email to their own advisor record so they only see and edit their own appointments and visits. Leave empty so they see everyone's.",
     "addAccess": "Grant access",
     "removeAccess": "Remove access",
-    "noAccess": "No emails have access assigned yet."
+    "noAccess": "No emails have access assigned yet.",
+    "sendInvite": "Send them an invitation by email",
+    "sendInviteHint": "They get a link to choose their password; no need to create the account by hand in Supabase.",
+    "resendInvite": "Invite",
+    "inviteSent": "Invitation sent to {{email}}. They will get an email with the link to choose their password.",
+    "inviteExists": "{{email}} already has an account. If they forgot the password, they can use “Forgot your password?” on the sign-in page.",
+    "inviteErrors": {
+      "failed": "Could not send the invitation (the access was granted). Try again with “Invite”.",
+      "demo": "Demo mode does not send invitations: there are no real accounts.",
+      "forbidden": "Only people with the Roles section can invite.",
+      "no_access_row": "That email has no access granted in Roles.",
+      "invalid_email": "That email is not valid."
+    }
   },
   "zones": {
     "name": "Zone name",
@@ -2208,7 +2238,10 @@
         "email": "The email is not valid.",
         "budgetRange": "The minimum price cannot be higher than the maximum."
       }
-    }
+    },
+    "dragHint": "Drag a card to another column to change its stage (on a phone, use “More” → stage).",
+    "deletedUndo": "Prospect “{{name}}” deleted.",
+    "boardLabel": "Prospect board by stage"
   },
   "pending": {
     "title": "To do today",
@@ -2433,8 +2466,6 @@
     "ssv": "Savings in your Housing Subaccount (optional)",
     "ssvHint": "You can check it in the Mi Cuenta Infonavit app. If you don't know it, leave it at 0.",
     "term": "Term",
-    "years_one": "{{count}} year",
-    "years_other": "{{count}} years",
     "seeProperties": "See properties within my budget",
     "disclaimer": "This is an informational estimate using the current UMA ({{uma}}/month) and a reference payment of 20% of your salary. Infonavit confirms the actual amount when you apply.",
     "leadTitle": "Want us to help with your credit?",
@@ -2452,7 +2483,9 @@
       "estimatedTotal": "Estimated housing subaccount",
       "useInSimulator": "Use this total in the simulator",
       "disclaimer": "Simple estimate (daily salary × 30.4 = month × 12 = year × 5%, for the years worked at each job). It does not include interest or withdrawals; your real balance is confirmed in the Mi Cuenta Infonavit app."
-    }
+    },
+    "years_one": "{{count}} year",
+    "years_other": "{{count}} years"
   },
   "sellHome": {
     "seoTitle": "Sell your home or find out what it is worth",
@@ -2862,7 +2895,11 @@
   },
   "installApp": {
     "button": "Install app",
-    "iosHint": "On iPhone or iPad: tap the browser's Share button and choose “Add to Home Screen”."
+    "iosHint": "On iPhone or iPad: tap the browser's Share button and choose “Add to Home Screen”.",
+    "title": "Install ACL Propiedades on your phone",
+    "text": "Open it with one tap, keep your favorites and book your visit without searching for the site again.",
+    "install": "Install",
+    "later": "Not now"
   },
   "valuation": {
     "title": "Value estimate",
@@ -3168,7 +3205,11 @@
     "counter": "{{current}} / {{total}}",
     "prev": "Previous photo",
     "next": "Next photo",
-    "zoomHint": "Click the photo to zoom · arrows or swipe to change · Esc to close"
+    "zoomHint": "Click or double-tap to zoom (pinch on a phone) · arrows or swipe to change · Esc to close",
+    "viewImage": "View image {{number}}",
+    "imageAlt": "{{alt}} - image {{number}}",
+    "moreCount": "+{{count}} photos",
+    "seeAll": "See all {{count}} photos"
   },
   "panorama360": {
     "title": "360° tour",
@@ -3400,7 +3441,15 @@
     "directions": "Directions",
     "addToCalendar": "To my calendar",
     "addToCalendarTitle": "Download for your calendar (alerts you 1 hour and 15 minutes before)",
-    "reminderPlace": "Meeting at: {{place}}"
+    "reminderPlace": "Meeting at: {{place}}",
+    "viewWeek": "Week",
+    "viewDay": "Day",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "prevDay": "Previous day",
+    "nextDay": "Next day",
+    "timeGrid": "Appointments by hour",
+    "allDay": "All day"
   },
   "sendProperty": {
     "button": "Send",
@@ -3958,6 +4007,910 @@
     },
     "navidad": {
       "greeting": "Merry Christmas and a Happy New Year from ACL Propiedades!"
+    }
+  },
+  "priceRanges": {
+    "upTo": "Up to {{max}}",
+    "from": "Over {{min}}",
+    "between": "{{min}} – {{max}}"
+  },
+  "activeFilters": {
+    "label": "Active filters",
+    "remove": "Remove filter: {{filter}}",
+    "clearAll": "Clear all",
+    "search": "“{{text}}”",
+    "priceBetween": "{{min}} – {{max}}",
+    "priceFrom": "From {{min}}",
+    "priceUpTo": "Up to {{max}}",
+    "areaBetween": "{{min}}–{{max}} m²",
+    "areaFrom": "From {{min}} m²",
+    "areaUpTo": "Up to {{max}} m²",
+    "bedrooms": "{{count}}+ bedrooms",
+    "bathrooms": "{{count}}+ bathrooms",
+    "parking": "{{count}}+ parking spots",
+    "mapArea": "Map area"
+  },
+  "mortgageCalc": {
+    "title": "Calculate your monthly payment",
+    "reset": "Reference values",
+    "adjust": "Adjust",
+    "down": "Down payment",
+    "years": "Term",
+    "yearsValue": "{{count}} years",
+    "rate": "Annual rate",
+    "monthly": "Estimated monthly payment",
+    "loan": "Loan amount",
+    "interest": "Total interest",
+    "totalPaid": "Total paid",
+    "note": "Reference calculation with a fixed payment. Each bank offers different terms: this is not an offer or a credit approval, and it does not include insurance, fees or closing costs."
+  },
+  "mapLinks": {
+    "directions": "Get directions",
+    "streetView": "View on Street View",
+    "waze": "Open in Waze"
+  },
+  "floorPlan": {
+    "title": "Floor plan",
+    "open": "Enlarge the floor plan",
+    "alt": "Floor plan of {{title}}",
+    "note": "Reference plan: measurements are approximate and may vary.",
+    "adminLabel": "Floor plan",
+    "adminHint": "Optional. PNG or JPG image of the floor plan, shown on the public listing. It can also be published from Construction (“Publish to listing”).",
+    "upload": "Upload plan",
+    "replace": "Replace plan",
+    "remove": "Remove plan",
+    "previewAlt": "Floor plan preview",
+    "invalidType": "Upload a PNG or JPG image.",
+    "tooBig": "The plan is too large (max {{mb}} MB).",
+    "saveFailed": "The property was saved, but the floor plan was not: {{message}}"
+  },
+  "downloadFicha": {
+    "button": "Download PDF fact sheet",
+    "error": "The PDF could not be generated. Please try again."
+  },
+  "favoritesShare": {
+    "sharedTitle": "Shared list",
+    "sharedSubtitle": "Someone shared these properties with you.",
+    "sharedBanner_one": "{{count}} property was shared with you.",
+    "sharedBanner_other": "{{count}} properties were shared with you.",
+    "saveAll": "Save to my favorites",
+    "saved": "Done: they are in your favorites.",
+    "viewMine": "View my list",
+    "sharedEmpty": "This list no longer has available properties.",
+    "shareText": "My property list at ACL Propiedades:",
+    "shareHint": "The link opens this list on any device so it can be saved."
+  },
+  "travelTime": {
+    "title": "How far is it from your work or school?",
+    "prompt": "Enter an address and we will tell you how long it takes to drive to this property.",
+    "placeholder": "E.g. Blvd. Independencia 1200, Torreón",
+    "calculate": "Calculate",
+    "calculating": "Calculating…",
+    "from": "From: {{place}}",
+    "change": "Change",
+    "minutes": "{{minutes}} min",
+    "hoursMinutes": "{{hours}} h {{minutes}} min",
+    "approx": "≈ {{duration}}",
+    "byCar": "by car · {{km}} km",
+    "estimateNote": "Estimate based on distance: we could not look up the route. Real time depends on traffic.",
+    "notFound": "We could not find that address. Try the street and neighborhood.",
+    "error": "It could not be calculated right now. Please try again in a moment.",
+    "privacy": "When you calculate, the address is sent to OpenStreetMap and a routing service; we do not store it on our servers. It is remembered only on this device."
+  },
+  "mySpace": {
+    "title": "My space",
+    "subtitle": "Your visits, documents and lists in one place.",
+    "favorites": "My favorites",
+    "favoritesCount_one": "You have {{count}} saved property.",
+    "favoritesCount_other": "You have {{count}} saved properties.",
+    "openFavorites": "View my favorites",
+    "kinds": {
+      "visit": "My visits",
+      "portal": "My documents",
+      "sign": "Documents to sign",
+      "selection": "Lists from my advisor"
+    },
+    "defaultTitle": {
+      "visit": "Scheduled visit",
+      "portal": "Documents for my process",
+      "sign": "Document to sign",
+      "selection": "Properties for you"
+    },
+    "openedOn": "Opened on {{date}}",
+    "forget": "Remove",
+    "forgetOne": "Remove “{{title}}” from My space",
+    "forgetAll": "Remove all",
+    "forgetAllConfirm": "Remove all My space links on this device? The links still work if you open them again.",
+    "empty": "There is nothing here yet. When you open the link of a visit, your documents or a list your advisor sends you, it will show up in this space.",
+    "privacy": "This list lives only on this device: there is no account and nothing is sent to a server. We only keep the link and a short title, never your name or what you type.",
+    "portalDetail": "{{todo}} pending of {{total}}",
+    "selectionDetail_one": "{{count}} property",
+    "selectionDetail_other": "{{count}} properties",
+    "signStatus": {
+      "pendiente": "Pending signature",
+      "firmado": "Signed",
+      "expirado": "Expired",
+      "bloqueado": "Locked"
+    }
+  },
+  "nextVisit": {
+    "today": "Visit it today",
+    "tomorrow": "Visit it tomorrow",
+    "weekday": "Visit it on {{day}}"
+  },
+  "selectionReactions": {
+    "like": "I like it",
+    "dislike": "Not for me",
+    "addComment": "Add a comment",
+    "editComment": "Edit comment",
+    "groupLabel": "Your opinion on {{title}}",
+    "commentLabel": "Comment about {{title}}",
+    "commentPlaceholder": "Tell your advisor what you thought…",
+    "saveComment": "Save comment",
+    "saved": "Done, your advisor will see it.",
+    "errors": {
+      "generic": "It could not be saved. Please try again.",
+      "unavailable": "This link is no longer available.",
+      "invalid_property": "That property is not in your list.",
+      "invalid_reaction": "Your opinion could not be saved.",
+      "invalid_comment": "The comment is too long (300 characters max)."
+    },
+    "summary": "👍 {{like}} · 👎 {{dislike}} · 💬 {{comments}} — view replies"
+  },
+  "onlineInterest": {
+    "title": "Online interest",
+    "note": "People who viewed the property on the site. In-person visits are above.",
+    "visitors": "People who viewed the listing",
+    "week": "In the last 7 days",
+    "favorites": "Saved it to favorites",
+    "shares": "Times shared"
+  },
+  "portalAvisos": {
+    "label": "Email the client",
+    "hint": "They get an email when you change the stage of their process and, while any document is missing, a reminder every 7 days (3 per stage at most). Only if they have an email and a valid portal link.",
+    "noEmail": "This client has no email, so they cannot be notified. Add it in their profile."
+  },
+  "sellEstimate": {
+    "title": "Your rough estimate",
+    "range": "Between {{low}} and {{high}}",
+    "note": "This is a reference by zone and size, without having seen the property. The real value depends on its condition, exact location and the market; an advisor gives you a free valuation.",
+    "hint": "Choose your zone and enter the land and built square meters to see an instant estimate.",
+    "afterSend": "Your rough estimate: between {{low}} and {{high}}."
+  },
+  "survey": {
+    "pageTitle": "Your feedback",
+    "title": "How was your visit?",
+    "intro": "It takes 30 seconds and helps us improve.",
+    "ratingLabel": "Your rating",
+    "starAria_one": "{{count}} star",
+    "starAria_other": "{{count}} stars",
+    "words": {
+      "1": "Bad experience",
+      "2": "Could be better",
+      "3": "Okay",
+      "4": "Good",
+      "5": "Excellent"
+    },
+    "commentLabel": "Anything else you want to tell us? (optional)",
+    "commentPlaceholder": "What you liked, what we could improve…",
+    "privacy": "Only the ACL Propiedades team sees it; it is not published.",
+    "submit": "Send my feedback",
+    "pickRating": "Choose 1 to 5 stars.",
+    "thanksTitle": "Thank you for your feedback!",
+    "thanksHappy": "We are glad your visit went well. If you like, share it on Google too: it helps other families find us.",
+    "thanksOther": "Thank you for your honesty: we will review it to improve. If you want an advisor to contact you, message us on WhatsApp.",
+    "googleCta": "Leave a Google review",
+    "backHome": "Go to the home page",
+    "errors": {
+      "generic": "It could not be sent. Please try again.",
+      "invalid_rating": "Choose 1 to 5 stars.",
+      "invalid_comment": "The comment is too long (500 characters max).",
+      "not_ready": "This visit is not marked as done yet.",
+      "invalid": "This link is not valid."
+    },
+    "notice": {
+      "invalido": {
+        "title": "Invalid link",
+        "body": "Check that it is the full link from the email we sent you."
+      },
+      "error": {
+        "title": "Could not load",
+        "body": "Please try again in a moment."
+      },
+      "no_disponible": {
+        "title": "Not available yet",
+        "body": "The survey opens once your visit is marked as done. Please try again later."
+      },
+      "respondida": {
+        "title": "We already got your feedback!",
+        "body": "Thank you for taking the time."
+      }
+    }
+  },
+  "surveyAdmin": {
+    "ratingAria": "{{rating}} out of 5 stars",
+    "noComment": "No comment"
+  },
+  "prospectScore": {
+    "title": "Score {{score}}/100",
+    "levels": {
+      "hot": "Hot",
+      "warm": "Warm",
+      "cold": "Cold"
+    },
+    "hotOnly": "Hot only",
+    "sortLabel": "Sort prospects",
+    "sortRecent": "Order: most recent",
+    "sortTemperature": "Order: hottest first",
+    "reasons": {
+      "stage_nuevo": "New prospect",
+      "stage_contactado": "Already contacted",
+      "stage_interesado": "Interested",
+      "stage_negociacion": "In negotiation",
+      "source_visita_agendada": "Booked a visit",
+      "source_simulador": "Used the credit simulator",
+      "source_estimacion": "Asked for an estimate",
+      "source_comparador": "Used the credit comparison",
+      "source_whatsapp": "Wrote on WhatsApp",
+      "source_chatbot": "Talked to the chat",
+      "source_visita": "Went to a visit",
+      "source_alerta": "Asked for alerts",
+      "source_sitio": "Came from the website",
+      "hasProperty": "Has a property of interest",
+      "hasBudget": "Shared their budget",
+      "hasMatches": "There are matching properties",
+      "openedSelection": "Opened the selection you sent",
+      "recentContact": "Contacted recently",
+      "stale": "No contact for over 2 weeks",
+      "followOverdue": "Follow-up overdue"
+    }
+  },
+  "sequence": {
+    "step": "Sequence: step {{n}} of {{total}}",
+    "today": "due today",
+    "late_one": "{{count}} day late",
+    "late_other": "{{count}} days late",
+    "on": "due on {{date}}",
+    "finished": "Sequence complete",
+    "write": "Write: {{step}}",
+    "dueOnly": "Sequence due today",
+    "stepName": {
+      "first": "first message",
+      "day1": "day 1 follow-up",
+      "day3": "day 3 follow-up",
+      "day7": "last follow-up"
+    },
+    "messages": {
+      "first": "Hi {{name}}, this is {{advisor}} from ACL Propiedades. I saw you were interested in {{property}}. Can I help you with more information or schedule a visit?",
+      "firstGeneric": "Hi {{name}}, this is {{advisor}} from ACL Propiedades. Thanks for your interest. What kind of property are you looking for? Happy to help.",
+      "day1": "Hi {{name}}, I'm following up from ACL Propiedades. Were you able to look at the information? If you like, we can schedule a visit this week.",
+      "day3": "Hi {{name}}, how is your search going? We have new options that might interest you; tell me your budget and area and I'll send you the best ones.",
+      "day7": "Hi {{name}}, I don't want to be pushy: I just want to confirm whether you are still interested. If your plans changed, no problem; I'm here whenever you need me."
+    }
+  },
+  "autoAssign": {
+    "open": "Assign automatically",
+    "title": "Automatic assignment",
+    "hint": "Suggests an advisor for each open prospect without an owner: if it comes from a property, one of its advisors; otherwise whoever has the fewest open prospects. Nothing is saved until you confirm.",
+    "reason": {
+      "property": "by property",
+      "load": "by workload"
+    },
+    "apply": "Assign all {{count}} prospects",
+    "more": "…and {{count}} more with the same rule.",
+    "nothing": "There are no open prospects without an advisor.",
+    "done_one": "Done: {{count}} prospect assigned.",
+    "done_other": "Done: {{count}} prospects assigned.",
+    "partial": "{{done}} assigned; {{failed}} could not be saved (try again)."
+  },
+  "completeness": {
+    "label": "Listing {{percent}}%",
+    "complete": "Listing complete",
+    "missing": "Missing: {{items}}",
+    "onlyIncomplete": "Incomplete listings only",
+    "items": {
+      "photos": "photos (at least 5)",
+      "description": "a longer description",
+      "location": "address and map location",
+      "basics": "price and size",
+      "specs": "property details (bedrooms, bathrooms…)",
+      "zone": "zone",
+      "advisor": "assigned advisor",
+      "media": "video or 360° tour",
+      "amenities": "amenities",
+      "plan": "floor plan"
+    }
+  },
+  "bulkProperties": {
+    "priceLabel": "Price change",
+    "amountLabel": "Amount",
+    "modes": {
+      "percentDown": "Lower %",
+      "percentUp": "Raise %",
+      "exact": "Exact price"
+    },
+    "applyPrice": "Change price",
+    "confirmPrice": "Change the price of {{count}} properties? For example: {{title}}: {{from}} → {{to}}.",
+    "skipped": "{{count}} are skipped because their price could not be calculated.",
+    "advisorLabel": "Advisor",
+    "advisorPick": "Advisor…",
+    "addAdvisor": "Add advisor",
+    "replaceAdvisor": "Replace advisors",
+    "confirmReplace": "This leaves ONLY {{name}} as the advisor of {{count}} properties (the others are removed). Continue?",
+    "nothingToChange": "None of the selected properties needs the change.",
+    "errors": {
+      "amount": "Enter an amount greater than zero.",
+      "percent": "The percentage cannot exceed 50%.",
+      "current": "Those properties have no price to calculate from.",
+      "nochange": "That change does not modify the price.",
+      "mode": "Choose how to change the price."
+    }
+  },
+  "duplicate": {
+    "button": "Duplicate",
+    "titleSuffix": " (copy)",
+    "banner": "You are creating a copy of “{{title}}”: its data was copied, but not the photos, videos or floor plan. It stays inactive until you publish it."
+  },
+  "dictation": {
+    "start": "Dictate",
+    "stop": "Stop",
+    "listening": "Listening…",
+    "denied": "The browser is not allowed to use the microphone.",
+    "error": "Dictation failed. Type the note by hand.",
+    "privacy": "Uses your browser's speech recognition: depending on the browser, the audio is transcribed by its provider's service. It only listens while active."
+  },
+  "offers": {
+    "button": "Offers & hold",
+    "title": "Offers & hold",
+    "subtitle": "{{title}} · list price {{price}}",
+    "offersTitle": "Offers and counteroffers",
+    "none": "No offers yet.",
+    "best": "Best open client offer: {{amount}} ({{name}})",
+    "aboveList": "{{pct}}% above list",
+    "belowList": "{{pct}}% below list",
+    "party": "From",
+    "buyer": "Buyer",
+    "amount": "Amount",
+    "note": "Note (optional)",
+    "add": "Add offer",
+    "accept": "Accept",
+    "reject": "Reject",
+    "parties": {
+      "cliente": "Client",
+      "propietario": "Owner counteroffer"
+    },
+    "statuses": {
+      "abierta": "Open",
+      "aceptada": "Accepted",
+      "rechazada": "Rejected",
+      "retirada": "Withdrawn"
+    },
+    "hold": {
+      "title": "Hold",
+      "hint": "Placing a hold marks the property as “on hold” on the site. Only one active hold at a time.",
+      "buyer": "Who is holding it",
+      "phone": "Phone (optional)",
+      "amount": "Hold amount",
+      "due": "Deadline",
+      "save": "Register hold",
+      "summary": "{{amount}} · expires {{date}}",
+      "complete": "It went through",
+      "cancel": "Cancel hold",
+      "confirmCancel": "Cancel the hold? The property goes back to “available”.",
+      "dueToday": "Expires today",
+      "dueSoon_one": "Expires in {{count}} day",
+      "dueSoon_other": "Expires in {{count}} days",
+      "overdue_one": "Expired {{count}} day ago",
+      "overdue_other": "Expired {{count}} days ago",
+      "states": {
+        "vigente": "Active",
+        "porVencer": "Expiring soon",
+        "vencido": "Expired",
+        "concretado": "Completed",
+        "cancelado": "Cancelled"
+      },
+      "pastItem": "{{name}} · {{amount}} · {{status}}"
+    },
+    "errors": {
+      "generic": "Could not save. Try again.",
+      "offer": {
+        "party": "Choose who the offer is from.",
+        "name": "Enter the buyer's name.",
+        "amount": "Enter an amount greater than zero.",
+        "status": "Invalid status."
+      },
+      "hold": {
+        "name": "Enter who is holding it.",
+        "amount": "The amount cannot be negative.",
+        "date": "Choose the deadline.",
+        "pastDate": "The deadline cannot be before today.",
+        "exists": "That property already has an active hold.",
+        "status": "Invalid status."
+      }
+    }
+  },
+  "dayRoute": {
+    "title": "Today's route",
+    "hint": "Your remaining visits today, in time order. The link opens Google Maps with every stop.",
+    "open": "Open route in Google Maps",
+    "openOne": "Get directions",
+    "truncated_one": "{{count}} more stop is left out (Google Maps allows 10).",
+    "truncated_other": "{{count}} more stops are left out (Google Maps allows 10).",
+    "unplaced_one": "{{count}} visit today has no address that can go on the route.",
+    "unplaced_other": "{{count}} visits today have no address that can go on the route."
+  },
+  "newMatches": {
+    "title": "New properties for your prospects",
+    "hint": "Published this week and matching what an open prospect is looking for. You decide whether to tell them.",
+    "notify": "Tell them",
+    "hide": "Hide",
+    "more_one": "…and {{count}} more prospect.",
+    "more_other": "…and {{count}} more prospects."
+  },
+  "holdsDue": {
+    "title": "Holds about to expire",
+    "hint": "They expire in 3 days or less, or already did. Close them from “Offers & hold” in Properties.",
+    "property": "Property"
+  },
+  "agendaFeed": {
+    "open": "See my Agenda in Google, Apple or Outlook",
+    "hint": "A secret address your calendar reads on its own from time to time: your confirmed appointments show up there and update when they change on the site.",
+    "privacy": "It is read-only and one-way: what you change in the external calendar does NOT reach the site. Anyone with the address can see your appointments (title, time, place and activities; not client phone numbers): do not share it, and if it leaks, generate another.",
+    "create": "Create my address",
+    "urlLabel": "Calendar address",
+    "copy": "Copy",
+    "copied": "Copied",
+    "regenerate": "Generate another (invalidates the old one)",
+    "confirmRegenerate": "The old address will stop working and you will have to subscribe the calendar again with the new one. Continue?",
+    "howTo": "In Google Calendar: Other calendars → From URL. In Apple Calendar: File → New Calendar Subscription. In Outlook: Add calendar → Subscribe from web. They can take a few hours to update.",
+    "demo": "Not available in demo mode: it needs the site's server.",
+    "error": "Could not create the address. Try again.",
+    "copyError": "Could not copy; select it and copy it by hand."
+  },
+  "passwordReset": {
+    "forgot": "Forgot your password?",
+    "sendLink": "Email me the link",
+    "backToLogin": "Back to sign in",
+    "needEmail": "Enter your email above so we can send you the link.",
+    "sent": "If that email has an account, you will get a link to choose a new password. Check your spam folder too.",
+    "demo": "Demo mode has no real accounts: the password cannot be reset.",
+    "title": "New password",
+    "hint": "Choose a password of at least 8 characters.",
+    "newPassword": "New password",
+    "confirm": "Repeat the password",
+    "save": "Save password",
+    "done": "Done: your password was changed. Taking you to the panel…",
+    "invalidLink": "This link no longer works (it expired or was already used). Request a new one from “Forgot your password?”.",
+    "errors": {
+      "short": "Use at least 8 characters.",
+      "spaces": "The password cannot start or end with spaces.",
+      "mismatch": "The two passwords do not match.",
+      "generic": "Could not change the password. Request a new link and try again."
+    }
+  },
+  "contract": {
+    "button": "Contract",
+    "title": "Listing agreement",
+    "hint": "For {{title}}. It is internal: it is not published on the site.",
+    "kind": "Type",
+    "expires": "Expires on",
+    "kinds": {
+      "exclusiva": "Exclusive",
+      "abierta": "Open"
+    },
+    "remove": "Remove contract",
+    "confirmRemove": "Remove this property's contract?",
+    "chip": "{{kind}} · {{state}}",
+    "states": {
+      "vigente": "Active",
+      "porVencer_one": "Expires in {{count}} day",
+      "porVencer_other": "Expires in {{count}} days",
+      "urgente_one": "Expires in {{count}} day",
+      "urgente_other": "Expires in {{count}} days",
+      "vencido_one": "Expired {{count}} day ago",
+      "vencido_other": "Expired {{count}} days ago"
+    },
+    "errors": {
+      "kind": "Choose the contract type.",
+      "date": "Choose the expiration date.",
+      "generic": "Could not save. Try again."
+    }
+  },
+  "contractsDue": {
+    "title": "Exclusives about to expire",
+    "hint": "Agreements with the owner that expire in 30 days or less, or already did. Renew them from “Contract” in Properties.",
+    "open": "Go to Properties"
+  },
+  "stalled": {
+    "filter": "No activity",
+    "any": "Any",
+    "days": "{{count}}+ days",
+    "chip": "No activity for {{count}} days",
+    "hint": "Activity: listing changes, visits, appointments or new prospects for that property."
+  },
+  "commissions": {
+    "navTitle": "Commissions",
+    "title": "Commissions by advisor",
+    "hint": "They come from the settlement above. “Register” saves the amount as of now; later it is marked paid with its date.",
+    "none": "This settlement does not leave a commission for any advisor yet.",
+    "pageHint": "The commissions registered from settlements. Only the partners see them; each advisor sees their own in My day.",
+    "concepts": {
+      "captacion": "Listing",
+      "venta": "Sale"
+    },
+    "pending": "Pending",
+    "paidState": "Paid",
+    "paidOn": "Paid on {{date}}",
+    "register": "Register",
+    "update": "Update amount",
+    "changed": "The calculation now gives {{amount}} for {{name}}.",
+    "payDate": "Payment date",
+    "markPaid": "Mark paid",
+    "undoPaid": "Back to pending",
+    "confirmUndo": "Return this commission to pending?",
+    "advisor": "Advisor",
+    "status": "Status",
+    "all": "All",
+    "empty": "No commissions with that filter.",
+    "owed": "Pending: {{amount}}",
+    "paidTotal": "Paid: {{amount}}",
+    "mineTitle": "My commissions",
+    "lastPaid": "last payment {{date}}",
+    "errors": {
+      "generic": "Could not save. Try again.",
+      "paid": "That commission is already paid: it cannot be changed.",
+      "invalid": "Invalid commission data.",
+      "date": "Choose the payment date.",
+      "future": "The payment date cannot be in the future."
+    }
+  },
+  "mergeDuplicates": {
+    "title": "Possible duplicates",
+    "merge": "Merge into this one",
+    "confirm": "“{{keep}}” will be kept and “{{remove}}” merged into it: its stages, contacts, appointments, selections and notes move to this prospect, missing details are filled in and “{{remove}}” is deleted. This cannot be undone. Continue?",
+    "hint": "Same phone or email. Merging keeps this prospect and moves the other's whole history to it. Clients and other advisors' prospects are only flagged.",
+    "errors": {
+      "forbidden": "You can only merge prospects that are yours.",
+      "not_found": "That prospect no longer exists.",
+      "invalid": "Those two cannot be merged.",
+      "generic": "Could not merge. Try again."
+    }
+  },
+  "savedViews": {
+    "title": "My views",
+    "save": "Save this view",
+    "nothingToSave": "Set a filter first so there is something to save.",
+    "nameLabel": "View name",
+    "namePlaceholder": "Name (e.g. “Hot today”)",
+    "remove": "Remove the view {{name}}",
+    "confirmRemove": "Remove the view “{{name}}”?",
+    "confirmReplace": "There is already a view called “{{name}}”. Replace it with the current filters?",
+    "errors": {
+      "name": "Enter a name.",
+      "full": "You already have 8 views: remove one to save another."
+    }
+  },
+  "leaderboard": {
+    "title": "This month's board",
+    "hint": "Points this month: {{contacts}} per contact, {{visits}} per visit, {{prospects}} per prospect brought in and {{sales}} per sale. Only numbers are counted; no clients or amounts are shown.",
+    "place": "Place {{count}}",
+    "you": "You",
+    "goalsMet": "Goals met",
+    "points_one": "{{count}} point",
+    "points_other": "{{count}} points",
+    "detail": "{{contacts}} contacts · {{visits}} visits · {{prospects}} prospects · {{sales}} sales"
+  },
+  "help": {
+    "navTitle": "Help",
+    "title": "Help",
+    "hint": "How to use each part of the panel. Only the topics for the sections your role has are shown.",
+    "search": "Search the help…",
+    "empty": "No topics match that search.",
+    "goThere": "Go there",
+    "banner": {
+      "label": "Guided tour",
+      "text": "First time in the panel? A one-minute tour shows you where the important things are.",
+      "start": "Take the tour",
+      "later": "Not now"
+    },
+    "tour": {
+      "start": "See the guided tour",
+      "progress": "Step {{current}} of {{total}}",
+      "goThere": "Go there",
+      "skip": "Exit",
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish",
+      "steps": {
+        "welcome": {
+          "title": "Welcome to the panel",
+          "body": "This is where you manage your prospects, your agenda and your properties. This tour is short and you can repeat it any time from Help."
+        },
+        "myDay": {
+          "title": "My day",
+          "body": "Start here: today's appointments in order, the route to reach them, the prospects you need to write to and the important alerts."
+        },
+        "prospects": {
+          "title": "Prospects",
+          "body": "Each interested person is a card you drag from one stage to another. Log every contact so the follow-up date is worked out."
+        },
+        "agenda": {
+          "title": "Agenda",
+          "body": "Your visits and appointments by month, week or day. You can also see your agenda in Google, Apple or Outlook with a read-only address."
+        },
+        "properties": {
+          "title": "Properties",
+          "body": "The site's listings. Each one shows how complete it is and what is missing; from there you log offers, holds and the agreement with the owner."
+        },
+        "help": {
+          "title": "Questions?",
+          "body": "“Help” (in the menu) explains everything by topic with a search box, and you can repeat this tour from there."
+        }
+      }
+    },
+    "topics": {
+      "myDay": {
+        "title": "My day",
+        "points": ["It gathers today: appointments in time order, unattended prospects, overdue follow-ups and today's.", "“Today's route” opens Google Maps with your remaining visits as stops.", "“New properties for your prospects” shows what was published this week that fits someone; you decide whether to tell them.", "Holds and exclusives about to expire, your commissions and the team's monthly board also show up here."]
+      },
+      "prospects": {
+        "title": "Prospects",
+        "points": ["Drag the card to another column to change its stage (on a phone, use “More”).", "“Log contact” saves the channel and a note and sets the next follow-up; you can dictate the note with the microphone.", "The hot/warm/cold chip explains with points why a prospect is hot or cold; hover to see it.", "“My views” saves your usual filters (on this device) so you can return to them with one tap.", "If two prospects are the same person (same phone or email), open one and use “Merge into this one”: it keeps the whole history."]
+      },
+      "agenda": {
+        "title": "Agenda",
+        "points": ["Switch between month, week, day and list with the buttons on top; in week and day, appointments sit at their hour.", "A visit request without an advisor is seen by the whole team: whoever takes it first keeps it.", "At the bottom you can create the secret address to see your agenda in Google, Apple or Outlook. It is read-only: what you change there does not reach the panel."]
+      },
+      "properties": {
+        "title": "Properties",
+        "points": ["The “Listing N%” bar says what is missing (photos, description, location…); “Incomplete listings only” filters the pending ones.", "“Duplicate” creates an inactive copy without photos so you can enter a similar one faster.", "Select several rows to change price (capped at 50% at a time) or advisor for all of them at once; you are asked to confirm.", "“Offers & hold” stores offers and the hold (one active per property); “Contract” stores whether it is exclusive and when it expires.", "Listings with no visits, appointments or changes in 30 days are flagged “No activity” (office only)."]
+      },
+      "visits": {
+        "title": "Visits",
+        "points": ["Log each visit to feed the report given to the owner.", "When you mark a visit booked from the site as “Done”, the client gets a survey and their opinion shows in your Agenda."]
+      },
+      "commissions": {
+        "title": "Commissions",
+        "points": ["Each saved settlement works out the listing and sale commission of each advisor.", "“Register” saves the amount as of that moment; later it is marked paid with its date.", "Only the partners see all of them; each advisor sees their own in My day."]
+      },
+      "roles": {
+        "title": "Roles and access",
+        "points": ["A role groups the sections that can be seen; an access links an email to a role (and to an advisor).", "When granting new access you can send an email invitation: the person chooses their password with the link and the account does not have to be created by hand.", "“Invite” in the table sends the invitation again."]
+      },
+      "account": {
+        "title": "My account",
+        "points": ["Forgot your password? On the sign-in page use “Forgot your password?”: you get a link to choose a new one.", "The “Show” button next to the password lets you see what you type (handy on a phone).", "Language and light or dark mode are changed at the top right."]
+      }
+    }
+  },
+  "toast": {
+    "close": "Close notice",
+    "cancel": "Cancel",
+    "confirm": "OK",
+    "undo": "Undo",
+    "region": "Notices"
+  },
+  "adminNav": {
+    "pin": "Pin to top",
+    "unpin": "Unpin",
+    "pinned": "Pinned",
+    "recent": "Recent",
+    "compact": "Compact menu",
+    "expand": "Expand menu"
+  },
+  "a11y": {
+    "skipToContent": "Skip to content",
+    "mainNav": "Main navigation",
+    "openMenu": "Open menu",
+    "loadingSite": "Loading ACL Propiedades…",
+    "removeImage": "Remove image",
+    "removeVideo": "Remove video",
+    "switchLanguage": "Cambiar idioma / Switch language"
+  },
+  "propertyForm": {
+    "descriptionHint": "Leave a blank line to separate paragraphs and start a line with “- ” to make a list (with “1. ” to number it). On the site it shows with its paragraphs and bullets.",
+    "steps": {
+      "basics": "Basics",
+      "location": "Location and status",
+      "specs": "Features",
+      "publish": "Publishing and team",
+      "media": "Photos and media"
+    },
+    "stepLabel": "Step {{current}} of {{total}}",
+    "progress": "Form progress",
+    "stepHasErrors": "(has fields to fix)",
+    "prev": "Back",
+    "next": "Next",
+    "draftSaved": "Draft saved in this browser",
+    "draftFound": "An unsaved draft from {{when}} was left behind.",
+    "draftRestore": "Restore draft",
+    "draftDiscard": "Discard"
+  },
+  "stickyBar": {
+    "label": "Price and contact"
+  },
+  "emptyState": {
+    "noResultsTitle": "We found no properties with those filters",
+    "emptySectionTitle": "There are no properties here yet",
+    "comingSoonTitle": "Coming soon",
+    "favoritesTitle": "You have no favorites yet",
+    "compareTitle": "Nothing to compare yet",
+    "propertyGoneTitle": "This property is no longer available",
+    "postGoneTitle": "We could not find that article",
+    "blogTitle": "Articles are coming soon",
+    "mySpaceTitle": "Here you will see what is pending"
+  },
+  "notFound": {
+    "title": "This page does not exist",
+    "text": "The page you are looking for does not exist or has moved.",
+    "home": "Back to home",
+    "browse": "See properties",
+    "seoDescription": "Page not found",
+    "searchLabel": "Search properties",
+    "searchPlaceholder": "Area, neighborhood or code",
+    "search": "Search",
+    "featured": "In the meantime, take a look at these properties"
+  },
+  "propertyMap": {
+    "cluster": "{{count}} properties together: zoom in"
+  },
+  "charts": {
+    "title": "Charts",
+    "viewData": "View the data",
+    "item": "Item",
+    "value": "Value",
+    "empty": "There is no data for this chart yet.",
+    "none": "none",
+    "otherSources": "Other sources",
+    "prospects": "Prospects",
+    "sales": "Sales",
+    "stagesTitle": "Prospect funnel",
+    "stagesSubtitle": "Prospects by stage (today)",
+    "stagesAria": "Prospects by stage: {{summary}}",
+    "fullFunnel": "Full funnel",
+    "noProspects": "There are no prospects yet.",
+    "sourcesTitle": "Prospects by source",
+    "sourcesSubtitle": "Where prospects come from",
+    "sourcesAria": "Prospects by source: {{summary}}",
+    "salesTitle": "Sales per month",
+    "salesSubtitle_one": "Last 12 months: {{count}} sale",
+    "salesSubtitle_other": "Last 12 months: {{count}} sales",
+    "salesAria": "Sales per month over the last 12 months: {{summary}}",
+    "salesReport": "Sales report",
+    "noSales": "There are no sales in the last 12 months yet."
+  },
+  "tableTools": {
+    "columns": "Columns",
+    "showAll": "Show all",
+    "sortBy": "Sort by {{column}}"
+  },
+  "tabBar": {
+    "label": "Quick navigation",
+    "search": "Search",
+    "favorites": "Favorites",
+    "contact": "Contact",
+    "favoritesCount_one": "{{count}} favorite",
+    "favoritesCount_other": "{{count}} favorites"
+  },
+  "security": {
+    "title": "Account security",
+    "navTitle": "Security",
+    "subtitle": "Protect the panel: it stores your clients' ID, CURP and portal passwords."
+  },
+  "mfa": {
+    "title": "Two-step verification",
+    "intro": "On top of your password, the panel asks for a 6-digit code from an app (Google Authenticator, Authy, Microsoft Authenticator…). Even if someone knows your password, they can't get in or see client data without your phone.",
+    "demoNote": "You are in demo mode: the code really works, but it is stored only in this browser.",
+    "unavailable": "Could not check the verification status.",
+    "active": "Two-step verification is on.",
+    "inactive": "You haven't turned it on yet.",
+    "enable": "Turn on two-step verification",
+    "factorName": "Authenticator app",
+    "remove": "Remove",
+    "removeConfirm": "Remove two-step verification? Your account will be protected by the password only.",
+    "removed": "Verification removed",
+    "removeError": "Could not remove it.",
+    "step1": "Open your authenticator app on your phone.",
+    "step2": "Scan this QR code:",
+    "qrAlt": "QR code for the authenticator app",
+    "manualKey": "Can't scan? Type this key into the app:",
+    "step3": "Enter the 6-digit code the app shows:",
+    "codeLabel": "6-digit code",
+    "confirm": "Confirm and turn on",
+    "enabled": "Two-step verification is on",
+    "enrollError": "Could not start the setup.",
+    "badCode": "That code is wrong or expired. Check your phone's clock and try the next one.",
+    "loginTitle": "Two-step verification",
+    "loginHint": "Enter the 6-digit code from your authenticator app.",
+    "verify": "Verify",
+    "useOtherAccount": "Use another account",
+    "nudge": "Protect the panel with two-step verification: it stores ID, CURP and portal passwords.",
+    "nudgeAction": "Turn it on",
+    "nudgeLater": "Later"
+  },
+  "idle": {
+    "title": "Are you still there?",
+    "text_one": "For security, we will sign you out in {{count}} second because of inactivity.",
+    "text_other": "For security, we will sign you out in {{count}} seconds because of inactivity.",
+    "stay": "Stay signed in",
+    "logoutNow": "Sign out now",
+    "expired": "We signed you out because of inactivity. Please sign in again.",
+    "sectionTitle": "Sign-out on inactivity",
+    "sectionText": "Your session ends on its own after {{minutes}} minutes without activity (with a warning a minute before). It does not end if there are unsent captures saved on this device.",
+    "sectionOff": "Sign-out on inactivity is turned off."
+  },
+  "devices": {
+    "title": "Signed-in devices",
+    "intro": "Browsers that have signed in to the panel with your account.",
+    "empty": "No devices registered yet.",
+    "unknown": "Device",
+    "thisOne": "this one",
+    "lastSeen": "seen {{when}}",
+    "signOutOthers": "Sign out of all other devices",
+    "signOutOthersConfirm": "Sign out of every other device? They will have to sign in again.",
+    "signedOutOthers": "Signed out of the other devices",
+    "error": "Could not complete this.",
+    "limit": "The list shows devices that have signed in since this screen existed. For now you can only sign out of all the others at once, not one by one."
+  },
+  "errors": {
+    "title": "Site errors",
+    "navTitle": "Site errors",
+    "subtitle": "Failures that visitors' or team members' browsers ran into, grouped. New ones are emailed to the administrators.",
+    "filterLabel": "Error status",
+    "status": {
+      "nuevo": "New",
+      "resuelto": "Resolved",
+      "ignorado": "Ignored"
+    },
+    "emptyNew": "No new errors. 🎉",
+    "empty": "No errors in this list.",
+    "times_one": "Happened {{count}} time",
+    "times_other": "Happened {{count}} times",
+    "lastSeen": "seen {{when}}",
+    "release": "version {{release}}",
+    "source": {
+      "window": "page error",
+      "promise": "unhandled promise",
+      "react": "error while showing a screen"
+    },
+    "noStack": "(no technical detail)",
+    "showDetail": "Show detail",
+    "hideDetail": "Hide detail",
+    "resolve": "Mark resolved",
+    "ignore": "Ignore",
+    "reopen": "Reopen",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this error from the log?",
+    "loadError": "Could not load the errors.",
+    "updateError": "Could not update.",
+    "kindLabel": "Type of notice",
+    "kind": {
+      "todos": "All",
+      "automatico": "Automatic errors",
+      "usuario": "Team reports"
+    },
+    "reportedBy": "Reported by: {{email}}",
+    "unknownPerson": "someone on the team"
+  },
+  "live": {
+    "newMessage": "A new message arrived {{name}}",
+    "newProspect": "New lead {{name}}"
+  },
+  "reportProblem": {
+    "button": "Report a problem",
+    "title": "Report a problem",
+    "hint": "Did something go wrong, does some data look odd or does a button not do what it should? Tell us in your own words. The administrators will see it.",
+    "label": "What happened?",
+    "placeholder": "For example: “When I save the lead I get an error” or “Today's agenda doesn't show the 4 o'clock appointment”.",
+    "counter": "{{count}} of {{max}} characters",
+    "attached": "It will be sent with your email ({{email}}), the screen you are on ({{screen}}) and your browser.",
+    "send": "Send report",
+    "thanks": "Thank you! We received it. The administrators will see it in “Site errors”.",
+    "errors": {
+      "empty": "Write what happened.",
+      "short": "Tell us a bit more (at least 10 characters).",
+      "rateLimited": "You sent several reports in a row. Please try again in a while.",
+      "generic": "The report could not be sent. Please try again."
     }
   }
 }

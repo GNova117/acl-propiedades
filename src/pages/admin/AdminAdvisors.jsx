@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog } from "../../lib/toast";
 
 export default function AdminAdvisors() {
   const { t } = useTranslation();
@@ -20,7 +22,7 @@ export default function AdminAdvisors() {
   useEffect(load, []);
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     await db.deleteAdvisor(id);
     load();
   };
@@ -49,7 +51,7 @@ export default function AdminAdvisors() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7}>{t("common.loading")}</td></tr>
+              <tr><td colSpan={7}><LoadingState variant="rows" /></td></tr>
             ) : advisors.length === 0 ? (
               <tr><td colSpan={7}>{t("properties.noResults")}</td></tr>
             ) : (

@@ -17,7 +17,7 @@
    global de .form-row (minmax 180px) todavía arma 2 columnas aquí y, como
    la columna del detalle no tiene min-width: 0, eso ensanchaba la página
    entera (~108px de scroll horizontal en celular). */
-@media (max-width: 720px) {
+@media (max-width: 860px) {
   .contact-request-card .form-row {
     grid-template-columns: 1fr;
   }

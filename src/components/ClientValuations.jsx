@@ -4,6 +4,7 @@ import { db } from "../lib/dataStore";
 import { formatMXN } from "../lib/format";
 import { downloadValuationPdf } from "../lib/valuationPdf";
 import { valuationPdfLabels, valuationRowToPdfData } from "../lib/valuationShare";
+import { notify } from "../lib/toast";
 
 // Estimaciones de valor ligadas a un cliente, para su expediente. Quien no
 // tenga el apartado de estimación recibe error o lista vacía por RLS: en ese
@@ -26,7 +27,7 @@ export default function ClientValuations({ clientId }) {
     try {
       await downloadValuationPdf(valuationRowToPdfData(row), valuationPdfLabels(t));
     } catch (err) {
-      window.alert(err.message || t("valuation.pdf.error"));
+      notify(err.message || t("valuation.pdf.error"));
     } finally {
       setBusyId(null);
     }
@@ -34,7 +35,7 @@ export default function ClientValuations({ clientId }) {
 
   return (
     <div className="card" style={{ padding: "1.25rem", marginBottom: "1.25rem" }}>
-      <h2 style={{ marginTop: 0 }}>{t("valuation.history.clientTitle")}</h2>
+      <h2 className="mt-0">{t("valuation.history.clientTitle")}</h2>
       <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "0.6rem" }}>
         {rows.map((row) => (
           <li key={row.id} style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>

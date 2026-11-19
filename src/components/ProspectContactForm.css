@@ -56,9 +56,9 @@
 }
 
 .contact-form__chip.is-active {
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .contact-form__chip:focus-within,

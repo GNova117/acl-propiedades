@@ -1,3 +1,8 @@
+/* Puntos de corte: solo hay cuatro (max-width) — 480 (teléfono chico), 640 (teléfono), 860 (tableta: el menú del panel pasa a
+   cajón) y 980 (laptop chica) — más el par 641/861 de los pocos @media (min-width). Las media queries no aceptan variables,
+   así que usa estos números tal cual. La única excepción es la tabla de Propiedades (admin.css, 1500 px), que oculta una
+   columna por falta de ancho, no por el tipo de pantalla. */
+
 :root {
   --font-heading: "Rajdhani", "Arial Narrow", sans-serif;
   --font-body: "Inter", system-ui, -apple-system, sans-serif;
@@ -13,9 +18,50 @@
   --color-text: #12161c;
   --color-text-muted: #5a6472;
   --color-border: #e2e6ec;
-  --color-success: #1e8e5a;
-  --color-danger: #c0392b;
-  --color-warning: #b8860b;
+  --color-success: #17784a;
+  --color-danger: #b3321f;
+  --color-warning: #805f0a;
+  /* Colores que antes se repetían «a mano» en los .css: ahora tienen nombre y el modo oscuro puede cambiarlos. */
+  --color-on-primary: #ffffff; /* texto sobre un fondo de color (botones, insignias, menú activo) */
+  /* Fondos de color que llevan texto BLANCO encima (botones, menú activo, insignias): iguales en claro y oscuro, porque el
+     blanco solo se lee (4.5:1 o más) sobre un color oscuro. Los --color-primary/success/danger de arriba son para TEXTO
+     y cambian con el tema; no los uses de fondo con texto blanco (src/lib/contrast.test.js lo vigila). */
+  --color-primary-deep: #0d3b73;
+  --color-primary-solid: #1565c0;
+  --color-success-solid: #17784a;
+  --color-danger-solid: #c0392b;
+  --color-scrim: rgba(5, 10, 20, 0.6); /* fondo oscurecido detrás de las ventanas emergentes */
+  --color-attention: #f0a500; /* avisos y estrellas: ámbar que se ve en claro y en oscuro */
+  --color-muted-soft: #5f6b7d; /* gris más tenue que el texto secundario (iconos, separadores de texto) */
+  --color-favorite: #e0245e; /* el corazón de favoritos */
+
+  /* Escala de espaciado (base 4 px): usa estas en lugar de rem sueltos. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Escala tipográfica y pesos. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.85rem;
+  --text-md: 0.95rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+  --leading-tight: 1.15;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.7;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
 
   --shadow-sm: 0 1px 2px rgba(10, 14, 20, 0.06);
   --shadow-md: 0 6px 20px rgba(10, 14, 20, 0.08);
@@ -42,6 +88,11 @@
   --color-text: #eef2f8;
   --color-text-muted: #9fb0c8;
   --color-border: #24314a;
+  --color-muted-soft: #93a1b8;
+  --color-success: #3cc487;
+  --color-danger: #ff7a6b;
+  --color-warning: #e2a21c;
+  --color-scrim: rgba(0, 0, 0, 0.7);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.35);
@@ -79,8 +130,8 @@ h2,
 h3,
 h4 {
   font-family: var(--font-heading);
-  font-weight: 700;
-  line-height: 1.15;
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
   margin: 0 0 0.5em;
   letter-spacing: 0.01em;
 }
@@ -114,17 +165,17 @@ ul {
   width: 100%;
   max-width: var(--container-width);
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 var(--space-6);
 }
 
 .section {
-  padding: 4rem 0;
+  padding: var(--space-16) 0;
 }
 
 .section-heading {
   text-align: center;
   max-width: 640px;
-  margin: 0 auto 2.5rem;
+  margin: 0 auto var(--space-10);
 }
 
 .section-heading__eyebrow {
@@ -145,12 +196,12 @@ ul {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-md);
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   white-space: nowrap;
@@ -161,8 +212,8 @@ ul {
 }
 
 .btn-primary {
-  background: linear-gradient(120deg, var(--color-primary-dark), var(--color-primary-light));
-  color: #ffffff;
+  background: linear-gradient(120deg, var(--color-primary-deep), var(--color-primary-solid));
+  color: var(--color-on-primary);
   box-shadow: var(--shadow-sm);
 }
 
@@ -182,13 +233,13 @@ ul {
 }
 
 .btn-danger {
-  background: var(--color-danger);
-  color: #fff;
+  background: var(--color-danger-solid);
+  color: var(--color-on-primary);
 }
 
 .btn-sm {
   padding: 0.45rem 0.9rem;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .btn-block {
@@ -247,12 +298,12 @@ ul {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .form-field label {
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   color: var(--color-text);
 }
 
@@ -264,7 +315,7 @@ ul {
   border-radius: var(--radius-sm);
   background: var(--color-bg);
   color: var(--color-text);
-  font-size: 0.95rem;
+  font-size: var(--text-md);
   font-family: inherit;
 }
 
@@ -288,16 +339,16 @@ ul {
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .skip-link {
   position: absolute;
   left: -999px;
   top: 0;
-  background: var(--color-primary);
-  color: #fff;
-  padding: 0.75rem 1rem;
+  background: var(--color-primary-solid);
+  color: var(--color-on-primary);
+  padding: var(--space-3) var(--space-4);
   z-index: 1000;
 }
 
@@ -351,12 +402,12 @@ ul {
 
 .empty-state {
   text-align: center;
-  padding: 3rem 1rem;
+  padding: var(--space-12) var(--space-4);
   color: var(--color-text-muted);
 }
 
 .empty-state__cta {
-  margin-top: 1.25rem;
+  margin-top: var(--space-5);
 }
 
 @media (max-width: 640px) {
