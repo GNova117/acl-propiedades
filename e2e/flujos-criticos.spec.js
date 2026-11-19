@@ -1,4 +1,4 @@
-import { test, expect, abrirMas } from "./fixtures.js";
+import { test, expect, abrirMas, llenarDatosBasicosCliente } from "./fixtures.js";
 
 // Flujos críticos de punta a punta, como los vive cada persona:
 //  - el cliente en su portal (pendientes, subir un documento, ver el avance)
@@ -20,7 +20,7 @@ async function crearCliente(page, go, press, { nombre, tipo = "comprador", finan
   await go("/admin/clientes/nuevo");
   await page.fill("#c-name", nombre);
   await page.selectOption("#c-type", tipo);
-  await page.fill("#c-phone", "8715550101");
+  await llenarDatosBasicosCliente(page);
   if (await page.locator("#c-financiamiento").count()) await page.selectOption("#c-financiamiento", financiamiento);
   // Con INFONAVIT el expediente de crédito es obligatorio (NSS y contraseña del comprador; número de crédito del vendedor).
   if (financiamiento === "infonavit") {
