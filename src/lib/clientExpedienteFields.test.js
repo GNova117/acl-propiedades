@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clientExpedienteGroups, clientSheetData, clientSheetSections } from "./clientExpedienteFields";
+import { clientExpedienteGroups, clientSheetData, clientSheetSections, missingRequiredExpediente, requiredExpedienteKeys } from "./clientExpedienteFields";
 
 describe("clientExpedienteGroups", () => {
   it("cualquier tipo ve los datos personales", () => {
@@ -55,5 +55,35 @@ describe("clientSheetData", () => {
   it("conserva el resto de los datos del cliente intactos", () => {
     const data = clientSheetData({ type: "vendedor", name: "Ana" });
     expect(data.name).toBe("Ana");
+  });
+});
+
+describe("requiredExpedienteKeys", () => {
+  it("sin INFONAVIT no se exige nada del expediente de crédito", () => {
+    expect(requiredExpedienteKeys({ type: "comprador", financiamiento: "" })).toEqual([]);
+    expect(requiredExpedienteKeys({ type: "ambos", financiamiento: "contado" })).toEqual([]);
+  });
+
+  it("con INFONAVIT el comprador debe dar NSS y contraseña del portal", () => {
+    expect(requiredExpedienteKeys({ type: "comprador", financiamiento: "infonavit" })).toEqual(["nss", "contrasena_portal"]);
+  });
+
+  it("con INFONAVIT el vendedor debe dar el número de crédito", () => {
+    expect(requiredExpedienteKeys({ type: "vendedor", financiamiento: "infonavit" })).toEqual(["numero_credito"]);
+  });
+
+  it("un cliente «ambos» con INFONAVIT debe dar los tres", () => {
+    expect(requiredExpedienteKeys({ type: "ambos", financiamiento: "infonavit" })).toEqual(["nss", "contrasena_portal", "numero_credito"]);
+  });
+});
+
+describe("missingRequiredExpediente", () => {
+  it("lista lo que falta y no cuenta los espacios como dato", () => {
+    const client = { type: "ambos", financiamiento: "infonavit", nss: "12345678901", contrasena_portal: "   ", numero_credito: "" };
+    expect(missingRequiredExpediente(client)).toEqual(["contrasena_portal", "numero_credito"]);
+  });
+
+  it("completo → nada falta", () => {
+    expect(missingRequiredExpediente({ type: "comprador", financiamiento: "infonavit", nss: "1", contrasena_portal: "x" })).toEqual([]);
   });
 });

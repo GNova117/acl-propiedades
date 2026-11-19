@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { CLIENT_TYPES, FINANCIAMIENTO_TYPES } from "../../lib/format";
-import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteGroups, clientSheetData, clientSheetSections } from "../../lib/clientExpedienteFields";
+import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteGroups, clientSheetData, clientSheetSections, missingRequiredExpediente, requiredExpedienteKeys } from "../../lib/clientExpedienteFields";
 import { downloadMultiPerfilamientoPdf } from "../../lib/perfilamientoPdf";
 import InternalNotes from "../../components/InternalNotes";
 import "./admin.css";
@@ -14,13 +14,16 @@ import { confirmDialog, notify } from "../../lib/toast";
 // PerfilamientoManager.jsx). Un campo sensible (la contraseña del portal de
 // crédito) se muestra oculto y trae un botón para verla; cada vez que se abre
 // la pantalla vuelve a empezar oculto.
-function ExpedienteFieldInput({ field, value, onChange }) {
+function ExpedienteFieldInput({ field, value, onChange, required = false, invalid = false }) {
   const { t } = useTranslation();
   const [revealed, setRevealed] = useState(false);
   const common = {
     id: `c-${field.key}`,
     value,
     onChange,
+    "aria-required": required || undefined,
+    "aria-invalid": invalid || undefined,
+    "aria-describedby": invalid ? `c-${field.key}-error` : undefined,
   };
   if (field.sensitive) {
     const label = t(revealed ? "clients.hidePassword" : "clients.showPassword");
@@ -157,7 +160,12 @@ export default function AdminClientForm() {
   const validate = () => {
     const next = {};
     if (!form.name.trim()) next.name = t("contact.required");
+    // Con INFONAVIT: NSS y contraseña del portal (comprador) y número de crédito (vendedor) son obligatorios.
+    for (const key of missingRequiredExpediente(form)) next[key] = t("contact.required");
     setErrors(next);
+    // El primer campo con error recibe el foco, para que no haya que buscarlo en un formulario largo.
+    const first = Object.keys(next)[0];
+    if (first) setTimeout(() => document.getElementById(first === "name" ? "c-name" : `c-${first}`)?.focus(), 0);
     return Object.keys(next).length === 0;
   };
 
@@ -216,6 +224,8 @@ export default function AdminClientForm() {
       setLinkBusy(false);
     }
   };
+
+  const requiredKeys = requiredExpedienteKeys(form);
 
   if (loading) return <LoadingState />;
 
@@ -322,18 +332,30 @@ export default function AdminClientForm() {
           <>
             <h3 style={{ margin: "0.5rem 0 0" }}>{t("clients.expedienteSection")}</h3>
             <p className="form-hint mt-n2">{t("clients.expedienteSectionHint")}</p>
+            <p className="form-hint mt-n2">{t("clients.requiredHint")}</p>
             {clientExpedienteGroups(form.type)
               .filter((group) => group.key !== "personal")
               .map((group) => (
                 <div key={group.key}>
                   <h4 style={{ margin: "0 0 0.5rem" }}>{group.title}</h4>
                   <div className="form-row">
-                    {group.fields.map((field) => (
-                      <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
-                        <label htmlFor={`c-${field.key}`}>{field.label}</label>
-                        <ExpedienteFieldInput field={field} value={form[field.key]} onChange={handleExpedienteFieldChange(field)} />
-                      </div>
-                    ))}
+                    {group.fields.map((field) => {
+                      const required = requiredKeys.includes(field.key);
+                      return (
+                        <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
+                          <label htmlFor={`c-${field.key}`}>
+                            {field.label}
+                            {required && <span aria-hidden="true"> *</span>}
+                          </label>
+                          <ExpedienteFieldInput field={field} value={form[field.key]} onChange={handleExpedienteFieldChange(field)} required={required} invalid={Boolean(errors[field.key])} />
+                          {errors[field.key] && (
+                            <span className="form-error" id={`c-${field.key}-error`}>
+                              {errors[field.key]}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
