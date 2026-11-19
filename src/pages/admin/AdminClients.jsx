@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
@@ -47,7 +47,9 @@ export default function AdminClients() {
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [showPdfModal, setShowPdfModal] = useState(false);
-  const [showIntake, setShowIntake] = useState(false);
+  // La campana de notificaciones manda aquí con ?registros=1 para abrir el panel de enlaces de registro.
+  const [searchParams] = useSearchParams();
+  const [showIntake, setShowIntake] = useState(searchParams.get("registros") === "1");
   const [selected, setSelected] = useState(() => new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
 

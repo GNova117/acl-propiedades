@@ -26,7 +26,7 @@ do $$
 declare r jsonb;
 begin
   -- Estados del enlace
-  assert client_intake_status(repeat('a', 32)) = '{"status":"activo","type":"comprador"}'::jsonb, 'un enlace vigente dice su tipo';
+  assert client_intake_status(repeat('a', 32)) ->> 'status' = 'activo' and client_intake_status(repeat('a', 32)) ->> 'type' = 'comprador', 'un enlace vigente dice su tipo';
   assert client_intake_status(repeat('f', 32)) ->> 'status' = 'invalido', 'un token que no existe es inválido';
   assert client_intake_status(repeat('d', 32)) ->> 'status' = 'expirado', 'uno vencido está expirado';
   assert client_intake_status(repeat('e', 32)) ->> 'status' = 'revocado', 'uno desactivado está revocado';

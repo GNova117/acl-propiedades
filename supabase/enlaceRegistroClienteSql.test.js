@@ -57,3 +57,33 @@ describe("migración 0116: enlace de registro del cliente", () => {
     expect(file).toMatch(/security definer\s+set search_path = public/);
   });
 });
+
+// Migración 0117: aviso al asesor cuando el cliente llena su registro (probada en supabase/testdb/tests/08_aviso_registro_del_cliente.sql).
+const aviso = readFileSync(new URL("0117_aviso_al_asesor_cuando_el_cliente_llena_su_registro.sql", dir), "utf8");
+
+describe("migración 0117: aviso del registro", () => {
+  it("guarda el asesor del enlace y si ya se vio, y es re-ejecutable", () => {
+    expect(aviso).toContain("add column if not exists advisor_id uuid references advisors(id) on delete set null");
+    expect(aviso).toContain("add column if not exists seen_at timestamptz");
+    expect(aviso).toContain("create or replace function client_intake_status(");
+    expect(aviso).toContain("drop trigger if exists trg_notify_client_intake_submitted");
+  });
+
+  it("los registros que ya estaban llenos no se vuelven pendientes", () => {
+    expect(aviso).toContain("update client_intake_links set seen_at = now() where submitted_at is not null and seen_at is null;");
+  });
+
+  it("avisa una sola vez, al asesor del enlace o a la oficina, y un fallo del aviso no frena el registro", () => {
+    expect(aviso).toContain("after update of submitted_at on client_intake_links");
+    expect(aviso).toContain("if old.submitted_at is not null or new.submitted_at is null then");
+    expect(aviso).toContain("jsonb_build_object('advisorId', new.advisor_id)");
+    expect(aviso).toContain("jsonb_build_object('section', 'clientes', 'office', true)");
+    expect(aviso).toContain("/functions/v1/enviar-push");
+    expect(aviso).toContain("exception when others then");
+  });
+
+  it("entra a la publicación de tiempo real sin repetirse", () => {
+    expect(aviso).toContain("alter publication supabase_realtime add table public.client_intake_links");
+    expect(aviso).toContain("not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime'");
+  });
+});

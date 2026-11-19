@@ -201,18 +201,19 @@ export const clientsMethods = {
   // Lado del asesor: crear, listar y desactivar enlaces (políticas RLS del apartado «clientes»). El TIPO lo elige el asesor aquí;
   // el cliente no lo cambia.
   async getClientIntakeLinks() {
-    const { data, error } = await supabase.from("client_intake_links").select("*").order("created_at", { ascending: false }).limit(50);
+    const { data, error } = await supabase.from("client_intake_links").select("*, client:clients!client_id(name)").order("created_at", { ascending: false }).limit(50);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(({ client, ...link }) => ({ ...link, client_name: client?.name || null }));
   },
 
-  async createClientIntakeLink({ type, label }) {
+  async createClientIntakeLink({ type, label, advisorId }) {
     const { data: sessionData } = await supabase.auth.getSession();
     const row = {
       token: generateIntakeToken(),
       type,
       label: label?.trim() ? label.trim() : null,
       created_by: sessionData?.session?.user?.email || null,
+      advisor_id: advisorId || null, // a quién avisar (y a quién le escribe el cliente al terminar); sin asesor, a la oficina
       expires_at: intakeExpiry(),
     };
     const { data, error } = await supabase.from("client_intake_links").insert(row).select().single();
@@ -222,6 +223,13 @@ export const clientsMethods = {
 
   async revokeClientIntakeLink(id) {
     const { error } = await supabase.from("client_intake_links").update({ revoked_at: new Date().toISOString() }).eq("id", id).is("submitted_at", null);
+    if (error) throw error;
+  },
+
+  // Los registros ya llenos se marcan como vistos al abrir el panel: dejan de contar en la campana.
+  async markClientIntakesSeen(ids) {
+    if (!ids?.length) return;
+    const { error } = await supabase.from("client_intake_links").update({ seen_at: new Date().toISOString() }).in("id", ids).is("seen_at", null);
     if (error) throw error;
   },
 

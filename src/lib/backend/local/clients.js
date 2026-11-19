@@ -177,19 +177,25 @@ export const clientsMethods = {
 
   // ── Enlace para que el cliente mismo capture sus datos — modo demo ──
   async getClientIntakeLinks() {
-    return readStore(KEYS.clientIntakeLinks, []).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 50);
+    const clients = readStore(KEYS.clients, []);
+    return readStore(KEYS.clientIntakeLinks, [])
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 50)
+      .map((l) => ({ ...l, client_name: clients.find((c) => c.id === l.client_id)?.name || null }));
   },
 
-  async createClientIntakeLink({ type, label }) {
+  async createClientIntakeLink({ type, label, advisorId }) {
     const record = {
       id: uid("intake"),
       token: generateIntakeToken(),
       type,
       label: label?.trim() ? label.trim() : null,
       created_by: DEMO_ADMIN.email,
+      advisor_id: advisorId || null,
       created_at: new Date().toISOString(),
       expires_at: intakeExpiry(),
       revoked_at: null,
+      seen_at: null,
       submitted_at: null,
       client_id: null,
     };
@@ -204,12 +210,18 @@ export const clientsMethods = {
     );
   },
 
+  async markClientIntakesSeen(ids) {
+    if (!ids?.length) return;
+    const now = new Date().toISOString();
+    writeStore(KEYS.clientIntakeLinks, readStore(KEYS.clientIntakeLinks, []).map((l) => (ids.includes(l.id) && !l.seen_at ? { ...l, seen_at: now } : l)));
+  },
+
   async getClientIntakeStatus(token) {
     if (!INTAKE_TOKEN_PATTERN.test(token || "")) return { status: "invalido" };
     const link = readStore(KEYS.clientIntakeLinks, []).find((l) => l.token === token);
     if (!link) return { status: "invalido" };
     const state = intakeState(link);
-    if (state === "pending") return { status: "activo", type: link.type };
+    if (state === "pending") return { status: "activo", type: link.type, advisor_id: link.advisor_id || null };
     return { status: { revoked: "revocado", used: "usado", expired: "expirado" }[state] };
   },
 
@@ -238,7 +250,7 @@ export const clientsMethods = {
       updated_at: now,
     };
     writeStore(KEYS.clients, [...clients, record]);
-    writeStore(KEYS.clientIntakeLinks, links.map((l) => (l.id === link.id ? { ...l, submitted_at: now, client_id: record.id } : l)));
+    writeStore(KEYS.clientIntakeLinks, links.map((l) => (l.id === link.id ? { ...l, submitted_at: now, seen_at: null, client_id: record.id } : l)));
     return { ok: true };
   },
 

@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
+import { useAuth } from "../context/AuthContext";
 import { INTAKE_LABEL_MAX, INTAKE_TYPES, INTAKE_VALID_DAYS, intakeMessage, intakeState, intakeUrl } from "../lib/clientIntake";
+import { useLiveRefresh } from "../lib/liveUpdates";
 import { confirmDialog, notify } from "../lib/toast";
 import "./ClientIntakePanel.css";
 
@@ -44,16 +46,32 @@ function LinkActions({ link }) {
 // los INTAKE_VALID_DAYS días. Ver lib/clientIntake.js y la migración 0116.
 export default function ClientIntakePanel({ onClose, onClientCreated }) {
   const { t } = useTranslation();
+  const { advisorId } = useAuth();
   const [type, setType] = useState("comprador");
   const [label, setLabel] = useState("");
   const [busy, setBusy] = useState(false);
   const [links, setLinks] = useState(null); // null = cargando
   const [created, setCreated] = useState(null); // el enlace recién creado
+  const [freshIds, setFreshIds] = useState(() => new Set()); // registros que llegaron sin que nadie los hubiera visto: llevan la etiqueta «Nuevo»
+  const seenRef = useRef(new Set());
+  // Se guarda en una referencia: quien usa el panel pasa una función nueva en cada render y no debe volver a pedir la lista por eso.
+  const onCreatedRef = useRef(onClientCreated);
+  useEffect(() => {
+    onCreatedRef.current = onClientCreated;
+  });
 
   const load = useCallback(async () => {
     try {
       const data = await db.getClientIntakeLinks();
       setLinks(data);
+      // Abrir el panel es «verlos»: dejan de contar en la campana, pero aquí siguen marcados como nuevos mientras el panel esté abierto.
+      const unseen = data.filter((l) => l.submitted_at && !l.seen_at && !seenRef.current.has(l.id));
+      if (unseen.length) {
+        unseen.forEach((l) => seenRef.current.add(l.id));
+        setFreshIds((prev) => new Set([...prev, ...unseen.map((l) => l.id)]));
+        db.markClientIntakesSeen(unseen.map((l) => l.id)).catch(() => {});
+        onCreatedRef.current?.();
+      }
       return data;
     } catch {
       setLinks([]);
@@ -66,11 +84,17 @@ export default function ClientIntakePanel({ onClose, onClientCreated }) {
     load();
   }, [load]);
 
+  // Si un cliente envía sus datos con el panel abierto, aparece solo (con su etiqueta «Nuevo»).
+  const liveTick = useLiveRefresh(["client_intake_links"], { delayMs: 800 });
+  useEffect(() => {
+    if (liveTick) load();
+  }, [liveTick, load]);
+
   const create = async (e) => {
     e.preventDefault();
     setBusy(true);
     try {
-      const link = await db.createClientIntakeLink({ type, label });
+      const link = await db.createClientIntakeLink({ type, label, advisorId });
       setCreated(link);
       setLabel("");
       load();
@@ -92,11 +116,7 @@ export default function ClientIntakePanel({ onClose, onClientCreated }) {
     }
   };
 
-  const refresh = async () => {
-    const before = (links || []).filter((l) => l.submitted_at).length;
-    const data = await load();
-    if (data.filter((l) => l.submitted_at).length !== before) onClientCreated?.();
-  };
+  const refresh = () => load();
 
   return (
     <section className="card client-intake" aria-labelledby="client-intake-title">
@@ -153,7 +173,8 @@ export default function ClientIntakePanel({ onClose, onClientCreated }) {
             return (
               <li key={link.id} className="client-intake__item">
                 <div className="client-intake__item-main">
-                  <strong>{link.label || t("clientIntake.noLabel")}</strong>
+                  <strong>{link.client_name || link.label || t("clientIntake.noLabel")}</strong>
+                  {freshIds.has(link.id) && <span className="badge client-intake__new">{t("clientIntake.new")}</span>}
                   <span className="form-hint">
                     {t(`clients.${TYPE_KEY[link.type]}`)} · {t("clientIntake.createdOn", { date: fmtDate(link.created_at) })}
                     {state === "pending" ? ` · ${t("clientIntake.expiresOn", { date: fmtDate(link.expires_at) })}` : ""}

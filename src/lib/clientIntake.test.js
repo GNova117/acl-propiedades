@@ -5,6 +5,8 @@ import {
   INTAKE_TOKEN_PATTERN,
   INTAKE_VALID_DAYS,
   intakeExpiry,
+  intakeAdvisorContact,
+  intakeAdvisorUrl,
   intakeFieldKeys,
   intakeGroups,
   intakeMessage,
@@ -113,5 +115,29 @@ describe("intakePayload", () => {
       "vendedor",
     );
     expect(payload).toEqual({ name: "Beto Ruiz", phone: "6189999999", rfc: "RUAB800101AB1", numero_credito: "C-77" });
+  });
+});
+
+describe("avisarle al asesor al terminar", () => {
+  const laura = { name: "Laura Asesora", whatsapp: "871 111 2222", phone: "8719999999" };
+
+  it("va al WhatsApp del asesor que mandó el enlace, con el mensaje ya escrito", () => {
+    const url = intakeAdvisorUrl(laura, "Ana López");
+    expect(url).toMatch(/^https:\/\/wa\.me\/528711112222\?text=/);
+    const text = decodeURIComponent(url.split("?text=")[1]);
+    expect(text).toBe("Hola Laura, soy Ana López. Ya llené mi registro con mis datos.");
+  });
+
+  it("si el asesor no tiene WhatsApp usa su teléfono", () => {
+    expect(intakeAdvisorContact({ name: "Beto", whatsapp: "", phone: "871 555 0000" })).toEqual({ name: "Beto", phone: "871 555 0000" });
+  });
+
+  it("sin asesor, o con un número que no sirve, va a la oficina", () => {
+    for (const advisor of [null, undefined, { name: "Sin número", whatsapp: "123", phone: "" }]) {
+      const contact = intakeAdvisorContact(advisor);
+      expect(contact.isOffice).toBe(true);
+      expect(intakeAdvisorUrl(advisor, "Ana")).toMatch(/^https:\/\/wa\.me\/52\d{10}\?text=/);
+    }
+    expect(decodeURIComponent(intakeAdvisorUrl(null, "").split("?text=")[1])).toBe("Hola, soy tu cliente. Ya llené mi registro con mis datos.");
   });
 });

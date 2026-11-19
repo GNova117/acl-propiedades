@@ -6,7 +6,7 @@ import ThemeToggle from "../components/ThemeToggle";
 import LanguageToggle from "../components/LanguageToggle";
 import LoadingState from "../components/LoadingState";
 import { db } from "../lib/dataStore";
-import { emptyIntakeForm, INTAKE_CONSENT_VERSION, INTAKE_ERROR_FIELDS, intakeGroups, intakePayload, validateIntake } from "../lib/clientIntake";
+import { emptyIntakeForm, INTAKE_CONSENT_VERSION, INTAKE_ERROR_FIELDS, intakeAdvisorContact, intakeAdvisorUrl, intakeGroups, intakePayload, validateIntake } from "../lib/clientIntake";
 import "./PublicVisitReport.css";
 import "./PublicClientIntake.css";
 
@@ -55,6 +55,8 @@ export default function PublicClientIntake() {
   const [error, setError] = useState(null); // { field, code }
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  // El asesor que mandó el enlace: al terminar, el cliente puede avisarle por WhatsApp. Sin asesor (o si no se pudo cargar), a la oficina.
+  const [advisor, setAdvisor] = useState({ token: null, data: null });
 
   useEffect(() => {
     const robots = document.createElement("meta");
@@ -80,6 +82,11 @@ export default function PublicClientIntake() {
         if (cancelled) return;
         setState({ token, status: data?.status || "invalido", type: data?.type || null });
         if (data?.status === "activo") setForm(emptyIntakeForm(data.type));
+        if (data?.advisor_id) {
+          db.getAdvisorById(data.advisor_id)
+            .then((found) => !cancelled && setAdvisor({ token, data: found }))
+            .catch(() => {});
+        }
       })
       .catch(() => !cancelled && setState({ token, status: "error", type: null }));
     return () => {
@@ -116,6 +123,8 @@ export default function PublicClientIntake() {
     }
   };
 
+  const advisorData = advisor.token === token ? advisor.data : null;
+  const advisorContact = intakeAdvisorContact(advisorData);
   const groups = current.status === "activo" && form ? intakeGroups(current.type) : [];
   const fieldError = (key) => (error?.field === key ? errorText(error.code) : null);
 
@@ -145,6 +154,9 @@ export default function PublicClientIntake() {
           <div className="card public-intake__card" role="status">
             <h1>{t("intake.thanksTitle")}</h1>
             <p>{t("intake.thanksBody")}</p>
+            <a className="btn btn-primary" href={intakeAdvisorUrl(advisorData, form?.name)} target="_blank" rel="noopener noreferrer">
+              {t("intake.tellAdvisor", { name: advisorContact.isOffice ? t("intake.theOffice") : advisorContact.name })}
+            </a>
             <Link to="/" className="btn btn-outline">
               {t("intake.backHome")}
             </Link>

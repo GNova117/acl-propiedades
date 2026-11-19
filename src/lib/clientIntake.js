@@ -6,6 +6,8 @@
 // le piden unos datos u otros, igual que en el expediente del cliente (clientExpedienteFields.js).
 import { CLIENT_BUYER_FIELDS, CLIENT_COMPANY_FIELDS, CLIENT_PERSONAL_FIELDS, CLIENT_REFERENCE_FIELDS, CLIENT_SELLER_FIELDS } from "./clientExpedienteFields";
 import { generatePortalToken, PORTAL_TOKEN_PATTERN } from "./clientPortal";
+import { whatsappDigits, whatsappUrl } from "./format";
+import { OFFICE } from "./office";
 
 export const INTAKE_TOKEN_PATTERN = PORTAL_TOKEN_PATTERN; // 32 hex (128 bits), igual que los demás enlaces
 export const INTAKE_VALID_DAYS = 7; // vigencia (igual que el valor por omisión de expires_at en la tabla)
@@ -100,4 +102,18 @@ export function intakePayload(form, type) {
     out[key] = value;
   }
   return out;
+}
+
+// Al terminar, el cliente puede avisarle al asesor que ya llenó su registro: WhatsApp con el mensaje escrito. Va al asesor que generó
+// el enlace (su WhatsApp o, si no tiene, su teléfono); sin asesor, o si su número no sirve, a la oficina.
+export function intakeAdvisorContact(advisor) {
+  const phone = [advisor?.whatsapp, advisor?.phone].find((value) => whatsappDigits(value).length >= 10);
+  return phone ? { name: advisor.name || OFFICE.name, phone } : { name: OFFICE.name, phone: OFFICE.whatsapp, isOffice: true };
+}
+
+export function intakeAdvisorUrl(advisor, clientName) {
+  const contact = intakeAdvisorContact(advisor);
+  const first = String(contact.name).trim().split(/\s+/)[0];
+  const text = `Hola${contact.isOffice ? "" : ` ${first}`}, soy ${String(clientName || "").trim() || "tu cliente"}. Ya llené mi registro con mis datos.`;
+  return whatsappUrl(contact.phone, text);
 }

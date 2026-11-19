@@ -2266,6 +2266,7 @@
       "followups": "Seguimientos de prospectos",
       "newProspects": "Prospectos nuevos sin contactar",
       "stale": "Propiedades sin visitas en 15 días",
+      "intakes": "Clientes que llenaron su registro",
       "monthlyReports": "Informes del mes por enviar a propietarios"
     }
   },
@@ -4206,6 +4207,7 @@
     "revoke": "Desactivar",
     "confirmRevoke": "¿Desactivar este enlace? El cliente ya no podrá usarlo.",
     "openClient": "Ver cliente",
+    "new": "Nuevo",
     "loadError": "No se pudieron cargar los enlaces.",
     "createError": "No se pudo generar el enlace.",
     "revokeError": "No se pudo desactivar el enlace."
@@ -4226,6 +4228,8 @@
     "thanksTitle": "¡Listo, recibimos tus datos!",
     "thanksBody": "Tu asesor los revisará y se pondrá en contacto contigo muy pronto. Ya puedes cerrar esta página.",
     "backHome": "Ir al sitio",
+    "tellAdvisor": "Avisar a {{name}} por WhatsApp",
+    "theOffice": "la oficina",
     "notice": {
       "invalido": { "title": "Este enlace no es válido", "body": "Revisa que lo hayas copiado completo o pide a tu asesor que te mande uno nuevo." },
       "revocado": { "title": "Este enlace ya no está activo", "body": "Tu asesor lo desactivó. Pídele que te mande uno nuevo." },

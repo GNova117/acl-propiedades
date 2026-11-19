@@ -2266,6 +2266,7 @@
       "followups": "Prospect follow-ups",
       "newProspects": "New prospects not contacted",
       "stale": "Properties with no visits in 15 days",
+      "intakes": "Clients who filled in their registration",
       "monthlyReports": "Monthly owner reports to send"
     }
   },
@@ -4206,6 +4207,7 @@
     "revoke": "Disable",
     "confirmRevoke": "Disable this link? The client will no longer be able to use it.",
     "openClient": "View client",
+    "new": "New",
     "loadError": "The links could not be loaded.",
     "createError": "The link could not be created.",
     "revokeError": "The link could not be disabled."
@@ -4226,6 +4228,8 @@
     "thanksTitle": "Done, we received your details!",
     "thanksBody": "Your advisor will review them and get in touch very soon. You can close this page now.",
     "backHome": "Go to the site",
+    "tellAdvisor": "Tell {{name}} on WhatsApp",
+    "theOffice": "the office",
     "notice": {
       "invalido": { "title": "This link is not valid", "body": "Check that you copied it completely, or ask your advisor for a new one." },
       "revocado": { "title": "This link is no longer active", "body": "Your advisor disabled it. Ask them for a new one." },

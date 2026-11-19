@@ -265,7 +265,7 @@ export const contentMethods = {
   // Tiempo real (demo): no hay servidor, pero lo que otra pestaña del mismo navegador guarda (evento «storage») o esta misma
   // pestaña (evento propio de writeStore) se reparte igual, para poder ver el comportamiento sin Supabase.
   subscribeToChanges(onEvent) {
-    const tableOf = { [KEYS.messages]: "contact_messages", [KEYS.prospects]: "prospectos" };
+    const tableOf = { [KEYS.messages]: "contact_messages", [KEYS.prospects]: "prospectos", [KEYS.clientIntakeLinks]: "client_intake_links" };
     const fromStorage = (e) => tableOf[e.key] && onEvent({ table: tableOf[e.key], type: "CHANGE", record: null });
     const fromSelf = (e) => tableOf[e.detail?.key] && onEvent({ table: tableOf[e.detail.key], type: "CHANGE", record: null });
     window.addEventListener("storage", fromStorage);

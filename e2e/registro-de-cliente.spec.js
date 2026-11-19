@@ -45,7 +45,7 @@ test.describe("Registro del cliente por enlace", () => {
     await test.step("pide lo obligatorio y el aviso de privacidad antes de enviar", async () => {
       await press(page.getByRole("button", { name: "Enviar mis datos" }));
       await expect(page.getByText("Escribe tu nombre completo.")).toBeVisible();
-      await page.getByLabel("Nombre completo").fill("Beto Ruiz Soto");
+      await page.getByLabel("Nombre completo", { exact: true }).fill("Beto Ruiz Soto");
       await press(page.getByRole("button", { name: "Enviar mis datos" }));
       await expect(page.getByText("Escribe un teléfono de 10 dígitos.")).toBeVisible();
       await page.getByLabel("Teléfono (WhatsApp)").fill("871 555 0199");
@@ -72,7 +72,7 @@ test.describe("Registro del cliente por enlace", () => {
     await test.step("el enlace ya no sirve una segunda vez", async () => {
       await go(new URL(url).pathname);
       await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ya recibimos tus datos");
-      await expect(page.getByLabel("Nombre completo")).toHaveCount(0);
+      await expect(page.getByLabel("Nombre completo", { exact: true })).toHaveCount(0);
     });
 
     await test.step("el asesor lo ve en Clientes y el enlace figura como «Ya lo llenó»", async () => {
@@ -121,5 +121,76 @@ test.describe("Registro del cliente por enlace", () => {
       await expect(page.getByLabel("Número de seguro social (NSS)")).toBeVisible();
       await expect(page.getByLabel("Número de crédito")).toHaveCount(0);
     });
+  });
+
+  test("al llenarlo: avisa en la campana, el cliente puede escribirle al asesor y abrir el panel lo marca como visto", async ({ page, go, press }) => {
+    const ahora = new Date().toISOString();
+    const token = "ab".repeat(16);
+    await go("/admin/clientes");
+    // Un enlace que generó Carlos Delgado (asesor-1): a él le escribe el cliente al terminar.
+    await page.evaluate(
+      ([t, now]) =>
+        localStorage.setItem(
+          "acl_local_client_intake_links",
+          JSON.stringify([{ id: "intake-x", token: t, type: "comprador", label: "Ana López", advisor_id: "advisor-1", created_by: "x", created_at: now, expires_at: new Date(Date.now() + 864e5).toISOString(), revoked_at: null, submitted_at: null, seen_at: null, client_id: null }]),
+        ),
+      [token, ahora],
+    );
+
+    await test.step("sin registros llenos, la campana no avisa de clientes", async () => {
+      await go("/admin/panel");
+      await press(page.getByRole("button", { name: /Notificaciones/ }));
+      await expect(page.getByText("Clientes que llenaron su registro")).toHaveCount(0);
+    });
+
+    await test.step("el cliente lo llena y ve el botón para avisarle a su asesor por WhatsApp", async () => {
+      await go(`/registro/${token}`);
+      await page.getByLabel("Nombre completo", { exact: true }).fill("Ana López");
+      await page.getByLabel("Teléfono (WhatsApp)").fill("871 555 0123");
+      await page.getByLabel(/Acepto que ACL Propiedades/).check();
+      await press(page.getByRole("button", { name: "Enviar mis datos" }));
+      await expect(page.getByRole("heading", { name: "¡Listo, recibimos tus datos!" })).toBeVisible();
+      const aviso = page.getByRole("link", { name: "Avisar a Carlos Delgado por WhatsApp" });
+      await expect(aviso).toBeVisible();
+      const href = await aviso.getAttribute("href");
+      expect(href).toMatch(/^https:\/\/wa\.me\/528711234567\?text=/);
+      expect(decodeURIComponent(href.split("?text=")[1])).toBe("Hola Carlos, soy Ana López. Ya llené mi registro con mis datos.");
+    });
+
+    await test.step("la campana del asesor avisa y lleva a Clientes con el panel abierto y el registro como «Nuevo»", async () => {
+      await go("/admin/panel");
+      await press(page.getByRole("button", { name: /Notificaciones/ }));
+      // El mismo aviso sale en la campana (con el conteo) y en «Pendientes de hoy» del Panel (con el nombre del cliente).
+      await expect(page.locator(".pending-item", { hasText: "Clientes que llenaron su registro" })).toContainText("Ana López");
+      const item = page.locator(".notification-bell__item", { hasText: "Clientes que llenaron su registro" });
+      await expect(item).toContainText("1");
+      await press(item);
+      const panel = page.getByRole("region", { name: "Enlace para que el cliente capture sus datos" });
+      await expect(panel).toBeVisible();
+      await expect(panel.locator("li").first()).toContainText("Ana López");
+      await expect(panel.locator("li").first()).toContainText("Nuevo");
+      await expect(panel.locator("li").first()).toContainText("Ya lo llenó");
+    });
+
+    await test.step("ya visto: la campana deja de avisar", async () => {
+      await go("/admin/panel");
+      await press(page.getByRole("button", { name: /Notificaciones/ }));
+      await expect(page.getByText("Clientes que llenaron su registro")).toHaveCount(0);
+    });
+  });
+
+  test("sin asesor (lo generó la oficina) el cliente le avisa a la oficina", async ({ page, go, press }) => {
+    await go("/admin/clientes");
+    await press(page.getByRole("button", { name: "Enlace de registro" }));
+    await press(page.getByRole("button", { name: "Generar enlace" }));
+    const url = await page.getByLabel("Enlace de registro", { exact: true }).inputValue();
+    await go(new URL(url).pathname);
+    await page.getByLabel("Nombre completo", { exact: true }).fill("Luis Prieto");
+    await page.getByLabel("Teléfono (WhatsApp)").fill("871 555 0188");
+    await page.getByLabel(/Acepto que ACL Propiedades/).check();
+    await press(page.getByRole("button", { name: "Enviar mis datos" }));
+    const aviso = page.getByRole("link", { name: "Avisar a la oficina por WhatsApp" });
+    await expect(aviso).toHaveAttribute("href", /^https:\/\/wa\.me\/528713243271\?text=/);
+    expect(decodeURIComponent((await aviso.getAttribute("href")).split("?text=")[1])).toBe("Hola, soy Luis Prieto. Ya llené mi registro con mis datos.");
   });
 });
