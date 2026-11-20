@@ -45,7 +45,9 @@ async function rellenarVisibles(form, marca) {
     const tipo = (await campo.getAttribute("type")) || "";
     const id = (await campo.getAttribute("id")) || (await campo.getAttribute("name")) || "";
     if (["file", "checkbox", "radio", "hidden", "submit", "button", "range", "color"].includes(tipo)) continue;
-    if (/empresa/i.test(id) || (await campo.getAttribute("tabindex")) === "-1") continue; // campo trampa anti-spam
+    // Campo trampa anti-spam (name="empresa", fuera del tabulador). Ojo: no se descarta por «empresa» en el id, porque hay
+    // campos legítimos como el teléfono de la empresa del cliente (c-tel_empresa).
+    if ((await campo.getAttribute("name")) === "empresa" || (await campo.getAttribute("tabindex")) === "-1") continue;
 
     if (tag === "select") {
       const valores = await campo.locator("option").evaluateAll((os) => os.map((o) => o.value));

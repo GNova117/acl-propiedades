@@ -1,79 +1,88 @@
-import { test, expect, llenarDatosBasicosCliente } from "./fixtures.js";
+import { test, expect, llenarCreditoInfonavit, llenarDatosObligatoriosCliente } from "./fixtures.js";
 
-// El formulario de cliente exige siempre los datos básicos (nombre, teléfono, correo y todos los «Datos personales»).
-// Con financiamiento INFONAVIT exige además el expediente de crédito: NSS y contraseña del portal (comprador) y número
-// de crédito (vendedor). Sin INFONAVIT no se piden esos datos de crédito.
+// Datos obligatorios del cliente (ver requiredClientKeys):
+//  - Cualquiera: nombre completo, fecha de nacimiento, domicilio, estado civil (casado o soltero) y 2 referencias personales
+//    (nombre y teléfono).
+//  - Comprador: además teléfono, CURP, RFC y teléfono de su empresa.
+//  - Con financiamiento INFONAVIT, comprador y vendedor: número de crédito, NSS y contraseña de Mi Cuenta Infonavit.
 
-const DATOS_PERSONALES = ["fecha_nacimiento", "estado_civil", "domicilio", "rfc", "curp", "identificacion_oficial"];
+const COMUNES = ["name", "fecha_nacimiento", "estado_civil", "domicilio", "referencia1_nombre", "referencia1_telefono", "referencia2_nombre", "referencia2_telefono"];
+const SOLO_COMPRADOR = ["phone", "rfc", "curp", "tel_empresa"];
+const CREDITO = ["numero_credito", "nss", "contrasena_portal"];
 
 test.beforeEach(async ({ seedAdminSession }) => {
   await seedAdminSession();
 });
 
-test("un formulario vacío señala todos los datos básicos y lleva el foco al primero", async ({ page, go, press }) => {
+const guardar = (page, press) => press(page.getByRole("button", { name: "Guardar" }));
+
+test("comprador: un formulario vacío señala todo lo obligatorio, con * y el foco en el primero", async ({ page, go, press }) => {
   await go("/admin/clientes/nuevo");
-  await press(page.getByRole("button", { name: "Guardar" }));
+  await guardar(page, press);
   await expect(page).toHaveURL(/\/admin\/clientes\/nuevo$/);
-  for (const clave of ["name", "phone", "email", ...DATOS_PERSONALES]) {
+  for (const clave of [...COMUNES, ...SOLO_COMPRADOR]) {
     await expect(page.locator(`#c-${clave}-error`), clave).toHaveText("Este campo es obligatorio");
+    await expect(page.locator(`label[for="c-${clave}"]`), clave).toContainText("*");
   }
+  await expect(page.locator("#c-email-error")).toHaveCount(0); // el correo ya no es obligatorio
   await expect(page.locator("#c-name")).toBeFocused();
-  await expect(page.locator('label[for="c-curp"]')).toContainText("*");
+  await expect(page.locator("#c-numero_credito")).toHaveCount(0); // el crédito solo se pide con Infonavit
 });
 
-test("con todos los datos básicos guarda, sin pedir nada de crédito si no es INFONAVIT", async ({ page, go, press }) => {
+test("estado civil: solo casado o soltero", async ({ page, go }) => {
   await go("/admin/clientes/nuevo");
-  await page.fill("#c-name", "Cliente contado QA");
+  const opciones = await page.locator("#c-estado_civil option").allTextContents();
+  expect(opciones).toEqual(["—", "Soltero", "Casado"]);
+});
+
+test("comprador completo, sin Infonavit: guarda (los espacios no cuentan como dato)", async ({ page, go, press }) => {
+  await go("/admin/clientes/nuevo");
+  await page.fill("#c-name", "Comprador contado QA");
   await page.selectOption("#c-financiamiento", "contado");
-  await expect(page.locator("#c-nss")).toHaveCount(0);
+  await llenarDatosObligatoriosCliente(page, "comprador");
+  await page.fill("#c-tel_empresa", "   ");
+  await guardar(page, press);
+  await expect(page.locator("#c-tel_empresa-error")).toBeVisible();
+  await expect(page.locator("#c-tel_empresa")).toBeFocused();
 
-  await llenarDatosBasicosCliente(page);
-  await page.fill("#c-rfc", "   "); // los espacios no cuentan como dato
-  await press(page.getByRole("button", { name: "Guardar" }));
-  await expect(page.locator("#c-rfc-error")).toBeVisible();
-  await expect(page.locator("#c-rfc")).toBeFocused();
-
-  await page.fill("#c-rfc", "XAXX010101000");
-  await press(page.getByRole("button", { name: "Guardar" }));
+  await page.fill("#c-tel_empresa", "8713333333");
+  await guardar(page, press);
   await expect(page).toHaveURL(/\/admin\/clientes$/);
 });
 
-test("comprador con INFONAVIT: sin NSS y contraseña no guarda; con ellos sí", async ({ page, go, press }) => {
+test("vendedor: pide lo común pero no teléfono, RFC, CURP ni empresa", async ({ page, go, press }) => {
   await go("/admin/clientes/nuevo");
-  await page.fill("#c-name", "Cliente Infonavit QA");
-  await llenarDatosBasicosCliente(page);
-  await page.selectOption("#c-financiamiento", "infonavit");
-
-  await press(page.getByRole("button", { name: "Guardar" }));
-  await expect(page).toHaveURL(/\/admin\/clientes\/nuevo$/);
-  await expect(page.locator("#c-nss-error")).toHaveText("Este campo es obligatorio");
-  await expect(page.locator("#c-contrasena_portal-error")).toHaveText("Este campo es obligatorio");
-  await expect(page.locator("#c-nss")).toBeFocused();
-  await expect(page.locator("#c-numero_credito")).toHaveCount(0); // el comprador no lo captura
-
-  await page.fill("#c-nss", "12345678901");
-  await page.fill("#c-contrasena_portal", "   ");
-  await press(page.getByRole("button", { name: "Guardar" }));
-  await expect(page.locator("#c-contrasena_portal-error")).toBeVisible();
-
-  await page.fill("#c-contrasena_portal", "Clave-QA-1");
-  await press(page.getByRole("button", { name: "Guardar" }));
-  await expect(page).toHaveURL(/\/admin\/clientes$/);
-});
-
-test("vendedor con INFONAVIT: el número de crédito es obligatorio", async ({ page, go, press }) => {
-  await go("/admin/clientes/nuevo");
-  await page.fill("#c-name", "Vendedor Infonavit QA");
   await page.selectOption("#c-type", "vendedor");
-  await llenarDatosBasicosCliente(page);
-  await page.selectOption("#c-financiamiento", "infonavit");
-  await expect(page.locator("#c-nss")).toHaveCount(0);
+  await expect(page.locator("#c-tel_empresa")).toHaveCount(0);
+  await guardar(page, press);
+  for (const clave of COMUNES) await expect(page.locator(`#c-${clave}-error`), clave).toBeVisible();
+  for (const clave of SOLO_COMPRADOR) await expect(page.locator(`#c-${clave}-error`), clave).toHaveCount(0);
 
-  await press(page.getByRole("button", { name: "Guardar" }));
-  await expect(page.locator("#c-numero_credito-error")).toBeVisible();
-  await expect(page.locator("#c-numero_credito")).toBeFocused();
-
-  await page.fill("#c-numero_credito", "1234567890");
-  await press(page.getByRole("button", { name: "Guardar" }));
+  await page.fill("#c-name", "Vendedor contado QA");
+  await llenarDatosObligatoriosCliente(page, "vendedor");
+  await guardar(page, press);
   await expect(page).toHaveURL(/\/admin\/clientes$/);
 });
+
+for (const tipo of ["comprador", "vendedor"]) {
+  test(`${tipo} con INFONAVIT: sin número de crédito, NSS y contraseña no guarda; con ellos sí`, async ({ page, go, press }) => {
+    await go("/admin/clientes/nuevo");
+    await page.fill("#c-name", `${tipo} Infonavit QA`);
+    await page.selectOption("#c-type", tipo);
+    await llenarDatosObligatoriosCliente(page, tipo);
+    await page.selectOption("#c-financiamiento", "infonavit");
+
+    await guardar(page, press);
+    await expect(page).toHaveURL(/\/admin\/clientes\/nuevo$/);
+    for (const clave of CREDITO) {
+      await expect(page.locator(`#c-${clave}-error`), clave).toHaveText("Este campo es obligatorio");
+      await expect(page.locator(`label[for="c-${clave}"]`), clave).toContainText("*");
+    }
+    await expect(page.locator("#c-numero_credito")).toBeFocused();
+    await expect(page.locator('label[for="c-contrasena_portal"]')).toContainText("Mi Cuenta Infonavit");
+
+    await llenarCreditoInfonavit(page);
+    await guardar(page, press);
+    await expect(page).toHaveURL(/\/admin\/clientes$/);
+  });
+}
