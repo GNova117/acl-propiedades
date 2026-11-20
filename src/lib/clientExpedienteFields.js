@@ -109,6 +109,28 @@ export function clientExpedienteGroups(clientType) {
   return groups;
 }
 
+// Datos que NO se pueden dejar vacíos al guardar un cliente. Siempre (con cualquier tipo de cliente y de
+// financiamiento): los datos básicos — nombre, teléfono, correo y todos los «Datos personales» (fecha de nacimiento,
+// estado civil, domicilio, RFC, CURP e identificación oficial). Además, con financiamiento INFONAVIT (que es cuando el
+// formulario pide el expediente de crédito): el comprador debe dar su NSS y la contraseña del portal de crédito, y el
+// vendedor el número de crédito (un cliente «ambos» los tres). Sin INFONAVIT esos datos de crédito no se piden, así
+// que no se exigen. Devuelven llaves de campos; el formulario las marca con * y las valida.
+export const CLIENT_BASIC_REQUIRED_KEYS = ["name", "phone", "email", ...CLIENT_PERSONAL_FIELDS.map((f) => f.key)];
+
+export function requiredExpedienteKeys(client) {
+  if (client?.financiamiento !== "infonavit") return [];
+  const keys = [];
+  if (client.type !== "vendedor") keys.push(...CLIENT_BUYER_FIELDS.map((f) => f.key));
+  if (client.type !== "comprador") keys.push(...CLIENT_SELLER_FIELDS.map((f) => f.key));
+  return keys;
+}
+
+// Todo lo obligatorio para este cliente, en el orden en que aparece en el formulario.
+export const requiredClientKeys = (client) => [...CLIENT_BASIC_REQUIRED_KEYS, ...requiredExpedienteKeys(client)];
+
+// Llaves obligatorias que siguen vacías (espacios no cuentan).
+export const missingRequiredClient = (client) => requiredClientKeys(client).filter((key) => !String(client?.[key] ?? "").trim());
+
 const ROL_LABELS = { comprador: "Comprador", vendedor: "Vendedor", ambos: "Comprador y vendedor" };
 
 // Secciones de la hoja de datos del cliente en el expediente — mismo formato

@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { CLIENT_TYPES, FINANCIAMIENTO_TYPES } from "../../lib/format";
-import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteGroups, clientSheetData, clientSheetSections } from "../../lib/clientExpedienteFields";
+import { CLIENT_EXPEDIENTE_KEYS, clientExpedienteGroups, clientSheetData, clientSheetSections, missingRequiredClient, requiredClientKeys } from "../../lib/clientExpedienteFields";
 import { downloadMultiPerfilamientoPdf } from "../../lib/perfilamientoPdf";
 import InternalNotes from "../../components/InternalNotes";
 import "./admin.css";
@@ -14,13 +14,16 @@ import { confirmDialog, notify } from "../../lib/toast";
 // PerfilamientoManager.jsx). Un campo sensible (la contraseña del portal de
 // crédito) se muestra oculto y trae un botón para verla; cada vez que se abre
 // la pantalla vuelve a empezar oculto.
-function ExpedienteFieldInput({ field, value, onChange }) {
+function ExpedienteFieldInput({ field, value, onChange, required = false, invalid = false }) {
   const { t } = useTranslation();
   const [revealed, setRevealed] = useState(false);
   const common = {
     id: `c-${field.key}`,
     value,
     onChange,
+    "aria-required": required || undefined,
+    "aria-invalid": invalid || undefined,
+    "aria-describedby": invalid ? `c-${field.key}-error` : undefined,
   };
   if (field.sensitive) {
     const label = t(revealed ? "clients.hidePassword" : "clients.showPassword");
@@ -156,8 +159,13 @@ export default function AdminClientForm() {
 
   const validate = () => {
     const next = {};
-    if (!form.name.trim()) next.name = t("contact.required");
+    // Obligatorios: nombre, teléfono, correo y datos personales; con INFONAVIT además NSS y contraseña del portal
+    // (comprador) y número de crédito (vendedor). Ver requiredClientKeys.
+    for (const key of missingRequiredClient(form)) next[key] = t("contact.required");
     setErrors(next);
+    // El primer campo con error recibe el foco, para que no haya que buscarlo en un formulario largo.
+    const first = Object.keys(next)[0];
+    if (first) setTimeout(() => document.getElementById(first === "name" ? "c-name" : `c-${first}`)?.focus(), 0);
     return Object.keys(next).length === 0;
   };
 
@@ -217,6 +225,26 @@ export default function AdminClientForm() {
     }
   };
 
+  const requiredKeys = requiredClientKeys(form);
+  const isRequired = (key) => requiredKeys.includes(key);
+  // Etiqueta con * y mensaje de error de un campo obligatorio (los mismos ids que usa validate para enfocar).
+  const labelOf = (key, text) => (
+    <label htmlFor={`c-${key}`}>
+      {text}
+      {isRequired(key) && <span aria-hidden="true"> *</span>}
+    </label>
+  );
+  const errorOf = (key) => errors[key] && <span className="form-error" id={`c-${key}-error`}>{errors[key]}</span>;
+  const a11yOf = (key) => ({ "aria-required": isRequired(key) || undefined, "aria-invalid": errors[key] ? true : undefined, "aria-describedby": errors[key] ? `c-${key}-error` : undefined });
+  // Un campo del expediente (personal o de crédito) con su etiqueta, entrada y error.
+  const renderExpedienteField = (field) => (
+    <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
+      {labelOf(field.key, field.label)}
+      <ExpedienteFieldInput field={field} value={form[field.key]} onChange={handleExpedienteFieldChange(field)} required={isRequired(field.key)} invalid={Boolean(errors[field.key])} />
+      {errorOf(field.key)}
+    </div>
+  );
+
   if (loading) return <LoadingState />;
 
   return (
@@ -250,11 +278,12 @@ export default function AdminClientForm() {
       </div>
 
       <form className="card admin-form" onSubmit={handleSubmit} noValidate>
+        <p className="form-hint mt-0">{t("clients.requiredHint")}</p>
         <div className="form-row">
           <div className="form-field">
-            <label htmlFor="c-name">{t("clients.name")}</label>
-            <input id="c-name" value={form.name} onChange={handleChange("name")} />
-            {errors.name && <span className="form-error">{errors.name}</span>}
+            {labelOf("name", t("clients.name"))}
+            <input id="c-name" value={form.name} onChange={handleChange("name")} {...a11yOf("name")} />
+            {errorOf("name")}
           </div>
           <div className="form-field">
             <label htmlFor="c-type">{t("clients.type")}</label>
@@ -270,12 +299,14 @@ export default function AdminClientForm() {
 
         <div className="form-row">
           <div className="form-field">
-            <label htmlFor="c-phone">{t("clients.phone")}</label>
-            <input id="c-phone" value={form.phone} onChange={handleChange("phone")} />
+            {labelOf("phone", t("clients.phone"))}
+            <input id="c-phone" value={form.phone} onChange={handleChange("phone")} {...a11yOf("phone")} />
+            {errorOf("phone")}
           </div>
           <div className="form-field">
-            <label htmlFor="c-email">{t("clients.email")}</label>
-            <input id="c-email" type="email" value={form.email} onChange={handleChange("email")} />
+            {labelOf("email", t("clients.email"))}
+            <input id="c-email" type="email" value={form.email} onChange={handleChange("email")} {...a11yOf("email")} />
+            {errorOf("email")}
           </div>
         </div>
 
@@ -308,12 +339,7 @@ export default function AdminClientForm() {
             <div key={group.key}>
               <h4 style={{ margin: "0 0 0.5rem" }}>{group.title}</h4>
               <div className="form-row">
-                {group.fields.map((field) => (
-                  <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
-                    <label htmlFor={`c-${field.key}`}>{field.label}</label>
-                    <ExpedienteFieldInput field={field} value={form[field.key]} onChange={handleExpedienteFieldChange(field)} />
-                  </div>
-                ))}
+                {group.fields.map(renderExpedienteField)}
               </div>
             </div>
           ))}
@@ -322,18 +348,14 @@ export default function AdminClientForm() {
           <>
             <h3 style={{ margin: "0.5rem 0 0" }}>{t("clients.expedienteSection")}</h3>
             <p className="form-hint mt-n2">{t("clients.expedienteSectionHint")}</p>
+            <p className="form-hint mt-n2">{t("clients.requiredCreditHint")}</p>
             {clientExpedienteGroups(form.type)
               .filter((group) => group.key !== "personal")
               .map((group) => (
                 <div key={group.key}>
                   <h4 style={{ margin: "0 0 0.5rem" }}>{group.title}</h4>
                   <div className="form-row">
-                    {group.fields.map((field) => (
-                      <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
-                        <label htmlFor={`c-${field.key}`}>{field.label}</label>
-                        <ExpedienteFieldInput field={field} value={form[field.key]} onChange={handleExpedienteFieldChange(field)} />
-                      </div>
-                    ))}
+                    {group.fields.map(renderExpedienteField)}
                   </div>
                 </div>
               ))}

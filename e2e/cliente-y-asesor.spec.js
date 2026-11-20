@@ -348,13 +348,19 @@ test.describe("Aviso por correo del trámite", () => {
   test("el asesor lo activa en el trámite del cliente; avisa si no tiene correo", async ({ page, go, press, seedAdminSession }) => {
     await seedAdminSession();
     const nombre = `Cliente Avisos ${Date.now() % 100000}`;
-    await go("/admin/clientes/nuevo");
-    await page.fill("#c-name", nombre);
-    await page.selectOption("#c-type", "comprador");
-    await page.fill("#c-phone", "8715550101");
-    await press(page.locator("form button[type=submit]").first());
-    await page.waitForURL("**/admin/clientes");
-    const id = await page.evaluate((n) => JSON.parse(localStorage.getItem("acl_local_clients") || "[]").find((c) => c.name === n)?.id, nombre);
+    // Un cliente sin correo ya no se puede dar de alta desde el formulario (el correo es obligatorio), pero sí existe
+    // en la práctica (p. ej. convertido desde un prospecto): se siembra directo en el almacenamiento local.
+    const id = `cliente-sin-correo-${Date.now() % 100000}`;
+    await page.addInitScript(
+      ({ id, nombre }) => {
+        const now = new Date().toISOString();
+        const clientes = JSON.parse(localStorage.getItem("acl_local_clients") || "[]");
+        if (clientes.some((c) => c.id === id)) return; // el script corre en cada carga de página
+        clientes.push({ id, name: nombre, type: "comprador", email: null, phone: "8715550101", notes: null, active: true, financiamiento: null, created_at: now, updated_at: now });
+        localStorage.setItem("acl_local_clients", JSON.stringify(clientes));
+      },
+      { id, nombre },
+    );
 
     await go(`/admin/clientes/${id}/documentos`);
     const panel = page.locator(".admin-portal-tramite");
