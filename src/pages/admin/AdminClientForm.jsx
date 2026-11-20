@@ -41,7 +41,8 @@ function ExpedienteFieldInput({ field, value, onChange, required = false, invali
     return (
       <select {...common}>
         <option value="">—</option>
-        {field.options.map((option) => (
+        {/* Un valor guardado antes que ya no está en la lista (p. ej. «Divorciado») se conserva, no se pierde en silencio. */}
+        {[...field.options, ...(value && !field.options.includes(value) ? [value] : [])].map((option) => (
           <option key={option} value={option}>
             {option}
           </option>
@@ -225,6 +226,7 @@ export default function AdminClientForm() {
     }
   };
 
+  const groups = clientExpedienteGroups(form.type);
   const requiredKeys = requiredClientKeys(form);
   const isRequired = (key) => requiredKeys.includes(key);
   // Etiqueta con * y mensaje de error de un campo obligatorio (los mismos ids que usa validate para enfocar).
@@ -236,6 +238,13 @@ export default function AdminClientForm() {
   );
   const errorOf = (key) => errors[key] && <span className="form-error" id={`c-${key}-error`}>{errors[key]}</span>;
   const a11yOf = (key) => ({ "aria-required": isRequired(key) || undefined, "aria-invalid": errors[key] ? true : undefined, "aria-describedby": errors[key] ? `c-${key}-error` : undefined });
+  // Un bloque del expediente con su encabezado y sus campos.
+  const renderGroup = (group) => (
+    <div key={group.key}>
+      <h4 style={{ margin: "0 0 0.5rem" }}>{group.title}</h4>
+      <div className="form-row">{group.fields.map(renderExpedienteField)}</div>
+    </div>
+  );
   // Un campo del expediente (personal o de crédito) con su etiqueta, entrada y error.
   const renderExpedienteField = (field) => (
     <div className="form-field" key={field.key} style={field.full ? { gridColumn: "1 / -1" } : undefined}>
@@ -330,35 +339,18 @@ export default function AdminClientForm() {
           <textarea id="c-notes" rows={3} value={form.notes} onChange={handleChange("notes")} />
         </div>
 
-        {/* "Datos personales" (fecha de nacimiento, estado civil, domicilio, RFC, CURP,
-            identificación oficial) aplica a cualquier cliente — precarga su perfilamiento
-            (comprador o vendedor) sin importar el financiamiento, así que va siempre visible. */}
-        {clientExpedienteGroups(form.type)
-          .filter((group) => group.key === "personal")
-          .map((group) => (
-            <div key={group.key}>
-              <h4 style={{ margin: "0 0 0.5rem" }}>{group.title}</h4>
-              <div className="form-row">
-                {group.fields.map(renderExpedienteField)}
-              </div>
-            </div>
-          ))}
+        {/* Datos personales, datos de la empresa (comprador) y 2 referencias: se capturan siempre, con cualquier
+            financiamiento. Precargan el perfilamiento del cliente (ver clientExpedienteGroups). */}
+        {groups
+          .filter((group) => !group.onlyInfonavit)
+          .map((group) => renderGroup(group))}
 
         {form.financiamiento === "infonavit" && (
           <>
             <h3 style={{ margin: "0.5rem 0 0" }}>{t("clients.expedienteSection")}</h3>
             <p className="form-hint mt-n2">{t("clients.expedienteSectionHint")}</p>
             <p className="form-hint mt-n2">{t("clients.requiredCreditHint")}</p>
-            {clientExpedienteGroups(form.type)
-              .filter((group) => group.key !== "personal")
-              .map((group) => (
-                <div key={group.key}>
-                  <h4 style={{ margin: "0 0 0.5rem" }}>{group.title}</h4>
-                  <div className="form-row">
-                    {group.fields.map(renderExpedienteField)}
-                  </div>
-                </div>
-              ))}
+            {groups.filter((group) => group.onlyInfonavit).map((group) => renderGroup(group))}
           </>
         )}
         {form.financiamiento !== "infonavit" && <p className="form-hint">{t("clients.expedienteSectionHiddenHint")}</p>}
