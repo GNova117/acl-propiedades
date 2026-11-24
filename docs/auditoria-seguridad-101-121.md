@@ -1,11 +1,11 @@
 # Seguridad y privacidad: puntos 101–121 de la auditoría
 
-Estado de cada punto y lo que hay que hacer **a mano** para que surta efecto. El código ya está en la rama; el SQL y la función de correo no se aplican solos.
+Estado de cada punto y lo que hay que hacer **a mano** para que surta efecto. El código ya está en la rama; la migración y la función de correo no se aplican solos.
 
 ## Orden de despliegue
 
 1. **Publicar el sitio** (merge a `main`). Ya pide solo las columnas públicas de los asesores y lee el contacto del equipo y de las selecciones por funciones nuevas, así que funciona igual con la base vieja y con la nueva.
-2. **Correr el bloque nuevo al final de `supabase/schema.sql`** ("Seguridad: lectura pública mínima…") en el SQL Editor de Supabase. Es re-ejecutable. Hace los puntos 102, 103, 104, 112 y crea la tabla del 101.
+2. **Aplicar la migración `supabase/migrations/0118_seguridad_lectura_publica_correo_del_staff_y_limites_por_ip.sql`** (con `npm run db:migrate` o pegándola en el SQL Editor de Supabase). Es re-ejecutable. Hace los puntos 102, 103, 104 y 112 y crea la tabla del 101.
 3. **Desplegar la función** `enviar-correo` (`supabase functions deploy enviar-correo`), con "Enforce JWT Verification" activado como hasta ahora. Usa `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY`, que Supabase inyecta; no hay variables nuevas.
 4. **Probar** con la sesión de un asesor: Visitas → enviar informe por correo, y Gastos → enviar desglose. Con la llave anon (por ejemplo con `curl`) debe responder 401.
 
