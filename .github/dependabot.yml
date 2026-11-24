@@ -1,0 +1,27 @@
+# Actualización automática de dependencias: Dependabot abre un PR (que pasa por el mismo CI de pruebas) en vez de dejar que
+# las versiones se vayan quedando atrás. Para no inundar de PRs: uno por semana por ecosistema, con las actualizaciones
+# menores y de parche agrupadas; las mayores (que pueden romper cosas) van aparte, una por una. Los avisos de seguridad
+# llegan en PR propio aunque no sea lunes (Dependabot security updates).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: America/Mexico_City
+    open-pull-requests-limit: 5
+    labels: [dependencias]
+    groups:
+      menores-y-parches:
+        update-types: [minor, patch]
+        # Los del mapa y 3D se prueban a mano antes de subirlos junto con lo demás.
+        exclude-patterns: ["three", "@react-three/*", "leaflet", "react-leaflet"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    labels: [dependencias]

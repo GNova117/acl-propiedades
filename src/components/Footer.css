@@ -12,7 +12,7 @@
 }
 
 .site-footer h4 {
-  color: #ffffff;
+  color: var(--color-on-primary);
   font-size: 0.95rem;
   letter-spacing: 0.05em;
   margin-bottom: 1rem;
@@ -38,7 +38,7 @@
 }
 
 .site-footer__links a:hover {
-  color: #ffffff;
+  color: var(--color-on-primary);
 }
 
 .site-footer__social {
@@ -54,7 +54,7 @@
   height: 36px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  color: var(--color-on-primary);
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -96,7 +96,7 @@
 }
 
 .site-footer__bottom-row a:hover {
-  color: #ffffff;
+  color: var(--color-on-primary);
 }
 
 @media (max-width: 860px) {
@@ -105,7 +105,7 @@
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .site-footer__grid {
     grid-template-columns: 1fr;
   }

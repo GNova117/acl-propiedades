@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import { db } from "../lib/dataStore";
-import { formatArea, propertyTypeLabel } from "../lib/format";
+import { formatArea, formatMXN, propertyTypeLabel } from "../lib/format";
+import { sellEstimate } from "../lib/sellEstimate";
 import { isValidPhone, sendLead } from "../lib/lead";
 import "./PublicForms.css";
+import { trackConversion } from "../lib/conversions";
 
 const INITIAL = { name: "", phone: "", type: "casa", zoneId: "", address: "", landArea: "", builtArea: "", expectedPrice: "", comments: "", empresa: "" };
 
@@ -27,6 +29,12 @@ export default function SellYourHome() {
 
   const change = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   const isLand = form.type === "terreno";
+  // Estimado al instante con el tabulador de la zona (ver lib/sellEstimate.js); se queda a la vista tras enviar.
+  const estimate = useMemo(
+    () => sellEstimate({ zone: zones.find((z) => z.id === form.zoneId), type: form.type, landArea: form.landArea, builtArea: form.builtArea }),
+    [zones, form.zoneId, form.type, form.landArea, form.builtArea]
+  );
+  const [sentEstimate, setSentEstimate] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,6 +56,7 @@ export default function SellYourHome() {
       terreno_m2: Number(form.landArea) || 0,
       construccion_m2: isLand ? 0 : Number(form.builtArea) || 0,
       precio_esperado: Number(form.expectedPrice) || 0,
+      ...(estimate ? { estimado_bajo: estimate.low, estimado_alto: estimate.high } : {}),
     };
     const message = [
       "Solicitud de estimación de valor — quiere vender o conocer el valor de su propiedad.",
@@ -55,6 +64,7 @@ export default function SellYourHome() {
       `Dirección / colonia: ${details.direccion}`,
       `Terreno: ${formatArea(details.terreno_m2)}${details.construccion_m2 ? ` · Construcción: ${formatArea(details.construccion_m2)}` : ""}`,
       details.precio_esperado ? `Precio que espera: $${details.precio_esperado.toLocaleString("es-MX")}` : null,
+      estimate ? `Estimado orientativo que vio en el sitio: ${formatMXN(estimate.low)} a ${formatMXN(estimate.high)}` : null,
       form.comments.trim() ? `Comentarios: ${form.comments.trim()}` : null,
     ]
       .filter(Boolean)
@@ -70,14 +80,18 @@ export default function SellYourHome() {
       details,
     });
     setStatus(outcome);
-    if (outcome === "success") setForm(INITIAL);
+    if (outcome === "success") {
+      trackConversion("lead_form", { form: "vende_tu_casa" });
+      setSentEstimate(estimate);
+      setForm(INITIAL);
+    }
   };
 
   return (
     <>
       <Seo title={t("sellHome.seoTitle")} description={t("sellHome.subtitle")} />
       <div className="container public-form-page">
-        <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
+        <div className="section-heading m-section">
           <h1 style={{ fontSize: "2rem" }}>{t("sellHome.title")}</h1>
           <p>{t("sellHome.subtitle")}</p>
         </div>
@@ -85,17 +99,20 @@ export default function SellYourHome() {
         <div className="card public-form-card">
           {status === "success" ? (
             <>
-              <h2 style={{ marginTop: 0 }}>{t("sellHome.successTitle")}</h2>
-              <p className="form-hint" style={{ color: "var(--color-success)" }}>
+              <h2 className="mt-0">{t("sellHome.successTitle")}</h2>
+              <p className="form-hint text-success">
                 {t("sellHome.success")}
               </p>
-              <button type="button" className="btn btn-outline" onClick={() => setStatus("idle")}>
+              {sentEstimate && (
+                <p className="sell-estimate__after">{t("sellEstimate.afterSend", { low: formatMXN(sentEstimate.low), high: formatMXN(sentEstimate.high) })}</p>
+              )}
+              <button type="button" className="btn btn-outline" onClick={() => { setStatus("idle"); setSentEstimate(null); }}>
                 {t("sellHome.another")}
               </button>
             </>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
-              <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}>
+              <div aria-hidden="true" className="hp-field">
                 <label htmlFor="sh-empresa">Empresa</label>
                 <input id="sh-empresa" name="empresa" value={form.empresa} onChange={change} tabIndex={-1} autoComplete="off" />
               </div>
@@ -167,6 +184,18 @@ export default function SellYourHome() {
                 )}
               </div>
 
+              <div className="sell-estimate" role="status" aria-live="polite">
+                {estimate ? (
+                  <>
+                    <strong>{t("sellEstimate.title")}</strong>
+                    <span className="sell-estimate__range">{t("sellEstimate.range", { low: formatMXN(estimate.low), high: formatMXN(estimate.high) })}</span>
+                    <span className="form-hint">{t("sellEstimate.note")}</span>
+                  </>
+                ) : (
+                  <span className="form-hint">{t("sellEstimate.hint")}</span>
+                )}
+              </div>
+
               <div className="form-field">
                 <label htmlFor="sh-price">{t("sellHome.expectedPrice")}</label>
                 <input id="sh-price" name="expectedPrice" type="number" min="0" inputMode="numeric" value={form.expectedPrice} onChange={change} />
@@ -185,7 +214,7 @@ export default function SellYourHome() {
                 {status === "sending" ? <span className="spinner" /> : null}
                 {status === "sending" ? t("contact.sending") : t("sellHome.submit")}
               </button>
-              <p className="form-hint" style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+              <p className="form-hint mt-3 mb-0">
                 {t("contact.privacyNotice")} <Link to="/aviso-de-privacidad">{t("contact.privacyLinkLabel")}</Link>.
               </p>
             </form>

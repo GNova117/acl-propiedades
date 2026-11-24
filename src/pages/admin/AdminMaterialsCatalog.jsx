@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN } from "../../lib/format";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 export default function AdminMaterialsCatalog() {
   const { t } = useTranslation();
@@ -34,7 +36,7 @@ export default function AdminMaterialsCatalog() {
   useEffect(load, []);
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     await db.deleteMaterialCatalogItem(id);
     load();
   };
@@ -50,7 +52,7 @@ export default function AdminMaterialsCatalog() {
       setNewLaborPrecio("");
       load();
     } catch (err) {
-      window.alert(err.message || "Error al agregar el concepto de mano de obra");
+      notify(err.message || "Error al agregar el concepto de mano de obra");
     } finally {
       setAddingLabor(false);
     }
@@ -69,7 +71,7 @@ export default function AdminMaterialsCatalog() {
   };
 
   const handleDeleteLabor = async (id) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     setDeletingLaborId(id);
     try {
       await db.deleteLaborCatalogItem(id);
@@ -88,7 +90,7 @@ export default function AdminMaterialsCatalog() {
         </Link>
       </div>
 
-      <p className="form-hint" style={{ marginBottom: "1.25rem" }}>
+      <p className="form-hint mb-5">
         {t("materialsCatalog.subtitle")}
       </p>
 
@@ -109,7 +111,7 @@ export default function AdminMaterialsCatalog() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8}>{t("common.loading")}</td>
+                <td colSpan={8}><LoadingState variant="rows" /></td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
@@ -148,10 +150,10 @@ export default function AdminMaterialsCatalog() {
         </table>
       </div>
 
-      <div className="admin-header" style={{ marginTop: "2.5rem" }}>
+      <div className="admin-header mt-10">
         <h1>{t("laborCatalog.title")}</h1>
       </div>
-      <p className="form-hint" style={{ marginBottom: "1.25rem" }}>{t("laborCatalog.subtitle")}</p>
+      <p className="form-hint mb-5">{t("laborCatalog.subtitle")}</p>
 
       <form className="card admin-form" onSubmit={handleAddLabor} style={{ maxWidth: 640, marginBottom: "1.5rem" }}>
         <h2 className="profiling-section-title">{t("laborCatalog.new")}</h2>

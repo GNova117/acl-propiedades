@@ -3,6 +3,8 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 const ENTRY_TYPES = [
   { key: "avance", labelKey: "remodelProgress.avanceTab" },
@@ -59,19 +61,19 @@ export default function AdminRemodelProgress() {
       resetPending();
       load();
     } catch (err) {
-      window.alert(err.message || "Error al guardar");
+      notify(err.message || "Error al guardar");
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (entryId) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     await db.deleteRemodelProgress(entryId);
     load();
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div>
@@ -99,7 +101,7 @@ export default function AdminRemodelProgress() {
                   {entriesOfType.map((entry) => (
                     <div className="admin-doc-card__item" key={entry.id}>
                       <img src={entry.signed_url} alt="" />
-                      {entry.note && <p style={{ margin: 0 }}>{entry.note}</p>}
+                      {entry.note && <p className="m-0">{entry.note}</p>}
                       <span className="form-hint">
                         {t("remodelProgress.addedAt")} {new Date(entry.created_at).toLocaleString()}
                       </span>

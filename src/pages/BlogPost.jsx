@@ -5,6 +5,8 @@ import Seo from "../components/Seo";
 import GuideBanner from "../components/GuideBanner";
 import { db } from "../lib/dataStore";
 import "./Blog.css";
+import LoadingState from "../components/LoadingState";
+import EmptyState from "../components/EmptyState";
 
 const formatDate = (iso, locale) => new Date(iso).toLocaleDateString(locale === "en" ? "en-US" : "es-MX", { dateStyle: "long" });
 
@@ -39,14 +41,15 @@ export default function BlogPost() {
     };
   }, [post]);
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
   if (!post) {
     return (
-      <div className="empty-state">
+      <>
         <Seo title={t("blog.notFound")} noindex />
-        <p>{t("blog.notFound")}</p>
-        <Link to="/blog" className="btn btn-primary">{t("blog.back")}</Link>
-      </div>
+        <EmptyState illustration="document" title={t("emptyState.postGoneTitle")} text={t("blog.notFound")}>
+          <Link to="/blog" className="btn btn-primary">{t("blog.back")}</Link>
+        </EmptyState>
+      </>
     );
   }
 

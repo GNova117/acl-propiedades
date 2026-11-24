@@ -22,7 +22,7 @@ export default function VisitsByAdvisor({ visits, advisors }) {
 
   return (
     <section className="card" style={{ padding: "1rem", marginBottom: "1.25rem" }}>
-      <h2 style={{ marginTop: 0 }}>{t("visits.byAdvisor.title")}</h2>
+      <h2 className="mt-0">{t("visits.byAdvisor.title")}</h2>
       <div className="form-field" style={{ maxWidth: 280 }}>
         <label htmlFor="vba-period">{t("visits.monthly.period")}</label>
         <select id="vba-period" value={period} onChange={(e) => setPeriod(e.target.value)}>

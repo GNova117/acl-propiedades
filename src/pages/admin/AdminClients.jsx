@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import ClientPdfModal from "../../components/ClientPdfModal";
+import ClientIntakePanel from "../../components/ClientIntakePanel";
 import BulkActionsBar from "../../components/BulkActionsBar";
 import AdminFilters from "../../components/AdminFilters";
 import RowMore from "../../components/RowMore";
@@ -12,6 +13,11 @@ import { telHref, whatsappLink } from "../../lib/prospectActions";
 import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import SortableTh from "../../components/SortableTh";
+import ColumnPicker from "../../components/ColumnPicker";
+import { loadHiddenColumns, nextSort, saveHiddenColumns, sortRows, toggleColumn } from "../../lib/tableTools";
+import { confirmDialog, notify } from "../../lib/toast";
 
 function clientTypeLabel(t, type) {
   return t(`clients.${type === "comprador" ? "buyer" : type === "vendedor" ? "seller" : "both"}`);
@@ -23,14 +29,27 @@ function financiamientoLabel(t, value) {
 
 const NONE = [];
 
+const HIDEABLE = ["type", "financiamiento", "phone", "email"];
+const SORT_BY = { name: (c) => c.name, type: (c) => c.type, financiamiento: (c) => c.financiamiento, phone: (c) => c.phone, email: (c) => c.email };
+
 export default function AdminClients() {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState(null);
+  const [hiddenCols, setHiddenCols] = useState(() => loadHiddenColumns("clientes", HIDEABLE));
+  const col = (key) => ({ "data-col": key, hidden: hiddenCols.has(key) || undefined });
+  const changeColumns = (next) => {
+    setHiddenCols(next);
+    saveHiddenColumns("clientes", next);
+  };
   const [typeFilter, setTypeFilter] = useState("");
   const [financiamientoFilter, setFinanciamientoFilter] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [showPdfModal, setShowPdfModal] = useState(false);
+  // La campana de notificaciones manda aquí con ?registros=1 para abrir el panel de enlaces de registro.
+  const [searchParams] = useSearchParams();
+  const [showIntake, setShowIntake] = useState(searchParams.get("registros") === "1");
   const [selected, setSelected] = useState(() => new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
 
@@ -50,7 +69,7 @@ export default function AdminClients() {
 
   const filteredClients = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return clients.filter((c) => {
+    const matching = clients.filter((c) => {
       if (term && !c.name?.toLowerCase().includes(term) && !c.phone?.includes(term)) return false;
       if (financiamientoFilter && c.financiamiento !== financiamientoFilter) return false;
       if (!c.created_at && (monthFilter || yearFilter)) return false;
@@ -61,10 +80,11 @@ export default function AdminClients() {
       }
       return true;
     });
-  }, [clients, search, financiamientoFilter, monthFilter, yearFilter]);
+    return sortRows(matching, sort, SORT_BY);
+  }, [clients, search, financiamientoFilter, monthFilter, yearFilter, sort]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     await db.deleteClient(id);
     load();
   };
@@ -93,7 +113,7 @@ export default function AdminClients() {
   const handleBulkDelete = async () => {
     const ids = Array.from(selected);
     if (ids.length === 0) return;
-    if (!window.confirm(t("bulkActions.deleteConfirm", { count: ids.length }))) return;
+    if (!await confirmDialog(t("bulkActions.deleteConfirm", { count: ids.length }))) return;
     setBulkBusy(true);
     let failed = false;
     try {
@@ -104,7 +124,7 @@ export default function AdminClients() {
           failed = true;
         }
       }
-      if (failed) window.alert(t("bulkActions.someFailed"));
+      if (failed) notify(t("bulkActions.someFailed"));
       setSelected(new Set());
       load();
     } finally {
@@ -134,6 +154,15 @@ export default function AdminClients() {
           <Link to="/admin/clientes/nuevo" className="btn btn-primary">
             {t("admin.newClient")}
           </Link>
+          <ColumnPicker
+            columns={HIDEABLE.map((key) => ({ key, label: t(`clients.${key}`) }))}
+            hidden={hiddenCols}
+            onToggle={(key) => changeColumns(toggleColumn(hiddenCols, key, HIDEABLE))}
+            onReset={() => changeColumns(new Set())}
+          />
+          <button type="button" className="btn btn-outline" onClick={() => setShowIntake((v) => !v)} aria-expanded={showIntake}>
+            {t("clientIntake.button")}
+          </button>
           <button type="button" className="btn btn-outline" onClick={handleExport} disabled={filteredClients.length === 0}>
             {t("common.exportCsv")}
           </button>
@@ -142,6 +171,8 @@ export default function AdminClients() {
           </button>
         </div>
       </div>
+
+      {showIntake && <ClientIntakePanel onClose={() => setShowIntake(false)} onClientCreated={load} />}
 
       {showPdfModal && <ClientPdfModal initialTypeFilter={typeFilter} onClose={() => setShowPdfModal(false)} />}
 
@@ -223,18 +254,28 @@ export default function AdminClients() {
                   aria-label={t("bulkActions.selectAll")}
                 />
               </th>
-              <th>{t("clients.name")}</th>
-              <th>{t("clients.type")}</th>
-              <th>{t("clients.financiamiento")}</th>
-              <th>{t("clients.phone")}</th>
-              <th>{t("clients.email")}</th>
+              <SortableTh column="name" sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))}>
+                {t("clients.name")}
+              </SortableTh>
+              <SortableTh column="type" sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))} colProps={col("type")}>
+                {t("clients.type")}
+              </SortableTh>
+              <SortableTh column="financiamiento" sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))} colProps={col("financiamiento")}>
+                {t("clients.financiamiento")}
+              </SortableTh>
+              <SortableTh column="phone" sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))} colProps={col("phone")}>
+                {t("clients.phone")}
+              </SortableTh>
+              <SortableTh column="email" sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))} colProps={col("email")}>
+                {t("clients.email")}
+              </SortableTh>
               <th>{t("common.actions")}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7}>{t("common.loading")}</td>
+                <td colSpan={7}><LoadingState variant="rows" /></td>
               </tr>
             ) : filteredClients.length === 0 ? (
               <tr>
@@ -255,12 +296,12 @@ export default function AdminClients() {
                       />
                     </td>
                     <td className="cell-name">{client.name}</td>
-                    <td className="cell-type">{clientTypeLabel(t, client.type)}</td>
-                    <td className={`cell-fin${client.financiamiento ? "" : " cell-empty"}`} data-label={t("clients.financiamiento")}>
+                    <td className="cell-type" {...col("type")}>{clientTypeLabel(t, client.type)}</td>
+                    <td className={`cell-fin${client.financiamiento ? "" : " cell-empty"}`} data-label={t("clients.financiamiento")} {...col("financiamiento")}>
                       {financiamientoLabel(t, client.financiamiento)}
                     </td>
-                    <td className="cell-phone">{call ? <a href={call}>{client.phone}</a> : client.phone}</td>
-                    <td className={`cell-email${client.email ? "" : " cell-empty"}`}>
+                    <td className="cell-phone" {...col("phone")}>{call ? <a href={call}>{client.phone}</a> : client.phone}</td>
+                    <td className={`cell-email${client.email ? "" : " cell-empty"}`} {...col("email")}>
                       {client.email ? <a href={`mailto:${client.email}`}>{client.email}</a> : null}
                     </td>
                     <td className="admin-table__actions cell-actions">

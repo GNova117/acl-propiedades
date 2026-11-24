@@ -36,6 +36,12 @@ export const test = base.extend({
       if (u.origin === origin && !u.pathname.startsWith("/api/") && r.status() >= 400) problems.push(`HTTP ${r.status()} ${u.pathname}`);
     });
     page.on("dialog", (d) => d.accept());
+    // Las confirmaciones del sitio ya no son ventanas del navegador sino un modal propio (lib/toast.js): esto las acepta
+    // solas, como antes aceptaba las nativas. Una prueba que quiera ver el modal lo apaga con
+    // `page.evaluate(() => { window.__ACL_AUTO_CONFIRM__ = false; })`.
+    await page.addInitScript(() => {
+      window.__ACL_AUTO_CONFIRM__ = true;
+    });
 
     await use(page);
 
@@ -78,6 +84,19 @@ export const test = base.extend({
 
 // Fecha ISO (YYYY-MM-DD) a `days` días de hoy; negativo = pasado.
 export const isoDate = (days = 0) => new Date(Date.now() + days * 864e5).toISOString().slice(0, 10);
+
+// Datos básicos que el formulario de cliente exige siempre (teléfono, correo y los «Datos personales»). El nombre y el
+// tipo los pone cada prueba; con INFONAVIT además se piden los datos de crédito (NSS, contraseña, número de crédito).
+export async function llenarDatosBasicosCliente(page) {
+  await page.fill("#c-phone", "8715550101");
+  await page.fill("#c-email", "cliente.qa@example.com");
+  await page.fill("#c-fecha_nacimiento", "1990-05-17");
+  await page.selectOption("#c-estado_civil", { index: 1 });
+  await page.fill("#c-domicilio", "Calle QA 123, Torreón");
+  await page.fill("#c-rfc", "XAXX010101000");
+  await page.fill("#c-curp", "XEXX010101HNEXXXA4");
+  await page.fill("#c-identificacion_oficial", "1234567890123");
+}
 
 // Revisión de salud común: la pantalla cargó de verdad y no está rota.
 export async function expectHealthyPage(page) {

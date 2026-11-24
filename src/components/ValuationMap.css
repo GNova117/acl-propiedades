@@ -84,7 +84,7 @@
 }
 
 .valuation-kind--land::before {
-  background: #1e8e5a;
+  background: var(--color-success);
 }
 
 .valuation-kind--built::before {
@@ -128,7 +128,7 @@
 }
 
 .valuation-vertex--land {
-  border-color: #1e8e5a;
+  border-color: var(--color-success);
 }
 
 .valuation-vertex--built {
@@ -150,7 +150,7 @@
   display: none;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 860px) {
   .valuation-map__canvas {
     height: 420px;
   }

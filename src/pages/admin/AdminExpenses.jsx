@@ -5,6 +5,8 @@ import { db } from "../../lib/dataStore";
 import { formatMXN } from "../../lib/format";
 import { MUNICIPALITIES, PROFILES, TEMPLATE_CONCEPTS, computeBreakdown, creditRefund, rateText, toConceptFields, toReportItems, validateConcept } from "../../lib/expenseBreakdown";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 const emptyForm = (municipality, profile) => ({ municipality, profile, name: "", kind: "fixed", base: "price", value: "", sort_order: 0 });
 
@@ -91,17 +93,17 @@ export default function AdminExpenses() {
   };
 
   const remove = async (id) => {
-    if (!window.confirm(t("expenses.confirmDelete"))) return;
+    if (!await confirmDialog(t("expenses.confirmDelete"))) return;
     try {
       await db.deleteExpenseConcept(id);
       load();
     } catch (err) {
-      window.alert(t("expenses.saveError", { error: err.message || "Error" }));
+      notify(t("expenses.saveError", { error: err.message || "Error" }));
     }
   };
 
   const loadTemplate = async () => {
-    if (!window.confirm(t("expenses.confirmTemplate", { municipality }))) return;
+    if (!await confirmDialog(t("expenses.confirmTemplate", { municipality }))) return;
     const have = new Set(concepts.filter((c) => c.municipality === municipality).map((c) => `${c.profile}|${c.name}`));
     const rows = TEMPLATE_CONCEPTS.filter((c) => !have.has(`${c.profile}|${c.name}`)).map((c, i) => ({ ...c, municipality, sort_order: i }));
     if (rows.length === 0) return;
@@ -109,7 +111,7 @@ export default function AdminExpenses() {
       await db.addExpenseConcepts(rows);
       load();
     } catch (err) {
-      window.alert(t("expenses.saveError", { error: err.message || "Error" }));
+      notify(t("expenses.saveError", { error: err.message || "Error" }));
     }
   };
 
@@ -126,7 +128,7 @@ export default function AdminExpenses() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      window.alert(lines.join("\n"));
+      notify(lines.join("\n"));
     }
   };
 
@@ -160,7 +162,7 @@ export default function AdminExpenses() {
       const { downloadExpenseBreakdownPdf } = await import("../../lib/expenseBreakdownPdf");
       await downloadExpenseBreakdownPdf(buildPdfData(), `desglose-gastos-${profile}-${municipality}`);
     } catch (err) {
-      window.alert(err.message || t("expenses.pdf.error"));
+      notify(err.message || t("expenses.pdf.error"));
     } finally {
       setPdfBusy(false);
     }
@@ -191,7 +193,7 @@ export default function AdminExpenses() {
       });
       setEmailStatus("sent");
     } catch (err) {
-      window.alert(err.message || t("expenses.pdf.emailError"));
+      notify(err.message || t("expenses.pdf.emailError"));
       setEmailStatus("error");
     }
   };
@@ -281,7 +283,7 @@ export default function AdminExpenses() {
         </div>
       </div>
 
-      <div className="card admin-table-wrapper" style={{ marginBottom: "0.5rem" }}>
+      <div className="card admin-table-wrapper mb-2">
         <table className="admin-table">
           <thead>
             <tr>
@@ -294,7 +296,7 @@ export default function AdminExpenses() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={4}>{t("common.loading")}</td>
+                <td colSpan={4}><LoadingState variant="rows" /></td>
               </tr>
             ) : breakdown.rows.length === 0 ? (
               <tr>
@@ -335,15 +337,15 @@ export default function AdminExpenses() {
             {t("expenses.refund.surplus")}: <strong>{formatMXN(refund.surplus)}</strong>
           </p>
           {refund.refund > 0 ? (
-            <p style={{ margin: 0 }}>
+            <p className="m-0">
               {t("expenses.refund.refund")}: <strong>{formatMXN(refund.refund)}</strong>
             </p>
           ) : refund.shortfall > 0 ? (
-            <p style={{ margin: 0 }}>
+            <p className="m-0">
               {t("expenses.refund.shortfall")}: <strong>{formatMXN(refund.shortfall)}</strong>
             </p>
           ) : (
-            <p className="form-hint" style={{ margin: 0 }}>
+            <p className="form-hint m-0">
               {t("expenses.refund.exact")}
             </p>
           )}

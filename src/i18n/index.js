@@ -20,7 +20,9 @@ i18n
     // src/lib/propertyTypeLabels.js).
     react: { bindI18nStore: "added" },
     detection: {
-      order: ["localStorage"],
+      // ?lang=en (enlaces hreflang / compartidos) manda sobre lo guardado; sin él, la elección guardada o español.
+      order: ["querystring", "localStorage"],
+      lookupQuerystring: "lang",
       caches: ["localStorage"],
       lookupLocalStorage: "acl_language",
     },

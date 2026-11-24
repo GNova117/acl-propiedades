@@ -1,8 +1,14 @@
+import FactIcon from "../components/FactIcon";
+import RichDescription from "../components/RichDescription";
+import StickyPriceBar from "../components/StickyPriceBar";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
-import Gallery from "../components/Gallery";
+import Gallery, { Lightbox } from "../components/Gallery";
+import MortgageCalculator from "../components/MortgageCalculator";
+import DownloadFichaButton from "../components/DownloadFichaButton";
+import TravelTime from "../components/TravelTime";
 import ContactRequestCard from "../components/ContactRequestCard";
 import PropertyCard from "../components/PropertyCard";
 import PropertyTypeIcon from "../components/PropertyTypeIcon";
@@ -22,9 +28,17 @@ import { db } from "../lib/dataStore";
 import { recordPropertyView } from "../lib/recentlyViewed";
 import { buildSimilarCriteria } from "../lib/alertMatch";
 import { getPropertyBadge } from "../lib/propertyBadges";
-import { estimateMonthlyPayment } from "../lib/monthlyEstimate";
+import { CALCULATOR_ANCHOR, canEstimateMonthly, estimateMonthlyPayment } from "../lib/monthlyEstimate";
+import { directionsUrl, streetViewUrl, wazeUrl } from "../lib/mapLinks";
+import { listingFrom } from "../lib/listNavigation";
 import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
 import "./PropertyDetail.css";
+import LoadingState from "../components/LoadingState";
+import EmptyState from "../components/EmptyState";
+import { isCanonicalSlug, parsePropertyRef, propertyPath } from "../lib/propertyUrl.js";
+import { faqJsonLd } from "../lib/structuredData.js";
+import { siteOrigin } from "../lib/site.js";
+import { colonyPath } from "../lib/zoneLandingPages.js";
 
 // Leaflet (react-leaflet + leaflet, ~150KB) queda fuera del bundle
 // principal del sitio público — aquí siempre se termina mostrando (no es
@@ -191,17 +205,35 @@ export default function PropertyDetail() {
   const [similar, setSimilar] = useState([]);
   const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
   const [showPanorama, setShowPanorama] = useState(false);
+  const [showPlan, setShowPlan] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Si llegó desde un listado, «Volver» regresa a ese listado (con filtros, página y posición).
+  const listFrom = listingFrom(location.state);
+  const handleBack = (e) => {
+    if (!listFrom) return;
+    e.preventDefault();
+    navigate(-1);
+  };
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    db.getPropertyById(id)
+    // La dirección puede ser el slug legible («casa-en-senderos-ACL-12»), el código solo o el id de siempre (enlaces ya
+    // compartidos): todas llegan a la misma ficha y, si no es la forma canónica, se corrige la barra de direcciones.
+    const ref = parsePropertyRef(id);
+    (ref.kind === "code" ? db.getPropertyByCode(ref.code) : db.getPropertyById(ref.id))
       .then((data) => active && setProperty(data))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    if (property && !isCanonicalSlug(id, property)) navigate(`${propertyPath(property)}${location.search}`, { replace: true, state: location.state });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [property, id]);
 
   useEffect(() => {
     db.getAmenities().then(setAmenitiesCatalog).catch(() => setAmenitiesCatalog([]));
@@ -232,7 +264,8 @@ export default function PropertyDetail() {
 
   const jsonLd = useMemo(() => {
     if (!property || typeof window === "undefined") return undefined;
-    const url = `${window.location.origin}/propiedades/${property.id}`;
+    const origin = siteOrigin();
+    const url = `${origin}${propertyPath(property)}`;
     return [
       {
         "@context": "https://schema.org",
@@ -263,13 +296,14 @@ export default function PropertyDetail() {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Inicio", item: window.location.origin },
-          { "@type": "ListItem", position: 2, name: "Propiedades", item: `${window.location.origin}/propiedades` },
+          { "@type": "ListItem", position: 1, name: "Inicio", item: origin },
+          { "@type": "ListItem", position: 2, name: "Propiedades", item: `${origin}/propiedades` },
           { "@type": "ListItem", position: 3, name: property.title, item: url },
         ],
       },
-    ];
-  }, [property]);
+      faqJsonLd(buildFaq(property, t)),
+    ].filter(Boolean);
+  }, [property, t]);
 
   const propertyAmenities = useMemo(() => {
     if (!property?.amenities?.length) return [];
@@ -284,7 +318,7 @@ export default function PropertyDetail() {
     if (!property || typeof window === "undefined") return "";
     const lines = propertyShareLines(property, t);
     propertyAmenities.forEach((amenity) => lines.push(`${AMENITY_EMOJI[amenity.key] || "✅"} ${amenity.label}`));
-    lines.push("", `${window.location.origin}/propiedades/${property.id}`);
+    lines.push("", `${siteOrigin()}${propertyPath(property)}`);
     return lines.join("\n");
   }, [property, propertyAmenities, t]);
 
@@ -304,7 +338,7 @@ export default function PropertyDetail() {
     };
   }, [property?.id, property?.type, property?.zone]);
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState tall />;
   const badge = getPropertyBadge(property);
   const priceDrop = badge?.kind === "priceDrop" ? badge : null;
   const monthly = estimateMonthlyPayment(property);
@@ -313,20 +347,24 @@ export default function PropertyDetail() {
   // si no existiera. En Supabase la base ya no la entrega (ver schema.sql); esto cubre el modo demostración.
   if (!property || (property.active === false && !isAuthenticated)) {
     return (
-      <div className="empty-state">
+      <>
         <Seo title={t("detail.notFound")} noindex />
-        <p>{t("detail.notFound")}</p>
-        <Link to="/propiedades" className="btn btn-primary">{t("detail.back")}</Link>
-      </div>
+        <EmptyState illustration="signpost" title={t("emptyState.propertyGoneTitle")} text={t("detail.notFound")}>
+          <Link to="/propiedades" className="btn btn-primary">{t("detail.back")}</Link>
+        </EmptyState>
+      </>
     );
   }
 
+  // Mientras se corrige la dirección (el cambio de ruta vuelve a montar la página) no se muestra la ficha a medias.
+  if (!isCanonicalSlug(id, property)) return <LoadingState tall />;
+
   return (
     <>
-      <Seo title={seoTitle} description={seoDescription} image={property.main_image} jsonLd={jsonLd} noindex={property.active === false} />
+      <Seo title={seoTitle} description={seoDescription} image={`${siteOrigin()}/api/og?id=${encodeURIComponent(property.id)}`} jsonLd={jsonLd} noindex={property.active === false} />
 
       <div className="container property-detail">
-        <Link to="/propiedades" className="property-detail__back">
+        <Link to={listFrom || "/propiedades"} onClick={handleBack} className="property-detail__back">
           &larr; {t("detail.back")}
         </Link>
 
@@ -345,7 +383,7 @@ export default function PropertyDetail() {
                 <div className="property-card__type">
                   <PropertyTypeIcon type={property.type} size={16} />
                   <span>{propertyTypeLabel(t, property.type)}</span>
-                  <span className="property-card__zone">· {property.zone}</span>
+                  <span className="property-card__zone">· {colonyPath(property.zone) ? <Link to={colonyPath(property.zone)}>{property.zone}</Link> : property.zone}</span>
                 </div>
                 <h1>{property.title}</h1>
                 <p className="property-detail__address">{property.address}</p>
@@ -359,7 +397,7 @@ export default function PropertyDetail() {
                   <PropertyFlag property={property} />
                   <FavoriteButton propertyId={property.id} className="favorite-button--inline" />
                   <CompareButton propertyId={property.id} className="compare-button--inline" />
-                  <ShareButton title={seoTitle} text={shareText} url={`${window.location.origin}/propiedades/${property.id}`} />
+                  <ShareButton title={seoTitle} text={shareText} url={`${siteOrigin()}${propertyPath(property)}`} propertyId={property.id} />
                 </div>
                 <span className="property-detail__price">{formatMXN(property.price)}</span>
                 {priceDrop && (
@@ -371,6 +409,13 @@ export default function PropertyDetail() {
                   <div className="property-detail__monthly">
                     <strong>{t("monthlyEstimate.fromPerMonth", { amount: formatMXN(monthly.payment) })}</strong>
                     <span>{t("monthlyEstimate.hint", { down: monthly.downPct, years: monthly.years, rate: monthly.rate })}</span>
+                    <button
+                      type="button"
+                      className="property-detail__monthly-adjust"
+                      onClick={() => document.getElementById(CALCULATOR_ANCHOR)?.scrollIntoView({ behavior: "smooth", block: "center" })}
+                    >
+                      {t("mortgageCalc.adjust")}
+                    </button>
                     <Link to={`/comparar-creditos?propiedad=${property.id}`}>{t("monthlyEstimate.cta")}</Link>
                   </div>
                 )}
@@ -380,22 +425,23 @@ export default function PropertyDetail() {
 
             {property.type !== "nave_industrial" && (
               <ul className="property-detail__features">
-                <li><strong>{formatArea(property.area_m2)}</strong><span>{t("properties.area")}</span></li>
+                <li><FactIcon name="area" size={22} /><strong>{formatArea(property.area_m2)}</strong><span>{t("properties.area")}</span></li>
                 {property.bedrooms != null && (
-                  <li><strong>{property.bedrooms}</strong><span>{t("properties.bedrooms")}</span></li>
+                  <li><FactIcon name="bed" size={22} /><strong>{property.bedrooms}</strong><span>{t("properties.bedrooms")}</span></li>
                 )}
                 {property.bathrooms != null && (
-                  <li><strong>{property.bathrooms}</strong><span>{t("properties.bathrooms")}</span></li>
+                  <li><FactIcon name="bath" size={22} /><strong>{property.bathrooms}</strong><span>{t("properties.bathrooms")}</span></li>
                 )}
                 {property.parking != null && (
-                  <li><strong>{property.parking}</strong><span>Estacionamiento</span></li>
+                  <li><FactIcon name="car" size={22} /><strong>{property.parking}</strong><span>{t("properties.parking")}</span></li>
                 )}
               </ul>
             )}
 
             <section>
               <h2>{t("detail.description")}</h2>
-              <p>{property.description}</p>
+              <RichDescription text={property.description} />
+              <DownloadFichaButton property={property} />
             </section>
 
             {propertyAmenities.length > 0 && (
@@ -462,11 +508,36 @@ export default function PropertyDetail() {
               })()
             )}
 
+            {property.floor_plan_url && (
+              <section>
+                <h2>{t("floorPlan.title")}</h2>
+                <button type="button" className="property-detail__plan" onClick={() => setShowPlan(true)} aria-label={t("floorPlan.open")}>
+                  <img src={property.floor_plan_url} alt={t("floorPlan.alt", { title: property.title })} loading="lazy" decoding="async" />
+                  <span className="gallery__expand-badge">⤢ {t("gallery.expand")}</span>
+                </button>
+                <p className="form-hint">{t("floorPlan.note")}</p>
+              </section>
+            )}
+
             <section>
               <h2>{t("detail.location")}</h2>
-              <Suspense fallback={<div className="empty-state" style={{ height: 360 }}>{t("common.loading")}</div>}>
+              <Suspense fallback={<LoadingState variant="block" height={360} />}>
                 <PropertyMap properties={[property]} height={360} />
               </Suspense>
+              {directionsUrl(property) && (
+                <div className="property-detail__map-actions">
+                  <a className="btn btn-primary btn-sm" href={directionsUrl(property)} target="_blank" rel="noopener noreferrer">
+                    {t("mapLinks.directions")}
+                  </a>
+                  <a className="btn btn-outline btn-sm" href={streetViewUrl(property)} target="_blank" rel="noopener noreferrer">
+                    {t("mapLinks.streetView")}
+                  </a>
+                  <a className="btn btn-outline btn-sm" href={wazeUrl(property)} target="_blank" rel="noopener noreferrer">
+                    {t("mapLinks.waze")}
+                  </a>
+                </div>
+              )}
+              <TravelTime property={property} />
             </section>
 
             <ZoneContext property={property} />
@@ -477,6 +548,8 @@ export default function PropertyDetail() {
                 justo antes de las preguntas frecuentes, no en la barra
                 lateral. El asesor asignado se sigue viendo en el panel y en
                 la ficha técnica en PDF. */}
+            {canEstimateMonthly(property) && <MortgageCalculator property={property} />}
+
             <div className="card" style={{ padding: "1.1rem 1.25rem", marginBottom: "1.25rem" }}>
               <strong>{t("detail.compareCredits.title")}</strong>
               <p className="form-hint" style={{ margin: "0.25rem 0 0.75rem" }}>{t("detail.compareCredits.text")}</p>
@@ -534,6 +607,11 @@ export default function PropertyDetail() {
       </div>
 
       {property.status !== "vendida" && <MobileContactBar property={property} />}
+      {property.status !== "vendida" && <StickyPriceBar property={property} />}
+
+      {showPlan && (
+        <Lightbox images={[property.floor_plan_url]} index={0} onIndexChange={() => {}} onClose={() => setShowPlan(false)} alt={t("floorPlan.alt", { title: property.title })} />
+      )}
 
       {showPanorama && (
         <Suspense fallback={null}>

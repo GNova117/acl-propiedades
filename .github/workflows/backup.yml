@@ -1,0 +1,55 @@
+name: Respaldo
+
+# Respaldo cifrado de la base de datos y de los archivos (fotos, INE, PDFs), cada domingo de madrugada y cuando se pida a mano
+# (pestaña Actions → Respaldo → Run workflow). El resultado queda como «artefacto» del trabajo, cifrado con BACKUP_PASSPHRASE.
+# Ver docs/respaldos.md: qué secretos hay que crear, cómo restaurar y los límites de este método.
+on:
+  schedule:
+    - cron: "0 9 * * 0" # domingo 03:00 hora de México (UTC-6)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  respaldo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # pg_dump debe ser de una versión igual o mayor que la de la base (Supabase usa 15 o 17): se instala la 17.
+      - name: Cliente de PostgreSQL 17
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      - name: Base de datos
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: bash scripts/backupDb.sh backup
+
+      - name: Archivos de Storage
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+          BACKUP_MAX_GB: ${{ vars.BACKUP_MAX_GB || '2' }}
+        run: |
+          node scripts/backupStorage.mjs backup/storage
+          tar -C backup -cf - storage | gpg --batch --yes --quiet --pinentry-mode loopback --symmetric --cipher-algo AES256 --passphrase "$BACKUP_PASSPHRASE" --output "backup/storage-$(date -u +%Y-%m-%d).tar.gpg"
+          rm -rf backup/storage # nunca se sube nada sin cifrar
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: respaldo-${{ github.run_id }}
+          path: backup/
+          retention-days: ${{ vars.BACKUP_RETENTION_DAYS || 60 }}
+          if-no-files-found: error

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { propertyListPath, propertyTypeLabel } from "../lib/format";
 import "./SearchBar.css";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 export default function SearchBar() {
   const { t } = useTranslation();
@@ -45,7 +46,7 @@ export default function SearchBar() {
     try {
       const found = await db.getPropertyByCode(codeInput);
       if (found) {
-        navigate(`/propiedades/${found.id}`);
+        navigate(propertyPath(found));
       } else {
         setCodeError(true);
       }

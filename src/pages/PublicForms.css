@@ -23,7 +23,7 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
 }
 
 .public-form-result__value {
@@ -58,7 +58,7 @@
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
 }
 
 .ssv-calc-table__row input {
@@ -70,7 +70,7 @@
   text-align: right;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .public-form-card {
     padding: 1.1rem;
   }
@@ -83,4 +83,30 @@
     grid-template-columns: 1fr 1fr auto auto;
     font-size: 0.85rem;
   }
+}
+
+/* «Vende tu casa»: estimado orientativo al instante */
+.sell-estimate {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-alt);
+}
+
+.sell-estimate__range {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: var(--color-primary);
+}
+
+.sell-estimate .form-hint {
+  margin: 0;
+}
+
+.sell-estimate__after {
+  font-weight: 600;
+  color: var(--color-text);
 }

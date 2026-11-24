@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { PORTAL_FIELD_DEFS, isExtractedDocType } from "../../lib/clientPortal";
 import PortalStatusBadge from "./PortalStatusBadge";
+import { notify } from "../../lib/toast";
 
 // Mini-panel de revisión que aparece junto a un documento subido por el
 // PROPIO cliente desde /documentos/<token> (doc.source === "client_portal"):
@@ -17,7 +18,7 @@ export default function AdminPortalDocumentReview({ doc, clientId, onChanged }) 
 
   const review = async (reviewStatus) => {
     if (reviewStatus === "rechazado" && !notes.trim()) {
-      window.alert(t("adminPortal.reasonRequired"));
+      notify(t("adminPortal.reasonRequired"));
       return;
     }
     setBusy(true);

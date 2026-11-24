@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import ResponsiveImg from "./ResponsiveImg";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
@@ -7,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { formatMXN, formatArea } from "../lib/format";
 import "leaflet/dist/leaflet.css";
 import "./PropertyMap.css";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 const TYPE_COLORS = {
   casa: "#1565c0",
@@ -59,18 +61,61 @@ function getClusterIcon(count) {
   return CLUSTER_ICON_CACHE[count];
 }
 
-function FitBounds({ properties }) {
+// `suppress`: bandera compartida con AreaSearchButton para que el ajuste
+// automático del mapa no se confunda con que la persona lo movió. `skip`: con
+// una zona buscada el mapa no se reajusta a los resultados (la persona ya
+// eligió dónde mirar).
+function FitBounds({ properties, suppress, skip }) {
   const map = useMap();
   useEffect(() => {
-    if (properties.length === 0) return;
+    if (properties.length === 0 || skip) return;
     const bounds = L.latLngBounds(properties.map((p) => [p.lat, p.lng]));
+    if (suppress) suppress.current = true;
     // Sin animación: el ajuste inicial no la necesita, y si el mapa se desmonta (p. ej. al volver al
     // listado) mientras la animación sigue, Leaflet toca un panel ya destruido y lanza
     // "Cannot read properties of undefined (reading '_leaflet_pos')".
     map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14, animate: false });
+    if (suppress) setTimeout(() => (suppress.current = false), 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [properties]);
   return null;
+}
+
+// "Buscar en esta zona": aparece cuando la persona mueve o acerca el mapa y,
+// al tocarlo, avisa los límites visibles para que el listado se quede solo con
+// lo que hay ahí.
+function AreaSearchButton({ onSearchArea, suppress }) {
+  const { t } = useTranslation();
+  const map = useMap();
+  const [dirty, setDirty] = useState(false);
+  useMapEvents({
+    moveend: () => {
+      if (!suppress.current) setDirty(true);
+    },
+  });
+  if (!dirty) return null;
+  return (
+    <div
+      className="map-area-search"
+      ref={(el) => {
+        if (el) {
+          L.DomEvent.disableClickPropagation(el);
+          L.DomEvent.disableScrollPropagation(el);
+        }
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => {
+          const b = map.getBounds();
+          setDirty(false);
+          onSearchArea({ south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() });
+        }}
+      >
+        {t("properties.searchThisArea")}
+      </button>
+    </div>
+  );
 }
 
 // Agrupa los marcadores que caen a menos de CLUSTER_PIXEL_RADIUS px entre sí
@@ -122,14 +167,14 @@ function ClusteredMarkers({ properties }) {
     if (group.length === 1) {
       const property = group[0];
       return (
-        <Marker key={property.id} position={[property.lat, property.lng]} icon={getIcon(property.type)}>
+        <Marker key={property.id} position={[property.lat, property.lng]} icon={getIcon(property.type)} title={property.title} alt={property.title}>
           <Popup>
             <div className="map-popup">
-              {property.main_image && <img src={property.main_image} alt={property.title} loading="lazy" decoding="async" />}
+              {property.main_image && <ResponsiveImg src={property.main_image} sizes="240px" alt={property.title} loading="lazy" decoding="async" />}
               <strong>{property.title}</strong>
               <span className="map-popup__price">{formatMXN(property.price)}</span>
               <span className="map-popup__area">{formatArea(property.area_m2)}</span>
-              <Link to={`/propiedades/${property.id}`} className="btn btn-primary btn-sm">
+              <Link to={propertyPath(property)} className="btn btn-primary btn-sm">
                 {t("properties.viewDetail")}
               </Link>
             </div>
@@ -142,6 +187,8 @@ function ClusteredMarkers({ properties }) {
         key={`cluster-${i}-${group.length}`}
         position={clusterCenter(group)}
         icon={getClusterIcon(group.length)}
+        title={t("propertyMap.cluster", { count: group.length })}
+        alt={t("propertyMap.cluster", { count: group.length })}
         eventHandlers={{
           click: () => {
             const bounds = L.latLngBounds(group.map((p) => [p.lat, p.lng]));
@@ -170,8 +217,9 @@ function FullscreenButton({ fullscreen, onToggle }) {
   );
 }
 
-export default function PropertyMap({ properties, height = 480 }) {
+export default function PropertyMap({ properties, height = 480, onSearchArea, areaActive = false }) {
   const [fullscreen, setFullscreen] = useState(false);
+  const suppressRef = useRef(false);
   const center = properties.length > 0 ? [properties[0].lat, properties[0].lng] : [25.5428, -103.4068];
 
   useEffect(() => {
@@ -188,8 +236,9 @@ export default function PropertyMap({ properties, height = 480 }) {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <FitBounds properties={properties} />
+        <FitBounds properties={properties} suppress={suppressRef} skip={areaActive} />
         <ClusteredMarkers properties={properties} />
+        {onSearchArea && <AreaSearchButton onSearchArea={onSearchArea} suppress={suppressRef} />}
         <FullscreenButton fullscreen={fullscreen} onToggle={() => setFullscreen((v) => !v)} />
       </MapContainer>
     </div>

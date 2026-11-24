@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clientExpedienteGroups, clientSheetData, clientSheetSections } from "./clientExpedienteFields";
+import { clientExpedienteGroups, clientSheetData, clientSheetSections, missingRequiredClient, requiredClientKeys, requiredExpedienteKeys, CLIENT_BASIC_REQUIRED_KEYS } from "./clientExpedienteFields";
 
 describe("clientExpedienteGroups", () => {
   it("cualquier tipo ve los datos personales", () => {
@@ -55,5 +55,59 @@ describe("clientSheetData", () => {
   it("conserva el resto de los datos del cliente intactos", () => {
     const data = clientSheetData({ type: "vendedor", name: "Ana" });
     expect(data.name).toBe("Ana");
+  });
+});
+
+describe("requiredExpedienteKeys", () => {
+  it("sin INFONAVIT no se exige nada del expediente de crédito", () => {
+    expect(requiredExpedienteKeys({ type: "comprador", financiamiento: "" })).toEqual([]);
+    expect(requiredExpedienteKeys({ type: "ambos", financiamiento: "contado" })).toEqual([]);
+  });
+
+  it("con INFONAVIT el comprador debe dar NSS y contraseña del portal", () => {
+    expect(requiredExpedienteKeys({ type: "comprador", financiamiento: "infonavit" })).toEqual(["nss", "contrasena_portal"]);
+  });
+
+  it("con INFONAVIT el vendedor debe dar el número de crédito", () => {
+    expect(requiredExpedienteKeys({ type: "vendedor", financiamiento: "infonavit" })).toEqual(["numero_credito"]);
+  });
+
+  it("un cliente «ambos» con INFONAVIT debe dar los tres", () => {
+    expect(requiredExpedienteKeys({ type: "ambos", financiamiento: "infonavit" })).toEqual(["nss", "contrasena_portal", "numero_credito"]);
+  });
+});
+
+describe("datos básicos obligatorios", () => {
+  it("nombre, teléfono, correo y todos los datos personales, con cualquier tipo de cliente", () => {
+    expect(CLIENT_BASIC_REQUIRED_KEYS).toEqual(["name", "phone", "email", "fecha_nacimiento", "estado_civil", "domicilio", "rfc", "curp", "identificacion_oficial"]);
+    for (const type of ["comprador", "vendedor", "ambos"]) {
+      expect(requiredClientKeys({ type, financiamiento: "contado" })).toEqual(CLIENT_BASIC_REQUIRED_KEYS);
+    }
+  });
+
+  it("con INFONAVIT se suman los datos de crédito, después de los básicos", () => {
+    expect(requiredClientKeys({ type: "comprador", financiamiento: "infonavit" })).toEqual([...CLIENT_BASIC_REQUIRED_KEYS, "nss", "contrasena_portal"]);
+  });
+});
+
+describe("missingRequiredClient", () => {
+  const basicos = { name: "Ana", phone: "8711234567", email: "a@b.mx", fecha_nacimiento: "1990-01-01", estado_civil: "Soltero", domicilio: "Calle 1", rfc: "XAXX010101000", curp: "XEXX010101HNEXXXA4", identificacion_oficial: "123" };
+
+  it("un cliente vacío debe todo, empezando por el nombre", () => {
+    expect(missingRequiredClient({ type: "comprador" })).toEqual(CLIENT_BASIC_REQUIRED_KEYS);
+  });
+
+  it("lista lo que falta y no cuenta los espacios como dato", () => {
+    expect(missingRequiredClient({ type: "comprador", ...basicos, email: "  ", curp: "" })).toEqual(["email", "curp"]);
+  });
+
+  it("con INFONAVIT también pide lo de crédito", () => {
+    const client = { type: "ambos", financiamiento: "infonavit", ...basicos, nss: "12345678901", contrasena_portal: "   ", numero_credito: "" };
+    expect(missingRequiredClient(client)).toEqual(["contrasena_portal", "numero_credito"]);
+  });
+
+  it("completo → nada falta", () => {
+    expect(missingRequiredClient({ type: "comprador", financiamiento: "infonavit", ...basicos, nss: "1", contrasena_portal: "x" })).toEqual([]);
+    expect(missingRequiredClient({ type: "vendedor", ...basicos })).toEqual([]);
   });
 });

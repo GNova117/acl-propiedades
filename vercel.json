@@ -1,29 +1,98 @@
 {
   "headers": [
     {
-      "source": "/sw.js",
+      "source": "/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
-        { "key": "Service-Worker-Allowed", "value": "/" }
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://nominatim.openstreetmap.org https://router.project-osrm.org; frame-src 'self' blob: https://www.google.com https://*.supabase.co; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(self), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+        }
       ]
     },
     {
-      "source": "/manifest.webmanifest",
+      "source": "/sw.js",
       "headers": [
-        { "key": "Content-Type", "value": "application/manifest+json" },
-        { "key": "Cache-Control", "value": "public, max-age=3600" }
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    },
+    {
+      "source": "/(manifest|manifest-public).webmanifest",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
       ]
     }
   ],
   "functions": {
-    "api/market-comps.js": { "maxDuration": 60 },
-    "api/sketch-to-plan.js": { "maxDuration": 45 },
-    "api/portal-upload.js": { "maxDuration": 30 },
-    "api/chat.js": { "maxDuration": 30 },
-    "api/ad-copy.js": { "maxDuration": 60 }
+    "api/market-comps.js": {
+      "maxDuration": 60
+    },
+    "api/sketch-to-plan.js": {
+      "maxDuration": 45
+    },
+    "api/portal-upload.js": {
+      "maxDuration": 30
+    },
+    "api/chat.js": {
+      "maxDuration": 30
+    },
+    "api/ad-copy.js": {
+      "maxDuration": 60
+    },
+    "api/media.js": {
+      "maxDuration": 15,
+      "includeFiles": "server/fonts/**"
+    }
   },
   "rewrites": [
-    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api/og",
+      "destination": "/api/media?kind=og"
+    },
+    {
+      "source": "/api/agenda-ics",
+      "destination": "/api/media?kind=ics"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

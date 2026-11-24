@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 export default function AdminDocumentTemplates() {
   const { t } = useTranslation();
@@ -21,13 +23,13 @@ export default function AdminDocumentTemplates() {
   useEffect(load, []);
 
   const handleDelete = async (template) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     setDeletingId(template.id);
     try {
       await db.deleteDocumentTemplate(template.id);
       load();
     } catch (err) {
-      window.alert(err.message || t("documentTemplates.deleteError"));
+      notify(err.message || t("documentTemplates.deleteError"));
     } finally {
       setDeletingId(null);
     }
@@ -51,7 +53,7 @@ export default function AdminDocumentTemplates() {
       </div>
 
       {loading ? (
-        <p className="form-hint">{t("common.loading")}</p>
+        <LoadingState variant="lines" />
       ) : templates.length === 0 ? (
         <p className="form-hint">{t("documentTemplates.empty")}</p>
       ) : (

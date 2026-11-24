@@ -67,7 +67,7 @@ export default function CreditSimulator() {
     <>
       <Seo title={t("creditSim.seoTitle")} description={t("creditSim.subtitle")} />
       <div className="container public-form-page">
-        <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
+        <div className="section-heading m-section">
           <h1 style={{ fontSize: "2rem" }}>{t("creditSim.title")}</h1>
           <p>{t("creditSim.subtitle")}</p>
         </div>
@@ -97,8 +97,8 @@ export default function CreditSimulator() {
           </div>
         </div>
 
-        <div className="card public-form-card" style={{ marginTop: "1.5rem" }}>
-          <h2 style={{ marginTop: 0 }}>{t("creditSim.ssvCalc.title")}</h2>
+        <div className="card public-form-card mt-6">
+          <h2 className="mt-0">{t("creditSim.ssvCalc.title")}</h2>
           <p className="form-hint">{t("creditSim.ssvCalc.subtitle")}</p>
 
           <div className="ssv-calc-table">
@@ -144,23 +144,23 @@ export default function CreditSimulator() {
             })}
           </div>
 
-          <button type="button" className="btn btn-outline btn-sm" onClick={addEmpleo} style={{ marginTop: "0.75rem" }}>
+          <button type="button" className="btn btn-outline btn-sm mt-3" onClick={addEmpleo}>
             {t("creditSim.ssvCalc.addJob")}
           </button>
 
-          <div className="public-form-result" style={{ marginTop: "1.5rem" }}>
+          <div className="public-form-result mt-6">
             <span className="public-form-result__label">{t("creditSim.ssvCalc.estimatedTotal")}</span>
             <span className="public-form-result__value">{formatMXN(subcuenta.total)}</span>
             <button type="button" className="btn btn-primary btn-sm" onClick={usarSubcuentaEstimada}>
               {t("creditSim.ssvCalc.useInSimulator")}
             </button>
-            <p className="form-hint" style={{ marginBottom: 0 }}>
+            <p className="form-hint mb-0">
               {t("creditSim.ssvCalc.disclaimer")}
             </p>
           </div>
         </div>
 
-        <div className="card public-form-card" style={{ marginTop: "1.5rem" }}>
+        <div className="card public-form-card mt-6">
           <div className="public-form-result">
             <span className="public-form-result__label">{t("infonavit.totalCapacity")}</span>
             <span className="public-form-result__value">{formatMXN(result.capacidadTotal)}</span>
@@ -186,22 +186,22 @@ export default function CreditSimulator() {
             <Link to="/comparar-creditos" className="btn btn-outline btn-sm">
               {t("creditSim.compare")}
             </Link>
-            <p className="form-hint" style={{ marginBottom: 0 }}>
+            <p className="form-hint mb-0">
               {t("creditSim.disclaimer", { uma: formatMXN(UMA_2026.mensual) })}
             </p>
           </div>
         </div>
 
-        <div className="card public-form-card" style={{ marginTop: "1.5rem" }}>
-          <h2 style={{ marginTop: 0 }}>{t("creditSim.leadTitle")}</h2>
+        <div className="card public-form-card mt-6">
+          <h2 className="mt-0">{t("creditSim.leadTitle")}</h2>
           <p className="form-hint">{t("creditSim.leadSubtitle")}</p>
           {status === "success" ? (
-            <p className="form-hint" style={{ color: "var(--color-success)" }}>
+            <p className="form-hint text-success">
               {t("creditSim.leadSuccess")}
             </p>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
-              <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}>
+              <div aria-hidden="true" className="hp-field">
                 <label htmlFor="cs-empresa">Empresa</label>
                 <input id="cs-empresa" name="empresa" value={lead.empresa} onChange={changeLead} tabIndex={-1} autoComplete="off" />
               </div>
@@ -233,7 +233,7 @@ export default function CreditSimulator() {
                 {status === "sending" ? <span className="spinner" /> : null}
                 {status === "sending" ? t("contact.sending") : t("creditSim.leadSubmit")}
               </button>
-              <p className="form-hint" style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+              <p className="form-hint mt-3 mb-0">
                 {t("contact.privacyNotice")} <Link to="/aviso-de-privacidad">{t("contact.privacyLinkLabel")}</Link>.
               </p>
             </form>

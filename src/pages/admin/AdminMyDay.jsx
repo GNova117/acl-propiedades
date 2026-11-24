@@ -17,11 +17,19 @@ import QuickReplyButton from "../../components/QuickReplyButton";
 import CopyVisitLinkButton from "../../components/CopyVisitLinkButton";
 import ProspectContactForm from "../../components/ProspectContactForm";
 import MonthGoals from "../../components/MonthGoals";
+import DayRouteCard from "../../components/DayRouteCard";
+import NewMatchesPanel from "../../components/NewMatchesPanel";
+import HoldsDuePanel from "../../components/HoldsDuePanel";
+import ContractsDuePanel from "../../components/ContractsDuePanel";
+import MyCommissionsPanel from "../../components/MyCommissionsPanel";
+import TeamLeaderboard from "../../components/TeamLeaderboard";
 import { HOME_MY_DAY, HOME_PANEL } from "../../lib/adminHome";
 import { useAdminHome } from "../../lib/useAdminHome";
 import "./admin.css";
 import "./AdminProspects.css";
 import "./AdminMyDay.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog } from "../../lib/toast";
 
 const hm = (hora) => String(hora).slice(0, 5);
 const NONE = [];
@@ -44,7 +52,7 @@ export default function AdminMyDay() {
   const citasQ = useQuery(queries.citas, { enabled: canAgenda });
   const prospectsQ = useQuery(queries.prospects, { enabled: canProspects });
   const clientsQ = useQuery(queries.clients(), { enabled: canAgenda });
-  const propertiesQ = useQuery(queries.properties, { enabled: canProspects });
+  const propertiesQ = useQuery(queries.properties, { enabled: canProspects || canAgenda });
   const advisorsQ = useQuery(queries.advisors);
   const citas = citasQ.data ?? NONE;
   const prospects = prospectsQ.data ?? NONE;
@@ -229,7 +237,7 @@ export default function AdminMyDay() {
   // Solicitud de visita sin asesor: la ven todos los asesores; la primera persona que la toma se la queda.
   const takeRequest = async (cita) => {
     const whenText = `${dayLabel(cita.fecha)} ${t("myDay.confirm.at")} ${hm(cita.hora)}`;
-    if (!window.confirm(t("agenda.takeConfirm", { when: whenText }))) return;
+    if (!await confirmDialog(t("agenda.takeConfirm", { when: whenText }))) return;
     setCloseError("");
     try {
       const res = await db.claimVisitRequest(cita.id, { advisorId });
@@ -356,7 +364,7 @@ export default function AdminMyDay() {
     );
 
   if (!canAgenda && !canProspects) return <div className="empty-state">{t("accessControl.restricted")}</div>;
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div className="my-day">
@@ -397,6 +405,7 @@ export default function AdminMyDay() {
       )}
 
       {canAgenda && section("agenda", plan.agenda, renderCita, plan.pendingAgenda)}
+      {canAgenda && <DayRouteCard agenda={plan.agenda} properties={properties} />}
       {canAgenda && section("requests", plan.requests, renderRequest)}
       {canAgenda && section("confirm", plan.toConfirm, renderToConfirm)}
       {canAgenda && section("close", plan.toClose, renderToClose)}
@@ -405,12 +414,19 @@ export default function AdminMyDay() {
           {closeError}
         </p>
       )}
+      {canProspects && <NewMatchesPanel prospects={prospects} properties={properties} scope={advisorId} />}
+      {hasSection("propiedades") && <HoldsDuePanel advisorId={advisorId} propertyTitle={propertyTitle} />}
+      {hasSection("propiedades") && <ContractsDuePanel propertyTitle={propertyTitle} />}
       {canProspects && section("urgent", plan.urgent, (e) => renderProspect(e, unattendedChip(e)))}
       {canProspects &&
         section("overdue", plan.overdue, (e) =>
           renderProspect(e, <span className="prospect-chip prospect-chip--overdue">{t("myDay.daysLate", { count: e.daysLate })}</span>)
         )}
       {canProspects && section("today", plan.today, (e) => renderProspect(e, <span className="prospect-chip prospect-chip--today">{t("prospects.followToday")}</span>))}
+
+      {/* Lo de consulta (no urgente) va al final, para que la primera cita se vea sin deslizar. */}
+      <MyCommissionsPanel advisorId={advisorId} />
+      <TeamLeaderboard advisorId={advisorId} />
 
       {/* Preferencia de este dispositivo: va al final, para que la primera cita se vea sin deslizar. */}
       <label className="my-day__home-toggle">

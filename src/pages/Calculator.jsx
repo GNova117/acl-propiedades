@@ -35,7 +35,7 @@ export default function Calculator() {
       <Seo title={t("nav.calculator")} description={t("calculator.subtitle")} />
 
       <div className="container calculator-page">
-        <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>
+        <div className="section-heading m-section">
           <h2>{t("calculator.title")}</h2>
           <p>{t("calculator.subtitle")}</p>
         </div>

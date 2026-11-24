@@ -55,19 +55,19 @@
   min-width: 1.4rem;
   padding: 0 0.4rem;
   border-radius: 999px;
-  background: var(--color-primary);
-  color: #fff;
+  background: var(--color-primary-solid);
+  color: var(--color-on-primary);
   font-size: 0.75rem;
   text-align: center;
   line-height: 1.4rem;
 }
 
 .prospect-col--cerrado .prospect-col__count {
-  background: #1e8e5a;
+  background: var(--color-success);
 }
 
 .prospect-col--perdido .prospect-col__count {
-  background: #7a8598;
+  background: var(--color-muted-soft);
 }
 
 .prospect-col__empty {
@@ -102,7 +102,7 @@
 .prospect-card__meta {
   margin: 0;
   font-size: 0.8rem;
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
 }
 
 .prospect-card__actions {
@@ -133,14 +133,14 @@
 }
 
 .prospect-chip--overdue {
-  background: var(--color-danger);
+  background: var(--color-danger-solid);
   border-color: var(--color-danger);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .prospect-chip--today {
-  background: #f0a500;
-  border-color: #f0a500;
+  background: var(--color-attention);
+  border-color: var(--color-attention);
   color: #1a1a1a;
 }
 
@@ -165,9 +165,9 @@
 }
 
 .prospect-tabs__tab.is-active {
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
   font-weight: 600;
 }
 
@@ -185,7 +185,7 @@
 
 .prospect-tabs__tab.is-active .prospect-tabs__count {
   background: rgba(255, 255, 255, 0.25);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 @media (max-width: 860px) {
@@ -328,7 +328,7 @@
   padding: 0.6rem 0;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .prospect-profile__facts {
     grid-template-columns: 5.6rem 1fr;
     gap: 0.35rem 0.6rem;
@@ -436,8 +436,8 @@
 
 .btn.is-active {
   border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: #fff;
+  background: var(--color-primary-solid);
+  color: var(--color-on-primary);
 }
 
 .prospect-bulk {
@@ -571,4 +571,53 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+}
+
+/* Arrastrar tarjetas entre columnas (solo pantallas anchas con ratón) */
+.prospect-board-hint {
+  display: none;
+  margin: 0 0 0.75rem;
+}
+
+@media (hover: hover) and (min-width: 981px) {
+  .prospect-board-hint {
+    display: block;
+  }
+
+  .prospect-card[draggable="true"] {
+    cursor: grab;
+  }
+}
+
+.prospect-card.is-dragging {
+  opacity: 0.45;
+}
+
+.prospect-col.is-drop-target {
+  outline: 2px dashed var(--color-primary);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+}
+
+/* Calificación y secuencia sugerida */
+.prospect-score--hot {
+  border-color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface));
+}
+
+.prospect-score--warm {
+  border-color: var(--color-attention);
+  background: color-mix(in srgb, var(--color-attention) 12%, var(--color-surface));
+}
+
+.prospect-score--cold {
+  border-color: var(--color-border);
+}
+
+.prospect-sequence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
 }

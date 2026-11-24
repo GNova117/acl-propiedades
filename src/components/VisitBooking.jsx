@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
-import { trackEvent } from "../lib/analytics";
+import { trackConversion } from "../lib/conversions";
 import { citaToIcs, downloadIcs, mapsUrl } from "../lib/calendarEvent";
 import { OFFICE_WHATSAPP } from "../lib/office";
 import { advisorsForSlot, bookingFieldErrors } from "../lib/visitSlots";
@@ -30,7 +30,7 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
 
   const selection = useSlotSelection(slots, () => {
     setFormError("");
-    trackEvent("visit_slot_selected", { property_id: property.id });
+    trackConversion("visit_slot_selected", { property_id: property.id });
   });
   const { activeDate, activeTime } = selection;
   // Quiénes están libres a la hora elegida (nombre; el contacto se ve hasta reservar).
@@ -79,7 +79,7 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
         note: form.note,
       });
       if (result?.ok) {
-        trackEvent("visit_booked", { property_id: property.id, property_type: property.type });
+        trackConversion("visit_booked", { property_id: property.id, property_type: property.type });
         setBooked({ ...result, note: form.note });
         return;
       }
@@ -168,7 +168,7 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
 
       <h4 className="visit-booking__step">{t("scheduleVisit.booking.yourData")}</h4>
 
-      <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}>
+      <div aria-hidden="true" className="hp-field">
         <label htmlFor="booking-empresa">Empresa</label>
         <input id="booking-empresa" name="empresa" value={form.empresa} onChange={handleChange} tabIndex={-1} autoComplete="off" />
       </div>

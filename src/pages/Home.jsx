@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import useBusinessJsonLd from "../lib/useBusinessJsonLd";
 import Seo from "../components/Seo";
 import SplitHero from "../components/SplitHero";
 import SearchBar from "../components/SearchBar";
@@ -29,8 +30,13 @@ const MAX_HOME_BLOG_POSTS = 3;
 
 export default function Home() {
   const { t, i18n } = useTranslation();
+  const businessJsonLd = useBusinessJsonLd();
   const [counts, setCounts] = useState(null);
-  const [properties, setProperties] = useState([]);
+  // Candidatos a destacadas y a recorridos en video (no todo el catálogo: ver lib/homeData.js).
+  const [featuredPool, setFeaturedPool] = useState([]);
+  const [videoPool, setVideoPool] = useState([]);
+  const [availableCount, setAvailableCount] = useState(0);
+  const [soldProperties, setSoldProperties] = useState([]);
   const [salesStats, setSalesStats] = useState(null);
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
@@ -41,19 +47,23 @@ export default function Home() {
 
   useEffect(() => {
     let active = true;
-    db.getProperties({ activeOnly: true }).then((properties) => {
-      if (!active) return;
-      setProperties(properties);
-      const next = { casa: 0, departamento: 0, nave_industrial: 0, terreno: 0 };
-      properties.forEach((p) => {
-        if (next[p.type] != null) next[p.type] += 1;
-      });
-      setCounts(next);
-    });
-    // Cifras de ventas: si la función SQL aún no existe, el bloque no se muestra.
+    db.getHomeData()
+      .then((home) => {
+        if (!active) return;
+        setFeaturedPool(home.featuredPool);
+        setVideoPool(home.videoPool);
+        setAvailableCount(home.availableCount);
+        setCounts({ casa: 0, departamento: 0, nave_industrial: 0, terreno: 0, ...home.counts });
+      })
+      .catch(() => {});
+    // Cifras de ventas: si la función SQL aún no existe, el bloque no se muestra. Solo se piden las propiedades vendidas
+    // que se nombran en el bloque (las más recientes), no todo el catálogo.
     db.getPublicSalesStats()
-      .then((data) => {
-        if (active) setSalesStats(data);
+      .then(async (data) => {
+        if (!active) return;
+        setSalesStats(data);
+        const sold = await db.getPropertiesByIds(data?.recent_property_ids).catch(() => []);
+        if (active) setSoldProperties(sold);
       })
       .catch(() => {});
     db.getPropertyTypes().then((data) => {
@@ -74,7 +84,7 @@ export default function Home() {
     };
   }, []);
 
-  const trustSummary = buildTrustSummary(salesStats, properties);
+  const trustSummary = buildTrustSummary(salesStats, soldProperties, { availableCount });
 
   const typeByKey = (key) => propertyTypes.find((pt) => pt.key === key);
 
@@ -95,6 +105,7 @@ export default function Home() {
       <Seo
         title={t("nav.home")}
         description="ACL Propiedades: compra y venta de casas, departamentos, naves industriales y terrenos en Torreón, Gómez Palacio y Lerdo."
+        jsonLd={businessJsonLd}
       />
 
       <SplitHero propertyTypes={propertyTypes} />
@@ -108,9 +119,9 @@ export default function Home() {
         </div>
       </section>
 
-      <FeaturedProperties properties={properties} />
+      <FeaturedProperties properties={featuredPool} />
 
-      <VideoTours properties={properties} />
+      <VideoTours properties={videoPool} />
 
       <section className="section">
         <div className="container">

@@ -11,6 +11,8 @@ import {
 } from "../lib/perfilamientoShared";
 import { downloadPerfilamientoPdf } from "../lib/perfilamientoPdf";
 import "../pages/admin/AdminClientProfiling.css";
+import LoadingState from "./LoadingState";
+import { confirmDialog, notify } from "../lib/toast";
 
 function FieldInput({ field, value, error, revealed, onToggleReveal, onChange }) {
   const id = `perf-${field.key}`;
@@ -207,7 +209,7 @@ export default function PerfilamientoManager({
         await downloadPerfilamientoPdf(full, sections, pdfOptions, full[nombreKey], filePrefix);
       }
     } catch (err) {
-      window.alert(err.message || "Error al guardar");
+      notify(err.message || "Error al guardar");
     } finally {
       setSaving(false);
     }
@@ -220,14 +222,14 @@ export default function PerfilamientoManager({
       if (!full) throw new Error("No se encontró el registro a descargar");
       await downloadPerfilamientoPdf(full, sections, pdfOptions, full[nombreKey], filePrefix);
     } catch (err) {
-      window.alert(err.message || "Error al generar el PDF");
+      notify(err.message || "Error al generar el PDF");
     } finally {
       setBusyPdfId(null);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     await backend.remove(id);
     if (current?.id === id) {
       setCurrent(null);
@@ -236,7 +238,7 @@ export default function PerfilamientoManager({
     load();
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div>

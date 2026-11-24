@@ -1,0 +1,41 @@
+.zone-landing__colonies {
+  margin: var(--space-4) 0;
+}
+
+.zone-landing__colonies h3 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-base, 1rem);
+}
+
+.zone-landing__colonies ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.zone-landing__colonies a {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  text-decoration: none;
+}
+
+.zone-landing__colonies a:hover {
+  border-color: var(--color-primary-solid);
+}
+
+.zone-landing__colonies span {
+  color: var(--color-text-muted);
+}
+
+.zone-landing__back {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-sm);
+}

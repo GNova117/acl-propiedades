@@ -33,6 +33,11 @@ async function handler(req: Request): Promise<Response> {
         if (error) throw new Error(error.message);
         return data;
       },
+      claimSurvey: async (id: string) => {
+        const { data, error } = await supabase.rpc("visit_claim_survey", { p_cita_id: id });
+        if (error) throw new Error(error.message);
+        return data === true;
+      },
       sendEmail: (message: Record<string, unknown>) => sendResendEmail({ apiKey, from: Deno.env.get("RESEND_FROM") || undefined, ...message }),
       siteUrl: Deno.env.get("SITE_URL") || undefined,
     });

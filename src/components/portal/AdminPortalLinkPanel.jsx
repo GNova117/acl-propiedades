@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { portalLinkPath } from "../../lib/clientPortal";
+import { confirmDialog } from "../../lib/toast";
 
 // Botón "Generar enlace de documentos" de la ficha del cliente: crea o
 // regenera el token de /documentos/<token> y lo comparte por WhatsApp — el
@@ -41,7 +42,7 @@ export default function AdminPortalLinkPanel({ clientId, requestedDocs }) {
   };
 
   const handleRevoke = async () => {
-    if (!window.confirm(t("adminPortal.confirmRevoke"))) return;
+    if (!await confirmDialog(t("adminPortal.confirmRevoke"))) return;
     setBusy(true);
     try {
       await db.revokeClientPortalToken(clientId);

@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { CONSUMPTION_BASES } from "../../lib/materialConsumption";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { notify } from "../../lib/toast";
 
 const EMPTY = {
   name: "",
@@ -69,13 +71,13 @@ export default function AdminMaterialCatalogForm() {
       }
       navigate("/admin/materiales");
     } catch (err) {
-      window.alert(err.message || "Error al guardar");
+      notify(err.message || "Error al guardar");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div>
@@ -142,7 +144,7 @@ export default function AdminMaterialCatalogForm() {
 
         <div className="form-field">
           <label>
-            <input type="checkbox" checked={form.active} onChange={handleChange("active")} style={{ marginRight: "0.5rem" }} />
+            <input type="checkbox" checked={form.active} onChange={handleChange("active")} className="mr-2" />
             {t("common.active")}
           </label>
         </div>

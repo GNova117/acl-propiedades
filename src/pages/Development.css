@@ -4,7 +4,7 @@
   display: flex;
   align-items: flex-end;
   background: var(--color-primary-dark) center / cover no-repeat;
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .dev-hero__shade {
@@ -40,7 +40,7 @@
 .dev-hero__tagline {
   margin: 0 0 0.3rem;
   font-size: clamp(1rem, 2.2vw, 1.35rem);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .dev-hero__zone {
@@ -343,7 +343,7 @@
 /* Contacto y aviso */
 .dev-cta {
   background: var(--color-primary-dark);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .dev-cta__inner {
@@ -356,7 +356,7 @@
 
 .dev-cta h2 {
   margin: 0 0 0.3rem;
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .dev-cta p {

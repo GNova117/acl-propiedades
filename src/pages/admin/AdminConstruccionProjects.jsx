@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { db } from "../../lib/dataStore";
 import { useAuth } from "../../context/AuthContext";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog } from "../../lib/toast";
 
 // Sin react-i18next a propósito: herramienta interna para staff hispanohablante,
 // traducir jerga de construcción al inglés no aporta (ver docs/PLAN.md del port).
@@ -25,7 +27,7 @@ export default function AdminConstruccionProjects() {
   useEffect(load, [isDemoMode]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm("¿Eliminar este proyecto? No se puede deshacer.")) return;
+    if (!await confirmDialog("¿Eliminar este proyecto? No se puede deshacer.")) return;
     await db.deleteConstruccionProyecto(id);
     load();
   };
@@ -56,7 +58,7 @@ export default function AdminConstruccionProjects() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={4}>Cargando…</td>
+                <td colSpan={4}><LoadingState variant="rows" /></td>
               </tr>
             ) : proyectos.length === 0 ? (
               <tr>

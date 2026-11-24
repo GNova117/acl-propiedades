@@ -5,6 +5,8 @@ import { db } from "../../lib/dataStore";
 import MaterialsTable from "../../components/MaterialsTable";
 import SpacesEditor from "../../components/SpacesEditor";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { notify } from "../../lib/toast";
 
 const EMPTY = { name: "", client_id: "", area_m2: "", notes: "", materials: [], spaces: [] };
 
@@ -76,13 +78,13 @@ export default function AdminRemodelProjectForm() {
       }
       navigate("/admin/remodelaciones");
     } catch (err) {
-      window.alert(err.message || "Error al guardar");
+      notify(err.message || "Error al guardar");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div>

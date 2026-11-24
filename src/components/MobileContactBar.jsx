@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { OFFICE_WHATSAPP } from "../lib/office";
 import "./MobileContactBar.css";
+import { propertyPath } from "../lib/propertyUrl.js";
 
 export const OPEN_SCHEDULE_EVENT = "acl:open-schedule-visit";
 export const SCHEDULE_TARGET_ID = "agendar-visita";
@@ -21,7 +22,7 @@ export default function MobileContactBar({ property }) {
   }, []);
 
   const label = property.code ? `${property.title.trim()} (${property.code})` : property.title.trim();
-  const text = `${t("mobileBar.whatsappText", { property: label })}\n${window.location.origin}/propiedades/${property.id}`;
+  const text = `${t("mobileBar.whatsappText", { property: label })}\n${window.location.origin}${propertyPath(property)}`;
   const whatsappUrl = `https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(text)}`;
 
   const handleSchedule = () => {

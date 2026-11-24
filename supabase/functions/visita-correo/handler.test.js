@@ -107,3 +107,42 @@ describe("handleVisitEmail", () => {
     await expect(handleVisitEmail({ cita_id: "c1", kind: "confirmacion" }, d)).rejects.toThrow("Resend: 401");
   });
 });
+
+describe("handleVisitEmail: encuesta tras la visita", () => {
+  const done = { ...cita, status: "realizada" };
+
+  it("manda «¿Cómo te fue?» con el enlace de la opinión, sin calendario", async () => {
+    const d = deps({ loadCita: vi.fn(async () => done), claimSurvey: vi.fn(async () => true) });
+    const result = await handleVisitEmail({ cita_id: "c1", kind: "encuesta" }, d);
+    expect(result).toEqual({ status: 200, body: { ok: true, kind: "encuesta", id: "re_123" } });
+    expect(d.claimSurvey).toHaveBeenCalledWith("c1");
+    const sent = d.sendEmail.mock.calls[0][0];
+    expect(sent.subject).toContain("¿Cómo te fue en tu visita?");
+    expect(sent.subject).toContain("ACL-12");
+    expect(sent.html).toContain("https://sitio.test/opinion/" + "b".repeat(32));
+    expect(sent.html).toContain("Calificar mi visita");
+    expect(sent.attachments).toEqual([]);
+    expect(sent.text).toContain("Visitaste:");
+  });
+
+  it("no la manda dos veces (el reclamo ya estaba tomado)", async () => {
+    const d = deps({ loadCita: vi.fn(async () => done), claimSurvey: vi.fn(async () => false) });
+    const result = await handleVisitEmail({ cita_id: "c1", kind: "encuesta" }, d);
+    expect(result.body.skipped).toContain("ya se mandó");
+    expect(d.sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("solo para visitas realizadas: si ya cambió de estado no se manda", async () => {
+    const d = deps({ claimSurvey: vi.fn(async () => true) }); // la cita de prueba está «confirmada»
+    const result = await handleVisitEmail({ cita_id: "c1", kind: "encuesta" }, d);
+    expect(result.body.skipped).toContain("ya está confirmada");
+    expect(d.claimSurvey).not.toHaveBeenCalled();
+    expect(d.sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("sin correo válido no se manda ni se reclama", async () => {
+    const d = deps({ loadCita: vi.fn(async () => ({ ...done, contact_email: "no" })), claimSurvey: vi.fn(async () => true) });
+    expect((await handleVisitEmail({ cita_id: "c1", kind: "encuesta" }, d)).body.skipped).toBe("sin correo válido");
+    expect(d.claimSurvey).not.toHaveBeenCalled();
+  });
+});

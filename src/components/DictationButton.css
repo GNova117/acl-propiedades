@@ -1,0 +1,12 @@
+.dictation {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.dictation__btn.is-listening {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}

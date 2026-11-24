@@ -33,7 +33,7 @@
 }
 
 .pending-item--info {
-  border-left-color: #7a8598;
+  border-left-color: var(--color-muted-soft);
 }
 
 .pending-item__count {
@@ -55,7 +55,7 @@
 
 .pending-item__line {
   font-size: 0.82rem;
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

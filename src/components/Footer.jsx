@@ -6,6 +6,27 @@ import { slugify, ZONE_LANDING_CITIES } from "../lib/zoneLandingPages";
 import { analyticsAvailable } from "../lib/analytics";
 import { openConsentPreferences } from "../lib/consent";
 import "./Footer.css";
+import { OFFICE } from "../lib/office";
+
+// Redes con dirección configurada en el build (variables VITE_*, ver .env.example); sin ella, el icono no se muestra.
+const httpsOnly = (value) => {
+  try {
+    return new URL(String(value || "")).protocol === "https:" ? String(value) : null;
+  } catch {
+    return null;
+  }
+};
+const SOCIAL = { linkedin: httpsOnly(import.meta.env.VITE_LINKEDIN_URL), instagram: httpsOnly(import.meta.env.VITE_INSTAGRAM_URL) };
+
+function InstagramIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" />
+    </svg>
+  );
+}
 
 function FacebookIcon() {
   return (
@@ -43,10 +64,12 @@ export default function Footer() {
             <li><NavLink to="/">{t("nav.home")}</NavLink></li>
             <li><NavLink to="/propiedades">{t("nav.properties")}</NavLink></li>
             <li><NavLink to="/calculadora">{t("nav.calculator")}</NavLink></li>
+            <li><NavLink to="/simulador-credito">{t("nav.creditSim")}</NavLink></li>
             <li><NavLink to="/comparar-creditos">{t("nav.compareCredits")}</NavLink></li>
             <li><NavLink to="/guia-del-comprador">{t("nav.buyerGuide")}</NavLink></li>
             <li><NavLink to="/vende-tu-casa">{t("nav.sellHome")}</NavLink></li>
             <li><NavLink to="/nosotros">{t("nav.about")}</NavLink></li>
+            <li><NavLink to="/mi-espacio">{t("nav.mySpace")}</NavLink></li>
             <li><NavLink to="/contacto">{t("nav.contact")}</NavLink></li>
           </ul>
         </div>
@@ -65,10 +88,10 @@ export default function Footer() {
         <div>
           <h4>{t("footer.contactInfo")}</h4>
           <ul className="site-footer__links">
-            <li>Blvd. Independencia, Local 16, Plaza San Luciano</li>
-            <li>Torreón, Coahuila</li>
-            <li><a href="tel:+528713243271">871 324 3271</a></li>
-            <li><a href="mailto:inmobiliaria@aclpropiedades.com">inmobiliaria@aclpropiedades.com</a></li>
+            <li>{OFFICE.addressShort}</li>
+            <li>{OFFICE.addressCity}</li>
+            <li><a href={`tel:${OFFICE.phoneTel}`}>{OFFICE.phoneDisplay}</a></li>
+            <li><a href={`mailto:${OFFICE.email}`}>{OFFICE.email}</a></li>
           </ul>
         </div>
 
@@ -78,11 +101,19 @@ export default function Footer() {
             <a href="https://www.facebook.com/Aclpropiedadess/" target="_blank" rel="noreferrer" aria-label="Facebook">
               <FacebookIcon />
             </a>
-            {/* Pendiente: falta el link real de LinkedIn — sin href hasta tenerlo */}
-            <a aria-label="LinkedIn">
-              <LinkedInIcon />
-            </a>
-            <a href="https://wa.me/528713243271" target="_blank" rel="noreferrer" aria-label="WhatsApp">
+            {/* LinkedIn e Instagram solo aparecen si hay una dirección real (VITE_LINKEDIN_URL / VITE_INSTAGRAM_URL): un icono
+                sin enlace no lleva a ningún lado y confunde a los lectores de pantalla. */}
+            {SOCIAL.linkedin && (
+              <a href={SOCIAL.linkedin} target="_blank" rel="noreferrer" aria-label="LinkedIn">
+                <LinkedInIcon />
+              </a>
+            )}
+            {SOCIAL.instagram && (
+              <a href={SOCIAL.instagram} target="_blank" rel="noreferrer" aria-label="Instagram">
+                <InstagramIcon />
+              </a>
+            )}
+            <a href={OFFICE.whatsappUrl} target="_blank" rel="noreferrer" aria-label="WhatsApp">
               <WhatsAppIcon />
             </a>
           </div>

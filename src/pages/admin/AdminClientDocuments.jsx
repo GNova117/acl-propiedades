@@ -13,6 +13,8 @@ import AdminPortalDocumentReview from "../../components/portal/AdminPortalDocume
 import AdminPortalTramitePanel from "../../components/portal/AdminPortalTramitePanel";
 import { requestedDocsFor } from "../../lib/clientPortal";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog } from "../../lib/toast";
 
 // Tope de Supabase Storage para el bucket client-documents: arriba de esto
 // el servidor rechaza la subida, así que se avisa antes de intentarla (un
@@ -98,7 +100,7 @@ export default function AdminClientDocuments() {
   };
 
   const handleDeleteDoc = async (docId) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     await db.deleteClientDocument(docId);
     load();
   };
@@ -141,7 +143,7 @@ export default function AdminClientDocuments() {
   const baseDocTypes = docTypesForClientType(client?.type);
   const gridDocTypes = [...baseDocTypes, ...[...new Set(documents.map((d) => d.doc_type))].filter((d) => !baseDocTypes.includes(d))];
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
 
   return (
     <div>

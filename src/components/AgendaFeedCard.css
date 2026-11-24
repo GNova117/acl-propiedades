@@ -1,0 +1,40 @@
+.agenda-feed {
+  margin-top: 1.25rem;
+  padding: 0.9rem 1.25rem;
+}
+
+.agenda-feed__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.agenda-feed__url {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+
+.agenda-feed__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* El texto del botón es largo: en pantallas angostas se parte en renglones en vez de ensanchar la página. */
+.agenda-feed {
+  min-width: 0;
+}
+
+.agenda-feed > .btn {
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+  text-align: left;
+}

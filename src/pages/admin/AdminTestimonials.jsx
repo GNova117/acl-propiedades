@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import Stars from "../../components/Stars";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 const EMPTY_FORM = { name: "", role: "", quote: "", rating: 5 };
 
@@ -37,7 +39,7 @@ export default function AdminTestimonials() {
       setNewForm(EMPTY_FORM);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al agregar el testimonio");
+      notify(err.message || "Error al agregar el testimonio");
     } finally {
       setAdding(false);
     }
@@ -56,7 +58,7 @@ export default function AdminTestimonials() {
       setEditingId(null);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al guardar el testimonio");
+      notify(err.message || "Error al guardar el testimonio");
     } finally {
       setSavingId(null);
     }
@@ -68,20 +70,20 @@ export default function AdminTestimonials() {
       await db.toggleTestimonialActive(testimonial.id, !testimonial.active);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al cambiar el estado del testimonio");
+      notify(err.message || "Error al cambiar el estado del testimonio");
     } finally {
       setTogglingId(null);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
+    if (!await confirmDialog(t("common.confirmDelete"))) return;
     setDeletingId(id);
     try {
       await db.deleteTestimonial(id);
       load();
     } catch (err) {
-      window.alert(err.message || "Error al eliminar el testimonio");
+      notify(err.message || "Error al eliminar el testimonio");
     } finally {
       setDeletingId(null);
     }
@@ -92,7 +94,7 @@ export default function AdminTestimonials() {
       <div className="admin-header">
         <h1>{t("testimonials.title")}</h1>
       </div>
-      <p className="form-hint" style={{ marginTop: "-0.75rem", marginBottom: "1.25rem" }}>{t("testimonials.subtitle")}</p>
+      <p className="form-hint mt-n3 mb-5">{t("testimonials.subtitle")}</p>
 
       <form className="card admin-form" onSubmit={handleAdd} style={{ maxWidth: 560, marginBottom: "1.5rem" }}>
         <h2 className="profiling-section-title">{t("testimonials.new")}</h2>
@@ -127,7 +129,7 @@ export default function AdminTestimonials() {
       </form>
 
       {loading ? (
-        <p className="form-hint">{t("common.loading")}</p>
+        <LoadingState variant="lines" />
       ) : testimonials.length === 0 ? (
         <p className="form-hint">{t("testimonials.noResults")}</p>
       ) : (
@@ -170,7 +172,7 @@ export default function AdminTestimonials() {
                 ) : (
                   <>
                     <h3>{testimonial.name}</h3>
-                    {testimonial.role && <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{testimonial.role}</p>}
+                    {testimonial.role && <p className="form-hint mt-n2">{testimonial.role}</p>}
                     <Stars rating={testimonial.rating} />
                     <p style={{ margin: "0.75rem 0" }}>&ldquo;{testimonial.quote}&rdquo;</p>
                     <div className="admin-zone-card__row">

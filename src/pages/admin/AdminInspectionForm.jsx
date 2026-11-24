@@ -16,6 +16,8 @@ import {
 } from "../../lib/propertyInspection";
 import "./admin.css";
 import "./AdminInspections.css";
+import LoadingState from "../../components/LoadingState";
+import { notify } from "../../lib/toast";
 
 const STATUS_KEY = { verde: "green", amarillo: "yellow", rojo: "red" };
 
@@ -128,12 +130,12 @@ export default function AdminInspectionForm() {
       const fresh = await db.getInspectionById(saved.id);
       await downloadInspectionPdf(fresh, buildInspectionLabels(t, i18n, fresh));
     } catch (err) {
-      window.alert(err.message || t("inspections.form.pdfError"));
+      notify(err.message || t("inspections.form.pdfError"));
     }
     navigate(backTo, { replace: true });
   };
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
   if (notFound) {
     return (
       <div className="empty-state">
@@ -219,7 +221,7 @@ export default function AdminInspectionForm() {
         </div>
 
         <div className="form-field">
-          <span style={{ fontWeight: 600 }}>{t("inspections.form.signature")}</span>
+          <span className="fw-semibold">{t("inspections.form.signature")}</span>
           {hasSignature ? (
             <img
               className="inspection-form__signature"

@@ -78,8 +78,8 @@
 .visit-slots__day.is-selected,
 .visit-slots__time.is-selected {
   border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: #fff;
+  background: var(--color-primary-solid);
+  color: var(--color-on-primary);
 }
 
 .visit-slots__day.is-selected .visit-slots__weekday,

@@ -49,7 +49,7 @@
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .search-bar {
     grid-template-columns: 1fr;
   }
@@ -69,7 +69,7 @@
 .search-bar__code label {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--color-on-primary);
 }
 
 .search-bar__code input {

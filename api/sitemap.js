@@ -6,10 +6,13 @@
 // y otro. Usa la llave pública (anon) — RLS ya permite lectura pública de
 // properties, no hace falta la service role aquí.
 import { createClient } from "@supabase/supabase-js";
-import { slugify, ZONE_LANDING_CITIES } from "../src/lib/zoneLandingPages.js";
+import { colonyPath, slugify, ZONE_LANDING_CITIES } from "../src/lib/zoneLandingPages.js";
+import { propertyPath } from "../src/lib/propertyUrl.js";
+import { resolveSiteUrl } from "../server/siteUrl.js";
 
-const SITE_URL = "https://acl-propiedades.vercel.app";
-const STATIC_PATHS = ["/", "/propiedades", "/naves-industriales", "/terrenos", "/calculadora", "/guia-del-comprador", "/nosotros", "/contacto", "/blog"];
+// Dirección pública (variable SITE_URL / VITE_SITE_URL; ver server/siteUrl.js).
+const SITE_URL = resolveSiteUrl(process.env);
+const STATIC_PATHS = ["/", "/propiedades", "/naves-industriales", "/terrenos", "/calculadora", "/simulador-credito", "/comparar-creditos", "/guia-del-comprador", "/nosotros", "/contacto", "/blog"];
 const ZONE_PATHS = ZONE_LANDING_CITIES.map((city) => `/propiedades/zona/${slugify(city)}`);
 
 export default async function handler(req, res) {
@@ -20,10 +23,17 @@ export default async function handler(req, res) {
   if (url && key) {
     try {
       const supabase = createClient(url, key);
-      const { data } = await supabase.from("properties").select("id, updated_at").eq("active", true);
+      const { data } = await supabase.from("properties").select("id, code, title, updated_at, zone, status").eq("active", true);
       for (const row of data || []) {
-        urls.push({ loc: `${SITE_URL}/propiedades/${row.id}`, lastmod: row.updated_at ? row.updated_at.slice(0, 10) : undefined });
+        urls.push({ loc: `${SITE_URL}${propertyPath(row)}`, lastmod: row.updated_at ? row.updated_at.slice(0, 10) : undefined });
       }
+      // Una página por colonia con al menos una propiedad disponible (las vacías no se listan: serían páginas casi sin contenido).
+      const colonyPaths = new Set();
+      for (const row of data || []) {
+        const path = row.status === "disponible" ? colonyPath(row.zone) : null;
+        if (path) colonyPaths.add(path);
+      }
+      for (const path of [...colonyPaths].sort()) urls.push({ loc: `${SITE_URL}${path}` });
       // Torres publicadas (si la tabla aún no existe, `data` llega nulo y no se agrega nada).
       const { data: developments } = await supabase.from("developments").select("slug, updated_at").eq("published", true);
       for (const row of developments || []) {
@@ -41,7 +51,7 @@ export default async function handler(req, res) {
 
   const xml =
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
-    `<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
     urls.map((u) => `  <url><loc>${u.loc}</loc>${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ""}</url>`).join("\n") +
     `\n</urlset>\n`;
 

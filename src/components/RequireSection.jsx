@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
+import LoadingState from "./LoadingState";
 
 // Se usa DENTRO de ProtectedRoute (ya garantiza sesión iniciada) para
 // restringir además por apartado, según el rol asignado en admin_access.
@@ -11,7 +12,7 @@ export default function RequireSection({ section, children }) {
   const { hasSection, loading } = useAuth();
   const { t } = useTranslation();
 
-  if (loading) return <div className="empty-state">{t("common.loading")}</div>;
+  if (loading) return <LoadingState />;
   if (!hasSection(section)) return <div className="empty-state">{t("accessControl.restricted")}</div>;
 
   return children;

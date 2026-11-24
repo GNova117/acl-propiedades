@@ -6,6 +6,7 @@ import { activeCitas } from "./agendaCitas";
 import { daysSince, followUpState, todayISO, unattendedAge, unattendedState } from "./prospects";
 import { effectiveStatus, signingAgeDays } from "./signing";
 import { postsaleDue } from "./postsale";
+import { useLiveRefresh } from "./liveUpdates";
 import { isReportSent, monthLabel, previousMonthValue, reportableProperties } from "./visitMonthly";
 
 const KEY_LATE_DAYS = 2; // una llave con 2 días o más fuera se marca como atrasada
@@ -20,7 +21,9 @@ export function usePendingToday() {
   const { t, i18n } = useTranslation();
   const { hasSection, advisorId } = useAuth();
   const [items, setItems] = useState(null);
-  const sectionsKey = ["mensajes", "agenda", "visitas", "secretaria", "prospectos", "propiedades", "documentos_legales"].map((s) => hasSection(s)).join();
+  // Llega un mensaje o prospecto nuevo → se vuelve a calcular (con un retardo para juntar ráfagas).
+  const liveTick = useLiveRefresh(["contact_messages", "prospectos", "client_intake_links"], { delayMs: 1500 });
+  const sectionsKey = ["mensajes", "agenda", "visitas", "secretaria", "prospectos", "propiedades", "documentos_legales", "clientes"].map((s) => hasSection(s)).join();
 
   useEffect(() => {
     let cancelled = false;
@@ -36,13 +39,21 @@ export function usePendingToday() {
       settle("propiedades", () => db.getProperties({})),
       settle("documentos_legales", () => db.getSigningRequests()),
       settle("prospectos", () => db.getProspectStageHistory()),
-    ]).then(([messages, citas, visits, keys, prospects, properties, signings, stageHistory]) => {
+      settle("clientes", () => db.getClientIntakeLinks()),
+    ]).then(([messages, citas, visits, keys, prospects, properties, signings, stageHistory, intakes]) => {
       if (cancelled) return;
       const list = [];
 
       if (messages) {
         const fresh = messages.filter((m) => (m.status || "nuevo") === "nuevo");
         if (fresh.length) list.push({ key: "messages", count: fresh.length, to: "/admin/mensajes", lines: fresh.slice(0, MAX_LINES).map((m) => m.name || m.email) });
+      }
+
+      // Clientes que ya llenaron su enlace de registro y nadie ha abierto todavía. Un asesor ve los de sus propios enlaces; la oficina
+      // (sin asesor vinculado) ve todos.
+      if (intakes) {
+        const filled = intakes.filter((l) => l.submitted_at && !l.seen_at && (advisorId == null || l.advisor_id === advisorId)).sort((a, b) => String(a.submitted_at).localeCompare(String(b.submitted_at)));
+        if (filled.length) list.push({ key: "intakes", count: filled.length, to: "/admin/clientes?registros=1", tone: "info", lines: filled.slice(0, MAX_LINES).map((l) => l.client_name || l.label || "—") });
       }
 
       if (citas) {
@@ -167,7 +178,7 @@ export function usePendingToday() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sectionsKey]);
+  }, [sectionsKey, liveTick]);
 
   return { items, sectionsKey };
 }

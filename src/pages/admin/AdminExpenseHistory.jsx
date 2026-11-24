@@ -7,6 +7,8 @@ import { formatMXN } from "../../lib/format";
 import { MUNICIPALITIES, PROFILES, creditRefund, rateText, toReportItems } from "../../lib/expenseBreakdown";
 import { formatVisitDateTime } from "../../lib/visitReport";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 // Historial de desgloses guardados por casa: cada fila es la copia exacta que
 // se guardó ese día (rubros con nombre, tarifa y monto). Aunque después cambie
@@ -47,12 +49,12 @@ export default function AdminExpenseHistory() {
   }, [reports, house, municipality, profile]);
 
   const remove = async (id) => {
-    if (!window.confirm(t("expenses.history.confirmDelete"))) return;
+    if (!await confirmDialog(t("expenses.history.confirmDelete"))) return;
     try {
       await db.deleteExpenseReport(id);
       load();
     } catch (err) {
-      window.alert(err.message || "Error");
+      notify(err.message || "Error");
     }
   };
 
@@ -152,7 +154,7 @@ export default function AdminExpenseHistory() {
         `desglose-gastos-${report.profile}-${report.house_name}`
       );
     } catch (err) {
-      window.alert(err.message || t("expenses.pdf.error"));
+      notify(err.message || t("expenses.pdf.error"));
     } finally {
       setPdfBusyId(null);
     }
@@ -239,7 +241,7 @@ export default function AdminExpenseHistory() {
           <tbody>
             {!reports ? (
               <tr>
-                <td colSpan={6}>{t("common.loading")}</td>
+                <td colSpan={6}><LoadingState variant="rows" /></td>
               </tr>
             ) : visible.length === 0 ? (
               <tr>
@@ -274,7 +276,7 @@ export default function AdminExpenseHistory() {
 
       {editing && (
         <div className="card" style={{ padding: "1rem", marginTop: "1.25rem" }}>
-          <h2 style={{ marginTop: 0 }}>{t("expenses.history.editTitle")}</h2>
+          <h2 className="mt-0">{t("expenses.history.editTitle")}</h2>
           <p className="form-hint">{t("expenses.history.editHint")}</p>
           <div style={{ display: "grid", gap: "0.75rem", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", marginBottom: "0.75rem" }}>
             <div className="form-field">
@@ -283,7 +285,7 @@ export default function AdminExpenseHistory() {
             </div>
             <div className="form-field">
               <label>{t("expenses.municipality")}</label>
-              <p className="form-hint" style={{ margin: 0 }}>
+              <p className="form-hint m-0">
                 {editing.municipality} · {t(`expenses.${editing.profile}`)}
               </p>
             </div>
@@ -299,7 +301,7 @@ export default function AdminExpenseHistory() {
             )}
           </div>
 
-          <div className="admin-table-wrapper" style={{ marginBottom: "0.5rem" }}>
+          <div className="admin-table-wrapper mb-2">
             <table className="admin-table">
               <thead>
                 <tr>

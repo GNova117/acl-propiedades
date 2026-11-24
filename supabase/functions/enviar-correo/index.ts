@@ -13,6 +13,7 @@
 
 import { handleStaffEmail } from "./handler.js";
 import { sendResendEmail } from "../_shared/resend.js";
+import { brandedHtml } from "../_shared/emailLayout.js";
 
 async function handler(req: Request): Promise<Response> {
   if (req.method !== "POST") {
@@ -55,7 +56,7 @@ async function handler(req: Request): Promise<Response> {
           await service.from("email_send_log").insert({ user_email: email, to_email: to });
         },
         sendEmail: (message: { to: string; subject: string; html: string; attachments: { filename: string; content: string }[] }) =>
-          sendResendEmail({ apiKey, from: Deno.env.get("RESEND_FROM") || undefined, ...message }),
+          sendResendEmail({ apiKey, from: Deno.env.get("RESEND_FROM") || undefined, ...message, html: brandedHtml(message.subject, message.html) }),
       },
     );
     return new Response(JSON.stringify(result.body), { status: result.status, headers: { "Content-Type": "application/json" } });

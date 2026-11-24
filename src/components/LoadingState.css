@@ -1,0 +1,78 @@
+.skeleton {
+  display: block;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--color-bg-alt) 0%, var(--color-border) 50%, var(--color-bg-alt) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Sin movimiento para quien lo pide en su sistema: la silueta queda quieta. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+.loading-state__shapes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.5rem 0;
+}
+
+.skeleton--title {
+  width: 40%;
+  max-width: 320px;
+  height: 1.8rem;
+}
+
+.skeleton--block {
+  height: 7rem;
+}
+
+.skeleton--short {
+  width: 60%;
+}
+
+.skeleton--line {
+  height: 0.9rem;
+}
+
+.skeleton--row {
+  height: 2.4rem;
+  border-radius: var(--radius-sm);
+}
+
+.loading-state--cards .loading-state__shapes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.skeleton--card {
+  height: 17rem;
+  border-radius: var(--radius-md);
+}
+
+/* Dentro de una tabla, que la silueta no cambie el ancho de las columnas. */
+td > .loading-state .loading-state__shapes {
+  padding: 0.25rem 0;
+}
+
+.skeleton--fill {
+  width: 100%;
+  border-radius: var(--radius-md);
+}
+
+.loading-state--tall {
+  min-height: 150vh;
+}

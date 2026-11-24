@@ -12,7 +12,7 @@ export default function PendingToday() {
   const { items, sectionsKey } = usePendingToday();
   const { hasSection } = useAuth();
 
-  if (items === null || (items.length === 0 && sectionsKey === "false,false,false,false,false,false,false")) return null;
+  if (items === null || (items.length === 0 && sectionsKey === "false,false,false,false,false,false,false,false")) return null;
 
   return (
     <section className="pending-today" aria-label={t("pending.title")}>

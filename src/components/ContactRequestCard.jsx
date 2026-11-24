@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { OFFICE_WHATSAPP } from "../lib/office";
 import "./ContactRequestCard.css";
+import { propertyPath } from "../lib/propertyUrl.js";
+import { trackConversion } from "../lib/conversions";
 
 // Reemplaza a las tarjetas de asesor (nombre + teléfono + correo + botones
 // de llamar/WhatsApp) que antes se mostraban en la ficha de cada
@@ -24,7 +26,7 @@ const RATE_LIMIT_MS = 60_000;
 const MIN_PHONE_DIGITS = 10;
 
 const propertyLabel = (property) => (property.code ? `${property.title.trim()} (${property.code})` : property.title.trim());
-const propertyLink = (property) => (typeof window !== "undefined" ? `${window.location.origin}/propiedades/${property.id}` : "");
+const propertyLink = (property) => (typeof window !== "undefined" ? `${window.location.origin}${propertyPath(property)}` : "");
 
 function buildRequestMessage(property) {
   return `Solicitud de contacto — ${propertyLabel(property)}.\nPide que le llamen o le escriban por WhatsApp.\n${propertyLink(property)}`;
@@ -93,6 +95,7 @@ export default function ContactRequestCard({ property }) {
       });
       window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
       setVia("form");
+      trackConversion("lead_form", { form: "info_propiedad", property_id: property.id, property_type: property.type });
       setStatus("success");
       setForm({ name: "", phone: "", empresa: "" });
     } catch {
@@ -130,6 +133,7 @@ export default function ContactRequestCard({ property }) {
       /* el chat ya se abrió */
     }
     setVia("whatsapp");
+    trackConversion("whatsapp_click", { location: "ficha_formulario", property_id: property.id, property_type: property.type });
     setStatus("success");
     setForm({ name: "", phone: "", empresa: "" });
   };
@@ -138,7 +142,7 @@ export default function ContactRequestCard({ property }) {
     return (
       <div className="card contact-request-card">
         <h2 className="contact-request-card__title">{t("contactRequest.title")}</h2>
-        <p className="form-hint" style={{ color: "var(--color-success)" }}>{t(via === "whatsapp" ? "contactRequest.whatsappSuccess" : "contactRequest.success")}</p>
+        <p className="form-hint text-success">{t(via === "whatsapp" ? "contactRequest.whatsappSuccess" : "contactRequest.success")}</p>
       </div>
     );
   }
@@ -149,7 +153,7 @@ export default function ContactRequestCard({ property }) {
       <p className="form-hint">{t("contactRequest.subtitle")}</p>
 
       <form onSubmit={handleSubmit} noValidate>
-        <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}>
+        <div aria-hidden="true" className="hp-field">
           <label htmlFor="callback-empresa">Empresa</label>
           <input id="callback-empresa" name="empresa" value={form.empresa} onChange={handleChange} tabIndex={-1} autoComplete="off" />
         </div>
@@ -199,7 +203,7 @@ export default function ContactRequestCard({ property }) {
           {t("contactRequest.whatsapp")}
         </button>
 
-        <p className="form-hint" style={{ marginTop: "0.75rem", marginBottom: 0 }}>
+        <p className="form-hint mt-3 mb-0">
           {t("contact.privacyNotice")} <Link to="/aviso-de-privacidad">{t("contact.privacyLinkLabel")}</Link>.
         </p>
       </form>

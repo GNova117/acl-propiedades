@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   background: url("https://images.unsplash.com/photo-1592595896616-c37162298647?w=1800&q=80") center/cover no-repeat;
-  color: #ffffff;
+  color: var(--color-on-primary);
 }
 
 .hero__overlay {
@@ -23,7 +23,7 @@
 .hero__content h1 {
   font-size: clamp(2rem, 4.5vw, 3.4rem);
   margin-bottom: 0.75rem;
-  color: #ffffff;
+  color: var(--color-on-primary);
 }
 
 .hero__content > p {

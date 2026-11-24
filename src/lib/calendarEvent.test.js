@@ -58,3 +58,34 @@ describe("citaToIcs", () => {
     for (const line of long.split("\r\n")) expect(line.length).toBeLessThanOrEqual(75);
   });
 });
+
+describe("citasToIcsFeed", () => {
+  const cita = (id, extra = {}) => ({ id, titulo: `Visita ${id}`, fecha: "2026-11-20", hora: "10:00:00", duracion_min: 45, lugar: "Av. Hidalgo 100", actividades: "Mostrar la casa", ...extra });
+
+  it("junta todas las citas en un solo calendario con su nombre y actualización cada hora", async () => {
+    const { citasToIcsFeed } = await import("./calendarEvent");
+    const ics = citasToIcsFeed([cita("a"), cita("b", { hora: null })], { name: "Agenda de Ana", now: new Date("2026-11-17T12:00:00Z") });
+    expect(ics.match(/BEGIN:VCALENDAR/g)).toHaveLength(1);
+    expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(2);
+    expect(ics).toContain("X-WR-CALNAME:Agenda de Ana");
+    expect(ics).toContain("REFRESH-INTERVAL;VALUE=DURATION:PT1H");
+    expect(ics).toContain("UID:a@aclpropiedades");
+    expect(ics).toContain("DTSTART:20261120T100000");
+    expect(ics).toContain("DTSTART;VALUE=DATE:20261120");
+  });
+
+  it("no filtra datos de contacto del cliente al calendario de terceros", async () => {
+    const { citasToIcsFeed } = await import("./calendarEvent");
+    const ics = citasToIcsFeed([cita("a", { contact_phone: "8711234567", contact_name: "Cliente Secreto" })]);
+    expect(ics).not.toContain("8711234567");
+    expect(ics).not.toContain("Cliente Secreto");
+  });
+
+  it("un calendario sin citas sigue siendo válido", async () => {
+    const { citasToIcsFeed } = await import("./calendarEvent");
+    const ics = citasToIcsFeed([]);
+    expect(ics).toContain("BEGIN:VCALENDAR");
+    expect(ics).toContain("END:VCALENDAR");
+    expect(ics).not.toContain("VEVENT");
+  });
+});

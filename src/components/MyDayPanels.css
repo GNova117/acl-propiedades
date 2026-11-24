@@ -1,0 +1,104 @@
+/* Tarjetas extra de Mi día: ruta de hoy, propiedades nuevas para prospectos y apartados por vencer */
+.day-panel {
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.day-panel h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+}
+
+.day-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0.6rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.day-panel__list > li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.day-panel__list--plain > li {
+  flex-wrap: wrap;
+}
+
+.day-panel__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--color-primary-solid);
+  color: var(--color-on-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.day-panel__group {
+  flex-direction: column;
+  align-items: flex-start !important;
+  gap: 0.2rem !important;
+}
+
+.day-panel__who {
+  font-weight: 700;
+}
+
+.day-panel__match {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Tabla de posiciones */
+.leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.leaderboard__row {
+  display: grid;
+  grid-template-columns: 2rem 1fr auto;
+  gap: 0.1rem 0.6rem;
+  align-items: center;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+}
+
+.leaderboard__row.is-me {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.leaderboard__rank {
+  text-align: center;
+  font-weight: 700;
+}
+
+.leaderboard__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.leaderboard__points {
+  font-weight: 700;
+}
+
+.leaderboard__detail {
+  grid-column: 2 / -1;
+  margin: 0;
+}

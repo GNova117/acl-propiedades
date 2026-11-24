@@ -18,6 +18,8 @@ import InternalNotes from "../../components/InternalNotes";
 import ProspectTimeline from "../../components/ProspectTimeline";
 import ProspectProfile from "../../components/ProspectProfile";
 import DuplicateWarning from "../../components/DuplicateWarning";
+import MergeDuplicatesCard from "../../components/MergeDuplicatesCard";
+import { mutate as mutateCache } from "../../lib/dataCache";
 import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
@@ -322,6 +324,16 @@ export default function AdminProspectForm() {
             setProspect(updated);
             // La etapa y el seguimiento del formulario siguen al cambio; lo demás que se esté editando no se toca.
             setForm((prev) => ({ ...prev, stage: updated.stage || prev.stage, next_followup_at: updated.next_followup_at || "" }));
+            setHistoryKey((k) => k + 1);
+          }}
+        />
+
+        <MergeDuplicatesCard
+          prospect={prospect}
+          onMerged={(removedId) => {
+            // El otro ya no existe: sale de las listas en caché y se vuelve a leer este (datos y línea de tiempo).
+            mutateCache("prospects", (list) => (Array.isArray(list) ? list.filter((p) => p.id !== removedId) : list));
+            db.getProspectById(id).then((fresh) => fresh && setProspect(fresh));
             setHistoryKey((k) => k + 1);
           }}
         />

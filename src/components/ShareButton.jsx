@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { trackPropertyEvent } from "../lib/propertyEvents";
 import "./ShareButton.css";
+import { trackConversion } from "../lib/conversions";
 
 // Con Web Share API (la mayoría de navegadores móviles y algunos de
 // escritorio) un solo botón abre la hoja nativa de compartir del sistema
@@ -12,13 +14,16 @@ import "./ShareButton.css";
 // como en una publicación de portal inmobiliario) — si no se manda, se
 // arma uno genérico con solo título y URL, para no romper otros usos
 // futuros de este botón que no tengan un texto propio que armar.
-export default function ShareButton({ title, text, url, openUpward = false }) {
+// `propertyId`: si es de una propiedad, cada vez que se comparte cuenta para su informe de interés.
+export default function ShareButton({ title, text, url, openUpward = false, propertyId }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
   const shareText = text || `${title} — ${url}`;
 
   const handleNativeShare = async () => {
+    trackPropertyEvent("share", propertyId);
+    trackConversion("share", { method: "nativo", property_id: propertyId });
     try {
       // Se manda todo dentro de `text` (ya incluye la URL al final) en vez
       // de separar `url` — varias apps del share sheet nativo pegan texto
@@ -31,6 +36,8 @@ export default function ShareButton({ title, text, url, openUpward = false }) {
 
   const handleCopy = async (e) => {
     e.preventDefault();
+    trackPropertyEvent("share", propertyId);
+    trackConversion("share", { method: "copiar", property_id: propertyId });
     try {
       await navigator.clipboard.writeText(shareText);
       setCopied(true);
@@ -60,10 +67,10 @@ export default function ShareButton({ title, text, url, openUpward = false }) {
     <details className={`share-button${openUpward ? " share-button--up" : ""}`}>
       <summary className="btn btn-outline btn-sm">{t("detail.share")}</summary>
       <div className="share-button__menu">
-        <a href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noreferrer">
+        <a href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noreferrer" onClick={() => { trackPropertyEvent("share", propertyId); trackConversion("share", { method: "whatsapp", property_id: propertyId }); }}>
           WhatsApp
         </a>
-        <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} target="_blank" rel="noreferrer">
+        <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} target="_blank" rel="noreferrer" onClick={() => { trackPropertyEvent("share", propertyId); trackConversion("share", { method: "facebook", property_id: propertyId }); }}>
           Facebook
         </a>
         <button type="button" onClick={handleCopy}>

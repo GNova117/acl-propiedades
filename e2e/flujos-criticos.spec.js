@@ -1,4 +1,4 @@
-import { test, expect, abrirMas } from "./fixtures.js";
+import { test, expect, abrirMas, llenarDatosBasicosCliente } from "./fixtures.js";
 
 // Flujos críticos de punta a punta, como los vive cada persona:
 //  - el cliente en su portal (pendientes, subir un documento, ver el avance)
@@ -20,8 +20,16 @@ async function crearCliente(page, go, press, { nombre, tipo = "comprador", finan
   await go("/admin/clientes/nuevo");
   await page.fill("#c-name", nombre);
   await page.selectOption("#c-type", tipo);
-  await page.fill("#c-phone", "8715550101");
+  await llenarDatosBasicosCliente(page);
   if (await page.locator("#c-financiamiento").count()) await page.selectOption("#c-financiamiento", financiamiento);
+  // Con INFONAVIT el expediente de crédito es obligatorio (NSS y contraseña del comprador; número de crédito del vendedor).
+  if (financiamiento === "infonavit") {
+    if (tipo !== "vendedor") {
+      await page.fill("#c-nss", "12345678901");
+      await page.fill("#c-contrasena_portal", "Clave-QA-1");
+    }
+    if (tipo !== "comprador") await page.fill("#c-numero_credito", "1234567890");
+  }
   await press(page.locator("form button[type=submit]").first());
   await page.waitForURL("**/admin/clientes");
   const id = await page.evaluate(
@@ -161,7 +169,7 @@ test.describe("Mi día como inicio y barra de abajo en el teléfono", () => {
 
     // En el menú, Mi día va primero y el Panel principal se movió a /admin/panel.
     if (isMobile) await press(page.locator(".admin-layout__menu-btn"));
-    const enlaces = page.locator(".admin-layout__sidebar nav > a");
+    const enlaces = page.locator(".admin-layout__sidebar nav a");
     await expect(enlaces.first()).toHaveAttribute("href", "/admin/mi-dia");
     await press(page.locator('.admin-layout__sidebar a[href="/admin/panel"]'));
     await page.waitForURL("**/admin/panel");

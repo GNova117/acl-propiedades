@@ -29,3 +29,6 @@ playwright-report
 *.njsproj
 *.sln
 *.sw?
+
+# Lighthouse CI
+.lighthouseci/

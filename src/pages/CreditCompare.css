@@ -34,11 +34,11 @@
 }
 
 .credit-option--banco {
-  border-top-color: #f0a500;
+  border-top-color: var(--color-attention);
 }
 
 .credit-option--contado {
-  border-top-color: #1e8e5a;
+  border-top-color: var(--color-success);
 }
 
 .credit-option.is-disabled {
@@ -69,7 +69,7 @@
 }
 
 .credit-option__rows dt {
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
 }
 
 .credit-option__rows dd {
@@ -79,7 +79,7 @@
 }
 
 .credit-option__rows > div.is-best dd {
-  color: #1e8e5a;
+  color: var(--color-success);
 }
 
 .credit-option__badge {
@@ -89,14 +89,14 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #1e8e5a;
+  color: var(--color-success);
 }
 
 .credit-compare__note {
   margin: 0.5rem 0 0;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #1e8e5a;
+  color: var(--color-success);
 }
 
 .credit-compare__note--warn {

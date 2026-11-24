@@ -113,7 +113,7 @@ export default function SocialPostModal({ property, onClose }) {
       <div className="social-modal__backdrop" onClick={onClose} aria-hidden="true" />
       <div className="social-modal__box card">
         <div className="social-modal__head">
-          <h2 style={{ margin: 0 }}>{t("socialPost.title")}</h2>
+          <h2 className="m-0">{t("socialPost.title")}</h2>
           <button type="button" className="btn btn-outline btn-sm" onClick={onClose}>
             {t("common.close")}
           </button>
@@ -145,7 +145,7 @@ export default function SocialPostModal({ property, onClose }) {
           </div>
 
           <div className="social-modal__side">
-            <label htmlFor="social-caption" style={{ fontWeight: 600 }}>
+            <label htmlFor="social-caption" className="fw-semibold">
               {t("socialPost.caption")}
             </label>
             <textarea id="social-caption" rows={12} value={caption} onChange={(e) => setCaption(e.target.value)} />
@@ -172,7 +172,7 @@ export default function SocialPostModal({ property, onClose }) {
                 WhatsApp
               </a>
             </div>
-            {notice && <p className="form-hint" style={{ color: "var(--color-success)" }}>{notice}</p>}
+            {notice && <p className="form-hint text-success">{notice}</p>}
             <p className="form-hint">{t("socialPost.instagramNote")}</p>
             <AdCopyPanel property={property} onUse={setCaption} />
           </div>

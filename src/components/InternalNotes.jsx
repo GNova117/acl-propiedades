@@ -3,7 +3,11 @@ import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { useAuth } from "../context/AuthContext";
 import { formatVisitDateTime } from "../lib/visitReport";
+import DictationButton from "./DictationButton";
+import { appendDictation } from "../lib/dictation";
 import "./InternalNotes.css";
+import LoadingState from "./LoadingState";
+import { confirmDialog, notify } from "../lib/toast";
 
 // Comunicación interna del equipo sobre un cliente/prospecto/propiedad: notas
 // visibles para cualquier asesor que entre a esa ficha, con la opción de
@@ -23,7 +27,6 @@ export default function InternalNotes({ entityType, entityId, onChange }) {
   const [body, setBody] = useState("");
   const [mentions, setMentions] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -54,23 +57,22 @@ export default function InternalNotes({ entityType, entityId, onChange }) {
       load();
       onChange?.();
     } catch (err) {
-      window.alert(err.message || t("internalNotes.saveError"));
+      notify(err.message || t("internalNotes.saveError"));
     } finally {
       setSaving(false);
     }
   };
 
+  // Aquí NO hay «Deshacer»: la línea de tiempo del prospecto lee las notas de la base y seguiría mostrando una nota
+  // «eliminada» hasta que se borrara de verdad. Se confirma y se borra al momento.
   const handleDelete = async (note) => {
-    if (!window.confirm(t("common.confirmDelete"))) return;
-    setDeletingId(note.id);
+    if (!(await confirmDialog(t("common.confirmDelete"), { danger: true }))) return;
     try {
       await db.deleteInternalNote(note.id);
       load();
       onChange?.();
     } catch (err) {
-      window.alert(err.message || t("internalNotes.deleteError"));
-    } finally {
-      setDeletingId(null);
+      notify(err?.message || t("internalNotes.deleteError"));
     }
   };
 
@@ -83,6 +85,7 @@ export default function InternalNotes({ entityType, entityId, onChange }) {
         <div className="form-field">
           <label htmlFor="internal-note-body">{t("internalNotes.newNote")}</label>
           <textarea id="internal-note-body" rows={3} value={body} onChange={(e) => setBody(e.target.value)} />
+          <DictationButton onText={(text) => setBody((prev) => appendDictation(prev, text))} disabled={saving} />
         </div>
         {advisors.filter((a) => a.email).length > 0 && (
           <div className="form-field">
@@ -108,7 +111,7 @@ export default function InternalNotes({ entityType, entityId, onChange }) {
       </form>
 
       {loading ? (
-        <p className="form-hint">{t("common.loading")}</p>
+        <LoadingState variant="lines" />
       ) : notes.length === 0 ? (
         <p className="form-hint">{t("internalNotes.empty")}</p>
       ) : (
@@ -129,7 +132,7 @@ export default function InternalNotes({ entityType, entityId, onChange }) {
                   ))}
                 </div>
               )}
-              <button type="button" className="btn btn-outline btn-sm" onClick={() => handleDelete(note)} disabled={deletingId === note.id}>
+              <button type="button" className="btn btn-outline btn-sm" onClick={() => handleDelete(note)}>
                 {t("common.delete")}
               </button>
             </li>

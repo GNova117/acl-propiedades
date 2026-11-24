@@ -84,7 +84,7 @@ export default function AdminInfonavitSimulator() {
 
         <div className="card infonavit-form">
           <h3>{t("creditSim.ssvCalc.title")}</h3>
-          <p className="form-hint" style={{ marginTop: "-0.5rem" }}>{t("creditSim.ssvCalc.subtitle")}</p>
+          <p className="form-hint mt-n2">{t("creditSim.ssvCalc.subtitle")}</p>
 
           <div className="ssv-calc-table">
             <div className="ssv-calc-table__row ssv-calc-table__row--head">
@@ -140,7 +140,7 @@ export default function AdminInfonavitSimulator() {
               {t("creditSim.ssvCalc.useInSimulator")}
             </button>
           </div>
-          <p className="form-hint" style={{ marginBottom: 0 }}>
+          <p className="form-hint mb-0">
             {t("creditSim.ssvCalc.disclaimer")}
           </p>
         </div>

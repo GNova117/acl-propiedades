@@ -1,0 +1,26 @@
+.favorites-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.favorites-banner p {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.favorites-banner__actions,
+.favorites-share {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.favorites-share {
+  margin-bottom: 1.25rem;
+}

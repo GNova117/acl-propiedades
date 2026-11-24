@@ -6,6 +6,7 @@
 
 import { formatArea, formatMXN } from "./format";
 import { OFFICE_WHATSAPP } from "./office";
+import { propertyPath } from "./propertyUrl.js";
 
 export const POST_WIDTH = 1080;
 export const POST_HEIGHT = 1350;
@@ -28,7 +29,7 @@ const cleanTag = (text) =>
     .replace(/[^A-Za-z0-9]+/g, "")}`;
 
 export function propertyUrl(property, origin) {
-  return `${origin}/propiedades/${property.id}`;
+  return `${origin}${propertyPath(property)}`;
 }
 
 export function specsLine(property) {

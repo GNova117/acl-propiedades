@@ -36,7 +36,7 @@
   margin: 0;
   padding: 0.7rem;
   font-size: 0.9rem;
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
 }
 
 .admin-search__group + .admin-search__group {
@@ -51,7 +51,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
 }
 
 /* Un resultado: el renglón principal (que abre la pantalla) y, si trae teléfono, «Llamar» y «WhatsApp». */
@@ -120,7 +120,7 @@
 
 .admin-search__sub {
   font-size: 0.78rem;
-  color: var(--color-text-muted, #6b7688);
+  color: var(--color-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

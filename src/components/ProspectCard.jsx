@@ -8,7 +8,7 @@ import { prospectToCitaPrefill } from "../lib/prospectAgenda";
 import QuickReplyButton from "./QuickReplyButton";
 import ProspectContactForm from "./ProspectContactForm";
 import ProspectMatches from "./ProspectMatches";
-import { FollowChip, SelectionChip, UnattendedChip } from "./ProspectChips";
+import { FollowChip, ScoreChip, SelectionChip, SequenceBlock, UnattendedChip } from "./ProspectChips";
 
 // Tarjeta de un prospecto en el tablero de Prospectos. Lo que se hace casi
 // siempre está a la vista —mensaje rápido y llamar, que al regresar abren solos
@@ -36,6 +36,11 @@ export default function ProspectCard({
   selected = false,
   onToggleSelect,
   selections,
+  score = null,
+  sequence = null,
+  onDragStart,
+  onDragEnd,
+  dragging = false,
 }) {
   const { t } = useTranslation();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -45,7 +50,21 @@ export default function ProspectCard({
   const step = due ? POSTSALE_STEPS.find((s) => s.key === due.key) : null;
 
   return (
-    <article className={`card prospect-card${selected ? " is-selected" : ""}`}>
+    <article
+      className={`card prospect-card${selected ? " is-selected" : ""}${dragging ? " is-dragging" : ""}`}
+      // Arrastrar a otra columna cambia la etapa (solo con ratón; en el teléfono sigue el selector de «Más»).
+      draggable={Boolean(onDragStart) && !selectable && !busy}
+      onDragStart={
+        onDragStart
+          ? (e) => {
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData("text/plain", p.id);
+              onDragStart(p.id);
+            }
+          : undefined
+      }
+      onDragEnd={onDragEnd}
+    >
       <div className="prospect-card__head">
         {selectable && (
           <input
@@ -83,7 +102,9 @@ export default function ProspectCard({
       </p>
       <UnattendedChip prospect={p} />
       <FollowChip prospect={p} />
+      <ScoreChip score={score} />
       <SelectionChip prospect={p} selections={selections} />
+      <SequenceBlock prospect={p} sequence={sequence} whatsappUrl={wa} propertyTitle={propertyTitle} advisorName={advisorName} onWrite={(channel) => contact.open(p, channel, true)} />
       {due && (
         <div className="prospect-postsale">
           <span className="prospect-chip prospect-chip--today">{t(`prospects.postsale.step${due.key}`, { days: due.since })}</span>

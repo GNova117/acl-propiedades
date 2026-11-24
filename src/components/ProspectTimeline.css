@@ -31,7 +31,7 @@
 }
 
 .prospect-timeline__item--stage {
-  --tl-color: #f0a500;
+  --tl-color: var(--color-attention);
 }
 
 .prospect-timeline__item--appointment {

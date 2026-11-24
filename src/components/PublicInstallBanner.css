@@ -1,0 +1,24 @@
+.install-banner {
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-alt);
+  padding: var(--space-4) 0;
+}
+
+.install-banner__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-5);
+}
+
+.install-banner p {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.install-banner__actions {
+  display: flex;
+  gap: var(--space-2);
+}

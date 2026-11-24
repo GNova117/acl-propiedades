@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MEMORY_LIMIT_BYTES, canBackupFiles, downloadBackup, isBackupStale, lastBackupAt, prepareFullBackupSink, runFullBackup } from "../lib/backup";
+import { confirmDialog, notify } from "../lib/toast";
 
 // Tarjeta de respaldo (Roles y accesos). Es manual a propósito: un respaldo
 // automático necesitaría una llave de servidor de Supabase fuera del navegador.
@@ -58,10 +59,10 @@ export default function BackupCard() {
         confirmSize: async ({ count, bytes, sink: s }) => {
           const mb = Math.round(bytes / 1048576);
           if (s.kind === "memory" && bytes > MEMORY_LIMIT_BYTES) {
-            window.alert(t("backup.tooBigForMemory", { mb }));
+            notify(t("backup.tooBigForMemory", { mb }));
             return false;
           }
-          return window.confirm(t("backup.confirmFull", { count, mb }));
+          return await confirmDialog(t("backup.confirmFull", { count, mb }));
         },
       });
       if (!outcome.cancelled) {
@@ -83,7 +84,7 @@ export default function BackupCard() {
 
   return (
     <div className="card" style={{ padding: "1.25rem", marginBottom: "1.5rem" }}>
-      <h2 style={{ marginTop: 0 }}>{t("backup.title")}</h2>
+      <h2 className="mt-0">{t("backup.title")}</h2>
       <p className="form-hint">{t("backup.hint")}</p>
       <p style={{ margin: "0.75rem 0" }}>
         {last ? (
@@ -101,7 +102,7 @@ export default function BackupCard() {
       </button>
       {error && <p className="form-error">{error}</p>}
       {result && (
-        <p className="form-hint" style={{ marginTop: "0.75rem" }}>
+        <p className="form-hint mt-3">
           {t("backup.done", { rows: rowCount, tables: Object.keys(result.counts).length, mb: (result.bytes / 1048576).toFixed(2) })}
           {failed.length > 0 && <span className="form-error"> {t("backup.partial", { tables: failed.join(", ") })}</span>}
         </p>
@@ -109,9 +110,9 @@ export default function BackupCard() {
 
       {canBackupFiles && (
         <div style={{ marginTop: "1.25rem", paddingTop: "1rem", borderTop: "1px solid var(--color-border)" }}>
-          <h3 style={{ marginTop: 0 }}>{t("backup.fullTitle")}</h3>
+          <h3 className="mt-0">{t("backup.fullTitle")}</h3>
           <p className="form-hint">{t("backup.fullHint")}</p>
-          <label className="access-control__checkbox" style={{ marginBottom: "0.75rem" }}>
+          <label className="access-control__checkbox mb-3">
             <input type="checkbox" checked={includeVideos} onChange={(e) => setIncludeVideos(e.target.checked)} disabled={busy} />
             {t("backup.includeVideos")}
           </label>
@@ -140,7 +141,7 @@ export default function BackupCard() {
         </div>
       )}
 
-      <p className="form-hint" style={{ marginTop: "0.75rem" }}>{t("backup.warning")}</p>
+      <p className="form-hint mt-3">{t("backup.warning")}</p>
     </div>
   );
 }

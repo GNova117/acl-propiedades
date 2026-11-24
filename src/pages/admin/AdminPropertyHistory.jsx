@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN } from "../../lib/format";
 import "./admin.css";
+import LoadingState from "../../components/LoadingState";
 
 const FIELD_LABELS = { price: "Precio", status: "Estatus" };
 
@@ -52,7 +53,7 @@ export default function AdminPropertyHistory({ listPath = "/admin/propiedades" }
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5}>{t("common.loading")}</td></tr>
+              <tr><td colSpan={5}><LoadingState variant="rows" /></td></tr>
             ) : changes.length === 0 ? (
               <tr><td colSpan={5}>{t("propertyHistory.noResults")}</td></tr>
             ) : (

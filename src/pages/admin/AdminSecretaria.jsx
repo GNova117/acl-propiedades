@@ -3,6 +3,8 @@ import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import "./admin.css";
 import "./AdminSecretaria.css";
+import LoadingState from "../../components/LoadingState";
+import { confirmDialog, notify } from "../../lib/toast";
 
 // Bitácoras de Secretaría: (1) control de llaves y (2) entradas/salidas de
 // documentos. Es un registro interno: solo se agregan filas y, en llaves, se
@@ -65,7 +67,7 @@ export default function AdminSecretaria() {
       await fn();
       load();
     } catch (err) {
-      window.alert(err.message || "No se pudo guardar");
+      notify(err.message || "No se pudo guardar");
     } finally {
       setSaving(false);
     }
@@ -108,13 +110,13 @@ export default function AdminSecretaria() {
     });
   };
 
-  const registerReturn = (row) => {
-    const signed = window.confirm(`Llave ${row.key_label}: ¿quien la devuelve firmó la recepción?\n\nAceptar = sí firmó · Cancelar = no firmó`);
+  const registerReturn = async (row) => {
+    const signed = await confirmDialog(`Llave ${row.key_label}: ¿quien la devuelve firmó la recepción?`, { confirmLabel: "Sí firmó", cancelLabel: "No firmó" });
     run(() => db.updateSecretariaLog("keys", row.id, { returned_at: new Date().toISOString(), signed_reception: signed }));
   };
 
-  const remove = (kind, id) => {
-    if (!window.confirm("¿Borrar este registro? No se puede deshacer.")) return;
+  const remove = async (kind, id) => {
+    if (!await confirmDialog("¿Borrar este registro? No se puede deshacer.")) return;
     run(() => db.deleteSecretariaLog(kind, id));
   };
 
@@ -224,7 +226,7 @@ export default function AdminSecretaria() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={11}>Cargando…</td></tr>
+                  <tr><td colSpan={11}><LoadingState variant="rows" /></td></tr>
                 ) : visibleKeys.length === 0 ? (
                   <tr><td colSpan={11}>{keys.length === 0 ? "Aún no hay llaves registradas." : "Sin resultados."}</td></tr>
                 ) : (
@@ -290,7 +292,7 @@ export default function AdminSecretaria() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={10}>Cargando…</td></tr>
+                  <tr><td colSpan={10}><LoadingState variant="rows" /></td></tr>
                 ) : visibleDocs.length === 0 ? (
                   <tr><td colSpan={10}>{docs.length === 0 ? "Aún no hay movimientos registrados." : "Sin resultados."}</td></tr>
                 ) : (

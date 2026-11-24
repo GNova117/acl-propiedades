@@ -45,3 +45,31 @@ export async function compressImageFiles(files) {
   if (!files || files.length === 0) return [];
   return Promise.all(Array.from(files).map(compressImageFile));
 }
+
+// Copias WebP más livianas de una foto ya comprimida (ver lib/imageVariants.js). → [{ width, file }] con una por ancho, o
+// null si el navegador no puede generarlas (p. ej. no sabe codificar WebP): en ese caso la foto se sube sola, sin marca.
+// Nunca agranda: si la foto es más angosta que el ancho de la copia, la copia queda del tamaño de la foto.
+export async function makeImageVariants(file, widths = [480, 960]) {
+  if (!file?.type?.startsWith("image/")) return null;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const variants = [];
+    for (const width of widths) {
+      const scale = Math.min(1, width / bitmap.width);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", 0.8));
+      if (!blob || blob.type !== "image/webp") {
+        bitmap.close?.();
+        return null;
+      }
+      variants.push({ width, file: new File([blob], `w${width}.webp`, { type: "image/webp" }) });
+    }
+    bitmap.close?.();
+    return variants;
+  } catch {
+    return null;
+  }
+}

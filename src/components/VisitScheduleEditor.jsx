@@ -14,6 +14,7 @@ import {
   weeklyToDays,
 } from "../lib/visitSlots";
 import "./VisitScheduleEditor.css";
+import LoadingState from "./LoadingState";
 
 const NOTICE_OPTIONS = [0, 1, 2, 4, 12, 24, 48];
 const HORIZON_OPTIONS = [7, 14, 21, 30, 60];
@@ -133,7 +134,7 @@ export default function VisitScheduleEditor({ advisorId }) {
   const weekdayName = (weekday) => new Date(Date.UTC(2024, 0, weekday === 0 ? 7 : weekday, 12)).toLocaleDateString(locale, { weekday: "long", timeZone: "UTC" });
   const hasWindows = weekly.length > 0;
 
-  if (loading) return <div className="card visit-schedule">{t("common.loading")}</div>;
+  if (loading) return <div className="card visit-schedule"><LoadingState variant="lines" /></div>;
 
   return (
     <section className="card visit-schedule" aria-labelledby="visit-schedule-title">
