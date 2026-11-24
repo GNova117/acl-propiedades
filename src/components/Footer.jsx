@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import Logo from "./Logo";
 import WhatsAppIcon from "./icons/WhatsAppIcon";
 import { slugify, ZONE_LANDING_CITIES } from "../lib/zoneLandingPages";
+import { analyticsAvailable } from "../lib/analytics";
+import { openConsentPreferences } from "../lib/consent";
 import "./Footer.css";
 
 function FacebookIcon() {
@@ -96,6 +98,11 @@ export default function Footer() {
           <span>&copy; {year} ACL Propiedades. {t("footer.rights")}</span>
           <NavLink to="/aviso-de-privacidad">{t("footer.privacyLink")}</NavLink>
           <NavLink to="/carta-de-derechos">{t("footer.rightsLink")}</NavLink>
+          {analyticsAvailable && (
+            <button type="button" className="site-footer__link-button" onClick={openConsentPreferences}>
+              {t("cookieBanner.preferences")}
+            </button>
+          )}
         </div>
       </div>
     </footer>

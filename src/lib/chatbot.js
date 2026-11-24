@@ -31,7 +31,20 @@ export const CHAT_LIMITS = {
   maxTotalChars: 12000,
   sessionHourlyLimit: 30,
   dailyLimit: 500,
+  // Por IP, además del tope por sesión: el id de sesión lo genera el navegador y se rota gratis, así que solo
+  // con él un script agotaba el cupo diario de todos. Holgados a propósito: en las redes celulares muchas
+  // personas comparten una misma IP pública.
+  ipHourlyLimit: 80,
+  ipDailyLimit: 200,
 };
+
+// IP del visitante según los encabezados que pone Vercel (x-forwarded-for: la primera es la del cliente;
+// x-real-ip de respaldo). `headers` es el objeto de Node (llaves en minúsculas). Nulo si no hay una IP válida.
+export function clientIp(headers = {}) {
+  const forwarded = String(headers["x-forwarded-for"] ?? "").split(",")[0].trim();
+  const candidate = forwarded || String(headers["x-real-ip"] ?? "").trim();
+  return /^[0-9a-fA-F:.]{3,45}$/.test(candidate) ? candidate.toLowerCase() : null;
+}
 
 export function buildSystemPrompt() {
   return `Eres el asistente virtual de ACL Propiedades, una inmobiliaria en ${OFFICE_INFO.zones}. Ayudas a quien visita el sitio a encontrar propiedades y resuelves dudas generales sobre comprar, vender o rentar.

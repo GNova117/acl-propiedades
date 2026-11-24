@@ -33,7 +33,7 @@ export default function Favorites() {
 
   return (
     <>
-      <Seo title={t("favorites.title")} description={t("favorites.subtitle")} />
+      <Seo title={t("favorites.title")} description={t("favorites.subtitle")} noindex />
 
       <div className="container properties-page">
         <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>

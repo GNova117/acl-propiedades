@@ -1,3 +1,5 @@
+import { getConsent } from "./consent";
+
 // Google Analytics 4 — opcional: si VITE_GA_MEASUREMENT_ID no está
 // configurado (por ejemplo en desarrollo local o en modo demo), no se
 // carga nada, así que el tráfico de pruebas nunca contamina las
@@ -6,10 +8,21 @@
 // que valga la pena medir.
 const GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
 
+// ¿Hay analítica que pedir permiso para usar? Sin ID no hay nada que consentir y el aviso de cookies no sale.
+export const analyticsAvailable = Boolean(GA_ID);
+
 let initialized = false;
 
+// Google solo se carga con el consentimiento de la persona (aviso de cookies, ver consent.js). Si lo retira
+// después, se apaga el envío de datos con la bandera oficial `ga-disable-<ID>`.
+export function setAnalyticsConsent(granted) {
+  if (!GA_ID || typeof window === "undefined") return;
+  window[`ga-disable-${GA_ID}`] = !granted;
+}
+
 export function initAnalytics() {
-  if (!GA_ID || initialized) return;
+  if (!GA_ID || initialized || getConsent() !== "granted") return;
+  setAnalyticsConsent(true);
   initialized = true;
 
   window.dataLayer = window.dataLayer || [];
@@ -28,9 +41,23 @@ export function initAnalytics() {
   document.head.appendChild(script);
 }
 
+// Rutas cuyo último segmento es un token que da acceso a algo de una persona (darse de baja de alertas). Nunca
+// deben llegar a Google Analytics: se reporta la ruta sin el token. (Las demás páginas con token —informe,
+// firma, documentos, visita, selección— no pasan por el sitio público, así que ni siquiera se miden.)
+const TOKEN_ROUTES = [/^(\/alertas\/baja)\/[^/]+/];
+
+export function redactAnalyticsPath(path) {
+  for (const pattern of TOKEN_ROUTES) {
+    if (pattern.test(path)) return path.replace(pattern, "$1/:token");
+  }
+  return path;
+}
+
 export function trackPageview(path) {
   if (!GA_ID || typeof window.gtag !== "function") return;
-  window.gtag("event", "page_view", { page_path: path });
+  const safePath = redactAnalyticsPath(path);
+  // page_location también va explícito: si no, GA lo toma de la barra de direcciones y se llevaría el token.
+  window.gtag("event", "page_view", { page_path: safePath, page_location: `${window.location.origin}${safePath}` });
 }
 
 // Usado por ErrorBoundary.jsx — si GA nunca se inicializó (modo demo,

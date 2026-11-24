@@ -17,6 +17,7 @@ import PropertyVideo from "../components/PropertyVideo";
 import AlertSignupCard from "../components/AlertSignupCard";
 import RecentlyViewed from "../components/RecentlyViewed";
 import RecentViewsBadge from "../components/RecentViewsBadge";
+import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/dataStore";
 import { recordPropertyView } from "../lib/recentlyViewed";
 import { buildSimilarCriteria } from "../lib/alertMatch";
@@ -184,6 +185,7 @@ function buildFaq(property, t) {
 export default function PropertyDetail() {
   const { id } = useParams();
   const { t } = useTranslation();
+  const { isAuthenticated } = useAuth();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [similar, setSimilar] = useState([]);
@@ -307,9 +309,12 @@ export default function PropertyDetail() {
   const priceDrop = badge?.kind === "priceDrop" ? badge : null;
   const monthly = estimateMonthlyPayment(property);
 
-  if (!property) {
+  // Una propiedad desactivada (borrador) solo la ve el personal con sesión; para cualquier otra persona es como
+  // si no existiera. En Supabase la base ya no la entrega (ver schema.sql); esto cubre el modo demostración.
+  if (!property || (property.active === false && !isAuthenticated)) {
     return (
       <div className="empty-state">
+        <Seo title={t("detail.notFound")} noindex />
         <p>{t("detail.notFound")}</p>
         <Link to="/propiedades" className="btn btn-primary">{t("detail.back")}</Link>
       </div>
@@ -318,7 +323,7 @@ export default function PropertyDetail() {
 
   return (
     <>
-      <Seo title={seoTitle} description={seoDescription} image={property.main_image} jsonLd={jsonLd} />
+      <Seo title={seoTitle} description={seoDescription} image={property.main_image} jsonLd={jsonLd} noindex={property.active === false} />
 
       <div className="container property-detail">
         <Link to="/propiedades" className="property-detail__back">

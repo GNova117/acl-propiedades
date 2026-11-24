@@ -7,6 +7,7 @@ import {
   validateIncomingMessages,
   validateLeadArgs,
   whatsappHref,
+  clientIp,
 } from "./chatbot";
 
 describe("buildSystemPrompt", () => {
@@ -162,5 +163,21 @@ describe("buildWhatsappHandoffMessage", () => {
     expect(msg.length).toBeLessThan(900);
     expect(msg).toContain("mensaje número 29");
     expect(msg).not.toContain("mensaje número 0 ");
+  });
+});
+
+describe("clientIp", () => {
+  it("toma la primera IP de x-forwarded-for", () => {
+    expect(clientIp({ "x-forwarded-for": "187.190.1.2, 76.76.21.21" })).toBe("187.190.1.2");
+  });
+
+  it("usa x-real-ip si no hay x-forwarded-for y acepta IPv6", () => {
+    expect(clientIp({ "x-real-ip": "2806:2f0:1::ABCD" })).toBe("2806:2f0:1::abcd");
+  });
+
+  it("devuelve nulo sin encabezados o con basura", () => {
+    expect(clientIp({})).toBeNull();
+    expect(clientIp()).toBeNull();
+    expect(clientIp({ "x-forwarded-for": "no es una ip; drop table" })).toBeNull();
   });
 });

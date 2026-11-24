@@ -62,7 +62,17 @@ async function runTool(toolUse, { searchProperties, onLead }) {
     if (!lead) {
       return { type: "tool_result", tool_use_id: toolUse.id, content: "Falta un dato de contacto válido (teléfono o correo).", is_error: true };
     }
-    await onLead(lead);
+    try {
+      await onLead(lead);
+    } catch {
+      // No se guardó: el modelo debe saberlo para no prometer un seguimiento que no va a existir.
+      return {
+        type: "tool_result",
+        tool_use_id: toolUse.id,
+        content: "No se pudo registrar en este momento. NO le digas que quedó registrado: pídele que escriba por WhatsApp a la oficina.",
+        is_error: true,
+      };
+    }
     return { type: "tool_result", tool_use_id: toolUse.id, content: "Listo, ya quedó registrado. Un asesor le dará seguimiento pronto.", leadCaptured: true };
   }
   return { type: "tool_result", tool_use_id: toolUse.id, content: "Esa herramienta no existe.", is_error: true };

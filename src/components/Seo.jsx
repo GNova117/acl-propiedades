@@ -17,6 +17,7 @@ const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1600585154340-be6161a56
 // ficha anterior al navegar dentro de la SPA (el resto del contenido de
 // esta etiqueta sí puede quedar "viejo" un instante sin problema, pero
 // JSON-LD cambia de forma entre páginas, no solo de contenido).
+// `noindex`: marca la página como no indexable (ver el efecto de abajo); se quita sola al salir de ella.
 // `image`: opcional — si no se manda, se usa DEFAULT_IMAGE. Estas
 // etiquetas ayudan a cualquier consumidor que sí ejecute JavaScript
 // (Google, un navegador con vista previa propia); WhatsApp/Facebook NO lo
@@ -36,7 +37,7 @@ function upsertMeta(attr, key, content) {
   tag.setAttribute("content", content);
 }
 
-export default function Seo({ title, description, image, jsonLd }) {
+export default function Seo({ title, description, image, jsonLd, noindex = false }) {
   useEffect(() => {
     const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
     document.title = fullTitle;
@@ -64,6 +65,21 @@ export default function Seo({ title, description, image, jsonLd }) {
     upsertMeta("name", "twitter:description", description);
     upsertMeta("name", "twitter:image", resolvedImage);
 
+    // Páginas que no deben aparecer en Google (404, listas personales, fichas desactivadas, enlaces con token).
+    // Se marca con data-seo para quitar solo esta etiqueta y no las que ponen a mano otras páginas privadas.
+    let robots = document.querySelector('meta[data-seo="robots"]');
+    if (noindex) {
+      if (!robots) {
+        robots = document.createElement("meta");
+        robots.setAttribute("name", "robots");
+        robots.setAttribute("data-seo", "robots");
+        document.head.appendChild(robots);
+      }
+      robots.setAttribute("content", "noindex, nofollow");
+    } else if (robots) {
+      robots.remove();
+    }
+
     let script = document.querySelector("script#seo-jsonld");
     if (jsonLd) {
       if (!script) {
@@ -76,7 +92,7 @@ export default function Seo({ title, description, image, jsonLd }) {
     } else if (script) {
       script.remove();
     }
-  }, [title, description, image, jsonLd]);
+  }, [title, description, image, jsonLd, noindex]);
 
   return null;
 }

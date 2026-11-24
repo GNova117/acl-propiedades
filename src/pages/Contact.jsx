@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import ContactForm from "../components/ContactForm";
@@ -14,6 +15,8 @@ const OFFICE_EMAIL = "inmobiliaria@aclpropiedades.com";
 
 export default function Contact() {
   const { t } = useTranslation();
+  // El mapa de Google no se descarga hasta que la persona lo pide: al cargarlo Google recibe su IP y pone cookies.
+  const [showMap, setShowMap] = useState(false);
 
   return (
     <>
@@ -48,15 +51,23 @@ export default function Contact() {
               <p className="contact-page__hours">{t("about.hours2")}</p>
             </div>
             <div className="contact-page__map">
-              <iframe
-                title="Ubicación ACL Propiedades"
-                width="100%"
-                height="100%"
-                style={{ border: 0, borderRadius: "var(--radius-md)" }}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                src="https://www.google.com/maps?q=ACL+Propiedades,+Torre%C3%B3n,+Coahuila&z=16&output=embed"
-              />
+              {showMap ? (
+                <iframe
+                  title="Ubicación ACL Propiedades"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0, borderRadius: "var(--radius-md)" }}
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src="https://www.google.com/maps?q=ACL+Propiedades,+Torre%C3%B3n,+Coahuila&z=16&output=embed"
+                />
+              ) : (
+                <div className="contact-page__map-placeholder card">
+                  <button type="button" className="btn btn-primary" onClick={() => setShowMap(true)}>
+                    {t("contact.showMap")}
+                  </button>
+                  <p className="form-hint">{t("contact.mapNotice")}</p>
+                </div>
+              )}
             </div>
             <p className="contact-page__address">
               Plaza San Luciano, Blvd. Independencia 2600-Local 16, Estrella, 27010 Torreón, Coah.

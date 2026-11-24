@@ -44,7 +44,7 @@ export default function Compare() {
 
   return (
     <>
-      <Seo title={t("compare.title")} description={t("compare.subtitle")} />
+      <Seo title={t("compare.title")} description={t("compare.subtitle")} noindex />
 
       <div className="container properties-page">
         <div className="section-heading" style={{ margin: "2.5rem auto 2rem" }}>

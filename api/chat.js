@@ -8,8 +8,9 @@
 //  3. chat_rate_limits (misma llave de servicio) limita abuso: por sesión de
 //     chat (un UUID que genera el navegador) y en total por día.
 // La llave ANTHROPIC_API_KEY vive solo en las variables de entorno de Vercel.
+import { createHmac } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { CHAT_LIMITS, validateIncomingMessages } from "../src/lib/chatbot.js";
+import { CHAT_LIMITS, clientIp, validateIncomingMessages } from "../src/lib/chatbot.js";
 import { ChatbotError, DEFAULT_MODEL, runChat } from "../server/chatbot.js";
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -91,9 +92,29 @@ export default async function handler(req, res) {
     res.status(429).json({ error: "rate_limited" });
     return;
   }
+
+  // Tope por IP (guardada como huella con la llave de servicio, no en claro): rotar el id de sesión no basta
+  // para agotar el cupo de todos. Si la columna ip_hash aún no existe (falta correr el SQL), este tope se
+  // omite y todo sigue como antes.
+  const ip = clientIp(req.headers);
+  const ipHash = ip ? createHmac("sha256", serviceKey).update(ip).digest("hex") : null;
+  if (ipHash) {
+    const ipHourlyLimit = Number(process.env.CHAT_IP_HOURLY_LIMIT) || CHAT_LIMITS.ipHourlyLimit;
+    const ipDailyLimit = Number(process.env.CHAT_IP_DAILY_LIMIT) || CHAT_LIMITS.ipDailyLimit;
+    const [{ count: ipHourly, error: ipHourlyErr }, { count: ipDaily, error: ipDailyErr }] = await Promise.all([
+      service.from("chat_rate_limits").select("id", { count: "exact", head: true }).eq("ip_hash", ipHash).gte("created_at", hourAgo),
+      service.from("chat_rate_limits").select("id", { count: "exact", head: true }).eq("ip_hash", ipHash).gte("created_at", dayAgo),
+    ]);
+    if (!ipHourlyErr && !ipDailyErr && ((ipHourly ?? 0) >= ipHourlyLimit || (ipDaily ?? 0) >= ipDailyLimit)) {
+      res.status(429).json({ error: "rate_limited" });
+      return;
+    }
+  }
+
   // Se cuenta el intento aunque la respuesta falle más abajo: es justo lo
   // que este límite debe frenar (y evita pagar dos veces el conteo).
-  await service.from("chat_rate_limits").insert({ session_id: sessionId });
+  const { error: logError } = await service.from("chat_rate_limits").insert({ session_id: sessionId, ip_hash: ipHash });
+  if (logError) await service.from("chat_rate_limits").insert({ session_id: sessionId }); // sin la columna ip_hash todavía
 
   const searchProperties = async (args) => {
     let query = anon.from("properties").select("code, title, price, zone, bedrooms, area_m2, type, operation_type").eq("active", true).limit(MAX_PROPERTIES_FETCHED);
@@ -108,7 +129,7 @@ export default async function handler(req, res) {
   };
 
   const onLead = async (lead) => {
-    await service.from("prospectos").insert({
+    const { error } = await service.from("prospectos").insert({
       name: lead.name,
       phone: lead.phone,
       email: lead.email,
@@ -117,6 +138,9 @@ export default async function handler(req, res) {
       looking_for: lead.interest,
       created_by: "chatbot",
     });
+    // Si no se guardó, que falle la herramienta: el modelo recibe el error y NO le dice a la persona "ya quedó
+    // registrado" cuando el prospecto se perdió (ver runTool en server/chatbot.js).
+    if (error) throw new Error("No se pudo guardar el prospecto");
   };
 
   try {
@@ -127,6 +151,9 @@ export default async function handler(req, res) {
     res.status(200).json({ configured: true, reply: result.reply, leadCaptured: result.leadCaptured });
   } catch (err) {
     const code = err instanceof ChatbotError ? err.code : "upstream";
-    res.status(HTTP_STATUS_BY_CODE[code] || 502).json({ error: code, message: err.message });
+    // El detalle del proveedor (llave, cuotas, mensajes de Anthropic) se queda en los registros del servidor;
+    // al visitante solo le llega un código genérico.
+    console.error("chat", code, err?.message);
+    res.status(HTTP_STATUS_BY_CODE[code] || 502).json({ error: code });
   }
 }

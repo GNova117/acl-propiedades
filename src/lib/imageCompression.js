@@ -8,6 +8,8 @@
 // comprimir ahí perjudicaría la legibilidad) y adjuntos de Agenda (pueden
 // ser PDFs, no siempre imágenes); por eso se llama explícitamente solo en
 // los puntos que sí son fotos de exhibición pública.
+// Límite: si el navegador no puede decodificar la foto (HEIC fuera de Safari, archivo dañado) se sube tal cual,
+// con sus metadatos; en la práctica el panel pide fotos JPEG/PNG/WebP, que sí se reescalan.
 const MAX_DIMENSION = 1920;
 const JPEG_QUALITY = 0.82;
 
@@ -27,7 +29,10 @@ export async function compressImageFile(file) {
     bitmap.close?.();
 
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY));
-    if (!blob || blob.size >= file.size) return file;
+    // Se devuelve SIEMPRE la versión reescalada, aunque no pese menos que el original: al pasar por el canvas se
+    // pierden los metadatos EXIF (ubicación GPS, modelo del teléfono, fecha), que no deben publicarse en la
+    // ficha de una propiedad. Quedarse con el original por pesar menos los dejaba pegados a la foto.
+    if (!blob) return file;
 
     const newName = file.name.replace(/\.[^.]+$/, "") + ".jpg";
     return new File([blob], newName, { type: "image/jpeg" });

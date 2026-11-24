@@ -110,3 +110,16 @@
     grid-template-columns: 1fr;
   }
 }
+
+.site-footer__link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #93a1b8;
+  font: inherit;
+  cursor: pointer;
+}
+
+.site-footer__link-button:hover {
+  color: #ffffff;
+}

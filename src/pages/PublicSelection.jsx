@@ -70,7 +70,7 @@ export default function PublicSelection() {
           return;
         }
         const [advisor, found] = await Promise.all([
-          selection.advisor_id ? db.getAdvisorById(selection.advisor_id).catch(() => null) : null,
+          selection.advisor_id ? db.getSelectionAdvisor(token).catch(() => null) : null,
           Promise.all((selection.property_ids || []).map((id) => db.getPropertyById(id).catch(() => null))),
         ]);
         if (!cancelled) setResult({ token, status: selection.status, selection, advisor, properties: found.filter(Boolean) });

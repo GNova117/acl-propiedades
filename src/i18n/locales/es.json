@@ -361,7 +361,9 @@
     "required": "Este campo es obligatorio",
     "invalidEmail": "Correo electrónico no válido",
     "privacyNotice": "Al enviar este formulario, tus datos serán tratados conforme a nuestro",
-    "privacyLinkLabel": "Aviso de Privacidad"
+    "privacyLinkLabel": "Aviso de Privacidad",
+    "showMap": "Ver mapa",
+    "mapNotice": "El mapa lo ofrece Google y, al verlo, Google recibe tu dirección IP."
   },
   "messages": {
     "via_alerta": "Pidió avisos por WhatsApp",
@@ -3189,10 +3191,18 @@
     "saveError": "Error al guardar la nota",
     "deleteError": "Error al eliminar la nota"
   },
+  "cookieBanner": {
+    "title": "Tu privacidad",
+    "text": "Usamos Google Analytics para medir cómo se usa el sitio y mejorarlo. Solo se carga si lo aceptas.",
+    "privacy": "Aviso de Privacidad",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "preferences": "Preferencias de cookies"
+  },
   "privacy": {
     "title": "Aviso de Privacidad",
     "intro": "ACL Propiedades es responsable del tratamiento de tus datos personales conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) y a la NOM-247-SE-2021.",
-    "updated": "Última actualización: septiembre de 2026",
+    "updated": "Última actualización: noviembre de 2026",
     "sections": [
       {
         "title": "Responsable del tratamiento",
@@ -3200,7 +3210,7 @@
       },
       {
         "title": "Datos personales que recabamos",
-        "body": "A través del formulario de contacto de este sitio recabamos tu nombre, correo electrónico, teléfono y el contenido del mensaje que decidas compartir. Si más adelante inicias un proceso de compra, venta, renta o asesoría con uno de nuestros asesores, podríamos solicitarte datos adicionales necesarios para ese trámite; esos datos se recaban directamente por el asesor, no a través de este sitio web."
+        "body": "A través de este sitio recabamos los datos que tú decides compartir: nombre, correo electrónico, teléfono o WhatsApp y el contenido de tu mensaje, ya sea en el formulario de contacto, al solicitar o agendar una visita, al pedir la estimación del valor de tu propiedad, al usar el comparador de créditos, al descargar la guía del comprador o al suscribirte a avisos de propiedades nuevas o de baja de precio. También conversas con nuestro asistente virtual (ver sección correspondiente) y, solo si lo aceptas, medimos el uso del sitio con Google Analytics. Si más adelante inicias un proceso de compra, venta, renta o asesoría con uno de nuestros asesores, podríamos solicitarte datos adicionales necesarios para ese trámite; esos datos se recaban directamente por el asesor, no a través de este sitio web, salvo que uses el portal de documentos descrito más abajo."
       },
       {
         "title": "Finalidades del tratamiento",
@@ -3208,7 +3218,7 @@
       },
       {
         "title": "Transferencia de datos",
-        "body": "No compartimos, vendemos ni transferimos tus datos personales a terceros, salvo que sea necesario para cumplir con una obligación legal o un requerimiento de autoridad competente."
+        "body": "No vendemos tus datos personales. Para operar este sitio nos apoyamos en proveedores que tratan datos por cuenta de ACL Propiedades y solo para ese fin: alojamiento del sitio y base de datos (Vercel y Supabase), envío de correos (Resend), mensajes de WhatsApp (Meta), el asistente virtual (Anthropic) y, si lo aceptas, medición de uso (Google Analytics). Algunos de estos proveedores pueden almacenar o procesar información en servidores ubicados fuera de México. Fuera de esos casos, solo compartimos tus datos con terceros si es necesario para cumplir con una obligación legal o un requerimiento de autoridad competente."
       },
       {
         "title": "Derechos ARCO",
@@ -3216,11 +3226,19 @@
       },
       {
         "title": "Cookies y tecnologías de rastreo",
-        "body": "Usamos Google Analytics para entender cómo se usa el sitio (páginas visitadas, tiempo de permanencia, origen del tráfico); esto implica que cierta información de tu navegación se comparte con Google. No usamos cookies con fines publicitarios ni vendemos tu información de navegación a terceros. También usamos el almacenamiento local de tu navegador para recordar tu preferencia de idioma y de apariencia (modo claro/oscuro)."
+        "body": "Usamos Google Analytics para entender cómo se usa el sitio (páginas visitadas, tiempo de permanencia, origen del tráfico) solo si lo aceptas en el aviso de cookies que aparece al entrar; si lo rechazas, no se carga. Puedes cambiar tu decisión en cualquier momento desde «Preferencias de cookies», al pie de la página. Si lo aceptas, cierta información de tu navegación se comparte con Google. No usamos cookies con fines publicitarios ni vendemos tu información de navegación a terceros. También usamos el almacenamiento local de tu navegador para recordar tus preferencias (idioma, apariencia, favoritos, propiedades vistas) y un identificador anónimo para contar cuántas personas vieron una propiedad. Los mapas de Google (por ejemplo, en Contacto) solo se cargan cuando pulsas «Ver mapa»; los mapas de propiedades usan mosaicos de OpenStreetMap, que reciben tu dirección IP al cargarse."
       },
       {
         "title": "Portal de documentos (Constancia Fiscal y Acta de Nacimiento)",
         "body": "Si usas nuestro portal de documentos (/documentos/<enlace>) para subir tu Constancia de Situación Fiscal o tu Acta de Nacimiento, tratamos los datos que esos documentos contienen (RFC, CURP, nombre, domicilio fiscal, fecha de nacimiento) únicamente para el trámite por el que tu asesor te compartió el enlace. Los archivos se guardan cifrados en un almacenamiento privado, solo el personal autorizado de ACL Propiedades puede verlos mediante enlaces firmados y con vigencia limitada, y nunca te pedimos ni guardamos tu contraseña del SAT, tu e.firma ni tu CIEC — tú descargas esos documentos directamente del sitio oficial correspondiente. Conservamos estos documentos mientras dure tu trámite y, en adelante, conforme a la política de retención vigente de ACL Propiedades; puedes solicitar su eliminación anticipada ejerciendo tus derechos ARCO."
+      },
+      {
+        "title": "Asistente virtual (chat)",
+        "body": "El chat del sitio es un asistente con inteligencia artificial: el texto que escribes se envía a un proveedor externo (Anthropic) para generar la respuesta, y ninguna persona lo lee en ese momento. No escribas en él datos sensibles (contraseñas, datos bancarios, CURP, etc.). Si le compartes tu nombre y tu teléfono o correo para que te contacte un asesor, los guardamos como un prospecto de ACL Propiedades. La conversación se conserva solo en tu navegador mientras la pestaña esté abierta; en nuestro servidor únicamente registramos que se hizo una consulta (sin su contenido y con una huella cifrada de tu dirección IP) para limitar abusos."
+      },
+      {
+        "title": "Firma electrónica de documentos",
+        "body": "Si firmas un documento a través de un enlace de firma de ACL Propiedades, guardamos tu nombre, el trazo de tu firma, la fecha y hora, la dirección IP desde la que firmas y una huella digital (hash) del documento, para poder acreditar que lo firmado es lo mismo que revisaste. Conservamos el documento firmado mientras dure la relación contigo y durante los plazos que exijan las leyes aplicables."
       },
       {
         "title": "Cambios a este aviso",

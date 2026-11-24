@@ -361,7 +361,9 @@
     "required": "This field is required",
     "invalidEmail": "Invalid email address",
     "privacyNotice": "By submitting this form, your data will be handled according to our",
-    "privacyLinkLabel": "Privacy Notice"
+    "privacyLinkLabel": "Privacy Notice",
+    "showMap": "Show map",
+    "mapNotice": "The map is provided by Google, which receives your IP address when you view it."
   },
   "messages": {
     "via_alerta": "Asked for WhatsApp alerts",
@@ -3189,10 +3191,18 @@
     "saveError": "Error saving the note",
     "deleteError": "Error deleting the note"
   },
+  "cookieBanner": {
+    "title": "Your privacy",
+    "text": "We use Google Analytics to measure how the site is used and improve it. It only loads if you accept.",
+    "privacy": "Privacy Notice",
+    "accept": "Accept",
+    "reject": "Decline",
+    "preferences": "Cookie preferences"
+  },
   "privacy": {
     "title": "Privacy Notice",
     "intro": "ACL Propiedades is responsible for processing your personal data in accordance with Mexico's Federal Law on Protection of Personal Data Held by Private Parties (LFPDPPP) and NOM-247-SE-2021.",
-    "updated": "Last updated: September 2026",
+    "updated": "Last updated: November 2026",
     "sections": [
       {
         "title": "Data controller",
@@ -3200,7 +3210,7 @@
       },
       {
         "title": "Personal data we collect",
-        "body": "Through this site's contact form we collect your name, email address, phone number, and the content of the message you choose to share. If you later start a purchase, sale, rental or advisory process with one of our advisors, we may request additional data needed for that process; that data is collected directly by the advisor, not through this website."
+        "body": "Through this site we collect the data you choose to share: name, email, phone or WhatsApp number and the content of your message, whether in the contact form, when requesting or scheduling a visit, when asking for an estimate of your property's value, when using the credit comparison tool, when downloading the buyer's guide or when subscribing to alerts for new listings or price drops. You may also chat with our virtual assistant (see the corresponding section) and, only if you accept, we measure site usage with Google Analytics. If you later start a purchase, sale, rental or advisory process with one of our advisors, we may ask for additional data needed for that process; that data is collected directly by the advisor, not through this website, unless you use the document portal described below."
       },
       {
         "title": "Purposes of processing",
@@ -3208,7 +3218,7 @@
       },
       {
         "title": "Data transfers",
-        "body": "We do not share, sell, or transfer your personal data to third parties, except when necessary to comply with a legal obligation or a request from a competent authority."
+        "body": "We do not sell your personal data. To operate this site we rely on providers that process data on behalf of ACL Propiedades and only for that purpose: site hosting and database (Vercel and Supabase), email delivery (Resend), WhatsApp messages (Meta), the virtual assistant (Anthropic) and, if you accept, usage measurement (Google Analytics). Some of these providers may store or process information on servers located outside Mexico. Beyond those cases, we only share your data with third parties when necessary to comply with a legal obligation or a request from a competent authority."
       },
       {
         "title": "ARCO rights",
@@ -3216,11 +3226,19 @@
       },
       {
         "title": "Cookies and tracking technologies",
-        "body": "We use Google Analytics to understand how the site is used (pages visited, time on site, traffic sources); this means some of your browsing information is shared with Google. We do not use cookies for advertising purposes or sell your browsing information to third parties. We also use your browser's local storage to remember your language and appearance (light/dark mode) preferences."
+        "body": "We use Google Analytics to understand how the site is used (pages visited, time on site, traffic source) only if you accept it in the cookie notice shown when you arrive; if you decline, it is not loaded. You can change your decision at any time from \"Cookie preferences\" at the bottom of the page. If you accept, some of your browsing information is shared with Google. We do not use advertising cookies or sell your browsing information to third parties. We also use your browser's local storage to remember your preferences (language, appearance, favorites, viewed properties) and an anonymous identifier to count how many people viewed a listing. Google Maps (for example, on the Contact page) only loads when you click \"Show map\"; property maps use OpenStreetMap tiles, which receive your IP address when they load."
       },
       {
         "title": "Document portal (Tax Certificate and Birth Certificate)",
         "body": "If you use our document portal (/documentos/<link>) to upload your Tax Status Certificate or your Birth Certificate, we process the data contained in those documents (RFC, CURP, name, tax address, date of birth) solely for the transaction your advisor shared the link for. Files are stored encrypted in private storage, only authorized ACL Propiedades staff can view them through signed, time-limited links, and we never ask for or store your SAT password, e.firma, or CIEC — you download those documents directly from the corresponding official site. We keep these documents while your transaction is active and afterward under ACL Propiedades' current retention policy; you may request their early deletion by exercising your ARCO rights."
+      },
+      {
+        "title": "Virtual assistant (chat)",
+        "body": "The site's chat is an artificial intelligence assistant: the text you type is sent to an external provider (Anthropic) to generate the reply, and no person reads it at that moment. Do not enter sensitive data in it (passwords, bank details, CURP, etc.). If you share your name and phone or email so an advisor can contact you, we store them as an ACL Propiedades lead. The conversation is kept only in your browser while the tab is open; on our server we only record that a query was made (without its content and with an encrypted fingerprint of your IP address) to limit abuse."
+      },
+      {
+        "title": "Electronic document signing",
+        "body": "If you sign a document through an ACL Propiedades signing link, we store your name, your signature stroke, the date and time, the IP address you sign from and a digital fingerprint (hash) of the document, so we can show that what was signed is the same document you reviewed. We keep the signed document for as long as our relationship lasts and for the periods required by applicable law."
       },
       {
         "title": "Changes to this notice",

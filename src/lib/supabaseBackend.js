@@ -114,7 +114,22 @@ function mapPropertyRow(row) {
   };
 }
 
-const PROPERTY_SELECT = "*, property_advisors(advisor_id, advisors(*))";
+// Del asesor, el público solo puede leer estas columnas (ver schema.sql, bloque "Seguridad: lectura pública
+// mínima"): teléfono, correo y WhatsApp salen por team_advisors() y selection_advisor(). El personal con sesión
+// sí ve todo — el panel usa el teléfono del asesor (ficha en PDF, enviar propiedad, mensajes).
+const PUBLIC_ADVISOR_COLUMNS = "id, name, photo_url, bio, active, show_in_team, created_at";
+const PROPERTY_SELECT_STAFF = "*, property_advisors(advisor_id, advisors(*))";
+const PROPERTY_SELECT_PUBLIC = `*, property_advisors(advisor_id, advisors(${PUBLIC_ADVISOR_COLUMNS}))`;
+
+// getSession() lee la sesión guardada en el navegador (sin red), así que es barato pedirla en cada consulta.
+async function hasStaffSession() {
+  const { data } = await supabase.auth.getSession();
+  return Boolean(data?.session);
+}
+
+async function propertySelect() {
+  return (await hasStaffSession()) ? PROPERTY_SELECT_STAFF : PROPERTY_SELECT_PUBLIC;
+}
 
 const PROPERTY_SORTERS = {
   newest: [["created_at", false], ["id", true]],
@@ -185,7 +200,7 @@ export const supabaseBackend = {
   // (vía el header Content-Range), sin una segunda ida y vuelta.
   async getProperties(filters = {}) {
     const paginated = filters.pageSize != null;
-    let query = supabase.from("properties").select(PROPERTY_SELECT, paginated ? { count: "exact" } : undefined);
+    let query = supabase.from("properties").select(await propertySelect(), paginated ? { count: "exact" } : undefined);
     if (filters.activeOnly) query = query.eq("active", true);
     if (filters.type) query = query.eq("type", filters.type);
     else if (filters.types) query = query.in("type", filters.types);
@@ -214,14 +229,14 @@ export const supabaseBackend = {
   },
 
   async getPropertyById(id) {
-    const { data, error } = await supabase.from("properties").select(PROPERTY_SELECT).eq("id", id).maybeSingle();
+    const { data, error } = await supabase.from("properties").select(await propertySelect()).eq("id", id).maybeSingle();
     if (error) throw error;
     return data ? mapPropertyRow(data) : null;
   },
 
   async getPropertyByCode(code) {
     const normalized = code.trim().toUpperCase();
-    const { data, error } = await supabase.from("properties").select(PROPERTY_SELECT).eq("code", normalized).maybeSingle();
+    const { data, error } = await supabase.from("properties").select(await propertySelect()).eq("code", normalized).maybeSingle();
     if (error) throw error;
     return data ? mapPropertyRow(data) : null;
   },
@@ -408,16 +423,33 @@ export const supabaseBackend = {
     return data || [];
   },
 
+  // Con sesión del personal: todos los asesores con todos sus datos. Sin sesión (/nosotros): solo el equipo
+  // publicado (activo y con show_in_team), con el contacto que cada quien decidió mostrar ahí.
   async getAdvisors() {
-    const { data, error } = await supabase.from("advisors").select("*").order("name");
+    if (await hasStaffSession()) {
+      const { data, error } = await supabase.from("advisors").select("*").order("name");
+      if (error) throw error;
+      return data || [];
+    }
+    const { data, error } = await supabase.rpc("team_advisors");
     if (error) throw error;
-    return data || [];
+    return (data || []).map((advisor) => ({ ...advisor, active: true, show_in_team: true }));
   },
 
   async getAdvisorById(id) {
-    const { data, error } = await supabase.from("advisors").select("*").eq("id", id).maybeSingle();
+    const columns = (await hasStaffSession()) ? "*" : PUBLIC_ADVISOR_COLUMNS;
+    const { data, error } = await supabase.from("advisors").select(columns).eq("id", id).maybeSingle();
     if (error) throw error;
     return data;
+  },
+
+  // Asesor que mandó la selección, con el teléfono y WhatsApp que se le muestran a quien tiene el enlace (la
+  // función solo responde con un token que existe, aunque la selección ya haya vencido). Nulo si el enlace no
+  // sirve o el asesor ya no está activo.
+  async getSelectionAdvisor(token) {
+    const { data, error } = await supabase.rpc("selection_advisor", { p_token: token });
+    if (error) throw error;
+    return data || null;
   },
 
   async addAdvisor(data) {

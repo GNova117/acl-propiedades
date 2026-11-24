@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Header from "./components/Header";
@@ -12,7 +12,9 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import SeasonalGarland from "./components/SeasonalGarland";
 import SeasonalParticles from "./components/SeasonalParticles";
 import { SPECIAL_SECTION_TYPES } from "./lib/format";
-import { initAnalytics, trackPageview } from "./lib/analytics";
+import CookieBanner from "./components/CookieBanner";
+import { initAnalytics, setAnalyticsConsent, trackPageview } from "./lib/analytics";
+import { getConsent, subscribeConsent } from "./lib/consent";
 
 // Cada página pública en su propio chunk: quien entra a /calculadora no
 // descarga el código de /blog, etc. Home se queda eager porque es la
@@ -127,8 +129,16 @@ function PublicLayout({ children }) {
   // contenido de entrada, pero cambiar solo un filtro (?tipo=casa) en la
   // misma página no — eso ya lo maneja cada página por su cuenta.
   const { pathname } = useLocation();
+  // Google Analytics solo corre si la persona lo aceptó en el aviso de cookies (CookieBanner).
+  const [consent, setConsentState] = useState(getConsent);
+
+  useEffect(() => subscribeConsent(setConsentState), []);
 
   useEffect(() => {
+    if (consent !== "granted") {
+      if (consent === "denied") setAnalyticsConsent(false);
+      return;
+    }
     // initAnalytics() se llama aquí (no en main.jsx) y no en AdminLayout —
     // así el script de GA nunca se carga si alguien entra directo a
     // /admin sin pasar por una página pública en la misma visita. Es
@@ -136,7 +146,7 @@ function PublicLayout({ children }) {
     // cada cambio de ruta no reinicia nada.
     initAnalytics();
     trackPageview(pathname);
-  }, [pathname]);
+  }, [pathname, consent]);
 
   return (
     <>
@@ -148,6 +158,7 @@ function PublicLayout({ children }) {
       </main>
       <Footer />
       <ChatWidget />
+      <CookieBanner />
     </>
   );
 }

@@ -43,6 +43,7 @@ export default function BlogPost() {
   if (!post) {
     return (
       <div className="empty-state">
+        <Seo title={t("blog.notFound")} noindex />
         <p>{t("blog.notFound")}</p>
         <Link to="/blog" className="btn btn-primary">{t("blog.back")}</Link>
       </div>
