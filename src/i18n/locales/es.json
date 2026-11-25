@@ -167,13 +167,14 @@
   "propertyStatus": {
     "disponible": "Disponible",
     "apartada": "Apartada",
-    "vendida": "Vendida"
+    "vendida": "Vendida",
+    "rentada": "Rentada"
   },
   "properties": {
     "statusFilter": "Estatus",
     "statusDefault": "Disponibles y apartadas",
     "statusOnlyAvailable": "Solo disponibles",
-    "statusAll": "Incluir vendidas",
+    "statusAll": "Incluir vendidas y rentadas",
     "title": "Propiedades disponibles",
     "subtitle": "Filtra por tipo, zona, precio y superficie para encontrar tu propiedad ideal.",
     "industrialTitle": "Naves industriales disponibles",
@@ -246,6 +247,8 @@
     "coloniesTitle": "Colonias de {{city}} con propiedades"
   },
   "detail": {
+    "codeLabel": "Código",
+    "rentedTitle": "Esta propiedad ya se rentó",
     "soldTitle": "Esta propiedad ya se vendió",
     "soldText": "Ya no se pueden agendar visitas. Mira otras propiedades parecidas o déjanos tus datos más abajo para avisarte de algo similar.",
     "soldCta": "Ver propiedades disponibles",
@@ -816,6 +819,12 @@
     }
   },
   "admin": {
+    "notFound": {
+      "title": "Esta pantalla no existe",
+      "text": "La dirección no corresponde a ninguna pantalla del panel. Puede que el enlace esté viejo.",
+      "back": "Ir al panel"
+    },
+    "tabSuffix": "Panel ACL",
     "loginTitle": "Acceso administrador",
     "email": "Correo",
     "password": "Contraseña",
@@ -2630,6 +2639,7 @@
       "badImage": "No se pudo leer esa imagen."
     },
     "public": {
+      "tabTitle": "Firma de documento",
       "title": "Firma de documento",
       "codeIntro": "Vas a revisar y firmar «{{title}}». Escribe el código de 6 dígitos que te dio tu asesor.",
       "codeLabel": "Código",

@@ -25,7 +25,11 @@ export const propertiesMethods = {
     if (filters.operation_type) query = query.eq("operation_type", filters.operation_type);
     if (filters.statuses?.length) query = query.in("status", filters.statuses);
     if (filters.tipo_nave) query = query.eq("tipo_nave", filters.tipo_nave);
-    if (filters.zone) query = query.eq("zone", filters.zone);
+    if (filters.zone) {
+      // Colonia exacta (páginas de aterrizaje) o parte del nombre, sin importar mayúsculas (lo que se escribe en el filtro).
+      if (filters.zoneExact) query = query.eq("zone", filters.zone);
+      else query = query.ilike("zone", `%${String(filters.zone).replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
+    }
     if (filters.minPrice != null) query = query.gte("price", filters.minPrice);
     if (filters.maxPrice != null) query = query.lte("price", filters.maxPrice);
     if (filters.minArea != null) query = query.gte("area_m2", filters.minArea);

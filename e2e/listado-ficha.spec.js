@@ -93,7 +93,7 @@ test.describe("Filtros: precio, chips y búsqueda", () => {
     await expect(rango).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator("#filter-max-price")).toHaveValue("1,000,000");
     await expect(page.locator(".filter-chip", { hasText: "Hasta $1 M" })).toBeVisible();
-    await expect.poll(() => page.locator(".property-card").count()).toBe(3); // 980 mil, 890 mil y 620 mil
+    await expect.poll(() => page.locator(".property-card").count()).toBe(2); // 980 mil y 890 mil (la de 620 mil está vendida y por omisión ya no se ofrece)
     expect(new URL(page.url()).searchParams.get("max")).toBe("1000000");
 
     await press(rango);

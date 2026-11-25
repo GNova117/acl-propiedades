@@ -402,6 +402,7 @@ export default function AdminPropertyForm({
                 <option value="disponible">{t("propertyStatus.disponible")}</option>
                 <option value="apartada">{t("propertyStatus.apartada")}</option>
                 <option value="vendida">{t("propertyStatus.vendida")}</option>
+                <option value="rentada">{t("propertyStatus.rentada")}</option>
               </select>
             </div>
           </div>

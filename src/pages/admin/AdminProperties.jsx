@@ -389,6 +389,8 @@ export default function AdminProperties({
             <option value="disponible">{t("propertyStatus.disponible")}</option>
             <option value="apartada">{t("propertyStatus.apartada")}</option>
             <option value="vendida">{t("propertyStatus.vendida")}</option>
+          <option value="rentada">{t("propertyStatus.rentada")}</option>
+            <option value="rentada">{t("propertyStatus.rentada")}</option>
           </select>
         </div>
         <div className="form-field">
@@ -423,6 +425,7 @@ export default function AdminProperties({
           <option value="disponible">{t("propertyStatus.disponible")}</option>
           <option value="apartada">{t("propertyStatus.apartada")}</option>
           <option value="vendida">{t("propertyStatus.vendida")}</option>
+          <option value="rentada">{t("propertyStatus.rentada")}</option>
         </select>
         <button type="button" className="btn btn-outline btn-sm" onClick={handleBulkStatus} disabled={bulkBusy}>
           {t("bulkActions.applyStatus")}

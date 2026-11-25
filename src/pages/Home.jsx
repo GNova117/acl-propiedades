@@ -66,9 +66,11 @@ export default function Home() {
         if (active) setSoldProperties(sold);
       })
       .catch(() => {});
-    db.getPropertyTypes().then((data) => {
-      if (active) setPropertyTypes(data);
-    });
+    db.getPropertyTypes()
+      .then((data) => {
+        if (active) setPropertyTypes(data);
+      })
+      .catch(() => {});
     db.getTestimonials()
       .then((data) => {
         if (active) setTestimonials(data.filter((tst) => tst.active).slice(0, MAX_HOME_TESTIMONIALS));
@@ -108,7 +110,7 @@ export default function Home() {
         jsonLd={businessJsonLd}
       />
 
-      <SplitHero propertyTypes={propertyTypes} />
+      <SplitHero propertyTypes={propertyTypes} counts={counts} />
 
       <section className="hero">
         <div className="hero__overlay" />
@@ -136,7 +138,7 @@ export default function Home() {
                 <Reveal key={type} delay={index * 80}>
                   <CategoryCard
                     type={type}
-                    count={counts?.[type] ?? 0}
+                    count={counts ? (counts[type] ?? 0) : null}
                     active={!typeRecord || typeRecord.active !== false}
                     imageUrl={typeRecord?.image_url}
                   />

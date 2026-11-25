@@ -28,6 +28,7 @@ import { db } from "../lib/dataStore";
 import { recordPropertyView } from "../lib/recentlyViewed";
 import { buildSimilarCriteria } from "../lib/alertMatch";
 import { getPropertyBadge } from "../lib/propertyBadges";
+import { isClosedStatus } from "../lib/propertyStatus";
 import { CALCULATOR_ANCHOR, canEstimateMonthly, estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import { directionsUrl, streetViewUrl, wazeUrl } from "../lib/mapLinks";
 import { listingFrom } from "../lib/listNavigation";
@@ -403,6 +404,12 @@ export default function PropertyDetail() {
                 </div>
                 <h1>{property.title}</h1>
                 <p className="property-detail__address">{publicPlace(property)}</p>
+                {/* El código es lo que el cliente cita por teléfono o WhatsApp (el sitio ofrece «Buscar por código»). */}
+                {property.code && (
+                  <p className="property-detail__code">
+                    {t("detail.codeLabel")}: <strong>{property.code}</strong>
+                  </p>
+                )}
                 <RecentViewsBadge propertyId={property.id} />
               </div>
               <div className="property-detail__price-block">
@@ -603,9 +610,9 @@ export default function PropertyDetail() {
           </div>
 
           <aside className="property-detail__sidebar">
-            {property.status === "vendida" ? (
+            {isClosedStatus(property.status) ? (
               <div className="card schedule-visit-card">
-                <h3 className="property-detail__sidebar-title">{t("detail.soldTitle")}</h3>
+                <h3 className="property-detail__sidebar-title">{t(property.status === "rentada" ? "detail.rentedTitle" : "detail.soldTitle")}</h3>
                 <p className="form-hint">{t("detail.soldText")}</p>
                 <Link to={propertyListPath(property.type)} className="btn btn-primary btn-block">{t("detail.soldCta")}</Link>
               </div>
@@ -631,8 +638,8 @@ export default function PropertyDetail() {
         <RecentlyViewed excludeId={property.id} />
       </div>
 
-      {property.status !== "vendida" && <MobileContactBar property={property} />}
-      {property.status !== "vendida" && <StickyPriceBar property={property} />}
+      {!isClosedStatus(property.status) && <MobileContactBar property={property} />}
+      {!isClosedStatus(property.status) && <StickyPriceBar property={property} />}
 
       {showPlan && (
         <Lightbox images={[property.floor_plan_url]} index={0} onIndexChange={() => {}} onClose={() => setShowPlan(false)} alt={t("floorPlan.alt", { title: property.title })} />

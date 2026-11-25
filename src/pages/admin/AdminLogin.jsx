@@ -21,8 +21,12 @@ export default function AdminLogin() {
   const [resetInfo, setResetInfo] = useState("");
   const [code, setCode] = useState("");
 
+  // Si la persona llegó por un enlace profundo (un aviso de WhatsApp a un prospecto), tras iniciar sesión vuelve ahí y no al inicio.
+  const from = location.state?.from;
+  const target = from?.pathname?.startsWith("/admin") && from.pathname !== "/admin/login" ? `${from.pathname}${from.search || ""}${from.hash || ""}` : "/admin";
+
   if (isAuthenticated) {
-    return <Navigate to={location.state?.from?.pathname || "/admin"} replace />;
+    return <Navigate to={target} replace />;
   }
 
   const handleSubmit = async (e) => {
@@ -31,7 +35,7 @@ export default function AdminLogin() {
     setLoading(true);
     try {
       await login(email, password);
-      navigate("/admin", { replace: true });
+      navigate(target, { replace: true });
     } catch {
       setError(t("admin.loginError"));
     } finally {

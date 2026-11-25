@@ -54,6 +54,7 @@ export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
           <PropertyTypeIcon type={property.type} size={16} />
           <span>{propertyTypeLabel(t, property.type)}</span>
           <span className="property-card__zone">· {property.zone}</span>
+          {property.code && <span className="property-card__code">{property.code}</span>}
         </div>
         <h3 className="property-card__title">
           <Link to={propertyPath(property)} state={linkState}>{property.title}</Link>

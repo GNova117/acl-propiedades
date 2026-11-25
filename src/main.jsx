@@ -22,12 +22,23 @@ import LoadingScreen from "./components/LoadingScreen";
 // dynamically imported module", se recarga la página una sola vez para
 // traer la versión vigente. La bandera en sessionStorage evita un bucle si
 // el problema fuera realmente de red y no de una versión vieja.
+// Con el almacenamiento bloqueado (Safari con cookies bloqueadas) sessionStorage lanza: sin el try la app ni se montaba.
 window.addEventListener("vite:preloadError", () => {
-  if (sessionStorage.getItem("acl_reload_once")) return;
-  sessionStorage.setItem("acl_reload_once", "1");
+  try {
+    if (sessionStorage.getItem("acl_reload_once")) return;
+    sessionStorage.setItem("acl_reload_once", "1");
+  } catch {
+    return; // sin almacenamiento no hay forma de evitar un bucle de recargas: mejor no recargar
+  }
   window.location.reload();
 });
-window.setTimeout(() => sessionStorage.removeItem("acl_reload_once"), 3000);
+window.setTimeout(() => {
+  try {
+    sessionStorage.removeItem("acl_reload_once");
+  } catch {
+    /* sin almacenamiento */
+  }
+}, 3000);
 
 // App instalable del panel: el service worker (public/sw.js) solo da la pantalla
 // de "sin conexión" y guarda los archivos con hash; las páginas y los datos

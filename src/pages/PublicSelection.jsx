@@ -16,6 +16,7 @@ import "./PublicVisitReport.css";
 import "./PublicSelection.css";
 import LoadingState from "../components/LoadingState";
 import { propertyPath } from "../lib/propertyUrl.js";
+import { isClosedStatus } from "../lib/propertyStatus";
 
 const seenKey = (token) => `acl_selection_seen_${token}`;
 
@@ -203,7 +204,7 @@ export default function PublicSelection() {
             ) : (
               <div className="properties-grid public-selection__grid">
                 {properties.map((property) => {
-                  const available = property.status !== "vendida";
+                  const available = !isClosedStatus(property.status);
                   const link = available ? interestLink(property) : null;
                   return (
                     <div key={property.id} className="public-selection__item">

@@ -191,7 +191,10 @@ export function matchesFilters(property, filters = {}) {
   if (filters.operation_type && property.operation_type !== filters.operation_type) return false;
   if (filters.statuses?.length && !filters.statuses.includes(property.status ?? "disponible")) return false;
   if (filters.tipo_nave && property.tipo_nave !== filters.tipo_nave) return false;
-  if (filters.zone && property.zone !== filters.zone) return false;
+  if (filters.zone) {
+    const fold = (text) => String(text ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+    if (filters.zoneExact ? property.zone !== filters.zone : !fold(property.zone).includes(fold(filters.zone))) return false;
+  }
   if (filters.minPrice != null && property.price < filters.minPrice) return false;
   if (filters.maxPrice != null && property.price > filters.maxPrice) return false;
   if (filters.minArea != null && property.area_m2 < filters.minArea) return false;

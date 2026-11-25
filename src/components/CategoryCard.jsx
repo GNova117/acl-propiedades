@@ -33,7 +33,8 @@ export default function CategoryCard({ type, count, active = true, imageUrl }) {
         {active ? (
           <>
             <p>{t(`categories.${type}.desc`)}</p>
-            <span className="category-card__count">{t("categories.properties", { count })}</span>
+            {/* Mientras llegan los conteos (count = null) no se escribe «0 propiedades». */}
+            {count != null && <span className="category-card__count">{t("categories.properties", { count })}</span>}
             <span className="btn btn-primary btn-sm category-card__cta">{t("categories.cta")}</span>
           </>
         ) : (

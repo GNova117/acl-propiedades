@@ -128,6 +128,13 @@ export default function AdminLayout() {
   // Todos los elementos que la persona puede usar, en el orden del menú (para fijados y recientes).
   const allItems = visibleNav.flatMap((entry) => (entry.items ? entry.items : [entry]));
   const itemPaths = allItems.map((i) => i.to);
+
+  // Título de la pestaña = la pantalla donde está (antes todas decían lo mismo y con varias abiertas no se distinguían).
+  const currentItem = allItems.filter((i) => (i.end ? pathname === i.to : isInside(pathname, i.to))).sort((a, b) => b.to.length - a.to.length)[0];
+  const currentLabel = currentItem ? currentItem.label || t(currentItem.labelKey) : "";
+  useEffect(() => {
+    document.title = currentLabel ? `${currentLabel} · ${t("admin.tabSuffix")}` : t("admin.tabSuffix");
+  }, [currentLabel, t]);
   const pinnedSet = new Set(pins.filter((to) => itemPaths.includes(to)));
   // Un elemento fijado se mueve arriba: ya no se repite en su carpeta (ni como enlace suelto).
   const navWithoutPinned = visibleNav

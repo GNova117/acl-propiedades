@@ -20,8 +20,8 @@ const PANELS = [
 // `propertyTypes` (de property_types, administrable desde /admin/zonas) da
 // la imagen y el estado activo/inactivo del panel que sí corresponde a un
 // tipo (Naves Industriales); "Propiedades" no mapea a un solo tipo y se
-// queda con su imagen fija.
-export default function SplitHero({ propertyTypes = [] }) {
+// queda con su imagen fija. `counts`: propiedades por tipo (null mientras cargan).
+export default function SplitHero({ propertyTypes = [], counts = null }) {
   const { t } = useTranslation();
   const [hovered, setHovered] = useState(null);
   // El video solo se reproduce si la persona no pidió menos movimiento, no ahorra datos y la conexión aguanta.
@@ -30,7 +30,10 @@ export default function SplitHero({ propertyTypes = [] }) {
   const panels = PANELS.map((panel) => {
     if (!panel.typeKey) return { ...panel, image: HERO.image || panel.image, video: playVideo ? HERO.video : null, poster: HERO.poster, active: true };
     const type = propertyTypes.find((pt) => pt.key === panel.typeKey);
-    return { ...panel, image: type?.image_url || panel.image, active: !type || type.active !== false };
+    // Un tipo activo pero sin ninguna propiedad publicada también se anuncia como «Próximamente»: el menú ya lo esconde y el inicio no
+    // debe llevar a un listado vacío. Mientras no llegan los conteos se asume que sí tiene.
+    const hasProperties = !counts || counts[panel.typeKey] == null || counts[panel.typeKey] > 0;
+    return { ...panel, image: type?.image_url || panel.image, active: (!type || type.active !== false) && hasProperties };
   });
 
   return (

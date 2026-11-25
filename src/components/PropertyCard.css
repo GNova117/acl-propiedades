@@ -160,3 +160,10 @@
   font-weight: 600;
   color: var(--color-primary);
 }
+
+.property-card__code {
+  margin-left: auto;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted, #6b7280);
+}

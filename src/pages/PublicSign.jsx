@@ -12,6 +12,7 @@ import "./PublicSign.css";
 import LoadingState from "../components/LoadingState";
 import { notify } from "../lib/toast";
 import LinkExpiry from "../components/LinkExpiry";
+import Seo from "../components/Seo";
 import DocumentFrame from "../components/DocumentFrame";
 
 // Página pública /firmar/<token>: el cliente abre el enlace privado, pone el
@@ -247,6 +248,8 @@ export default function PublicSign() {
 
   return (
     <div className="public-sign">
+      {/* Enlace privado de un documento: título propio en la pestaña y fuera de los buscadores. */}
+      <Seo title={info?.title ? `${info.title} · ${t("signing.public.tabTitle")}` : t("signing.public.tabTitle")} noindex />
       <header className="public-sign__header">
         <Logo variant="white" size="sm" />
         <LanguageToggle />

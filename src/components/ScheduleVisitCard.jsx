@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { trackConversion } from "../lib/conversions";
-import { requestSlotError } from "../lib/visitSlots";
+import { mexicoParts, requestSlotError } from "../lib/visitSlots";
 import { bookingErrorKey, formatSlotDay, formatSlotTime } from "../lib/visitBookingUi";
 import { OPEN_SCHEDULE_EVENT, SCHEDULE_TARGET_ID } from "./MobileContactBar";
 import VisitBooking from "./VisitBooking";
@@ -181,7 +181,7 @@ function VisitRequestForm({ property, onBack, noSlots }) {
             id="visit-date"
             name="date"
             type="date"
-            min={new Date().toISOString().slice(0, 10)}
+            min={mexicoParts().date}
             value={form.date}
             onChange={handleChange}
             aria-invalid={Boolean(errors.date)}

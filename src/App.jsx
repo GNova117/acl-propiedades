@@ -15,6 +15,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import SeasonalGarland from "./components/SeasonalGarland";
 import SeasonalParticles from "./components/SeasonalParticles";
+import { showsSeasonalParticles } from "./lib/seasonalRoutes";
 import { SPECIAL_SECTION_TYPES } from "./lib/format";
 import CookieBanner from "./components/CookieBanner";
 import { initAnalytics, setAnalyticsConsent, trackPageview } from "./lib/analytics";
@@ -109,6 +110,7 @@ const AdminSecretaria = lazy(() => import("./pages/admin/AdminSecretaria"));
 const AdminProspects = lazy(() => import("./pages/admin/AdminProspects"));
 const AdminTeamDay = lazy(() => import("./pages/admin/AdminTeamDay"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
+const AdminNotFound = lazy(() => import("./pages/admin/AdminNotFound"));
 const AdminArco = lazy(() => import("./pages/admin/AdminArco"));
 const AdminClientHistory = lazy(() => import("./pages/admin/AdminClientHistory"));
 const AdminProspectForm = lazy(() => import("./pages/admin/AdminProspectForm"));
@@ -203,7 +205,7 @@ export default function App() {
   return (
     <>
     <Suspense fallback={<LoadingState />}>
-    {!pathname.startsWith("/admin") && !pathname.startsWith("/informe/") && <SeasonalParticles />}
+    {showsSeasonalParticles(pathname) && <SeasonalParticles />}
     <Routes>
       <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
       <Route path="/propiedades" element={<PublicLayout><Properties excludeTypes={SPECIAL_SECTION_KEYS} /></PublicLayout>} />
@@ -421,6 +423,7 @@ export default function App() {
         <Route path="visitas/nueva" element={<RequireSection section="visitas"><AdminVisitForm /></RequireSection>} />
         <Route path="visitas/propiedad/:propertyId" element={<RequireSection section="visitas"><AdminPropertyVisits /></RequireSection>} />
         <Route path="visitas/:id" element={<RequireSection section="visitas"><AdminVisitForm /></RequireSection>} />
+        <Route path="*" element={<AdminNotFound />} />
       </Route>
 
       <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />

@@ -167,13 +167,14 @@
   "propertyStatus": {
     "disponible": "Available",
     "apartada": "Reserved",
-    "vendida": "Sold"
+    "vendida": "Sold",
+    "rentada": "Rented"
   },
   "properties": {
     "statusFilter": "Status",
     "statusDefault": "Available and reserved",
     "statusOnlyAvailable": "Available only",
-    "statusAll": "Include sold",
+    "statusAll": "Include sold and rented",
     "title": "Available properties",
     "subtitle": "Filter by type, zone, price and area to find your ideal property.",
     "industrialTitle": "Available industrial warehouses",
@@ -246,6 +247,8 @@
     "coloniesTitle": "Neighborhoods in {{city}} with listings"
   },
   "detail": {
+    "codeLabel": "Code",
+    "rentedTitle": "This property has already been rented",
     "soldTitle": "This property has been sold",
     "soldText": "Visits can no longer be scheduled. See similar properties or leave your details below and we will let you know about something similar.",
     "soldCta": "See available properties",
@@ -816,6 +819,12 @@
     }
   },
   "admin": {
+    "notFound": {
+      "title": "This screen doesn't exist",
+      "text": "The address doesn't match any panel screen. The link may be out of date.",
+      "back": "Go to the panel"
+    },
+    "tabSuffix": "ACL Panel",
     "loginTitle": "Administrator access",
     "email": "Email",
     "password": "Password",
@@ -2630,6 +2639,7 @@
       "badImage": "That image could not be read."
     },
     "public": {
+      "tabTitle": "Document signing",
       "title": "Document signature",
       "codeIntro": "You are about to review and sign “{{title}}”. Enter the 6-digit code your advisor gave you.",
       "codeLabel": "Code",

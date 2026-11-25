@@ -13,6 +13,7 @@ import { boundsFromParam, boundsToParam } from "../lib/propertySearch";
 import { propertyTypeLabel } from "../lib/format";
 import { indexNextSlots } from "../lib/nextVisit";
 import { useMediaQuery } from "../lib/useMediaQuery";
+import { useDebouncedValue } from "../lib/useDebouncedValue";
 import { propertyMatchesCity } from "../lib/zoneLandingPages";
 import { db } from "../lib/dataStore";
 import "./Properties.css";
@@ -186,6 +187,8 @@ export default function Properties({
   const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
   const [typesLoaded, setTypesLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [view, setView] = useState(() => viewFromParam(searchParams.get("vista")));
   const [developments, setDevelopments] = useState([]);
   const [searchText, setSearchText] = useState(() => searchParams.get("q") || "");
@@ -299,6 +302,8 @@ export default function Properties({
       statuses: filters.status === "todas" ? undefined : filters.status === "disponible" ? ["disponible"] : ["disponible", "apartada"],
       tipo_nave: fixedType === "nave_industrial" ? filters.tipoNave || undefined : undefined,
       zone: zoneFilter || filters.zone || undefined,
+      // Una colonia fija (página de aterrizaje) coincide exacto; lo que la persona escribe a mano, por parte del nombre.
+      zoneExact: zoneFilter ? true : undefined,
       minPrice: filters.minPrice ? Number(filters.minPrice) : undefined,
       maxPrice: filters.maxPrice ? Number(filters.maxPrice) : undefined,
       minArea: filters.minArea ? Number(filters.minArea) : undefined,
@@ -314,21 +319,29 @@ export default function Properties({
     [filters, fixedType, sectionTypes, zoneFilter]
   );
 
+  // Cada tecla en precio, superficie o zona cambia `queryFilters`; a la base solo se le pregunta cuando la persona hace una pausa.
+  const fetchFilters = useDebouncedValue(queryFilters, 300);
+
   // Mapa, vista dividida y filtro por ciudad piden el conjunto completo (cada
   // propiedad es un pin; la ciudad se resuelve en el cliente, ver `cityFilter`).
   useEffect(() => {
     if (!needsFullSet) return undefined;
     let active = true;
     setLoading(true);
-    db.getProperties(queryFilters)
+    setLoadFailed(false);
+    db.getProperties(fetchFilters)
       .then((data) => {
         if (active) setAllMatches(cityFilter ? data.filter((property) => propertyMatchesCity(property, cityFilter)) : data);
+      })
+      .catch((err) => {
+        console.error("getProperties", err);
+        if (active) setLoadFailed(true);
       })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, [needsFullSet, queryFilters, cityFilter]);
+  }, [needsFullSet, fetchFilters, cityFilter, reloadKey]);
 
   // La lista normal pide su página directo al servidor. Mientras llega la nueva
   // se siguen mostrando los resultados anteriores (atenuados): no brinca la página.
@@ -336,15 +349,21 @@ export default function Properties({
     if (needsFullSet) return undefined;
     let active = true;
     setLoading(true);
-    db.getProperties({ ...queryFilters, page, pageSize: PAGE_SIZE })
+    setLoadFailed(false);
+    db.getProperties({ ...fetchFilters, page, pageSize: PAGE_SIZE })
       .then(({ data, total: count }) => {
         if (active) setPageData({ data, total: count });
+      })
+      .catch((err) => {
+        // Antes la lista se quedaba con los resultados de la búsqueda anterior y sin aviso: parecía que el filtro no hacía nada.
+        console.error("getProperties", err);
+        if (active) setLoadFailed(true);
       })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, [needsFullSet, queryFilters, page]);
+  }, [needsFullSet, fetchFilters, page, reloadKey]);
 
   const pins = needsFullSet ? allMatches || EMPTY_LIST : pageData.data;
   const total = needsFullSet ? pins.length : pageData.total;
@@ -550,7 +569,13 @@ export default function Properties({
               </div>
             </div>
 
-            {loading && properties.length === 0 ? (
+            {loadFailed && !loading ? (
+              <EmptyState illustration="signpost" title={t("loadError.title")} text={t("loadError.text")}>
+                <button type="button" className="btn btn-primary" onClick={() => setReloadKey((n) => n + 1)}>
+                  {t("loadError.retry")}
+                </button>
+              </EmptyState>
+            ) : loading && properties.length === 0 ? (
               <LoadingState variant="cards" />
             ) : total === 0 ? (
               <EmptyState
