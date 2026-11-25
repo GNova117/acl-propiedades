@@ -3329,11 +3329,15 @@
       },
       {
         "title": "Asistente virtual (chat)",
-        "body": "El chat del sitio es un asistente con inteligencia artificial: el texto que escribes se envía a un proveedor externo (Anthropic) para generar la respuesta, y ninguna persona lo lee en ese momento. No escribas en él datos sensibles (contraseñas, datos bancarios, CURP, etc.). Si le compartes tu nombre y tu teléfono o correo para que te contacte un asesor, los guardamos como un prospecto de ACL Propiedades. La conversación se conserva solo en tu navegador mientras la pestaña esté abierta; en nuestro servidor únicamente registramos que se hizo una consulta (sin su contenido y con una huella cifrada de tu dirección IP) para limitar abusos."
+        "body": "El chat del sitio es un asistente con inteligencia artificial: el texto que escribes se envía a un proveedor externo (Anthropic) para generar la respuesta, y ninguna persona lo lee en ese momento. No escribas en él datos sensibles (contraseñas, datos bancarios, CURP, etc.). Si le compartes tu nombre y tu teléfono o correo para que te contacte un asesor, los guardamos como un prospecto de ACL Propiedades. La conversación se conserva solo en tu navegador mientras la pestaña esté abierta; en nuestro servidor únicamente registramos que se hizo una consulta (sin su contenido y con una huella cifrada de tu dirección IP) para limitar abusos, y ese registro se borra a la semana."
       },
       {
         "title": "Firma electrónica de documentos",
-        "body": "Si firmas un documento a través de un enlace de firma de ACL Propiedades, guardamos tu nombre, el trazo de tu firma, la fecha y hora, la dirección IP desde la que firmas y una huella digital (hash) del documento, para poder acreditar que lo firmado es lo mismo que revisaste. Conservamos el documento firmado mientras dure la relación contigo y durante los plazos que exijan las leyes aplicables."
+        "body": "Si firmas un documento a través de un enlace de firma de ACL Propiedades, guardamos tu nombre, el trazo de tu firma, la fecha y hora, la dirección IP desde la que firmas y una huella digital (hash) del documento, para poder acreditar que lo firmado es lo mismo que revisaste. Conservamos el documento enviado a firma, con su firma y huella, 6 meses; pasado ese plazo se elimina de nuestros sistemas (conserva tu copia)."
+      },
+      {
+        "title": "Cuánto tiempo conservamos tus datos",
+        "body": "Los mensajes que nos envías por el formulario de contacto se conservan 1 semana. Tus datos como prospecto (nombre, teléfono, correo y el seguimiento de tu consulta) se conservan 1 mes desde la última vez que estuvimos en contacto; si hay un seguimiento programado contigo, desde esa fecha. Los documentos enviados a firma, 6 meses. Si te registras como cliente, los documentos de tu expediente se conservan 3 años desde la última actividad contigo y después se eliminan. Puedes pedir que borremos tus datos antes ejerciendo tus derechos ARCO."
       },
       {
         "title": "Cambios a este aviso",
@@ -5159,6 +5163,36 @@
       "property_holds": "Apartados",
       "clients": "Clientes",
       "retenidos": "Clientes conservados"
+    }
+  },
+  "dataRetention": {
+    "title": "Depuración de datos personales",
+    "intro": "Cada día se revisa qué ya cumplió su plazo. «Simulacro» solo cuenta lo que se borraría, sin borrar; revisa la cifra y activa cada regla cuando estés de acuerdo. Borrar es definitivo.",
+    "what": "Datos",
+    "rule": "Plazo",
+    "due": "Ya vencidos",
+    "state": "Estado",
+    "lastRun": "Última corrida",
+    "active": "Borrando",
+    "dry": "Simulacro",
+    "turnOn": "Activar borrado",
+    "turnOff": "Volver a simulacro",
+    "noRuns": "Aún no corre",
+    "lastRunText": "{{date}}: {{due}} vencidos, {{deleted}} borrados",
+    "confirmOn": "A partir de la próxima corrida se borrarán definitivamente {{name}} que cumplan su plazo (hoy son {{due}}). ¿Activar?",
+    "confirmOff": "{{name}}: se deja de borrar y vuelve el simulacro. ¿Continuar?",
+    "error": "No se pudo cambiar la regla.",
+    "kinds": {
+      "chats": "Chats (sesiones e IP del asistente)",
+      "mensajes": "Mensajes de contacto",
+      "prospectos": "Prospectos",
+      "contratos": "Contratos enviados a firma"
+    },
+    "periods": {
+      "chats": "1 semana",
+      "mensajes": "1 semana",
+      "prospectos": "1 mes sin actividad",
+      "contratos": "6 meses"
     }
   }
 }

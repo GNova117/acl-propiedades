@@ -24,6 +24,14 @@ export const adminMethods = {
     return [];
   },
 
+  // La depuración de datos vive en la base (migración 0127): el modo demostración no la tiene.
+  async getDataRetention() {
+    return null;
+  },
+  async setDataRetention() {
+    throw new Error("La depuración de datos requiere la base de datos (no está en el modo demostración).");
+  },
+
   // Registro de actividad: en modo demo no hay base ni triggers, así que no hay registro.
   async getAuditLog() {
     return [];

@@ -3329,11 +3329,15 @@
       },
       {
         "title": "Virtual assistant (chat)",
-        "body": "The site's chat is an artificial intelligence assistant: the text you type is sent to an external provider (Anthropic) to generate the reply, and no person reads it at that moment. Do not enter sensitive data in it (passwords, bank details, CURP, etc.). If you share your name and phone or email so an advisor can contact you, we store them as an ACL Propiedades lead. The conversation is kept only in your browser while the tab is open; on our server we only record that a query was made (without its content and with an encrypted fingerprint of your IP address) to limit abuse."
+        "body": "The site's chat is an artificial intelligence assistant: the text you type is sent to an external provider (Anthropic) to generate the reply, and no person reads it at that moment. Do not enter sensitive data in it (passwords, bank details, CURP, etc.). If you share your name and phone or email so an advisor can contact you, we store them as an ACL Propiedades lead. The conversation is kept only in your browser while the tab is open; on our server we only record that a query was made (without its content and with an encrypted fingerprint of your IP address) to limit abuse, and that record is deleted after a week."
       },
       {
         "title": "Electronic document signing",
-        "body": "If you sign a document through an ACL Propiedades signing link, we store your name, your signature stroke, the date and time, the IP address you sign from and a digital fingerprint (hash) of the document, so we can show that what was signed is the same document you reviewed. We keep the signed document for as long as our relationship lasts and for the periods required by applicable law."
+        "body": "If you sign a document through an ACL Propiedades signing link, we store your name, your signature stroke, the date and time, the IP address you sign from and a digital fingerprint (hash) of the document, so we can show that what was signed is the same document you reviewed. We keep the document sent for signing, with its signature and fingerprint, for 6 months; after that it is deleted from our systems (keep your own copy)."
+      },
+      {
+        "title": "How long we keep your data",
+        "body": "Messages you send through the contact form are kept for 1 week. Your data as a prospect (name, phone, email and the follow-up of your inquiry) is kept for 1 month from the last time we were in contact; if a follow-up with you is scheduled, from that date. Documents sent for signing are kept for 6 months. If you register as a client, the documents in your file are kept for 3 years from the last activity with you and then deleted. You can ask us to delete your data sooner by exercising your ARCO rights."
       },
       {
         "title": "Changes to this notice",
@@ -5159,6 +5163,36 @@
       "property_holds": "Holds",
       "clients": "Clients",
       "retenidos": "Clients kept"
+    }
+  },
+  "dataRetention": {
+    "title": "Personal data cleanup",
+    "intro": "Every day the system checks what has passed its limit. «Dry run» only counts what would be erased, without erasing; check the number and turn each rule on when you agree. Erasing is permanent.",
+    "what": "Data",
+    "rule": "Limit",
+    "due": "Already due",
+    "state": "Status",
+    "lastRun": "Last run",
+    "active": "Erasing",
+    "dry": "Dry run",
+    "turnOn": "Turn on erasing",
+    "turnOff": "Back to dry run",
+    "noRuns": "Hasn't run yet",
+    "lastRunText": "{{date}}: {{due}} due, {{deleted}} erased",
+    "confirmOn": "From the next run on, {{name}} past their limit will be permanently erased (today: {{due}}). Turn on?",
+    "confirmOff": "{{name}}: erasing stops and it goes back to dry run. Continue?",
+    "error": "The rule could not be changed.",
+    "kinds": {
+      "chats": "Chats (assistant sessions and IP)",
+      "mensajes": "Contact messages",
+      "prospectos": "Prospects",
+      "contratos": "Contracts sent for signing"
+    },
+    "periods": {
+      "chats": "1 week",
+      "mensajes": "1 week",
+      "prospectos": "1 month without activity",
+      "contratos": "6 months"
     }
   }
 }

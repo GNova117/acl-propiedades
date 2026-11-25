@@ -33,6 +33,18 @@ export const adminMethods = {
     return data || [];
   },
 
+  // Depuración de chats, mensajes, prospectos y contratos (migración 0127). Solo el apartado 'roles'. null si aún no está aplicada.
+  async getDataRetention() {
+    const { data, error } = await supabase.rpc("datos_resumen");
+    if (error) return null;
+    return data;
+  },
+
+  async setDataRetention(kind, enabled) {
+    const { error } = await supabase.rpc("datos_activar", { p_kind: kind, p_enabled: enabled });
+    if (error) throw error;
+  },
+
   // Registro de actividad (quién creó/editó/borró qué). Solo lo ve el rol con el
   // apartado 'roles'; lo escriben triggers de la base (ver schema.sql).
   async getAuditLog({ table, actor, from, to, limit = 100, offset = 0 } = {}) {
