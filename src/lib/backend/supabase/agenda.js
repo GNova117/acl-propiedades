@@ -1,7 +1,7 @@
 // Backend con Supabase: métodos de «agenda» (36). Se juntan en supabaseBackend.js; `this` es el objeto completo, así que
 // un método puede llamar a los de otros módulos como siempre.
 import { supabase } from "../../supabaseClient";
-import { generateReportToken, REPORT_TOKEN_PATTERN } from "../../visitReport";
+import { generateReportToken, REPORT_TOKEN_PATTERN, reportLinkExpiry } from "../../visitReport";
 import { CITA_STATUSES } from "../../agendaCitas";
 import { BOOKING_TOKEN_PATTERN, DEFAULT_VISIT_SETTINGS, hhmm, normalizeVisitSchedule } from "../../visitSlots";
 import { isMissingTable, sanitizeFileName } from "./shared.js";
@@ -103,6 +103,7 @@ export const agendaMethods = {
       token: generateReportToken(),
       created_by: sessionData?.session?.user?.email || null,
       created_at: new Date().toISOString(),
+      expires_at: reportLinkExpiry(),
     };
     const { data, error } = await supabase.from("property_report_links").upsert(row, { onConflict: "property_id" }).select().single();
     if (error) throw error;

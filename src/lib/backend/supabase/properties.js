@@ -5,7 +5,7 @@ import { supabase } from "../../supabaseClient";
 import { numOrNull } from "../../format";
 import { getOrCreateVisitorId } from "../../visitorId";
 import { isValidBounds, supabaseSearchFilters } from "../../propertySearch";
-import { discardUploads, collectMedia, mapPropertyRow, propertySelect, PROPERTY_SORTERS } from "./shared.js";
+import { discardUploads, collectMedia, mapPropertyRow, propertySelect, hasStaffSession, PROPERTY_SELECT_STAFF, PROPERTY_SELECT_PUBLIC, PROPERTY_SORTERS } from "./shared.js";
 
 export const propertiesMethods = {
   // `page`/`pageSize` son opcionales: sin ellos se comporta exactamente
@@ -101,9 +101,19 @@ export const propertiesMethods = {
   },
 
   async getPropertyById(id) {
-    const { data, error } = await supabase.from("properties").select(await propertySelect()).eq("id", id).maybeSingle();
+    const staff = await hasStaffSession();
+    const { data, error } = await supabase.from("properties").select(staff ? PROPERTY_SELECT_STAFF : PROPERTY_SELECT_PUBLIC).eq("id", id).maybeSingle();
     if (error) throw error;
-    return data ? mapPropertyRow(data) : null;
+    if (!data) return null;
+    const property = mapPropertyRow(data);
+    // Con la ubicación aproximada, `lat`/`lng` de la fila son el punto difuminado. El personal con Propiedades recibe las exactas
+    // (la tabla las protege con RLS: para los demás la consulta vuelve vacía y se queda el punto difuminado), para que el formulario
+    // las muestre y vuelva a guardar las exactas, no las difuminadas.
+    if (staff && property.location_approximate) {
+      const { data: exact } = await supabase.from("property_exact_location").select("lat, lng").eq("property_id", id).maybeSingle();
+      if (exact) return { ...property, lat: exact.lat, lng: exact.lng };
+    }
+    return property;
   },
 
   async getPropertyByCode(code) {
@@ -152,6 +162,7 @@ export const propertiesMethods = {
       address: data.address,
       lat: Number(data.lat),
       lng: Number(data.lng),
+      location_approximate: data.location_approximate === true,
       status: data.status || "disponible",
       operation_type: data.operation_type || "compra",
       active: data.active !== false,
@@ -215,6 +226,7 @@ export const propertiesMethods = {
       address: data.address,
       lat: Number(data.lat),
       lng: Number(data.lng),
+      location_approximate: data.location_approximate === true,
       status: data.status,
       operation_type: data.operation_type || "compra",
       active: data.active,

@@ -11,6 +11,7 @@ import { visitPdfLabels } from "../lib/visitReportLabels";
 import "./PublicVisitReport.css";
 import LoadingState from "../components/LoadingState";
 import { notify } from "../lib/toast";
+import LinkExpiry from "../components/LinkExpiry";
 
 // Informe de visitas que recibe el vendedor por un enlace privado
 // (/informe/<token>): solo lectura, sin iniciar sesión, sin nombres de
@@ -108,6 +109,7 @@ export default function PublicVisitReport() {
         {state.status === "ready" && (
           <>
             <p className="public-report__intro">{t("visits.public.intro")}</p>
+            <LinkExpiry date={state.payload?.link_expires_at} className="form-hint vr-noprint" />
             <VisitReportView payload={state.payload} now={now} />
             <div className="public-report__actions vr-noprint">
               <button type="button" className="btn btn-primary" onClick={handleDownloadPdf} disabled={pdfBusy}>

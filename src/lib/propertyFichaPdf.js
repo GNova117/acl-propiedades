@@ -5,8 +5,7 @@
 // reutiliza el mismo patrón de hoja membretada + paginación.
 
 import { formatMXN, formatArea } from "./format";
-
-const TEMPLATE_URL = "/plantilla_acl.pdf";
+import { loadLetterhead } from "./letterhead";
 
 // El encabezado azul de la hoja membretada termina cerca de y=653; TOP_Y
 // queda un poco más abajo porque el ascenso de la fuente bold de 14pt del
@@ -129,10 +128,7 @@ export async function buildFichaTecnicaPdf(property, { typeLabel, statusLabel, t
 
   const templateBytes =
     template ??
-    (await fetch(TEMPLATE_URL).then((res) => {
-      if (!res.ok) throw new Error("No se pudo cargar la plantilla membretada");
-      return res.arrayBuffer();
-    }));
+    (await loadLetterhead());
 
   const doc = await PDFDocument.load(templateBytes);
   const templateDoc = await PDFDocument.load(templateBytes);

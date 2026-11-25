@@ -242,6 +242,7 @@
     "coloniesTitle": "Neighborhoods in {{city}} with listings"
   },
   "detail": {
+    "locationApproximate": "Approximate location: the seller prefers not to publish the exact spot. Your advisor will give you the address when you schedule the visit.",
     "compareCredits": {
       "title": "How would you pay for it?",
       "text": "Compare Infonavit, a bank loan and cash for this home: how much you need upfront and what you would pay each month.",
@@ -919,7 +920,8 @@
       "gastos": "Expense breakdown",
       "secretaria": "Front desk",
       "prospectos": "Prospects",
-      "blog": "Blog"
+      "blog": "Blog",
+      "membrete": "Letterhead template (PDF with logo)"
     },
     "rolesTitle": "Roles",
     "newRole": "New role",
@@ -1788,6 +1790,7 @@
       "confirmRegenerate": "Generate a new link? The old one will stop working and the seller will need the new one.",
       "confirmDisable": "Turn the link off? The seller won't be able to open their report until you create a new one.",
       "createdOn": "Link created on {{date}}.",
+      "expiresOn": "Expires on {{date}}.",
       "rotateHint": "Anyone with the link can see the report: share it only with the seller.",
       "emailLabel": "Seller's email",
       "emailSend": "Send by email",
@@ -3260,6 +3263,16 @@
     "accept": "Accept",
     "reject": "Decline",
     "preferences": "Cookie preferences"
+  },
+  "tokenLink": { "validUntil": "This link expires on {{date}}." },
+  "retention": {
+    "title": "Client paperwork",
+    "rule": "A client's documents are kept for {{years}} years from the last activity with them (sign-up, edit, document, case or appointment) and then purged. Any activity restarts the clock.",
+    "due": "{{documents}} documents from {{clients}} clients have passed the retention period (oldest: last activity on {{date}}).",
+    "none": "No paperwork has passed the retention period.",
+    "lastDry": "Last check: {{date}} (dry run, nothing deleted): {{due}} expired documents.",
+    "lastReal": "Last purge: {{date}}: {{due}} expired, {{deleted}} deleted, {{failed}} files could not be deleted (retried next month).",
+    "noRuns": "The purge runs on the 1st of each month. It starts as a dry run: it only counts what has expired and deletes nothing until it is switched on."
   },
   "privacy": {
     "title": "Privacy Notice",
@@ -4819,6 +4832,8 @@
     "switchLanguage": "Cambiar idioma / Switch language"
   },
   "propertyForm": {
+    "locationApproximate": "Show only the area, not the exact spot (approximate location)",
+    "locationApproximateHint": "The site will show a circle of about 500 m and the area, without the street, \"Directions\" or Street View. Only people with Properties access see the exact coordinates. Enter only the neighborhood in \"Address\".",
     "descriptionHint": "Leave a blank line to separate paragraphs and start a line with “- ” to make a list (with “1. ” to number it). On the site it shows with its paragraphs and bullets.",
     "steps": {
       "basics": "Basics",

@@ -5,7 +5,7 @@ import { buildFichaTecnicaPdf } from "./propertyFichaPdf";
 
 // La ficha en PDF que descarga el CLIENTE desde el sitio no debe llevar los datos de contacto de los asesores
 // (la ficha pública a propósito no los publica: el interesado deja sus datos y el asesor le marca); la del panel sí.
-const template = readFileSync(new URL("../../public/plantilla_acl.pdf", import.meta.url));
+const template = readFileSync(new URL("../../server/assets/plantilla_acl.pdf", import.meta.url));
 const property = {
   id: "prop-1",
   title: "Casa en Residencial Senderos",

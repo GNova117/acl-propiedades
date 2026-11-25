@@ -217,6 +217,10 @@ export function formatVisitDate(iso, language) {
 // no cumpla este mismo patrón.
 export const REPORT_TOKEN_PATTERN = /^[0-9a-f]{32}$/;
 
+// Días de vigencia del enlace del informe del vendedor (property_report_links.expires_at, migración 0121). Al regenerarlo empieza de nuevo.
+export const REPORT_LINK_DAYS = 180;
+export const reportLinkExpiry = (from = Date.now()) => new Date(from + REPORT_LINK_DAYS * 86400000).toISOString();
+
 export function generateReportToken() {
   const bytes = new Uint8Array(16);
   globalThis.crypto.getRandomValues(bytes);

@@ -32,9 +32,12 @@ describe("vercel.json", () => {
     const rewrites = Object.fromEntries(config.rewrites.map((r) => [r.source, r.destination]));
     expect(rewrites["/api/og"]).toBe("/api/media?kind=og");
     expect(rewrites["/api/agenda-ics"]).toBe("/api/media?kind=ics");
+    expect(rewrites["/api/plantilla"]).toBe("/api/media?kind=plantilla");
     // las reescrituras específicas van ANTES de la general (/(.*) → index.html)
     expect(config.rewrites.findIndex((r) => r.source === "/api/og")).toBeLessThan(config.rewrites.findIndex((r) => r.source === "/(.*)"));
-    expect(config.functions["api/media.js"].includeFiles).toBe("server/fonts/**");
+    // la función única lleva las fuentes de la imagen para compartir y la hoja membretada (solo para roles con acceso)
+    expect(config.functions["api/media.js"].includeFiles).toBe("server/{fonts,assets}/**");
+    expect(readdirSync(new URL("../server/assets/", import.meta.url))).toContain("plantilla_acl.pdf");
     const functions = readdirSync(new URL("../api/", import.meta.url)).filter((f) => f.endsWith(".js") && !f.startsWith("_"));
     // +1 por el middleware de vista previa; el plan Hobby permite 12 por despliegue
     expect(functions.length + 1).toBeLessThanOrEqual(12);

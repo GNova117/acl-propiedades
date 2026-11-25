@@ -98,9 +98,14 @@ export function propertyTypeLabel(t, type) {
 // cargadas) y la ficha de propiedad (PropertyDetail, que le agrega
 // amenidades y el link antes de unir las líneas) para no repetir el mismo
 // armado de texto en los dos lugares.
+// Lo que se publica como «dónde está»: la dirección capturada, o solo la zona si la propiedad tiene la ubicación aproximada.
+export function publicPlace(property) {
+  return property.location_approximate ? property.zone : property.address;
+}
+
 export function propertyShareLines(property, t) {
   const lines = [
-    `📍 ${t(`propertyOperation.${property.operation_type}`)} | ${propertyTypeLabel(t, property.type)} en ${property.address}`,
+    `📍 ${t(`propertyOperation.${property.operation_type}`)} | ${propertyTypeLabel(t, property.type)} en ${publicPlace(property)}`,
     "",
     `💰 ${formatMXN(property.price)} MXN`,
     `📐 ${formatArea(property.area_m2)}`,

@@ -1,12 +1,11 @@
 // Generación del PDF de perfilamiento (vendedor o comprador) sobre la hoja
 // membretada de ACL. No se dibuja el membrete a mano: se carga
-// public/plantilla_acl.pdf (que ya trae logo, marca de agua y pie) y se
+// la plantilla_acl.pdf (que ya trae logo, marca de agua y pie) y se
 // escribe el texto encima. Genérico por secciones — cualquier tipo de
 // perfilamiento nuevo reutiliza esta misma función.
 
 import { displayValue, isFieldVisible } from "./perfilamientoShared";
-
-const TEMPLATE_URL = "/plantilla_acl.pdf";
+import { loadLetterhead } from "./letterhead";
 
 // Área útil de la hoja membretada (medida sobre la plantilla real):
 // el encabezado azul termina cerca de y=653 y el pie empieza cerca de y=80.
@@ -83,10 +82,7 @@ export async function buildPerfilamientoPdf(data, sections, { title = "PERFILAMI
 
   const templateBytes =
     template ??
-    (await fetch(TEMPLATE_URL).then((res) => {
-      if (!res.ok) throw new Error("No se pudo cargar la plantilla membretada");
-      return res.arrayBuffer();
-    }));
+    (await loadLetterhead());
 
   const doc = await PDFDocument.load(templateBytes);
   const templateDoc = await PDFDocument.load(templateBytes);

@@ -23,12 +23,12 @@
 // reintentar en vano en el siguiente aviso.
 
 import webpush from "npm:web-push@3";
+import { isCronAuthorized } from "../_shared/cronAuth.js";
 
 type PushSubscriptionRow = { id: string; endpoint: string; p256dh: string; auth: string };
 
 Deno.serve(async (req) => {
-  const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || req.headers.get("x-cron-secret") !== cronSecret) {
+  if (!(await isCronAuthorized(req, "enviar-push"))) {
     return new Response("unauthorized", { status: 401 });
   }
 

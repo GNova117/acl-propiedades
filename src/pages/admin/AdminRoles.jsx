@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import BackupCard from "../../components/BackupCard";
+import RetentionCard from "../../components/RetentionCard";
 import { SECTION_KEYS, ADMIN_ROLE_SLUG } from "../../lib/accessControl";
 import "./admin.css";
 import "./AdminLogin.css";
@@ -174,6 +175,7 @@ export default function AdminRoles() {
       </div>
 
       <BackupCard />
+      <RetentionCard />
 
       <form className="card admin-form" onSubmit={handleAddRole} style={{ maxWidth: 560, marginBottom: "1.5rem" }}>
         <h2 className="profiling-section-title">{t("accessControl.newRole")}</h2>

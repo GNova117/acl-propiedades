@@ -9,6 +9,8 @@
 // La lógica de armar el resumen está en funciones puras y exportadas para
 // poder probarlas fuera de Deno; el servidor solo arranca dentro de Deno.
 
+import { isCronAuthorized } from "../_shared/cronAuth.js";
+
 const GRAPH_VERSION = "v25.0";
 const OPEN_STAGES = ["nuevo", "contactado", "interesado", "negociacion"];
 const MAX_NAMES = 8;
@@ -80,8 +82,7 @@ export function buildPayload(digest: AdvisorDigest) {
 }
 
 async function handler(req: Request): Promise<Response> {
-  const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || req.headers.get("x-cron-secret") !== cronSecret) {
+  if (!(await isCronAuthorized(req, "seguimientos-resumen-diario"))) {
     return new Response("unauthorized", { status: 401 });
   }
 

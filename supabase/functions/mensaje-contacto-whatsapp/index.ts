@@ -5,6 +5,8 @@
 // vez por mensaje. El trigger manda los datos del mensaje directo en el
 // body (ya los tiene en `new`), así que esta función no vuelve a consultar
 // Supabase.
+import { isCronAuthorized } from "../_shared/cronAuth.js";
+
 const GRAPH_VERSION = "v25.0";
 const MESSAGE_PREVIEW_LENGTH = 300;
 
@@ -24,8 +26,7 @@ function toWhatsAppNumber(raw: unknown): string | null {
 }
 
 Deno.serve(async (req) => {
-  const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || req.headers.get("x-cron-secret") !== cronSecret) {
+  if (!(await isCronAuthorized(req, "mensaje-contacto-whatsapp"))) {
     return new Response("unauthorized", { status: 401 });
   }
 

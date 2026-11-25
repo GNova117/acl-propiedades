@@ -16,6 +16,8 @@
 // La lógica de armar el mensaje está en funciones puras y exportadas para poder
 // probarlas fuera de Deno; el servidor solo arranca dentro de Deno.
 
+import { isCronAuthorized } from "../_shared/cronAuth.js";
+
 const GRAPH_VERSION = "v25.0";
 
 type Named = { name: string; phone?: string | null } | null;
@@ -105,8 +107,7 @@ export function buildPayload(reminder: ReturnType<typeof buildReminders>["remind
 }
 
 async function handler(req: Request): Promise<Response> {
-  const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || req.headers.get("x-cron-secret") !== cronSecret) {
+  if (!(await isCronAuthorized(req, "agenda-recordatorio-cliente"))) {
     return new Response("unauthorized", { status: 401 });
   }
 

@@ -11,6 +11,7 @@
 // solo a esa dirección (prueba) y tampoco marca la semana.
 
 import { buildWeeklyReport, renderWeeklyEmail, resolveRecipients, TIMEZONE, weekWindows } from "./report.js";
+import { isCronAuthorized } from "../_shared/cronAuth.js";
 
 const DEFAULT_SITE_URL = "https://acl-propiedades.vercel.app";
 const PAGE = 5000;
@@ -29,8 +30,7 @@ async function sendEmail(to: string, subject: string, html: string, text: string
 }
 
 async function handler(req: Request): Promise<Response> {
-  const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || req.headers.get("x-cron-secret") !== cronSecret) {
+  if (!(await isCronAuthorized(req, "reporte-semanal"))) {
     return new Response("unauthorized", { status: 401 });
   }
 

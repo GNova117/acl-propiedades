@@ -10,8 +10,7 @@ import { polygonBounds, unionBounds, type Bounds, type Point } from "./geometry"
 import { presupuestoPorZona, type ValorZona, calcularPresupuesto, totalPresupuesto } from "./budget";
 import { areasPorZona, esAreaExterior, estadisticasHabitacion, estadisticasProyecto } from "./stats";
 import type { FotoHabitacion, Habitacion, MaterialCatalogItem, Proyecto } from "./types";
-
-const TEMPLATE_URL = "/plantilla_acl.pdf";
+import { loadLetterhead } from "../letterhead";
 
 const MARGIN_LEFT = 60;
 const MARGIN_RIGHT = 60;
@@ -129,9 +128,7 @@ export async function buildFichaConstruccionPdf(meta: FichaConstruccionMeta, { t
   if (template) {
     templateBytes = template;
   } else {
-    const res = await fetch(TEMPLATE_URL);
-    if (!res.ok) throw new Error("No se pudo cargar la plantilla membretada");
-    templateBytes = await res.arrayBuffer();
+    templateBytes = await loadLetterhead();
   }
 
   const doc = await PDFDocument.load(templateBytes);

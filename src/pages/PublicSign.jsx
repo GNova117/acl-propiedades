@@ -11,6 +11,7 @@ import { buildSignedPdf, signedPdfFileName } from "../lib/signedPdf";
 import "./PublicSign.css";
 import LoadingState from "../components/LoadingState";
 import { notify } from "../lib/toast";
+import LinkExpiry from "../components/LinkExpiry";
 
 // Página pública /firmar/<token>: el cliente abre el enlace privado, pone el
 // código que le dio su asesor, lee el PDF y lo firma en pantalla. No hay inicio
@@ -160,6 +161,7 @@ export default function PublicSign() {
         <>
           <h1>{t("signing.public.title")}</h1>
           <p className="form-hint">{t("signing.public.codeIntro", { title: info.title })}</p>
+          <LinkExpiry date={info.expires_at} />
           <form onSubmit={handleOpen} noValidate>
             <div className="form-field">
               <label htmlFor="sign-code">{t("signing.public.codeLabel")}</label>

@@ -1,6 +1,6 @@
 // Backend de modo demo (localStorage): métodos de «clients» (33). Se juntan en localBackend.js; `this` es el objeto completo, así que
 // un método puede llamar a los de otros módulos como siempre.
-import { DEMO_ADMIN } from "../../seedData";
+import { ADVISORS, DEMO_ADMIN } from "../../seedData";
 import { generateIntakeToken, intakeExpiry, intakeState, INTAKE_TOKEN_PATTERN, validateIntake, intakePayload } from "../../clientIntake";
 import { generatePortalToken, isExtractedDocType, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS } from "../../clientPortal";
 import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "../../perfilamientoVendedor";
@@ -221,7 +221,16 @@ export const clientsMethods = {
     const link = readStore(KEYS.clientIntakeLinks, []).find((l) => l.token === token);
     if (!link) return { status: "invalido" };
     const state = intakeState(link);
-    if (state === "pending") return { status: "activo", type: link.type, advisor_id: link.advisor_id || null };
+    if (state === "pending") {
+      const advisor = link.advisor_id ? readStore(KEYS.advisors, ADVISORS).find((a) => a.id === link.advisor_id && a.active !== false) : null;
+      return {
+        status: "activo",
+        type: link.type,
+        advisor_id: link.advisor_id || null,
+        expires_at: link.expires_at,
+        advisor: advisor && { id: advisor.id, name: advisor.name, photo_url: advisor.photo_url, phone: advisor.phone, whatsapp: advisor.whatsapp },
+      };
+    }
     return { status: { revoked: "revocado", used: "usado", expired: "expirado" }[state] };
   },
 
@@ -315,6 +324,7 @@ export const clientsMethods = {
     // en la oficina solo va el tipo y la fecha.
     return {
       status: "activo",
+      expires_at: t.expires_at,
       client_name: (client?.name || "").split(" ")[0],
       client_type: client?.type || null,
       financiamiento: client?.financiamiento || null,

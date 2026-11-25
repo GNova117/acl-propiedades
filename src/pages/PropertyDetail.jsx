@@ -31,7 +31,7 @@ import { getPropertyBadge } from "../lib/propertyBadges";
 import { CALCULATOR_ANCHOR, canEstimateMonthly, estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import { directionsUrl, streetViewUrl, wazeUrl } from "../lib/mapLinks";
 import { listingFrom } from "../lib/listNavigation";
-import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
+import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines, publicPlace } from "../lib/format";
 import "./PropertyDetail.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
@@ -177,7 +177,7 @@ function buildFaq(property, t) {
   ]);
 
   if (property.address && property.zone) {
-    candidates.push([t("detail.faq.locationQ"), t("detail.faq.locationA", { address: property.address, zone: property.zone })]);
+    candidates.push([t("detail.faq.locationQ"), t("detail.faq.locationA", { address: publicPlace(property), zone: property.zone })]);
   }
 
   if (property.type === "nave_industrial") {
@@ -282,7 +282,8 @@ export default function PropertyDetail() {
         },
         address: {
           "@type": "PostalAddress",
-          streetAddress: property.address,
+          // Con ubicación aproximada no se publica la calle ni el punto exacto.
+          ...(property.location_approximate ? {} : { streetAddress: property.address }),
           addressLocality: property.zone,
           addressCountry: "MX",
         },
@@ -386,7 +387,7 @@ export default function PropertyDetail() {
                   <span className="property-card__zone">· {colonyPath(property.zone) ? <Link to={colonyPath(property.zone)}>{property.zone}</Link> : property.zone}</span>
                 </div>
                 <h1>{property.title}</h1>
-                <p className="property-detail__address">{property.address}</p>
+                <p className="property-detail__address">{publicPlace(property)}</p>
                 <RecentViewsBadge propertyId={property.id} />
               </div>
               <div className="property-detail__price-block">
@@ -524,7 +525,8 @@ export default function PropertyDetail() {
               <Suspense fallback={<LoadingState variant="block" height={360} />}>
                 <PropertyMap properties={[property]} height={360} />
               </Suspense>
-              {directionsUrl(property) && (
+              {property.location_approximate && <p className="form-hint">{t("detail.locationApproximate")}</p>}
+              {!property.location_approximate && directionsUrl(property) && (
                 <div className="property-detail__map-actions">
                   <a className="btn btn-primary btn-sm" href={directionsUrl(property)} target="_blank" rel="noopener noreferrer">
                     {t("mapLinks.directions")}
@@ -537,7 +539,7 @@ export default function PropertyDetail() {
                   </a>
                 </div>
               )}
-              <TravelTime property={property} />
+              {!property.location_approximate && <TravelTime property={property} />}
             </section>
 
             <ZoneContext property={property} />

@@ -9,6 +9,7 @@ import { db } from "../lib/dataStore";
 import { emptyIntakeForm, INTAKE_CONSENT_VERSION, INTAKE_ERROR_FIELDS, intakeAdvisorContact, intakeAdvisorUrl, intakeGroups, intakePayload, validateIntake } from "../lib/clientIntake";
 import "./PublicVisitReport.css";
 import "./PublicClientIntake.css";
+import LinkExpiry from "../components/LinkExpiry";
 
 // Un campo del expediente: mismos tipos que ExpedienteFieldInput del panel (texto, teléfono, correo, fecha, lista, área de texto).
 function IntakeField({ field, value, onChange, error }) {
@@ -80,13 +81,10 @@ export default function PublicClientIntake() {
     db.getClientIntakeStatus(token)
       .then((data) => {
         if (cancelled) return;
-        setState({ token, status: data?.status || "invalido", type: data?.type || null });
+        setState({ token, status: data?.status || "invalido", type: data?.type || null, expiresAt: data?.expires_at || null });
         if (data?.status === "activo") setForm(emptyIntakeForm(data.type));
-        if (data?.advisor_id) {
-          db.getAdvisorById(data.advisor_id)
-            .then((found) => !cancelled && setAdvisor({ token, data: found }))
-            .catch(() => {});
-        }
+        // El contacto del asesor viene con el estado del enlace (el público no lee su teléfono de la tabla de asesores).
+        if (data?.advisor) setAdvisor({ token, data: data.advisor });
       })
       .catch(() => !cancelled && setState({ token, status: "error", type: null }));
     return () => {
@@ -167,6 +165,7 @@ export default function PublicClientIntake() {
           <form className="card public-intake__card" onSubmit={submit} noValidate>
             <h1>{t("intake.title")}</h1>
             <p>{t("intake.intro")}</p>
+            <LinkExpiry date={current.expiresAt} />
 
             <section className="public-intake__section" aria-labelledby="intake-contact">
               <h2 id="intake-contact">{t("intake.contactTitle")}</h2>

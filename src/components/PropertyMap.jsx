@@ -1,7 +1,7 @@
 import ResponsiveImg from "./ResponsiveImg";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -152,33 +152,58 @@ function clusterCenter(properties) {
   return [lat, lng];
 }
 
+// Radio del círculo de una propiedad con ubicación aproximada: el punto guardado está a menos de ~350 m del real (ver la migración
+// 0120), así que 500 m lo contiene siempre sin delatar la calle.
+const APPROXIMATE_RADIUS_M = 500;
+
+function PropertyPopup({ property }) {
+  const { t } = useTranslation();
+  return (
+    <Popup>
+      <div className="map-popup">
+        {property.main_image && <ResponsiveImg src={property.main_image} sizes="240px" alt={property.title} loading="lazy" decoding="async" />}
+        <strong>{property.title}</strong>
+        <span className="map-popup__price">{formatMXN(property.price)}</span>
+        <span className="map-popup__area">{formatArea(property.area_m2)}</span>
+        <Link to={propertyPath(property)} className="btn btn-primary btn-sm">
+          {t("properties.viewDetail")}
+        </Link>
+      </div>
+    </Popup>
+  );
+}
+
 function ClusteredMarkers({ properties }) {
   const { t } = useTranslation();
   const map = useMap();
-  const [groups, setGroups] = useState(() => clusterByPixelDistance(map, properties));
+  // Las de ubicación aproximada van como círculo (nunca como punto) y no se agrupan con las demás.
+  const exact = properties.filter((p) => !p.location_approximate);
+  const approximate = properties.filter((p) => p.location_approximate && Number.isFinite(p.lat) && Number.isFinite(p.lng));
+  const [groups, setGroups] = useState(() => clusterByPixelDistance(map, exact));
 
-  const recompute = () => setGroups(clusterByPixelDistance(map, properties));
+  const recompute = () => setGroups(clusterByPixelDistance(map, exact));
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(recompute, [properties]);
   useMapEvents({ zoomend: recompute, moveend: recompute });
 
-  return groups.map((group, i) => {
+  const circles = approximate.map((property) => (
+    <Circle
+      key={`approx-${property.id}`}
+      center={[property.lat, property.lng]}
+      radius={APPROXIMATE_RADIUS_M}
+      pathOptions={{ color: TYPE_COLORS[property.type] || TYPE_COLORS.casa, fillOpacity: 0.2, weight: 2 }}
+    >
+      <PropertyPopup property={property} />
+    </Circle>
+  ));
+
+  return [circles, ...groups.map((group, i) => {
     if (group.length === 1) {
       const property = group[0];
       return (
         <Marker key={property.id} position={[property.lat, property.lng]} icon={getIcon(property.type)} title={property.title} alt={property.title}>
-          <Popup>
-            <div className="map-popup">
-              {property.main_image && <ResponsiveImg src={property.main_image} sizes="240px" alt={property.title} loading="lazy" decoding="async" />}
-              <strong>{property.title}</strong>
-              <span className="map-popup__price">{formatMXN(property.price)}</span>
-              <span className="map-popup__area">{formatArea(property.area_m2)}</span>
-              <Link to={propertyPath(property)} className="btn btn-primary btn-sm">
-                {t("properties.viewDetail")}
-              </Link>
-            </div>
-          </Popup>
+          <PropertyPopup property={property} />
         </Marker>
       );
     }
@@ -197,7 +222,7 @@ function ClusteredMarkers({ properties }) {
         }}
       />
     );
-  });
+  })];
 }
 
 function FullscreenButton({ fullscreen, onToggle }) {

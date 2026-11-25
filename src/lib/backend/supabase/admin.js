@@ -6,6 +6,14 @@ import { slugify } from "../../format";
 export const adminMethods = {
   mode: "supabase",
 
+  // Papelería de clientes que ya cumplió el plazo de 3 años y qué pasó en la última depuración (migración 0123). Solo el apartado
+  // 'roles'. null si la migración aún no está aplicada: la tarjeta de Roles simplemente no se muestra.
+  async getRetentionSummary() {
+    const { data, error } = await supabase.rpc("papeleria_resumen");
+    if (error) return null;
+    return data;
+  },
+
   // Registro de actividad (quién creó/editó/borró qué). Solo lo ve el rol con el
   // apartado 'roles'; lo escriben triggers de la base (ver schema.sql).
   async getAuditLog({ table, actor, from, to, limit = 100, offset = 0 } = {}) {

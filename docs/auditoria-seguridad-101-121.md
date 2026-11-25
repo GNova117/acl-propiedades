@@ -4,10 +4,19 @@ Estado de cada punto y lo que hay que hacer **a mano** para que surta efecto. El
 
 ## Orden de despliegue
 
-1. **Publicar el sitio** (merge a `main`). Ya pide solo las columnas públicas de los asesores y lee el contacto del equipo y de las selecciones por funciones nuevas, así que funciona igual con la base vieja y con la nueva.
-2. **Aplicar la migración `supabase/migrations/0118_seguridad_lectura_publica_correo_del_staff_y_limites_por_ip.sql`** (con `npm run db:migrate` o pegándola en el SQL Editor de Supabase). Es re-ejecutable. Hace los puntos 102, 103, 104 y 112 y crea la tabla del 101.
-3. **Desplegar la función** `enviar-correo` (`supabase functions deploy enviar-correo`), con "Enforce JWT Verification" activado como hasta ahora. Usa `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY`, que Supabase inyecta; no hay variables nuevas.
-4. **Probar** con la sesión de un asesor: Visitas → enviar informe por correo, y Gastos → enviar desglose. Con la llave anon (por ejemplo con `curl`) debe responder 401.
+1. **Publicar el sitio** (merge a `main`). Ya pide solo columnas públicas de asesores y lee el contacto del equipo, de las selecciones y del enlace de registro por funciones nuevas, así que funciona igual con la base vieja y con la nueva.
+2. **Desplegar las funciones de Edge** (`supabase functions deploy <nombre>`): `enviar-correo`, `depurar-papeleria` (nueva) y las 12 que dispara la base (`agenda-recordatorio-30min`, `agenda-recordatorio-cliente`, `agenda-resumen-diario`, `alertas-propiedades`, `enviar-push`, `errores-aviso`, `mensaje-contacto-whatsapp`, `portal-avisos`, `reporte-semanal`, `seguimientos-resumen-diario`, `visita-correo`, `visita-recordatorios`). Las doce aceptan el secreto por función **y** el maestro mientras `CRON_ACCEPT_SHARED_SECRET` no valga `false`, así que desplegarlas antes de la base no rompe nada.
+3. **Aplicar las migraciones 0118 a 0123** (`npm run db:migrate`, o pegar cada archivo de `supabase/migrations/` en el SQL Editor; son re-ejecutables):
+   - `0118` seguridad de lectura pública, correo del staff, límites por IP y cubetas (101–104, 112).
+   - `0119` apartado `membrete` (109).
+   - `0120` ubicación aproximada (114).
+   - `0121` vigencia de enlaces con token y contacto del asesor por función (116).
+   - `0122` secretos por función programada (120).
+   - `0123` papelería de 3 años y trabajo mensual de depuración (121).
+4. **Roles y accesos → activar «Plantilla membretada»** en el rol de los asesores (el Administrador ya la trae). Quien no la tenga sigue generando PDF, pero sobre una hoja en blanco.
+5. **Probar**: enviar un informe por correo desde Visitas con un asesor; generar un PDF con un asesor con y sin el apartado; abrir `/nosotros`, un enlace de selección y uno de registro sin sesión (deben mostrar el contacto del asesor).
+6. **Cuando todo funcione, apagar la transición del punto 120**: `supabase secrets set CRON_ACCEPT_SHARED_SECRET=false`. Desde ahí solo valen los secretos por función.
+7. **La depuración (121) arranca como simulacro.** Revisa la tarjeta «Papelería de clientes» en Roles y accesos después de la primera corrida (día 1 de cada mes) y, si la lista es la esperada, actívala: `supabase secrets set RETENTION_PURGE_ENABLED=true`.
 
 ## Hecho
 
@@ -28,15 +37,23 @@ Estado de cada punto y lo que hay que hacer **a mano** para que surta efecto. El
 
 Además: el chat ya no le dice a la persona "quedó registrado" si el prospecto no se guardó (punto 129 de la auditoría).
 
+## Hechos en la segunda tanda (109, 114, 116, 120, 121)
+
+| # | Qué cambió |
+|---|---|
+| 109 | `plantilla_acl.pdf` ya no es público: vive en `server/assets/` y solo la entrega `/api/plantilla` (dentro de `api/media.js`, porque el plan Hobby de Vercel permite 12 funciones por despliegue y ya estábamos en el tope) a quien tenga sesión **y** el apartado `membrete` en su rol. Sin acceso, los 17 generadores de PDF dibujan el mismo contenido sobre una hoja carta en blanco (ayudante único en `src/lib/letterhead.js`). **Efecto a la vista:** la Guía del comprador y el documento firmado que baja un cliente salen sin membrete. |
+| 114 | Casilla «Ubicación aproximada» en el formulario de la propiedad. Con ella, las coordenadas exactas se guardan aparte (`property_exact_location`, solo roles con Propiedades) y `properties.lat/lng` —lo que lee el público— queda difuminado (hasta ~350 m, estable por propiedad). En el sitio: círculo de 500 m en el mapa, solo la zona (sin calle), sin «Cómo llegar», Street View, Waze ni tiempo de traslado, y sin `streetAddress` en el JSON-LD. **Limitación:** el campo «Dirección» se publica tal cual; en estas propiedades hay que capturar solo la colonia. |
+| 116 | Las páginas de firma, documentos, registro y el informe del vendedor dicen «Este enlace vence el …» (la selección ya lo hacía). El enlace del informe ya no dura para siempre: 180 días desde que se crea o regenera (`property_report_links.expires_at`; los que ya existían cuentan desde la migración). Revocar desde el panel ya existía en selecciones, firmas, portal, registro e informe. La página de registro dejó de leer el teléfono del asesor de la tabla (la migración 0118 lo cierra): ahora llega con el estado del enlace. El enlace de la cita (`/visita/`) no vence por tiempo: depende de la fecha de la visita y el cliente puede cancelarla. |
+| 120 | Cada función programada tiene su secreto, derivado por HMAC-SHA256 del `CRON_SECRET` con el nombre de la función. La base lo calcula con `cron_secret_for('<función>')` y reescribe sola los 9 trabajos de pg_cron y las 6 funciones de trigger que mandaban el maestro; el maestro ya no viaja en ninguna llamada y el de una función no abre otra. Para probar una función a mano: `echo -n "enviar-push" \| openssl dgst -sha256 -hmac "$CRON_SECRET"`. |
+| 121 | La papelería de clientes (`client_documents` y los expedientes de avalúo de la Agenda) se conserva **3 años desde la última actividad con el cliente** (lo más reciente entre alta/edición, documento capturado, movimiento del trámite y última cita). `papeleria_vencida()` lista lo vencido; la función `depurar-papeleria` corre el día 1 de cada mes y borra primero el archivo y luego la fila. **Es un simulacro hasta activar `RETENTION_PURGE_ENABLED=true`.** No toca al cliente, sus ventas ni su historial. |
+
+La parte de SQL de 114, 116, 120 y 121 (y la de 101 a 104 y 112) se probó contra un Postgres 16 real con las pruebas de `supabase/testdb/tests/` (09 a 13): permisos de lectura pública y por rol, difuminado estable, vencimientos, secretos derivados, cálculo de los 3 años en los bordes (2 años 11 meses no vence, 3 años 1 mes sí).
+
 ## Revisados y no cambiados
 
-- **106 (`/admin/panel` sin `RequireSection`)**: era un falso positivo mío. Cada bloque del panel principal solo pide sus datos si el rol tiene ese apartado (`hasSection`), así que un rol sin apartados ve el panel vacío, no cifras del negocio. Lo único visible para todos es el resumen de Analytics, y está así a propósito (comentado en el código).
-- **107 (descargar tablas completas para contarlas)**: sigue pendiente, pero no es una fuga: solo se piden las tablas de los apartados que el rol ya tiene. Es un tema de rendimiento (consultas de conteo) y conviene hacerlo junto con el punto de paginar las listas.
+- **106 (`/admin/panel` sin `RequireSection`)**: era un falso positivo mío. Cada bloque del panel principal solo pide sus datos si el rol tiene ese apartado (`hasSection`), así que un rol sin apartados ve el panel vacío, no cifras del negocio.
+- **107 (descargar tablas completas para contarlas)**: sigue pendiente, pero no es una fuga: solo se piden las tablas de los apartados que el rol ya tiene. Es un tema de rendimiento (consultas de conteo).
 
-## Pendientes que necesitan una decisión
+## Fuera de alcance de la regla de 3 años (lo que NO se depura)
 
-- **109 (`plantilla_acl.pdf` pública)**: la usan los PDF que se arman en el navegador. Si alguna página sin sesión la necesita (informe del vendedor) no puede ir a almacenamiento privado. Es una hoja con logotipo y membrete: falsificar con ella no requiere el archivo. ¿Se mueve de todos modos (para el panel) o se deja?
-- **114 (ubicación aproximada)**: ocultar el punto en el mapa no basta, porque `lat`/`lng` exactos siguen en la API pública. Hay que decidir si se difuminan en la base (por ejemplo, redondear a ~300 m al publicar y guardar las exactas aparte).
-- **116 (enlaces con token sin caducidad visible)**: es trabajo de interfaz en cada página con token; se puede hacer junto con "revocar desde el panel".
-- **120 (un solo `CRON_SECRET`)**: separarlo implica cambiar cada tarea de `pg_cron` y su función a la vez, y volver a sembrar los secretos en Vault.
-- **121 (retención)**: hay que fijar cuánto tiempo se guarda cada cosa (INE, CURP, chat, mensajes) antes de programar el borrado.
+Los chats con el asistente no se guardan en el servidor (solo un registro con huella de IP para los límites), y los mensajes de contacto, prospectos y contratos firmados no tienen regla de retención todavía: la indicación fue solo para la papelería de clientes.

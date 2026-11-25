@@ -2,8 +2,8 @@
 // que legalDocsPdf.js, pero con listas y sin bloque de firma).
 import { sanitize, wrapText } from "./propertyFichaPdf";
 import { BUYER_GUIDE } from "./buyerGuide";
+import { loadLetterhead } from "./letterhead";
 
-const TEMPLATE_URL = "/plantilla_acl.pdf";
 const MARGIN_LEFT = 60;
 const MARGIN_RIGHT = 60;
 const TOP_Y = 628;
@@ -24,10 +24,7 @@ export async function buildBuyerGuidePdf({ template, guide = BUYER_GUIDE } = {})
 
   const templateBytes =
     template ??
-    (await fetch(TEMPLATE_URL).then((res) => {
-      if (!res.ok) throw new Error("No se pudo cargar la plantilla membretada");
-      return res.arrayBuffer();
-    }));
+    (await loadLetterhead());
 
   const doc = await PDFDocument.load(templateBytes);
   const templateDoc = await PDFDocument.load(templateBytes);

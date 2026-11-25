@@ -222,7 +222,8 @@ export default function AdminPropertyVisits() {
               </button>
             </div>
             <p className="visit-note mt-3 mb-0">
-              {t("visits.share.createdOn", { date: formatVisitDate(link.created_at, i18n.language) })} {t("visits.share.rotateHint")}
+              {t("visits.share.createdOn", { date: formatVisitDate(link.created_at, i18n.language) })}
+              {link.expires_at ? ` ${t("visits.share.expiresOn", { date: formatVisitDate(link.expires_at, i18n.language) })}` : ""} {t("visits.share.rotateHint")}
             </p>
             <div className="visit-share__email" style={{ marginTop: "0.9rem", display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "flex-end" }}>
               <div className="form-field" style={{ marginBottom: 0, flex: "1 1 220px" }}>

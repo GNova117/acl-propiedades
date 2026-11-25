@@ -14,6 +14,7 @@ import { rememberItem } from "../lib/mySpace";
 import { PORTAL_OFFICIAL_LINKS, PORTAL_CONSENT_VERSION, checklistSummary, clientTodo, latestPortalDoc, portalChecklist, requestedDocsFor } from "../lib/clientPortal";
 import "./PortalDocuments.css";
 import LoadingState from "../components/LoadingState";
+import LinkExpiry from "../components/LinkExpiry";
 
 const CONSENT_KEY_PREFIX = "acl_portal_consent_";
 
@@ -135,6 +136,8 @@ export default function PortalDocuments() {
         )}
 
         {state.status === "activo" && !consentDone && <PortalPrivacyConsent onAccept={handleAcceptConsent} />}
+
+        {state.status === "activo" && <LinkExpiry date={payload.expires_at} />}
 
         {state.status === "activo" && consentDone && (
           <>

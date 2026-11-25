@@ -131,7 +131,7 @@ describe("signHeading", () => {
 });
 
 describe("buildQrSignPdf", () => {
-  const template = readFileSync("public/plantilla_acl.pdf");
+  const template = readFileSync("server/assets/plantilla_acl.pdf");
   it("genera un PDF de una sola página sobre la hoja membretada", async () => {
     const bytes = await buildQrSignPdf(property, { origin, template });
     const doc = await PDFDocument.load(bytes);

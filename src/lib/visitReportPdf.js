@@ -10,8 +10,7 @@
 // (`labels`) en vez de leer i18n: así se puede probar fuera del navegador.
 
 import { buildVisitReport } from "./visitReport";
-
-const TEMPLATE_URL = "/plantilla_acl.pdf";
+import { loadLetterhead } from "./letterhead";
 
 const MARGIN_LEFT = 60;
 const MARGIN_RIGHT = 60;
@@ -79,10 +78,7 @@ export async function buildVisitReportPdf(payload, labels, { template, now = new
 
   const templateBytes =
     template ??
-    (await fetch(TEMPLATE_URL).then((res) => {
-      if (!res.ok) throw new Error("No se pudo cargar la plantilla membretada");
-      return res.arrayBuffer();
-    }));
+    (await loadLetterhead());
 
   const doc = await PDFDocument.load(templateBytes);
   const templateDoc = await PDFDocument.load(templateBytes);

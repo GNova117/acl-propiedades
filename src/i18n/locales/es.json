@@ -242,6 +242,7 @@
     "coloniesTitle": "Colonias de {{city}} con propiedades"
   },
   "detail": {
+    "locationApproximate": "Ubicación aproximada: el vendedor prefiere no publicar el punto exacto. Tu asesor te da la dirección al agendar la visita.",
     "compareCredits": {
       "title": "¿Cómo la pagarías?",
       "text": "Compara Infonavit, crédito bancario y contado para esta casa: cuánto necesitas al inicio y cuánto pagarías al mes.",
@@ -919,7 +920,8 @@
       "gastos": "Desglose de gastos",
       "secretaria": "Secretaría",
       "prospectos": "Prospectos",
-      "blog": "Blog"
+      "blog": "Blog",
+      "membrete": "Plantilla membretada (PDF con logotipo)"
     },
     "rolesTitle": "Roles",
     "newRole": "Nuevo rol",
@@ -1788,6 +1790,7 @@
       "confirmRegenerate": "¿Generar un enlace nuevo? El enlace anterior dejará de funcionar y el vendedor necesitará el nuevo.",
       "confirmDisable": "¿Desactivar el enlace? El vendedor ya no podrá abrir su informe hasta que crees uno nuevo.",
       "createdOn": "Enlace creado el {{date}}.",
+      "expiresOn": "Vence el {{date}}.",
       "rotateHint": "Cualquiera que tenga el enlace puede ver el informe: compártelo solo con el vendedor.",
       "emailLabel": "Correo del vendedor",
       "emailSend": "Enviar por correo",
@@ -3260,6 +3263,16 @@
     "accept": "Aceptar",
     "reject": "Rechazar",
     "preferences": "Preferencias de cookies"
+  },
+  "tokenLink": { "validUntil": "Este enlace vence el {{date}}." },
+  "retention": {
+    "title": "Papelería de clientes",
+    "rule": "Los documentos de un cliente se conservan {{years}} años desde la última actividad con él (alta, edición, documento, trámite o cita) y después se depuran. Si hay movimiento, el plazo vuelve a empezar.",
+    "due": "{{documents}} documentos de {{clients}} clientes ya cumplieron el plazo (el más antiguo, con última actividad el {{date}}).",
+    "none": "Ninguna papelería ha cumplido el plazo.",
+    "lastDry": "Última revisión: {{date}} (simulacro, no se borró nada): {{due}} documentos vencidos.",
+    "lastReal": "Última depuración: {{date}}: {{due}} vencidos, {{deleted}} borrados, {{failed}} archivos que no se pudieron borrar (se reintentan el mes siguiente).",
+    "noRuns": "La depuración corre el día 1 de cada mes. Empieza como simulacro: solo cuenta lo vencido; no borra nada hasta que se active."
   },
   "privacy": {
     "title": "Aviso de Privacidad",
@@ -4819,6 +4832,8 @@
     "switchLanguage": "Cambiar idioma / Switch language"
   },
   "propertyForm": {
+    "locationApproximate": "Mostrar solo la zona, no el punto exacto (ubicación aproximada)",
+    "locationApproximateHint": "En el sitio se verá un círculo de unos 500 m y la zona, sin la calle, sin «Cómo llegar» ni Street View. Las coordenadas exactas solo las ven quienes tienen Propiedades. Capture en «Dirección» solo la colonia.",
     "descriptionHint": "Deja una línea en blanco para separar párrafos y empieza una línea con «- » para hacer una lista (con «1. » para numerarla). En el sitio se ve con sus párrafos y viñetas.",
     "steps": {
       "basics": "Datos básicos",

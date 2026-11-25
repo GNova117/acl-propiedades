@@ -6,8 +6,7 @@
 // Mismo patrón que visitReportPdf.js (hoja membretada + paginación
 // automática); el ayudante de texto está duplicado a propósito para no tocar los
 // generadores ya publicados.
-
-const TEMPLATE_URL = "/plantilla_acl.pdf";
+import { loadLetterhead } from "./letterhead";
 
 const MARGIN_LEFT = 60;
 const MARGIN_RIGHT = 60;
@@ -61,10 +60,7 @@ export async function buildExpenseBreakdownPdf(data, { template } = {}) {
 
   const templateBytes =
     template ??
-    (await fetch(TEMPLATE_URL).then((res) => {
-      if (!res.ok) throw new Error("No se pudo cargar la plantilla membretada");
-      return res.arrayBuffer();
-    }));
+    (await loadLetterhead());
 
   const doc = await PDFDocument.load(templateBytes);
   const templateDoc = await PDFDocument.load(templateBytes);

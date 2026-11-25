@@ -8,6 +8,11 @@ import { MFA_OK_KEY, KEYS, readStore, writeStore, uid, authListeners, getSession
 export const adminMethods = {
   mode: "local",
 
+  // La depuración de papelería vive en la base (migración 0123): el modo demostración no la tiene.
+  async getRetentionSummary() {
+    return null;
+  },
+
   // Registro de actividad: en modo demo no hay base ni triggers, así que no hay registro.
   async getAuditLog() {
     return [];

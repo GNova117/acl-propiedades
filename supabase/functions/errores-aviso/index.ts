@@ -8,6 +8,7 @@
 // Cuerpo opcional (JSON): { "dryRun": true } devuelve el correo sin enviar ni marcar nada.
 
 import { adminRecipients, buildErrorDigest } from "./digest.js";
+import { isCronAuthorized } from "../_shared/cronAuth.js";
 
 const DEFAULT_SITE_URL = "https://acl-propiedades.vercel.app";
 
@@ -25,8 +26,7 @@ async function sendEmail(to: string, subject: string, html: string, text: string
 }
 
 async function handler(req: Request): Promise<Response> {
-  const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || req.headers.get("x-cron-secret") !== cronSecret) {
+  if (!(await isCronAuthorized(req, "errores-aviso"))) {
     return new Response("unauthorized", { status: 401 });
   }
 

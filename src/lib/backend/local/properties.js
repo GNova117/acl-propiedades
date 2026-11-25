@@ -100,6 +100,7 @@ export const propertiesMethods = {
       address: data.address,
       lat: Number(data.lat),
       lng: Number(data.lng),
+      location_approximate: data.location_approximate === true,
       status: data.status || "disponible",
       operation_type: data.operation_type || "compra",
       active: data.active !== false,

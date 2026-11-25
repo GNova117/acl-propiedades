@@ -5,8 +5,8 @@
 // original nunca se altera y el hash sigue siendo comprobable.
 
 import { base64ToBytes } from "./signing";
+import { loadLetterhead } from "./letterhead";
 
-const TEMPLATE_URL = "/plantilla_acl.pdf";
 const MARGIN_LEFT = 60;
 const CONTENT_WIDTH = 612 - 60 * 2;
 const TOP_Y = 628;
@@ -44,10 +44,7 @@ export async function buildSignedPdf(request, { template } = {}) {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const templateBytes =
     template ??
-    (await fetch(TEMPLATE_URL).then((res) => {
-      if (!res.ok) throw new Error("No se pudo cargar la plantilla membretada");
-      return res.arrayBuffer();
-    }));
+    (await loadLetterhead());
 
   const doc = await PDFDocument.load(base64ToBytes(request.document_b64));
   const templateDoc = await PDFDocument.load(templateBytes);

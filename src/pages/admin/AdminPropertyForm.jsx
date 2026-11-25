@@ -28,6 +28,7 @@ const EMPTY = {
   address: "",
   lat: "",
   lng: "",
+  location_approximate: false,
   status: "disponible",
   operation_type: "compra",
   active: true,
@@ -68,6 +69,7 @@ function propertyToForm(property) {
     address: property.address,
     lat: property.lat,
     lng: property.lng,
+    location_approximate: property.location_approximate === true,
     status: property.status,
     operation_type: property.operation_type || "compra",
     active: property.active,
@@ -429,6 +431,13 @@ export default function AdminPropertyForm({
             </div>
           </div>
           {errors.lat && <span className="form-error">{errors.lat}</span>}
+          <label className="form-field form-field--check" htmlFor="p-approx">
+            <span>
+              <input id="p-approx" type="checkbox" checked={form.location_approximate} onChange={handleChange("location_approximate")} />{" "}
+              {t("propertyForm.locationApproximate")}
+            </span>
+            <span className="form-hint">{t("propertyForm.locationApproximateHint")}</span>
+          </label>
         </div>
 
         <div className="admin-form__step" id="p-step-2" role="group" aria-labelledby="p-step-title-2" hidden={step !== 2}>
