@@ -3,7 +3,7 @@
 import { supabase } from "../../supabaseClient";
 import { getOrCreateVisitorId } from "../../visitorId";
 import { cleanSelectionInput } from "../../selections";
-import { isMissingTable } from "./shared.js";
+import { fetchAll, isMissingTable } from "./shared.js";
 
 export const prospectsMethods = {
   // Fusiona dos prospectos duplicados (merge_prospects, schema.sql). Devuelve { ok } o lanza `merge:<motivo>`.
@@ -17,9 +17,7 @@ export const prospectsMethods = {
   // Prospectos por etapas. RLS: apartado 'prospectos'; un asesor con login
   // vinculado ve solo los suyos (ver schema.sql).
   async getProspects() {
-    const { data, error } = await supabase.from("prospectos").select("*").order("created_at", { ascending: false });
-    if (error) throw error;
-    return data || [];
+    return fetchAll(() => supabase.from("prospectos").select("*").order("created_at", { ascending: false }).order("id"));
   },
 
   // Selección de propiedades en un solo enlace (ver schema.sql: property_selections y selection_open). El público solo

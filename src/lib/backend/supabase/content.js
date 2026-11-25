@@ -3,7 +3,7 @@
 import { supabase } from "../../supabaseClient";
 import { slugify } from "../../format";
 import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } from "../../developments";
-import { isMissingTable, uploadFiles, discardUploads } from "./shared.js";
+import { fetchAll, isMissingTable, uploadFiles, discardUploads } from "./shared.js";
 
 export const contentMethods = {
   async getTestimonials() {
@@ -280,9 +280,7 @@ export const contentMethods = {
   },
 
   async getContactMessages() {
-    const { data, error } = await supabase.from("contact_messages").select("*").order("created_at", { ascending: false });
-    if (error) throw error;
-    return data || [];
+    return fetchAll(() => supabase.from("contact_messages").select("*").order("created_at", { ascending: false }).order("id"));
   },
 
   async updateContactMessageStatus(id, status) {

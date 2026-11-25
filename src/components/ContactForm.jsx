@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { trackConversion } from "../lib/conversions";
+import { lastSubmitAt, markSubmitted } from "../lib/rateLimitStore";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -47,7 +48,7 @@ export default function ContactForm() {
       return;
     }
 
-    const lastSubmit = Number(window.localStorage.getItem(RATE_LIMIT_KEY) || 0);
+    const lastSubmit = lastSubmitAt(RATE_LIMIT_KEY);
     if (Date.now() - lastSubmit < RATE_LIMIT_MS) {
       setStatus("rateLimited");
       return;
@@ -58,7 +59,7 @@ export default function ContactForm() {
       const { empresa: _empresa, ...payload } = form;
       await db.submitContactMessage(payload);
       trackConversion("lead_form", { form: "contacto" });
-      window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
+      markSubmitted(RATE_LIMIT_KEY);
       setStatus("success");
       setForm(initialForm);
     } catch (err) {

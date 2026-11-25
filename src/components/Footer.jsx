@@ -129,6 +129,7 @@ export default function Footer() {
           <span>&copy; {year} ACL Propiedades. {t("footer.rights")}</span>
           <NavLink to="/aviso-de-privacidad">{t("footer.privacyLink")}</NavLink>
           <NavLink to="/carta-de-derechos">{t("footer.rightsLink")}</NavLink>
+          <NavLink to="/terminos-y-condiciones">{t("footer.termsLink")}</NavLink>
           {analyticsAvailable && (
             <button type="button" className="site-footer__link-button" onClick={openConsentPreferences}>
               {t("cookieBanner.preferences")}

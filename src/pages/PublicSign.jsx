@@ -12,6 +12,7 @@ import "./PublicSign.css";
 import LoadingState from "../components/LoadingState";
 import { notify } from "../lib/toast";
 import LinkExpiry from "../components/LinkExpiry";
+import DocumentFrame from "../components/DocumentFrame";
 
 // Página pública /firmar/<token>: el cliente abre el enlace privado, pone el
 // código que le dio su asesor, lee el PDF y lo firma en pantalla. No hay inicio
@@ -191,7 +192,7 @@ export default function PublicSign() {
         <h1>{doc.title}</h1>
         <p className="form-hint">{t("signing.public.readIntro")}</p>
         <div className="public-sign__viewer">
-          <iframe src={pdfUrl} title={doc.title} />
+          <DocumentFrame url={pdfUrl} title={doc.title} />
         </div>
         <p className="form-hint">
           <a href={pdfUrl} target="_blank" rel="noopener noreferrer">

@@ -5,8 +5,13 @@ const STORAGE_KEY = "acl_theme";
 
 function getInitialTheme() {
   if (typeof window === "undefined") return "light";
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (stored === "light" || stored === "dark") return stored;
+  // Con el almacenamiento bloqueado (Safari con cookies bloqueadas) leer o escribir lanza: sin este try el sitio entero quedaba en blanco.
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored === "light" || stored === "dark") return stored;
+  } catch {
+    /* sin almacenamiento: se sigue el tema del sistema */
+  }
   return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
@@ -15,7 +20,11 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    window.localStorage.setItem(STORAGE_KEY, theme);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, theme);
+    } catch {
+      /* sin almacenamiento: el tema vale solo en esta visita */
+    }
   }, [theme]);
 
   const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));

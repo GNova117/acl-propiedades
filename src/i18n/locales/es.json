@@ -170,6 +170,10 @@
     "vendida": "Vendida"
   },
   "properties": {
+    "statusFilter": "Estatus",
+    "statusDefault": "Disponibles y apartadas",
+    "statusOnlyAvailable": "Solo disponibles",
+    "statusAll": "Incluir vendidas",
     "title": "Propiedades disponibles",
     "subtitle": "Filtra por tipo, zona, precio y superficie para encontrar tu propiedad ideal.",
     "industrialTitle": "Naves industriales disponibles",
@@ -242,6 +246,9 @@
     "coloniesTitle": "Colonias de {{city}} con propiedades"
   },
   "detail": {
+    "soldTitle": "Esta propiedad ya se vendió",
+    "soldText": "Ya no se pueden agendar visitas. Mira otras propiedades parecidas o déjanos tus datos más abajo para avisarte de algo similar.",
+    "soldCta": "Ver propiedades disponibles",
     "locationApproximate": "Ubicación aproximada: el vendedor prefiere no publicar el punto exacto. Tu asesor te da la dirección al agendar la visita.",
     "compareCredits": {
       "title": "¿Cómo la pagarías?",
@@ -572,6 +579,7 @@
     "parking": "Estacionamiento"
   },
   "footer": {
+    "termsLink": "Términos y condiciones",
     "tagline": "Compra y venta de casas, terrenos, locales comerciales y naves industriales en La Comarca Lagunera.",
     "quickLinks": "Enlaces rápidos",
     "zones": "Zonas",
@@ -921,6 +929,7 @@
       "secretaria": "Secretaría",
       "prospectos": "Prospectos",
       "blog": "Blog",
+      "arco": "Derechos ARCO (consultar y borrar datos de una persona)",
       "membrete": "Plantilla membretada (PDF con logotipo)"
     },
     "rolesTitle": "Roles",
@@ -3215,6 +3224,7 @@
     "title": "Vistos recientemente"
   },
   "chatWidget": {
+    "aiNotice": "Este asistente es una inteligencia artificial: lo que escribas lo procesa un proveedor externo. No compartas datos sensibles (contraseñas, datos bancarios). Si dejas tu teléfono o correo, un asesor te contactará.",
     "title": "Asistente ACL Propiedades",
     "open": "Abrir chat",
     "close": "Cerrar chat",
@@ -5037,6 +5047,108 @@
       "short": "Cuéntanos un poco más (al menos 10 caracteres).",
       "rateLimited": "Ya mandaste varios reportes seguidos. Inténtalo de nuevo en un rato.",
       "generic": "No se pudo enviar el reporte. Inténtalo de nuevo."
+    }
+  },
+  "loadError": {
+    "title": "No pudimos cargar esta página",
+    "text": "Revisa tu conexión e inténtalo de nuevo.",
+    "retry": "Reintentar"
+  },
+  "terms": {
+    "title": "Términos y condiciones de uso",
+    "intro": "Al usar este sitio aceptas las siguientes condiciones. Si no estás de acuerdo con ellas, te pedimos no utilizarlo.",
+    "updated": "Última actualización: noviembre de 2026",
+    "sections": [
+      {
+        "title": "Quiénes somos y qué ofrece este sitio",
+        "body": "Este sitio es de ACL Propiedades, con domicilio en Blvd. Independencia, Local 16, Plaza San Luciano, Torreón, Coahuila. Sirve para consultar propiedades en venta y renta en La Comarca Lagunera, usar herramientas informativas y contactar a nuestros asesores. ACL Propiedades interviene como intermediario inmobiliario: las operaciones se formalizan por escrito con el asesor, nunca solo por medio de este sitio."
+      },
+      {
+        "title": "Información de las propiedades",
+        "body": "Procuramos que precios, medidas, fotografías y descripciones sean veraces y estén al día, pero pueden cambiar sin previo aviso (precio, disponibilidad, apartado o venta). Lo publicado en el sitio es informativo y no constituye una oferta vinculante. Las fotografías, planos y recorridos pueden ser ilustrativos. Antes de decidir, confirma los datos con tu asesor y revisa la documentación del inmueble."
+      },
+      {
+        "title": "Calculadoras, estimaciones y comparador de créditos",
+        "body": "Las herramientas del sitio (calculadora de valor, estimación de pago mensual, comparador de créditos, guía del comprador) son una referencia. No son un avalúo, una oferta, una cotización ni una aprobación de crédito; los resultados dependen de datos y tasas que cambian y de la decisión de cada institución. Para cifras definitivas consulta a un asesor y a la institución financiera."
+      },
+      {
+        "title": "Asistente virtual",
+        "body": "El chat del sitio es un asistente con inteligencia artificial. Puede equivocarse o no tener información actualizada, y sus respuestas no sustituyen la orientación de un asesor ni constituyen asesoría legal, fiscal o financiera. No escribas en él datos sensibles. Puedes pedir hablar con una persona en cualquier momento."
+      },
+      {
+        "title": "Uso aceptable",
+        "body": "Te comprometes a usar el sitio de buena fe y con datos verdaderos. No está permitido: copiar o extraer de forma masiva o automatizada el contenido, hacerse pasar por otra persona, enviar formularios de manera automatizada o con datos falsos, intentar acceder a áreas privadas o dañar la seguridad o el funcionamiento del sitio. Podemos bloquear el acceso a quien incumpla estas condiciones."
+      },
+      {
+        "title": "Propiedad intelectual",
+        "body": "La marca, el logotipo, los textos, las fotografías, los planos y el diseño del sitio pertenecen a ACL Propiedades o a quien nos autorizó a usarlos. Puedes compartir los enlaces de las propiedades con fines personales; cualquier otro uso, reproducción o explotación requiere nuestro permiso por escrito."
+      },
+      {
+        "title": "Servicios y enlaces de terceros",
+        "body": "El sitio se apoya en servicios de terceros (por ejemplo WhatsApp, Google Maps o los mapas de OpenStreetMap) y puede enlazar a otros sitios. No controlamos ni somos responsables de su contenido, disponibilidad o políticas; su uso se rige por sus propios términos."
+      },
+      {
+        "title": "Limitación de responsabilidad",
+        "body": "El sitio se ofrece tal como está y puede tener interrupciones o errores. En la medida que lo permita la ley, ACL Propiedades no responde por daños derivados de usar o no poder usar el sitio, ni de decisiones tomadas únicamente con la información publicada sin confirmarla con un asesor. Nada de lo anterior limita los derechos que la ley te reconoce como consumidor."
+      },
+      {
+        "title": "Datos personales",
+        "body": "El tratamiento de tus datos personales se rige por nuestro Aviso de Privacidad, que forma parte de estas condiciones."
+      },
+      {
+        "title": "Cambios a estas condiciones",
+        "body": "Podemos modificar estas condiciones; la versión vigente es la publicada en esta página, con su fecha de actualización. Si sigues usando el sitio después de un cambio, entendemos que lo aceptas."
+      },
+      {
+        "title": "Ley aplicable y jurisdicción",
+        "body": "Estas condiciones se rigen por las leyes de los Estados Unidos Mexicanos. Para cualquier controversia, las partes se someten a los tribunales competentes de Torreón, Coahuila, sin perjuicio de los derechos del consumidor ante la Procuraduría Federal del Consumidor (PROFECO)."
+      }
+    ]
+  },
+  "pdfViewer": {
+    "pages": "{{count}} páginas"
+  },
+  "arco": {
+    "navTitle": "Derechos ARCO",
+    "title": "Derechos ARCO: datos de una persona",
+    "subtitle": "Atiende a quien pide ver o borrar sus datos personales. Rectificación y oposición se hacen con las pantallas de siempre (editar el registro o quitar la alerta).",
+    "queryLabel": "Teléfono o correo de la persona",
+    "queryPlaceholder": "871 123 4567 o nombre@correo.com",
+    "queryHint": "Se busca solo por teléfono (10 dígitos) o por correo completo, nunca por nombre, para no mezclar a dos personas.",
+    "search": "Buscar",
+    "error": "No se pudo completar la solicitud.",
+    "resultsTitle_one": "Se encontró {{count}} registro",
+    "resultsTitle_other": "Se encontraron {{count}} registros",
+    "none": "No hay datos de esa persona.",
+    "andMore": "…y {{count}} más",
+    "download": "Descargar copia (acceso)",
+    "erase": "Borrar sus datos ({{count}})",
+    "confirm": "Se borrarán o anonimizarán {{count}} registros de esta persona. No se puede deshacer. Los clientes registrados no se borran (su papelería se conserva 3 años). ¿Continuar?",
+    "doneTitle": "Solicitud atendida",
+    "doneNote": "Los clientes registrados se conservan por obligación legal. Quita también a la persona de listas fuera del sistema (WhatsApp, hojas de cálculo) y responde a quien la pidió.",
+    "historyTitle": "Solicitudes atendidas",
+    "historyEmpty": "Todavía no hay solicitudes.",
+    "when": "Cuándo",
+    "kind": "Tipo",
+    "who": "Atendió",
+    "kinds": {
+      "acceso": "Acceso",
+      "cancelacion": "Cancelación"
+    },
+    "action": {
+      "delete": "Se borra",
+      "scrub": "Se anonimiza",
+      "retain": "Se conserva (3 años)"
+    },
+    "sources": {
+      "contact_messages": "Mensajes de contacto",
+      "prospectos": "Prospectos",
+      "property_alerts": "Alertas",
+      "agenda_citas": "Citas",
+      "property_visits": "Visitas",
+      "property_holds": "Apartados",
+      "clients": "Clientes",
+      "retenidos": "Clientes conservados"
     }
   }
 }

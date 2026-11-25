@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
@@ -7,6 +7,7 @@ import { describeCriteria } from "../lib/alertMatch";
 import { isValidPhone } from "../lib/lead";
 import "./AlertSignupCard.css";
 import { trackConversion } from "../lib/conversions";
+import { lastSubmitAt } from "../lib/rateLimitStore";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -36,6 +37,13 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
   const [status, setStatus] = useState("idle"); // idle | sending | success | duplicate | error
   const [errorKey, setErrorKey] = useState("");
   const rateKey = `acl_alert_${mode}_last_submit`;
+
+  // Si cambian los criterios (otro filtro en el listado) un aviso ya confirmado o con error vuelve a ofrecerse, sin tirar lo que la
+  // persona estaba escribiendo: antes el listado remontaba la tarjeta con `key` en cada tecla y se borraban su nombre y teléfono.
+  const criteriaKey = JSON.stringify(criteria ?? {});
+  useEffect(() => {
+    setStatus((current) => (current === "success" || current === "duplicate" || current === "error" ? "idle" : current));
+  }, [criteriaKey]);
 
   const change = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
@@ -68,7 +76,7 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
       return;
     }
     try {
-      const last = Number(window.localStorage.getItem(rateKey) || 0);
+      const last = lastSubmitAt(rateKey);
       if (Date.now() - last < 30_000) {
         setErrorKey("alerts.errors.wait");
         setStatus("error");

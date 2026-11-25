@@ -15,17 +15,21 @@ export default function BlogPost() {
   const { t, i18n } = useTranslation();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
+    setLoadFailed(false);
     db.getBlogPostBySlug(slug)
       .then((data) => active && setPost(data))
+      .catch(() => active && setLoadFailed(true))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, [slug]);
+  }, [slug, reloadKey]);
 
   const jsonLd = useMemo(() => {
     if (!post || typeof window === "undefined") return undefined;
@@ -42,6 +46,16 @@ export default function BlogPost() {
   }, [post]);
 
   if (loading) return <LoadingState />;
+  if (loadFailed) {
+    return (
+      <>
+        <Seo title={t("loadError.title")} noindex />
+        <EmptyState illustration="document" title={t("loadError.title")} text={t("loadError.text")}>
+          <button type="button" className="btn btn-primary" onClick={() => setReloadKey((n) => n + 1)}>{t("loadError.retry")}</button>
+        </EmptyState>
+      </>
+    );
+  }
   if (!post) {
     return (
       <>

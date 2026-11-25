@@ -13,7 +13,7 @@ const MIN_OPTIONS = ["1", "2", "3", "4", "5"];
 // botón "Filtros" en celular para que se sepa si hay algo activo sin tener
 // que abrir el panel.
 function countActiveFilters(filters, showHomeFilters) {
-  const fields = ["type", "operationType", "tipoNave", "zone", "minPrice", "maxPrice", "minArea", "maxArea"];
+  const fields = ["type", "operationType", "status", "tipoNave", "zone", "minPrice", "maxPrice", "minArea", "maxArea"];
   if (showHomeFilters) fields.push("minBedrooms", "minBathrooms", "minParking");
   return fields.filter((field) => filters[field]).length + (showHomeFilters ? filters.amenities?.length || 0 : 0);
 }
@@ -145,6 +145,15 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
           </select>
         </div>
       )}
+
+      <div className="form-field">
+        <label htmlFor="filter-status">{t("properties.statusFilter")}</label>
+        <select id="filter-status" value={filters.status || ""} onChange={handle("status")}>
+          <option value="">{t("properties.statusDefault")}</option>
+          <option value="disponible">{t("properties.statusOnlyAvailable")}</option>
+          <option value="todas">{t("properties.statusAll")}</option>
+        </select>
+      </div>
 
       {showNaveTipo && (
         <div className="form-field">

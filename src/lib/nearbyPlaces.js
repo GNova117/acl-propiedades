@@ -86,6 +86,15 @@ const MEXICO_BOUNDS = { minLat: 14, maxLat: 33, minLng: -119, maxLng: -86 };
 
 // Valida y redondea (a ~110 m, para compartir caché entre propiedades vecinas)
 // las coordenadas que llegan a api/nearby-places.js. null si no son válidas.
+// Margen (en grados, ≈ 1.1 km) alrededor de unas coordenadas donde tiene que haber una propiedad publicada para que se consulte «Qué hay
+// cerca». Con la caja de México sola, cualquiera podía pedir cualquier punto del país y usar el endpoint como intermediario gratuito de
+// Overpass; con esto solo se consulta lo que rodea a una propiedad que de verdad está en el sitio.
+export const NEARBY_PROPERTY_MARGIN = 0.01;
+
+export function nearbyPropertyBox({ lat, lng }, margin = NEARBY_PROPERTY_MARGIN) {
+  return { minLat: lat - margin, maxLat: lat + margin, minLng: lng - margin, maxLng: lng + margin };
+}
+
 export function parseCoords(query = {}) {
   const lat = Number(query.lat);
   const lng = Number(query.lng);

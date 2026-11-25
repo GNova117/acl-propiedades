@@ -14,6 +14,25 @@ export const adminMethods = {
     return data;
   },
 
+  // Derechos ARCO (migración 0125). Solo el apartado 'arco'. La persona se identifica por teléfono o correo completo.
+  async arcoSearch(query, { record = false } = {}) {
+    const { data, error } = await supabase.rpc("arco_buscar", { p_query: query, p_registrar: record });
+    if (error) throw error;
+    return data || {};
+  },
+
+  async arcoCancel(query) {
+    const { data, error } = await supabase.rpc("arco_cancelar", { p_query: query, p_confirmar: true });
+    if (error) throw error;
+    return data || {};
+  },
+
+  async getArcoRequests(limit = 20) {
+    const { data, error } = await supabase.from("arco_requests").select("id, created_at, kind, performed_by, result").order("created_at", { ascending: false }).limit(limit);
+    if (error) throw error;
+    return data || [];
+  },
+
   // Registro de actividad (quién creó/editó/borró qué). Solo lo ve el rol con el
   // apartado 'roles'; lo escriben triggers de la base (ver schema.sql).
   async getAuditLog({ table, actor, from, to, limit = 100, offset = 0 } = {}) {

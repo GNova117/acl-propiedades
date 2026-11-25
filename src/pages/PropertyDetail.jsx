@@ -31,7 +31,7 @@ import { getPropertyBadge } from "../lib/propertyBadges";
 import { CALCULATOR_ANCHOR, canEstimateMonthly, estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import { directionsUrl, streetViewUrl, wazeUrl } from "../lib/mapLinks";
 import { listingFrom } from "../lib/listNavigation";
-import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines, publicPlace } from "../lib/format";
+import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines, publicPlace, propertyListPath } from "../lib/format";
 import "./PropertyDetail.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
@@ -201,6 +201,8 @@ export default function PropertyDetail() {
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
   const [property, setProperty] = useState(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [similar, setSimilar] = useState([]);
   const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
@@ -219,16 +221,19 @@ export default function PropertyDetail() {
   useEffect(() => {
     let active = true;
     setLoading(true);
+    setLoadFailed(false);
     // La dirección puede ser el slug legible («casa-en-senderos-ACL-12»), el código solo o el id de siempre (enlaces ya
     // compartidos): todas llegan a la misma ficha y, si no es la forma canónica, se corrige la barra de direcciones.
     const ref = parsePropertyRef(id);
     (ref.kind === "code" ? db.getPropertyByCode(ref.code) : db.getPropertyById(ref.id))
       .then((data) => active && setProperty(data))
+      // Un fallo de red NO es «propiedad no encontrada»: se avisa aparte y se ofrece reintentar.
+      .catch(() => active && setLoadFailed(true))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, reloadKey]);
 
   useEffect(() => {
     if (property && !isCanonicalSlug(id, property)) navigate(`${propertyPath(property)}${location.search}`, { replace: true, state: location.state });
@@ -340,6 +345,16 @@ export default function PropertyDetail() {
   }, [property?.id, property?.type, property?.zone]);
 
   if (loading) return <LoadingState tall />;
+  if (loadFailed) {
+    return (
+      <>
+        <Seo title={t("loadError.title")} noindex />
+        <EmptyState illustration="signpost" title={t("loadError.title")} text={t("loadError.text")}>
+          <button type="button" className="btn btn-primary" onClick={() => setReloadKey((n) => n + 1)}>{t("loadError.retry")}</button>
+        </EmptyState>
+      </>
+    );
+  }
   const badge = getPropertyBadge(property);
   const priceDrop = badge?.kind === "priceDrop" ? badge : null;
   const monthly = estimateMonthlyPayment(property);
@@ -588,7 +603,15 @@ export default function PropertyDetail() {
           </div>
 
           <aside className="property-detail__sidebar">
-            <ScheduleVisitCard key={property.id} property={property} />
+            {property.status === "vendida" ? (
+              <div className="card schedule-visit-card">
+                <h3 className="property-detail__sidebar-title">{t("detail.soldTitle")}</h3>
+                <p className="form-hint">{t("detail.soldText")}</p>
+                <Link to={propertyListPath(property.type)} className="btn btn-primary btn-block">{t("detail.soldCta")}</Link>
+              </div>
+            ) : (
+              <ScheduleVisitCard key={property.id} property={property} />
+            )}
           </aside>
         </div>
 

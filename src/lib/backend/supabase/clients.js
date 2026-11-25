@@ -5,7 +5,7 @@ import { PERFILAMIENTO_VENDEDOR_LIST_FIELDS } from "../../perfilamientoVendedor"
 import { PERFILAMIENTO_COMPRADOR_LIST_FIELDS } from "../../perfilamientoComprador";
 import { generatePortalToken, PORTAL_TOKEN_PATTERN, PORTAL_TOKEN_TTL_DAYS, PortalUploadError, blobToBase64 } from "../../clientPortal";
 import { generateIntakeToken, intakeExpiry, INTAKE_TOKEN_PATTERN } from "../../clientIntake";
-import { clientExpedientePayload } from "./shared.js";
+import { clientExpedientePayload, fetchAll } from "./shared.js";
 
 export const clientsMethods = {
   // Las dos de abajo leen de `clients_decrypted` (vista, ver supabase/schema.sql
@@ -16,11 +16,11 @@ export const clientsMethods = {
   // Insert/update/delete sí van contra la tabla real: el trigger de ese mismo
   // bloque cifra automáticamente lo que llegue en `contrasena_portal`.
   async getClients(filters = {}) {
-    let query = supabase.from("clients_decrypted").select("*").order("created_at", { ascending: false });
-    if (filters.type) query = query.eq("type", filters.type);
-    const { data, error } = await query;
-    if (error) throw error;
-    return data || [];
+    return fetchAll(() => {
+      let query = supabase.from("clients_decrypted").select("*").order("created_at", { ascending: false }).order("id");
+      if (filters.type) query = query.eq("type", filters.type);
+      return query;
+    });
   },
 
   async getClientById(id) {

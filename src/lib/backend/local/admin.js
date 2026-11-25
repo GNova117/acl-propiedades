@@ -13,6 +13,17 @@ export const adminMethods = {
     return null;
   },
 
+  // Derechos ARCO viven en la base (migración 0125): el modo demostración no los tiene.
+  async arcoSearch() {
+    throw new Error("Los derechos ARCO requieren la base de datos (no están en el modo demostración).");
+  },
+  async arcoCancel() {
+    throw new Error("Los derechos ARCO requieren la base de datos (no están en el modo demostración).");
+  },
+  async getArcoRequests() {
+    return [];
+  },
+
   // Registro de actividad: en modo demo no hay base ni triggers, así que no hay registro.
   async getAuditLog() {
     return [];

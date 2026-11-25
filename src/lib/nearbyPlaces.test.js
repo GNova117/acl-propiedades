@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildOverpassQuery, categoryOf, distanceMeters, formatDistance, hasNearbyData, parseCoords, summarizeNearby } from "./nearbyPlaces";
+import { buildOverpassQuery, categoryOf, distanceMeters, formatDistance, hasNearbyData, nearbyPropertyBox, parseCoords, summarizeNearby } from "./nearbyPlaces";
 
 const LAT = 25.54;
 const LNG = -103.4;
@@ -95,5 +95,15 @@ describe("parseCoords", () => {
     expect(parseCoords({ lat: "40.7", lng: "-74" })).toBeNull();
     expect(parseCoords({})).toBeNull();
     expect(parseCoords(undefined)).toBeNull();
+  });
+});
+
+describe("nearbyPropertyBox", () => {
+  it("es una caja de ~1.1 km alrededor del punto: ahí tiene que haber una propiedad publicada", () => {
+    const box = nearbyPropertyBox({ lat: 25.543, lng: -103.41 });
+    expect(box.minLat).toBeCloseTo(25.533, 6);
+    expect(box.maxLat).toBeCloseTo(25.553, 6);
+    expect(box.minLng).toBeCloseTo(-103.42, 6);
+    expect(box.maxLng).toBeCloseTo(-103.4, 6);
   });
 });

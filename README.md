@@ -55,14 +55,17 @@ Usan [Playwright](https://playwright.dev) y viven en `e2e/` (configuración en `
 
 El apartado `/admin/novedades` (solo visible con ese permiso, otorgado por default al rol admin) lleva una bitácora de cada cambio que se le hace al sitio, como un blog interno. No hay que escribir las entradas a mano: `.github/workflows/log-site-update.yml` inserta una automáticamente en la tabla `site_updates` cada vez que un pull request se fusiona a `main`, usando el título y la descripción del PR. (También se puede agregar una entrada a mano desde el panel para algo que no vino de un PR, como un cambio de configuración hecho directo en Supabase o Vercel.)
 
-Para que ese workflow funcione hace falta darle dos secretos al repositorio (**Settings → Secrets and variables → Actions → New repository secret**; están en Supabase, en **Project Settings → API**):
+Para que ese workflow funcione hace falta darle tres secretos al repositorio (**Settings → Secrets and variables → Actions → New repository secret**):
 
 ```
-SUPABASE_URL=https://xxxxxxxx.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=xxxxxxxxxxxxxxxxxxxxxxxx   # Project API keys > service_role
+SUPABASE_URL=https://xxxxxxxx.supabase.co            # Project Settings > API
+SUPABASE_ANON_KEY=xxxxxxxxxxxxxxxxxxxxxxxx            # la llave pública (anon), la misma que usa el sitio
+NOVEDADES_TOKEN=un-valor-largo-y-aleatorio             # lo inventas tú; el MISMO valor va en Vault, ver abajo
 ```
 
-Si no se configuran, el workflow no falla: el paso se salta con un aviso en los logs de Actions. El `service_role` key se usa aquí (y solo aquí, fuera de las Edge Functions de Supabase) porque este insert corre sin sesión de usuario — necesita saltarse las políticas RLS de `site_updates`, que de otra forma exigen el apartado `novedades` para escribir.
+Y guardar ese mismo valor en Vault de Supabase (SQL Editor): `select vault.create_secret('<el mismo valor>', 'novedades_token');`. El workflow llama a la función `registrar_novedad` (migración 0124), que **solo** sabe insertar una fila en `site_updates` y solo con ese token. Antes usaba la llave `service_role` (acceso total a la base) guardada en GitHub; ya no hace falta y conviene **borrar el secreto `SUPABASE_SERVICE_ROLE_KEY` del repositorio** cuando el nuevo flujo funcione.
+
+Si no se configuran, el workflow no falla: el paso se salta con un aviso en los logs de Actions.
 
 
 

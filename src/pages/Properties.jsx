@@ -31,6 +31,9 @@ const EMPTY_FILTERS = {
   bounds: null,
   type: "",
   operationType: "",
+  // "" = disponibles y apartadas (las vendidas ya no se ofrecen como si estuvieran a la venta); "disponible" = solo disponibles;
+  // "todas" = también las vendidas.
+  status: "",
   tipoNave: "",
   zone: "",
   minPrice: "",
@@ -160,6 +163,7 @@ export default function Properties({
     bounds: boundsFromParam(searchParams.get("area")),
     type: searchParams.get("tipo") || "",
     operationType: searchParams.get("operacion") || "",
+    status: ["disponible", "todas"].includes(searchParams.get("estatus")) ? searchParams.get("estatus") : "",
     tipoNave: searchParams.get("navetipo") || "",
     zone: searchParams.get("zona") || "",
     minPrice: searchParams.get("min") || "",
@@ -226,6 +230,7 @@ export default function Properties({
     if (filters.q) params.set("q", filters.q);
     if (filters.type) params.set("tipo", filters.type);
     if (filters.operationType) params.set("operacion", filters.operationType);
+    if (filters.status) params.set("estatus", filters.status);
     if (filters.tipoNave) params.set("navetipo", filters.tipoNave);
     if (filters.zone) params.set("zona", filters.zone);
     if (filters.minPrice) params.set("min", filters.minPrice);
@@ -291,6 +296,7 @@ export default function Properties({
       type: fixedType || filters.type || undefined,
       types: fixedType || filters.type ? undefined : sectionTypes,
       operation_type: fixedType ? undefined : filters.operationType || undefined,
+      statuses: filters.status === "todas" ? undefined : filters.status === "disponible" ? ["disponible"] : ["disponible", "apartada"],
       tipo_nave: fixedType === "nave_industrial" ? filters.tipoNave || undefined : undefined,
       zone: zoneFilter || filters.zone || undefined,
       minPrice: filters.minPrice ? Number(filters.minPrice) : undefined,
@@ -604,7 +610,6 @@ export default function Properties({
                 mode="search"
                 criteria={alertCriteria}
                 matchCount={total}
-                key={JSON.stringify(alertCriteria)}
               />
             )}
           </div>

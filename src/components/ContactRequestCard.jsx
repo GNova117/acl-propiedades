@@ -6,6 +6,7 @@ import { OFFICE_WHATSAPP } from "../lib/office";
 import "./ContactRequestCard.css";
 import { propertyPath } from "../lib/propertyUrl.js";
 import { trackConversion } from "../lib/conversions";
+import { lastSubmitAt, markSubmitted } from "../lib/rateLimitStore";
 
 // Reemplaza a las tarjetas de asesor (nombre + teléfono + correo + botones
 // de llamar/WhatsApp) que antes se mostraban en la ficha de cada
@@ -74,7 +75,7 @@ export default function ContactRequestCard({ property }) {
       return;
     }
 
-    const lastSubmit = Number(window.localStorage.getItem(RATE_LIMIT_KEY) || 0);
+    const lastSubmit = lastSubmitAt(RATE_LIMIT_KEY);
     if (Date.now() - lastSubmit < RATE_LIMIT_MS) {
       setStatus("rateLimited");
       return;
@@ -93,7 +94,7 @@ export default function ContactRequestCard({ property }) {
         property_id: property.id,
         channel: "solicitud",
       });
-      window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
+      markSubmitted(RATE_LIMIT_KEY);
       setVia("form");
       trackConversion("lead_form", { form: "info_propiedad", property_id: property.id, property_type: property.type });
       setStatus("success");
@@ -113,7 +114,7 @@ export default function ContactRequestCard({ property }) {
     if (form.empresa.trim()) return; // campo trampa: bot, no se hace nada
     window.open(buildWhatsappUrl(property, form.name), "_blank", "noopener,noreferrer");
 
-    const lastSubmit = Number(window.localStorage.getItem(RATE_LIMIT_KEY) || 0);
+    const lastSubmit = lastSubmitAt(RATE_LIMIT_KEY);
     if (Date.now() - lastSubmit < RATE_LIMIT_MS) {
       setVia("whatsapp");
       setStatus("success");
@@ -128,7 +129,7 @@ export default function ContactRequestCard({ property }) {
         property_id: property.id,
         channel: "whatsapp",
       });
-      window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
+      markSubmitted(RATE_LIMIT_KEY);
     } catch {
       /* el chat ya se abrió */
     }

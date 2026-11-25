@@ -170,6 +170,10 @@
     "vendida": "Sold"
   },
   "properties": {
+    "statusFilter": "Status",
+    "statusDefault": "Available and reserved",
+    "statusOnlyAvailable": "Available only",
+    "statusAll": "Include sold",
     "title": "Available properties",
     "subtitle": "Filter by type, zone, price and area to find your ideal property.",
     "industrialTitle": "Available industrial warehouses",
@@ -242,6 +246,9 @@
     "coloniesTitle": "Neighborhoods in {{city}} with listings"
   },
   "detail": {
+    "soldTitle": "This property has been sold",
+    "soldText": "Visits can no longer be scheduled. See similar properties or leave your details below and we will let you know about something similar.",
+    "soldCta": "See available properties",
     "locationApproximate": "Approximate location: the seller prefers not to publish the exact spot. Your advisor will give you the address when you schedule the visit.",
     "compareCredits": {
       "title": "How would you pay for it?",
@@ -572,6 +579,7 @@
     "parking": "Parking"
   },
   "footer": {
+    "termsLink": "Terms and conditions",
     "tagline": "Buying and selling houses, land, commercial spaces and industrial warehouses in La Comarca Lagunera.",
     "quickLinks": "Quick links",
     "zones": "Zones",
@@ -921,6 +929,7 @@
       "secretaria": "Front desk",
       "prospectos": "Prospects",
       "blog": "Blog",
+      "arco": "ARCO rights (look up and erase a person's data)",
       "membrete": "Letterhead template (PDF with logo)"
     },
     "rolesTitle": "Roles",
@@ -3215,6 +3224,7 @@
     "title": "Recently viewed"
   },
   "chatWidget": {
+    "aiNotice": "This assistant is an artificial intelligence: what you type is processed by an external provider. Do not share sensitive data (passwords, bank details). If you leave your phone or email, an advisor will contact you.",
     "title": "ACL Propiedades Assistant",
     "open": "Open chat",
     "close": "Close chat",
@@ -5037,6 +5047,108 @@
       "short": "Tell us a bit more (at least 10 characters).",
       "rateLimited": "You sent several reports in a row. Please try again in a while.",
       "generic": "The report could not be sent. Please try again."
+    }
+  },
+  "loadError": {
+    "title": "We couldn't load this page",
+    "text": "Check your connection and try again.",
+    "retry": "Try again"
+  },
+  "terms": {
+    "title": "Terms and conditions of use",
+    "intro": "By using this site you accept the following conditions. If you do not agree with them, please do not use it.",
+    "updated": "Last updated: November 2026",
+    "sections": [
+      {
+        "title": "Who we are and what this site offers",
+        "body": "This site belongs to ACL Propiedades, located at Blvd. Independencia, Local 16, Plaza San Luciano, Torreón, Coahuila. It lets you browse properties for sale and rent in La Comarca Lagunera, use informational tools and contact our advisors. ACL Propiedades acts as a real estate intermediary: transactions are formalized in writing with the advisor, never through this site alone."
+      },
+      {
+        "title": "Property information",
+        "body": "We aim to keep prices, measurements, photographs and descriptions accurate and up to date, but they may change without notice (price, availability, reservation or sale). What is published is informational and is not a binding offer. Photographs, floor plans and tours may be illustrative. Before deciding, confirm the details with your advisor and review the property documentation."
+      },
+      {
+        "title": "Calculators, estimates and credit comparison",
+        "body": "The site tools (value calculator, monthly payment estimate, credit comparison, buyer guide) are a reference. They are not an appraisal, an offer, a quote or a credit approval; results depend on data and rates that change and on each institution's decision. For final figures, consult an advisor and the financial institution."
+      },
+      {
+        "title": "Virtual assistant",
+        "body": "The site chat is an artificial intelligence assistant. It may be wrong or lack up-to-date information, and its answers do not replace an advisor's guidance nor constitute legal, tax or financial advice. Do not enter sensitive data in it. You can ask to speak with a person at any time."
+      },
+      {
+        "title": "Acceptable use",
+        "body": "You agree to use the site in good faith and with truthful data. It is not allowed to: copy or extract the content in bulk or by automated means, impersonate another person, submit forms automatically or with false data, attempt to access private areas, or harm the security or operation of the site. We may block access to anyone who breaches these conditions."
+      },
+      {
+        "title": "Intellectual property",
+        "body": "The brand, logo, texts, photographs, floor plans and design of the site belong to ACL Propiedades or to whoever authorized us to use them. You may share property links for personal purposes; any other use, reproduction or exploitation requires our written permission."
+      },
+      {
+        "title": "Third-party services and links",
+        "body": "The site relies on third-party services (for example WhatsApp, Google Maps or OpenStreetMap maps) and may link to other sites. We do not control and are not responsible for their content, availability or policies; their use is governed by their own terms."
+      },
+      {
+        "title": "Limitation of liability",
+        "body": "The site is provided as is and may have interruptions or errors. To the extent permitted by law, ACL Propiedades is not liable for damages arising from using or being unable to use the site, nor for decisions made solely on published information without confirming it with an advisor. Nothing above limits the rights the law grants you as a consumer."
+      },
+      {
+        "title": "Personal data",
+        "body": "The processing of your personal data is governed by our Privacy Notice, which is part of these conditions."
+      },
+      {
+        "title": "Changes to these conditions",
+        "body": "We may modify these conditions; the current version is the one published on this page, with its update date. If you keep using the site after a change, we understand you accept it."
+      },
+      {
+        "title": "Governing law and jurisdiction",
+        "body": "These conditions are governed by the laws of the United Mexican States. For any dispute, the parties submit to the competent courts of Torreón, Coahuila, without prejudice to consumer rights before the Federal Consumer Protection Agency (PROFECO)."
+      }
+    ]
+  },
+  "pdfViewer": {
+    "pages": "{{count}} pages"
+  },
+  "arco": {
+    "navTitle": "ARCO rights",
+    "title": "ARCO rights: a person's data",
+    "subtitle": "Handle people who ask to see or erase their personal data. Rectification and opposition use the usual screens (edit the record or remove the alert).",
+    "queryLabel": "The person's phone or email",
+    "queryPlaceholder": "871 123 4567 or name@email.com",
+    "queryHint": "Searches by phone (10 digits) or full email only, never by name, so two people are never mixed up.",
+    "search": "Search",
+    "error": "The request could not be completed.",
+    "resultsTitle_one": "{{count}} record found",
+    "resultsTitle_other": "{{count}} records found",
+    "none": "No data for that person.",
+    "andMore": "…and {{count}} more",
+    "download": "Download copy (access)",
+    "erase": "Erase their data ({{count}})",
+    "confirm": "{{count}} records for this person will be erased or anonymized. This cannot be undone. Registered clients are not erased (their paperwork is kept 3 years). Continue?",
+    "doneTitle": "Request handled",
+    "doneNote": "Registered clients are kept by legal obligation. Also remove the person from lists outside the system (WhatsApp, spreadsheets) and reply to whoever asked.",
+    "historyTitle": "Requests handled",
+    "historyEmpty": "No requests yet.",
+    "when": "When",
+    "kind": "Type",
+    "who": "Handled by",
+    "kinds": {
+      "acceso": "Access",
+      "cancelacion": "Cancellation"
+    },
+    "action": {
+      "delete": "Erased",
+      "scrub": "Anonymized",
+      "retain": "Kept (3 years)"
+    },
+    "sources": {
+      "contact_messages": "Contact messages",
+      "prospectos": "Prospects",
+      "property_alerts": "Alerts",
+      "agenda_citas": "Appointments",
+      "property_visits": "Visits",
+      "property_holds": "Holds",
+      "clients": "Clients",
+      "retenidos": "Clients kept"
     }
   }
 }

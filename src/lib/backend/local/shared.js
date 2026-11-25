@@ -189,6 +189,7 @@ export function matchesFilters(property, filters = {}) {
   if (filters.type && property.type !== filters.type) return false;
   else if (!filters.type && filters.types && !filters.types.includes(property.type)) return false;
   if (filters.operation_type && property.operation_type !== filters.operation_type) return false;
+  if (filters.statuses?.length && !filters.statuses.includes(property.status ?? "disponible")) return false;
   if (filters.tipo_nave && property.tipo_nave !== filters.tipo_nave) return false;
   if (filters.zone && property.zone !== filters.zone) return false;
   if (filters.minPrice != null && property.price < filters.minPrice) return false;

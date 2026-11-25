@@ -65,11 +65,15 @@ function getClusterIcon(count) {
 // automático del mapa no se confunda con que la persona lo movió. `skip`: con
 // una zona buscada el mapa no se reajusta a los resultados (la persona ya
 // eligió dónde mirar).
+// Solo propiedades con coordenadas de verdad: con lat/lng vacíos o nulos `fitBounds` recibía límites inválidos y el mapa se quedaba en [null, null].
+const hasCoordinates = (p) => Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng)) && p.lat !== null && p.lng !== null && p.lat !== "" && p.lng !== "";
+
 function FitBounds({ properties, suppress, skip }) {
   const map = useMap();
   useEffect(() => {
-    if (properties.length === 0 || skip) return;
-    const bounds = L.latLngBounds(properties.map((p) => [p.lat, p.lng]));
+    const located = properties.filter(hasCoordinates);
+    if (located.length === 0 || skip) return;
+    const bounds = L.latLngBounds(located.map((p) => [Number(p.lat), Number(p.lng)]));
     if (suppress) suppress.current = true;
     // Sin animación: el ajuste inicial no la necesita, y si el mapa se desmonta (p. ej. al volver al
     // listado) mientras la animación sigue, Leaflet toca un panel ya destruido y lanza
@@ -126,8 +130,8 @@ const CLUSTER_PIXEL_RADIUS = 56;
 
 function clusterByPixelDistance(map, properties) {
   const points = properties
-    .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng))
-    .map((p) => ({ property: p, point: map.latLngToLayerPoint([p.lat, p.lng]) }));
+    .filter(hasCoordinates)
+    .map((p) => ({ property: p, point: map.latLngToLayerPoint([Number(p.lat), Number(p.lng)]) }));
   const used = new Array(points.length).fill(false);
   const groups = [];
   for (let i = 0; i < points.length; i++) {
@@ -177,8 +181,8 @@ function ClusteredMarkers({ properties }) {
   const { t } = useTranslation();
   const map = useMap();
   // Las de ubicación aproximada van como círculo (nunca como punto) y no se agrupan con las demás.
-  const exact = properties.filter((p) => !p.location_approximate);
-  const approximate = properties.filter((p) => p.location_approximate && Number.isFinite(p.lat) && Number.isFinite(p.lng));
+  const exact = properties.filter((p) => !p.location_approximate && hasCoordinates(p));
+  const approximate = properties.filter((p) => p.location_approximate && hasCoordinates(p));
   const [groups, setGroups] = useState(() => clusterByPixelDistance(map, exact));
 
   const recompute = () => setGroups(clusterByPixelDistance(map, exact));
@@ -245,7 +249,8 @@ function FullscreenButton({ fullscreen, onToggle }) {
 export default function PropertyMap({ properties, height = 480, onSearchArea, areaActive = false }) {
   const [fullscreen, setFullscreen] = useState(false);
   const suppressRef = useRef(false);
-  const center = properties.length > 0 ? [properties[0].lat, properties[0].lng] : [25.5428, -103.4068];
+  const firstLocated = properties.find(hasCoordinates);
+  const center = firstLocated ? [Number(firstLocated.lat), Number(firstLocated.lng)] : [25.5428, -103.4068];
 
   useEffect(() => {
     if (!fullscreen) return undefined;

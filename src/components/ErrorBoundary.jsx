@@ -29,6 +29,8 @@ export default class ErrorBoundary extends Component {
 
   render() {
     if (!this.state.hasError) return this.props.children;
+    // `fallback` (p. ej. null) para piezas accesorias —encabezado, pie, chat—: si fallan, se quita la pieza y el resto de la página sigue.
+    if ("fallback" in this.props) return this.props.fallback;
     const homePath = this.props.homePath || "/";
     return (
       <div className="empty-state error-boundary">

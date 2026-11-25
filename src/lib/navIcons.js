@@ -42,6 +42,7 @@ export const ICON_BY_PATH = {
   "/admin/ayuda": "help",
   "/admin/seguridad": "shield",
   "/admin/errores": "clipboard",
+  "/admin/arco": "shield",
 };
 
 export const ICON_BY_GROUP = { propiedades: "home", clientes: "briefcase", herramientas: "calculator", obra: "hammer", oficina: "calendar" };

@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { isPdfDoc } from "../lib/format";
+import DocumentFrame from "./DocumentFrame";
 import { downloadClientDocumentAsPdf } from "../lib/clientDocPdf";
 import "./DocumentPreviewModal.css";
 
 // Vista previa de un documento de cliente ya capturado/subido: un PDF se
-// renderiza en un <iframe> (el visor nativo del navegador), una imagen en
+// renderiza con DocumentFrame (visor nativo en escritorio, por páginas en teléfono), una imagen en
 // un <img> normal. El botón de descarga siempre entrega un .pdf — para una
 // imagen se convierte al vuelo (ver lib/clientDocPdf.js) para que el
 // resultado sea uniforme sin importar cómo se capturó el documento.
@@ -83,7 +84,7 @@ export default function DocumentPreviewModal({ doc, title, subtitle, filePrefix,
         ) : !previewUrl ? (
           <span className="spinner" />
         ) : isPdfDoc(doc) ? (
-          <iframe src={previewUrl} title={title} className="document-preview__frame" />
+          <DocumentFrame url={previewUrl} title={title} className="document-preview__frame" />
         ) : (
           <img src={previewUrl} alt="" className="document-preview__image" />
         )}

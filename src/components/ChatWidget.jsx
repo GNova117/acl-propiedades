@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import ChatIcon from "./icons/ChatIcon";
 import { buildWhatsappHandoffMessage, whatsappHref } from "../lib/chatbot";
 import "./ChatWidget.css";
+import { Link } from "react-router-dom";
 
 const SESSION_KEY = "acl_chat_session_id";
 const MESSAGES_KEY = "acl_chat_messages";
@@ -118,6 +119,12 @@ export default function ChatWidget() {
 
           <div className="chat-widget__list" ref={listRef}>
             {messages.length === 0 && <div className="chat-widget__bubble chat-widget__bubble--assistant">{t("chatWidget.greeting")}</div>}
+            {/* Antes de que la persona escriba nada (y menos su teléfono): es una IA, lo que escriba lo procesa un proveedor externo. */}
+            {messages.length === 0 && (
+              <p className="chat-widget__notice">
+                {t("chatWidget.aiNotice")} <Link to="/aviso-de-privacidad" onClick={() => setOpen(false)}>{t("contact.privacyLinkLabel")}</Link>.
+              </p>
+            )}
             {messages.map((m, i) => (
               <div key={i} className={`chat-widget__bubble chat-widget__bubble--${m.role}`}>
                 <span>{m.content}</span>

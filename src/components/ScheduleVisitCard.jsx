@@ -8,6 +8,7 @@ import { bookingErrorKey, formatSlotDay, formatSlotTime } from "../lib/visitBook
 import { OPEN_SCHEDULE_EVENT, SCHEDULE_TARGET_ID } from "./MobileContactBar";
 import VisitBooking from "./VisitBooking";
 import "./ScheduleVisitCard.css";
+import { lastSubmitAt, markSubmitted } from "../lib/rateLimitStore";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const initialForm = { name: "", email: "", phone: "", date: "", time: "", note: "", empresa: "" };
@@ -23,7 +24,8 @@ const initialForm = { name: "", email: "", phone: "", date: "", time: "", note: 
 // Compatibilidad: si request_visit todavía no está en la base (el SQL se aplica antes
 // que el sitio, pero por si acaso), la solicitud cae al camino anterior — un
 // contact_message con la fecha dentro del texto — para no perder nunca el contacto.
-const RATE_LIMIT_KEY = "acl_contact_last_submit";
+// Llave propia: antes compartía la de Contacto y mandar uno bloqueaba al otro 60 s.
+const RATE_LIMIT_KEY = "acl_visit_last_submit";
 const RATE_LIMIT_MS = 60_000;
 
 function buildVisitMessage(property, { date, time, note }) {
@@ -75,7 +77,7 @@ function VisitRequestForm({ property, onBack, noSlots }) {
       return;
     }
 
-    const lastSubmit = Number(window.localStorage.getItem(RATE_LIMIT_KEY) || 0);
+    const lastSubmit = lastSubmitAt(RATE_LIMIT_KEY);
     if (Date.now() - lastSubmit < RATE_LIMIT_MS) {
       setStatus("rateLimited");
       return;
@@ -91,7 +93,7 @@ function VisitRequestForm({ property, onBack, noSlots }) {
         result = null; // request_visit aún no está en la base: se usa el camino anterior (abajo).
       }
       if (result?.ok) {
-        window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
+        markSubmitted(RATE_LIMIT_KEY);
         trackConversion("visit_requested", { property_id: property.id, property_type: property.type });
         setDone({ ...result });
         setForm(initialForm);
@@ -113,7 +115,7 @@ function VisitRequestForm({ property, onBack, noSlots }) {
         // propiedad para que llegue al asesor que la tiene asignada.
         property_id: property.id,
       });
-      window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
+      markSubmitted(RATE_LIMIT_KEY);
       setStatus("success");
       setForm(initialForm);
     } catch {

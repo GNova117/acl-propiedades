@@ -117,7 +117,7 @@ export default async function handler(req, res) {
   if (logError) await service.from("chat_rate_limits").insert({ session_id: sessionId }); // sin la columna ip_hash todavía
 
   const searchProperties = async (args) => {
-    let query = anon.from("properties").select("code, title, price, zone, bedrooms, area_m2, type, operation_type").eq("active", true).limit(MAX_PROPERTIES_FETCHED);
+    let query = anon.from("properties").select("code, title, price, zone, bedrooms, area_m2, type, operation_type").eq("active", true).eq("status", "disponible").limit(MAX_PROPERTIES_FETCHED);
     if (args.type) query = query.eq("type", args.type);
     if (args.operation) query = query.eq("operation_type", args.operation);
     if (args.zone) query = query.ilike("zone", `%${args.zone}%`);

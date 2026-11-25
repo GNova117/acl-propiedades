@@ -10,6 +10,24 @@ export function isMissingTable(error) {
   return error?.code === "42P01" || error?.code === "PGRST205";
 }
 
+// PostgREST corta cualquier consulta en 1000 filas (el `max-rows` del proyecto) sin avisar: una lista del panel con más
+// registros se vería "completa" pero le faltarían los más viejos. `fetchAll` pide por páginas hasta traerlo todo.
+// `build` recibe la consulta base ya con su orden y devuelve la consulta lista; se vuelve a llamar por página.
+export const PAGE_SIZE = 1000;
+export const MAX_PAGES = 50; // tope de seguridad: 50 000 filas
+export async function fetchAll(buildQuery) {
+  const rows = [];
+  for (let page = 0; page < MAX_PAGES; page += 1) {
+    const from = page * PAGE_SIZE;
+    const { data, error } = await buildQuery().range(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    const chunk = data || [];
+    rows.push(...chunk);
+    if (chunk.length < PAGE_SIZE) break;
+  }
+  return rows;
+}
+
 // Los campos del expediente del cliente (NSS, contraseña del portal, número
 // de crédito y las 2 referencias) se guardan igual al crear y al editar — se
 // arman desde una sola lista para no repetirlos campo por campo.

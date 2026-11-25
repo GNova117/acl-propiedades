@@ -23,6 +23,7 @@ export const propertiesMethods = {
     if (filters.type) query = query.eq("type", filters.type);
     else if (filters.types) query = query.in("type", filters.types);
     if (filters.operation_type) query = query.eq("operation_type", filters.operation_type);
+    if (filters.statuses?.length) query = query.in("status", filters.statuses);
     if (filters.tipo_nave) query = query.eq("tipo_nave", filters.tipo_nave);
     if (filters.zone) query = query.eq("zone", filters.zone);
     if (filters.minPrice != null) query = query.gte("price", filters.minPrice);

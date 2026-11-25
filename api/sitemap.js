@@ -12,7 +12,7 @@ import { resolveSiteUrl } from "../server/siteUrl.js";
 
 // Dirección pública (variable SITE_URL / VITE_SITE_URL; ver server/siteUrl.js).
 const SITE_URL = resolveSiteUrl(process.env);
-const STATIC_PATHS = ["/", "/propiedades", "/naves-industriales", "/terrenos", "/calculadora", "/simulador-credito", "/comparar-creditos", "/guia-del-comprador", "/nosotros", "/contacto", "/blog"];
+const STATIC_PATHS = ["/", "/propiedades", "/naves-industriales", "/terrenos", "/calculadora", "/simulador-credito", "/comparar-creditos", "/guia-del-comprador", "/nosotros", "/contacto", "/blog", "/terminos-y-condiciones"];
 const ZONE_PATHS = ZONE_LANDING_CITIES.map((city) => `/propiedades/zona/${slugify(city)}`);
 
 export default async function handler(req, res) {

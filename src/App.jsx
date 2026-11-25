@@ -45,6 +45,7 @@ const MySpace = lazy(() => import("./pages/MySpace"));
 const Compare = lazy(() => import("./pages/Compare"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Rights = lazy(() => import("./pages/Rights"));
+const Terms = lazy(() => import("./pages/Terms"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -108,6 +109,7 @@ const AdminSecretaria = lazy(() => import("./pages/admin/AdminSecretaria"));
 const AdminProspects = lazy(() => import("./pages/admin/AdminProspects"));
 const AdminTeamDay = lazy(() => import("./pages/admin/AdminTeamDay"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
+const AdminArco = lazy(() => import("./pages/admin/AdminArco"));
 const AdminClientHistory = lazy(() => import("./pages/admin/AdminClientHistory"));
 const AdminProspectForm = lazy(() => import("./pages/admin/AdminProspectForm"));
 const AdminExpenses = lazy(() => import("./pages/admin/AdminExpenses"));
@@ -170,16 +172,18 @@ function PublicLayout({ children }) {
   return (
     <>
       <a href="#main-content" className="skip-link">{t("a11y.skipToContent")}</a>
-      <Header />
-      <SeasonalGarland />
+      {/* Cada pieza fuera del contenido va en su propio ErrorBoundary: si una falla se quita ella sola y la página sigue (antes un
+          error en el encabezado, el pie o el chat dejaba todo en blanco). */}
+      <ErrorBoundary fallback={null}><Header /></ErrorBoundary>
+      <ErrorBoundary fallback={null}><SeasonalGarland /></ErrorBoundary>
       <main id="main-content" key={pathname} className="page-transition" style={{ flex: 1 }}>
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>
-      <PublicInstallBanner />
-      <Footer />
-      <PublicTabBar />
-      <ChatWidget />
-      <CookieBanner />
+      <ErrorBoundary fallback={null}><PublicInstallBanner /></ErrorBoundary>
+      <ErrorBoundary fallback={null}><Footer /></ErrorBoundary>
+      <ErrorBoundary fallback={null}><PublicTabBar /></ErrorBoundary>
+      <ErrorBoundary fallback={null}><ChatWidget /></ErrorBoundary>
+      <ErrorBoundary fallback={null}><CookieBanner /></ErrorBoundary>
     </>
   );
 }
@@ -236,6 +240,7 @@ export default function App() {
       <Route path="/comparar" element={<PublicLayout><Compare /></PublicLayout>} />
       <Route path="/aviso-de-privacidad" element={<PublicLayout><Privacy /></PublicLayout>} />
       <Route path="/carta-de-derechos" element={<PublicLayout><Rights /></PublicLayout>} />
+      <Route path="/terminos-y-condiciones" element={<PublicLayout><Terms /></PublicLayout>} />
       <Route path="/blog" element={<PublicLayout><Blog /></PublicLayout>} />
       <Route path="/blog/:slug" element={<PublicLayout><BlogPost /></PublicLayout>} />
       {/* Sin PublicLayout a propósito: ese layout manda cada ruta a Google
@@ -386,6 +391,7 @@ export default function App() {
         <Route path="plantillas-documentos/nueva" element={<RequireSection section="documentos_legales"><AdminDocumentTemplateForm /></RequireSection>} />
         <Route path="plantillas-documentos/:id" element={<RequireSection section="documentos_legales"><AdminDocumentTemplateForm /></RequireSection>} />
         <Route path="actividad" element={<RequireSection section="roles"><AdminActivity /></RequireSection>} />
+        <Route path="arco" element={<RequireSection section="arco"><AdminArco /></RequireSection>} />
         <Route path="novedades" element={<RequireSection section="novedades"><AdminNovedades /></RequireSection>} />
         <Route path="novedades/nueva" element={<RequireSection section="novedades"><AdminNovedadesForm /></RequireSection>} />
         <Route path="novedades/:id" element={<RequireSection section="novedades"><AdminNovedadesForm /></RequireSection>} />
