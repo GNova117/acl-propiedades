@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { suspiciousPrice } from "./priceCheck";
+import { suspiciousPrice, titleStyleWarning } from "./priceCheck";
 
 describe("suspiciousPrice", () => {
   it("una venta de $2,450 o de $500 millones es sospechosa", () => {
@@ -15,5 +15,18 @@ describe("suspiciousPrice", () => {
     expect(suspiciousPrice("renta", 15000)).toBeNull();
     expect(suspiciousPrice("compra", "")).toBeNull();
     expect(suspiciousPrice("compra", 0)).toBeNull();
+  });
+});
+
+describe("titleStyleWarning", () => {
+  it("avisa de títulos en mayúsculas o con signos repetidos", () => {
+    expect(titleStyleWarning("CASA EN VENTA EN LAS VILLAS")).toBe("caps");
+    expect(titleStyleWarning("Casa en venta!!!")).toBe("punctuation");
+  });
+  it("un título normal, corto o con siglas no avisa", () => {
+    expect(titleStyleWarning("Casa en Residencial Senderos")).toBeNull();
+    expect(titleStyleWarning("INFONAVIT")).toBe("caps");
+    expect(titleStyleWarning("Casa A1")).toBeNull();
+    expect(titleStyleWarning("")).toBeNull();
   });
 });

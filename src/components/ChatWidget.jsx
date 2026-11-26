@@ -1,4 +1,5 @@
 import { generateVisitorId } from "../lib/visitorId";
+import { splitChatCodes } from "../lib/chatLinks";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ChatIcon from "./icons/ChatIcon";
@@ -64,9 +65,13 @@ export default function ChatWidget() {
   // el asesor no tiene que preguntar desde cero lo que el bot ya sabía.
   const handoffHref = useMemo(() => whatsappHref(buildWhatsappHandoffMessage(messages)), [messages]);
 
-  const handleSend = async (e) => {
+  const handleSend = (e) => {
     e.preventDefault();
-    const text = input.trim();
+    return sendText(input);
+  };
+
+  const sendText = async (raw) => {
+    const text = String(raw).trim();
     if (!text || sending || notConfigured) return;
     const next = [...messages, { role: "user", content: text }];
     setMessages(next);
@@ -127,6 +132,16 @@ export default function ChatWidget() {
           <div className="chat-widget__list" ref={listRef}>
             {messages.length === 0 && <div className="chat-widget__bubble chat-widget__bubble--assistant">{t("chatWidget.greeting")}</div>}
             {/* Antes de que la persona escriba nada (y menos su teléfono): es una IA, lo que escriba lo procesa un proveedor externo. */}
+            {/* La gente no sabe qué preguntarle: tres arranques con un toque. */}
+            {messages.length === 0 && (
+              <div className="chat-widget__starters">
+                {["starterBuy", "starterSell", "starterAdvisor"].map((key) => (
+                  <button key={key} type="button" className="chat-widget__starter" onClick={() => sendText(t(`chatWidget.${key}`))}>
+                    {t(`chatWidget.${key}`)}
+                  </button>
+                ))}
+              </div>
+            )}
             {messages.length === 0 && (
               <p className="chat-widget__notice">
                 {t("chatWidget.aiNotice")} <Link to="/aviso-de-privacidad" onClick={() => setOpen(false)}>{t("contact.privacyLinkLabel")}</Link>.
@@ -134,7 +149,19 @@ export default function ChatWidget() {
             )}
             {messages.map((m, i) => (
               <div key={i} className={`chat-widget__bubble chat-widget__bubble--${m.role}`}>
-                <span>{m.content}</span>
+                <span>
+                  {m.role === "assistant"
+                    ? splitChatCodes(m.content).map((part, k) =>
+                        part.code ? (
+                          <Link key={k} to={`/propiedades/${part.code}`} onClick={() => setOpen(false)}>
+                            {part.code}
+                          </Link>
+                        ) : (
+                          <span key={k}>{part.text}</span>
+                        )
+                      )
+                    : m.content}
+                </span>
                 {m.fallback && (
                   <a href={handoffHref} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm chat-widget__fallback-btn">
                     {t("chatWidget.talkToAdvisor")}

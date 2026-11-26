@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN, propertyTypeLabel } from "../../lib/format";
-import { suspiciousPrice } from "../../lib/priceCheck";
+import { suspiciousPrice, titleStyleWarning } from "../../lib/priceCheck";
 import { groupZonesByCity, zoneDisplayName } from "../../lib/zones";
 import ImageUploader from "../../components/ImageUploader";
 import VideoUploader from "../../components/VideoUploader";
@@ -253,6 +253,8 @@ export default function AdminPropertyForm({
     if (!validate()) return;
     // Un precio que parece error de captura (p. ej. $2,450 en una venta): se pide confirmar antes de guardar.
     const priceWarning = suspiciousPrice(form.operation_type, form.price);
+    const titleWarning = titleStyleWarning(form.title);
+    if (titleWarning && !(await confirmDialog(t(`propertyForm.titleWarning.${titleWarning}`)))) return;
     if (priceWarning && !(await confirmDialog(t(`propertyForm.priceWarning.${priceWarning}`, { price: formatMXN(form.price) })))) return;
     setSaving(true);
     try {

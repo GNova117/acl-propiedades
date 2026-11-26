@@ -5,6 +5,16 @@ export const PRICE_LIMITS = {
   renta: { low: 1500, high: 150000 },
 };
 
+// Aviso de estilo en el título: «CASA EN VENTA!!!» (todo en mayúsculas o signos repetidos) se ve poco profesional en el sitio y en Google.
+export function titleStyleWarning(title) {
+  const text = String(title ?? "").trim();
+  if (!text) return null;
+  const letters = text.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g, "");
+  if (letters.length >= 8 && letters === letters.toUpperCase()) return "caps";
+  if (/[!¡?¿]{2,}|!.*!/.test(text)) return "punctuation";
+  return null;
+}
+
 export function suspiciousPrice(operationType, price) {
   const value = Number(price);
   if (!Number.isFinite(value) || value <= 0) return null;

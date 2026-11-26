@@ -39,10 +39,13 @@ jobs:
             exit 0
           fi
 
+          # El cuerpo del PR llega con markdown, enlaces internos y comentarios: se limpia y se recorta (Novedades es para leerse rápido).
+          CLEAN_BODY=$(printf '%s' "${PR_BODY:-Sin descripción.}" | sed -E 's/<!--[^>]*-->//g; s/!\[[^]]*\]\([^)]*\)//g; s/\[([^]]*)\]\([^)]*\)/\1/g; s/^#+ *//; s/\*\*//g' | head -c 800)
+
           PAYLOAD=$(jq -n \
             --arg token "$NOVEDADES_TOKEN" \
             --arg title "$PR_TITLE" \
-            --arg body "${PR_BODY:-Sin descripción.}" \
+            --arg body "${CLEAN_BODY:-Sin descripción.}" \
             --arg url "$PR_URL" \
             --arg author "$PR_AUTHOR" \
             '{p_token: $token, p_title: $title, p_body: ($body + "\n\nPR: " + $url), p_author: $author}')

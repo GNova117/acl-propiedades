@@ -91,7 +91,18 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Chromium de Playwright en caché (se baja una vez por versión y no en cada corrida); las dependencias del sistema sí se instalan siempre.
+      - id: playwright-version
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
       - run: npx playwright install --with-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+      - run: npx playwright install-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()

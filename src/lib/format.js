@@ -15,11 +15,19 @@ export function whatsappDigits(value) {
   return (value || "").replace(/\D/g, "");
 }
 
+// Un WhatsApp mexicano en una sola forma: 52 + 10 dígitos. Acepta 10 dígitos, 52 + 10 y el formato viejo 521 + 10 (el «1» ya no se usa);
+// cualquier otra cosa (un número del extranjero) se deja solo con dígitos.
+export function normalizeMxWhatsapp(value) {
+  const digits = whatsappDigits(value);
+  if (digits.length === 10) return `52${digits}`;
+  if (digits.length === 13 && digits.startsWith("521")) return `52${digits.slice(3)}`;
+  return digits;
+}
+
 // Enlace de WhatsApp a un teléfono mexicano (10 dígitos → se antepone la lada 52),
 // con un texto ya escrito si se pasa. null si el teléfono no tiene dígitos.
 export function whatsappUrl(phone, text) {
-  let digits = whatsappDigits(phone);
-  if (digits.length === 10) digits = `52${digits}`;
+  const digits = normalizeMxWhatsapp(phone);
   if (!digits) return null;
   return text ? `https://wa.me/${digits}?text=${encodeURIComponent(text)}` : `https://wa.me/${digits}`;
 }

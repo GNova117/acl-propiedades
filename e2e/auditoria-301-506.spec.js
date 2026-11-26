@@ -40,4 +40,30 @@ test.describe("Auditoría 301–506", () => {
     if (await page.locator(".property-filters__toggle").isVisible()) await press(page.locator(".property-filters__toggle"));
     await expect(page.getByRole("button", { name: "Limpiar" }).first()).toBeDisabled();
   });
+
+  test("una comparación se abre desde un enlace y resalta el mejor valor", async ({ page, go }) => {
+    await go("/comparar?ids=prop-1,prop-2");
+    await expect(page.locator(".compare-table th a")).toHaveCount(2);
+    await expect(page.getByText("Precio por m²")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Copiar enlace de la comparación" })).toHaveCount(0); // vista compartida: sin acciones propias
+  });
+
+  test("el chat ofrece tres arranques con un toque", async ({ page, go, press }) => {
+    await go("/");
+    await press(page.locator(".chat-widget__toggle"));
+    await expect(page.locator(".chat-widget__starter")).toHaveCount(3);
+  });
+
+  test("la calculadora termina en una acción", async ({ page, go }) => {
+    await go("/calculadora");
+    await expect(page.getByRole("link", { name: "Pedir estimación formal" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Hablar con un asesor" })).toBeVisible();
+  });
+
+  test("Mensajes se filtra por canal y se puede buscar", async ({ page, loginAdmin, go }) => {
+    await loginAdmin();
+    await go("/admin/mensajes");
+    await expect(page.locator("#message-channel-filter")).toBeVisible();
+    await expect(page.locator("#message-search")).toBeVisible();
+  });
 });

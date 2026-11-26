@@ -51,6 +51,8 @@ export default function AdminMessages() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
   const [advisorFilter, setAdvisorFilter] = useState("");
+  const [channelFilter, setChannelFilter] = useState("");
+  const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
@@ -114,6 +116,12 @@ export default function AdminMessages() {
   const filtered = useMemo(() => {
     return messages.filter((m) => {
       if (statusFilter && (m.status || "nuevo") !== statusFilter) return false;
+      // Por canal: el formulario de contacto, la solicitud de visita, WhatsApp, alertas, estimaciones, comparador…
+      if (channelFilter && (m.channel || "contacto") !== channelFilter) return false;
+      if (search.trim()) {
+        const needle = search.trim().toLowerCase();
+        if (![m.name, m.email, m.phone, m.message].some((value) => String(value || "").toLowerCase().includes(needle))) return false;
+      }
       if (advisorFilter) {
         const advisors = propertyById.get(m.property_id)?.advisors || [];
         // "Sin asesor": mensajes del formulario de Contacto (sin propiedad)
@@ -125,7 +133,10 @@ export default function AdminMessages() {
       }
       return true;
     });
-  }, [messages, statusFilter, advisorFilter, propertyById]);
+  }, [messages, statusFilter, advisorFilter, channelFilter, search, propertyById]);
+
+  // Los canales que de verdad hay en la bandeja (para el filtro).
+  const channelOptions = useMemo(() => [...new Set(messages.map((m) => m.channel || "contacto"))].sort(), [messages]);
 
   const handleToggleStatus = async (message) => {
     const next = (message.status || "nuevo") === "nuevo" ? "atendido" : "nuevo";
@@ -160,7 +171,7 @@ export default function AdminMessages() {
       </div>
       <p className="form-hint mt-n3 mb-5">{t("messages.subtitle")}</p>
 
-      <div className="form-row" style={{ maxWidth: 560, marginBottom: "1.25rem" }}>
+      <div className="form-row" style={{ flexWrap: "wrap", marginBottom: "1.25rem" }}>
         <div className="form-field">
           <label htmlFor="message-status-filter">{t("common.status")}</label>
           <select id="message-status-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
@@ -168,6 +179,19 @@ export default function AdminMessages() {
             <option value="nuevo">{t("messages.statusNew")}</option>
             <option value="atendido">{t("messages.statusHandled")}</option>
           </select>
+        </div>
+        <div className="form-field">
+          <label htmlFor="message-channel-filter">{t("messages.channel")}</label>
+          <select id="message-channel-filter" value={channelFilter} onChange={(e) => setChannelFilter(e.target.value)}>
+            <option value="">{t("messages.filterAll")}</option>
+            {channelOptions.map((channel) => (
+              <option key={channel} value={channel}>{t(`messages.channels.${channel}`, { defaultValue: channel })}</option>
+            ))}
+          </select>
+        </div>
+        <div className="form-field">
+          <label htmlFor="message-search">{t("messages.search")}</label>
+          <input id="message-search" type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("messages.searchPlaceholder")} />
         </div>
         <div className="form-field">
           <label htmlFor="message-advisor-filter">{t("messages.advisor")}</label>

@@ -173,6 +173,8 @@
     "rentada": "Rented"
   },
   "properties": {
+    "newSinceVisit_one": "{{count}} new since your last visit",
+    "newSinceVisit_other": "{{count}} new since your last visit",
     "noAdvisor": "No advisor",
     "codeSearchError": "The search failed. Check your connection and try again.",
     "statusFilter": "Status",
@@ -354,6 +356,9 @@
     }
   },
   "calculator": {
+    "askFormal": "Request a formal estimate",
+    "talkToAdvisor": "Talk to an advisor",
+    "whatsappText": "Hi, I used the calculator on your site: {{type}} of {{area}} m² in {{zone}}, estimate {{value}}. I would like a formal estimate.",
     "title": "Estimated value calculator",
     "subtitle": "Get a reference estimate of a property's value based on area, zone and type.",
     "area": "Area (sqm)",
@@ -406,6 +411,22 @@
     "serverLimited": "Too many messages were sent from your connection. Please try again later or call us."
   },
   "messages": {
+    "channel": "Channel",
+    "search": "Search",
+    "searchPlaceholder": "Name, phone, email or text",
+    "subtitle": "Everything that reaches the site: contact form, visit requests, WhatsApp, alerts, estimates and the loan comparison. Filter by channel to separate it.",
+    "channels": {
+      "contacto": "Contact form",
+      "visita": "Booked visit",
+      "visita_solicitud": "Visit request",
+      "visita_cambio": "Visit change",
+      "whatsapp": "WhatsApp",
+      "alerta": "Alert",
+      "simulador": "Loan simulator",
+      "estimacion": "Value estimate",
+      "comparador": "Loan comparison",
+      "guia": "Buyer guide"
+    },
     "via_alerta": "Asked for WhatsApp alerts",
     "via_comparador": "From the credit comparison",
     "via_whatsapp": "From WhatsApp",
@@ -421,7 +442,6 @@
     "viaWhatsapp": "From WhatsApp",
     "makeProspectError": "Could not make a prospect",
     "title": "Contact messages",
-    "subtitle": "Messages sent from the public site's contact form.",
     "date": "Date",
     "noResults": "No contact messages yet.",
     "statusNew": "New",
@@ -589,6 +609,13 @@
     }
   },
   "compare": {
+    "barCta": "Compare ({{count}})",
+    "pricePerM2": "Price per m²",
+    "monthly": "Estimated monthly payment",
+    "bestValue": "best value",
+    "share": "Copy comparison link",
+    "copied": "Link copied!",
+    "copyManual": "Copy this link to share the comparison",
     "title": "Compare properties",
     "subtitle": "Compare up to 4 properties side by side before deciding.",
     "empty": "You don't have any properties to compare yet.",
@@ -3259,6 +3286,9 @@
     "title": "Recently viewed"
   },
   "chatWidget": {
+    "starterBuy": "I am looking for a house in Torreón",
+    "starterSell": "I want to sell my property",
+    "starterAdvisor": "Talk to an advisor",
     "newChat": "New conversation",
     "rateLimited": "You have reached the message limit for now. To continue, message us on WhatsApp and an advisor will help you.",
     "aiNotice": "This assistant is an artificial intelligence: what you type is processed by an external provider. Do not share sensitive data (passwords, bank details). If you leave your phone or email, an advisor will contact you.",
@@ -4888,6 +4918,7 @@
     "switchLanguage": "Cambiar idioma / Switch language"
   },
   "propertyForm": {
+    "titleWarning": {"caps": "The title is all in capitals, which looks unprofessional on the site and in Google. Save anyway?", "punctuation": "The title has repeated exclamation or question marks. Save anyway?"},
     "viewOnSite": "View on the site",
     "descriptionCount_one": "{{count}} character (Google shows about 155)",
     "descriptionCount_other": "{{count}} characters (Google shows about 155)",
@@ -5257,5 +5288,8 @@
   "propertyCard": {
     "photos_one": "{{count}} photo",
     "photos_other": "{{count}} photos"
+  },
+  "advisorForm": {
+    "whatsappLabel": "WhatsApp (10 digits; saved with the 52 country code)"
   }
 }

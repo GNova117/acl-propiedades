@@ -38,6 +38,18 @@ Publicar el sitio (merge a `main`) y **aplicar las migraciones 0129 (índices) y
 | 475 | El formulario de propiedad trae «Ver en el sitio». |
 | 476 | Contador de caracteres en la descripción (Google muestra ~155). |
 | 479 | **Migración 0130**: `updated_at` de propiedades lo fija la base en cada cambio real (ya no depende del navegador). Prueba SQL 19. |
+| 349 | El comparador suma precio por m² y pago mensual estimado, y resalta el mejor valor de cada renglón. |
+| 352 | Los códigos de propiedad que menciona el chat (ACL-1001) son enlaces a su ficha. |
+| 361 | «Vende tu casa» ya no exige los m² de terreno. |
+| 362–363 | La calculadora usa el precio por m² de terreno de la zona para terrenos y termina en dos acciones: «Pedir estimación formal» y «Hablar con un asesor» (WhatsApp con la estimación). |
+| 395 | El chat ofrece tres arranques con un toque («Busco casa en Torreón», «Quiero vender mi propiedad», «Hablar con un asesor»). |
+| 397–398 | La comparación se comparte por enlace (`/comparar?ids=…`) y el listado trae la barra flotante «Comparar (N)». |
+| 399 | El listado dice «N nuevas desde tu última visita». |
+| 407, 415 | Mensajes: subtítulo corregido (dice todo lo que llega, no solo el formulario de contacto), filtro por canal y búsqueda de texto. |
+| 417 | El WhatsApp de un asesor se guarda siempre como 52 + 10 dígitos (acepta 10 dígitos, +52 y el formato viejo 521). |
+| 423 | Al guardar una propiedad con título en mayúsculas o con signos repetidos se pide confirmar. |
+| 483 | El CI guarda Chromium de Playwright en caché. |
+| 495 | El flujo de Novedades limpia el cuerpo del PR (sin markdown ni enlaces internos) y lo recorta a 800 caracteres. |
 | 477 | Ya resuelto con la migración 0127: `chat_rate_limits` se limpia a diario (1 semana). |
 | 478 | Falso positivo: «whatsapp» aparece una sola vez en la expresión de robots. |
 | 484 | El CI cancela las corridas viejas del mismo PR (`concurrency`). |

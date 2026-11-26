@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { whatsappDigits } from "../../lib/format";
+import { normalizeMxWhatsapp } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
 import VisitScheduleEditor from "../../components/VisitScheduleEditor";
 import "./admin.css";
@@ -88,7 +88,7 @@ export default function AdminMyProfile() {
         name: form.name,
         phone: form.phone,
         email: form.email.trim().toLowerCase(),
-        whatsapp: whatsappDigits(form.whatsapp),
+        whatsapp: normalizeMxWhatsapp(form.whatsapp),
         bio: form.bio,
         existingPhoto,
         photoFile,
@@ -133,7 +133,7 @@ export default function AdminMyProfile() {
         </div>
 
         <div className="form-field">
-          <label htmlFor="mp-whatsapp">WhatsApp (formato 521XXXXXXXXXX)</label>
+          <label htmlFor="mp-whatsapp">{t("advisorForm.whatsappLabel")}</label>
           <input id="mp-whatsapp" value={form.whatsapp} onChange={handleChange("whatsapp")} />
         </div>
 

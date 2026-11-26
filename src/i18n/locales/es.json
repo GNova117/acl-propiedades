@@ -173,6 +173,8 @@
     "rentada": "Rentada"
   },
   "properties": {
+    "newSinceVisit_one": "{{count}} nueva desde tu última visita",
+    "newSinceVisit_other": "{{count}} nuevas desde tu última visita",
     "noAdvisor": "Sin asesor",
     "codeSearchError": "No se pudo buscar. Revisa tu conexión e inténtalo de nuevo.",
     "statusFilter": "Estatus",
@@ -354,6 +356,9 @@
     }
   },
   "calculator": {
+    "askFormal": "Pedir estimación formal",
+    "talkToAdvisor": "Hablar con un asesor",
+    "whatsappText": "Hola, usé la calculadora del sitio: {{type}} de {{area}} m² en {{zone}}, estimación {{value}}. Me gustaría una estimación formal.",
     "title": "Calculadora de valor estimado",
     "subtitle": "Obtén una estimación referencial del valor de una propiedad según su superficie, zona y tipo.",
     "area": "Superficie (m²)",
@@ -406,6 +411,22 @@
     "serverLimited": "Se enviaron demasiados mensajes desde tu conexión. Inténtalo de nuevo en un rato o llámanos por teléfono."
   },
   "messages": {
+    "channel": "Canal",
+    "search": "Buscar",
+    "searchPlaceholder": "Nombre, teléfono, correo o texto",
+    "subtitle": "Todo lo que llega al sitio: formulario de contacto, solicitudes de visita, WhatsApp, alertas, estimaciones y comparador. Filtra por canal para separarlo.",
+    "channels": {
+      "contacto": "Formulario de contacto",
+      "visita": "Visita agendada",
+      "visita_solicitud": "Solicitud de visita",
+      "visita_cambio": "Cambio de visita",
+      "whatsapp": "WhatsApp",
+      "alerta": "Alerta",
+      "simulador": "Simulador de crédito",
+      "estimacion": "Estimación de valor",
+      "comparador": "Comparador de créditos",
+      "guia": "Guía del comprador"
+    },
     "via_alerta": "Pidió avisos por WhatsApp",
     "via_comparador": "Desde el comparador de créditos",
     "via_whatsapp": "Desde WhatsApp",
@@ -421,7 +442,6 @@
     "viaWhatsapp": "Desde WhatsApp",
     "makeProspectError": "No se pudo pasar a prospecto",
     "title": "Mensajes de contacto",
-    "subtitle": "Mensajes enviados desde el formulario de contacto del sitio público.",
     "date": "Fecha",
     "noResults": "Aún no hay mensajes de contacto.",
     "statusNew": "Nuevo",
@@ -589,6 +609,13 @@
     }
   },
   "compare": {
+    "barCta": "Comparar ({{count}})",
+    "pricePerM2": "Precio por m²",
+    "monthly": "Pago mensual estimado",
+    "bestValue": "mejor valor",
+    "share": "Copiar enlace de la comparación",
+    "copied": "¡Enlace copiado!",
+    "copyManual": "Copia este enlace para compartir la comparación",
     "title": "Comparar propiedades",
     "subtitle": "Compara hasta 4 propiedades lado a lado antes de decidir.",
     "empty": "No tienes propiedades para comparar todavía.",
@@ -3259,6 +3286,9 @@
     "title": "Vistos recientemente"
   },
   "chatWidget": {
+    "starterBuy": "Busco casa en Torreón",
+    "starterSell": "Quiero vender mi propiedad",
+    "starterAdvisor": "Hablar con un asesor",
     "newChat": "Nueva conversación",
     "rateLimited": "Llegaste al límite de mensajes por ahora. Si quieres seguir, escríbenos por WhatsApp y un asesor te atiende.",
     "aiNotice": "Este asistente es una inteligencia artificial: lo que escribas lo procesa un proveedor externo. No compartas datos sensibles (contraseñas, datos bancarios). Si dejas tu teléfono o correo, un asesor te contactará.",
@@ -4888,6 +4918,7 @@
     "switchLanguage": "Cambiar idioma / Switch language"
   },
   "propertyForm": {
+    "titleWarning": {"caps": "El título está todo en mayúsculas; se ve poco profesional en el sitio y en Google. ¿Guardar así?", "punctuation": "El título lleva signos de admiración o interrogación repetidos. ¿Guardar así?"},
     "viewOnSite": "Ver en el sitio",
     "descriptionCount_one": "{{count}} carácter (Google muestra unos 155)",
     "descriptionCount_other": "{{count}} caracteres (Google muestra unos 155)",
@@ -5257,5 +5288,8 @@
   "propertyCard": {
     "photos_one": "{{count}} foto",
     "photos_other": "{{count}} fotos"
+  },
+  "advisorForm": {
+    "whatsappLabel": "WhatsApp (10 dígitos; se guarda con la lada 52)"
   }
 }

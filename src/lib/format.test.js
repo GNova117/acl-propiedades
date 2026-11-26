@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatDeliveryDate,
+  normalizeMxWhatsapp,
   daysSince,
   docTypesForClientType,
   DOC_TYPES,
@@ -171,5 +172,19 @@ describe("daysSince", () => {
     expect(daysSince("2026-12-01T12:00:00Z", now)).toBe(0);
     expect(daysSince("no-es-fecha", now)).toBeNull();
     expect(daysSince(null, now)).toBeNull();
+  });
+});
+
+describe("normalizeMxWhatsapp", () => {
+  it("deja todo en 52 + 10 dígitos", () => {
+    expect(normalizeMxWhatsapp("871 324 3271")).toBe("528713243271");
+    expect(normalizeMxWhatsapp("+52 871 324 3271")).toBe("528713243271");
+    expect(normalizeMxWhatsapp("5218713243271")).toBe("528713243271");
+    expect(normalizeMxWhatsapp("528713243271")).toBe("528713243271");
+  });
+  it("un número del extranjero o vacío no se inventa", () => {
+    expect(normalizeMxWhatsapp("+1 415 555 0100")).toBe("14155550100");
+    expect(normalizeMxWhatsapp("")).toBe("");
+    expect(normalizeMxWhatsapp(null)).toBe("");
   });
 });

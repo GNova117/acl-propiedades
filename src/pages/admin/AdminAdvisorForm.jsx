@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { whatsappDigits } from "../../lib/format";
+import { normalizeMxWhatsapp } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
 import VisitScheduleEditor from "../../components/VisitScheduleEditor";
 import "./admin.css";
@@ -82,7 +82,7 @@ export default function AdminAdvisorForm() {
       const payload = {
         ...form,
         email: form.email.trim().toLowerCase(),
-        whatsapp: whatsappDigits(form.whatsapp),
+        whatsapp: normalizeMxWhatsapp(form.whatsapp),
         existingPhoto,
         photoFile,
       };
@@ -128,7 +128,7 @@ export default function AdminAdvisorForm() {
         </div>
 
         <div className="form-field">
-          <label htmlFor="a-whatsapp">WhatsApp (formato 521XXXXXXXXXX)</label>
+          <label htmlFor="a-whatsapp">{t("advisorForm.whatsappLabel")}</label>
           <input id="a-whatsapp" value={form.whatsapp} onChange={handleChange("whatsapp")} />
         </div>
 

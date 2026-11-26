@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import { db, TYPE_FACTORS } from "../lib/dataStore";
 import { formatMXN, propertyTypeLabel } from "../lib/format";
 import { groupZonesByCity, zoneDisplayName } from "../lib/zones";
+import { OFFICE_WHATSAPP } from "../lib/office";
 import "./Calculator.css";
 
 export default function Calculator() {
@@ -28,7 +30,9 @@ export default function Calculator() {
 
   const estimate = useMemo(() => {
     if (!selectedZone) return null;
-    const base = Number(area) * Number(selectedZone.price_per_m2) * (TYPE_FACTORS[type] || 1);
+    // Un terreno usa el precio por m² de terreno de la zona (ya lo trae cada zona); lo demás, el de construcción con su factor por tipo.
+    const landRate = Number(selectedZone.land_price_per_m2);
+    const base = type === "terreno" && landRate > 0 ? Number(area) * landRate : Number(area) * Number(selectedZone.price_per_m2) * (TYPE_FACTORS[type] || 1);
     return { base, low: base * 0.9, high: base * 1.1 };
   }, [area, selectedZone, type]);
 
@@ -104,6 +108,18 @@ export default function Calculator() {
                 {t("calculator.range")}: {formatMXN(estimate.low)} – {formatMXN(estimate.high)}
               </span>
               <p className="calculator-card__disclaimer">{t("calculator.disclaimer")}</p>
+              {/* La cifra no termina en la cifra: se puede pedir la estimación formal o hablar con un asesor. */}
+              <div className="calculator-card__actions">
+                <Link to="/vende-tu-casa" className="btn btn-primary btn-sm">{t("calculator.askFormal")}</Link>
+                <a
+                  className="btn btn-outline btn-sm"
+                  href={`https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(t("calculator.whatsappText", { zone: zoneDisplayName(selectedZone), area, type: propertyTypeLabel(t, type), value: formatMXN(estimate.base) }))}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("calculator.talkToAdvisor")}
+                </a>
+              </div>
             </div>
           )}
         </div>

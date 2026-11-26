@@ -43,7 +43,7 @@ export default function SellYourHome() {
     if (!form.phone.trim()) next.phone = t("contact.required");
     else if (!isValidPhone(form.phone)) next.phone = t("contactRequest.invalidPhone");
     if (!form.address.trim()) next.address = t("contact.required");
-    if (!(Number(form.landArea) > 0)) next.landArea = t("contact.required");
+    // El terreno ya no es obligatorio (muchos dueños no saben los m²): el asesor lo confirma en la visita.
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
@@ -172,7 +172,7 @@ export default function SellYourHome() {
 
               <div className="form-row">
                 <div className="form-field">
-                  <label htmlFor="sh-land">{t("sellHome.landArea")} *</label>
+                  <label htmlFor="sh-land">{t("sellHome.landArea")}</label>
                   <input id="sh-land" name="landArea" type="number" min="0" step="any" inputMode="decimal" value={form.landArea} onChange={change} aria-invalid={Boolean(errors.landArea)} />
                   {errors.landArea && <span className="form-error">{errors.landArea}</span>}
                 </div>

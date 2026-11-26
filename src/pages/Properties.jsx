@@ -5,6 +5,7 @@ import Seo from "../components/Seo";
 import PropertyFilters from "../components/PropertyFilters";
 import PropertyCard from "../components/PropertyCard";
 import AlertSignupCard from "../components/AlertSignupCard";
+import CompareBar from "../components/CompareBar";
 import DevelopmentCard from "../components/DevelopmentCard";
 import { filtersToCriteria } from "../lib/alertMatch";
 import { buildActiveFilterChips } from "../lib/activeFilters";
@@ -45,6 +46,23 @@ const EMPTY_FILTERS = {
   minParking: "",
   amenities: [],
   sortBy: "newest",
+};
+
+const LAST_VISIT_KEY = "acl_last_list_visit";
+const readLastVisit = () => {
+  try {
+    const value = Number(localStorage.getItem(LAST_VISIT_KEY));
+    return Number.isFinite(value) && value > 0 ? value : null;
+  } catch {
+    return null;
+  }
+};
+const writeLastVisit = () => {
+  try {
+    localStorage.setItem(LAST_VISIT_KEY, String(Date.now()));
+  } catch {
+    /* sin almacenamiento */
+  }
 };
 
 const SORT_OPTIONS = ["newest", "price_asc", "price_desc", "area_desc"];
@@ -187,6 +205,9 @@ export default function Properties({
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
   const [typesLoaded, setTypesLoaded] = useState(false);
+  // «N nuevas desde tu última visita»: la fecha de la visita anterior se lee una vez y se actualiza al salir.
+  const lastVisitRef = useRef(readLastVisit());
+  useEffect(() => () => writeLastVisit(), []);
   const [loading, setLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -376,6 +397,7 @@ export default function Properties({
     [needsFullSet, effectiveView, pins, page]
   );
   const lastPage = Math.max(0, Math.ceil(total / PAGE_SIZE) - 1);
+  const newSinceVisit = lastVisitRef.current ? properties.filter((p) => p.created_at && new Date(p.created_at).getTime() > lastVisitRef.current).length : 0;
 
   // «Visítala mañana»: el primer horario libre de las tarjetas que se ven (una sola consulta por página).
   // Si la base aún no tiene la función, simplemente no salen etiquetas.
@@ -538,7 +560,10 @@ export default function Properties({
             )}
 
             <div className="properties-page__toolbar">
-              <span aria-live="polite">{t(total === 1 ? "properties.results_one" : "properties.results_other", { count: total })}</span>
+              <span aria-live="polite">
+                {t(total === 1 ? "properties.results_one" : "properties.results_other", { count: total })}
+                {newSinceVisit > 0 && <strong className="properties-page__new"> · {t("properties.newSinceVisit", { count: newSinceVisit })}</strong>}
+              </span>
               <div className="properties-page__toolbar-actions">
                 <select
                   aria-label={t("properties.sortBy")}
@@ -643,6 +668,7 @@ export default function Properties({
           </div>
         </div>
         {footerExtra}
+        <CompareBar />
       </div>
     </>
   );

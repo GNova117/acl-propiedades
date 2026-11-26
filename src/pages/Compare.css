@@ -61,3 +61,16 @@
 .compare-page__clear {
   margin-top: 1.25rem;
 }
+
+.compare-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+/* El mejor valor de cada renglón (precio por m² y pago mensual más bajos). */
+.compare-table__best {
+  background: rgb(23 120 74 / 0.12);
+  font-weight: 700;
+}
