@@ -2,7 +2,7 @@
 // un método puede llamar a los de otros módulos como siempre.
 import { supabase } from "../../supabaseClient";
 import { slugify } from "../../format";
-import { uploadFiles, discardUploads, hasStaffSession, PUBLIC_ADVISOR_COLUMNS } from "./shared.js";
+import { uploadFiles, discardUploads, hasStaffSession, PUBLIC_ADVISOR_COLUMNS, shareBriefly, forgetShared } from "./shared.js";
 
 export const catalogMethods = {
   async _syncAdvisors(propertyId, advisorIds) {
@@ -158,12 +158,16 @@ export const catalogMethods = {
   },
 
   async getPropertyTypes() {
-    const { data, error } = await supabase.from("property_types").select("*").order("label");
-    if (error) throw error;
-    return data || [];
+    const rows = await shareBriefly("property-types", async () => {
+      const { data, error } = await supabase.from("property_types").select("*").order("label");
+      if (error) throw error;
+      return data || [];
+    });
+    return rows.map((row) => ({ ...row })); // cada quien recibe su copia: nadie altera la de otro
   },
 
   async addPropertyType(data) {
+    forgetShared("property-types");
     const label = data.label.trim();
     const payload = { key: slugify(label), label };
     const { data: inserted, error } = await supabase.from("property_types").insert(payload).select().single();
@@ -172,6 +176,7 @@ export const catalogMethods = {
   },
 
   async deletePropertyType(id) {
+    forgetShared("property-types");
     const { error } = await supabase.from("property_types").delete().eq("id", id);
     if (error) throw error;
   },
@@ -179,6 +184,7 @@ export const catalogMethods = {
   // Solo cambia el texto a mostrar: `key` (lo que guarda properties.type y usan
   // filtros/rutas) no se toca, así que no hay nada que arrastrar.
   async renamePropertyType(id, label) {
+    forgetShared("property-types");
     const { data, error } = await supabase.from("property_types").update({ label: label.trim() }).eq("id", id).select().single();
     if (error) throw error;
     return data;
@@ -211,12 +217,14 @@ export const catalogMethods = {
   },
 
   async togglePropertyTypeActive(id, active) {
+    forgetShared("property-types");
     const { data, error } = await supabase.from("property_types").update({ active }).eq("id", id).select().single();
     if (error) throw error;
     return data;
   },
 
   async updatePropertyTypeImage(id, file) {
+    forgetShared("property-types");
     const uploaded = [];
     const [url] = await uploadFiles("property-images", [file], uploaded);
     const { data, error } = await supabase.from("property_types").update({ image_url: url }).eq("id", id).select().single();

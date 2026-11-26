@@ -43,3 +43,12 @@ export function normalizePropertyCode(input) {
   if (digits) return `ACL-${digits[1]}`;
   return text;
 }
+
+// A qué listado mandar a quien abrió el enlace de una propiedad que ya no existe: el título de la dirección legible delata el tipo
+// («terreno-en-…», «nave-industrial-en-…»); sin pista, el listado general.
+export function listPathForMissingProperty(param) {
+  const slug = String(param || "").toLowerCase();
+  if (/^terreno(-|$)/.test(slug)) return "/terrenos";
+  if (/^nave(-|$)/.test(slug)) return "/naves-industriales";
+  return "/propiedades";
+}

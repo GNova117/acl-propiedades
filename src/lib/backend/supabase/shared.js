@@ -28,6 +28,20 @@ export async function fetchAll(buildQuery) {
   return rows;
 }
 
+// Varias piezas de una misma pantalla piden la misma lista casi a la vez (el encabezado, el buscador, el inicio y el listado pedían los
+// tipos de propiedad por separado: hasta 4 consultas iguales). Con esto comparten una sola y la reutilizan unos segundos.
+// `forget(key)` la suelta (al guardar un cambio que la modifica).
+const shortLived = new Map();
+export function shareBriefly(key, load, ttlMs = 5000) {
+  const hit = shortLived.get(key);
+  if (hit && Date.now() - hit.at < ttlMs) return hit.promise;
+  const promise = load();
+  shortLived.set(key, { at: Date.now(), promise });
+  promise.catch(() => shortLived.delete(key));
+  return promise;
+}
+export const forgetShared = (key) => shortLived.delete(key);
+
 // Los campos del expediente del cliente (NSS, contraseña del portal, número
 // de crédito y las 2 referencias) se guardan igual al crear y al editar — se
 // arman desde una sola lista para no repetirlos campo por campo.

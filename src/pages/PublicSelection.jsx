@@ -18,6 +18,7 @@ import LoadingState from "../components/LoadingState";
 import { propertyPath } from "../lib/propertyUrl.js";
 import { isClosedStatus } from "../lib/propertyStatus";
 import { siteOrigin } from "../lib/site";
+import { loadPropertiesInOrder } from "../lib/propertiesByIds";
 
 const seenKey = (token) => `acl_selection_seen_${token}`;
 
@@ -87,9 +88,9 @@ export default function PublicSelection() {
         }
         const [advisor, found] = await Promise.all([
           selection.advisor_id ? db.getSelectionAdvisor(token).catch(() => null) : null,
-          Promise.all((selection.property_ids || []).map((id) => db.getPropertyById(id).catch(() => null))),
+          loadPropertiesInOrder(selection.property_ids),
         ]);
-        if (!cancelled) setResult({ token, status: selection.status, selection, advisor, properties: found.filter(Boolean) });
+        if (!cancelled) setResult({ token, status: selection.status, selection, advisor, properties: found });
       } catch {
         try {
           sessionStorage.removeItem(seenKey(token));

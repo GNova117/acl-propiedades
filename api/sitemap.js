@@ -9,6 +9,7 @@ import { createClient } from "@supabase/supabase-js";
 import { colonyPath, slugify, ZONE_LANDING_CITIES } from "../src/lib/zoneLandingPages.js";
 import { propertyPath } from "../src/lib/propertyUrl.js";
 import { resolveSiteUrl } from "../server/siteUrl.js";
+import { buildSitemapXml, propertyInSitemap, sitemapImages } from "../server/sitemapXml.js";
 
 // Dirección pública (variable SITE_URL / VITE_SITE_URL; ver server/siteUrl.js).
 const SITE_URL = resolveSiteUrl(process.env);
@@ -27,10 +28,12 @@ export default async function handler(req, res) {
   if (url && key) {
     try {
       const supabase = createClient(url, key);
-      const { data } = await supabase.from("properties").select("id, code, title, updated_at, zone, status, type").eq("active", true);
+      const { data } = await supabase.from("properties").select("id, code, title, updated_at, zone, status, type, main_image, images").eq("active", true);
       if ((data || []).some((row) => row.type === "nave_industrial" && row.status === "disponible")) urls.push({ loc: `${SITE_URL}/naves-industriales` });
       for (const row of data || []) {
-        urls.push({ loc: `${SITE_URL}${propertyPath(row)}`, lastmod: row.updated_at ? row.updated_at.slice(0, 10) : undefined });
+        // Las vendidas y rentadas salen del sitemap pasadas unas semanas (ver server/sitemapXml.js).
+        if (!propertyInSitemap(row)) continue;
+        urls.push({ loc: `${SITE_URL}${propertyPath(row)}`, lastmod: row.updated_at ? row.updated_at.slice(0, 10) : undefined, images: sitemapImages(row) });
       }
       // Una página por colonia con al menos una propiedad disponible (las vacías no se listan: serían páginas casi sin contenido).
       const colonyPaths = new Set();
@@ -54,11 +57,7 @@ export default async function handler(req, res) {
     }
   }
 
-  const xml =
-    `<?xml version="1.0" encoding="UTF-8"?>\n` +
-    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
-    urls.map((u) => `  <url><loc>${u.loc}</loc>${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ""}</url>`).join("\n") +
-    `\n</urlset>\n`;
+  const xml = buildSitemapXml(urls);
 
   res.setHeader("Content-Type", "application/xml");
   res.setHeader("Cache-Control", "public, max-age=3600");

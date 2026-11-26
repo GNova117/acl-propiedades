@@ -4,7 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import "./fonts.css";
 import "./index.css";
 import "./utilities.css";
-import "./i18n";
+import { i18nReady } from "./i18n";
 import { installDialogFocus } from "./lib/dialogFocus";
 import { installErrorReporting } from "./lib/errorReporter";
 import { db } from "./lib/dataStore";
@@ -49,13 +49,30 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
   });
 }
 
+// La pantalla de marca solo sale en la primera visita de la sesión y en el sitio público: ni al volver a abrir una página, ni en el
+// panel, ni en los enlaces privados (firma, documentos, visita, registro…), donde la persona viene a hacer algo y la espera estorba.
+const SPLASH_KEY = "acl_splash_seen";
+const NO_SPLASH = /^\/(admin|firmar|documentos|visita|opinion|seleccion|registro|informe)(\/|$)/;
+
+function shouldShowSplash() {
+  if (NO_SPLASH.test(window.location.pathname)) return false;
+  try {
+    if (sessionStorage.getItem(SPLASH_KEY)) return false;
+    sessionStorage.setItem(SPLASH_KEY, "1");
+  } catch {
+    /* sin almacenamiento: se muestra, pero solo una vez por carga */
+  }
+  return true;
+}
+
 function Root() {
-  const [showLoader, setShowLoader] = useState(true);
+  const [showLoader, setShowLoader] = useState(shouldShowSplash);
 
   useEffect(() => {
+    if (!showLoader) return undefined;
     const timer = setTimeout(() => setShowLoader(false), 1500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [showLoader]);
 
   return (
     <ThemeProvider>
@@ -78,8 +95,11 @@ installDialogFocus();
 // Errores del navegador → /admin/errores (ver lib/errorReporter.js). En desarrollo no se mandan (ruido de recarga en caliente).
 if (!import.meta.env.DEV) installErrorReporting((payload) => db.reportClientError(payload));
 
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <Root />
-  </StrictMode>
-);
+// El idioma activo ya debe estar cargado antes de pintar (el inglés se baja bajo demanda; ver src/i18n/index.js).
+i18nReady.finally(() => {
+  createRoot(document.getElementById("root")).render(
+    <StrictMode>
+      <Root />
+    </StrictMode>
+  );
+});

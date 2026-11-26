@@ -100,3 +100,21 @@
   display: grid;
   gap: 0.5rem;
 }
+
+.blog-post__body h2,
+.blog-post__body h3 {
+  margin: 1.8rem 0 0.6rem;
+}
+
+.blog-post__body ul,
+.blog-post__body ol {
+  margin: 0 0 1rem 1.25rem;
+}
+
+.blog-post__figure {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1rem 0;
+  border-radius: var(--radius-md, 10px);
+}

@@ -54,3 +54,26 @@ describe("fetchAll", () => {
     expect(n).toBe(MAX_PAGES);
   });
 });
+
+describe("shareBriefly", () => {
+  it("dos pedidos casi a la vez comparten una sola consulta y forgetShared la suelta", async () => {
+    const { shareBriefly, forgetShared } = await import("./shared.js");
+    let calls = 0;
+    const load = async () => {
+      calls += 1;
+      return [calls];
+    };
+    const [a, b] = await Promise.all([shareBriefly("k", load), shareBriefly("k", load)]);
+    expect(calls).toBe(1);
+    expect(a).toBe(b);
+    forgetShared("k");
+    await shareBriefly("k", load);
+    expect(calls).toBe(2);
+  });
+
+  it("si la consulta falla no se queda guardada", async () => {
+    const { shareBriefly } = await import("./shared.js");
+    await expect(shareBriefly("bad", async () => { throw new Error("x"); })).rejects.toThrow("x");
+    await expect(shareBriefly("bad", async () => "ok")).resolves.toBe("ok");
+  });
+});

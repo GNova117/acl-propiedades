@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { db } from "../lib/dataStore";
 import { getRecentlyViewedIds } from "../lib/recentlyViewed";
 import PropertyCard from "./PropertyCard";
 import "./RecentlyViewed.css";
+import { loadPropertiesInOrder } from "../lib/propertiesByIds";
 
 // "Vistos recientemente": los ids salen de localStorage, pero los datos de
 // cada propiedad se piden frescos (precio/estatus/fotos actuales) y las que
@@ -19,8 +19,8 @@ export default function RecentlyViewed({ excludeId, className = "" }) {
       return;
     }
     let active = true;
-    Promise.all(ids.map((id) => db.getPropertyById(id).catch(() => null))).then((results) => {
-      if (active) setProperties(results.filter((p) => p && p.active));
+    loadPropertiesInOrder(ids).then((results) => {
+      if (active) setProperties(results.filter((p) => p.active));
     });
     return () => {
       active = false;

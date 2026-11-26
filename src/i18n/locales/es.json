@@ -248,6 +248,8 @@
     "coloniesTitle": "Colonias de {{city}} con propiedades"
   },
   "detail": {
+    "seoTitleSold": "Vendida · {{type}} en {{zone}}",
+    "seoTitleRented": "Rentada · {{type}} en {{zone}}",
     "seoTitle": "{{type}} en {{operation}} — {{zone}} · {{price}}",
     "seoLead": "{{facts}} en {{zone}}. ",
     "codeLabel": "Código",
@@ -453,6 +455,7 @@
     "homeTitle": "Lo que dicen nuestros clientes"
   },
   "blog": {
+    "spanishOnly": "Los artículos están disponibles solo en español por ahora.",
     "readTime_one": "{{count}} min de lectura",
     "readTime_other": "{{count}} min de lectura",
     "byline": "Por el equipo de ACL Propiedades",
@@ -5214,7 +5217,7 @@
   },
   "home": {
     "seoTitle": "ACL Propiedades | Inmobiliaria en La Comarca Lagunera",
-    "seoDescription": "ACL Propiedades: compra y venta de casas, departamentos, naves industriales y terrenos en Torreón, Gómez Palacio y Lerdo."
+    "seoDescription": "ACL Propiedades: compra, venta y asesoría inmobiliaria certificada de casas, departamentos y terrenos en Torreón, Gómez Palacio y Lerdo."
   },
   "zoneFaq": {
     "title": "Preguntas frecuentes sobre {{place}}",

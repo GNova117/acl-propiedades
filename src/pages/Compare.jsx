@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import { useCompare } from "../context/CompareContext";
-import { db } from "../lib/dataStore";
 import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./Compare.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
 import { propertyPath } from "../lib/propertyUrl.js";
+import { loadPropertiesInOrder } from "../lib/propertiesByIds";
 
 export default function Compare() {
   const { t } = useTranslation();
@@ -22,9 +22,9 @@ export default function Compare() {
     // Igual que /favoritos: cada id se resuelve por su cuenta (nunca son
     // más de 4), y una propiedad borrada después de agregarse a la
     // comparación simplemente desaparece de la tabla en vez de tronar.
-    Promise.all(compareIds.map((id) => db.getPropertyById(id).catch(() => null))).then((results) => {
+    loadPropertiesInOrder(compareIds).then((results) => {
       if (active) {
-        setProperties(results.filter(Boolean));
+        setProperties(results);
         setLoading(false);
       }
     });

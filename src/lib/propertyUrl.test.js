@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isCanonicalSlug, parsePropertyRef, normalizePropertyCode, propertyPath, propertySlug } from "./propertyUrl";
+import { isCanonicalSlug, listPathForMissingProperty, parsePropertyRef, normalizePropertyCode, propertyPath, propertySlug } from "./propertyUrl";
 
 const casa = { id: "8d1f6b1e-3c9a-4d57-8a6e-0c2f7d9b1a44", code: "ACL-1001", title: "Casa en Residencial Senderos, con alberca y jardín" };
 
@@ -54,5 +54,15 @@ describe("normalizePropertyCode", () => {
   it("lo que no es un código se deja tal cual (en mayúsculas)", () => {
     expect(normalizePropertyCode("casa bonita")).toBe("CASA BONITA");
     expect(normalizePropertyCode("")).toBe("");
+  });
+});
+
+describe("listPathForMissingProperty", () => {
+  it("adivina el listado por el título de la dirección", () => {
+    expect(listPathForMissingProperty("terreno-en-torreon-ACL-1004")).toBe("/terrenos");
+    expect(listPathForMissingProperty("nave-industrial-en-lerdo-ACL-1005")).toBe("/naves-industriales");
+    expect(listPathForMissingProperty("casa-en-venta-ACL-1001")).toBe("/propiedades");
+    expect(listPathForMissingProperty("5f0c")).toBe("/propiedades");
+    expect(listPathForMissingProperty(undefined)).toBe("/propiedades");
   });
 });

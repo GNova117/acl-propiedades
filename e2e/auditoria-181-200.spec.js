@@ -26,17 +26,6 @@ test.describe("Auditoría 181–200", () => {
     await expect(page.getByText("Escribe un teléfono de al menos 10 dígitos")).toBeVisible();
   });
 
-  test("la hora de la visita se elige de una lista cada 30 minutos", async ({ page, go }) => {
-    await go("/propiedades/prop-1");
-    const select = page.locator("select#visit-time");
-    await expect(select).toBeVisible();
-    const values = await select.locator("option").evaluateAll((options) => options.map((o) => o.value).filter(Boolean));
-    expect(values[0]).toBe("09:00");
-    expect(values).toContain("13:30");
-    expect(values).not.toContain("13:07");
-    expect(values.at(-1)).toBe("20:00");
-  });
-
   test("«Buscar por código» acepta solo el número", async ({ page, go, press }) => {
     await go("/propiedades");
     if (await page.locator(".property-filters__toggle").isVisible()) await press(page.locator(".property-filters__toggle"));

@@ -248,6 +248,8 @@
     "coloniesTitle": "Neighborhoods in {{city}} with listings"
   },
   "detail": {
+    "seoTitleSold": "Sold · {{type}} in {{zone}}",
+    "seoTitleRented": "Rented · {{type}} in {{zone}}",
     "seoTitle": "{{type}} for {{operation}} — {{zone}} · {{price}}",
     "seoLead": "{{facts}} in {{zone}}. ",
     "codeLabel": "Code",
@@ -453,6 +455,7 @@
     "homeTitle": "What our clients say"
   },
   "blog": {
+    "spanishOnly": "Articles are only available in Spanish for now.",
     "readTime_one": "{{count}} min read",
     "readTime_other": "{{count}} min read",
     "byline": "By the ACL Propiedades team",
@@ -5214,7 +5217,7 @@
   },
   "home": {
     "seoTitle": "ACL Propiedades | Real estate in La Comarca Lagunera",
-    "seoDescription": "ACL Propiedades: buy and sell houses, apartments, industrial warehouses and land in Torreón, Gómez Palacio and Lerdo."
+    "seoDescription": "ACL Propiedades: certified real estate advice for buying and selling houses, apartments and land in Torreón, Gómez Palacio and Lerdo."
   },
   "zoneFaq": {
     "title": "Frequently asked questions about {{place}}",

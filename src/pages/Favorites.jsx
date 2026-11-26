@@ -5,13 +5,13 @@ import Seo from "../components/Seo";
 import PropertyCard from "../components/PropertyCard";
 import ShareButton from "../components/ShareButton";
 import { useFavorites } from "../context/FavoritesContext";
-import { db } from "../lib/dataStore";
 import { buildFavoritesShareUrl, parseSharedIds } from "../lib/favoritesShare";
 import "./Properties.css";
 import "./Favorites.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
 import { siteOrigin } from "../lib/site";
+import { loadPropertiesInOrder } from "../lib/propertiesByIds";
 
 export default function Favorites() {
   const { t } = useTranslation();
@@ -32,9 +32,9 @@ export default function Favorites() {
     // getProperties) — una lista de favoritos nunca es tan grande como
     // para que esto pese; una propiedad borrada después de guardarla
     // simplemente no aparece (catch -> null -> filtrada).
-    Promise.all(ids.map((id) => db.getPropertyById(id).catch(() => null))).then((results) => {
+    loadPropertiesInOrder(ids).then((results) => {
       if (active) {
-        setProperties(results.filter(Boolean));
+        setProperties(results);
         setLoading(false);
       }
     });

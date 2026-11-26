@@ -38,6 +38,9 @@ export default function Blog() {
             <p>{t("blog.subtitle")}</p>
           </Reveal>
 
+          {/* Los artículos se escriben solo en español: a quien navega en inglés se le avisa en lugar de sorprenderlo. */}
+          {i18n.resolvedLanguage === "en" && <p className="form-hint blog-spanish-only" role="note">{t("blog.spanishOnly")}</p>}
+
           <GuideBanner className="guide-banner--blog" />
 
           {loading ? (

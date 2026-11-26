@@ -18,6 +18,7 @@ import { next } from "@vercel/functions";
 import { resolveSiteUrl } from "./server/siteUrl.js";
 import { parsePropertyRef, propertyPath } from "./src/lib/propertyUrl.js";
 import { findCityBySlug } from "./src/lib/zoneLandingPages.js";
+import { HOME_DESCRIPTION, HOME_TITLE } from "./src/lib/siteCopy.js";
 
 export const config = {
   matcher: [
@@ -64,11 +65,7 @@ const DEFAULT_IMAGE = `${SITE_URL}/og-default.png`;
 // Seo.jsx del lado del cliente (ver cada page/*.jsx) — duplicados aquí a
 // propósito por la misma razón de arriba, no por un import compartido.
 const GENERIC_PAGES = {
-  "/": {
-    title: "ACL Propiedades",
-    description:
-      "Casas, departamentos, naves industriales y terrenos en Torreón, Gómez Palacio y Lerdo, con asesoría certificada en INFONAVIT, bancario y FOVISSSTE.",
-  },
+  "/": { title: HOME_TITLE, description: HOME_DESCRIPTION },
   "/propiedades": {
     title: "Propiedades disponibles | ACL Propiedades",
     description: "Filtra por tipo, zona, precio y superficie para encontrar tu propiedad ideal.",
@@ -146,8 +143,11 @@ const SELECTION_PAGE = {
 };
 
 function renderPreviewHtml({ title, description, url, image, noindex = false }) {
+  // Las imágenes propias (la de la marca y /api/og) miden 1200 × 630: se declara para que WhatsApp/Facebook no tengan que descargarla
+  // para saberlo. Las de fuera (portada de un artículo, foto de un desarrollo) pueden ser de cualquier tamaño: no se declara nada.
+  const ownSize = image && image.startsWith(SITE_URL) ? '\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">' : "";
   const imageTag = image
-    ? `<meta property="og:image" content="${escapeHtml(image)}">\n<meta name="twitter:image" content="${escapeHtml(image)}">`
+    ? `<meta property="og:image" content="${escapeHtml(image)}">${ownSize}\n<meta name="twitter:image" content="${escapeHtml(image)}">`
     : "";
   return `<!doctype html>
 <html lang="es">
@@ -182,7 +182,7 @@ async function propertyPreviewResponse(param) {
   // La dirección puede traer el identificador (las de siempre) o el título y el código (las legibles).
   const filter = ref.kind === "code" ? `code=eq.${encodeURIComponent(ref.code)}` : `id=eq.${encodeURIComponent(ref.id)}`;
   const res = await fetch(
-    `${supabaseUrl}/rest/v1/properties?${filter}&select=id,code,title,description,price,main_image`,
+    `${supabaseUrl}/rest/v1/properties?${filter}&select=id,code,title,description,price,main_image,status`,
     { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
   );
   if (!res.ok) return null;
@@ -194,7 +194,8 @@ async function propertyPreviewResponse(param) {
     Number(property.price) || 0
   );
   const html = renderPreviewHtml({
-    title: `${property.title} — ${price}`,
+    // Vendida o rentada: se dice así en la vista previa (antes seguía anunciando el precio como si estuviera a la venta).
+    title: property.status === "vendida" ? `Vendida: ${property.title}` : property.status === "rentada" ? `Rentada: ${property.title}` : `${property.title} — ${price}`,
     description: (property.description || "").replace(/\s+/g, " ").trim().slice(0, 200),
     url: `${SITE_URL}${propertyPath(property)}`,
     image: `${SITE_URL}/api/og?id=${encodeURIComponent(id)}`,

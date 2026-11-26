@@ -36,7 +36,7 @@ import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines, publicPla
 import "./PropertyDetail.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
-import { isCanonicalSlug, parsePropertyRef, propertyPath } from "../lib/propertyUrl.js";
+import { isCanonicalSlug, listPathForMissingProperty, parsePropertyRef, propertyPath } from "../lib/propertyUrl.js";
 import { breadcrumbJsonLd, faqJsonLd, propertyListingJsonLd } from "../lib/structuredData.js";
 import { siteOrigin } from "../lib/site.js";
 import { colonyPath } from "../lib/zoneLandingPages.js";
@@ -251,6 +251,8 @@ export default function PropertyDetail() {
 
   const seoTitle = useMemo(() => {
     if (!property) return "";
+    // Vendida o rentada: el título ya no dice «en Venta — $precio» (decía lo contrario de la verdad).
+    if (isClosedStatus(property.status)) return t(property.status === "rentada" ? "detail.seoTitleRented" : "detail.seoTitleSold", { type: propertyTypeLabel(t, property.type), zone: property.zone });
     return t("detail.seoTitle", { type: propertyTypeLabel(t, property.type), operation: t(`propertyOperation.${property.operation_type}`), zone: property.zone, price: formatMXN(property.price) });
   }, [property, t]);
 
@@ -307,12 +309,22 @@ export default function PropertyDetail() {
   useEffect(() => {
     if (!property) return;
     let active = true;
-    db.getProperties({ type: property.type, activeOnly: true }).then((data) => {
-      if (!active) return;
-      const others = data.filter((p) => p.id !== property.id && p.status === "disponible");
-      others.sort((a, b) => (a.zone === property.zone ? 0 : 1) - (b.zone === property.zone ? 0 : 1));
-      setSimilar(others.slice(0, 4));
-    });
+    // Solo se piden unas cuantas (antes se bajaba TODO el catálogo del mismo tipo para elegir 4): primero las de la misma zona y, si
+    // faltan, las demás del tipo.
+    const base = { type: property.type, activeOnly: true, statuses: ["disponible"], page: 0 };
+    const pick = (rows, chosen) => rows.filter((p) => p.id !== property.id && !chosen.some((c) => c.id === p.id));
+    (async () => {
+      const chosen = [];
+      if (property.zone) {
+        const sameZone = await db.getProperties({ ...base, zone: property.zone, zoneExact: true, pageSize: 5 });
+        chosen.push(...pick(sameZone.data, chosen));
+      }
+      if (chosen.length < 4) {
+        const anyZone = await db.getProperties({ ...base, pageSize: 8 });
+        chosen.push(...pick(anyZone.data, chosen));
+      }
+      if (active) setSimilar(chosen.slice(0, 4));
+    })().catch(() => {});
     return () => {
       active = false;
     };
@@ -340,7 +352,7 @@ export default function PropertyDetail() {
       <>
         <Seo title={t("detail.notFound")} noindex />
         <EmptyState illustration="signpost" title={t("emptyState.propertyGoneTitle")} text={t("detail.notFound")}>
-          <Link to="/propiedades" className="btn btn-primary">{t("detail.back")}</Link>
+          <Link to={listPathForMissingProperty(id)} className="btn btn-primary">{t("detail.back")}</Link>
         </EmptyState>
       </>
     );

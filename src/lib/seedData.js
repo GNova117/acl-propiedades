@@ -302,12 +302,7 @@ export const ZONES = [
   { id: "zone-lerdo-las-palomas", name: "Lerdo - Las Palomas", price_per_m2: 2200, land_price_per_m2: 160 },
 ];
 
-export const TYPE_FACTORS = {
-  casa: 1,
-  departamento: 1.05,
-  nave_industrial: 0.65,
-  terreno: 0.4,
-};
+export { TYPE_FACTORS } from "./typeFactors";
 
 // Catálogo inicial de tipos de propiedad; ampliable desde
 // /admin/zonas ("Tipos de propiedad") — ver db.addPropertyType. `key` es el

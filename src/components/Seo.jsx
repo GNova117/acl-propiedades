@@ -91,6 +91,10 @@ export default function Seo({ title, absoluteTitle, description, image, jsonLd, 
     upsertMeta("property", "og:description", resolvedDescription);
     upsertMeta("property", "og:url", noindex ? window.location.href : languageUrl(siteOrigin(), window.location.pathname, lang));
     upsertMeta("property", "og:image", resolvedImage);
+    // Las imágenes propias (marca y /api/og) miden 1200 × 630; las de fuera, no se declara.
+    const own = resolvedImage.startsWith(siteOrigin());
+    upsertMeta("property", "og:image:width", own ? "1200" : "");
+    upsertMeta("property", "og:image:height", own ? "630" : "");
     upsertMeta("name", "twitter:card", "summary_large_image");
     upsertMeta("name", "twitter:title", fullTitle);
     upsertMeta("name", "twitter:description", resolvedDescription);

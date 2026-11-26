@@ -9,9 +9,56 @@ import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
 import { articleJsonLd } from "../lib/structuredData";
 import { readingMinutes } from "../lib/readingTime";
+import { parseBlogBody } from "../lib/blogMarkdown";
 import { siteOrigin } from "../lib/site";
 
 const formatDate = (iso, locale) => new Date(iso).toLocaleDateString(locale === "en" ? "en-US" : "es-MX", { dateStyle: "long" });
+
+// Texto en línea del artículo: enlaces internos con <Link>, externos en pestaña nueva, negritas.
+function Inline({ parts }) {
+  return parts.map((part, i) => {
+    if (part.type === "bold") return <strong key={i}>{part.text}</strong>;
+    if (part.type !== "link") return <span key={i}>{part.text}</span>;
+    return part.external || part.href.startsWith("mailto:") || part.href.startsWith("tel:") ? (
+      <a key={i} href={part.href} target={part.external ? "_blank" : undefined} rel={part.external ? "noopener noreferrer" : undefined}>
+        {part.text}
+      </a>
+    ) : (
+      <Link key={i} to={part.href}>
+        {part.text}
+      </Link>
+    );
+  });
+}
+
+function BlogBlock({ block }) {
+  if (block.type === "heading") {
+    const Tag = block.level === 2 ? "h2" : "h3";
+    return (
+      <Tag>
+        <Inline parts={block.inline} />
+      </Tag>
+    );
+  }
+  if (block.type === "image") return <img src={block.src} alt={block.alt} loading="lazy" decoding="async" className="blog-post__figure" />;
+  if (block.type === "list") {
+    const List = block.ordered ? "ol" : "ul";
+    return (
+      <List>
+        {block.items.map((item, i) => (
+          <li key={i}>
+            <Inline parts={item} />
+          </li>
+        ))}
+      </List>
+    );
+  }
+  return (
+    <p>
+      <Inline parts={block.inline} />
+    </p>
+  );
+}
 
 export default function BlogPost() {
   const { slug } = useParams();
@@ -81,14 +128,15 @@ export default function BlogPost() {
       <section className="section">
         <div className="container blog-post">
           <Link to="/blog" className="blog-post__back">{t("blog.back")}</Link>
+          {i18n.resolvedLanguage === "en" && <p className="form-hint" role="note">{t("blog.spanishOnly")}</p>}
           <p className="blog-post__date">
             {formatDate(post.published_at, i18n.language)} · {t("blog.readTime", { count: readingMinutes(post.body) })} · {t("blog.byline")}
           </p>
           <h1>{post.title}</h1>
           {post.cover_image && <img src={post.cover_image} alt="" className="blog-post__cover" decoding="async" />}
-          <div className="blog-post__body">
-            {post.body.split(/\n{2,}/).map((paragraph, i) => (
-              <p key={i}>{paragraph}</p>
+          <div className="blog-post__body" lang="es">
+            {parseBlogBody(post.body).map((block, i) => (
+              <BlogBlock key={i} block={block} />
             ))}
           </div>
           <GuideBanner className="guide-banner--post" />
