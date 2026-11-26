@@ -55,7 +55,7 @@ test.describe("Navegación y preferencias", () => {
 
   test("idioma: alterna entre español e inglés", async ({ page, go, press }) => {
     await go("/contacto");
-    const titulo = page.locator("h2").first();
+    const titulo = page.locator("h1").first();
     const es = await titulo.textContent();
     await press(page.getByRole("button", { name: /Cambiar idioma/ }));
     await expect(titulo).not.toHaveText(es);
@@ -217,7 +217,7 @@ test.describe("Ficha de propiedad", () => {
     await form.locator("input[name=email]").fill("qa@example.com");
     await form.locator("input[name=phone]").fill("8711112222");
     await form.locator("input[name=date]").fill(isoDate(3));
-    await form.locator("input[name=time]").fill("11:00");
+    await form.locator("select[name=time]").selectOption("11:00");
     await press(form.locator("button[type=submit]"));
     await expect(page.locator("main")).toContainText(/¡Listo!|gracias|recibimos/i);
   });

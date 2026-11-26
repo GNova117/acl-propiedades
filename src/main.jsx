@@ -44,9 +44,11 @@ window.setTimeout(() => {
 // de "sin conexión" y guarda los archivos con hash; las páginas y los datos
 // siempre vienen de la red. Solo en producción (en desarrollo estorbaría).
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
-  });
+  const registerWorker = () => navigator.serviceWorker.register("/sw.js").catch(() => {});
+  // Este archivo puede terminar de evaluarse DESPUÉS del evento `load` (en modo demostración espera a que baje el backend local): si ya
+  // pasó, se registra de inmediato; si no, al cargar.
+  if (document.readyState === "complete") registerWorker();
+  else window.addEventListener("load", registerWorker);
 }
 
 // La pantalla de marca solo sale en la primera visita de la sesión y en el sitio público: ni al volver a abrir una página, ni en el
