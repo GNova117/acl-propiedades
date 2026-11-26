@@ -35,3 +35,11 @@ export function parsePropertyRef(param) {
 
 // ¿La dirección que se usó es la canónica de esa propiedad?
 export const isCanonicalSlug = (param, property) => String(param) === propertySlug(property);
+
+// Lo que la persona escribe en «Buscar por código» → el código completo. Acepta «ACL-1001», «acl 1001», «acl1001» y solo «1001».
+export function normalizePropertyCode(input) {
+  const text = String(input ?? "").trim().toUpperCase();
+  const digits = text.match(/^(?:ACL)?[\s-]*(\d{1,8})$/);
+  if (digits) return `ACL-${digits[1]}`;
+  return text;
+}

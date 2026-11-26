@@ -148,6 +148,8 @@ export default function Properties({
   title,
   subtitle,
   headerExtra,
+  footerExtra,
+  jsonLd,
   cityFilter,
   zoneFilter,
   noindex = false,
@@ -292,12 +294,15 @@ export default function Properties({
   // Criterios de la alerta de búsqueda = los filtros que la persona tiene puestos.
   const alertCriteria = useMemo(() => filtersToCriteria(filters, { fixedType }), [filters, fixedType]);
 
+  // Renta o venta: en Propiedades y también en Naves Industriales (muchas se rentan); Terrenos casi no se rentan, ahí no se ofrece.
+  const showOperation = !fixedType || fixedType === "nave_industrial";
+
   const queryFilters = useMemo(
     () => ({
       activeOnly: true,
       type: fixedType || filters.type || undefined,
       types: fixedType || filters.type ? undefined : sectionTypes,
-      operation_type: fixedType ? undefined : filters.operationType || undefined,
+      operation_type: showOperation ? filters.operationType || undefined : undefined,
       statuses: filters.status === "todas" ? undefined : filters.status === "disponible" ? ["disponible"] : ["disponible", "apartada"],
       tipo_nave: fixedType === "nave_industrial" ? filters.tipoNave || undefined : undefined,
       zone: zoneFilter || filters.zone || undefined,
@@ -315,7 +320,7 @@ export default function Properties({
       bounds: filters.bounds || undefined,
       sortBy: filters.sortBy,
     }),
-    [filters, fixedType, sectionTypes, zoneFilter]
+    [filters, fixedType, sectionTypes, zoneFilter, showOperation]
   );
 
   // Cada tecla en precio, superficie o zona cambia `queryFilters`; a la base solo se le pregunta cuando la persona hace una pausa.
@@ -434,7 +439,7 @@ export default function Properties({
         <Seo title={pageTitle} description={pageSubtitle} />
         <div className="container properties-page">
           <div className="section-heading m-section">
-            <h2>{pageTitle}</h2>
+            <h1>{pageTitle}</h1>
           </div>
           <EmptyState illustration="calendar" title={t("emptyState.comingSoonTitle")} text={t("properties.comingSoon")}>
             <NotifyMeCta section={pageTitle} />
@@ -446,11 +451,11 @@ export default function Properties({
 
   return (
     <>
-      <Seo title={pageTitle} description={pageSubtitle} noindex={noindex} />
+      <Seo title={pageTitle} description={pageSubtitle} noindex={noindex} jsonLd={jsonLd} />
 
       <div className="container properties-page" onClickCapture={rememberScroll}>
         <div className="section-heading m-section">
-          <h2>{pageTitle}</h2>
+          <h1>{pageTitle}</h1>
           <p>{pageSubtitle}</p>
         </div>
 
@@ -476,7 +481,7 @@ export default function Properties({
               filters={filters}
               zones={zones}
               typeOptions={typeOptions}
-              showOperation={!fixedType}
+              showOperation={showOperation}
               showNaveTipo={fixedType === "nave_industrial"}
               showHomeFilters={fixedType !== "terreno"}
               onChange={goToFilters}
@@ -637,6 +642,7 @@ export default function Properties({
             )}
           </div>
         </div>
+        {footerExtra}
       </div>
     </>
   );

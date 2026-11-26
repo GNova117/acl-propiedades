@@ -25,7 +25,7 @@ export default function Contact() {
 
       <div className="container contact-page">
         <div className="section-heading m-section">
-          <h2>{t("contact.title")}</h2>
+          <h1>{t("contact.title")}</h1>
           <p>{t("contact.subtitle")}</p>
         </div>
 

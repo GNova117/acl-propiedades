@@ -38,7 +38,7 @@ export default function Calculator() {
 
       <div className="container calculator-page">
         <div className="section-heading m-section">
-          <h2>{t("calculator.title")}</h2>
+          <h1>{t("calculator.title")}</h1>
           <p>{t("calculator.subtitle")}</p>
         </div>
 

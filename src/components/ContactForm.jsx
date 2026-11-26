@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { trackConversion } from "../lib/conversions";
 import { lastSubmitAt, markSubmitted } from "../lib/rateLimitStore";
+import { isValidPhone } from "../lib/lead";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -29,6 +30,8 @@ export default function ContactForm() {
     if (!form.name.trim()) next.name = t("contact.required");
     if (!form.email.trim()) next.email = t("contact.required");
     else if (!EMAIL_RE.test(form.email)) next.email = t("contact.invalidEmail");
+    // El teléfono es opcional, pero si se escribe debe ser un teléfono (antes aceptaba «abc» o 3 dígitos).
+    if (form.phone.trim() && !isValidPhone(form.phone)) next.phone = t("contactRequest.invalidPhone");
     if (!form.message.trim()) next.message = t("contact.required");
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -90,7 +93,8 @@ export default function ContactForm() {
         </div>
         <div className="form-field">
           <label htmlFor="contact-phone">{t("contact.phone")}</label>
-          <input id="contact-phone" name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={handleChange} />
+          <input id="contact-phone" name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={handleChange} aria-invalid={Boolean(errors.phone)} />
+          {errors.phone && <span className="form-error">{errors.phone}</span>}
         </div>
       </div>
 

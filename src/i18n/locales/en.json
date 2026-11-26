@@ -248,6 +248,8 @@
     "coloniesTitle": "Neighborhoods in {{city}} with listings"
   },
   "detail": {
+    "seoTitle": "{{type}} for {{operation}} — {{zone}} · {{price}}",
+    "seoLead": "{{facts}} in {{zone}}. ",
     "codeLabel": "Code",
     "rentedTitle": "This property has already been rented",
     "soldTitle": "This property has been sold",
@@ -451,6 +453,10 @@
     "homeTitle": "What our clients say"
   },
   "blog": {
+    "readTime_one": "{{count}} min read",
+    "readTime_other": "{{count}} min read",
+    "byline": "By the ACL Propiedades team",
+    "related": "Keep reading",
     "eyebrow": "Blog",
     "title": "ACL Propiedades Blog",
     "subtitle": "Guides and tips on buying, selling and renting property in La Comarca Lagunera.",
@@ -516,6 +522,7 @@
     "success": "Done! An advisor will contact you shortly."
   },
   "scheduleVisit": {
+    "timePlaceholder": "Choose a time",
     "title": "Want to visit it?",
     "subtitle": "Book a visit and see the property with an ACL advisor.",
     "cta": "Schedule a visit",
@@ -3237,6 +3244,7 @@
     "title": "Recently viewed"
   },
   "chatWidget": {
+    "rateLimited": "You have reached the message limit for now. To continue, message us on WhatsApp and an advisor will help you.",
     "aiNotice": "This assistant is an artificial intelligence: what you type is processed by an external provider. Do not share sensitive data (passwords, bank details). If you leave your phone or email, an advisor will contact you.",
     "title": "ACL Propiedades Assistant",
     "open": "Open chat",
@@ -5205,6 +5213,20 @@
     }
   },
   "home": {
+    "seoTitle": "ACL Propiedades | Real estate in La Comarca Lagunera",
     "seoDescription": "ACL Propiedades: buy and sell houses, apartments, industrial warehouses and land in Torreón, Gómez Palacio and Lerdo."
+  },
+  "zoneFaq": {
+    "title": "Frequently asked questions about {{place}}",
+    "whatQ": "What properties are available in {{place}}?",
+    "whatA": "Today we have {{count}} properties available in {{place}}. Use the filters to narrow by type, price, area and size.",
+    "whatANone": "We are updating the properties in {{place}}. Leave us your details and we will let you know when something matches.",
+    "priceQ": "How much does a property cost in {{place}}?",
+    "priceA": "The median price of what is available today in {{place}} is {{price}}. Each listing shows its price and, for sales, an estimated monthly payment.",
+    "priceANone": "The price depends on the type, area and size of each property in {{place}}. Each listing shows its price and an estimated monthly payment.",
+    "creditQ": "Can I buy with an INFONAVIT, bank or FOVISSSTE loan?",
+    "creditA": "Yes. Our advisors guide you through INFONAVIT, bank loans and FOVISSSTE, and you can compare options in the Compare loans section.",
+    "visitQ": "How do I book a visit?",
+    "visitA": "Open the property you like and choose a day and time in \"Schedule a visit\", or message us on WhatsApp and an advisor will go with you."
   }
 }

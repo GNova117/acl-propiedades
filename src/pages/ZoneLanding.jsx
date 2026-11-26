@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Properties from "./Properties";
 import NotFound from "./NotFound";
 import ZoneStats from "../components/ZoneStats";
+import ZoneFaq, { buildZoneFaq } from "../components/ZoneFaq";
+import { faqJsonLd } from "../lib/structuredData";
+import { formatMXN } from "../lib/format";
 import { db } from "../lib/dataStore";
 import { coloniesWithListings, findCityBySlug, findColonyZone, splitColonyZone } from "../lib/zoneLandingPages";
 import { cityMarketSummary, colonyMarketSummary } from "../lib/zoneContext";
@@ -41,6 +44,13 @@ export default function ZoneLanding() {
     };
   }, [colonySlug]);
 
+  // Ciudad o colonia que se está viendo y sus preguntas frecuentes (con su JSON-LD para Google).
+  const colonyZoneName = colonySlug && zoneNames ? findColonyZone(zoneNames, zoneSlug, colonySlug) : null;
+  const place = colonyZoneName ? splitColonyZone(colonyZoneName)?.colony : city;
+  const faqSummary = list && city ? (colonyZoneName ? colonyMarketSummary(list, colonyZoneName) : cityMarketSummary(list, city)) : null;
+  const faqPairs = useMemo(() => (place ? buildZoneFaq(t, { place, summary: faqSummary, formatPrice: formatMXN }) : []), [t, place, faqSummary]);
+  const faqLd = useMemo(() => (faqPairs.length ? faqJsonLd(faqPairs) : undefined), [faqPairs]);
+
   if (!city) return <NotFound />;
 
   if (colonySlug) {
@@ -54,6 +64,8 @@ export default function ZoneLanding() {
         zoneFilter={zoneName}
         // Una colonia sin propiedades disponibles no se indexa: sería una página casi vacía.
         noindex={list !== null && !summary}
+        jsonLd={faqLd}
+        footerExtra={<ZoneFaq place={colony} pairs={faqPairs} />}
         title={t("properties.colonyTitle", { colony, city })}
         subtitle={t("properties.colonySubtitle", { colony, city })}
         headerExtra={
@@ -73,6 +85,8 @@ export default function ZoneLanding() {
   return (
     <Properties
       cityFilter={city}
+      jsonLd={faqLd}
+      footerExtra={<ZoneFaq place={city} pairs={faqPairs} />}
       title={t("properties.zoneTitle", { city })}
       subtitle={t("properties.zoneSubtitle", { city })}
       headerExtra={

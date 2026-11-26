@@ -69,7 +69,11 @@
   padding: 2rem;
 }
 
-.split-hero__content h2 {
+/* El título del panel ya no es un <h2> (el inicio tiene un solo <h1> y debe ir antes que cualquier otro encabezado). */
+.split-hero__content .split-hero__title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.2;
   font-size: clamp(1.6rem, 3vw, 2.4rem);
   color: var(--color-on-primary);
   margin-bottom: 0.5rem;

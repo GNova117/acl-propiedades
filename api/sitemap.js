@@ -12,7 +12,11 @@ import { resolveSiteUrl } from "../server/siteUrl.js";
 
 // Dirección pública (variable SITE_URL / VITE_SITE_URL; ver server/siteUrl.js).
 const SITE_URL = resolveSiteUrl(process.env);
-const STATIC_PATHS = ["/", "/propiedades", "/naves-industriales", "/terrenos", "/calculadora", "/simulador-credito", "/comparar-creditos", "/guia-del-comprador", "/nosotros", "/contacto", "/blog", "/terminos-y-condiciones"];
+// /naves-industriales no va aquí: solo se lista cuando hay al menos una nave publicada (si no, es la pantalla «Próximamente»).
+const STATIC_PATHS = [
+  "/", "/propiedades", "/terrenos", "/calculadora", "/simulador-credito", "/comparar-creditos", "/vende-tu-casa", "/guia-del-comprador",
+  "/nosotros", "/contacto", "/blog", "/aviso-de-privacidad", "/carta-de-derechos", "/terminos-y-condiciones",
+];
 const ZONE_PATHS = ZONE_LANDING_CITIES.map((city) => `/propiedades/zona/${slugify(city)}`);
 
 export default async function handler(req, res) {
@@ -23,7 +27,8 @@ export default async function handler(req, res) {
   if (url && key) {
     try {
       const supabase = createClient(url, key);
-      const { data } = await supabase.from("properties").select("id, code, title, updated_at, zone, status").eq("active", true);
+      const { data } = await supabase.from("properties").select("id, code, title, updated_at, zone, status, type").eq("active", true);
+      if ((data || []).some((row) => row.type === "nave_industrial" && row.status === "disponible")) urls.push({ loc: `${SITE_URL}/naves-industriales` });
       for (const row of data || []) {
         urls.push({ loc: `${SITE_URL}${propertyPath(row)}`, lastmod: row.updated_at ? row.updated_at.slice(0, 10) : undefined });
       }

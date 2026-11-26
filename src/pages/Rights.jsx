@@ -12,7 +12,7 @@ export default function Rights() {
 
       <div className="container privacy-page">
         <div className="section-heading" style={{ margin: "2.5rem auto 0.5rem" }}>
-          <h2>{t("rights.title")}</h2>
+          <h1>{t("rights.title")}</h1>
           <p>{t("rights.intro")}</p>
         </div>
         <p className="privacy-page__updated">{t("rights.footnote")}</p>

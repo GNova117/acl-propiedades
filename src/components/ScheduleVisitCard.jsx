@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { trackConversion } from "../lib/conversions";
-import { mexicoParts, requestSlotError } from "../lib/visitSlots";
+import { mexicoParts, REQUEST_TIME_OPTIONS, requestSlotError } from "../lib/visitSlots";
 import { bookingErrorKey, formatSlotDay, formatSlotTime } from "../lib/visitBookingUi";
 import { OPEN_SCHEDULE_EVENT, SCHEDULE_TARGET_ID } from "./MobileContactBar";
 import VisitBooking from "./VisitBooking";
@@ -190,7 +190,12 @@ function VisitRequestForm({ property, onBack, noSlots }) {
         </div>
         <div className="form-field">
           <label htmlFor="visit-time">{t("scheduleVisit.time")}</label>
-          <input id="visit-time" name="time" type="time" value={form.time} onChange={handleChange} aria-invalid={Boolean(errors.time)} />
+          <select id="visit-time" name="time" value={form.time} onChange={handleChange} aria-invalid={Boolean(errors.time)}>
+            <option value="">{t("scheduleVisit.timePlaceholder")}</option>
+            {REQUEST_TIME_OPTIONS.map((hour) => (
+              <option key={hour} value={hour}>{hour}</option>
+            ))}
+          </select>
           {errors.time && <span className="form-error">{errors.time}</span>}
         </div>
       </div>

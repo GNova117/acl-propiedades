@@ -17,9 +17,32 @@
 import { next } from "@vercel/functions";
 import { resolveSiteUrl } from "./server/siteUrl.js";
 import { parsePropertyRef, propertyPath } from "./src/lib/propertyUrl.js";
+import { findCityBySlug } from "./src/lib/zoneLandingPages.js";
 
 export const config = {
-  matcher: ["/", "/propiedades", "/propiedades/:id", "/terrenos", "/naves-industriales", "/nosotros", "/contacto", "/guia-del-comprador", "/seleccion/:token", "/favoritos"],
+  matcher: [
+    "/",
+    "/propiedades",
+    "/propiedades/:id",
+    "/propiedades/zona/:path*",
+    "/terrenos",
+    "/naves-industriales",
+    "/nosotros",
+    "/contacto",
+    "/guia-del-comprador",
+    "/seleccion/:token",
+    "/favoritos",
+    "/calculadora",
+    "/vende-tu-casa",
+    "/comparar-creditos",
+    "/simulador-credito",
+    "/blog",
+    "/blog/:slug",
+    "/desarrollos/:slug",
+    "/aviso-de-privacidad",
+    "/carta-de-derechos",
+    "/terminos-y-condiciones",
+  ],
 };
 
 // Dirección pública (variable SITE_URL / VITE_SITE_URL; ver server/siteUrl.js).
@@ -55,8 +78,40 @@ const GENERIC_PAGES = {
     description: "Filtra por zona, precio y superficie para encontrar el terreno ideal para tu proyecto.",
   },
   "/naves-industriales": {
-    title: "Naves industriales disponibles | ACL Propiedades",
-    description: "Este apartado estará disponible próximamente.",
+    title: "Naves industriales | ACL Propiedades",
+    description: "Naves industriales, bodegas y espacios comerciales en renta y venta en La Comarca Lagunera. Consulta las disponibles y pide asesoría.",
+  },
+  "/calculadora": {
+    title: "Calculadora de valor de tu propiedad | ACL Propiedades",
+    description: "Estima cuánto vale tu casa o terreno en La Comarca Lagunera según la zona, el tipo y la superficie.",
+  },
+  "/vende-tu-casa": {
+    title: "Vende tu casa | ACL Propiedades",
+    description: "Te ayudamos a vender tu casa, terreno o nave en La Comarca Lagunera: valuación, promoción y acompañamiento hasta la firma.",
+  },
+  "/comparar-creditos": {
+    title: "Comparar créditos hipotecarios | ACL Propiedades",
+    description: "Compara INFONAVIT, bancario y FOVISSSTE y descubre cuál te conviene para comprar tu casa.",
+  },
+  "/simulador-credito": {
+    title: "Simulador de crédito hipotecario | ACL Propiedades",
+    description: "Calcula tu mensualidad y cuánto crédito puedes pedir para comprar una propiedad.",
+  },
+  "/blog": {
+    title: "Blog | ACL Propiedades",
+    description: "Artículos y guías sobre compra, venta, crédito y naves industriales en Torreón, Gómez Palacio y Lerdo.",
+  },
+  "/aviso-de-privacidad": {
+    title: "Aviso de privacidad | ACL Propiedades",
+    description: "Cómo cuidamos y usamos tus datos personales y cómo ejercer tus derechos ARCO.",
+  },
+  "/carta-de-derechos": {
+    title: "Carta de derechos del cliente | ACL Propiedades",
+    description: "Tus derechos como comprador, vendedor o arrendatario al trabajar con ACL Propiedades.",
+  },
+  "/terminos-y-condiciones": {
+    title: "Términos y condiciones | ACL Propiedades",
+    description: "Condiciones de uso del sitio de ACL Propiedades.",
   },
   "/nosotros": {
     title: "Nosotros | ACL Propiedades",
@@ -147,6 +202,53 @@ async function propertyPreviewResponse(param) {
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
 }
 
+// Consulta de una fila pública en Supabase (anon). null si no hay base configurada, no existe o falla.
+async function fetchRow(path) {
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseKey) return null;
+  const res = await fetch(`${supabaseUrl}/rest/v1/${path}`, { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } });
+  if (!res.ok) return null;
+  const [row] = await res.json();
+  return row || null;
+}
+
+const cleanText = (value, max = 200) => String(value || "").replace(/\s+/g, " ").trim().slice(0, max);
+const titleCase = (slug) => slug.split("-").filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join(" ");
+
+// /blog/<slug>: título, resumen y portada del artículo publicado.
+async function blogPreview(slug, url) {
+  const post = await fetchRow(`blog_posts?slug=eq.${encodeURIComponent(slug)}&published=eq.true&select=title,excerpt,cover_image`);
+  if (!post) return null;
+  return renderPreviewHtml({ title: `${post.title} | ACL Propiedades`, description: cleanText(post.excerpt) || GENERIC_PAGES["/blog"].description, url, image: post.cover_image || DEFAULT_IMAGE });
+}
+
+// /desarrollos/<slug>: nombre, lema y foto del desarrollo publicado.
+async function developmentPreview(slug, url) {
+  const development = await fetchRow(`developments?slug=eq.${encodeURIComponent(slug)}&published=eq.true&select=name,tagline,description,hero_image`);
+  if (!development) return null;
+  return renderPreviewHtml({
+    title: `${development.name} | ACL Propiedades`,
+    description: cleanText(development.tagline || development.description) || "Departamentos en desarrollo en La Comarca Lagunera.",
+    url,
+    image: development.hero_image || DEFAULT_IMAGE,
+  });
+}
+
+// /propiedades/zona/<ciudad>[/<colonia>]: páginas de aterrizaje por ciudad y colonia.
+function zonePreview(pathname, url) {
+  const [, , , citySlug, colonySlug] = pathname.replace(/\/$/, "").split("/");
+  const city = findCityBySlug(citySlug);
+  if (!city) return null;
+  const place = colonySlug ? `${titleCase(colonySlug)}, ${city}` : city;
+  return renderPreviewHtml({
+    title: `Propiedades en ${place} | ACL Propiedades`,
+    description: `Casas, departamentos y terrenos en ${place}. Mira fotos, precios y agenda tu visita.`,
+    url,
+    image: DEFAULT_IMAGE,
+  });
+}
+
 export default async function middleware(request) {
   const userAgent = request.headers.get("user-agent") || "";
   if (!PREVIEW_BOT_PATTERN.test(userAgent)) return next();
@@ -159,6 +261,16 @@ export default async function middleware(request) {
       const response = await propertyPreviewResponse(match[1]);
       return response || next();
     }
+
+    const blogMatch = pathname.match(/^\/blog\/([^/]+)\/?$/);
+    const developmentMatch = pathname.match(/^\/desarrollos\/([^/]+)\/?$/);
+    const previewUrl = `${SITE_URL}${pathname}`;
+    let dynamic = null;
+    if (blogMatch) dynamic = await blogPreview(blogMatch[1], previewUrl);
+    else if (developmentMatch) dynamic = await developmentPreview(developmentMatch[1], previewUrl);
+    else if (/^\/propiedades\/zona\//.test(pathname)) dynamic = zonePreview(pathname, previewUrl);
+    if (dynamic) return new Response(dynamic, { headers: { "content-type": "text/html; charset=utf-8" } });
+    if (blogMatch || developmentMatch || pathname.startsWith("/propiedades/zona/")) return next();
 
     if (/^\/seleccion\/[0-9a-f]{32}\/?$/.test(pathname)) {
       const html = renderPreviewHtml({ ...SELECTION_PAGE, url: `${SITE_URL}${pathname}`, image: DEFAULT_IMAGE, noindex: true });

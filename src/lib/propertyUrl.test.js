@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isCanonicalSlug, parsePropertyRef, propertyPath, propertySlug } from "./propertyUrl";
+import { isCanonicalSlug, parsePropertyRef, normalizePropertyCode, propertyPath, propertySlug } from "./propertyUrl";
 
 const casa = { id: "8d1f6b1e-3c9a-4d57-8a6e-0c2f7d9b1a44", code: "ACL-1001", title: "Casa en Residencial Senderos, con alberca y jardín" };
 
@@ -44,5 +44,15 @@ describe("isCanonicalSlug", () => {
     expect(isCanonicalSlug(propertySlug(casa), casa)).toBe(true);
     expect(isCanonicalSlug(casa.id, casa)).toBe(false);
     expect(isCanonicalSlug("titulo-viejo-ACL-1001", casa)).toBe(false);
+  });
+});
+
+describe("normalizePropertyCode", () => {
+  it("acepta el código completo, con espacio, pegado o solo el número", () => {
+    for (const input of ["ACL-1001", "acl-1001", " acl 1001 ", "ACL1001", "1001"]) expect(normalizePropertyCode(input)).toBe("ACL-1001");
+  });
+  it("lo que no es un código se deja tal cual (en mayúsculas)", () => {
+    expect(normalizePropertyCode("casa bonita")).toBe("CASA BONITA");
+    expect(normalizePropertyCode("")).toBe("");
   });
 });

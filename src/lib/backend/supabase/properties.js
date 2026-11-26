@@ -6,6 +6,7 @@ import { numOrNull } from "../../format";
 import { getOrCreateVisitorId } from "../../visitorId";
 import { isValidBounds, supabaseSearchFilters } from "../../propertySearch";
 import { discardUploads, collectMedia, mapPropertyRow, propertySelect, hasStaffSession, PROPERTY_SELECT_STAFF, PROPERTY_SELECT_PUBLIC, PROPERTY_SORTERS } from "./shared.js";
+import { normalizePropertyCode } from "../../propertyUrl.js";
 
 export const propertiesMethods = {
   // `page`/`pageSize` son opcionales: sin ellos se comporta exactamente
@@ -122,7 +123,7 @@ export const propertiesMethods = {
   },
 
   async getPropertyByCode(code) {
-    const normalized = code.trim().toUpperCase();
+    const normalized = normalizePropertyCode(code);
     const { data, error } = await supabase.from("properties").select(await propertySelect()).eq("code", normalized).maybeSingle();
     if (error) throw error;
     return data ? mapPropertyRow(data) : null;

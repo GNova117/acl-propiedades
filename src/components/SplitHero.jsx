@@ -45,7 +45,7 @@ export default function SplitHero({ propertyTypes = [], counts = null }) {
               <div className="split-hero__image" style={{ backgroundImage: `url(${panel.image})` }} />
               <div className="split-hero__overlay" />
               <div className="split-hero__content">
-                <h2>{t(`splitHero.${panel.key}.title`)}</h2>
+                <p className="split-hero__title">{t(`splitHero.${panel.key}.title`)}</p>
                 <p>{t(`splitHero.${panel.key}.subtitle`)}</p>
                 <span className="split-hero__badge">{t("splitHero.comingSoon")}</span>
               </div>
@@ -69,7 +69,7 @@ export default function SplitHero({ propertyTypes = [], counts = null }) {
             {panel.video && <video className="split-hero__video" src={panel.video} poster={panel.poster || undefined} autoPlay muted loop playsInline preload="metadata" aria-hidden="true" tabIndex={-1} />}
             <div className="split-hero__overlay" />
             <div className="split-hero__content">
-              <h2>{t(`splitHero.${panel.key}.title`)}</h2>
+              <p className="split-hero__title">{t(`splitHero.${panel.key}.title`)}</p>
               <p>{t(`splitHero.${panel.key}.subtitle`)}</p>
               <span className="split-hero__cta">{t("splitHero.cta")}</span>
             </div>

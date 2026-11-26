@@ -137,7 +137,7 @@ test.describe("Agendar visita", () => {
     await press(tarjeta.locator("button[type=submit]"));
     await expect(tarjeta).toContainText("Este campo es obligatorio");
 
-    await page.fill("#visit-time", "19:30");
+    await page.selectOption("#visit-time", "19:30");
     await page.fill("#visit-note", "prefiero por la tarde");
     await press(tarjeta.locator("button[type=submit]"));
     await expect(tarjeta.locator(".visit-booking__done")).toContainText("¡Recibimos tu solicitud!");

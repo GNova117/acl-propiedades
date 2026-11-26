@@ -5,6 +5,9 @@ import { alternateLinks, languageUrl, siteOrigin } from "../lib/site";
 
 const SITE_NAME = "ACL Propiedades";
 
+// La descripción que trae index.html, guardada antes de que ninguna página la pise.
+const DEFAULT_DESCRIPTION = typeof document !== "undefined" ? document.querySelector('meta[name="description"]')?.getAttribute("content") || "" : "";
+
 // Imagen genérica para páginas sin foto propia (home, listados, nosotros, contacto): la de la marca, public/og-default.png.
 // Ver también middleware.js: ese mismo default existe ahí por separado (no se puede compartir el módulo, corre en el
 // edge, fuera del bundle de Vite) y es el que de verdad ve WhatsApp/Facebook, ya que no ejecutan JS.
@@ -50,7 +53,8 @@ function setLinks(canonical, alternates) {
 
 // `noindex`: páginas privadas o de utilería (404, enlaces personales): sin canonical ni hreflang y con robots noindex.
 // `jsonLd` también acepta varios objetos; Seo no los mezcla, quien llama arma el arreglo.
-export default function Seo({ title, description, image, jsonLd, noindex = false }) {
+// `absoluteTitle`: el título tal cual, sin « | ACL Propiedades» (el inicio usa el de index.html, que es el que posiciona).
+export default function Seo({ title, absoluteTitle, description, image, jsonLd, noindex = false }) {
   const { i18n } = useTranslation();
   const { pathname } = useLocation();
   const lang = i18n.resolvedLanguage === "en" ? "en" : "es";
@@ -64,17 +68,19 @@ export default function Seo({ title, description, image, jsonLd, noindex = false
   }, [lang, noindex, pathname]);
 
   useEffect(() => {
-    const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
+    const fullTitle = absoluteTitle || (title ? `${title} | ${SITE_NAME}` : SITE_NAME);
     document.title = fullTitle;
 
-    if (description) {
+    // Sin descripción propia vuelve la de index.html (antes se quedaba la de la página anterior).
+    const resolvedDescription = description || DEFAULT_DESCRIPTION;
+    if (resolvedDescription) {
       let tag = document.querySelector('meta[name="description"]');
       if (!tag) {
         tag = document.createElement("meta");
         tag.setAttribute("name", "description");
         document.head.appendChild(tag);
       }
-      tag.setAttribute("content", description);
+      tag.setAttribute("content", resolvedDescription);
     }
 
     const resolvedImage = image || `${siteOrigin()}${DEFAULT_IMAGE_PATH}`;
@@ -82,12 +88,12 @@ export default function Seo({ title, description, image, jsonLd, noindex = false
     upsertMeta("property", "og:type", "website");
     upsertMeta("property", "og:site_name", SITE_NAME);
     upsertMeta("property", "og:title", fullTitle);
-    upsertMeta("property", "og:description", description);
+    upsertMeta("property", "og:description", resolvedDescription);
     upsertMeta("property", "og:url", noindex ? window.location.href : languageUrl(siteOrigin(), window.location.pathname, lang));
     upsertMeta("property", "og:image", resolvedImage);
     upsertMeta("name", "twitter:card", "summary_large_image");
     upsertMeta("name", "twitter:title", fullTitle);
-    upsertMeta("name", "twitter:description", description);
+    upsertMeta("name", "twitter:description", resolvedDescription);
     upsertMeta("name", "twitter:image", resolvedImage);
 
     let script = document.querySelector("script#seo-jsonld");
@@ -102,7 +108,7 @@ export default function Seo({ title, description, image, jsonLd, noindex = false
     } else if (script) {
       script.remove();
     }
-  }, [title, description, image, jsonLd, noindex, lang]);
+  }, [title, absoluteTitle, description, image, jsonLd, noindex, lang]);
 
   return null;
 }

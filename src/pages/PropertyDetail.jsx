@@ -37,7 +37,7 @@ import "./PropertyDetail.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
 import { isCanonicalSlug, parsePropertyRef, propertyPath } from "../lib/propertyUrl.js";
-import { faqJsonLd } from "../lib/structuredData.js";
+import { breadcrumbJsonLd, faqJsonLd, propertyListingJsonLd } from "../lib/structuredData.js";
 import { siteOrigin } from "../lib/site.js";
 import { colonyPath } from "../lib/zoneLandingPages.js";
 
@@ -251,7 +251,7 @@ export default function PropertyDetail() {
 
   const seoTitle = useMemo(() => {
     if (!property) return "";
-    return `${propertyTypeLabel(t, property.type)} en ${t(`propertyOperation.${property.operation_type}`)} — ${property.zone} · ${formatMXN(property.price)}`;
+    return t("detail.seoTitle", { type: propertyTypeLabel(t, property.type), operation: t(`propertyOperation.${property.operation_type}`), zone: property.zone, price: formatMXN(property.price) });
   }, [property, t]);
 
   const seoDescription = useMemo(() => {
@@ -263,7 +263,7 @@ export default function PropertyDetail() {
     ]
       .filter(Boolean)
       .join(", ");
-    const lead = `${facts} en ${property.zone}. `;
+    const lead = t("detail.seoLead", { facts, zone: property.zone });
     const remaining = Math.max(0, 155 - lead.length);
     return `${lead}${(property.description || "").slice(0, remaining)}`.trim();
   }, [property, t]);
@@ -272,42 +272,15 @@ export default function PropertyDetail() {
     if (!property || typeof window === "undefined") return undefined;
     const origin = siteOrigin();
     const url = `${origin}${propertyPath(property)}`;
+    const listPath = propertyListPath(property.type);
+    const listName = property.type === "terreno" ? t("nav.land") : property.type === "nave_industrial" ? t("nav.industrial") : t("nav.properties");
     return [
-      {
-        "@context": "https://schema.org",
-        "@type": "RealEstateListing",
-        name: property.title,
-        description: property.description,
-        url,
-        image: property.images,
-        offers: {
-          "@type": "Offer",
-          price: property.price,
-          priceCurrency: "MXN",
-          availability: property.status === "disponible" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-        },
-        address: {
-          "@type": "PostalAddress",
-          // Con ubicación aproximada no se publica la calle ni el punto exacto.
-          ...(property.location_approximate ? {} : { streetAddress: property.address }),
-          addressLocality: property.zone,
-          addressCountry: "MX",
-        },
-        geo: {
-          "@type": "GeoCoordinates",
-          latitude: property.lat,
-          longitude: property.lng,
-        },
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Inicio", item: origin },
-          { "@type": "ListItem", position: 2, name: "Propiedades", item: `${origin}/propiedades` },
-          { "@type": "ListItem", position: 3, name: property.title, item: url },
-        ],
-      },
+      propertyListingJsonLd({ property, url }),
+      breadcrumbJsonLd([
+        { name: t("nav.home"), url: origin },
+        { name: listName, url: `${origin}${listPath}` },
+        { name: property.title, url },
+      ]),
       faqJsonLd(buildFaq(property, t)),
     ].filter(Boolean);
   }, [property, t]);

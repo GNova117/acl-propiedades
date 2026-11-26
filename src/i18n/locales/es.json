@@ -248,6 +248,8 @@
     "coloniesTitle": "Colonias de {{city}} con propiedades"
   },
   "detail": {
+    "seoTitle": "{{type}} en {{operation}} — {{zone}} · {{price}}",
+    "seoLead": "{{facts}} en {{zone}}. ",
     "codeLabel": "Código",
     "rentedTitle": "Esta propiedad ya se rentó",
     "soldTitle": "Esta propiedad ya se vendió",
@@ -451,6 +453,10 @@
     "homeTitle": "Lo que dicen nuestros clientes"
   },
   "blog": {
+    "readTime_one": "{{count}} min de lectura",
+    "readTime_other": "{{count}} min de lectura",
+    "byline": "Por el equipo de ACL Propiedades",
+    "related": "Sigue leyendo",
     "eyebrow": "Blog",
     "title": "Blog de ACL Propiedades",
     "subtitle": "Guías y consejos sobre compra, venta y renta de propiedades en La Comarca Lagunera.",
@@ -516,6 +522,7 @@
     "success": "¡Listo! Un asesor te contactará muy pronto."
   },
   "scheduleVisit": {
+    "timePlaceholder": "Elige una hora",
     "title": "¿Quieres visitarla?",
     "subtitle": "Agenda una visita y conoce la propiedad con un asesor de ACL.",
     "cta": "Agendar visita",
@@ -3237,6 +3244,7 @@
     "title": "Vistos recientemente"
   },
   "chatWidget": {
+    "rateLimited": "Llegaste al límite de mensajes por ahora. Si quieres seguir, escríbenos por WhatsApp y un asesor te atiende.",
     "aiNotice": "Este asistente es una inteligencia artificial: lo que escribas lo procesa un proveedor externo. No compartas datos sensibles (contraseñas, datos bancarios). Si dejas tu teléfono o correo, un asesor te contactará.",
     "title": "Asistente ACL Propiedades",
     "open": "Abrir chat",
@@ -5205,6 +5213,20 @@
     }
   },
   "home": {
+    "seoTitle": "ACL Propiedades | Inmobiliaria en La Comarca Lagunera",
     "seoDescription": "ACL Propiedades: compra y venta de casas, departamentos, naves industriales y terrenos en Torreón, Gómez Palacio y Lerdo."
+  },
+  "zoneFaq": {
+    "title": "Preguntas frecuentes sobre {{place}}",
+    "whatQ": "¿Qué propiedades hay en {{place}}?",
+    "whatA": "Hoy tenemos {{count}} propiedades disponibles en {{place}}. Usa los filtros para afinar por tipo, precio, zona y tamaño.",
+    "whatANone": "Estamos actualizando las propiedades de {{place}}. Déjanos tus datos y te avisamos cuando haya algo de tu interés.",
+    "priceQ": "¿Cuánto cuesta una propiedad en {{place}}?",
+    "priceA": "El precio mediano de lo disponible hoy en {{place}} es {{price}}. Cada propiedad muestra su precio y, en las de venta, una mensualidad estimada.",
+    "priceANone": "El precio depende del tipo, la zona y la superficie de cada propiedad en {{place}}. Cada ficha muestra su precio y una mensualidad estimada.",
+    "creditQ": "¿Puedo comprar con crédito INFONAVIT, bancario o FOVISSSTE?",
+    "creditA": "Sí. Nuestros asesores te orientan con INFONAVIT, crédito bancario y FOVISSSTE, y puedes comparar opciones en la sección Comparar créditos.",
+    "visitQ": "¿Cómo agendo una visita?",
+    "visitA": "Abre la propiedad que te interese y elige día y hora en «Agendar visita», o escríbenos por WhatsApp y un asesor te acompaña."
   }
 }

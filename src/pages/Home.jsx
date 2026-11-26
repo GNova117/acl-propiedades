@@ -105,7 +105,7 @@ export default function Home() {
   return (
     <>
       <Seo
-        title={t("nav.home")}
+        absoluteTitle={t("home.seoTitle")}
         description={t("home.seoDescription")}
         jsonLd={businessJsonLd}
       />

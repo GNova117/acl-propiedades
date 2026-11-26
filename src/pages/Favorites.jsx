@@ -57,7 +57,7 @@ export default function Favorites() {
 
       <div className="container properties-page">
         <div className="section-heading m-section">
-          <h2>{shared ? t("favoritesShare.sharedTitle") : t("favorites.title")}</h2>
+          <h1>{shared ? t("favoritesShare.sharedTitle") : t("favorites.title")}</h1>
           <p>{shared ? t("favoritesShare.sharedSubtitle") : t("favorites.subtitle")}</p>
         </div>
 

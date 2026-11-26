@@ -85,7 +85,8 @@ export default function ChatWidget() {
         return;
       }
       if (!res.ok || !data?.reply) {
-        setMessages((prev) => [...prev, { role: "assistant", content: t("chatWidget.error"), fallback: true }]);
+        // 429: se alcanzó el límite de mensajes; se dice así (con el botón de WhatsApp) en lugar de «Algo salió mal».
+        setMessages((prev) => [...prev, { role: "assistant", content: t(res.status === 429 ? "chatWidget.rateLimited" : "chatWidget.error"), fallback: true }]);
         return;
       }
       // Si el chat pasó la conversación a un asesor, el botón de WhatsApp (con lo platicado) sale resaltado en ese mensaje.

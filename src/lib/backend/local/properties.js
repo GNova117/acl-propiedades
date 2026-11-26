@@ -8,6 +8,7 @@ import { getOrCreateVisitorId } from "../../visitorId";
 import { applyPriceChange } from "../../propertyBadges";
 import { computeSalesStats } from "../../trustStats";
 import { KEYS, readStore, writeStore, writeStoreOrThrowFriendly, uid, nextPropertyCode, filesToDataUrls, withAdvisors, matchesFilters, SORTERS } from "./shared.js";
+import { normalizePropertyCode } from "../../propertyUrl.js";
 
 export const propertiesMethods = {
   // Mismo contrato opcional de paginación que supabaseBackend: sin
@@ -72,7 +73,7 @@ export const propertiesMethods = {
   async getPropertyByCode(code) {
     const properties = readStore(KEYS.properties, PROPERTIES);
     const advisors = readStore(KEYS.advisors, ADVISORS);
-    const normalized = code.trim().toUpperCase();
+    const normalized = normalizePropertyCode(code);
     const found = properties.find((p) => p.code === normalized);
     return found ? withAdvisors(found, advisors) : null;
   },

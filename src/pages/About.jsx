@@ -30,7 +30,7 @@ export default function About() {
 
       <div className="container about-page">
         <div className="section-heading m-section">
-          <h2>{t("about.title")}</h2>
+          <h1>{t("about.title")}</h1>
           <p>{t("about.intro")}</p>
         </div>
 

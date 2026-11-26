@@ -51,7 +51,7 @@ export default function Compare() {
 
       <div className="container properties-page">
         <div className="section-heading m-section">
-          <h2>{t("compare.title")}</h2>
+          <h1>{t("compare.title")}</h1>
           <p>{t("compare.subtitle")}</p>
         </div>
 
