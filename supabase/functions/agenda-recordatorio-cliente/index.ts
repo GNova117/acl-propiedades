@@ -113,8 +113,12 @@ async function handler(req: Request): Promise<Response> {
 
   const { createClient } = await import("jsr:@supabase/supabase-js@2");
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const whatsappToken = Deno.env.get("WHATSAPP_TOKEN")!;
-  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID")!;
+  const whatsappToken = Deno.env.get("WHATSAPP_TOKEN");
+  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
+  // Sin las credenciales de WhatsApp se responde «no configurado» (antes tronaba sin un mensaje claro).
+  if (!whatsappToken || !phoneNumberId) {
+    return new Response(JSON.stringify({ ok: false, error: "whatsapp_not_configured" }), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
 
   const fecha = tomorrowInMexico();
 

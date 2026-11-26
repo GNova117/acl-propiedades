@@ -624,6 +624,7 @@
     "someFailed": "Some records couldn't be updated — try again."
   },
   "common": {
+    "exportCsvEmpty": "There is nothing to export with the current filters",
     "saveError": "Could not save. Please try again.",
     "more": "More",
     "loading": "Loading...",

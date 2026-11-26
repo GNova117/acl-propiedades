@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
 
+# Una corrida nueva del mismo PR cancela la anterior (antes se acumulaban).
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -23,6 +28,9 @@ jobs:
       - run: npm run schema:check
       - run: npm run test
       - run: npm run build
+      # Vulnerabilidades conocidas en dependencias: avisa (no bloquea) las de nivel alto o crítico de lo que se usa en producción.
+      - run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true
       # Presupuesto de peso: lo que se baja al abrir el sitio no debe crecer sin que se decida (scripts/bundle-budget.json).
       - run: node scripts/bundleBudget.mjs
 

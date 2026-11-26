@@ -30,8 +30,12 @@ Deno.serve(async (req) => {
     return new Response("unauthorized", { status: 401 });
   }
 
-  const whatsappToken = Deno.env.get("WHATSAPP_TOKEN")!;
-  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID")!;
+  const whatsappToken = Deno.env.get("WHATSAPP_TOKEN");
+  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
+  // Sin las credenciales de WhatsApp se responde «no configurado» (antes tronaba sin un mensaje claro).
+  if (!whatsappToken || !phoneNumberId) {
+    return new Response(JSON.stringify({ ok: false, error: "whatsapp_not_configured" }), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
 
   const payload = await req.json().catch(() => ({}));
   const name = payload.name || "(sin nombre)";

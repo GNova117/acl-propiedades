@@ -6,7 +6,8 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
-  align-items: stretch;
+  /* Cada columna mide lo suyo: el formulario ya no se estira hasta la altura del mapa y deja un hueco blanco. */
+  align-items: start;
 }
 
 .contact-page__map-block {

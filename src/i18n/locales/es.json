@@ -624,6 +624,7 @@
     "someFailed": "Algunos registros no se pudieron actualizar — vuelve a intentar."
   },
   "common": {
+    "exportCsvEmpty": "No hay nada que exportar con los filtros actuales",
     "saveError": "No se pudo guardar. Inténtalo de nuevo.",
     "more": "Más",
     "loading": "Cargando...",

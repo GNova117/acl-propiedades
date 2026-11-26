@@ -1,3 +1,8 @@
+[data-theme="dark"] .leaflet-tile-pane {
+  /* En modo oscuro los mosaicos claros del mapa deslumbraban: se invierten y se rotan los tonos para que sigan viéndose como mapa. */
+  filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
+}
+
 .property-map {
   position: relative;
   width: 100%;

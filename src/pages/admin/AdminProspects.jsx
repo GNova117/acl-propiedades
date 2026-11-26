@@ -320,7 +320,7 @@ export default function AdminProspects() {
               {t("prospects.import", { count: importable.length })}
             </button>
           )}
-          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={filtered.length === 0}>
+          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={filtered.length === 0} title={filtered.length === 0 ? t("common.exportCsvEmpty") : undefined}>
             {t("common.exportCsv")}
           </button>
         </div>
