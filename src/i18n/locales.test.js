@@ -58,3 +58,20 @@ describe("archivos de idiomas", () => {
     expect(duplicateKeys('{"a": {"x": 1}, "b": {"x": 2}}')).toEqual([]);
   });
 });
+
+// El inglés ya no va en el paquete inicial (se baja bajo demanda), así que nada lo compara con el español al compilar:
+// esta prueba evita que una llave exista en un idioma y falte en el otro.
+function leafKeys(value, prefix = "") {
+  if (value === null || typeof value !== "object") return [prefix];
+  return Object.entries(value).flatMap(([k, v]) => leafKeys(v, prefix ? `${prefix}.${k}` : k));
+}
+
+describe("es.json y en.json", () => {
+  it("tienen las mismas llaves", () => {
+    const read = (lang) => JSON.parse(readFileSync(new URL(`./locales/${lang}.json`, import.meta.url), "utf8"));
+    const es = new Set(leafKeys(read("es")));
+    const en = new Set(leafKeys(read("en")));
+    expect([...es].filter((k) => !en.has(k))).toEqual([]);
+    expect([...en].filter((k) => !es.has(k))).toEqual([]);
+  });
+});

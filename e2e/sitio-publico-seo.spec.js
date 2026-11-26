@@ -39,6 +39,20 @@ test.describe("Direcciones legibles y SEO", () => {
     await expect(page.locator('meta[property="og:locale"]')).toHaveAttribute("content", "en_US");
   });
 
+  test("?lang=en no muestra español ni un instante (el inglés se baja antes de montar la app)", async ({ page }) => {
+    // Registra el texto del enlace «saltar al contenido» cada vez que cambia el DOM: el primero que aparezca ya debe estar en inglés.
+    await page.addInitScript(() => {
+      window.__skipTexts = [];
+      new MutationObserver(() => {
+        const text = document.querySelector(".skip-link")?.textContent?.trim();
+        if (text && window.__skipTexts[window.__skipTexts.length - 1] !== text) window.__skipTexts.push(text);
+      }).observe(document, { childList: true, subtree: true, characterData: true });
+    });
+    await page.goto("/contacto?lang=en");
+    await expect(page.locator(".skip-link")).toHaveText("Skip to content");
+    expect(await page.evaluate(() => window.__skipTexts)).toEqual(["Skip to content"]);
+  });
+
   test("inicio, nosotros y contacto declaran a la inmobiliaria como negocio local", async ({ page, go }) => {
     for (const ruta of ["/", "/nosotros", "/contacto"]) {
       await go(ruta);
