@@ -104,7 +104,14 @@ export default function ContactForm() {
         {errors.message && <span className="form-error">{errors.message}</span>}
       </div>
 
-      {status === "success" && <p className="form-hint text-success">{t("contact.success")}</p>}
+      {status === "success" && (
+        <div className="contact-success" role="status">
+          <p className="form-hint text-success">{t("contact.success")}</p>
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => setStatus("idle")}>
+            {t("contact.sendAnother")}
+          </button>
+        </div>
+      )}
       {status === "error" && <p className="form-error">{t("contact.error")}</p>}
       {status === "rateLimited" && <p className="form-error">{t("contact.rateLimited")}</p>}
       {status === "serverLimited" && <p className="form-error" role="alert">{t("contact.serverLimited")}</p>}

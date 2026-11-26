@@ -40,7 +40,8 @@ export default function ShareButton({ title, text, url, openUpward = false, prop
     trackPropertyEvent("share", propertyId);
     trackConversion("share", { method: "copiar", property_id: propertyId });
     try {
-      await navigator.clipboard.writeText(shareText);
+      // «Copiar enlace» copia solo el enlace (antes copiaba el bloque completo con emojis).
+      await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -48,7 +49,7 @@ export default function ShareButton({ title, text, url, openUpward = false, prop
       // navegadores/contextos embebidos tampoco soportan window.prompt,
       // así que esto también va en su propio try/catch.
       try {
-        copyFallback(t("detail.copyLinkManual"), shareText);
+        copyFallback(t("detail.copyLinkManual"), url);
       } catch {
         // No hay más alternativas sin backend — se queda callado en vez
         // de tronar con una excepción sin capturar.

@@ -378,6 +378,7 @@
     "paymentMethodsBody": "Aceptamos pago de contado, crédito bancario, crédito INFONAVIT y crédito FOVISSSTE, sujetos a las condiciones y documentación que exija cada institución. Consulta con tu asesor las opciones disponibles para cada propiedad."
   },
   "contact": {
+    "sendAnother": "Enviar otro mensaje",
     "title": "Contáctanos",
     "subtitle": "¿Tienes dudas o buscas una propiedad específica? Escríbenos y un asesor te contactará.",
     "directTitle": "Contacto directo",
@@ -3247,6 +3248,7 @@
     }
   },
   "recentlyViewed": {
+    "clear": "Borrar historial",
     "title": "Vistos recientemente"
   },
   "chatWidget": {
@@ -5237,5 +5239,9 @@
     "creditA": "Sí. Nuestros asesores te orientan con INFONAVIT, crédito bancario y FOVISSSTE, y puedes comparar opciones en la sección Comparar créditos.",
     "visitQ": "¿Cómo agendo una visita?",
     "visitA": "Abre la propiedad que te interese y elige día y hora en «Agendar visita», o escríbenos por WhatsApp y un asesor te acompaña."
+  },
+  "propertyCard": {
+    "photos_one": "{{count}} foto",
+    "photos_other": "{{count}} fotos"
   }
 }

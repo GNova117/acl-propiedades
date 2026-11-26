@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getRecentlyViewedIds } from "../lib/recentlyViewed";
+import { clearRecentlyViewed, getRecentlyViewedIds } from "../lib/recentlyViewed";
 import PropertyCard from "./PropertyCard";
 import "./RecentlyViewed.css";
 import { loadPropertiesInOrder } from "../lib/propertiesByIds";
@@ -31,7 +31,19 @@ export default function RecentlyViewed({ excludeId, className = "" }) {
 
   return (
     <div className={`recently-viewed ${className}`}>
-      <h2>{t("recentlyViewed.title")}</h2>
+      <div className="recently-viewed__head">
+        <h2>{t("recentlyViewed.title")}</h2>
+        <button
+          type="button"
+          className="btn btn-outline btn-sm"
+          onClick={() => {
+            clearRecentlyViewed();
+            setProperties([]);
+          }}
+        >
+          {t("recentlyViewed.clear")}
+        </button>
+      </div>
       <div className="recently-viewed__row">
         {properties.map((p) => (
           <div className="recently-viewed__item" key={p.id}>

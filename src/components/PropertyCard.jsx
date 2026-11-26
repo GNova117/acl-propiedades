@@ -47,6 +47,9 @@ export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
           {t(`propertyStatus.${property.status}`)}
         </span>
         <PropertyFlag property={property} className="property-flag--card" />
+        {(property.images?.length || 0) > 1 && (
+          <span className="property-card__photo-count">{t("propertyCard.photos", { count: property.images.length })}</span>
+        )}
         <FavoriteButton propertyId={property.id} className="property-card__favorite" />
         <CompareButton propertyId={property.id} className="property-card__compare" />
       </Link>

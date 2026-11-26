@@ -89,7 +89,7 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
       <div className="property-filters__header">
         <h3>{t("properties.filters")}</h3>
         <div className="property-filters__header-actions">
-          <button type="button" className="btn btn-outline btn-sm" onClick={onClear}>
+          <button type="button" className="btn btn-outline btn-sm" onClick={onClear} disabled={activeCount === 0}>
             {t("properties.clear")}
           </button>
           <button

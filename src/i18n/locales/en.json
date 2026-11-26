@@ -378,6 +378,7 @@
     "paymentMethodsBody": "We accept cash payment, bank financing, INFONAVIT credit, and FOVISSSTE credit, subject to each institution's conditions and required documentation. Check with your advisor for the options available for each property."
   },
   "contact": {
+    "sendAnother": "Send another message",
     "title": "Contact us",
     "subtitle": "Have questions or looking for a specific property? Write to us and an advisor will contact you.",
     "directTitle": "Direct contact",
@@ -3247,6 +3248,7 @@
     }
   },
   "recentlyViewed": {
+    "clear": "Clear history",
     "title": "Recently viewed"
   },
   "chatWidget": {
@@ -5237,5 +5239,9 @@
     "creditA": "Yes. Our advisors guide you through INFONAVIT, bank loans and FOVISSSTE, and you can compare options in the Compare loans section.",
     "visitQ": "How do I book a visit?",
     "visitA": "Open the property you like and choose a day and time in \"Schedule a visit\", or message us on WhatsApp and an advisor will go with you."
+  },
+  "propertyCard": {
+    "photos_one": "{{count}} photo",
+    "photos_other": "{{count}} photos"
   }
 }
