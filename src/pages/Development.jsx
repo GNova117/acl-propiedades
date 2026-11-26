@@ -22,6 +22,7 @@ import { OFFICE_WHATSAPP } from "../lib/office";
 import "../components/development/development.css";
 import "./Development.css";
 import LoadingState from "../components/LoadingState";
+import { siteOrigin } from "../lib/site";
 
 const SORT_OPTIONS = ["floor_desc", "floor_asc", "price_asc", "price_desc"];
 const PAGE_SIZE = 12;
@@ -119,7 +120,7 @@ export default function Development() {
     );
   }
 
-  const pageUrl = `${window.location.origin}/desarrollos/${development.slug}`;
+  const pageUrl = `${siteOrigin()}/desarrollos/${development.slug}`;
   const whatsappUrl = `https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(developmentWhatsappText(development, pageUrl))}`;
   const seoImage = development.hero_image?.startsWith("http") ? development.hero_image : undefined;
   const filtersActive = filters.model || filters.bedrooms !== "" || filters.floorFrom !== "" || filters.maxPrice || filters.status !== "disponible";

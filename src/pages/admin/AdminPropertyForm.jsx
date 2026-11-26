@@ -14,6 +14,7 @@ import LoadingState from "../../components/LoadingState";
 import { notify } from "../../lib/toast";
 import { STEPS, clampStep, firstStepWithErrors, progressPercent, stepsWithErrors } from "../../lib/propertyFormSteps";
 import { clearDraft, draftKey, isMeaningful, loadDraft, saveDraft } from "../../lib/formDraft";
+import { notifyLoadError } from "../../lib/loadError";
 
 const EMPTY = {
   title: "",
@@ -141,9 +142,9 @@ export default function AdminPropertyForm({
   const [draftSavedAt, setDraftSavedAt] = useState(null);
 
   useEffect(() => {
-    db.getZones().then(setZones);
-    db.getAdvisors().then(setAdvisors);
-    db.getPropertyTypes().then(setPropertyTypes);
+    db.getZones().then(setZones).catch(notifyLoadError);
+    db.getAdvisors().then(setAdvisors).catch(notifyLoadError);
+    db.getPropertyTypes().then(setPropertyTypes).catch(notifyLoadError);
     db.getAmenities().then(setAmenitiesCatalog).catch(() => setAmenitiesCatalog([]));
   }, []);
 
@@ -159,7 +160,7 @@ export default function AdminPropertyForm({
       setFloorPlanUrl(property.floor_plan_url || "");
       setPropertyCode(property.code || "");
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [id, isEdit]);
 
   // /nueva?duplicar=<id>: una propiedad nueva con los datos de otra parecida (los de siempre se copian; fotos, videos,
@@ -177,7 +178,7 @@ export default function AdminPropertyForm({
         status: "disponible",
         active: false,
       });
-    });
+    }).catch(notifyLoadError);
     return () => {
       cancelled = true;
     };
@@ -274,7 +275,7 @@ export default function AdminPropertyForm({
       clearDraft(draftStorageKey);
       navigate(listPath);
     } catch (err) {
-      notify(err.message || "Error al guardar");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }
@@ -343,7 +344,7 @@ export default function AdminPropertyForm({
           <h2 className="admin-form__step-title" id="p-step-title-0">{t("propertyForm.steps.basics")}</h2>
           <div className="form-row">
             <div className="form-field">
-              <label htmlFor="p-title">Título</label>
+              <label htmlFor="p-title">{t("propertyForm.title")}</label>
               <input id="p-title" value={form.title} onChange={handleChange("title")} />
               {errors.title && <span className="form-error">{errors.title}</span>}
             </div>
@@ -367,7 +368,7 @@ export default function AdminPropertyForm({
 
           <div className="form-row">
             <div className="form-field">
-              <label htmlFor="p-price">Precio (MXN)</label>
+              <label htmlFor="p-price">{t("propertyForm.priceMxn")}</label>
               <input id="p-price" type="number" min="0" value={form.price} onChange={handleChange("price")} />
               {errors.price && <span className="form-error">{errors.price}</span>}
             </div>
@@ -416,18 +417,18 @@ export default function AdminPropertyForm({
           </div>
 
           <div className="form-field">
-            <label htmlFor="p-address">Dirección</label>
+            <label htmlFor="p-address">{t("propertyForm.address")}</label>
             <input id="p-address" value={form.address} onChange={handleChange("address")} />
             {errors.address && <span className="form-error">{errors.address}</span>}
           </div>
 
           <div className="form-row">
             <div className="form-field">
-              <label htmlFor="p-lat">Latitud</label>
+              <label htmlFor="p-lat">{t("propertyForm.lat")}</label>
               <input id="p-lat" type="number" step="any" value={form.lat} onChange={handleChange("lat")} />
             </div>
             <div className="form-field">
-              <label htmlFor="p-lng">Longitud</label>
+              <label htmlFor="p-lng">{t("propertyForm.lng")}</label>
               <input id="p-lng" type="number" step="any" value={form.lng} onChange={handleChange("lng")} />
             </div>
           </div>
@@ -453,7 +454,7 @@ export default function AdminPropertyForm({
               <input id="p-bathrooms" type="number" min="0" step="0.5" value={form.bathrooms} onChange={handleChange("bathrooms")} />
             </div>
             <div className="form-field">
-              <label htmlFor="p-parking">Estacionamientos</label>
+              <label htmlFor="p-parking">{t("propertyForm.parking")}</label>
               <input id="p-parking" type="number" min="0" value={form.parking} onChange={handleChange("parking")} />
             </div>
           </div>

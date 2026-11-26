@@ -7,6 +7,7 @@ import { SECTION_KEYS, ADMIN_ROLE_SLUG } from "../../lib/accessControl";
 import "./admin.css";
 import "./AdminLogin.css";
 import { confirmDialog, notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 export default function AdminRoles() {
   const { t } = useTranslation();
@@ -36,7 +37,7 @@ export default function AdminRoles() {
       setRoles(roleData);
       setAccess(accessData);
       setAdvisors(advisorData);
-    });
+    }).catch(notifyLoadError);
   };
 
   useEffect(load, []);

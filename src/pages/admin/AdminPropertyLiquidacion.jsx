@@ -105,7 +105,7 @@ export default function AdminPropertyLiquidacion() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
-      notify(err.message || "Error al guardar");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }

@@ -24,6 +24,7 @@ import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
 import "./AdminProspects.css";
+import { notifyLoadError } from "../../lib/loadError";
 
 // Alta y edición de un prospecto. El asesor con login vinculado siempre queda
 // como responsable; el correo de oficina (sin asesor vinculado) elige quién lo lleva.
@@ -333,7 +334,7 @@ export default function AdminProspectForm() {
           onMerged={(removedId) => {
             // El otro ya no existe: sale de las listas en caché y se vuelve a leer este (datos y línea de tiempo).
             mutateCache("prospects", (list) => (Array.isArray(list) ? list.filter((p) => p.id !== removedId) : list));
-            db.getProspectById(id).then((fresh) => fresh && setProspect(fresh));
+            db.getProspectById(id).then((fresh) => fresh && setProspect(fresh)).catch(notifyLoadError);
             setHistoryKey((k) => k + 1);
           }}
         />

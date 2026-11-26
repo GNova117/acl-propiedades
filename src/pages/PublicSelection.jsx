@@ -17,6 +17,7 @@ import "./PublicSelection.css";
 import LoadingState from "../components/LoadingState";
 import { propertyPath } from "../lib/propertyUrl.js";
 import { isClosedStatus } from "../lib/propertyStatus";
+import { siteOrigin } from "../lib/site";
 
 const seenKey = (token) => `acl_selection_seen_${token}`;
 
@@ -116,10 +117,10 @@ export default function PublicSelection() {
   const contactName = advisor?.name || "ACL Propiedades";
   const advisorPhone = advisor?.whatsapp || advisor?.phone || OFFICE_WHATSAPP;
   const hasAdvisorWhatsApp = whatsappDigits(advisorPhone).length >= 10;
-  const url = typeof window !== "undefined" ? selectionUrl(window.location.origin, token) : "";
+  const url = typeof window !== "undefined" ? selectionUrl(siteOrigin(), token) : "";
   const interestLink = (property) =>
     hasAdvisorWhatsApp
-      ? whatsappUrl(advisorPhone, t("selection.public.interestMessage", { lng: "es", title: property.title, url: `${window.location.origin}${propertyPath(property)}` }))
+      ? whatsappUrl(advisorPhone, t("selection.public.interestMessage", { lng: "es", title: property.title, url: `${siteOrigin()}${propertyPath(property)}` }))
       : null;
   const generalLink = hasAdvisorWhatsApp ? whatsappUrl(advisorPhone, t("selection.public.generalMessage", { lng: "es", url })) : null;
   const expiresOn = selection?.expires_at ? new Date(selection.expires_at).toLocaleDateString(i18n.language === "en" ? "en-US" : "es-MX", { day: "numeric", month: "long" }) : "";

@@ -15,11 +15,13 @@ export default function Calculator() {
   const [type, setType] = useState("casa");
 
   useEffect(() => {
-    db.getZones().then((data) => {
-      setZones(data);
-      if (data.length > 0) setZoneId(data[0].id);
-    });
-    db.getPropertyTypes().then(setPropertyTypes);
+    db.getZones()
+      .then((data) => {
+        setZones(data);
+        if (data.length > 0) setZoneId(data[0].id);
+      })
+      .catch(() => {});
+    db.getPropertyTypes().then(setPropertyTypes).catch(() => {});
   }, []);
 
   const selectedZone = zones.find((z) => z.id === zoneId);

@@ -8,6 +8,7 @@ import { COMPRADOR_SECTIONS, compradorInitialValues } from "../../lib/perfilamie
 import "./AdminClientProfiling.css";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
+import { notifyLoadError } from "../../lib/loadError";
 
 export default function AdminClientProfiling() {
   const { id } = useParams();
@@ -23,7 +24,7 @@ export default function AdminClientProfiling() {
     db.getClientById(id).then((data) => {
       setClient(data);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [id]);
 
   const selectTab = (next) => {

@@ -14,6 +14,8 @@ import { MAX_SELECTION, NOTE_MAX, TITLE_MAX, defaultSelectionTitle, selectionUrl
 import "./PropertyProspectsModal.css";
 import "./SendPropertyModal.css";
 import "./SelectionBuilder.css";
+import { copyFallback } from "../lib/toast";
+import { siteOrigin } from "../lib/site";
 
 const MAX_LISTED = 40; // propiedades que se dibujan a la vez en el selector (se afina con la búsqueda)
 const MAX_RECIPIENTS = 6;
@@ -127,7 +129,7 @@ export default function SelectionBuilder({ prospect = null, initialIds = null, o
       const record = await db.createSelection({ propertyIds: ids, title, note, advisorId: advisorId ?? chosenProspect?.advisor_id ?? null, prospectoId: chosenProspect?.id || null });
       selectionsQ.mutate((list) => [record, ...(list || [])]);
       setCreated(record);
-      setText(selectionShareMessage({ url: selectionUrl(window.location.origin, record.token), count: record.property_ids.length, recipientName, advisorName }));
+      setText(selectionShareMessage({ url: selectionUrl(siteOrigin(), record.token), count: record.property_ids.length, recipientName, advisorName }));
     } catch (err) {
       setError(err.message || t("selection.builder.createError"));
     } finally {
@@ -135,7 +137,7 @@ export default function SelectionBuilder({ prospect = null, initialIds = null, o
     }
   };
 
-  const url = created ? selectionUrl(window.location.origin, created.token) : "";
+  const url = created ? selectionUrl(siteOrigin(), created.token) : "";
   // WhatsApp si hay un teléfono completo; si no, un correo (si lo tiene); si no, solo queda copiar el enlace.
   const hasPhone = whatsappDigits(recipient?.phone).length >= 10;
   const link =
@@ -149,7 +151,7 @@ export default function SelectionBuilder({ prospect = null, initialIds = null, o
       setTimeout(() => setCopied(""), 2000);
     } catch {
       try {
-        window.prompt(t("detail.copyLinkManual"), value);
+        copyFallback(t("detail.copyLinkManual"), value);
       } catch {
         // Sin portapapeles ni prompt: el enlace sigue a la vista en la ventana.
       }

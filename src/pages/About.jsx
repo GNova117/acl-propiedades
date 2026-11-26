@@ -19,7 +19,9 @@ export default function About() {
   const [advisors, setAdvisors] = useState([]);
 
   useEffect(() => {
-    db.getAdvisors().then((data) => setAdvisors(data.filter((a) => a.active !== false && a.show_in_team !== false)));
+    db.getAdvisors()
+      .then((data) => setAdvisors(data.filter((a) => a.active !== false && a.show_in_team !== false)))
+      .catch(() => {}); // sin red: la página se ve sin el equipo, no se rompe
   }, []);
 
   return (

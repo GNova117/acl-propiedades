@@ -1,8 +1,10 @@
 // Cita de la Agenda → archivo de calendario (.ics) que abren Google Calendar,
 // Apple Calendar y Outlook, con alarmas para que el teléfono avise aunque el
 // panel esté cerrado. Funciones puras (el navegador solo descarga el texto).
-// Las horas van "flotantes" (sin zona): el calendario las toma en la hora local
-// de quien las abre, que es la de la cita.
+// Las horas con hora de la cita van en UTC (terminan en Z) calculadas desde la hora de México: así el calendario del teléfono las
+// muestra en la hora correcta aunque la persona esté en otra zona (un comprador de naves en EE. UU.). Antes iban «flotantes» y se
+// veían corridas. Las citas de todo el día siguen siendo de fecha.
+import { mexicoParts } from "./visitSlots.js";
 
 const pad2 = (n) => String(n).padStart(2, "0");
 
@@ -29,8 +31,18 @@ function fold(line) {
 const stamp = (date) =>
   `${date.getUTCFullYear()}${pad2(date.getUTCMonth() + 1)}${pad2(date.getUTCDate())}T${pad2(date.getUTCHours())}${pad2(date.getUTCMinutes())}${pad2(date.getUTCSeconds())}Z`;
 
-const localStamp = (date) =>
-  `${date.getFullYear()}${pad2(date.getMonth() + 1)}${pad2(date.getDate())}T${pad2(date.getHours())}${pad2(date.getMinutes())}00`;
+// Fecha y hora de pared en México ("YYYY-MM-DD", hh, mm) → el instante real (Date). Se ajusta con la zona de ese día, así que
+// funciona también con el horario de verano que México tuvo hasta 2022.
+function mexicoWallToDate(y, m, d, hh, mm) {
+  const target = Date.UTC(y, m - 1, d, hh, mm);
+  let t = target;
+  for (let i = 0; i < 2; i += 1) {
+    const { date, minutes } = mexicoParts(new Date(t));
+    const [wy, wm, wd] = date.split("-").map(Number);
+    t += target - (Date.UTC(wy, wm - 1, wd) + minutes * 60000);
+  }
+  return new Date(t);
+}
 
 const dateOnly = (date) => `${date.getFullYear()}${pad2(date.getMonth() + 1)}${pad2(date.getDate())}`;
 
@@ -53,7 +65,7 @@ function citaToVevent(cita, { clientName = "", clientPhone = "", advisorName = "
   const [y, m, d] = String(cita.fecha).split("-").map(Number);
   const timed = Boolean(cita.hora);
   const [hh, mm] = timed ? String(cita.hora).split(":").map(Number) : [0, 0];
-  const start = new Date(y, m - 1, d, hh, mm);
+  const start = timed ? mexicoWallToDate(y, m, d, hh, mm) : new Date(y, m - 1, d, hh, mm);
   const description = [
     clientName ? `Cliente: ${clientName}${clientPhone ? ` (${clientPhone})` : ""}` : null,
     advisorName ? `Asesor: ${advisorName}` : null,
@@ -66,7 +78,7 @@ function citaToVevent(cita, { clientName = "", clientPhone = "", advisorName = "
   const lines = ["BEGIN:VEVENT", `UID:${cita.id}@aclpropiedades`, `DTSTAMP:${stamp(now)}`];
   if (timed) {
     const minutes = Number(cita.duracion_min) > 0 ? Number(cita.duracion_min) : DEFAULT_DURATION_MINUTES;
-    lines.push(`DTSTART:${localStamp(start)}`, `DTEND:${localStamp(new Date(start.getTime() + minutes * 60000))}`);
+    lines.push(`DTSTART:${stamp(start)}`, `DTEND:${stamp(new Date(start.getTime() + minutes * 60000))}`);
   } else {
     lines.push(`DTSTART;VALUE=DATE:${dateOnly(start)}`, `DTEND;VALUE=DATE:${dateOnly(new Date(y, m - 1, d + 1))}`);
   }

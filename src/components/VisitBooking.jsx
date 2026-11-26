@@ -9,6 +9,8 @@ import { advisorsForSlot, bookingFieldErrors } from "../lib/visitSlots";
 import { bookingErrorField, bookingErrorKey, bookingToCalendarEvent, formatSlotDay, formatSlotTime } from "../lib/visitBookingUi";
 import { useSlotSelection } from "../lib/useSlotSelection";
 import VisitSlotPicker from "./VisitSlotPicker";
+import { copyFallback } from "../lib/toast";
+import { siteOrigin } from "../lib/site";
 
 const EMPTY = { name: "", email: "", phone: "", note: "", empresa: "" };
 
@@ -109,13 +111,13 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
       downloadIcs(`visita-${booked.fecha}.ics`, citaToIcs(event, { advisorName: booked.advisor?.name || "" }));
     };
     // Con el enlace de su visita el cliente la confirma, la cambia o la cancela (/visita/:token).
-    const manageUrl = `${window.location.origin}/visita/${booked.token}`;
+    const manageUrl = `${siteOrigin()}/visita/${booked.token}`;
     const copyLink = async () => {
       try {
         await navigator.clipboard.writeText(manageUrl);
         setLinkCopied(true);
       } catch {
-        window.prompt(t("scheduleVisit.booking.copyLinkFallback"), manageUrl);
+        copyFallback(t("scheduleVisit.booking.copyLinkFallback"), manageUrl);
       }
     };
     // El WhatsApp es el de la oficina: la ficha no publica los datos de contacto de cada asesor.

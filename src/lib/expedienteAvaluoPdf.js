@@ -211,7 +211,7 @@ async function buildCover(contents, { title, sections, labels }) {
   for (const section of sections) {
     await write(`${section.title}: ${orderedPeople(section.people).map((p) => p.client.name).join(", ")}`);
   }
-  await write(`${labels.generatedOn}: ${new Date().toLocaleString()}`, { color: muted });
+  await write(`${labels.generatedOn}: ${new Date().toLocaleString(labels.locale)}`, { color: muted });
   y -= LINE_HEIGHT * 0.5;
 
   await write(labels.contents.toUpperCase(), { size: SIZE_SUBTITLE, font: bold, gap: LINE_HEIGHT * 1.4 });

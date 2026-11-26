@@ -6,6 +6,7 @@ import { queries } from "../lib/queries";
 import { useAuth } from "../context/AuthContext";
 import { GOAL_METRICS, MAX_GOAL, countMonth, formToGoalColumns, goalProgress, goalsToForm, monthStartISO, validateGoals } from "../lib/goals";
 import "./MonthGoals.css";
+import { notifyLoadError } from "../lib/loadError";
 
 // Apartado que hace falta para poder medir cada cosa (y por lo tanto para
 // ponerle meta): sin él la tabla no se puede leer y el avance saldría en cero.
@@ -52,7 +53,7 @@ export default function MonthGoals({ advisorId }) {
       // Sin ninguna meta todavía: se abre el formulario para fijarla.
       setEditing(!goalProgress(goalRow, {}, now, { metrics }).length);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
     return () => {
       cancelled = true;
     };

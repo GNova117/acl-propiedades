@@ -8,6 +8,7 @@ import { appendDictation } from "../lib/dictation";
 import "./InternalNotes.css";
 import LoadingState from "./LoadingState";
 import { confirmDialog, notify } from "../lib/toast";
+import { notifyLoadError } from "../lib/loadError";
 
 // Comunicación interna del equipo sobre un cliente/prospecto/propiedad: notas
 // visibles para cualquier asesor que entre a esa ficha, con la opción de
@@ -32,7 +33,7 @@ export default function InternalNotes({ entityType, entityId, onChange }) {
     setLoading(true);
     db.getInternalNotes(entityType, entityId)
       .then(setNotes)
-      .finally(() => setLoading(false));
+      .catch(notifyLoadError).finally(() => setLoading(false));
   };
 
   useEffect(load, [entityType, entityId]);

@@ -30,6 +30,7 @@ import "./AdminProspects.css";
 import "./AdminMyDay.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog } from "../../lib/toast";
+import { siteOrigin } from "../../lib/site";
 
 const hm = (hora) => String(hora).slice(0, 5);
 const NONE = [];
@@ -94,7 +95,7 @@ export default function AdminMyDay() {
   const showAdvisor = advisorId == null;
 
   const templatesFor = (p) =>
-    quickTemplates(p, { propertyTitle: propertyTitle(p.property_id), advisorName: advisorName(p.advisor_id), origin: window.location.origin, t });
+    quickTemplates(p, { propertyTitle: propertyTitle(p.property_id), advisorName: advisorName(p.advisor_id), origin: siteOrigin(), t });
 
   const dateTitle = now.toLocaleDateString(i18n.language?.startsWith("en") ? "en-US" : "es-MX", { weekday: "long", day: "numeric", month: "long" });
 
@@ -202,7 +203,7 @@ export default function AdminMyDay() {
     const digits = whatsappDigits(contact.phone);
     const waPhone = digits.length === 10 ? `52${digits}` : digits;
     const when = `${dayLabel(cita.fecha)} ${t("myDay.confirm.at")} ${hm(cita.hora)}`;
-    const link = visitLink(cita, window.location.origin);
+    const link = visitLink(cita, siteOrigin());
     const textParams = { name: contact.name.split(/\s+/)[0], title: cita.titulo, when, advisor: advisorName(cita.advisor_id) };
     // Con el enlace de la visita el cliente confirma con un toque, sin depender del correo.
     const text = link ? t("visitLink.whatsappText", { ...textParams, link }) : t("myDay.confirm.whatsappText", textParams);

@@ -27,8 +27,8 @@ describe("citaToIcs", () => {
   });
 
   it("una cita con hora dura una hora y lleva dos alarmas", () => {
-    expect(ics).toContain("DTSTART:20261103T163000");
-    expect(ics).toContain("DTEND:20261103T173000");
+    expect(ics).toContain("DTSTART:20261103T223000Z");
+    expect(ics).toContain("DTEND:20261103T233000Z");
     expect(ics).toContain("TRIGGER:-PT60M");
     expect(ics).toContain("TRIGGER:-PT15M");
   });
@@ -70,7 +70,7 @@ describe("citasToIcsFeed", () => {
     expect(ics).toContain("X-WR-CALNAME:Agenda de Ana");
     expect(ics).toContain("REFRESH-INTERVAL;VALUE=DURATION:PT1H");
     expect(ics).toContain("UID:a@aclpropiedades");
-    expect(ics).toContain("DTSTART:20261120T100000");
+    expect(ics).toContain("DTSTART:20261120T160000Z");
     expect(ics).toContain("DTSTART;VALUE=DATE:20261120");
   });
 

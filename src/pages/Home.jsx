@@ -106,7 +106,7 @@ export default function Home() {
     <>
       <Seo
         title={t("nav.home")}
-        description="ACL Propiedades: compra y venta de casas, departamentos, naves industriales y terrenos en Torreón, Gómez Palacio y Lerdo."
+        description={t("home.seoDescription")}
         jsonLd={businessJsonLd}
       />
 

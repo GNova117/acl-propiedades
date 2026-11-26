@@ -7,6 +7,7 @@ import InlineRename from "../../components/InlineRename";
 import { LAGUNA_CITIES, cityOfZone } from "../../lib/zones";
 import "./admin.css";
 import { confirmDialog, notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const normalize = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
@@ -47,7 +48,7 @@ export default function AdminZones() {
           Object.fromEntries(zoneData.map((z) => [z.id, { built: z.price_per_m2, land: z.land_price_per_m2 ?? 0 }]))
         );
       }
-    );
+    ).catch(notifyLoadError);
   };
 
   useEffect(load, []);

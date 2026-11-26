@@ -157,19 +157,19 @@ function VisitRequestForm({ property, onBack, noSlots }) {
 
       <div className="form-field">
         <label htmlFor="visit-name">{t("contact.name")}</label>
-        <input id="visit-name" name="name" value={form.name} onChange={handleChange} aria-invalid={Boolean(errors.name)} />
+        <input id="visit-name" name="name" autoComplete="name" value={form.name} onChange={handleChange} aria-invalid={Boolean(errors.name)} />
         {errors.name && <span className="form-error">{errors.name}</span>}
       </div>
 
       <div className="form-row">
         <div className="form-field">
           <label htmlFor="visit-email">{t("contact.email")}</label>
-          <input id="visit-email" name="email" type="email" value={form.email} onChange={handleChange} aria-invalid={Boolean(errors.email)} />
+          <input id="visit-email" name="email" type="email" autoComplete="email" value={form.email} onChange={handleChange} aria-invalid={Boolean(errors.email)} />
           {errors.email && <span className="form-error">{errors.email}</span>}
         </div>
         <div className="form-field">
           <label htmlFor="visit-phone">{t("contact.phone")}</label>
-          <input id="visit-phone" name="phone" type="tel" value={form.phone} onChange={handleChange} aria-invalid={Boolean(errors.phone)} />
+          <input id="visit-phone" name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={handleChange} aria-invalid={Boolean(errors.phone)} />
           {errors.phone && <span className="form-error">{errors.phone}</span>}
         </div>
       </div>

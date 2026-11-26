@@ -77,7 +77,7 @@ export default function Seo({ title, description, image, jsonLd, noindex = false
       tag.setAttribute("content", description);
     }
 
-    const resolvedImage = image || `${window.location.origin}${DEFAULT_IMAGE_PATH}`;
+    const resolvedImage = image || `${siteOrigin()}${DEFAULT_IMAGE_PATH}`;
 
     upsertMeta("property", "og:type", "website");
     upsertMeta("property", "og:site_name", SITE_NAME);

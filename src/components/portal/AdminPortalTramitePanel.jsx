@@ -17,7 +17,7 @@ import PortalChecklistBadge from "./PortalChecklistBadge";
 // lista de pendientes que ve el cliente, para saber qué le falta sin abrir
 // el portal.
 export default function AdminPortalTramitePanel({ client, documents, onSaved }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [tramite, setTramite] = useState(null);
   const [loading, setLoading] = useState(true);
   const [stage, setStage] = useState("");
@@ -165,7 +165,7 @@ export default function AdminPortalTramitePanel({ client, documents, onSaved }) 
         </button>
         {message && <span className="form-hint" role="status">{message}</span>}
         {tramite?.updated_at && !message && (
-          <span className="form-hint">{t("adminPortal.tramite.lastUpdate", { date: new Date(tramite.updated_at).toLocaleString() })}</span>
+          <span className="form-hint">{t("adminPortal.tramite.lastUpdate", { date: new Date(tramite.updated_at).toLocaleString(i18n.language) })}</span>
         )}
       </div>
     </form>

@@ -6,6 +6,7 @@ import { AVAILABLE_PLACEHOLDERS } from "../../lib/documentTemplates";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const EMPTY = { name: "", body: "", custom_fields: [], requires_signatures: true, active: true };
 const FIELD_TYPES = ["text", "number", "date"];
@@ -36,7 +37,7 @@ export default function AdminDocumentTemplateForm() {
         active: template.active !== false,
       });
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [id, isEdit]);
 
   const handleChange = (field) => (e) => {

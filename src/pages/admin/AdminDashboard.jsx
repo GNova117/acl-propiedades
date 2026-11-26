@@ -10,6 +10,7 @@ import { activeCitas } from "../../lib/agendaCitas";
 import PendingToday from "../../components/PendingToday";
 import DashboardCharts from "../../components/DashboardCharts";
 import "./admin.css";
+import { notifyLoadError } from "../../lib/loadError";
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
@@ -31,8 +32,8 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (hasSection("propiedades")) {
-      db.getProperties({}).then(setProperties);
-      db.getPropertyTypes().then(setPropertyTypes);
+      db.getProperties({}).then(setProperties).catch(notifyLoadError);
+      db.getPropertyTypes().then(setPropertyTypes).catch(notifyLoadError);
     }
     if (hasSection("asesores") || hasSection("agenda")) db.getAdvisors().then(setAdvisors);
     if (hasSection("clientes") || hasSection("agenda")) db.getClients().then(setClients);

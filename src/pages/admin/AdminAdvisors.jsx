@@ -5,6 +5,7 @@ import { db } from "../../lib/dataStore";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 export default function AdminAdvisors() {
   const { t } = useTranslation();
@@ -16,7 +17,7 @@ export default function AdminAdvisors() {
     db.getAdvisors().then((data) => {
       setAdvisors(data);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   };
 
   useEffect(load, []);

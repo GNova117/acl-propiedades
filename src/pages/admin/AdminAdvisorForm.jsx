@@ -8,6 +8,7 @@ import VisitScheduleEditor from "../../components/VisitScheduleEditor";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const EMPTY = { name: "", phone: "", email: "", whatsapp: "", bio: "", active: true, show_in_team: true };
 
@@ -41,7 +42,7 @@ export default function AdminAdvisorForm() {
       });
       setExistingPhoto(advisor.photo_url || "");
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [id, isEdit]);
 
   useEffect(() => {
@@ -92,7 +93,7 @@ export default function AdminAdvisorForm() {
       }
       navigate("/admin/asesores");
     } catch (err) {
-      notify(err.message || "Error al guardar");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }

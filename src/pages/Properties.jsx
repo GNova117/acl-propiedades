@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import PropertyFilters from "../components/PropertyFilters";
 import PropertyCard from "../components/PropertyCard";
-import Reveal from "../components/Reveal";
 import AlertSignupCard from "../components/AlertSignupCard";
 import DevelopmentCard from "../components/DevelopmentCard";
 import { filtersToCriteria } from "../lib/alertMatch";
@@ -598,10 +597,9 @@ export default function Properties({
               <div className={effectiveView === "split" ? "properties-split" : undefined}>
                 <div className="properties-split__list">
                   <div className="properties-grid">
-                    {properties.map((property, index) => (
-                      <Reveal key={property.id} delay={(index % 6) * 70}>
-                        <PropertyCard property={property} nextVisitSlot={nextSlots[property.id]} />
-                      </Reveal>
+                    {/* Sin Reveal: las tarjetas del listado arrancaban invisibles y al volver de una ficha (o al imprimir) salían vacías un momento. */}
+                    {properties.map((property) => (
+                      <PropertyCard key={property.id} property={property} nextVisitSlot={nextSlots[property.id]} />
                     ))}
                   </div>
                   {total > PAGE_SIZE && (

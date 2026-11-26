@@ -171,6 +171,7 @@
     "rentada": "Rentada"
   },
   "properties": {
+    "codeSearchError": "No se pudo buscar. Revisa tu conexión e inténtalo de nuevo.",
     "statusFilter": "Estatus",
     "statusDefault": "Disponibles y apartadas",
     "statusOnlyAvailable": "Solo disponibles",
@@ -610,6 +611,7 @@
     "someFailed": "Algunos registros no se pudieron actualizar — vuelve a intentar."
   },
   "common": {
+    "saveError": "No se pudo guardar. Inténtalo de nuevo.",
     "more": "Más",
     "loading": "Cargando...",
     "save": "Guardar",
@@ -819,6 +821,7 @@
     }
   },
   "admin": {
+    "loginNetworkError": "No se pudo conectar. Revisa tu conexión e inténtalo de nuevo.",
     "notFound": {
       "title": "Esta pantalla no existe",
       "text": "La dirección no corresponde a ninguna pantalla del panel. Puede que el enlace esté viejo.",
@@ -4856,6 +4859,12 @@
     "switchLanguage": "Cambiar idioma / Switch language"
   },
   "propertyForm": {
+    "title": "Título",
+    "priceMxn": "Precio (MXN)",
+    "address": "Dirección",
+    "lat": "Latitud",
+    "lng": "Longitud",
+    "parking": "Estacionamientos",
     "locationApproximate": "Mostrar solo la zona, no el punto exacto (ubicación aproximada)",
     "locationApproximateHint": "En el sitio se verá un círculo de unos 500 m y la zona, sin la calle, sin «Cómo llegar» ni Street View. Las coordenadas exactas solo las ven quienes tienen Propiedades. Capture en «Dirección» solo la colonia.",
     "descriptionHint": "Deja una línea en blanco para separar párrafos y empieza una línea con «- » para hacer una lista (con «1. » para numerarla). En el sitio se ve con sus párrafos y viñetas.",
@@ -5194,5 +5203,8 @@
       "prospectos": "1 mes sin actividad",
       "contratos": "6 meses"
     }
+  },
+  "home": {
+    "seoDescription": "ACL Propiedades: compra y venta de casas, departamentos, naves industriales y terrenos en Torreón, Gómez Palacio y Lerdo."
   }
 }

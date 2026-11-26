@@ -7,6 +7,7 @@ import { downloadClientDocumentAsPdf } from "../../lib/clientDocPdf";
 import DocumentPreviewModal from "../../components/DocumentPreviewModal";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
+import { notifyLoadError } from "../../lib/loadError";
 
 function clientTypeLabel(t, type) {
   return t(`clients.${type === "comprador" ? "buyer" : type === "vendedor" ? "seller" : "both"}`);
@@ -56,7 +57,7 @@ export default function AdminClientJoint() {
       setDocsA(selfDocs);
       setDocsB(otherDocs);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
     return () => {
       active = false;
     };

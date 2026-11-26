@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { trackPropertyEvent } from "../lib/propertyEvents";
 import "./ShareButton.css";
 import { trackConversion } from "../lib/conversions";
+import { copyFallback } from "../lib/toast";
 
 // Con Web Share API (la mayoría de navegadores móviles y algunos de
 // escritorio) un solo botón abre la hoja nativa de compartir del sistema
@@ -47,7 +48,7 @@ export default function ShareButton({ title, text, url, openUpward = false, prop
       // navegadores/contextos embebidos tampoco soportan window.prompt,
       // así que esto también va en su propio try/catch.
       try {
-        window.prompt(t("detail.copyLinkManual"), shareText);
+        copyFallback(t("detail.copyLinkManual"), shareText);
       } catch {
         // No hay más alternativas sin backend — se queda callado en vez
         // de tronar con una excepción sin capturar.

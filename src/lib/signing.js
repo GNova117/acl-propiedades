@@ -1,6 +1,7 @@
 // Ayudantes de la firma de contratos desde el sitio (ver supabase/schema.sql,
 // "Firma de contratos desde el sitio"): conversión de archivos, enlace público,
 // estado efectivo de una solicitud y lectura de imágenes de huella.
+import { siteOrigin } from "./site";
 
 export const SIGNING_MAX_PDF_BYTES = 8 * 1024 * 1024; // el límite en la base es ~10 MB de base64
 export const SIGNING_CODE_MAX_ATTEMPTS = 5;
@@ -30,7 +31,7 @@ export async function sha256Hex(bytes) {
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export const signingLink = (token) => `${window.location.origin}/firmar/${token}`;
+export const signingLink = (token) => `${siteOrigin()}/firmar/${token}`;
 
 // Estado que ve el personal: la base guarda pendiente/firmado/cancelado; caducada
 // y bloqueada se deducen (vigencia y intentos fallidos).

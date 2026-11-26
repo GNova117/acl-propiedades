@@ -9,6 +9,7 @@ import InternalNotes from "../../components/InternalNotes";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog, notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 // Mismos tipos que soporta el perfilamiento (ver FieldInput en
 // PerfilamientoManager.jsx). Un campo sensible (la contraseña del portal de
@@ -110,12 +111,12 @@ export default function AdminClientForm() {
         ...Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, client[key] || ""])),
       });
       setLoading(false);
-    });
-    db.getClientLink(id).then(setLink);
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
+    db.getClientLink(id).then(setLink).catch(notifyLoadError);
   }, [id, isEdit]);
 
   useEffect(() => {
-    db.getClients().then((data) => setOtherClients(data.filter((c) => c.id !== id)));
+    db.getClients().then((data) => setOtherClients(data.filter((c) => c.id !== id))).catch(notifyLoadError);
   }, [id]);
 
   const handleChange = (field) => (e) => {
@@ -185,7 +186,7 @@ export default function AdminClientForm() {
       }
       navigate("/admin/clientes");
     } catch (err) {
-      notify(err.message || "Error al guardar");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }

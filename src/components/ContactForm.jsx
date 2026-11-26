@@ -78,19 +78,19 @@ export default function ContactForm() {
 
       <div className="form-field">
         <label htmlFor="contact-name">{t("contact.name")}</label>
-        <input id="contact-name" name="name" value={form.name} onChange={handleChange} aria-invalid={Boolean(errors.name)} />
+        <input id="contact-name" name="name" autoComplete="name" value={form.name} onChange={handleChange} aria-invalid={Boolean(errors.name)} />
         {errors.name && <span className="form-error">{errors.name}</span>}
       </div>
 
       <div className="form-row">
         <div className="form-field">
           <label htmlFor="contact-email">{t("contact.email")}</label>
-          <input id="contact-email" name="email" type="email" value={form.email} onChange={handleChange} aria-invalid={Boolean(errors.email)} />
+          <input id="contact-email" name="email" type="email" autoComplete="email" value={form.email} onChange={handleChange} aria-invalid={Boolean(errors.email)} />
           {errors.email && <span className="form-error">{errors.email}</span>}
         </div>
         <div className="form-field">
           <label htmlFor="contact-phone">{t("contact.phone")}</label>
-          <input id="contact-phone" name="phone" type="tel" value={form.phone} onChange={handleChange} />
+          <input id="contact-phone" name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={handleChange} />
         </div>
       </div>
 

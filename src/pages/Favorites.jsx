@@ -11,6 +11,7 @@ import "./Properties.css";
 import "./Favorites.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
+import { siteOrigin } from "../lib/site";
 
 export default function Favorites() {
   const { t } = useTranslation();
@@ -46,7 +47,7 @@ export default function Favorites() {
 
   useEffect(() => setSaved(false), [search]);
 
-  const shareUrl = typeof window !== "undefined" ? buildFavoritesShareUrl(window.location.origin, favorites) : "";
+  const shareUrl = typeof window !== "undefined" ? buildFavoritesShareUrl(siteOrigin(), favorites) : "";
   const shareText = `${t("favoritesShare.shareText")}\n${shareUrl}`;
   const allSaved = shared && properties.length > 0 && properties.every((p) => favorites.includes(p.id));
 

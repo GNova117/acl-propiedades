@@ -14,6 +14,7 @@ import { valuationPdfLabels, valuationRowToPdfData, valuationWhatsappUrl } from 
 import "./AdminValuation.css";
 import "./admin.css";
 import { confirmDialog, notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const DEFAULT_SPREAD_PCT = 10;
 const MAX_LEVELS = 10;
@@ -64,7 +65,7 @@ export default function AdminValuation() {
       const wanted = prefill?.zoneName && data.find((z) => z.name === prefill.zoneName);
       if (wanted) setZoneId(wanted.id);
       else if (data.length > 0) setZoneId(data[0].id);
-    });
+    }).catch(notifyLoadError);
   }, []);
 
   useEffect(() => {

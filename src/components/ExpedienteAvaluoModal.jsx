@@ -4,6 +4,7 @@ import { db } from "../lib/dataStore";
 import { AVALUO_BUYER_DOCS, AVALUO_SELLER_DOCS, downloadExpedienteAvaluoPdf } from "../lib/expedienteAvaluoPdf";
 import "./ExpedienteAvaluoModal.css";
 import LoadingState from "./LoadingState";
+import { notifyLoadError } from "../lib/loadError";
 
 // Armado del expediente para avalúos: se eligen aquí las personas (uno o
 // los dos compradores de un expediente conjunto, más el vendedor) y se
@@ -11,7 +12,7 @@ import LoadingState from "./LoadingState";
 // comprador-vendedor en la base: el expediente se arma al momento de
 // descargarlo, porque la misma persona puede entrar en varios avalúos.
 export default function ExpedienteAvaluoModal({ client, linkedClient, onClose }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [buyerIds, setBuyerIds] = useState([]);
@@ -23,7 +24,7 @@ export default function ExpedienteAvaluoModal({ client, linkedClient, onClose })
     db.getClients().then((data) => {
       setClients(data);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, []);
 
   // El cliente desde el que se abrió el modal entra preseleccionado según su
@@ -73,6 +74,7 @@ export default function ExpedienteAvaluoModal({ client, linkedClient, onClose })
         labels: {
           contents: t("expedienteAvaluo.contents"),
           generatedOn: t("expedienteAvaluo.generatedOn"),
+          locale: i18n.language,
           missing: t("expedienteAvaluo.missing"),
           failed: t("expedienteAvaluo.failed"),
           clientSheet: t("expedienteAvaluo.clientSheet"),

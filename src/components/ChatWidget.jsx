@@ -1,3 +1,4 @@
+import { generateVisitorId } from "../lib/visitorId";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ChatIcon from "./icons/ChatIcon";
@@ -15,12 +16,12 @@ function getSessionId() {
   try {
     let id = sessionStorage.getItem(SESSION_KEY);
     if (!id) {
-      id = crypto.randomUUID();
+      id = generateVisitorId();
       sessionStorage.setItem(SESSION_KEY, id);
     }
     return id;
   } catch {
-    return crypto.randomUUID();
+    return generateVisitorId();
   }
 }
 

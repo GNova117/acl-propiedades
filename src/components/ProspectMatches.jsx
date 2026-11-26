@@ -5,6 +5,7 @@ import { criteriaSummary } from "../lib/prospectMatch";
 import { sendLink, suggestPropertyMessage } from "../lib/prospectMessages";
 import { propertiesShareMessage } from "../lib/propertyShare";
 import SelectionBuilder from "./SelectionBuilder";
+import { siteOrigin } from "../lib/site";
 
 // Cuántas propiedades que le encajan se listan (el resto se cuenta).
 const MAX_MATCHES = 5;
@@ -22,14 +23,14 @@ export default function ProspectMatches({ prospect, matches, advisorName = "", o
   if (matches.length === 0) return null;
 
   const suggestionLink = (property) =>
-    sendLink(prospect, suggestPropertyMessage(prospect, property, `${window.location.origin}/propiedades/${property.id}`), t("prospects.match.emailSubject"));
+    sendLink(prospect, suggestPropertyMessage(prospect, property, `${siteOrigin()}/propiedades/${property.id}`), t("prospects.match.emailSubject"));
 
   // Las primeras coincidencias en un solo mensaje (una sola ida a WhatsApp en
   // vez de una por propiedad). null si el prospecto no tiene teléfono ni correo.
   const bundle = matches.length > 1
     ? sendLink(
         prospect,
-        propertiesShareMessage(matches, { origin: window.location.origin, recipientName: prospect.name, advisorName, limit: MAX_SENT_TOGETHER }),
+        propertiesShareMessage(matches, { origin: siteOrigin(), recipientName: prospect.name, advisorName, limit: MAX_SENT_TOGETHER }),
         t("prospects.match.emailSubject")
       )
     : null;

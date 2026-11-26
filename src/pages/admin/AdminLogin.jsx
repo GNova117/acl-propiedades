@@ -5,6 +5,7 @@ import Seo from "../../components/Seo";
 import Logo from "../../components/Logo";
 import { useAuth } from "../../context/AuthContext";
 import { db } from "../../lib/dataStore";
+import { isLoginNetworkError } from "../../lib/loginError";
 import "./AdminLogin.css";
 
 export default function AdminLogin() {
@@ -36,8 +37,9 @@ export default function AdminLogin() {
     try {
       await login(email, password);
       navigate(target, { replace: true });
-    } catch {
-      setError(t("admin.loginError"));
+    } catch (err) {
+      // Sin red o con el servidor caído no se culpa a la contraseña.
+      setError(t(isLoginNetworkError(err) ? "admin.loginNetworkError" : "admin.loginError"));
     } finally {
       setLoading(false);
     }

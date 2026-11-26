@@ -3,8 +3,9 @@ import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import "./AgendaFeedCard.css";
 import { confirmDialog } from "../lib/toast";
+import { siteOrigin } from "../lib/site";
 
-const feedUrl = (token) => `${window.location.origin}/api/agenda-ics?t=${token}`;
+const feedUrl = (token) => `${siteOrigin()}/api/agenda-ics?t=${token}`;
 
 // «Ver mi Agenda en Google/Apple Calendar»: una URL secreta de SOLO lectura que el calendario externo vuelve a leer
 // solo (se suscribe a ella). NO es una sincronización de dos vías: lo que se cambie en el calendario externo no llega

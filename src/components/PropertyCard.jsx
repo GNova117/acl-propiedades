@@ -15,6 +15,7 @@ import { nextVisitTag } from "../lib/nextVisit";
 import { estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import "./PropertyCard.css";
 import { propertyPath } from "../lib/propertyUrl.js";
+import { siteOrigin } from "../lib/site";
 
 // `nextVisitSlot`: primer horario libre para visitarla ({ fecha, hora }); sale «Visítala hoy / mañana / el jueves».
 // `soldInDays`: en «Vendidas recientemente», cuántos días tardó en venderse.
@@ -27,7 +28,7 @@ export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
   const badge = getPropertyBadge(property);
   const monthly = estimateMonthlyPayment(property);
   const visitTag = property.status === "disponible" ? nextVisitTag(nextVisitSlot) : null;
-  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${propertyPath(property)}` : "";
+  const shareUrl = typeof window !== "undefined" ? `${siteOrigin()}${propertyPath(property)}` : "";
   // Mismo formato que el botón de Compartir de la ficha de propiedad, pero
   // sin amenidades (la tarjeta de listado no las trae cargadas) — para que
   // alguien pueda reenviar una propiedad desde los resultados o sus

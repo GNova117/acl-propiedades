@@ -171,6 +171,7 @@
     "rentada": "Rented"
   },
   "properties": {
+    "codeSearchError": "The search failed. Check your connection and try again.",
     "statusFilter": "Status",
     "statusDefault": "Available and reserved",
     "statusOnlyAvailable": "Available only",
@@ -610,6 +611,7 @@
     "someFailed": "Some records couldn't be updated — try again."
   },
   "common": {
+    "saveError": "Could not save. Please try again.",
     "more": "More",
     "loading": "Loading...",
     "save": "Save",
@@ -819,6 +821,7 @@
     }
   },
   "admin": {
+    "loginNetworkError": "Could not connect. Check your connection and try again.",
     "notFound": {
       "title": "This screen doesn't exist",
       "text": "The address doesn't match any panel screen. The link may be out of date.",
@@ -4856,6 +4859,12 @@
     "switchLanguage": "Cambiar idioma / Switch language"
   },
   "propertyForm": {
+    "title": "Title",
+    "priceMxn": "Price (MXN)",
+    "address": "Address",
+    "lat": "Latitude",
+    "lng": "Longitude",
+    "parking": "Parking spaces",
     "locationApproximate": "Show only the area, not the exact spot (approximate location)",
     "locationApproximateHint": "The site will show a circle of about 500 m and the area, without the street, \"Directions\" or Street View. Only people with Properties access see the exact coordinates. Enter only the neighborhood in \"Address\".",
     "descriptionHint": "Leave a blank line to separate paragraphs and start a line with “- ” to make a list (with “1. ” to number it). On the site it shows with its paragraphs and bullets.",
@@ -5194,5 +5203,8 @@
       "prospectos": "1 month without activity",
       "contratos": "6 months"
     }
+  },
+  "home": {
+    "seoDescription": "ACL Propiedades: buy and sell houses, apartments, industrial warehouses and land in Torreón, Gómez Palacio and Lerdo."
   }
 }

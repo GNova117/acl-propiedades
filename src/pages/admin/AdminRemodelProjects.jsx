@@ -6,6 +6,7 @@ import { formatArea } from "../../lib/format";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 export default function AdminRemodelProjects() {
   const { t } = useTranslation();
@@ -19,7 +20,7 @@ export default function AdminRemodelProjects() {
       setProjects(projectData);
       setClients(clientData);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   };
 
   useEffect(load, []);

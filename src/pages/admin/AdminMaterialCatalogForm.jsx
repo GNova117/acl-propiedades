@@ -6,6 +6,7 @@ import { CONSUMPTION_BASES } from "../../lib/materialConsumption";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const EMPTY = {
   name: "",
@@ -44,7 +45,7 @@ export default function AdminMaterialCatalogForm() {
         active: item.active !== false,
       });
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [id, isEdit]);
 
   const handleChange = (field) => (e) => {
@@ -71,7 +72,7 @@ export default function AdminMaterialCatalogForm() {
       }
       navigate("/admin/materiales");
     } catch (err) {
-      notify(err.message || "Error al guardar");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }

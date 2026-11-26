@@ -7,6 +7,7 @@ import "./ContactRequestCard.css";
 import { propertyPath } from "../lib/propertyUrl.js";
 import { trackConversion } from "../lib/conversions";
 import { lastSubmitAt, markSubmitted } from "../lib/rateLimitStore";
+import { siteOrigin } from "../lib/site";
 
 // Reemplaza a las tarjetas de asesor (nombre + teléfono + correo + botones
 // de llamar/WhatsApp) que antes se mostraban en la ficha de cada
@@ -27,7 +28,7 @@ const RATE_LIMIT_MS = 60_000;
 const MIN_PHONE_DIGITS = 10;
 
 const propertyLabel = (property) => (property.code ? `${property.title.trim()} (${property.code})` : property.title.trim());
-const propertyLink = (property) => (typeof window !== "undefined" ? `${window.location.origin}${propertyPath(property)}` : "");
+const propertyLink = (property) => (typeof window !== "undefined" ? `${siteOrigin()}${propertyPath(property)}` : "");
 
 function buildRequestMessage(property) {
   return `Solicitud de contacto — ${propertyLabel(property)}.\nPide que le llamen o le escriban por WhatsApp.\n${propertyLink(property)}`;

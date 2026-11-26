@@ -5,6 +5,7 @@ import { db } from "../../lib/dataStore";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const EMPTY = { title: "", excerpt: "", body: "", published: false };
 
@@ -33,7 +34,7 @@ export default function AdminBlogForm() {
       setForm({ title: post.title, excerpt: post.excerpt || "", body: post.body, published: post.published });
       setExistingCover(post.cover_image || "");
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [id, isEdit]);
 
   useEffect(() => {
@@ -72,7 +73,7 @@ export default function AdminBlogForm() {
       }
       navigate("/admin/blog");
     } catch (err) {
-      notify(err.message || "Error al guardar el artículo");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }

@@ -33,9 +33,13 @@ export default function SearchBar() {
     // conviven ahí); en los apartados de un solo tipo ya está implícito.
     if (form.type && path === "/propiedades") params.set("tipo", form.type);
     if (form.zone) params.set("zona", form.zone);
-    if (form.minPrice) params.set("min", form.minPrice);
-    if (form.maxPrice) params.set("max", form.maxPrice);
-    navigate(`${path}?${params.toString()}`);
+    // Si el mínimo quedó mayor que el máximo se acomodan (con los dos al revés no había resultados y sin explicación).
+    let { minPrice, maxPrice } = form;
+    if (minPrice && maxPrice && Number(minPrice) > Number(maxPrice)) [minPrice, maxPrice] = [maxPrice, minPrice];
+    if (minPrice) params.set("min", minPrice);
+    if (maxPrice) params.set("max", maxPrice);
+    const query = params.toString();
+    navigate(query ? `${path}?${query}` : path);
   };
 
   const handleCodeSearch = async (e) => {
@@ -50,6 +54,10 @@ export default function SearchBar() {
       } else {
         setCodeError(true);
       }
+    } catch (err) {
+      // Sin red el botón se quedaba en «buscando»: ahora avisa que no se pudo buscar.
+      console.error("getPropertyByCode", err);
+      setCodeError("network");
     } finally {
       setSearchingCode(false);
     }
@@ -109,7 +117,7 @@ export default function SearchBar() {
         <button type="submit" className="btn btn-outline btn-sm" disabled={searchingCode || !codeInput.trim()}>
           {t("properties.codeSearchButton")}
         </button>
-        {codeError && <span className="form-error">{t("properties.codeNotFound")}</span>}
+        {codeError && <span className="form-error">{t(codeError === "network" ? "properties.codeSearchError" : "properties.codeNotFound")}</span>}
       </form>
     </div>
   );

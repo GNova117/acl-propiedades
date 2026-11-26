@@ -5,6 +5,7 @@ import { formatMXN } from "../lib/format";
 import { dismissKey, loadDismissed, newMatches, saveDismissed } from "../lib/newMatches";
 import { sendLink, suggestPropertyMessage } from "../lib/prospectMessages";
 import "./MyDayPanels.css";
+import { siteOrigin } from "../lib/site";
 
 // «Propiedades nuevas para tus prospectos» (Mi día): propiedades publicadas esta semana que encajan con lo que busca
 // un prospecto abierto. Avisar es decisión del asesor: «Avisarle» abre WhatsApp/correo con el mensaje armado y deja
@@ -39,7 +40,7 @@ export default function NewMatchesPanel({ prospects, properties, scope }) {
             </Link>
             <ul className="day-panel__list day-panel__list--plain">
               {found.slice(0, 3).map((property) => {
-                const link = sendLink(prospect, suggestPropertyMessage(prospect, property, `${window.location.origin}/propiedades/${property.id}`), t("prospects.match.emailSubject"));
+                const link = sendLink(prospect, suggestPropertyMessage(prospect, property, `${siteOrigin()}/propiedades/${property.id}`), t("prospects.match.emailSubject"));
                 return (
                   <li key={property.id} className="day-panel__match">
                     <a href={`/propiedades/${property.id}`} target="_blank" rel="noopener noreferrer">

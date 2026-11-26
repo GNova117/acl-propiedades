@@ -75,6 +75,10 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
       } else {
         setCodeError(true);
       }
+    } catch (err) {
+      // Sin red el botón se quedaba en «buscando»: ahora avisa que no se pudo buscar.
+      console.error("getPropertyByCode", err);
+      setCodeError("network");
     } finally {
       setSearchingCode(false);
     }
@@ -118,7 +122,7 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
             {t("properties.codeSearchButton")}
           </button>
         </div>
-        {codeError && <span className="form-error">{t("properties.codeNotFound")}</span>}
+        {codeError && <span className="form-error">{t(codeError === "network" ? "properties.codeSearchError" : "properties.codeNotFound")}</span>}
       </form>
 
       {typeOptions.length > 0 && (

@@ -3,13 +3,14 @@ import { useTranslation } from "react-i18next";
 import { downloadQrPng, downloadQrSignPdf, qrCanvas, qrMatrix, qrTargetUrl, signHeading } from "../lib/propertyQr";
 import "./PropertyProspectsModal.css";
 import "./PropertyQrModal.css";
+import { siteOrigin } from "../lib/site";
 
 // "QR" de una propiedad (Propiedades del admin): el código que lleva a su ficha
 // pública, listo para letreros y volantes. Se baja como letrero en PDF (carta,
 // sobre la hoja membretada) o solo como imagen PNG para ponerlo donde haga falta.
 export default function PropertyQrModal({ property, onClose }) {
   const { t } = useTranslation();
-  const origin = window.location.origin;
+  const origin = siteOrigin();
   const url = useMemo(() => qrTargetUrl(property, origin), [property, origin]);
   // Con el logo de ACL al centro (se puede quitar: un QR liso es más fácil de leer en una impresión chica o dañada).
   const [withLogo, setWithLogo] = useState(true);

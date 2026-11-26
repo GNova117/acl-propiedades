@@ -12,6 +12,8 @@ import { enqueueCita, isOfflineError, isOnline, newId, withTimeout } from "../..
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
+import { siteOrigin } from "../../lib/site";
 
 const EMPTY = { advisor_id: "", client_id: "", property_id: "", prospecto_id: "", titulo: "", fecha: "", hora: "", actividades: "", lugar: "", contact_name: "", contact_phone: "", contact_email: "" };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -88,7 +90,7 @@ export default function AdminAgendaForm() {
         });
       }
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
     return () => {
       cancelled = true;
     };
@@ -170,7 +172,7 @@ export default function AdminAgendaForm() {
         }
       }
     } catch (err) {
-      notify(err.message || "Error al guardar");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }
@@ -178,7 +180,7 @@ export default function AdminAgendaForm() {
 
   // Enlace de una cita ya guardada y el mensaje de WhatsApp para mandárselo (con el cliente ligado o los datos de contacto).
   const linkInfo = (cita) => {
-    const link = cita.status === undefined || citaStatus(cita) === "confirmada" ? visitLink(cita, window.location.origin) : "";
+    const link = cita.status === undefined || citaStatus(cita) === "confirmada" ? visitLink(cita, siteOrigin()) : "";
     if (!link) return null;
     const contact = citaContact(cita, clients.find((c) => c.id === cita.client_id) || null);
     const date = new Date(`${cita.fecha}T00:00:00`).toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });

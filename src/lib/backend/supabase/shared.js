@@ -150,9 +150,10 @@ export async function propertySelect() {
 
 export const PROPERTY_SORTERS = {
   newest: [["created_at", false], ["id", true]],
-  price_asc: [["price", true]],
-  price_desc: [["price", false]],
-  area_desc: [["area_m2", false]],
+  // Todos terminan en `id`: con precios o superficies iguales el orden era ambiguo y, al paginar, una propiedad podía repetirse o saltarse.
+  price_asc: [["price", true], ["id", true]],
+  price_desc: [["price", false], ["id", true]],
+  area_desc: [["area_m2", false], ["id", true]],
 };
 
 export const SECRETARIA_TABLES = { keys: "secretaria_llaves", docs: "secretaria_documentos" };

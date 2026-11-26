@@ -8,6 +8,7 @@
 // (visit_report / visit_report_by_token en schema.sql): cada visita trae solo
 // { visited_at, interest, reasons, comments }. Este módulo nunca ve el nombre
 // del prospecto ni las notas internas.
+import { siteOrigin } from "./site";
 
 export const VISIT_INTERESTS = ["muy_interesado", "interesado", "oferta_realizada", "descartado"];
 
@@ -229,6 +230,6 @@ export function generateReportToken() {
 
 export const reportPath = (token) => `/informe/${token}`;
 
-export function reportUrl(token, origin = typeof window !== "undefined" ? window.location.origin : "") {
+export function reportUrl(token, origin = typeof window !== "undefined" ? siteOrigin() : "") {
   return `${origin}${reportPath(token)}`;
 }

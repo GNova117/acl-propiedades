@@ -7,6 +7,8 @@ import { estimateMonthlyPayment } from "../../lib/monthlyEstimate";
 import { formatMXN, formatArea } from "../../lib/format";
 import { OFFICE_WHATSAPP } from "../../lib/office";
 import "./development.css";
+import { copyFallback } from "../../lib/toast";
+import { siteOrigin } from "../../lib/site";
 
 // Ficha de un departamento dentro de la página de la torre. Las fotos y el
 // plano son los del modelo (no del depto); lo propio del depto es piso, vista,
@@ -42,7 +44,7 @@ export default function UnitDialog({ development, unit, onSelect, onClose }) {
     [development, unit.model, unit.number]
   );
 
-  const url = `${window.location.origin}/desarrollos/${development.slug}?depto=${encodeURIComponent(unit.number)}`;
+  const url = `${siteOrigin()}/desarrollos/${development.slug}?depto=${encodeURIComponent(unit.number)}`;
   const whatsappUrl = `https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(unitWhatsappText(development, unit, url))}`;
   const gallery = unit.images;
   const showPlan = tab === "plan" && unit.plan_image;
@@ -53,7 +55,7 @@ export default function UnitDialog({ development, unit, onSelect, onClose }) {
       await navigator.clipboard.writeText(url);
       setCopied(true);
     } catch {
-      window.prompt(t("developments.dialog.copyLink"), url);
+      copyFallback(t("developments.dialog.copyLink"), url);
     }
   };
 

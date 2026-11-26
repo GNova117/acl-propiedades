@@ -7,6 +7,7 @@ import VisitScheduleEditor from "../../components/VisitScheduleEditor";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const EMPTY = { name: "", phone: "", email: "", whatsapp: "", bio: "" };
 
@@ -53,7 +54,7 @@ export default function AdminMyProfile() {
       });
       setExistingPhoto(advisor.photo_url || "");
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [advisorId]);
 
   useEffect(() => {
@@ -95,7 +96,7 @@ export default function AdminMyProfile() {
       setPhotoFile(null);
       setSaved(true);
     } catch (err) {
-      notify(err.message || "Error al guardar");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }

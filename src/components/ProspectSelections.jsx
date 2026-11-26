@@ -7,7 +7,8 @@ import { whatsappDigits, whatsappUrl } from "../lib/format";
 import { selectionShareMessage } from "../lib/propertyShare";
 import { agoText, defaultSelectionTitle, reactionSummary, selectionState, selectionUrl, selectionsFor } from "../lib/selections";
 import "./SelectionReaction.css";
-import { confirmDialog } from "../lib/toast";
+import { confirmDialog, copyFallback } from "../lib/toast";
+import { siteOrigin } from "../lib/site";
 
 const NONE = [];
 
@@ -29,14 +30,14 @@ export default function ProspectSelections({ prospect, advisorName = "", onNew, 
   const canWhatsApp = whatsappDigits(prospect.phone).length >= 10;
 
   const copyLink = async (selection) => {
-    const url = selectionUrl(window.location.origin, selection.token);
+    const url = selectionUrl(siteOrigin(), selection.token);
     try {
       await navigator.clipboard.writeText(url);
       setCopied(selection.id);
       setTimeout(() => setCopied(""), 2000);
     } catch {
       try {
-        window.prompt(t("detail.copyLinkManual"), url);
+        copyFallback(t("detail.copyLinkManual"), url);
       } catch {
         // Sin portapapeles ni prompt: el asesor puede abrir «Ver» y copiar la dirección.
       }
@@ -71,7 +72,7 @@ export default function ProspectSelections({ prospect, advisorName = "", onNew, 
       <ul className="prospect-selections__list">
         {mine.map((selection) => {
           const state = selectionState(selection);
-          const url = selectionUrl(window.location.origin, selection.token);
+          const url = selectionUrl(siteOrigin(), selection.token);
           const active = state === "sent" || state === "opened";
           const resend =
             active && canWhatsApp

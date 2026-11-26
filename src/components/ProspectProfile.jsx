@@ -15,6 +15,7 @@ import ProspectSelections from "./ProspectSelections";
 import SelectionBuilder from "./SelectionBuilder";
 import { FollowChip, UnattendedChip } from "./ProspectChips";
 import { confirmDialog } from "../lib/toast";
+import { siteOrigin } from "../lib/site";
 
 // Ficha de un prospecto: lo que hay que saber de él y lo que se le hace, sin
 // pasar por el formulario de edición (que queda plegado debajo). Resumen
@@ -132,7 +133,7 @@ export default function ProspectProfile({ prospect: p, properties, advisors, onU
 
       <div className="prospect-card__actions prospect-profile__actions">
         <QuickReplyButton
-          templates={quickTemplates(p, { propertyTitle, advisorName, origin: window.location.origin, t })}
+          templates={quickTemplates(p, { propertyTitle, advisorName, origin: siteOrigin(), t })}
           phone={p.phone}
           email={p.email}
           emailSubject="ACL Propiedades"

@@ -11,6 +11,7 @@ import QuickReplyButton from "../../components/QuickReplyButton";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog, notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const PREVIEW_LENGTH = 80;
 
@@ -68,7 +69,7 @@ export default function AdminMessages() {
       setMessages(messageData);
       setProperties(propertyData);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   };
 
   useEffect(() => {

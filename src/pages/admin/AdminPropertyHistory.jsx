@@ -5,6 +5,7 @@ import { db } from "../../lib/dataStore";
 import { formatMXN } from "../../lib/format";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
+import { notifyLoadError } from "../../lib/loadError";
 
 const FIELD_LABELS = { price: "Precio", status: "Estatus" };
 
@@ -28,7 +29,7 @@ export default function AdminPropertyHistory({ listPath = "/admin/propiedades" }
       setProperty(propertyData);
       setChanges(changeData);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [id]);
 
   return (
