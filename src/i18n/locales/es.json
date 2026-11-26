@@ -173,6 +173,7 @@
     "rentada": "Rentada"
   },
   "properties": {
+    "noAdvisor": "Sin asesor",
     "codeSearchError": "No se pudo buscar. Revisa tu conexión e inténtalo de nuevo.",
     "statusFilter": "Estatus",
     "statusDefault": "Disponibles y apartadas",
@@ -250,6 +251,10 @@
     "coloniesTitle": "Colonias de {{city}} con propiedades"
   },
   "detail": {
+    "publishedAgo_zero": "Publicada hoy",
+    "publishedAgo_one": "Publicada hace {{count}} día",
+    "publishedAgo_other": "Publicada hace {{count}} días",
+    "updatedOn": "Actualizada el {{date}}",
     "seoTitleSold": "Vendida · {{type}} en {{zone}}",
     "seoTitleRented": "Rentada · {{type}} en {{zone}}",
     "seoTitle": "{{type}} en {{operation}} — {{zone}} · {{price}}",
@@ -547,6 +552,7 @@
       "manage": "Ver o cancelar mi solicitud"
     },
     "booking": {
+      "addToGoogle": "Agregar a Google Calendar",
       "loading": "Buscando horarios disponibles…",
       "chooseDay": "Elige el día",
       "chooseTime": "Elige la hora",
@@ -3253,6 +3259,7 @@
     "title": "Vistos recientemente"
   },
   "chatWidget": {
+    "newChat": "Nueva conversación",
     "rateLimited": "Llegaste al límite de mensajes por ahora. Si quieres seguir, escríbenos por WhatsApp y un asesor te atiende.",
     "aiNotice": "Este asistente es una inteligencia artificial: lo que escribas lo procesa un proveedor externo. No compartas datos sensibles (contraseñas, datos bancarios). Si dejas tu teléfono o correo, un asesor te contactará.",
     "title": "Asistente ACL Propiedades",
@@ -3267,6 +3274,7 @@
     "error": "Algo salió mal. Intenta de nuevo o escríbenos por WhatsApp."
   },
   "gallery": {
+    "download": "Descargar esta foto",
     "expand": "Ampliar",
     "counter": "{{current}} / {{total}}",
     "prev": "Foto anterior",
@@ -3925,6 +3933,7 @@
     "whatsappText": "Hola {{name}}, soy {{advisor}} de ACL Propiedades. Tu visita ({{title}}) quedó para el {{when}}. En este enlace puedes confirmar que asistirás, cambiar el horario o cancelarla: {{link}}"
   },
   "visitPage": {
+    "addToGoogle": "Google Calendar",
     "pageTitle": "Tu visita",
     "invalidTitle": "Enlace no válido",
     "invalidBody": "Este enlace no corresponde a ninguna visita. Revisa que esté completo o escríbenos por WhatsApp.",
@@ -4879,6 +4888,10 @@
     "switchLanguage": "Cambiar idioma / Switch language"
   },
   "propertyForm": {
+    "viewOnSite": "Ver en el sitio",
+    "descriptionCount_one": "{{count}} carácter (Google muestra unos 155)",
+    "descriptionCount_other": "{{count}} caracteres (Google muestra unos 155)",
+    "priceWarning": {"lowSale": "El precio {{price}} es muy bajo para una venta: ¿falta un cero? ¿Guardar así?", "highSale": "El precio {{price}} es muy alto para una venta: ¿sobra un cero? ¿Guardar así?", "lowRent": "El precio {{price}} es muy bajo para una renta mensual: ¿falta un cero? ¿Guardar así?", "highRent": "El precio {{price}} es muy alto para una renta mensual: ¿sobra un cero? ¿Guardar así?"},
     "title": "Título",
     "priceMxn": "Precio (MXN)",
     "address": "Dirección",

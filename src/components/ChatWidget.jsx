@@ -114,6 +114,11 @@ export default function ChatWidget() {
         <div className="chat-widget__panel" role="dialog" aria-label={t("chatWidget.title")}>
           <div className="chat-widget__header">
             <span>{t("chatWidget.title")}</span>
+            {messages.length > 0 && (
+              <button type="button" className="chat-widget__reset" onClick={() => setMessages([])}>
+                {t("chatWidget.newChat")}
+              </button>
+            )}
             <a href={handoffHref} target="_blank" rel="noreferrer" className="chat-widget__whatsapp-link">
               {t("chatWidget.talkToAdvisor")}
             </a>

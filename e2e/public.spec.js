@@ -38,8 +38,10 @@ test.describe("Navegación y preferencias", () => {
     });
     expect(recortados).toEqual([]);
 
-    await press(page.getByRole("button", { name: "Abrir menú" }));
+    // Abierto, el botón se llama «Cerrar menú» (la etiqueta sigue el estado).
+    await press(page.getByRole("button", { name: "Cerrar menú" }));
     await expect.poll(alto).toBeLessThanOrEqual(2);
+    await expect(page.getByRole("button", { name: "Abrir menú" })).toBeVisible();
   });
 
   test("modo oscuro: cambia y se recuerda al recargar", async ({ page, go, press }) => {

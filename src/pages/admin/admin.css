@@ -1277,3 +1277,10 @@
 .admin-table-wrapper {
   padding-bottom: 4.5rem;
 }
+
+.property-no-advisor {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.7rem;
+  vertical-align: middle;
+}

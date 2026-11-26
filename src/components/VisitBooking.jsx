@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { trackConversion } from "../lib/conversions";
-import { citaToIcs, downloadIcs, mapsUrl } from "../lib/calendarEvent";
+import { citaToIcs, downloadIcs, googleCalendarUrl, mapsUrl } from "../lib/calendarEvent";
 import { OFFICE_WHATSAPP } from "../lib/office";
 import { advisorsForSlot, bookingFieldErrors } from "../lib/visitSlots";
 import { bookingErrorField, bookingErrorKey, bookingToCalendarEvent, formatSlotDay, formatSlotTime } from "../lib/visitBookingUi";
@@ -110,6 +110,7 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
       const event = bookingToCalendarEvent(booked, { titlePrefix: t("scheduleVisit.booking.eventPrefix"), note: booked.note });
       downloadIcs(`visita-${booked.fecha}.ics`, citaToIcs(event, { advisorName: booked.advisor?.name || "" }));
     };
+    const googleHref = googleCalendarUrl(bookingToCalendarEvent(booked, { titlePrefix: t("scheduleVisit.booking.eventPrefix"), note: booked.note }), { advisorName: booked.advisor?.name || "" });
     // Con el enlace de su visita el cliente la confirma, la cambia o la cancela (/visita/:token).
     const manageUrl = `${siteOrigin()}/visita/${booked.token}`;
     const copyLink = async () => {
@@ -136,6 +137,11 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
           <button type="button" className="btn btn-outline btn-block" onClick={addToCalendar}>
             {t("scheduleVisit.booking.addToCalendar")}
           </button>
+          {googleHref && (
+            <a className="btn btn-outline btn-block" href={googleHref} target="_blank" rel="noopener noreferrer">
+              {t("scheduleVisit.booking.addToGoogle")}
+            </a>
+          )}
           {booked.property?.address && (
             <a className="btn btn-outline btn-block" href={mapsUrl(booked.property.address)} target="_blank" rel="noopener noreferrer">
               {t("scheduleVisit.booking.directions")}

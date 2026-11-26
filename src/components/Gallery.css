@@ -267,3 +267,13 @@
     transition: none;
   }
 }
+
+.gallery-lightbox__download {
+  margin-left: auto;
+  margin-right: 0.5rem;
+  color: #fff;
+  font-size: 1.3rem;
+  line-height: 1;
+  text-decoration: none;
+  padding: 0.4rem 0.6rem;
+}

@@ -7,7 +7,7 @@ import LanguageToggle from "../components/LanguageToggle";
 import VisitSlotPicker from "../components/VisitSlotPicker";
 import { db } from "../lib/dataStore";
 import { OFFICE_WHATSAPP } from "../lib/office";
-import { citaToIcs, downloadIcs, mapsUrl } from "../lib/calendarEvent";
+import { citaToIcs, downloadIcs, googleCalendarUrl, mapsUrl } from "../lib/calendarEvent";
 import { MAX_RESCHEDULES } from "../lib/visitSlots";
 import { useSlotSelection } from "../lib/useSlotSelection";
 import { rememberItem } from "../lib/mySpace";
@@ -234,6 +234,8 @@ export default function PublicVisit() {
     downloadIcs(`visita-${data.fecha}.ics`, citaToIcs(event, { advisorName: data.advisor?.name || "" }));
   };
 
+  const googleHref = googleCalendarUrl(bookingToCalendarEvent({ token, fecha: data.fecha, hora: data.hora, duracion_min: data.duracion_min, property: property || { title: label, address } }, { titlePrefix: t("scheduleVisit.booking.eventPrefix") }), { advisorName: data.advisor?.name || "" });
+
   // El WhatsApp es el de la oficina: el sitio no publica los datos de contacto de cada asesor.
   const whatsappHref = `https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(t("visitPage.whatsappText", { property: label, when }))}`;
 
@@ -310,6 +312,11 @@ export default function PublicVisit() {
 
               {isConfirmed && !isPast && (
                 <div className="visit-page__links">
+                  {googleHref && (
+                    <a className="btn btn-outline btn-sm" href={googleHref} target="_blank" rel="noopener noreferrer">
+                      {t("visitPage.addToGoogle")}
+                    </a>
+                  )}
                   <button type="button" className="btn btn-outline btn-sm" onClick={addToCalendar}>
                     {t("visitPage.addToCalendar")}
                   </button>

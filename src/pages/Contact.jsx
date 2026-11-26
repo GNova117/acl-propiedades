@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import useBusinessJsonLd from "../lib/useBusinessJsonLd";
+import { mapsUrl } from "../lib/calendarEvent";
 import Seo from "../components/Seo";
 import ContactForm from "../components/ContactForm";
 import WhatsAppIcon from "../components/icons/WhatsAppIcon";
@@ -71,7 +72,9 @@ export default function Contact() {
               )}
             </div>
             <p className="contact-page__address">
-              {OFFICE.streetAddress}, {OFFICE.postalCode} {OFFICE.city}, {OFFICE.regionShort}
+              <a href={mapsUrl(`${OFFICE.streetAddress}, ${OFFICE.postalCode} ${OFFICE.city}, ${OFFICE.regionShort}`)} target="_blank" rel="noopener noreferrer">
+                {OFFICE.streetAddress}, {OFFICE.postalCode} {OFFICE.city}, {OFFICE.regionShort}
+              </a>
             </p>
           </div>
         </div>

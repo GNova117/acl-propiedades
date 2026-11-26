@@ -32,7 +32,7 @@ import { isClosedStatus } from "../lib/propertyStatus";
 import { CALCULATOR_ANCHOR, canEstimateMonthly, estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import { directionsUrl, streetViewUrl, wazeUrl } from "../lib/mapLinks";
 import { listingFrom } from "../lib/listNavigation";
-import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines, publicPlace, propertyListPath } from "../lib/format";
+import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines, publicPlace, propertyListPath, daysSince } from "../lib/format";
 import "./PropertyDetail.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
@@ -199,7 +199,7 @@ function buildFaq(property, t) {
 
 export default function PropertyDetail() {
   const { id } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isAuthenticated } = useAuth();
   const [property, setProperty] = useState(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -315,13 +315,18 @@ export default function PropertyDetail() {
     const pick = (rows, chosen) => rows.filter((p) => p.id !== property.id && !chosen.some((c) => c.id === p.id));
     (async () => {
       const chosen = [];
-      if (property.zone) {
-        const sameZone = await db.getProperties({ ...base, zone: property.zone, zoneExact: true, pageSize: 5 });
-        chosen.push(...pick(sameZone.data, chosen));
-      }
-      if (chosen.length < 4) {
-        const anyZone = await db.getProperties({ ...base, pageSize: 8 });
-        chosen.push(...pick(anyZone.data, chosen));
+      // Primero lo que cuesta ±20 % (y, si se puede, de la misma zona); después lo demás del tipo: «similar» es también de precio parecido.
+      const price = Number(property.price);
+      const band = price > 0 ? { minPrice: Math.round(price * 0.8), maxPrice: Math.round(price * 1.2) } : {};
+      const steps = [
+        property.zone && { ...band, zone: property.zone, zoneExact: true, pageSize: 5 },
+        price > 0 && { ...band, pageSize: 8 },
+        { pageSize: 8 },
+      ].filter(Boolean);
+      for (const step of steps) {
+        if (chosen.length >= 4) break;
+        const result = await db.getProperties({ ...base, ...step });
+        chosen.push(...pick(result.data, chosen));
       }
       if (active) setSimilar(chosen.slice(0, 4));
     })().catch(() => {});
@@ -393,6 +398,8 @@ export default function PropertyDetail() {
                 {property.code && (
                   <p className="property-detail__code">
                     {t("detail.codeLabel")}: <strong>{property.code}</strong>
+                    {daysSince(property.created_at) != null && ` · ${t("detail.publishedAgo", { count: daysSince(property.created_at) })}`}
+                    {property.updated_at && daysSince(property.updated_at) !== daysSince(property.created_at) && ` · ${t("detail.updatedOn", { date: new Date(property.updated_at).toLocaleDateString(i18n.language) })}`}
                   </p>
                 )}
                 <RecentViewsBadge propertyId={property.id} />

@@ -162,6 +162,9 @@ export function Lightbox({ images, index, onIndexChange, onClose, alt }) {
       <div className="gallery-lightbox__backdrop" onClick={onClose} aria-hidden="true" />
       <div className="gallery-lightbox__top">
         <span className="gallery-lightbox__counter">{t("gallery.counter", { current: index + 1, total: images.length })}</span>
+        <a className="gallery-lightbox__download" href={images[index]} target="_blank" rel="noopener noreferrer" download aria-label={t("gallery.download")}>
+          ⬇
+        </a>
         <button type="button" className="gallery-lightbox__close" onClick={onClose} aria-label={t("common.close")}>
           ×
         </button>

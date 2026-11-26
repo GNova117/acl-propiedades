@@ -200,3 +200,11 @@ export function formatDeliveryDate(value, locale = "es-MX") {
   if (month < 1 || month > 12) return text;
   return new Date(Date.UTC(Number(match[1]), month - 1, 1)).toLocaleDateString(locale, { month: "long", year: "numeric", timeZone: "UTC" });
 }
+
+// Días enteros desde una fecha hasta `now` (nunca negativo); null si la fecha no es válida.
+export function daysSince(value, now = new Date()) {
+  if (value == null || value === "") return null;
+  const time = new Date(value).getTime();
+  if (!Number.isFinite(time)) return null;
+  return Math.max(0, Math.floor((now.getTime() - time) / 86400000));
+}

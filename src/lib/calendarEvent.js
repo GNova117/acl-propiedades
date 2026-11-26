@@ -120,3 +120,19 @@ export function downloadIcs(filename, content) {
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+// Enlace «Agregar a Google Calendar» de una cita con hora (la misma que descarga el .ics): título, fecha y hora de México en UTC, lugar y notas.
+// null si la cita no tiene hora (las de todo el día se agregan con el archivo).
+export function googleCalendarUrl(cita, { advisorName = "" } = {}) {
+  if (!cita?.hora) return null;
+  const [y, m, d] = String(cita.fecha).split("-").map(Number);
+  const [hh, mm] = String(cita.hora).split(":").map(Number);
+  const start = mexicoWallToDate(y, m, d, hh, mm);
+  const minutes = Number(cita.duracion_min) > 0 ? Number(cita.duracion_min) : DEFAULT_DURATION_MINUTES;
+  const end = new Date(start.getTime() + minutes * 60000);
+  const details = [advisorName ? `Asesor: ${advisorName}` : null, cita.actividades ? String(cita.actividades) : null, mapsUrl(cita.lugar) ? `Cómo llegar: ${mapsUrl(cita.lugar)}` : null].filter(Boolean).join("\n");
+  const params = new URLSearchParams({ action: "TEMPLATE", text: String(cita.titulo || ""), dates: `${stamp(start)}/${stamp(end)}` });
+  if (cita.lugar) params.set("location", String(cita.lugar));
+  if (details) params.set("details", details);
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}

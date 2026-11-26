@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatDeliveryDate,
+  daysSince,
   docTypesForClientType,
   DOC_TYPES,
   formatArea,
@@ -159,5 +160,16 @@ describe("formatDeliveryDate", () => {
     expect(formatDeliveryDate("Segundo semestre 2027")).toBe("Segundo semestre 2027");
     expect(formatDeliveryDate("2027-13-01")).toBe("2027-13-01");
     expect(formatDeliveryDate(null)).toBe("");
+  });
+});
+
+describe("daysSince", () => {
+  const now = new Date("2026-11-26T12:00:00Z");
+  it("cuenta días enteros y nunca negativos", () => {
+    expect(daysSince("2026-11-26T08:00:00Z", now)).toBe(0);
+    expect(daysSince("2026-11-21T12:00:00Z", now)).toBe(5);
+    expect(daysSince("2026-12-01T12:00:00Z", now)).toBe(0);
+    expect(daysSince("no-es-fecha", now)).toBeNull();
+    expect(daysSince(null, now)).toBeNull();
   });
 });

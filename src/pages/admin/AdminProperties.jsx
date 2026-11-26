@@ -542,6 +542,7 @@ export default function AdminProperties({
                     <td className="cell-code" {...col("code")}>{property.code || "—"}</td>
                     <td className="cell-title">
                       {property.title}
+                      {(property.advisor_ids || []).length === 0 && <span className="badge badge-reserved property-no-advisor">{t("properties.noAdvisor")}</span>}
                       {(() => {
                         const c = completeness.get(property.id);
                         if (!c) return null;

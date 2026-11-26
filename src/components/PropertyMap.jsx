@@ -168,7 +168,9 @@ function PropertyPopup({ property }) {
         {property.main_image && <ResponsiveImg src={property.main_image} sizes="240px" alt={property.title} loading="lazy" decoding="async" />}
         <strong>{property.title}</strong>
         <span className="map-popup__price">{formatMXN(property.price)}</span>
-        <span className="map-popup__area">{formatArea(property.area_m2)}</span>
+        <span className="map-popup__area">
+          {[formatArea(property.area_m2), property.bedrooms != null && `${property.bedrooms} ${t("properties.bedrooms")}`, property.bathrooms != null && `${property.bathrooms} ${t("properties.bathrooms")}`].filter(Boolean).join(" · ")}
+        </span>
         <Link to={propertyPath(property)} className="btn btn-primary btn-sm">
           {t("properties.viewDetail")}
         </Link>

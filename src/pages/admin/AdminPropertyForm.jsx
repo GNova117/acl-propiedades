@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { propertyTypeLabel } from "../../lib/format";
+import { formatMXN, propertyTypeLabel } from "../../lib/format";
+import { suspiciousPrice } from "../../lib/priceCheck";
 import { groupZonesByCity, zoneDisplayName } from "../../lib/zones";
 import ImageUploader from "../../components/ImageUploader";
 import VideoUploader from "../../components/VideoUploader";
@@ -11,7 +12,7 @@ import FloorPlanField from "../../components/FloorPlanField";
 import InternalNotes from "../../components/InternalNotes";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
-import { notify } from "../../lib/toast";
+import { confirmDialog, notify } from "../../lib/toast";
 import { STEPS, clampStep, firstStepWithErrors, progressPercent, stepsWithErrors } from "../../lib/propertyFormSteps";
 import { clearDraft, draftKey, isMeaningful, loadDraft, saveDraft } from "../../lib/formDraft";
 import { notifyLoadError } from "../../lib/loadError";
@@ -250,6 +251,9 @@ export default function AdminPropertyForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
+    // Un precio que parece error de captura (p. ej. $2,450 en una venta): se pide confirmar antes de guardar.
+    const priceWarning = suspiciousPrice(form.operation_type, form.price);
+    if (priceWarning && !(await confirmDialog(t(`propertyForm.priceWarning.${priceWarning}`, { price: formatMXN(form.price) })))) return;
     setSaving(true);
     try {
       const payload = {
@@ -292,6 +296,12 @@ export default function AdminPropertyForm({
       <div className="admin-header">
         <div>
           <h1>{isEdit ? t(editTitleKey) : t(newTitleKey)}</h1>
+          {/* Atajo a la ficha pública (la dirección con el id se corrige sola a la legible). */}
+          {isEdit && (
+            <a className="btn btn-outline btn-sm" href={`/propiedades/${id}`} target="_blank" rel="noopener noreferrer">
+              {t("propertyForm.viewOnSite")}
+            </a>
+          )}
           {isEdit && propertyCode && <p className="form-hint">{t("detail.code")}: {propertyCode}</p>}
         </div>
       </div>
@@ -363,6 +373,8 @@ export default function AdminPropertyForm({
           <div className="form-field">
             <label htmlFor="p-description">{t("detail.description")}</label>
             <textarea id="p-description" rows={4} value={form.description} onChange={handleChange("description")} />
+            {/* Google corta la descripción a ~155 caracteres: se avisa cuántos lleva. */}
+            <span className="form-hint">{t("propertyForm.descriptionCount", { count: form.description.length })}</span>
             <span className="form-hint">{t("propertyForm.descriptionHint")}</span>
           </div>
 

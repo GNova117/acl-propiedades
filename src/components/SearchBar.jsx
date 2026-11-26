@@ -6,12 +6,34 @@ import { propertyListPath, propertyTypeLabel } from "../lib/format";
 import "./SearchBar.css";
 import { propertyPath } from "../lib/propertyUrl.js";
 
+const LAST_SEARCH_KEY = "acl_last_search";
+const EMPTY_SEARCH = { type: "", zone: "", minPrice: "", maxPrice: "" };
+
+function readLastSearch() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LAST_SEARCH_KEY) || "null");
+    if (!saved || typeof saved !== "object") return EMPTY_SEARCH;
+    return Object.fromEntries(Object.keys(EMPTY_SEARCH).map((key) => [key, typeof saved[key] === "string" || typeof saved[key] === "number" ? String(saved[key]) : ""]));
+  } catch {
+    return EMPTY_SEARCH;
+  }
+}
+
+function rememberSearch(form) {
+  try {
+    localStorage.setItem(LAST_SEARCH_KEY, JSON.stringify(form));
+  } catch {
+    /* sin almacenamiento: simplemente no se recuerda */
+  }
+}
+
 export default function SearchBar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [zones, setZones] = useState([]);
   const [propertyTypes, setPropertyTypes] = useState([]);
-  const [form, setForm] = useState({ type: "", zone: "", minPrice: "", maxPrice: "" });
+  // La última búsqueda se recuerda en este navegador: quien vuelve al inicio la encuentra puesta.
+  const [form, setForm] = useState(readLastSearch);
   const [codeInput, setCodeInput] = useState("");
   const [codeError, setCodeError] = useState(false);
   const [searchingCode, setSearchingCode] = useState(false);
@@ -39,6 +61,7 @@ export default function SearchBar() {
     if (minPrice) params.set("min", minPrice);
     if (maxPrice) params.set("max", maxPrice);
     const query = params.toString();
+    rememberSearch({ ...form, minPrice: minPrice || "", maxPrice: maxPrice || "" });
     navigate(query ? `${path}?${query}` : path);
   };
 

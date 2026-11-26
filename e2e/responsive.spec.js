@@ -110,7 +110,8 @@ test.describe("Móvil y tableta", () => {
     await go("/propiedades");
     const card = page.locator(".property-card", { has: page.locator('a[href$="-ACL-1001"]') }).first();
     await expect(card).toBeVisible();
-    await expect(card.locator(".property-card__image-link img"), "la tarjeta sin foto no debe pintar <img>").toHaveCount(0);
+    // Sin foto la tarjeta muestra la imagen de reemplazo propia (nunca un <img> vacío ni un hueco).
+    await expect(card.locator(".property-card__image-link img")).toHaveAttribute("src", "/sin-foto.svg");
     expect(await emptyImgs(), "/propiedades").toBe(0);
 
     await press(card.locator(".compare-button"));

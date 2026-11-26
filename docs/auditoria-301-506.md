@@ -4,7 +4,7 @@ Esta tanda cierra lo que se puede arreglar con seguridad y sin una decisión de 
 
 ## Despliegue
 
-Sin migraciones ni pasos manuales: publicar el sitio (merge a `main`). (La migración 0129 de índices es de la tanda anterior.)
+Publicar el sitio (merge a `main`) y **aplicar las migraciones 0129 (índices) y 0130 (`updated_at` de propiedades)** (`npm run db:migrate` o SQL Editor; son re-ejecutables).
 
 ## Hecho
 
@@ -25,6 +25,19 @@ Sin migraciones ni pasos manuales: publicar el sitio (merge a `main`). (La migra
 | 327 | «Exportar CSV» deshabilitado explica por qué (texto al pasar el cursor). |
 | 328 | El botón flotante «+» ya no tapa la columna de acciones de la última fila de las tablas del panel. |
 | 379 | «Vistos recientemente» tiene botón «Borrar historial». |
+| 345 | La ficha dice «Publicada hace X días» y «Actualizada el…». |
+| 346 | «Propiedades similares» prioriza el precio parecido (±20 %), misma zona primero. |
+| 353 | El chat tiene «Nueva conversación». |
+| 367 | La visita agendada ofrece «Agregar a Google Calendar» además del archivo `.ics`. |
+| 369 | La dirección de Contacto es un enlace a «Cómo llegar». |
+| 380 | El visor de fotos tiene botón para descargar la foto actual. |
+| 382 | El globo del mapa muestra también recámaras y baños. |
+| 384 | El buscador del inicio recuerda la última búsqueda en ese navegador. |
+| 410 | Al guardar una propiedad con un precio que parece error de captura (p. ej. $2,450 en una venta o $15,000,000 en una renta) se pide confirmar. |
+| 462 | En la lista de propiedades del panel se marca «Sin asesor». |
+| 475 | El formulario de propiedad trae «Ver en el sitio». |
+| 476 | Contador de caracteres en la descripción (Google muestra ~155). |
+| 479 | **Migración 0130**: `updated_at` de propiedades lo fija la base en cada cambio real (ya no depende del navegador). Prueba SQL 19. |
 | 477 | Ya resuelto con la migración 0127: `chat_rate_limits` se limpia a diario (1 semana). |
 | 478 | Falso positivo: «whatsapp» aparece una sola vez en la expresión de robots. |
 | 484 | El CI cancela las corridas viejas del mismo PR (`concurrency`). |

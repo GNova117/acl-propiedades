@@ -186,3 +186,14 @@
   text-decoration: underline;
   color: var(--color-primary);
 }
+
+.chat-widget__reset {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
