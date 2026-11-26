@@ -234,7 +234,8 @@ export default function PublicVisit() {
     downloadIcs(`visita-${data.fecha}.ics`, citaToIcs(event, { advisorName: data.advisor?.name || "" }));
   };
 
-  const googleHref = googleCalendarUrl(bookingToCalendarEvent({ token, fecha: data.fecha, hora: data.hora, duracion_min: data.duracion_min, property: property || { title: label, address } }, { titlePrefix: t("scheduleVisit.booking.eventPrefix") }), { advisorName: data.advisor?.name || "" });
+  // `data` puede no existir todavía (cargando) o ser un enlace que no existe: sin visita no hay enlace de calendario.
+  const googleHref = !data ? null : googleCalendarUrl(bookingToCalendarEvent({ token, fecha: data.fecha, hora: data.hora, duracion_min: data.duracion_min, property: property || { title: label, address } }, { titlePrefix: t("scheduleVisit.booking.eventPrefix") }), { advisorName: data.advisor?.name || "" });
 
   // El WhatsApp es el de la oficina: el sitio no publica los datos de contacto de cada asesor.
   const whatsappHref = `https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(t("visitPage.whatsappText", { property: label, when }))}`;
