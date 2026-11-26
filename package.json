@@ -13,6 +13,8 @@
     "typecheck": "tsc -p tsconfig.json",
     "typecheck:js": "node scripts/typecheckJs.mjs",
     "schema:build": "node scripts/buildSchema.mjs",
+    "sql:pendiente": "node scripts/buildPendingSql.mjs",
+    "sql:pendiente:check": "node scripts/buildPendingSql.mjs --check",
     "schema:check": "node scripts/buildSchema.mjs --check",
     "migration:new": "node scripts/newMigration.mjs",
     "db:migrate": "node scripts/migrate.mjs",

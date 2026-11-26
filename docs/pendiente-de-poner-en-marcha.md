@@ -104,3 +104,8 @@ Admin → Eventos → **marcar como «evento clave»** los que quieras contar co
 ## 8. Lo que NO se hizo (queda como trabajo futuro)
 
 Bandeja de WhatsApp en el panel (29) · Publicación en portales (43) · Páginas generadas en el servidor (77) · Avisos push para clientes (parte del 99) · Turnstile (82) · Fotos AVIF (88) · Sincronización de dos vías con Google Calendar (35) · Cerrar un dispositivo por uno (85) · Subir fotos en «Vende tu casa» · Revisión de tipos de todo el JavaScript (93, solo 134 archivos) · Las 167 etiquetas del panel que siguen solo en español.
+
+## 1D. SQL de la rama de la auditoría (migraciones 0118 en adelante) — TODO JUNTO
+
+Si tu base ya tiene hasta la migración **0117**, este es **el único SQL que falta**: pega **completo** `supabase/pendiente-de-aplicar-0118-en-adelante.sql` en el SQL Editor y ejecútalo **una vez** (es re-ejecutable; al final anota las migraciones y devuelve la última, hoy `0130`). Se regenera con `npm run sql:pendiente` cada vez que se agrega SQL nuevo, así que siempre es un solo archivo. Qué trae y qué hay que hacer después de cada parte: `docs/auditoria-seguridad-101-121.md`, `docs/auditoria-122-141.md`, `docs/retencion-de-datos.md` y los documentos de cada tanda.
+

@@ -1,0 +1,45 @@
+# Pendientes para el final (lista maestra)
+
+Acuerdo: las 400 mejoras se hacen por tandas. **Lo que necesita rediseño, decisión tuya, datos de tu negocio o SQL se va guardando aquí** y se hace todo junto al final, para no estar batallando. Esta lista se actualiza en cada tanda: lo que se hace se mueve a la tabla «Hecho» del documento de su tanda y sale de aquí.
+
+Numeración = la de `docs/auditoria-areas-de-oportunidad.md` (101–506).
+
+## Cómo se maneja el SQL
+
+- Todo el SQL nuevo se escribe como migración (`npm run migration:new -- "Qué hace"`), con su prueba en `supabase/testdb/tests/`.
+- **Todo junto, para pegarlo una sola vez:** `supabase/pendiente-de-aplicar-0118-en-adelante.sql` (se regenera con `npm run sql:pendiente`; una prueba vigila que esté al día). Hoy trae las migraciones **0118 a 0130**. Al final de cada tanda con SQL nuevo se regenera y ese mismo archivo crece.
+- Las funciones que dependen de SQL **se programan al final** (junto con su migración), no antes: así el sitio nunca queda esperando algo que la base todavía no tiene.
+
+## A. Necesitan diseño o decisión tuya (sin SQL)
+
+**Inicio y navegación**: 222 fondos del inicio con `srcset`/carga diferida · 264 hero a pantalla completa y buscador bajo el pliegue · 265 panel de naves «Próximamente» · 266 inicio muy largo en teléfono · 267 «Torres y desarrollos» ocupa la primera pantalla · 268 logotipo pequeño · 269 teléfono/WhatsApp en el encabezado · 270 menú con Desarrollos, Terrenos y Favoritos · 271 el chat tapa texto en la ficha · 277 «Nosotros» con historia, años, certificaciones y fotos · 286 buscador del inicio vs filtros del listado (dos interfaces) · 297 migas de pan visibles · 298 primera pantalla de la ficha en laptop · 315 bloque para vendedores · 316 desarrollos y herramientas en el inicio · 318 menos botones en el encabezado del teléfono · 320 categorías repetidas con el hero.
+
+**Ficha y tarjetas**: 251 botones dentro de enlaces y 3 enlaces por tarjeta · 259 botón «Comparar» sin texto · 276 color de estatus desconocido · 285 estilos de impresión de la ficha · 299 ícono de WhatsApp reconocible · 300 botones «Llamar» y «WhatsApp» en Contacto · 302 testimonios con página y reseñas · 305 leyenda de colores del mapa · 308 formularios duplicados en la ficha · 312 dos llamados al comparador de créditos · 317 foto y nombre del asesor en la visita · 319 pago mensual resumido con ícono de información.
+
+**Accesibilidad que toca varias pantallas**: 249 marcadores del mapa y gráficas · 250 chat con `aria-live` · 252 `fieldset`/`legend` en grupos de casillas · 253 `<h4>` del pie y `<main>` del login del panel · 254 tablas del panel con `<th>` vacíos y desplazamiento sin teclado · 255 `alt` de la foto del asesor · 257 y 260 `prefers-reduced-motion` en hero, zoom y spinner · 258 áreas táctiles < 32 px · 261 errores de formulario con `aria-describedby`, foco y `role="status"`.
+
+**Estilos globales**: 281 `p { color: muted }` · 287 «Más filtros» abierto · 289 tipos desactivados en el buscador · 290 menú de compartir que no se cierra · 294 escala de `z-index` · 322 selector de zona con búsqueda · 323 posición del formulario de alerta.
+
+**Panel (diseño)**: 325–326 acciones de Prospectos en teléfono · 329–330 «Activo» parece botón y aviso «Toca respaldar» · 331 cifras con comparación y enlaces · 332 respaldo fuera de Roles · 333 agrupación del menú · 334–337 buscador corto, quién inició sesión, migas y acciones de tablas.
+
+**Contenido que solo tú puedes dar**: 199 texto propio por ciudad · 358 «te respondemos en X horas» (promesa de negocio) · 359 proceso y comisión en «Vende tu casa» · 365 créditos Fovissste, Cofinavit y Unamos · 366 enlace de precalificación Infonavit · 370 página de servicios (remodelación y construcción) · 390–394 guías, glosario y costos del comprador · 422 plantillas de descripción.
+
+## B. Se pueden construir sin SQL (se hacen antes del final)
+
+Se van sacando de aquí por tandas: 351 chat con la propiedad como contexto · 354–356 WhatsApp al asesor de la propiedad y formularios con lo mínimo · 357 «¿Qué buscas?» en Contacto · 360 «Quiero rentar mi propiedad» · 364 unificar calculadora y «Vende tu casa» · 368 «Abierto ahora» · 375 página por asesor · 376 dólares y pies cuadrados en naves · 378 compartir en el blog · 381 cerrar el visor deslizando · 383 capa satelital · 388 recordar nombre y teléfono · 389 agendar otra visita · 396 zoom con desplazamiento en el visor · 400 «Reportar un error en esta publicación» · 401 conteo por zona en el filtro · 402 «sin el precio máximo hay 7» · 403 «no encontrada» con similares · 404 «Bajó $X hace N días» · 405 avisos en Favoritos · 406 formulario en la página de un desarrollo · 408 ubicación por búsqueda de dirección · 409 aviso al salir con cambios sin guardar · 411 columnas de asesor y días en la lista del panel · 416 agrupar alertas en Mensajes · 421 reordenar fotos · 424 gráfica del historial de precios · 427 mapa de inventario del panel · 430 próximo paso al cambiar de etapa · 431–433 agenda: empalmes, traslados y colores · 437 semáforo del expediente · 440 exportar a Excel · 442 un solo motor Infonavit · 443 sugerir precio por m² desde ventas · 445 foto obligatoria del asesor · 446 búsqueda global ampliada · 447 atajos de teclado · 448 modo presentación · 449 imprimir ficha de visita · 450 comparar inspecciones · 452 alerta de precio de materiales · 458–460 avisos al cambiar precio y estatus · 461 «Mis propiedades» · 463 aviso al desactivar un asesor · 465 tablero del dueño · 467 anuncio en inglés · 469–470 calidad y recordatorio de fotos · 472 comparar periodos en Reportes · 480 textos heredados · 482 unir los dos `slugify` · 486–487 avisos del linter y contextos de React · 490–494 dependencias, README, pruebas de componentes y cobertura · 499–500 `TokenPage` y reglas compartidas entre backends · 501 limpiar Storage al borrar una propiedad · 502 registrar la vista fuera del indicador · 503 duplicado de `book_visit` en `agendar-visita.sql` · 505 pruebas de políticas (pgTAP).
+
+## C. Necesitan Supabase / SQL (se hacen al final, con todo el SQL junto)
+
+**Propiedad y catálogo**: 172 amenidades y tipos en dos idiomas · 256 y 468 descripción y etiqueta por foto · 311 preguntas frecuentes por propiedad · 338 sección de Rentas (precio mensual, amueblado, mascotas, depósito, plazo, disponibilidad) · 339–344 precio por m², m² de terreno y construcción, mantenimiento, datos de terreno y etiquetas de crédito · 346 (ya hecho en el cliente) · 377 datos de naves (kVA, andenes, distancia a carretera) · 385–386 privada, piso, elevador y cajones · 425 estatus «en negociación» · 426 propietario ligado a la propiedad · 454 papelera de propiedades · 455 destacar a mano en el inicio · 412 archivar vendidas automáticamente.
+
+**Contenido y marketing**: 200 y 418 blog con categorías, etiquetas, autor, URL editable, programación y versión en inglés · 371 casa abierta · 372 referidos · 373 boletín · 374 testimonios con video · 419 testimonios con foto, fecha y origen · 387 «avísame si se libera» · 444 fecha de actualización del precio por m².
+
+**Panel y operación**: 413 prospecto con crédito, monto y urgencia · 414 permisos de solo lectura por sección · 428 spam y bloqueo · 429 recordatorio de mensajes sin atender · 434 citas recurrentes · 435–436 etiquetas y cumpleaños de clientes · 438–439 vencimiento de documentos y recordatorio de firmas · 441 reporte por fuente · 451 avance de obra compartido por enlace · 453 interruptor de temporada · 456–457 configuración del negocio y textos editables · 464 preferencias de notificación · 466 operaciones compartidas con otras inmobiliarias · 471 novedades sin leer · 473 plantillas de WhatsApp editables · 474 unificar Clientes y Prospectos · 481 renombrar `compra` → `venta` · 504 renombrar una zona con transacción y alertas · 506 ciudades configurables.
+
+## D. Necesitan datos o cuentas tuyas
+
+213 identificadores de Meta Pixel y Google Ads · 225 proveedor de mapas con llave (MapTiler, Stadia o Mapbox) · 236 región del proyecto de Supabase (para fijar la de Vercel) · 365–366 datos de créditos · 237–238 PDFs ya hechos y plantilla optimizada (hace falta el archivo final de diseño).
+
+## E. Rendimiento y estructura (se hacen antes del final, pero con revisión)
+
+221 ciudades que bajan el catálogo dos veces · 226 `AuthProvider` en el sitio público · 229 «Mensajes» descarga propiedades y prospectos · 234 fuentes (pesos) · 235 three.js del recorrido 360° · 203 404 real para rutas desconocidas · 179 textos fijos que quedan en el panel (Liquidación, Mi perfil, Construcción, formulario de asesor) · 483–485 y 492 resto del CI y partir el README · 495 ya hecho.
