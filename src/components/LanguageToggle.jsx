@@ -13,8 +13,8 @@ export default function LanguageToggle() {
   };
 
   return (
-    <button type="button" className="icon-toggle lang-toggle" onClick={toggle} aria-label={`${isEnglish ? "EN" : "ES"} · ${t("a11y.switchLanguage")}`} title="ES / EN">
-      {isEnglish ? "EN" : "ES"}
+    <button type="button" className="icon-toggle lang-toggle" onClick={toggle} aria-label={t(isEnglish ? "a11y.switchToSpanish" : "a11y.switchToEnglish")} title={t(isEnglish ? "a11y.switchToSpanish" : "a11y.switchToEnglish")}>
+      {isEnglish ? "ES" : "EN"}
     </button>
   );
 }

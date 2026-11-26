@@ -63,6 +63,9 @@ export default function Footer() {
           <ul className="site-footer__links">
             <li><NavLink to="/">{t("nav.home")}</NavLink></li>
             <li><NavLink to="/propiedades">{t("nav.properties")}</NavLink></li>
+            <li><NavLink to="/terrenos">{t("nav.land")}</NavLink></li>
+            <li><NavLink to="/favoritos">{t("favorites.title")}</NavLink></li>
+            <li><NavLink to="/blog">{t("nav.blog")}</NavLink></li>
             <li><NavLink to="/calculadora">{t("nav.calculator")}</NavLink></li>
             <li><NavLink to="/simulador-credito">{t("nav.creditSim")}</NavLink></li>
             <li><NavLink to="/comparar-creditos">{t("nav.compareCredits")}</NavLink></li>

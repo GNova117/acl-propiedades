@@ -16,6 +16,7 @@
     "mySpace": "My space"
   },
   "hero": {
+    "maxPricePlaceholder": "No limit",
     "title": "Find your next property in La Comarca Lagunera",
     "subtitle": "Houses, apartments and industrial warehouses in Torreón, Gómez Palacio and Lerdo, with certified INFONAVIT, bank and FOVISSSTE financing advice.",
     "searchType": "Property type",
@@ -157,6 +158,7 @@
     "local_comercial": "Commercial Space"
   },
   "propertyOperation": {
+    "perMonth": "/month",
     "compra": "Sale",
     "renta": "Rent"
   },
@@ -594,7 +596,7 @@
   },
   "footer": {
     "termsLink": "Terms and conditions",
-    "tagline": "Buying and selling houses, land, commercial spaces and industrial warehouses in La Comarca Lagunera.",
+    "tagline": "Buying and selling houses, apartments, land and industrial warehouses in La Comarca Lagunera.",
     "quickLinks": "Quick links",
     "zones": "Zones",
     "contactInfo": "Contact",
@@ -2004,6 +2006,7 @@
     "noRemodelProject": "This property doesn't have a linked remodel project yet."
   },
   "infonavit": {
+    "sexChoose": "Choose an option",
     "title": "Infonavit credit simulator",
     "subtitle": "Estimate your traditional Infonavit credit, monthly payment and total purchasing power from your age, salary and Housing Subaccount balance.",
     "age": "Age",
@@ -4861,6 +4864,9 @@
     "expand": "Expand menu"
   },
   "a11y": {
+    "closeMenu": "Close menu",
+    "switchToEnglish": "EN · Switch to English",
+    "switchToSpanish": "ES · Cambiar a español",
     "skipToContent": "Skip to content",
     "mainNav": "Main navigation",
     "openMenu": "Open menu",

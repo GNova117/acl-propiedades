@@ -16,6 +16,7 @@
     "mySpace": "Mi espacio"
   },
   "hero": {
+    "maxPricePlaceholder": "Sin límite",
     "title": "Encuentra tu próxima propiedad en La Comarca Lagunera",
     "subtitle": "Casas, departamentos y naves industriales en Torreón, Gómez Palacio y Lerdo, con asesoría certificada en INFONAVIT, bancario y FOVISSSTE.",
     "searchType": "Tipo de propiedad",
@@ -157,6 +158,7 @@
     "local_comercial": "Local Comercial"
   },
   "propertyOperation": {
+    "perMonth": "/mes",
     "compra": "Venta",
     "renta": "Renta"
   },
@@ -594,7 +596,7 @@
   },
   "footer": {
     "termsLink": "Términos y condiciones",
-    "tagline": "Compra y venta de casas, terrenos, locales comerciales y naves industriales en La Comarca Lagunera.",
+    "tagline": "Compra y venta de casas, departamentos, terrenos y naves industriales en La Comarca Lagunera.",
     "quickLinks": "Enlaces rápidos",
     "zones": "Zonas",
     "contactInfo": "Contacto",
@@ -2004,6 +2006,7 @@
     "noRemodelProject": "Esta propiedad aún no tiene un proyecto de remodelación vinculado."
   },
   "infonavit": {
+    "sexChoose": "Elige una opción",
     "title": "Simulador de crédito Infonavit",
     "subtitle": "Estima tu crédito Infonavit tradicional, tu cuota mensual y tu capacidad total de compra a partir de tu edad, salario y ahorro en la Subcuenta de Vivienda.",
     "age": "Edad",
@@ -4861,6 +4864,9 @@
     "expand": "Expandir menú"
   },
   "a11y": {
+    "closeMenu": "Cerrar menú",
+    "switchToEnglish": "EN · Switch to English",
+    "switchToSpanish": "ES · Cambiar a español",
     "skipToContent": "Saltar al contenido",
     "mainNav": "Navegación principal",
     "openMenu": "Abrir menú",

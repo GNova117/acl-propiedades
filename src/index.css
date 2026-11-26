@@ -121,6 +121,7 @@ body {
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -414,5 +415,49 @@ ul {
 @media (max-width: 640px) {
   .section {
     padding: 2.75rem 0;
+  }
+}
+
+/* ── Accesibilidad y lectura (auditoría 247, 248, 281, 282) ── */
+
+/* Teclado: se ve en qué botón, enlace o control se está (antes solo los campos de formulario tenían contorno). */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.btn:focus-visible {
+  outline-offset: 3px;
+}
+
+/* Un enlace dentro de un párrafo se distingue del texto por algo más que el color. */
+p a:not(.btn),
+.blog-post__body a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Las listas dentro de contenido (blog, páginas legales) conservan sus viñetas y números; el reseteo de arriba es para menús y tarjetas. */
+.blog-post__body ul {
+  list-style: disc;
+}
+
+.blog-post__body ol {
+  list-style: decimal;
+}
+
+/* «/mes» junto al precio de una renta. */
+.property-price-period {
+  margin-left: 0.25em;
+  font-size: 0.6em;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+/* En teléfono un botón con texto largo (sobre todo en inglés) baja de renglón en lugar de desbordar. */
+@media (max-width: 480px) {
+  .btn {
+    white-space: normal;
+    text-align: center;
   }
 }

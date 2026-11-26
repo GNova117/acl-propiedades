@@ -342,7 +342,7 @@ export default function AdminRoles() {
               <tr key={row.id}>
                 <td>{row.email}</td>
                 <td>
-                  <select value={row.role_id} onChange={(e) => handleChangeAccessRole(row, e.target.value)} disabled={changingAccessId === row.id}>
+                  <select aria-label={`${t("accessControl.accessRole")}: ${row.email}`} value={row.role_id} onChange={(e) => handleChangeAccessRole(row, e.target.value)} disabled={changingAccessId === row.id}>
                     {roles.map((role) => (
                       <option key={role.id} value={role.id}>
                         {role.name}
@@ -352,6 +352,7 @@ export default function AdminRoles() {
                 </td>
                 <td>
                   <select
+                    aria-label={`${t("accessControl.accessAdvisor")}: ${row.email}`}
                     value={row.advisor_id || ""}
                     onChange={(e) => handleChangeAccessAdvisor(row, e.target.value)}
                     disabled={changingAccessId === row.id}

@@ -125,6 +125,9 @@ const GENERIC_PAGES = {
   },
 };
 
+// Las vistas previas se pueden guardar unos minutos (el CDN y WhatsApp): sin esto cada una consultaba Supabase.
+const PREVIEW_HEADERS = { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300, s-maxage=600, stale-while-revalidate=3600" };
+
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
@@ -200,7 +203,7 @@ async function propertyPreviewResponse(param) {
     url: `${SITE_URL}${propertyPath(property)}`,
     image: `${SITE_URL}/api/og?id=${encodeURIComponent(id)}`,
   });
-  return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
+  return new Response(html, { headers: PREVIEW_HEADERS });
 }
 
 // Consulta de una fila pública en Supabase (anon). null si no hay base configurada, no existe o falla.
@@ -270,24 +273,24 @@ export default async function middleware(request) {
     if (blogMatch) dynamic = await blogPreview(blogMatch[1], previewUrl);
     else if (developmentMatch) dynamic = await developmentPreview(developmentMatch[1], previewUrl);
     else if (/^\/propiedades\/zona\//.test(pathname)) dynamic = zonePreview(pathname, previewUrl);
-    if (dynamic) return new Response(dynamic, { headers: { "content-type": "text/html; charset=utf-8" } });
+    if (dynamic) return new Response(dynamic, { headers: PREVIEW_HEADERS });
     if (blogMatch || developmentMatch || pathname.startsWith("/propiedades/zona/")) return next();
 
     if (/^\/seleccion\/[0-9a-f]{32}\/?$/.test(pathname)) {
       const html = renderPreviewHtml({ ...SELECTION_PAGE, url: `${SITE_URL}${pathname}`, image: DEFAULT_IMAGE, noindex: true });
-      return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
+      return new Response(html, { headers: PREVIEW_HEADERS });
     }
 
     if (pathname.replace(/\/$/, "") === "/favoritos") {
       const html = renderPreviewHtml({ ...FAVORITES_PAGE, url: `${SITE_URL}/favoritos`, image: DEFAULT_IMAGE, noindex: true });
-      return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
+      return new Response(html, { headers: PREVIEW_HEADERS });
     }
 
     const generic = GENERIC_PAGES[pathname === "/" ? "/" : pathname.replace(/\/$/, "")];
     if (!generic) return next();
 
     const html = renderPreviewHtml({ ...generic, url: `${SITE_URL}${pathname}`, image: DEFAULT_IMAGE });
-    return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
+    return new Response(html, { headers: PREVIEW_HEADERS });
   } catch {
     return next();
   }

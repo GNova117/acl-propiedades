@@ -190,3 +190,13 @@ export const DOC_TYPE_ASPECT = {
   aviso_privacidad: 0.77,
   carta_derechos: 0.77,
 };
+
+// Fecha de entrega de un desarrollo: «2027-06-01» o «2027-06» → «junio de 2027»; un texto libre («Segundo semestre 2027») se deja tal cual.
+export function formatDeliveryDate(value, locale = "es-MX") {
+  const text = String(value ?? "").trim();
+  const match = text.match(/^(\d{4})-(\d{2})(?:-\d{2})?$/);
+  if (!match) return text;
+  const month = Number(match[2]);
+  if (month < 1 || month > 12) return text;
+  return new Date(Date.UTC(Number(match[1]), month - 1, 1)).toLocaleDateString(locale, { month: "long", year: "numeric", timeZone: "UTC" });
+}

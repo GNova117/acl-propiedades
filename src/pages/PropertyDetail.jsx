@@ -407,7 +407,7 @@ export default function PropertyDetail() {
                   <CompareButton propertyId={property.id} className="compare-button--inline" />
                   <ShareButton title={seoTitle} text={shareText} url={`${siteOrigin()}${propertyPath(property)}`} propertyId={property.id} />
                 </div>
-                <span className="property-detail__price">{formatMXN(property.price)}</span>
+                <span className="property-detail__price">{formatMXN(property.price)}{property.operation_type === "renta" && <small className="property-price-period">{t("propertyOperation.perMonth")}</small>}</span>
                 {priceDrop && (
                   <p className="property-detail__was-price">
                     <s>{formatMXN(priceDrop.previousPrice)}</s>

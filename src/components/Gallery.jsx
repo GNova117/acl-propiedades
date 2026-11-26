@@ -32,6 +32,14 @@ export function Lightbox({ images, index, onIndexChange, onClose, alt }) {
   const imgRef = useRef(null);
   const zoomed = view.scale > 1;
 
+  // Precarga la foto siguiente y la anterior: cada deslizamiento esperaba la descarga.
+  useEffect(() => {
+    for (const offset of [1, -1]) {
+      const src = images[index + offset];
+      if (src) new Image().src = src;
+    }
+  }, [images, index]);
+
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") onClose();
@@ -209,10 +217,13 @@ export function Lightbox({ images, index, onIndexChange, onClose, alt }) {
   );
 }
 
+// Foto de reemplazo propia (sin texto, sin servicio externo): antes venía de placehold.co, en inglés y con un tercero.
+export const NO_PHOTO = "/sin-foto.svg";
+
 export default function Gallery({ images, alt }) {
   const [active, setActive] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const list = images && images.length > 0 ? images : ["https://placehold.co/1000x700?text=ACL+Propiedades"];
+  const list = images && images.length > 0 ? images : [NO_PHOTO];
   const { t } = useTranslation();
   // En computadora y con 3 fotos o más, la galería es un MOSAICO (una grande y hasta cuatro chicas); en el teléfono y con
   // pocas fotos sigue siendo la foto principal con su tira de miniaturas (que se desliza con el dedo).

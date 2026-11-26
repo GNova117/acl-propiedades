@@ -60,6 +60,7 @@ export default async function handler(req, res) {
   const xml = buildSitemapXml(urls);
 
   res.setHeader("Content-Type", "application/xml");
-  res.setHeader("Cache-Control", "public, max-age=3600");
+  // s-maxage: la caché del CDN lo sirve (el robot no vuelve a consultar Supabase cada vez); el navegador lo guarda 1 hora.
+  res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400");
   res.status(200).send(xml);
 }

@@ -95,7 +95,7 @@ export default function SearchBar() {
 
         <div className="search-bar__field">
           <label htmlFor="search-max">{t("hero.searchMax")}</label>
-          <input id="search-max" name="maxPrice" type="number" min="0" placeholder="$10,000,000" value={form.maxPrice} onChange={handleChange} />
+          <input id="search-max" name="maxPrice" type="number" min="0" placeholder={t("hero.maxPricePlaceholder")} value={form.maxPrice} onChange={handleChange} />
         </div>
 
         <button type="submit" className="btn btn-primary search-bar__submit">

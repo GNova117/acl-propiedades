@@ -36,6 +36,19 @@ export default function Header() {
   // conteo, igual que isTypeActive con propertyTypes vacío.
   const [typeCounts, setTypeCounts] = useState(null);
 
+  // Menú del teléfono abierto: Escape lo cierra y el fondo no se desplaza detrás.
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("keydown", onKey);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
+
   useEffect(() => {
     db.getPropertyTypes().then(setPropertyTypes).catch(() => setPropertyTypes([]));
     // Solo los conteos por tipo (antes bajaba todas las propiedades activas).
@@ -81,7 +94,7 @@ export default function Header() {
             type="button"
             className="site-header__burger"
             onClick={() => setOpen((v) => !v)}
-            aria-label={t("a11y.openMenu")}
+            aria-label={t(open ? "a11y.closeMenu" : "a11y.openMenu")}
             aria-expanded={open}
           >
             <span />

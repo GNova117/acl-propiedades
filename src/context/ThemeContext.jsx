@@ -27,6 +27,8 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+    // La barra del navegador del teléfono sigue al tema (antes quedaba azul también en modo oscuro).
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#0a1120" : "#0d3b73");
   }, [theme]);
 
   useEffect(() => {

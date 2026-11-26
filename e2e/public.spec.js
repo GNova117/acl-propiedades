@@ -57,9 +57,9 @@ test.describe("Navegación y preferencias", () => {
     await go("/contacto");
     const titulo = page.locator("h1").first();
     const es = await titulo.textContent();
-    await press(page.getByRole("button", { name: /Cambiar idioma/ }));
+    await press(page.locator(".lang-toggle").first());
     await expect(titulo).not.toHaveText(es);
-    await press(page.getByRole("button", { name: /Cambiar idioma/ }));
+    await press(page.locator(".lang-toggle").first());
     await expect(titulo).toHaveText(es);
   });
 

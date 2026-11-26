@@ -16,7 +16,7 @@ import {
   developmentWhatsappText,
   EMPTY_UNIT_FILTERS,
 } from "../lib/developments";
-import { formatMXN, formatArea } from "../lib/format";
+import { formatMXN, formatArea, formatDeliveryDate } from "../lib/format";
 import { estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import { OFFICE_WHATSAPP } from "../lib/office";
 import "../components/development/development.css";
@@ -65,7 +65,7 @@ function UnitCard({ unit, onOpen, t }) {
 
 export default function Development() {
   const { slug } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [development, setDevelopment] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -171,7 +171,7 @@ export default function Development() {
         />
         <Stat label={t("developments.stats.bedrooms")} value={bedroomsLabel} />
         <Stat label={t("developments.stats.area")} value={sizeLabel} />
-        {development.delivery_date && <Stat label={t("developments.stats.delivery")} value={development.delivery_date} />}
+        {development.delivery_date && <Stat label={t("developments.stats.delivery")} value={formatDeliveryDate(development.delivery_date, i18n.language)} />}
       </section>
 
       {development.description && (

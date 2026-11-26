@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatDeliveryDate,
   docTypesForClientType,
   DOC_TYPES,
   formatArea,
@@ -147,5 +148,16 @@ describe("whatsappUrl", () => {
     expect(whatsappUrl("")).toBeNull();
     expect(whatsappUrl(null)).toBeNull();
     expect(whatsappUrl("sin teléfono")).toBeNull();
+  });
+});
+
+describe("formatDeliveryDate", () => {
+  it("da formato a una fecha ISO y respeta el texto libre", () => {
+    expect(formatDeliveryDate("2027-06-01", "es-MX")).toBe("junio de 2027");
+    expect(formatDeliveryDate("2027-06", "es-MX")).toBe("junio de 2027");
+    expect(formatDeliveryDate("2027-06-01", "en")).toBe("June 2027");
+    expect(formatDeliveryDate("Segundo semestre 2027")).toBe("Segundo semestre 2027");
+    expect(formatDeliveryDate("2027-13-01")).toBe("2027-13-01");
+    expect(formatDeliveryDate(null)).toBe("");
   });
 });

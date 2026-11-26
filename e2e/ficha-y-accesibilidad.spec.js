@@ -123,8 +123,9 @@ test.describe("Textos en inglés", () => {
     if (isMobile) await expect(page.getByRole("button", { name: "Open menu" })).toBeVisible();
     await expect(page.locator(".property-detail__features")).toContainText("Parking");
     await expect(page.locator(".property-detail__features")).not.toContainText("Estacionamiento");
-    // El nombre accesible del botón de idioma empieza con lo que se ve (ahora «EN»).
-    await expect(page.locator(".lang-toggle")).toHaveAttribute("aria-label", /^EN ·/);
+    // El botón muestra el idioma al que se cambia («ES» estando en inglés) y su nombre accesible empieza con ese texto.
+    await expect(page.locator(".lang-toggle")).toHaveText("ES");
+    await expect(page.locator(".lang-toggle")).toHaveAttribute("aria-label", /^ES ·/);
   });
 });
 

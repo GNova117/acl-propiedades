@@ -54,7 +54,7 @@ export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
         <div className="property-card__type">
           <PropertyTypeIcon type={property.type} size={16} />
           <span>{propertyTypeLabel(t, property.type)}</span>
-          <span className="property-card__zone">· {property.zone}</span>
+          {property.zone && <span className="property-card__zone">· {property.zone}</span>}
           {property.code && <span className="property-card__code">{property.code}</span>}
         </div>
         <h3 className="property-card__title">
@@ -63,6 +63,7 @@ export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
         <p className="property-card__price">
           {badge?.kind === "priceDrop" && <s className="property-price-was">{formatMXN(badge.previousPrice)}</s>}
           {formatMXN(property.price)}
+          {property.operation_type === "renta" && <span className="property-price-period">{t("propertyOperation.perMonth")}</span>}
         </p>
         {monthly && (
           <p

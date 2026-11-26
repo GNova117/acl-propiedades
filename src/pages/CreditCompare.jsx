@@ -19,7 +19,7 @@ export default function CreditCompare() {
   const [searchParams] = useSearchParams();
   const propertyId = searchParams.get("propiedad");
   const [property, setProperty] = useState(null);
-  const [form, setForm] = useState({ price: 1500000, salary: 20000, age: 35, sex: "hombre", ssv: 0, ...COMPARE_DEFAULTS });
+  const [form, setForm] = useState({ price: 1500000, salary: 20000, age: 35, sex: "", ssv: 0, ...COMPARE_DEFAULTS });
   const [lead, setLead] = useState({ name: "", phone: "", empresa: "" });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
@@ -159,6 +159,7 @@ export default function CreditCompare() {
             <div className="form-field">
               <label htmlFor="cc-sex">{t("infonavit.sex")}</label>
               <select id="cc-sex" value={form.sex} onChange={change("sex")}>
+                <option value="">{t("infonavit.sexChoose")}</option>
                 <option value="hombre">{t("infonavit.sexMale")}</option>
                 <option value="mujer">{t("infonavit.sexFemale")}</option>
               </select>
