@@ -476,5 +476,10 @@ test.describe("Tanda A y B", () => {
     await expect(lista).toBeVisible();
     await campo.press("Escape");
     await expect(lista).toHaveCount(0);
+    // Al pasar el foco a otro campo la lista también se cierra (no queda tapando lo de abajo).
+    await campo.fill("e");
+    await expect(lista).toBeVisible();
+    await campo.press("Tab");
+    await expect(lista).toHaveCount(0);
   });
 });

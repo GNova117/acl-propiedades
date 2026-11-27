@@ -54,7 +54,18 @@ export default function ZoneCombobox({ id, name = "zone", value, onChange, zones
   const optionId = (i) => `${listId}-opt-${i}`;
 
   return (
-    <div className="zone-combobox" ref={boxRef}>
+    <div
+      className="zone-combobox"
+      ref={boxRef}
+      // Al pasar el foco a otro campo (Tab, o el siguiente campo del formulario) la lista se cierra; si no, quedaría abierta
+      // tapando lo de abajo. Elegir una opción no dispara esto: usa pointerdown con preventDefault y el campo no pierde el foco.
+      onBlur={(e) => {
+        if (!boxRef.current?.contains(e.relatedTarget)) {
+          setOpen(false);
+          setActive(-1);
+        }
+      }}
+    >
       <input
         id={id}
         name={name}
@@ -76,7 +87,7 @@ export default function ZoneCombobox({ id, name = "zone", value, onChange, zones
         onKeyDown={onKeyDown}
       />
       {showList && (
-        <ul className="zone-combobox__list" id={listId} role="listbox" aria-label={t("zoneCombobox.list")}>
+        <ul className="zone-combobox__list" id={listId} role="listbox" tabIndex={-1} aria-label={t("zoneCombobox.list")}>
           {options.map((zone, i) => (
             <li
               key={zone.id ?? zone.name}
