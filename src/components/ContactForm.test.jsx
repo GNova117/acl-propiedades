@@ -112,4 +112,14 @@ describe("ContactForm", () => {
     await user.click(screen.getByRole("button", { name: /enviar/i }));
     expect(submitContactMessage).toHaveBeenCalledTimes(1);
   });
+
+  it("con errores liga cada campo a su mensaje y manda el foco al primero (261)", async () => {
+    const user = userEvent.setup();
+    renderForm();
+    await user.click(screen.getByRole("button", { name: /enviar/i }));
+    const name = screen.getByLabelText("Nombre completo");
+    expect(name).toHaveFocus();
+    expect(name).toHaveAttribute("aria-describedby", "contact-name-error");
+    expect(document.getElementById("contact-name-error")).toHaveTextContent("Este campo es obligatorio");
+  });
 });

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { saveContact, withRemembered } from "../lib/rememberedContact";
+import { errorId, fieldErrorProps, focusFirstError } from "../lib/formErrors";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
@@ -63,6 +64,7 @@ export default function ContactRequestCard({ property }) {
     if (!form.phone.trim()) next.phone = t("contact.required");
     else if (digits.length < MIN_PHONE_DIGITS) next.phone = t("contactRequest.invalidPhone");
     setErrors(next);
+    focusFirstError(next, ["name", "phone"], { name: "callback-name", phone: "callback-phone" }); // 261
     return Object.keys(next).length === 0;
   };
 
@@ -175,9 +177,9 @@ export default function ContactRequestCard({ property }) {
               autoComplete="name"
               value={form.name}
               onChange={handleChange}
-              aria-invalid={Boolean(errors.name)}
+              {...fieldErrorProps("callback-name", errors.name)}
             />
-            {errors.name && <span className="form-error">{errors.name}</span>}
+            {errors.name && <span id={errorId("callback-name")} className="form-error">{errors.name}</span>}
           </div>
 
           <div className="form-field">
@@ -191,9 +193,9 @@ export default function ContactRequestCard({ property }) {
               placeholder={t("contactRequest.phonePlaceholder")}
               value={form.phone}
               onChange={handleChange}
-              aria-invalid={Boolean(errors.phone)}
+              {...fieldErrorProps("callback-phone", errors.phone)}
             />
-            {errors.phone && <span className="form-error">{errors.phone}</span>}
+            {errors.phone && <span id={errorId("callback-phone")} className="form-error">{errors.phone}</span>}
           </div>
         </div>
 

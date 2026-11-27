@@ -59,7 +59,7 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4>{t("footer.quickLinks")}</h4>
+          <h2 className="site-footer__title">{t("footer.quickLinks")}</h2>
           <ul className="site-footer__links">
             <li><NavLink to="/">{t("nav.home")}</NavLink></li>
             <li><NavLink to="/propiedades">{t("nav.properties")}</NavLink></li>
@@ -78,7 +78,7 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4>{t("footer.zones")}</h4>
+          <h2 className="site-footer__title">{t("footer.zones")}</h2>
           <ul className="site-footer__links">
             {ZONE_LANDING_CITIES.map((city) => (
               <li key={city}>
@@ -89,7 +89,7 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4>{t("footer.contactInfo")}</h4>
+          <h2 className="site-footer__title">{t("footer.contactInfo")}</h2>
           <ul className="site-footer__links">
             <li>{OFFICE.addressShort}</li>
             <li>{OFFICE.addressCity}</li>
@@ -99,7 +99,7 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4>{t("footer.followUs")}</h4>
+          <h2 className="site-footer__title">{t("footer.followUs")}</h2>
           <div className="site-footer__social">
             <a href="https://www.facebook.com/Aclpropiedadess/" target="_blank" rel="noreferrer" aria-label="Facebook">
               <FacebookIcon />

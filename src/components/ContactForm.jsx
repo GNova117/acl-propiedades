@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { saveContact, withRemembered } from "../lib/rememberedContact";
 import { Link, useLocation } from "react-router-dom";
+import { errorId, fieldErrorProps, focusFirstError } from "../lib/formErrors";
 import { CONTACT_TOPICS, composeMessage, prefillMessage, topicFromSearch } from "../lib/contactPrefill";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
@@ -38,6 +39,8 @@ export default function ContactForm({ initialMessage = "", showTopic = true }) {
     if (form.phone.trim() && !isValidPhone(form.phone)) next.phone = t("contactRequest.invalidPhone");
     if (!form.message.trim()) next.message = t("contact.required");
     setErrors(next);
+    // 261: con errores el foco va al primer campo que lo tiene.
+    focusFirstError(next, ["name", "email", "phone", "message"], { name: "contact-name", email: "contact-email", phone: "contact-phone", message: "contact-message" });
     return Object.keys(next).length === 0;
   };
 
@@ -87,20 +90,20 @@ export default function ContactForm({ initialMessage = "", showTopic = true }) {
 
       <div className="form-field">
         <label htmlFor="contact-name">{t("contact.name")}</label>
-        <input id="contact-name" name="name" autoComplete="name" value={form.name} onChange={handleChange} aria-invalid={Boolean(errors.name)} />
-        {errors.name && <span className="form-error">{errors.name}</span>}
+        <input id="contact-name" name="name" autoComplete="name" value={form.name} onChange={handleChange} {...fieldErrorProps("contact-name", errors.name)} />
+        {errors.name && <span id={errorId("contact-name")} className="form-error">{errors.name}</span>}
       </div>
 
       <div className="form-row">
         <div className="form-field">
           <label htmlFor="contact-email">{t("contact.email")}</label>
-          <input id="contact-email" name="email" type="email" autoComplete="email" value={form.email} onChange={handleChange} aria-invalid={Boolean(errors.email)} />
-          {errors.email && <span className="form-error">{errors.email}</span>}
+          <input id="contact-email" name="email" type="email" autoComplete="email" value={form.email} onChange={handleChange} {...fieldErrorProps("contact-email", errors.email)} />
+          {errors.email && <span id={errorId("contact-email")} className="form-error">{errors.email}</span>}
         </div>
         <div className="form-field">
           <label htmlFor="contact-phone">{t("contact.phone")}</label>
-          <input id="contact-phone" name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={handleChange} aria-invalid={Boolean(errors.phone)} />
-          {errors.phone && <span className="form-error">{errors.phone}</span>}
+          <input id="contact-phone" name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={handleChange} {...fieldErrorProps("contact-phone", errors.phone)} />
+          {errors.phone && <span id={errorId("contact-phone")} className="form-error">{errors.phone}</span>}
         </div>
       </div>
 
@@ -118,8 +121,8 @@ export default function ContactForm({ initialMessage = "", showTopic = true }) {
 
       <div className="form-field">
         <label htmlFor="contact-message">{t("contact.message")}</label>
-        <textarea id="contact-message" name="message" rows={5} value={form.message} onChange={handleChange} aria-invalid={Boolean(errors.message)} />
-        {errors.message && <span className="form-error">{errors.message}</span>}
+        <textarea id="contact-message" name="message" rows={5} value={form.message} onChange={handleChange} {...fieldErrorProps("contact-message", errors.message)} />
+        {errors.message && <span id={errorId("contact-message")} className="form-error">{errors.message}</span>}
       </div>
 
       {status === "success" && (

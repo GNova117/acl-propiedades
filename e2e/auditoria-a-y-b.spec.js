@@ -229,4 +229,27 @@ test.describe("Tanda A y B", () => {
     }
     expect(fontRequests.filter((u) => /inter/i.test(u)).length, "Inter se pide en un solo archivo").toBeLessThanOrEqual(1);
   });
+
+  test("accesibilidad: chat anunciado, pie con títulos h2, login con <main> y grupos con fieldset", async ({ page, go, press }) => {
+    await go("/");
+    await press(page.locator(".chat-widget__toggle"));
+    await expect(page.locator(".chat-widget__list")).toHaveAttribute("role", "log");
+    await expect(page.locator(".chat-widget__list")).toHaveAttribute("aria-live", "polite");
+    expect(await page.locator(".site-footer h4").count(), "el pie ya no usa h4").toBe(0);
+    expect(await page.locator(".site-footer h2.site-footer__title").count()).toBeGreaterThan(0);
+    await go("/propiedades");
+    const abrir = page.locator(".property-filters__toggle");
+    if (await abrir.isVisible()) await press(abrir);
+    await expect(page.locator("fieldset.form-field legend").first()).toBeVisible();
+    await go("/admin/login");
+    await expect(page.locator("main.admin-login")).toBeVisible();
+  });
+
+  test("Contacto: con errores el foco va al primer campo y cada error queda ligado a su campo", async ({ page, go, press }) => {
+    await go("/contacto");
+    await press(page.locator("form.contact-form button[type=submit]"));
+    await expect(page.locator("#contact-name")).toBeFocused();
+    await expect(page.locator("#contact-name")).toHaveAttribute("aria-describedby", "contact-name-error");
+    await expect(page.locator("#contact-name-error")).toBeVisible();
+  });
 });

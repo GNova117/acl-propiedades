@@ -30,3 +30,11 @@
     transform: scale(1);
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-screen,
+  .loading-screen__content {
+    animation: none;
+    transition: none;
+  }
+}

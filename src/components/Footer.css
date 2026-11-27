@@ -11,7 +11,7 @@
   padding: 3.5rem 1.5rem 2.5rem;
 }
 
-.site-footer h4 {
+.site-footer__title {
   color: var(--color-on-primary);
   font-size: 0.95rem;
   letter-spacing: 0.05em;

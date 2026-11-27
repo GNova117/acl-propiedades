@@ -83,7 +83,7 @@ export default function AdminLogin() {
 
   if (mfaPending) {
     return (
-      <div className="admin-login">
+      <main className="admin-login">
         <Seo title={t("admin.loginTitle")} noindex />
         <form className="admin-login__card card" onSubmit={handleCode}>
           <div className="admin-login__logo">
@@ -114,12 +114,12 @@ export default function AdminLogin() {
             {t("mfa.useOtherAccount")}
           </button>
         </form>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="admin-login">
+    <main className="admin-login">
       <Seo title={t("admin.loginTitle")} noindex />
       <form className="admin-login__card card" onSubmit={forgot ? handleForgot : handleSubmit}>
         <div className="admin-login__logo">
@@ -184,6 +184,6 @@ export default function AdminLogin() {
           {forgot ? t("passwordReset.backToLogin") : t("passwordReset.forgot")}
         </button>
       </form>
-    </div>
+    </main>
   );
 }

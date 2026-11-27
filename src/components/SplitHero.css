@@ -165,3 +165,13 @@
 .split-hero__panel--grow .split-hero__video {
   transform: scale(1.08);
 }
+
+/* 257/260: sin animaciones de crecimiento ni zoom para quien pidió menos movimiento (el cambio de panel sigue, pero al instante). */
+@media (prefers-reduced-motion: reduce) {
+  .split-hero *,
+  .split-hero *::before,
+  .split-hero *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

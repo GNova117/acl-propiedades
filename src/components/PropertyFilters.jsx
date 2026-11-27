@@ -267,8 +267,8 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
         )}
 
         {showHomeFilters && amenities.length > 0 && (
-          <div className="form-field">
-            <label>{t("properties.amenities")}</label>
+          <fieldset className="form-field">
+            <legend>{t("properties.amenities")}</legend>
             <div className="property-filters__amenities">
               {amenities.map((amenity) => (
                 <label key={amenity.id} className="property-filters__amenity">
@@ -281,7 +281,7 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
                 </label>
               ))}
             </div>
-          </div>
+          </fieldset>
         )}
       </details>
 

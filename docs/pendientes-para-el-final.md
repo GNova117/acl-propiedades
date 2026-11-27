@@ -16,7 +16,7 @@ Numeración = la de `docs/auditoria-areas-de-oportunidad.md` (101–506).
 
 **Ficha y tarjetas**: 251 botones dentro de enlaces y 3 enlaces por tarjeta · 259 botón «Comparar» sin texto · 276 color de estatus desconocido · 285 estilos de impresión de la ficha · 299 ícono de WhatsApp reconocible · 300 botones «Llamar» y «WhatsApp» en Contacto · 302 testimonios con página y reseñas · 305 leyenda de colores del mapa · 308 formularios duplicados en la ficha · 312 dos llamados al comparador de créditos · 317 foto y nombre del asesor en la visita · 319 pago mensual resumido con ícono de información.
 
-**Accesibilidad que toca varias pantallas**: 249 marcadores del mapa y gráficas · 250 chat con `aria-live` · 252 `fieldset`/`legend` en grupos de casillas · 253 `<h4>` del pie y `<main>` del login del panel · 254 tablas del panel con `<th>` vacíos y desplazamiento sin teclado · 255 `alt` de la foto del asesor · 257 y 260 `prefers-reduced-motion` en hero, zoom y spinner · 258 áreas táctiles < 32 px · 261 errores de formulario con `aria-describedby`, foco y `role="status"`.
+**Accesibilidad que toca varias pantallas**: hechos 250, 252, 253, 255, 257, 260 y 261 (en Contacto y «¿Te interesa?»); quedan 249 marcadores del mapa y gráficas · 254 tablas del panel con `<th>` vacíos y desplazamiento sin teclado · 258 áreas táctiles < 32 px · 261 en el resto de formularios.
 
 **Estilos globales**: 281 `p { color: muted }` · 287 «Más filtros» abierto · 289 tipos desactivados en el buscador · 290 menú de compartir que no se cierra · 294 escala de `z-index` · 322 selector de zona con búsqueda · 323 posición del formulario de alerta.
 

@@ -137,7 +137,7 @@ export default function ChatWidget() {
             </a>
           </div>
 
-          <div className="chat-widget__list" ref={listRef}>
+          <div className="chat-widget__list" ref={listRef} role="log" aria-live="polite" aria-relevant="additions" aria-label={t("chatWidget.listLabel")}>
             {messages.length === 0 && <div className="chat-widget__bubble chat-widget__bubble--assistant">{t("chatWidget.greeting")}</div>}
             {/* Antes de que la persona escriba nada (y menos su teléfono): es una IA, lo que escriba lo procesa un proveedor externo. */}
             {/* La gente no sabe qué preguntarle: tres arranques con un toque. */}
@@ -178,7 +178,7 @@ export default function ChatWidget() {
               </div>
             ))}
             {sending && (
-              <div className="chat-widget__bubble chat-widget__bubble--assistant chat-widget__typing" aria-label={t("chatWidget.typing")}>
+              <div className="chat-widget__bubble chat-widget__bubble--assistant chat-widget__typing" role="status" aria-label={t("chatWidget.typing")}>
                 <span />
                 <span />
                 <span />

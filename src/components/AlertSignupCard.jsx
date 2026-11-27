@@ -175,8 +175,8 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
           {errors.name && <span className="form-error">{errors.name}</span>}
         </div>
 
-        <div className="form-field">
-          <label>{t("alerts.contactMethod")}</label>
+        <fieldset className="form-field">
+          <legend>{t("alerts.contactMethod")}</legend>
           <div className="alert-signup__method">
             <label>
               <input type="radio" name={`alert-${mode}-method`} checked={contactMethod === "whatsapp"} onChange={() => setContactMethod("whatsapp")} />
@@ -187,7 +187,7 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
               {t("alerts.email")}
             </label>
           </div>
-        </div>
+        </fieldset>
 
         {contactMethod === "whatsapp" ? (
           <div className="form-field">

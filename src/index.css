@@ -303,10 +303,23 @@ ul {
   margin-bottom: var(--space-4);
 }
 
-.form-field label {
+.form-field label,
+.form-field > legend {
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   color: var(--color-text);
+}
+
+/* 252: un grupo de casillas o de opciones es un <fieldset> con su <legend> (se anuncia como grupo), y se ve igual que antes. */
+fieldset.form-field {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.form-field > legend {
+  padding: 0;
+  margin-bottom: 0.4rem;
 }
 
 .form-field input,
@@ -399,6 +412,11 @@ ul {
 @media (prefers-reduced-motion: reduce) {
   .page-transition {
     animation: none;
+  }
+
+  /* El indicador de carga sigue girando (es información), pero despacio. */
+  .spinner {
+    animation-duration: 2.4s;
   }
 }
 

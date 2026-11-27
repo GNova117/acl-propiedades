@@ -3380,6 +3380,7 @@
     "title": "Recently viewed"
   },
   "chatWidget": {
+    "listLabel": "Conversation with the assistant",
     "starterBuy": "I am looking for a house in Torreón",
     "starterSell": "I want to sell my property",
     "starterAdvisor": "Talk to an advisor",

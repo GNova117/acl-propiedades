@@ -71,11 +71,17 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 221 | Las páginas de ciudad y colonia piden solo 7 columnas de las propiedades activas para su resumen de mercado (`getMarketRows`), no el catálogo completo con fotos. |
 | 234 | Inter pasa a una sola fuente variable (48 KB en lugar de 97 KB). |
 | 203 | Se mantiene la decisión de la tanda 201–220: no se responde 404 real a rutas desconocidas (exigiría listar en el servidor todas las rutas válidas y se desactualiza con cada página nueva); la pantalla dice «404» y lleva `noindex`. |
+| 250 | El chat anuncia sus respuestas (la lista es `role="log"` con `aria-live`) y el indicador «escribiendo» es un `status`. |
+| 252 | Las amenidades del filtro y «¿Cómo te avisamos?» son `<fieldset>` con `<legend>` (se anuncian como grupo) y se ven igual que antes. |
+| 253 | El pie usa `<h2>` en lugar de `<h4>` (sin saltar niveles) y el inicio de sesión del panel tiene `<main>`. |
+| 255 | La foto del asesor en su tarjeta lleva `alt=""` (su nombre ya está al lado). |
+| 257, 260 | `prefers-reduced-motion`: el hero (crecer y zoom), la pantalla de carga y el spinner (que gira más despacio) respetan la preferencia. El visor de fotos, Reveal y las partículas ya la respetaban. |
+| 261 | Contacto y la tarjeta «¿Te interesa?»: cada campo con error apunta a su mensaje (`aria-describedby`), al enviar con errores el foco va al primer campo con error y el aviso de éxito ya era `status`. El resto de formularios queda para otra pasada con el mismo helper (`lib/formErrors.js`). |
 | 400 | La ficha trae «Reportar un error»: abre Contacto con el mensaje ya empezado (código y enlace de la publicación). |
 
 ## Pruebas
 
-- Unitarias: 2,117. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,122. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 
