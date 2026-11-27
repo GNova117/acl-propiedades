@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ZoneCombobox from "./ZoneCombobox";
 import { hasMoreFiltersApplied } from "../lib/moreFilters";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -173,12 +174,7 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
 
       <div className="form-field">
         <label htmlFor="filter-zone">{t("properties.zone")}</label>
-        <input id="filter-zone" list="property-filters-zones" value={filters.zone} onChange={handle("zone")} placeholder={t("hero.allZones")} />
-        <datalist id="property-filters-zones">
-          {zones.map((zone) => (
-            <option key={zone.id} value={zone.name} />
-          ))}
-        </datalist>
+        <ZoneCombobox id="filter-zone" name="zone" value={filters.zone} onChange={handle("zone")} zones={zones} placeholder={t("hero.allZones")} />
       </div>
 
       <div className="form-field">

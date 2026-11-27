@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { propertyListPath, propertyTypeLabel } from "../lib/format";
 import "./SearchBar.css";
+import ZoneCombobox from "./ZoneCombobox";
 import { propertyPath } from "../lib/propertyUrl.js";
 
 const LAST_SEARCH_KEY = "acl_last_search";
@@ -103,12 +104,7 @@ export default function SearchBar() {
 
         <div className="search-bar__field">
           <label htmlFor="search-zone">{t("hero.searchZone")}</label>
-          <input id="search-zone" name="zone" list="search-bar-zones" value={form.zone} onChange={handleChange} placeholder={t("hero.allZones")} />
-          <datalist id="search-bar-zones">
-            {zones.map((zone) => (
-              <option key={zone.id} value={zone.name} />
-            ))}
-          </datalist>
+          <ZoneCombobox id="search-zone" name="zone" value={form.zone} onChange={handleChange} zones={zones} placeholder={t("hero.allZones")} />
         </div>
 
         <div className="search-bar__field">

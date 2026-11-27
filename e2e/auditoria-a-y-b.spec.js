@@ -439,4 +439,42 @@ test.describe("Tanda A y B", () => {
     await go("/aviso-de-privacidad");
     expect(await color(page.locator(".privacy-page__block p"))).toBe(normal);
   });
+  test("selector de zona con búsqueda: lista visible al enfocar, filtra sin acentos, se maneja con teclado y toca para elegir (322)", async ({ page, go, press }) => {
+    await go("/propiedades");
+    if (await page.locator(".property-filters__toggle").isVisible()) await press(page.locator(".property-filters__toggle"));
+    const campo = page.locator("#filter-zone");
+    await expect(campo).toHaveAttribute("role", "combobox");
+    await campo.focus();
+    const lista = page.getByRole("listbox", { name: "Zonas" });
+    await expect(lista).toBeVisible();
+    const todas = await lista.getByRole("option").count();
+    expect(todas).toBeGreaterThan(1);
+    // Filtra mientras se escribe (sin importar mayúsculas ni acentos): se teclea una zona concreta en mayúsculas y sin acentos.
+    const objetivo = (await lista.getByRole("option").nth(todas - 1).textContent()).trim();
+    const sinAcentos = objetivo.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+    await campo.fill(sinAcentos);
+    const filtradas = await lista.getByRole("option").count();
+    expect(filtradas).toBeGreaterThan(0);
+    expect(filtradas).toBeLessThan(todas);
+    await expect(lista.getByRole("option", { name: objetivo, exact: true })).toHaveCount(1);
+    // Teclado: ↓ marca la primera, Enter la elige y cierra la lista.
+    await campo.press("ArrowDown");
+    await expect(lista.getByRole("option").first()).toHaveAttribute("aria-selected", "true");
+    const nombre = (await lista.getByRole("option").first().textContent()).trim();
+    await campo.press("Enter");
+    await expect(campo).toHaveValue(nombre);
+    await expect(lista).toHaveCount(0);
+    // Tocar (o hacer clic) en una opción también la elige.
+    await campo.fill("");
+    await expect(lista).toBeVisible();
+    const segunda = lista.getByRole("option").nth(1);
+    const segundoNombre = (await segunda.textContent()).trim();
+    await segunda.dispatchEvent("pointerdown");
+    await expect(campo).toHaveValue(segundoNombre);
+    // Esc cierra.
+    await campo.fill("a");
+    await expect(lista).toBeVisible();
+    await campo.press("Escape");
+    await expect(lista).toHaveCount(0);
+  });
 });

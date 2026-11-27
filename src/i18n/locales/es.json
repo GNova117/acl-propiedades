@@ -5014,6 +5014,9 @@
     "undo": "Deshacer",
     "region": "Avisos"
   },
+  "zoneCombobox": {
+    "list": "Zonas"
+  },
   "adminNav": {
     "pin": "Fijar arriba",
     "unpin": "Quitar de fijados",

@@ -5014,6 +5014,9 @@
     "undo": "Undo",
     "region": "Notices"
   },
+  "zoneCombobox": {
+    "list": "Areas"
+  },
   "adminNav": {
     "pin": "Pin to top",
     "unpin": "Unpin",
