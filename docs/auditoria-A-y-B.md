@@ -95,6 +95,7 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 326 | En Prospectos, la búsqueda y el selector de asesor dejan el estilo nativo del navegador y usan el mismo borde, radio y foco que los demás campos. |
 | 258 | Áreas táctiles de al menos 32 px en el pie (enlaces legales), títulos de tarjetas y desarrollos, datos de contacto, «Volver», «¿Cómo se calcula?», «Personalizar», preguntas frecuentes, «Pantalla completa» y acercar/alejar del mapa. Quedan fuera lo que no es nuestro: atribución de Leaflet/OpenStreetMap, barra de rango y círculos de radio nativos. |
 | 259 | El botón «Comparar» de tarjetas y ficha trae su palabra (antes era un cuadro vacío); su nombre accesible es el texto visible y `aria-pressed` dice si está marcado. |
+| 294 | Los `z-index` de 100 o más salen de una escala de variables en `index.css` (`--z-header`, `--z-chat`, `--z-dialog`, `--z-toast`, `--z-lightbox`…), con los mismos valores de antes (no cambia nada a la vista). Una prueba (`zIndexScale.test.js`) impide números sueltos nuevos y vigila el orden de las capas. |
 | 329 | En la tabla de propiedades, «Activo/Inactivo» se ve y se anuncia como interruptor (con su palanca, `role="switch"` y una ayuda al pasar el cursor), no como una etiqueta más. |
 | 330 | El aviso «Toca respaldar» del inicio del panel trae su enlace como botón (antes era un enlace suelto dentro del texto). |
 | 333 | El menú del panel gana la carpeta «Sitio web» (Testimonios, Blog y Novedades salen de Clientes y de Oficina). |
@@ -104,7 +105,7 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 
 ## Pruebas
 
-- Unitarias: 2,136. e2e local: 959 (+31 omitidas). CI de GitHub en verde para `e23d276`. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,138. e2e local: 959 (+31 omitidas). CI de GitHub en verde para `e23d276`. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 

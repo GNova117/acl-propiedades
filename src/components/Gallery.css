@@ -77,7 +77,7 @@
 .gallery-lightbox {
   position: fixed;
   inset: 0;
-  z-index: 4000;
+  z-index: var(--z-lightbox);
   display: flex;
   flex-direction: column;
   background: #000;

@@ -2,7 +2,7 @@
   position: fixed;
   left: 0;
   right: 0;
-  z-index: 150; /* debajo del encabezado del sitio (200) */
+  z-index: var(--z-sticky); /* debajo del encabezado del sitio (200) */
   display: none; /* solo en computadora */
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);

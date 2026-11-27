@@ -8,7 +8,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 450;
+    z-index: var(--z-contact-bar);
     display: flex;
     gap: 0.6rem;
     padding: 0.65rem 1rem calc(0.65rem + env(safe-area-inset-bottom, 0px));

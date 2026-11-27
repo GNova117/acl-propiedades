@@ -4,6 +4,29 @@
    columna por falta de ancho, no por el tipo de pantalla. */
 
 :root {
+  /* Escala de capas (z-index). De menor a mayor; los valores locales de 1 a 50 (apilar un elemento sobre su vecino dentro de
+     un mismo componente) se quedan como número. Todo lo de 100 o más usa una de estas variables: una prueba
+     (zIndexScale.test.js) vigila que no vuelvan los números sueltos. Cambiar una capa aquí la mueve en todo el sitio. */
+  --z-sticky: 150; /* barra de precio fija, partículas de temporada: debajo del encabezado */
+  --z-header: 200; /* encabezado del sitio */
+  --z-dialog-low: 200; /* captura/vista previa de documentos y avalúo (diálogos del panel de menor jerarquía) */
+  --z-tabbar: 440; /* barra inferior del sitio en teléfono */
+  --z-contact-bar: 450; /* barra de contacto en teléfono (sobre la barra inferior) */
+  --z-chat: 500; /* botón y ventana del chat / WhatsApp */
+  --z-overlay: 900; /* aviso de cookies, captura rápida y menú lateral del panel (cajón) */
+  --z-popover: 950; /* resultados del buscador, campana y velo del cajón del panel */
+  --z-drawer: 1000; /* paneles que cubren la pantalla: cajón del panel, filtros en teléfono, desarrollos */
+  --z-system-dialog: 1200; /* aviso por inactividad y buscador de apartados del panel */
+  --z-dialog: 2000; /* ventanas modales (firma, 360°, publicación social, prospectos de la propiedad) */
+  --z-tour: 2500; /* recorrido guiado del panel */
+  --z-toast: 3000; /* avisos emergentes */
+  --z-lightbox: 4000; /* galería a pantalla completa */
+  --z-loading: 9999; /* pantalla de carga: siempre encima */
+  /* Mapa (Leaflet pone marcadores en 600 y globos en 700 dentro de su propio contexto) */
+  --z-map-popover: 750;
+  --z-map-control: 1000;
+  --z-map-fullscreen: 3000;
+
   --font-heading: "Rajdhani", "Arial Narrow", sans-serif;
   --font-body: "Inter", system-ui, -apple-system, sans-serif;
 
@@ -369,7 +392,7 @@ fieldset.form-field {
   background: var(--color-primary-solid);
   color: var(--color-on-primary);
   padding: var(--space-3) var(--space-4);
-  z-index: 1000;
+  z-index: var(--z-drawer);
 }
 
 .skip-link:focus {
