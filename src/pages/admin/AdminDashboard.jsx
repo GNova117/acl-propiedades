@@ -160,7 +160,7 @@ export default function AdminDashboard() {
         <div className="card" style={{ padding: "1rem 1.25rem", marginBottom: "1.25rem" }}>
           <strong>{t("backup.reminderTitle")}</strong>{" "}
           <span className="form-hint">{t("backup.reminderText", { days: 7 })}</span>{" "}
-          <Link to="/admin/roles">{t("backup.reminderLink")}</Link>
+          <Link to="/admin/roles" className="btn btn-outline btn-sm">{t("backup.reminderLink")}</Link>
         </div>
       )}
 

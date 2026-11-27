@@ -47,7 +47,7 @@ const isInside = (pathname, to) => pathname === to || pathname.startsWith(`${to}
 
 export default function AdminLayout() {
   const { t } = useTranslation();
-  const { logout, hasSection, advisorId, session } = useAuth();
+  const { logout, hasSection, advisorId, session, role } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -338,6 +338,12 @@ export default function AdminLayout() {
           <span className="admin-layout__nav-label">{compact ? t("adminNav.expand") : t("adminNav.compact")}</span>
         </button>
         <ReportProblem compact={compact} />
+        {email && (
+          <p className="admin-layout__user" title={t("adminNav.signedInAs", { email })}>
+            <span className="admin-layout__user-email">{email}</span>
+            <span className="admin-layout__user-role">{role?.name || t("adminNav.noRole")}</span>
+          </p>
+        )}
         <button type="button" className="admin-layout__logout" onClick={handleLogout} title={compact ? t("admin.logout") : undefined}>
           <span className="admin-layout__logout-icon" aria-hidden="true">⏻</span>
           <span className="admin-layout__nav-label">{t("admin.logout")}</span>

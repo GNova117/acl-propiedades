@@ -922,7 +922,8 @@
       "clientes": "Clientes",
       "herramientas": "Herramientas",
       "obra": "Obra",
-      "oficina": "Oficina"
+      "oficina": "Oficina",
+      "sitio": "Sitio web"
     },
     "menu": "Menú",
     "logout": "Cerrar sesión",
@@ -2430,6 +2431,7 @@
     "callTo": "Llamar a {{name}}",
     "whatsappTo": "WhatsApp a {{name}}",
     "placeholder": "Buscar cliente, propiedad, teléfono…  ( / )",
+    "placeholderShort": "Buscar…  ( / )",
     "loading": "Buscando…",
     "noResults": "Sin resultados para \"{{query}}\".",
     "more": "{{count}} más",
@@ -5010,7 +5012,9 @@
     "pinned": "Fijados",
     "recent": "Recientes",
     "compact": "Compactar menú",
-    "expand": "Expandir menú"
+    "expand": "Expandir menú",
+    "signedInAs": "Sesión de {{email}}",
+    "noRole": "Sin rol"
   },
   "a11y": {
     "closeMenu": "Cerrar menú",

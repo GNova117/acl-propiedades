@@ -45,4 +45,4 @@ export const ICON_BY_PATH = {
   "/admin/arco": "shield",
 };
 
-export const ICON_BY_GROUP = { propiedades: "home", clientes: "briefcase", herramientas: "calculator", obra: "hammer", oficina: "calendar" };
+export const ICON_BY_GROUP = { propiedades: "home", clientes: "briefcase", herramientas: "calculator", obra: "hammer", oficina: "calendar", sitio: "megaphone" };

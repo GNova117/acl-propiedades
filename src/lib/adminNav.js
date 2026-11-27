@@ -29,9 +29,17 @@ export const NAV = [
       { section: "prospectos", to: "/admin/estadisticas", labelKey: "funnel.title" },
       { section: "prospectos", to: "/admin/alertas", labelKey: "alerts.admin.title" },
       { section: "mensajes", to: "/admin/mensajes", labelKey: "admin.messages", badge: true },
+      { section: "visitas", to: "/admin/visitas", labelKey: "accessControl.sections.visitas" },
+    ],
+  },
+  // Lo que se publica en el sitio, aparte de la gestión de clientes y de la oficina.
+  {
+    key: "sitio",
+    labelKey: "admin.groups.sitio",
+    items: [
       { section: "testimonios", to: "/admin/testimonios", labelKey: "admin.testimonials" },
       { section: "blog", to: "/admin/blog", labelKey: "blog.admin.title" },
-      { section: "visitas", to: "/admin/visitas", labelKey: "accessControl.sections.visitas" },
+      { section: "novedades", to: "/admin/novedades", labelKey: "novedades.admin.title" },
     ],
   },
   {
@@ -70,7 +78,6 @@ export const NAV = [
       { section: "roles", to: "/admin/actividad", labelKey: "activity.title" },
       { section: "roles", to: "/admin/errores", labelKey: "errors.navTitle" },
       { section: "arco", to: "/admin/arco", labelKey: "arco.navTitle" },
-      { section: "novedades", to: "/admin/novedades", labelKey: "novedades.admin.title" },
     ],
   },
   { section: "roles", to: "/admin/roles", labelKey: "accessControl.sections.roles" },

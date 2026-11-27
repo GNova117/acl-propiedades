@@ -297,4 +297,27 @@ test.describe("Tanda A y B", () => {
     const enlaces = page.locator('.property-detail a[href^="/comparar-creditos"]');
     expect(await enlaces.count(), "un solo llamado al comparador de créditos en la ficha").toBeLessThanOrEqual(1);
   });
+  test("panel: el menú lateral muestra el correo y el rol, y la carpeta «Sitio web» agrupa blog, testimonios y novedades", async ({ page, seedAdminSession, go, press, isMobile }) => {
+    await seedAdminSession();
+    await go("/admin");
+    if (isMobile) await press(page.locator(".admin-layout__menu-btn"));
+    await expect(page.locator(".admin-layout__user-email")).toBeVisible();
+    await expect(page.locator(".admin-layout__user-role")).not.toHaveText("");
+    const carpeta = page.locator(".admin-layout__group-toggle", { hasText: "Sitio web" });
+    await expect(carpeta).toBeVisible();
+    await press(carpeta);
+    await expect(page.locator(".admin-layout__sidebar a[href='/admin/blog']")).toBeVisible();
+    // La carpeta de Clientes ya no trae el blog.
+    const clientes = page.locator(".admin-layout__group-toggle", { hasText: "Clientes" });
+    if ((await clientes.getAttribute("aria-expanded")) !== "true") await press(clientes);
+    await expect(page.locator(".admin-layout__group", { has: clientes }).locator("a[href='/admin/blog']")).toHaveCount(0);
+  });
+
+  test("panel: el buscador global usa un placeholder corto pero conserva el nombre accesible completo", async ({ page, seedAdminSession, go }) => {
+    await seedAdminSession();
+    await go("/admin");
+    const caja = page.locator(".admin-search__input");
+    await expect(caja).toHaveAttribute("placeholder", /^Buscar…/);
+    await expect(caja).toHaveAttribute("aria-label", /cliente, propiedad/);
+  });
 });

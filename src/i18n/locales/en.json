@@ -922,7 +922,8 @@
       "clientes": "Clients",
       "herramientas": "Tools",
       "obra": "Works",
-      "oficina": "Office"
+      "oficina": "Office",
+      "sitio": "Website"
     },
     "menu": "Menu",
     "logout": "Sign out",
@@ -2430,6 +2431,7 @@
     "callTo": "Call {{name}}",
     "whatsappTo": "WhatsApp {{name}}",
     "placeholder": "Search client, property, phone…  ( / )",
+    "placeholderShort": "Search…  ( / )",
     "loading": "Searching…",
     "noResults": "No results for \"{{query}}\".",
     "more": "{{count}} more",
@@ -5010,7 +5012,9 @@
     "pinned": "Pinned",
     "recent": "Recent",
     "compact": "Compact menu",
-    "expand": "Expand menu"
+    "expand": "Expand menu",
+    "signedInAs": "Signed in as {{email}}",
+    "noRole": "No role"
   },
   "a11y": {
     "closeMenu": "Close menu",

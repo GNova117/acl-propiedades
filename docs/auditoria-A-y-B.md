@@ -87,6 +87,10 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 312 | La ficha ofrece el comparador de créditos una sola vez: dentro de la calculadora (la que se abre con «Personalizar»); la tarjeta aparte solo sale en propiedades sin estimado (terrenos, naves y rentas). |
 | 319 | En la ficha, la aclaración del pago mensual (enganche, plazo y tasa) va detrás de «ⓘ ¿Cómo se calcula?» en lugar de 2–3 renglones siempre visibles. |
 | 323 | En el listado, con más de 6 resultados el aviso «avísame» aparece después de la primera tanda de tarjetas (ocupa todo el ancho de la fila); con pocos resultados sigue al final. |
+| 330 | El aviso «Toca respaldar» del inicio del panel trae su enlace como botón (antes era un enlace suelto dentro del texto). |
+| 333 | El menú del panel gana la carpeta «Sitio web» (Testimonios, Blog y Novedades salen de Clientes y de Oficina). |
+| 334 | El buscador global del panel muestra un texto corto («Buscar…  ( / )»); el nombre accesible conserva el texto completo. |
+| 335 | El menú lateral muestra el correo de quien inició sesión y su rol, junto a «Cerrar sesión» (se oculta en el modo compacto). |
 | 400 | La ficha trae «Reportar un error»: abre Contacto con el mensaje ya empezado (código y enlace de la publicación). |
 
 ## Pruebas

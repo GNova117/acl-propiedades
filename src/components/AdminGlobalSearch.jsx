@@ -275,7 +275,7 @@ export default function AdminGlobalSearch() {
         type="search"
         className="admin-search__input"
         value={query}
-        placeholder={t("search.placeholder")}
+        placeholder={t("search.placeholderShort")}
         aria-label={t("search.placeholder")}
         role="combobox"
         aria-haspopup="listbox"
