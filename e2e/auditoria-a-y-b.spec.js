@@ -329,4 +329,20 @@ test.describe("Tanda A y B", () => {
     await press(interruptor);
     await expect(page.locator("button.badge--switch").first()).not.toHaveAttribute("aria-checked", antes);
   });
+  test("Prospectos: en teléfono pegar/importar y exportar van tras «⋯ Más»; en pantalla grande siguen a la vista", async ({ page, seedAdminSession, go, press, isMobile }) => {
+    await seedAdminSession();
+    await go("/admin/prospectos");
+    const pegar = page.getByRole("button", { name: "Pegar o importar lista" });
+    if (isMobile) {
+      await expect(pegar).toBeHidden();
+      await expect(page.getByRole("button", { name: "Exportar CSV" })).toBeHidden();
+      await press(page.locator("summary.btn", { hasText: "⋯ Más" }));
+      await expect(pegar).toBeVisible();
+    } else {
+      await expect(pegar).toBeVisible();
+      await expect(page.locator("summary.btn", { hasText: "⋯ Más" })).toHaveCount(0);
+    }
+    await expect(page.getByRole("link", { name: "Nuevo prospecto" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Seleccionar", exact: true })).toBeVisible();
+  });
 });

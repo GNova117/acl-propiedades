@@ -20,7 +20,7 @@ Numeración = la de `docs/auditoria-areas-de-oportunidad.md` (101–506).
 
 **Estilos globales**: 281 `p { color: muted }` · 294 escala de `z-index` · 322 selector de zona con búsqueda.
 
-**Panel (diseño)**: 325–326 acciones de Prospectos en teléfono · 331 cifras con comparación y enlaces · 332 respaldo fuera de Roles · 336–337 migas y acciones de tablas. (Hechos: 329, 330, 333, 334, 335.)
+**Panel (diseño)**: 326 estilo del buscador y selector de Prospectos en teléfono · 331 cifras con comparación y enlaces · 332 respaldo fuera de Roles · 336–337 migas y acciones de tablas. (Hechos: 325, 329, 330, 333, 334, 335.)
 
 **Contenido que solo tú puedes dar**: 199 texto propio por ciudad · 358 «te respondemos en X horas» (promesa de negocio) · 359 proceso y comisión en «Vende tu casa» · 365 créditos Fovissste, Cofinavit y Unamos · 366 enlace de precalificación Infonavit · 370 página de servicios (remodelación y construcción) · 390–394 guías, glosario y costos del comprador · 422 plantillas de descripción.
 

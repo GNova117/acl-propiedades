@@ -87,6 +87,7 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 312 | La ficha ofrece el comparador de créditos una sola vez: dentro de la calculadora (la que se abre con «Personalizar»); la tarjeta aparte solo sale en propiedades sin estimado (terrenos, naves y rentas). |
 | 319 | En la ficha, la aclaración del pago mensual (enganche, plazo y tasa) va detrás de «ⓘ ¿Cómo se calcula?» en lugar de 2–3 renglones siempre visibles. |
 | 323 | En el listado, con más de 6 resultados el aviso «avísame» aparece después de la primera tanda de tarjetas (ocupa todo el ancho de la fila); con pocos resultados sigue al final. |
+| 325 | En Prospectos, en teléfono, «Pegar o importar lista», «Importar desde visitas» y los exportes van tras un menú «⋯ Más»; «Nuevo» y «Seleccionar» siguen a la vista. En pantalla grande no cambia nada. |
 | 329 | En la tabla de propiedades, «Activo/Inactivo» se ve y se anuncia como interruptor (con su palanca, `role="switch"` y una ayuda al pasar el cursor), no como una etiqueta más. |
 | 330 | El aviso «Toca respaldar» del inicio del panel trae su enlace como botón (antes era un enlace suelto dentro del texto). |
 | 333 | El menú del panel gana la carpeta «Sitio web» (Testimonios, Blog y Novedades salen de Clientes y de Oficina). |

@@ -17,6 +17,8 @@ import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import ProspectCard from "../../components/ProspectCard";
 import ProspectImportModal from "../../components/ProspectImportModal";
+import RowMore from "../../components/RowMore";
+import { useMediaQuery } from "../../lib/useMediaQuery";
 import "./admin.css";
 import SavedViews from "../../components/SavedViews";
 import "./AdminProspects.css";
@@ -299,6 +301,28 @@ export default function AdminProspects() {
     }
   };
 
+  // 325: en teléfono, lo de menor uso (pegar/importar y exportar) va tras un «⋯» para que la lista quede a la vista.
+  const narrow = useMediaQuery("(max-width: 640px)");
+  const secondary = (
+    <>
+    <button type="button" className="btn btn-outline" onClick={() => setPasteOpen(true)}>
+      {t("prospectImport.open")}
+    </button>
+    {canImport && importable.length > 0 && (
+      <button type="button" className="btn btn-outline" onClick={handleImport} disabled={importing}>
+        {importing ? <span className="spinner" /> : null}
+        {t("prospects.import", { count: importable.length })}
+      </button>
+    )}
+    <button type="button" className="btn btn-outline" onClick={() => handleExport("csv")} disabled={filtered.length === 0} title={filtered.length === 0 ? t("common.exportCsvEmpty") : undefined}>
+      {t("common.exportCsv")}
+    </button>
+    <button type="button" className="btn btn-outline" onClick={() => handleExport("xlsx")} disabled={filtered.length === 0} title={filtered.length === 0 ? t("common.exportCsvEmpty") : undefined}>
+      {t("common.exportXlsx")}
+    </button>
+    </>
+  );
+
   return (
     <div>
       <div className="admin-header">
@@ -313,21 +337,7 @@ export default function AdminProspects() {
           <button type="button" className={`btn btn-outline${selecting ? " is-active" : ""}`} onClick={toggleSelecting} aria-pressed={selecting}>
             {selecting ? t("prospects.bulk.exit") : t("prospects.bulk.select")}
           </button>
-          <button type="button" className="btn btn-outline" onClick={() => setPasteOpen(true)}>
-            {t("prospectImport.open")}
-          </button>
-          {canImport && importable.length > 0 && (
-            <button type="button" className="btn btn-outline" onClick={handleImport} disabled={importing}>
-              {importing ? <span className="spinner" /> : null}
-              {t("prospects.import", { count: importable.length })}
-            </button>
-          )}
-          <button type="button" className="btn btn-outline" onClick={() => handleExport("csv")} disabled={filtered.length === 0} title={filtered.length === 0 ? t("common.exportCsvEmpty") : undefined}>
-            {t("common.exportCsv")}
-          </button>
-          <button type="button" className="btn btn-outline" onClick={() => handleExport("xlsx")} disabled={filtered.length === 0} title={filtered.length === 0 ? t("common.exportCsvEmpty") : undefined}>
-            {t("common.exportXlsx")}
-          </button>
+          {narrow ? <RowMore label={`⋯ ${t("common.more")}`}>{secondary}</RowMore> : secondary}
         </div>
       </div>
 
