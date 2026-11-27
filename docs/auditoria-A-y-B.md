@@ -89,6 +89,7 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 323 | En el listado, con más de 6 resultados el aviso «avísame» aparece después de la primera tanda de tarjetas (ocupa todo el ancho de la fila); con pocos resultados sigue al final. |
 | 332 | El respaldo y la retención de papelería tienen su propio apartado «Respaldo» en la carpeta Oficina (ruta `/admin/respaldo`); «Roles y accesos» solo trae un enlace, y el aviso del inicio lleva ahí. |
 | 325 | En Prospectos, en teléfono, «Pegar o importar lista», «Importar desde visitas» y los exportes van tras un menú «⋯ Más»; «Nuevo» y «Seleccionar» siguen a la vista. En pantalla grande no cambia nada. |
+| 326 | En Prospectos, la búsqueda y el selector de asesor dejan el estilo nativo del navegador y usan el mismo borde, radio y foco que los demás campos. |
 | 329 | En la tabla de propiedades, «Activo/Inactivo» se ve y se anuncia como interruptor (con su palanca, `role="switch"` y una ayuda al pasar el cursor), no como una etiqueta más. |
 | 330 | El aviso «Toca respaldar» del inicio del panel trae su enlace como botón (antes era un enlace suelto dentro del texto). |
 | 333 | El menú del panel gana la carpeta «Sitio web» (Testimonios, Blog y Novedades salen de Clientes y de Oficina). |

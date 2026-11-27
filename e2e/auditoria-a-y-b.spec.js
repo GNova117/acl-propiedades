@@ -354,4 +354,17 @@ test.describe("Tanda A y B", () => {
     await expect(page.getByRole("heading", { name: "Respaldo de datos" })).toHaveCount(0);
     await expect(page.getByRole("main").getByRole("link", { name: "Respaldo" })).toBeVisible();
   });
+  test("Prospectos: la búsqueda lleva el mismo borde y radio que los demás campos del sitio", async ({ page, seedAdminSession, go }) => {
+    await seedAdminSession();
+    await go("/admin/prospectos");
+    const caja = page.locator(".prospect-filters input[type=search]");
+    await expect(caja).toBeVisible();
+    const estilo = await caja.evaluate((el) => {
+      const c = getComputedStyle(el);
+      return { borde: c.borderTopWidth, radio: c.borderTopLeftRadius, fuente: c.fontFamily };
+    });
+    expect(estilo.borde).toBe("1px");
+    expect(parseFloat(estilo.radio)).toBeGreaterThan(0);
+    expect(estilo.fuente).not.toMatch(/^(system-ui|-apple-system)$/);
+  });
 });
