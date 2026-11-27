@@ -457,7 +457,7 @@ export default function PropertyDetail() {
                     <strong>{t("monthlyEstimate.fromPerMonth", { amount: formatMXN(monthly.payment) })}</strong>
                     {/* 319: la aclaración (enganche, plazo, tasa) va detrás de un ícono de información, no en tres renglones. */}
                     <details className="property-detail__monthly-info">
-                      <summary aria-label={t("monthlyEstimate.infoLabel")}>ⓘ {t("monthlyEstimate.infoShort")}</summary>
+                      <summary><span aria-hidden="true">ⓘ</span> {t("monthlyEstimate.infoShort")}</summary>
                       <span>{t("monthlyEstimate.hint", { down: monthly.downPct, years: monthly.years, rate: monthly.rate })}</span>
                     </details>
                     <button
