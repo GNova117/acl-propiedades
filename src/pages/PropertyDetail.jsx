@@ -13,6 +13,7 @@ import ContactRequestCard from "../components/ContactRequestCard";
 import PropertyCard from "../components/PropertyCard";
 import PropertyTypeIcon from "../components/PropertyTypeIcon";
 import ShareButton from "../components/ShareButton";
+import { contactPathWithMessage } from "../lib/contactPrefill";
 import FavoriteButton from "../components/FavoriteButton";
 import CompareButton from "../components/CompareButton";
 import ScheduleVisitCard from "../components/ScheduleVisitCard";
@@ -36,7 +37,8 @@ import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines, publicPla
 import "./PropertyDetail.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
-import { isCanonicalSlug, listPathForMissingProperty, parsePropertyRef, propertyPath } from "../lib/propertyUrl.js";
+import { isCanonicalSlug, listPathForMissingProperty, parsePropertyRef, propertyPath, suggestedTypeForMissing } from "../lib/propertyUrl.js";
+import SuggestedProperties from "../components/SuggestedProperties";
 import { breadcrumbJsonLd, faqJsonLd, propertyListingJsonLd } from "../lib/structuredData.js";
 import { siteOrigin } from "../lib/site.js";
 import { colonyPath } from "../lib/zoneLandingPages.js";
@@ -359,6 +361,10 @@ export default function PropertyDetail() {
         <EmptyState illustration="signpost" title={t("emptyState.propertyGoneTitle")} text={t("detail.notFound")}>
           <Link to={listPathForMissingProperty(id)} className="btn btn-primary">{t("detail.back")}</Link>
         </EmptyState>
+        {/* Un enlace viejo compartido por WhatsApp no es un callejón sin salida: se ofrecen propiedades disponibles. */}
+        <div className="container">
+          <SuggestedProperties type={suggestedTypeForMissing(id)} />
+        </div>
       </>
     );
   }
@@ -400,6 +406,10 @@ export default function PropertyDetail() {
                     {t("detail.codeLabel")}: <strong>{property.code}</strong>
                     {daysSince(property.created_at) != null && ` · ${t("detail.publishedAgo", { count: daysSince(property.created_at) })}`}
                     {property.updated_at && daysSince(property.updated_at) !== daysSince(property.created_at) && ` · ${t("detail.updatedOn", { date: new Date(property.updated_at).toLocaleDateString(i18n.language) })}`}
+                    {" · "}
+                    <Link to={contactPathWithMessage(t("detail.reportErrorMessage", { code: property.code, url: `${siteOrigin()}${propertyPath(property)}` }))} className="property-detail__report">
+                      {t("detail.reportError")}
+                    </Link>
                   </p>
                 )}
                 <RecentViewsBadge propertyId={property.id} />

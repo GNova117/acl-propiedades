@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { isOfficeOpen } from "../lib/officeHours";
 import { useTranslation } from "react-i18next";
 import useBusinessJsonLd from "../lib/useBusinessJsonLd";
 import { mapsUrl } from "../lib/calendarEvent";
@@ -19,6 +20,11 @@ export default function Contact() {
   const businessJsonLd = useBusinessJsonLd();
   // El mapa de Google no se descarga hasta que la persona lo pide: al cargarlo Google recibe su IP y pone cookies.
   const [showMap, setShowMap] = useState(false);
+  const [open, setOpen] = useState(() => isOfficeOpen());
+  useEffect(() => {
+    const timer = setInterval(() => setOpen(isOfficeOpen()), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <>
@@ -48,7 +54,10 @@ export default function Contact() {
                   </a>
                 </li>
               </ul>
-              <p className="contact-page__hours-title">{t("about.hoursTitle")}</p>
+              <p className="contact-page__hours-title">
+                {t("about.hoursTitle")}{" "}
+                <span className={`contact-page__open${open ? " contact-page__open--yes" : ""}`}>{open ? t("contact.openNow") : t("contact.closedNow")}</span>
+              </p>
               <p className="contact-page__hours">{t("about.hours1")}</p>
               <p className="contact-page__hours">{t("about.hours2")}</p>
             </div>

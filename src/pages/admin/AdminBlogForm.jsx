@@ -6,6 +6,7 @@ import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { notify } from "../../lib/toast";
 import { notifyLoadError } from "../../lib/loadError";
+import { useUnsavedChanges } from "../../lib/useUnsavedChanges";
 
 const EMPTY = { title: "", excerpt: "", body: "", published: false };
 
@@ -24,6 +25,8 @@ export default function AdminBlogForm() {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
+  // Cerrar la pestaña con cambios sin guardar pide confirmar.
+  useUnsavedChanges(form, { ready: !loading, enabled: !saving });
 
   useEffect(() => {
     if (!isEdit) return;

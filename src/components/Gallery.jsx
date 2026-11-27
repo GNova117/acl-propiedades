@@ -125,6 +125,13 @@ export function Lightbox({ images, index, onIndexChange, onClose, alt }) {
     }
     const touch = e.changedTouches[0];
     if (g.mode === "swipe" && touch) {
+      // Deslizar hacia abajo cierra el visor (el gesto que se espera en el teléfono).
+      const dy = touch.clientY - g.startY;
+      const dx = touch.clientX - g.startX;
+      if (dy > 90 && dy > Math.abs(dx) * 1.5) {
+        onClose();
+        return;
+      }
       const direction = swipeDirection(g.startX, g.startY, touch.clientX, touch.clientY);
       if (direction) {
         go(direction);

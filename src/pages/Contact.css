@@ -91,3 +91,14 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.contact-page__open {
+  margin-left: 0.35rem;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.contact-page__open--yes {
+  color: var(--color-success);
+}

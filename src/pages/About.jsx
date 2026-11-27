@@ -20,7 +20,7 @@ export default function About() {
 
   useEffect(() => {
     db.getAdvisors()
-      .then((data) => setAdvisors(data.filter((a) => a.active !== false && a.show_in_team !== false)))
+      .then((data) => setAdvisors(data.filter((a) => a.active !== false && a.show_in_team !== false && a.photo_url)))
       .catch(() => {}); // sin red: la página se ve sin el equipo, no se rompe
   }, []);
 

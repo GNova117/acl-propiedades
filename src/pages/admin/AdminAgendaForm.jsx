@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { citaContact, citaStatus, isOpenRequest, visitLink, visitLinkTextKey } from "../../lib/agendaCitas";
+import { citaContact, citaStatus, findOverlappingCitas, isOpenRequest, visitLink, visitLinkTextKey } from "../../lib/agendaCitas";
 import VisitLinkPanel from "../../components/VisitLinkPanel";
 import { QUICK_TIMES, quickDates } from "../../lib/quickSchedule";
 import { queries } from "../../lib/queries";
@@ -11,9 +11,10 @@ import { useAuth } from "../../context/AuthContext";
 import { enqueueCita, isOfflineError, isOnline, newId, withTimeout } from "../../lib/offlineQueue";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
-import { notify } from "../../lib/toast";
+import { confirmDialog, notify } from "../../lib/toast";
 import { notifyLoadError } from "../../lib/loadError";
 import { siteOrigin } from "../../lib/site";
+import { useUnsavedChanges } from "../../lib/useUnsavedChanges";
 
 const EMPTY = { advisor_id: "", client_id: "", property_id: "", prospecto_id: "", titulo: "", fecha: "", hora: "", actividades: "", lugar: "", contact_name: "", contact_phone: "", contact_email: "" };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -54,6 +55,8 @@ export default function AdminAgendaForm() {
   const [savedOffline, setSavedOffline] = useState(null); // { label } cuando se guardó en la cola sin señal
   // Solo al editar hay algo que esperar: la cita guardada.
   const [loading, setLoading] = useState(isEdit);
+  // Cerrar la pestaña con cambios sin guardar pide confirmar.
+  useUnsavedChanges(form, { ready: !loading, enabled: !saving });
   // Solicitud de visita sin asesor: no se edita hasta que alguien la toma (desde la Agenda o Mi día).
   const [openRequest, setOpenRequest] = useState(false);
   const [citaRow, setCitaRow] = useState(null); // la cita guardada (para su enlace)
@@ -137,6 +140,15 @@ export default function AdminAgendaForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
+    // Aviso de empalmes: otra cita del mismo asesor a esa hora (la reserva en línea ya los evita; a mano no).
+    if (isOnline()) {
+      try {
+        const overlaps = findOverlappingCitas({ ...form, id: isEdit ? id : undefined }, await db.getAgendaCitas());
+        if (overlaps.length > 0 && !(await confirmDialog(t("agenda.overlapWarning", { title: overlaps[0].titulo || "—", count: overlaps.length })))) return;
+      } catch {
+        /* sin poder revisar: se deja guardar */
+      }
+    }
     setSaving(true);
     try {
       const { lugar, property_id, prospecto_id, ...rest } = form;

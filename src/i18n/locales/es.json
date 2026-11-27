@@ -173,6 +173,8 @@
     "rentada": "Rentada"
   },
   "properties": {
+    "relaxFilter_one": "Quitar «{{filter}}»: {{count}} resultado",
+    "relaxFilter_other": "Quitar «{{filter}}»: {{count}} resultados",
     "newSinceVisit_one": "{{count}} nueva desde tu última visita",
     "newSinceVisit_other": "{{count}} nuevas desde tu última visita",
     "noAdvisor": "Sin asesor",
@@ -253,6 +255,8 @@
     "coloniesTitle": "Colonias de {{city}} con propiedades"
   },
   "detail": {
+    "reportError": "Reportar un error",
+    "reportErrorMessage": "Encontré un error en la publicación {{code}} ({{url}}): ",
     "publishedAgo_zero": "Publicada hoy",
     "publishedAgo_one": "Publicada hace {{count}} día",
     "publishedAgo_other": "Publicada hace {{count}} días",
@@ -388,6 +392,8 @@
     "paymentMethodsBody": "Aceptamos pago de contado, crédito bancario, crédito INFONAVIT y crédito FOVISSSTE, sujetos a las condiciones y documentación que exija cada institución. Consulta con tu asesor las opciones disponibles para cada propiedad."
   },
   "contact": {
+    "openNow": "· Abierto ahora",
+    "closedNow": "· Cerrado ahora",
     "sendAnother": "Enviar otro mensaje",
     "title": "Contáctanos",
     "subtitle": "¿Tienes dudas o buscas una propiedad específica? Escríbenos y un asesor te contactará.",
@@ -483,6 +489,7 @@
     "homeTitle": "Lo que dicen nuestros clientes"
   },
   "blog": {
+    "share": "Compartir este artículo",
     "spanishOnly": "Los artículos están disponibles solo en español por ahora.",
     "readTime_one": "{{count}} min de lectura",
     "readTime_other": "{{count}} min de lectura",
@@ -3466,6 +3473,8 @@
     "cancelAdd": "Cancelar"
   },
   "agenda": {
+    "overlapWarning_one": "Este asesor ya tiene «{{title}}» a esa hora. ¿Guardar de todos modos?",
+    "overlapWarning_other": "Este asesor ya tiene {{count}} citas que se empalman a esa hora (entre ellas «{{title}}»). ¿Guardar de todos modos?",
     "quick": {
       "label": "Fecha y hora rápidas",
       "today": "Hoy",
@@ -4856,6 +4865,7 @@
       }
     },
     "topics": {
+      "shortcuts": { "title": "Atajos de teclado", "points": ["Pulsa «G» y luego una letra para ir a una pantalla: G D inicio del panel, G H Mi día, G P Prospectos, G C Clientes, G A Agenda, G M Mensajes, G O propiedades.", "«/» abre la búsqueda global desde cualquier pantalla.", "Los atajos no se activan mientras escribes en un campo."] },
       "myDay": {
         "title": "Mi día",
         "points": ["Junta lo de hoy: citas en orden de hora, prospectos sin atender, seguimientos vencidos y los de hoy.", "«Ruta de hoy» abre Google Maps con todas tus visitas que faltan como paradas.", "«Propiedades nuevas para tus prospectos» muestra lo publicado esta semana que le encaja a alguien; tú decides si le avisas.", "Aquí también salen los apartados y las exclusivas por vencer, tus comisiones y la tabla del mes del equipo."]
@@ -5290,6 +5300,8 @@
     "photos_other": "{{count}} fotos"
   },
   "advisorForm": {
+    "deactivateWarning": "Al desactivar a este asesor se quedan sin responsable: {{upcomingCitas}} citas por venir, {{openProspects}} prospectos abiertos y {{ownedProperties}} propiedades. Reasígnalos después. ¿Desactivar?",
+    "photoNeeded": "Sin foto no aparece en Nosotros: sube una para que se muestre.",
     "whatsappLabel": "WhatsApp (10 dígitos; se guarda con la lada 52)"
   }
 }

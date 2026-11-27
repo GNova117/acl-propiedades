@@ -25,6 +25,7 @@ import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
 import "./AdminProspects.css";
 import { notifyLoadError } from "../../lib/loadError";
+import { useUnsavedChanges } from "../../lib/useUnsavedChanges";
 
 // Alta y edición de un prospecto. El asesor con login vinculado siempre queda
 // como responsable; el correo de oficina (sin asesor vinculado) elige quién lo lleva.
@@ -57,6 +58,8 @@ export default function AdminProspectForm() {
   const [loading, setLoading] = useState(isEdit);
   const [notFound, setNotFound] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Cerrar la pestaña con cambios sin guardar pide confirmar.
+  useUnsavedChanges(form, { ready: !loading, enabled: !saving });
   const [saveError, setSaveError] = useState("");
   // Coincidencias con un prospecto o cliente que ya existe (solo al dar de alta);
   // mientras haya, guardar pide confirmarlo con "Guardar de todos modos".

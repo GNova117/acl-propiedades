@@ -10,6 +10,7 @@ import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog, notify } from "../../lib/toast";
 import { notifyLoadError } from "../../lib/loadError";
+import { useUnsavedChanges } from "../../lib/useUnsavedChanges";
 
 // Mismos tipos que soporta el perfilamiento (ver FieldInput en
 // PerfilamientoManager.jsx). Un campo sensible (la contraseña del portal de
@@ -82,6 +83,8 @@ export default function AdminClientForm() {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
+  // Cerrar la pestaña con cambios sin guardar pide confirmar.
+  useUnsavedChanges(form, { ready: !loading, enabled: !saving });
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   // Vínculo con otro cliente (expediente conjunto) — ej. una pareja que

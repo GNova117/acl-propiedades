@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigationType, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
@@ -318,31 +318,33 @@ export default function Properties({
   // Renta o venta: en Propiedades y también en Naves Industriales (muchas se rentan); Terrenos casi no se rentan, ahí no se ofrece.
   const showOperation = !fixedType || fixedType === "nave_industrial";
 
-  const queryFilters = useMemo(
-    () => ({
+  // Los filtros del listado → lo que se le pide a la base. Es una función para poder probar «¿y si quito este filtro?» (ver abajo).
+  const buildQuery = useCallback(
+    (f) => ({
       activeOnly: true,
-      type: fixedType || filters.type || undefined,
-      types: fixedType || filters.type ? undefined : sectionTypes,
-      operation_type: showOperation ? filters.operationType || undefined : undefined,
-      statuses: filters.status === "todas" ? undefined : filters.status === "disponible" ? ["disponible"] : ["disponible", "apartada"],
-      tipo_nave: fixedType === "nave_industrial" ? filters.tipoNave || undefined : undefined,
-      zone: zoneFilter || filters.zone || undefined,
+      type: fixedType || f.type || undefined,
+      types: fixedType || f.type ? undefined : sectionTypes,
+      operation_type: showOperation ? f.operationType || undefined : undefined,
+      statuses: f.status === "todas" ? undefined : f.status === "disponible" ? ["disponible"] : ["disponible", "apartada"],
+      tipo_nave: fixedType === "nave_industrial" ? f.tipoNave || undefined : undefined,
+      zone: zoneFilter || f.zone || undefined,
       // Una colonia fija (página de aterrizaje) coincide exacto; lo que la persona escribe a mano, por parte del nombre.
       zoneExact: zoneFilter ? true : undefined,
-      minPrice: filters.minPrice ? Number(filters.minPrice) : undefined,
-      maxPrice: filters.maxPrice ? Number(filters.maxPrice) : undefined,
-      minArea: filters.minArea ? Number(filters.minArea) : undefined,
-      maxArea: filters.maxArea ? Number(filters.maxArea) : undefined,
-      minBedrooms: filters.minBedrooms ? Number(filters.minBedrooms) : undefined,
-      minBathrooms: filters.minBathrooms ? Number(filters.minBathrooms) : undefined,
-      minParking: filters.minParking ? Number(filters.minParking) : undefined,
-      amenities: filters.amenities.length ? filters.amenities : undefined,
-      q: filters.q || undefined,
-      bounds: filters.bounds || undefined,
-      sortBy: filters.sortBy,
+      minPrice: f.minPrice ? Number(f.minPrice) : undefined,
+      maxPrice: f.maxPrice ? Number(f.maxPrice) : undefined,
+      minArea: f.minArea ? Number(f.minArea) : undefined,
+      maxArea: f.maxArea ? Number(f.maxArea) : undefined,
+      minBedrooms: f.minBedrooms ? Number(f.minBedrooms) : undefined,
+      minBathrooms: f.minBathrooms ? Number(f.minBathrooms) : undefined,
+      minParking: f.minParking ? Number(f.minParking) : undefined,
+      amenities: f.amenities.length ? f.amenities : undefined,
+      q: f.q || undefined,
+      bounds: f.bounds || undefined,
+      sortBy: f.sortBy,
     }),
-    [filters, fixedType, sectionTypes, zoneFilter, showOperation]
+    [fixedType, sectionTypes, zoneFilter, showOperation]
   );
+  const queryFilters = useMemo(() => buildQuery(filters), [buildQuery, filters]);
 
   // Cada tecla en precio, superficie o zona cambia `queryFilters`; a la base solo se le pregunta cuando la persona hace una pausa.
   const fetchFilters = useDebouncedValue(queryFilters, 300);
@@ -451,6 +453,31 @@ export default function Properties({
   // Solo en el listado general, sin filtros ni mapa y en la primera página:
   // con una búsqueda activa las torres estorbarían a lo que la persona pidió.
   const showDevelopments = !fixedType && !cityFilter && !zoneFilter && !hasActiveFilters && page === 0 && effectiveView === "list" && developments.length > 0;
+
+  // Sin resultados: se prueba quitar cada filtro por separado y se sugiere el que más devuelve («sin el precio máximo hay 7»).
+  const [relax, setRelax] = useState(null);
+  useEffect(() => {
+    if (loading || total > 0 || chips.length === 0) {
+      setRelax(null);
+      return undefined;
+    }
+    let active = true;
+    Promise.all(
+      chips.slice(0, 6).map(async (chip) => {
+        const result = await db.getProperties({ ...buildQuery({ ...filters, ...chip.patch }), page: 0, pageSize: 1 });
+        return { chip, count: result.total };
+      })
+    )
+      .then((options) => {
+        if (!active) return;
+        const best = options.filter((o) => o.count > 0).sort((a, b) => b.count - a.count)[0];
+        setRelax(best || null);
+      })
+      .catch(() => active && setRelax(null));
+    return () => {
+      active = false;
+    };
+  }, [loading, total, chips, filters, buildQuery]);
 
   const pageTitle = title || t(titleKey);
   const pageSubtitle = subtitle || t(subtitleKey);
@@ -612,6 +639,11 @@ export default function Properties({
                 title={t(hasActiveFilters ? "emptyState.noResultsTitle" : "emptyState.emptySectionTitle")}
                 text={t(hasActiveFilters ? "properties.noResults" : "properties.emptySection")}
               >
+                {relax && (
+                  <button type="button" className="btn btn-primary btn-sm" onClick={() => goToFilters((prev) => ({ ...prev, ...relax.chip.patch }))}>
+                    {t("properties.relaxFilter", { filter: relax.chip.label, count: relax.count })}
+                  </button>
+                )}
                 {hasActiveFilters && (
                   <button type="button" className="btn btn-outline btn-sm" onClick={() => goToFilters(EMPTY_FILTERS)}>
                     {t("activeFilters.clearAll")}

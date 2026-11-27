@@ -52,3 +52,13 @@ export function listPathForMissingProperty(param) {
   if (/^nave(-|$)/.test(slug)) return "/naves-industriales";
   return "/propiedades";
 }
+
+// El tipo de propiedad que sugiere el título de una dirección que ya no existe (para ofrecer algo parecido); undefined si no hay pista.
+export function suggestedTypeForMissing(param) {
+  const slug = String(param || "").toLowerCase();
+  if (/^terreno(-|$)/.test(slug)) return "terreno";
+  if (/^nave(-|$)/.test(slug)) return "nave_industrial";
+  if (/^departamento(-|$)/.test(slug)) return "departamento";
+  if (/^casa(-|$)/.test(slug)) return "casa";
+  return undefined;
+}

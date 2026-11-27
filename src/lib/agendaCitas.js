@@ -137,3 +137,24 @@ export function visitsToClose(citas, now = new Date(), withinDays = 7) {
     .filter((c) => c.property_id && isPending(c) && c.fecha < today && c.fecha >= since)
     .sort((a, b) => `${a.fecha}${a.hora || ""}`.localeCompare(`${b.fecha}${b.hora || ""}`));
 }
+
+// Citas del mismo asesor, el mismo día y a una hora que se empalma con la que se va a guardar (las canceladas no cuentan). Una cita sin
+// hora es de todo el día y no se empalma. `duracion_min` por omisión: 60.
+const toMin = (hora) => {
+  const [h, m] = String(hora || "").split(":").map(Number);
+  return Number.isFinite(h) ? h * 60 + (Number.isFinite(m) ? m : 0) : null;
+};
+
+export function findOverlappingCitas(cita, citas = []) {
+  if (!cita?.advisor_id || !cita?.fecha || !cita?.hora) return [];
+  const start = toMin(cita.hora);
+  if (start == null) return [];
+  const end = start + (Number(cita.duracion_min) > 0 ? Number(cita.duracion_min) : 60);
+  return citas.filter((other) => {
+    if (other.id === cita.id || other.advisor_id !== cita.advisor_id || other.fecha !== cita.fecha || other.status === "cancelada" || !other.hora) return false;
+    const otherStart = toMin(other.hora);
+    if (otherStart == null) return false;
+    const otherEnd = otherStart + (Number(other.duracion_min) > 0 ? Number(other.duracion_min) : 60);
+    return start < otherEnd && otherStart < end;
+  });
+}

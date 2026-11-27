@@ -17,6 +17,7 @@ import TourBanner from "../../components/TourBanner";
 import NavIcon from "../../components/NavIcon";
 import { ICON_BY_GROUP, ICON_BY_PATH } from "../../lib/navIcons";
 import { NAV } from "../../lib/adminNav";
+import { isTypingTarget, nextShortcutState } from "../../lib/adminShortcuts";
 import AdminSectionSearch from "../../components/AdminSectionSearch";
 import { itemForPath, loadPins, loadRecents, pushRecent, resolveShortcuts, savePins, saveRecents, togglePin } from "../../lib/navShortcuts";
 import { getQueue } from "../../lib/offlineQueue";
@@ -49,6 +50,20 @@ export default function AdminLayout() {
   const { logout, hasSection, advisorId, session } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+
+  // Atajos «G» + letra para ir a una pantalla (ver lib/adminShortcuts.js y la Ayuda).
+  useEffect(() => {
+    let state = { pendingAt: 0 };
+    const onKey = (event) => {
+      state = nextShortcutState(state, event.key, Date.now(), { typing: isTypingTarget(document.activeElement), modifier: event.ctrlKey || event.metaKey || event.altKey });
+      if (state.target) {
+        navigate(state.target);
+        state = { pendingAt: 0 };
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [navigate]);
   const [newMessagesCount, setNewMessagesCount] = useState(0);
   const [openGroups, setOpenGroups] = useState(readOpen);
   // Atajos del menú (ver lib/navShortcuts.js): lo fijado arriba, lo visitado hace poco y el modo compacto (solo iconos).

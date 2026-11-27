@@ -7,8 +7,10 @@ import { useAuth } from "../../context/AuthContext";
 import VisitScheduleEditor from "../../components/VisitScheduleEditor";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
-import { notify } from "../../lib/toast";
+import { confirmDialog, notify } from "../../lib/toast";
 import { notifyLoadError } from "../../lib/loadError";
+import { useUnsavedChanges } from "../../lib/useUnsavedChanges";
+import { advisorImpact } from "../../lib/advisorImpact";
 
 const EMPTY = { name: "", phone: "", email: "", whatsapp: "", bio: "", active: true, show_in_team: true };
 
@@ -21,11 +23,14 @@ export default function AdminAdvisorForm() {
 
   const [form, setForm] = useState(EMPTY);
   const [existingPhoto, setExistingPhoto] = useState("");
+  const [wasActive, setWasActive] = useState(true);
   const [photoFile, setPhotoFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
+  // Cerrar la pestaña con cambios sin guardar pide confirmar.
+  useUnsavedChanges(form, { ready: !loading, enabled: !saving });
 
   useEffect(() => {
     if (!isEdit) return;
@@ -41,6 +46,7 @@ export default function AdminAdvisorForm() {
         show_in_team: advisor.show_in_team !== false,
       });
       setExistingPhoto(advisor.photo_url || "");
+      setWasActive(advisor.active !== false);
       setLoading(false);
     }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [id, isEdit]);
@@ -77,6 +83,16 @@ export default function AdminAdvisorForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
+    // Al desactivar a un asesor se avisa qué se queda sin responsable (citas por venir, prospectos abiertos, propiedades).
+    if (isEdit && wasActive && !form.active) {
+      try {
+        const [citas, prospects, properties] = await Promise.all([db.getAgendaCitas(), db.getProspects(), db.getProperties({})]);
+        const impact = advisorImpact(id, { citas, prospects, properties });
+        if (impact.total > 0 && !(await confirmDialog(t("advisorForm.deactivateWarning", impact)))) return;
+      } catch {
+        /* sin poder calcular el impacto: se deja continuar (el aviso es una ayuda, no un candado) */
+      }
+    }
     setSaving(true);
     try {
       const payload = {
@@ -157,6 +173,8 @@ export default function AdminAdvisorForm() {
             <input type="checkbox" checked={form.show_in_team} onChange={handleChange("show_in_team")} className="mr-2" />
             Mostrar en la página de Nosotros
           </label>
+          {/* Nosotros solo lista asesores con foto: una tarjeta sin foto se ve incompleta. */}
+          {form.show_in_team && !photoFile && !existingPhoto && <p className="form-error">{t("advisorForm.photoNeeded")}</p>}
           <p className="form-hint">Desmárcalo para el contacto general de la empresa (ej. "ACL Propiedades") — sigue disponible como asesor de propiedades sin agente asignado, solo deja de listarse como integrante del equipo.</p>
         </div>
 

@@ -16,6 +16,7 @@ import { confirmDialog, notify } from "../../lib/toast";
 import { STEPS, clampStep, firstStepWithErrors, progressPercent, stepsWithErrors } from "../../lib/propertyFormSteps";
 import { clearDraft, draftKey, isMeaningful, loadDraft, saveDraft } from "../../lib/formDraft";
 import { notifyLoadError } from "../../lib/loadError";
+import { useUnsavedChanges } from "../../lib/useUnsavedChanges";
 
 const EMPTY = {
   title: "",
@@ -132,6 +133,8 @@ export default function AdminPropertyForm({
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
+  // Cerrar la pestaña con cambios sin guardar pide confirmar.
+  useUnsavedChanges(form, { ready: !loading, enabled: !saving });
   const [step, setStep] = useState(0);
   // Borrador automático (ver lib/formDraft.js): lo capturado se guarda en este navegador y se ofrece recuperarlo.
   const [searchParams] = useSearchParams();

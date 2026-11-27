@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { prefillMessage } from "../lib/contactPrefill";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { trackConversion } from "../lib/conversions";
@@ -21,7 +22,8 @@ const RATE_LIMIT_MS = 60_000;
 
 export default function ContactForm() {
   const { t } = useTranslation();
-  const [form, setForm] = useState(initialForm);
+  const location = useLocation();
+  const [form, setForm] = useState(() => ({ ...initialForm, message: prefillMessage(location.search) }));
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
 

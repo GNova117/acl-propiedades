@@ -118,3 +118,7 @@
   margin: 1rem 0;
   border-radius: var(--radius-md, 10px);
 }
+
+.blog-post__share {
+  margin: 1.5rem 0;
+}

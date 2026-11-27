@@ -173,6 +173,8 @@
     "rentada": "Rented"
   },
   "properties": {
+    "relaxFilter_one": "Remove \"{{filter}}\": {{count}} result",
+    "relaxFilter_other": "Remove \"{{filter}}\": {{count}} results",
     "newSinceVisit_one": "{{count}} new since your last visit",
     "newSinceVisit_other": "{{count}} new since your last visit",
     "noAdvisor": "No advisor",
@@ -253,6 +255,8 @@
     "coloniesTitle": "Neighborhoods in {{city}} with listings"
   },
   "detail": {
+    "reportError": "Report an error",
+    "reportErrorMessage": "I found a mistake in listing {{code}} ({{url}}): ",
     "publishedAgo_zero": "Listed today",
     "publishedAgo_one": "Listed {{count}} day ago",
     "publishedAgo_other": "Listed {{count}} days ago",
@@ -388,6 +392,8 @@
     "paymentMethodsBody": "We accept cash payment, bank financing, INFONAVIT credit, and FOVISSSTE credit, subject to each institution's conditions and required documentation. Check with your advisor for the options available for each property."
   },
   "contact": {
+    "openNow": "· Open now",
+    "closedNow": "· Closed now",
     "sendAnother": "Send another message",
     "title": "Contact us",
     "subtitle": "Have questions or looking for a specific property? Write to us and an advisor will contact you.",
@@ -483,6 +489,7 @@
     "homeTitle": "What our clients say"
   },
   "blog": {
+    "share": "Share this article",
     "spanishOnly": "Articles are only available in Spanish for now.",
     "readTime_one": "{{count}} min read",
     "readTime_other": "{{count}} min read",
@@ -3466,6 +3473,8 @@
     "cancelAdd": "Cancel"
   },
   "agenda": {
+    "overlapWarning_one": "This advisor already has \"{{title}}\" at that time. Save anyway?",
+    "overlapWarning_other": "This advisor already has {{count}} appointments overlapping at that time (including \"{{title}}\"). Save anyway?",
     "quick": {
       "label": "Quick date and time",
       "today": "Today",
@@ -4856,6 +4865,7 @@
       }
     },
     "topics": {
+      "shortcuts": { "title": "Keyboard shortcuts", "points": ["Press “G” and then a letter to jump to a screen: G D dashboard, G H My day, G P Prospects, G C Clients, G A Agenda, G M Messages, G O properties.", "“/” opens the global search from any screen.", "Shortcuts are off while you type in a field."] },
       "myDay": {
         "title": "My day",
         "points": ["It gathers today: appointments in time order, unattended prospects, overdue follow-ups and today's.", "“Today's route” opens Google Maps with your remaining visits as stops.", "“New properties for your prospects” shows what was published this week that fits someone; you decide whether to tell them.", "Holds and exclusives about to expire, your commissions and the team's monthly board also show up here."]
@@ -5290,6 +5300,8 @@
     "photos_other": "{{count}} photos"
   },
   "advisorForm": {
+    "deactivateWarning": "Deactivating this advisor leaves without an owner: {{upcomingCitas}} upcoming appointments, {{openProspects}} open prospects and {{ownedProperties}} properties. Reassign them afterwards. Deactivate?",
+    "photoNeeded": "Without a photo they do not appear on the About page: upload one to show them.",
     "whatsappLabel": "WhatsApp (10 digits; saved with the 52 country code)"
   }
 }

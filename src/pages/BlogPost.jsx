@@ -11,6 +11,7 @@ import { articleJsonLd } from "../lib/structuredData";
 import { readingMinutes } from "../lib/readingTime";
 import { parseBlogBody } from "../lib/blogMarkdown";
 import { siteOrigin } from "../lib/site";
+import ShareButton from "../components/ShareButton";
 
 const formatDate = (iso, locale) => new Date(iso).toLocaleDateString(locale === "en" ? "en-US" : "es-MX", { dateStyle: "long" });
 
@@ -138,6 +139,9 @@ export default function BlogPost() {
             {parseBlogBody(post.body).map((block, i) => (
               <BlogBlock key={i} block={block} />
             ))}
+          </div>
+          <div className="blog-post__share">
+            <ShareButton title={post.title} url={`${siteOrigin()}/blog/${slug}`} openUpward />
           </div>
           <GuideBanner className="guide-banner--post" />
           {related.length > 0 && (
