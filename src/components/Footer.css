@@ -92,6 +92,9 @@
 }
 
 .site-footer__bottom-row a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem; /* 258: área táctil de al menos 32 px */
   color: #93a1b8;
 }
 

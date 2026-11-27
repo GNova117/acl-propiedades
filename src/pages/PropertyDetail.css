@@ -3,7 +3,9 @@
 }
 
 .property-detail__back {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem; /* 258: área táctil de al menos 32 px */
   margin-bottom: 1.25rem;
   font-weight: 600;
   color: var(--color-primary);
@@ -285,6 +287,9 @@
 }
 
 .property-detail__faq-item summary {
+  display: flex;
+  align-items: center;
+  min-height: 2rem; /* 258 */
   cursor: pointer;
   font-weight: 600;
   list-style: none;
@@ -356,6 +361,7 @@
 
 /* «Personalizar» junto a la mensualidad: parece enlace, salta a la calculadora. */
 .property-detail__monthly-adjust {
+  min-height: 2rem; /* 258 */
   padding: 0;
   border: none;
   background: none;
@@ -429,6 +435,9 @@ body.presentation-mode .property-detail__layout {
 
 /* 319: «ⓘ ¿Cómo se calcula?» abre la aclaración del pago mensual (antes siempre visible en 2–3 renglones). */
 .property-detail__monthly-info summary {
+  display: flex;
+  align-items: center;
+  min-height: 2rem; /* 258 */
   cursor: pointer;
   color: var(--color-primary);
   font-weight: 600;

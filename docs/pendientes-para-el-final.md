@@ -14,9 +14,9 @@ Numeración = la de `docs/auditoria-areas-de-oportunidad.md` (101–506).
 
 **Inicio y navegación**: 222 fondos del inicio con `srcset`/carga diferida · 264 hero a pantalla completa y buscador bajo el pliegue · 265 panel de naves «Próximamente» · 266 inicio muy largo en teléfono · 267 «Torres y desarrollos» ocupa la primera pantalla · 268 logotipo pequeño · 269 teléfono/WhatsApp en el encabezado · 270 menú con Desarrollos, Terrenos y Favoritos · 271 el chat tapa texto en la ficha · 277 «Nosotros» con historia, años, certificaciones y fotos · 286 buscador del inicio vs filtros del listado (dos interfaces) · 298 primera pantalla de la ficha en laptop · 315 bloque para vendedores · 316 desarrollos y herramientas en el inicio · 318 menos botones en el encabezado del teléfono · 320 categorías repetidas con el hero.
 
-**Ficha y tarjetas**: 251 botones dentro de enlaces y 3 enlaces por tarjeta · 259 botón «Comparar» sin texto · 285 estilos de impresión de la ficha · 302 testimonios con página y reseñas · 308 formularios duplicados en la ficha · 317 foto y nombre del asesor en la visita.
+**Ficha y tarjetas**: 251 botones dentro de enlaces y 3 enlaces por tarjeta · 285 estilos de impresión de la ficha · 302 testimonios con página y reseñas · 308 formularios duplicados en la ficha · 317 foto y nombre del asesor en la visita.
 
-**Accesibilidad que toca varias pantallas**: hechos 250, 252, 253, 255, 257, 260 y 261 (en Contacto y «¿Te interesa?»); quedan 249 marcadores del mapa y gráficas · 254 tablas del panel con `<th>` vacíos y desplazamiento sin teclado · 258 áreas táctiles < 32 px · 261 en el resto de formularios.
+**Accesibilidad que toca varias pantallas**: hechos 250, 252, 253, 255, 257, 260 y 261 (en Contacto y «¿Te interesa?»); quedan 249 marcadores del mapa y gráficas · 254 tablas del panel con `<th>` vacíos y desplazamiento sin teclado · 261 en el resto de formularios.
 
 **Estilos globales**: 281 `p { color: muted }` · 294 escala de `z-index` · 322 selector de zona con búsqueda.
 

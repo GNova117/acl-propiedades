@@ -59,6 +59,7 @@
 .contact-page__info-list a {
   display: inline-flex;
   align-items: center;
+  min-height: 2rem; /* 258: área táctil de al menos 32 px */
   gap: 0.4rem;
   color: var(--color-text);
 }

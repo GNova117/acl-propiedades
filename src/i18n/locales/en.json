@@ -652,6 +652,7 @@
     "subtitle": "Compare up to 4 properties side by side before deciding.",
     "empty": "You don't have any properties to compare yet.",
     "browseCta": "Browse properties",
+    "short": "Compare",
     "add": "Add to compare",
     "remove": "Remove from compare",
     "removeOne": "Remove",

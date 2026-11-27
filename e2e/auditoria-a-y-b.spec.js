@@ -389,4 +389,24 @@ test.describe("Tanda A y B", () => {
     await go("/admin");
     await expect(page.locator(".admin-breadcrumb")).toHaveCount(0);
   });
+  test("áreas táctiles: pie, títulos de tarjeta, datos de contacto y enlaces de la ficha miden al menos 32 px (258)", async ({ page, go }) => {
+    const alto = (loc) => loc.first().evaluate((el) => el.getBoundingClientRect().height);
+    await go("/propiedades");
+    await expect(page.locator(".property-card").first()).toBeVisible();
+    expect(await alto(page.locator(".property-card__title a"))).toBeGreaterThanOrEqual(31.5);
+    expect(await alto(page.locator(".site-footer__bottom-row a"))).toBeGreaterThanOrEqual(31.5);
+    await go("/contacto");
+    expect(await alto(page.locator(".contact-page__info-list a"))).toBeGreaterThanOrEqual(31.5);
+    await go("/propiedades/prop-1");
+    expect(await alto(page.locator(".property-detail__back"))).toBeGreaterThanOrEqual(31.5);
+  });
+
+  test("«Comparar» en la tarjeta trae su palabra y el botón sigue marcándose (259)", async ({ page, go, press }) => {
+    await go("/propiedades");
+    const boton = page.locator(".property-card .compare-button").first();
+    await expect(boton).toContainText("Comparar");
+    await expect(boton).toHaveAttribute("aria-pressed", "false");
+    await press(boton);
+    await expect(boton).toHaveAttribute("aria-pressed", "true");
+  });
 });

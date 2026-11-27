@@ -73,6 +73,11 @@
   font-size: 1.1rem;
 }
 
+.property-card__title a {
+  display: block;
+  padding: 0.4rem 0; /* 258: área táctil de al menos 32 px */
+}
+
 .property-card__title a:hover {
   color: var(--color-primary);
 }
