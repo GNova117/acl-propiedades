@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures.js";
+import { test, expect, llenarDatosBasicosCliente } from "./fixtures.js";
 
 // Tanda «A y B» de la lista maestra (pendientes sin SQL).
 
@@ -70,5 +70,22 @@ test.describe("Tanda A y B", () => {
     const mover = page.getByRole("button", { name: "Mover foto a la derecha" }).first();
     for (let i = 0; i < 5 && !(await mover.isVisible()); i++) await siguiente();
     await expect(mover).toBeVisible();
+  });
+
+  test("la lista de clientes trae el semáforo del expediente", async ({ page, seedAdminSession, go, press }) => {
+    await seedAdminSession();
+    await go("/admin/clientes/nuevo");
+    await page.fill("#c-name", "Cliente semáforo QA");
+    await page.selectOption("#c-financiamiento", "contado");
+    await llenarDatosBasicosCliente(page);
+    await press(page.getByRole("button", { name: "Guardar" }));
+    await expect(page).toHaveURL(/\/admin\/clientes$/);
+    await expect(page.locator(".admin-table tbody tr", { hasText: "Cliente semáforo QA" }).locator(".property-completeness")).toContainText("Expediente completo");
+  });
+
+  test("Mensajes: el filtro de alertas no estorba si no hay alertas", async ({ page, seedAdminSession, go }) => {
+    await seedAdminSession();
+    await go("/admin/mensajes");
+    await expect(page.locator("#message-channel-filter")).toBeVisible();
   });
 });

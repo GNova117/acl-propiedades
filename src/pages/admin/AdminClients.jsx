@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { expedienteStatus } from "../../lib/clientExpedienteStatus";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
@@ -295,7 +296,21 @@ export default function AdminClients() {
                         aria-label={t("bulkActions.selectRow")}
                       />
                     </td>
-                    <td className="cell-name">{client.name}</td>
+                    <td className="cell-name">
+                      {client.name}
+                      {(() => {
+                        const status = expedienteStatus(client);
+                        const missing = status.missing.map((m) => m.label).join(", ");
+                        return (
+                          <div className={`property-completeness property-completeness--${status.level}`} title={missing ? t("clients.expediente.missing", { items: missing }) : t("clients.expediente.complete")}>
+                            <span className="property-completeness__bar" aria-hidden="true">
+                              <span style={{ width: `${status.total ? Math.round((status.filled / status.total) * 100) : 0}%` }} />
+                            </span>
+                            <span>{status.level === "ok" ? t("clients.expediente.complete") : t("clients.expediente.pending", { count: status.missing.length })}</span>
+                          </div>
+                        );
+                      })()}
+                    </td>
                     <td className="cell-type" {...col("type")}>{clientTypeLabel(t, client.type)}</td>
                     <td className={`cell-fin${client.financiamiento ? "" : " cell-empty"}`} data-label={t("clients.financiamiento")} {...col("financiamiento")}>
                       {financiamientoLabel(t, client.financiamiento)}

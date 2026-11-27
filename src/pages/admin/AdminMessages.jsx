@@ -52,6 +52,8 @@ export default function AdminMessages() {
   const [statusFilter, setStatusFilter] = useState("");
   const [advisorFilter, setAdvisorFilter] = useState("");
   const [channelFilter, setChannelFilter] = useState("");
+  // 416: las alertas de búsqueda llenan la bandeja; con la casilla se esconden (y se dice cuántas hay).
+  const [hideAlerts, setHideAlerts] = useState(false);
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
@@ -118,6 +120,7 @@ export default function AdminMessages() {
       if (statusFilter && (m.status || "nuevo") !== statusFilter) return false;
       // Por canal: el formulario de contacto, la solicitud de visita, WhatsApp, alertas, estimaciones, comparador…
       if (channelFilter && (m.channel || "contacto") !== channelFilter) return false;
+      if (hideAlerts && !channelFilter && m.channel === "alerta") return false;
       if (search.trim()) {
         const needle = search.trim().toLowerCase();
         if (![m.name, m.email, m.phone, m.message].some((value) => String(value || "").toLowerCase().includes(needle))) return false;
@@ -133,7 +136,8 @@ export default function AdminMessages() {
       }
       return true;
     });
-  }, [messages, statusFilter, advisorFilter, channelFilter, search, propertyById]);
+  }, [messages, statusFilter, advisorFilter, channelFilter, hideAlerts, search, propertyById]);
+  const alertCount = useMemo(() => messages.filter((m) => m.channel === "alerta").length, [messages]);
 
   // Los canales que de verdad hay en la bandeja (para el filtro).
   const channelOptions = useMemo(() => [...new Set(messages.map((m) => m.channel || "contacto"))].sort(), [messages]);
@@ -189,6 +193,13 @@ export default function AdminMessages() {
             ))}
           </select>
         </div>
+        {alertCount > 0 && (
+          <label className="form-field form-field--check" htmlFor="message-hide-alerts">
+            <span>
+              <input id="message-hide-alerts" type="checkbox" checked={hideAlerts} onChange={(e) => setHideAlerts(e.target.checked)} /> {t("messages.hideAlerts", { count: alertCount })}
+            </span>
+          </label>
+        )}
         <div className="form-field">
           <label htmlFor="message-search">{t("messages.search")}</label>
           <input id="message-search" type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("messages.searchPlaceholder")} />

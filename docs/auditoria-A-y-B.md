@@ -27,11 +27,16 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 408 | En el formulario de propiedad, «Buscar en el mapa» ubica la dirección (Nominatim, solo al pulsar) y llena latitud y longitud. |
 | 411 | La lista de propiedades del panel muestra el asesor («Ana y 1 más») y cuántos días lleva publicada. |
 | 421 | Las fotos de una propiedad se reordenan con ◀ ▶; la foto principal sigue siendo la misma al moverlas. |
+| 416 | Mensajes: casilla «Ocultar alertas de búsqueda (N)» (apagada de inicio; dice cuántas hay). |
+| 430 | Al avanzar un prospecto de etapa sin seguimiento vigente, el sistema programa el siguiente según la etapa (nuevo 1 día, contactado 2, interesado 3, negociación 2) y lo avisa. |
+| 437 | La lista de clientes trae el semáforo del expediente (completo / faltan N datos, con el detalle al pasar el cursor). |
+| 446 | La búsqueda global también encuentra citas de la agenda, desarrollos y artículos del blog. |
+| 461 | «Solo mis propiedades» en la lista del panel (para quien tiene un asesor ligado). |
 | 400 | La ficha trae «Reportar un error»: abre Contacto con el mensaje ya empezado (código y enlace de la publicación). |
 
 ## Pruebas
 
-- Unitarias: 2,015. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,024. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 

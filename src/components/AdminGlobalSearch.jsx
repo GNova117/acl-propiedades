@@ -101,6 +101,43 @@ const SOURCES = [
     }),
   },
   {
+    key: "agenda",
+    section: "agenda",
+    load: () => db.getAgendaCitas(),
+    map: (c) => ({
+      id: c.id,
+      title: c.titulo || "—",
+      sub: [c.fecha, c.hora, c.lugar].filter(Boolean).join(" · "),
+      text: [c.titulo, c.lugar, c.contact_name, c.actividades],
+      phones: [c.contact_phone],
+      to: `/admin/agenda/${c.id}`,
+    }),
+  },
+  {
+    key: "developments",
+    section: "propiedades",
+    load: () => db.getDevelopments(),
+    map: (d) => ({
+      id: d.id,
+      title: d.name,
+      sub: [d.zone, d.city].filter(Boolean).join(" · "),
+      text: [d.name, d.zone, d.city],
+      to: `/admin/desarrollos/${d.id}`,
+    }),
+  },
+  {
+    key: "blog",
+    section: "blog",
+    load: () => db.getBlogPosts(),
+    map: (b) => ({
+      id: b.id,
+      title: b.title,
+      sub: b.slug,
+      text: [b.title, b.slug, b.excerpt],
+      to: `/admin/blog/${b.id}`,
+    }),
+  },
+  {
     key: "keys",
     section: "secretaria",
     load: () => db.getSecretariaLog("keys"),

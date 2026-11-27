@@ -173,6 +173,7 @@
     "rentada": "Rentada"
   },
   "properties": {
+    "onlyMine": "Solo mis propiedades",
     "andMoreAdvisors_one": "y {{count}} más",
     "andMoreAdvisors_other": "y {{count}} más",
     "relaxFilter_one": "Quitar «{{filter}}»: {{count}} resultado",
@@ -423,6 +424,8 @@
     "serverLimited": "Se enviaron demasiados mensajes desde tu conexión. Inténtalo de nuevo en un rato o llámanos por teléfono."
   },
   "messages": {
+    "hideAlerts_one": "Ocultar alertas de búsqueda ({{count}})",
+    "hideAlerts_other": "Ocultar alertas de búsqueda ({{count}})",
     "channel": "Canal",
     "search": "Buscar",
     "searchPlaceholder": "Nombre, teléfono, correo o texto",
@@ -1116,6 +1119,12 @@
     "addSpace": "Agregar espacio"
   },
   "clients": {
+    "expediente": {
+      "complete": "Expediente completo",
+      "pending_one": "Falta {{count}} dato",
+      "pending_other": "Faltan {{count}} datos",
+      "missing": "Falta: {{items}}"
+    },
     "title": "Clientes",
     "name": "Nombre",
     "type": "Tipo de cliente",
@@ -2109,6 +2118,7 @@
     "reminderLink": "Ir a Roles y accesos"
   },
   "prospects": {
+    "followupSet": "Se programó el siguiente seguimiento para el {{date}}.",
     "bulk": {
       "label": "Acciones en lote",
       "select": "Seleccionar",
@@ -2394,6 +2404,9 @@
     "noResults": "Sin resultados para \"{{query}}\".",
     "more": "{{count}} más",
     "groups": {
+      "agenda": "Agenda",
+      "developments": "Desarrollos",
+      "blog": "Blog",
       "properties": "Propiedades",
       "clients": "Clientes",
       "prospects": "Prospectos",

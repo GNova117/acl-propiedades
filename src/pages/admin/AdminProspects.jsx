@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
-import { FOLLOWUP_OPTIONS, PROSPECT_STAGES, firstStageWithProspects, followUpState, isForgotten, unattendedState, visitToProspectFields } from "../../lib/prospects";
+import { FOLLOWUP_OPTIONS, PROSPECT_STAGES, firstStageWithProspects, followUpState, isForgotten, stageChangeFollowup, unattendedState, visitToProspectFields } from "../../lib/prospects";
 import { applyBulk, followupDate } from "../../lib/prospectBulk";
 import { convertProspectToClient } from "../../lib/prospectActions";
 import { matchingProperties } from "../../lib/prospectMatch";
@@ -192,7 +192,9 @@ export default function AdminProspects() {
   // En el teléfono la tarjeta se va a la pestaña de su nueva etapa: se sigue viendo.
   const changeStage = (prospect, stage) => {
     setActiveStage(stage);
-    return patch(prospect, { stage, ...(stage === "perdido" ? {} : { lost_reason: null }) });
+    const followup = stage === prospect.stage ? null : stageChangeFollowup(prospect, stage);
+    if (followup) notify(t("prospects.followupSet", { date: followup }));
+    return patch(prospect, { stage, ...(stage === "perdido" ? {} : { lost_reason: null }), ...(followup ? { next_followup_at: followup } : {}) });
   };
 
   // Soltar una tarjeta en una columna: cambia su etapa (si es otra) igual que el selector de la tarjeta.

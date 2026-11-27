@@ -111,6 +111,7 @@ export default function AdminProperties({
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkStatus, setBulkStatus] = useState("disponible");
   const [onlyIncomplete, setOnlyIncomplete] = useState(false);
+  const [onlyMine, setOnlyMine] = useState(false); // 461: solo las propiedades asignadas a quien tiene la sesión
   const [priceMode, setPriceMode] = useState("percentDown");
   const [priceAmount, setPriceAmount] = useState("");
   const [bulkAdvisor, setBulkAdvisor] = useState("");
@@ -167,6 +168,7 @@ export default function AdminProperties({
     const term = search.trim().toLowerCase();
     const matching = properties.filter((p) => {
       if (onlyIncomplete && completeness.get(p.id)?.complete) return false;
+      if (onlyMine && advisorId && !(p.advisor_ids || []).includes(advisorId)) return false;
       if (stallDays && !stalled.get(p.id)?.stalled) return false;
       if (term && !p.title?.toLowerCase().includes(term) && !p.code?.toLowerCase().includes(term) && !p.address?.toLowerCase().includes(term)) return false;
       if (zoneFilter && p.zone !== zoneFilter) return false;
@@ -177,7 +179,7 @@ export default function AdminProperties({
       return true;
     });
     return sortRows(matching, sort, SORT_BY);
-  }, [properties, completeness, onlyIncomplete, stallDays, stalled, search, zoneFilter, operationFilter, statusFilter, minPrice, maxPrice, sort]);
+  }, [properties, completeness, onlyIncomplete, onlyMine, advisorId, stallDays, stalled, search, zoneFilter, operationFilter, statusFilter, minPrice, maxPrice, sort]);
 
   const handleDelete = async (id) => {
     if (!await confirmDialog(t("common.confirmDelete"))) return;
@@ -356,7 +358,7 @@ export default function AdminProperties({
         }}
       />
       <AdminFilters
-        activeCount={[zoneFilter, operationFilter, statusFilter, minPrice, maxPrice, onlyIncomplete, stallDays].filter(Boolean).length}
+        activeCount={[zoneFilter, operationFilter, statusFilter, minPrice, maxPrice, onlyIncomplete, onlyMine, stallDays].filter(Boolean).length}
         search={
           <div className="form-field">
             <label htmlFor="ap-search">{t("common.search")}</label>
@@ -419,6 +421,12 @@ export default function AdminProperties({
           <input type="checkbox" checked={onlyIncomplete} onChange={(e) => setOnlyIncomplete(e.target.checked)} />
           {t("completeness.onlyIncomplete")}
         </label>
+        {advisorId && (
+          <label className="prospect-filters__check">
+            <input type="checkbox" checked={onlyMine} onChange={(e) => setOnlyMine(e.target.checked)} />
+            {t("properties.onlyMine")}
+          </label>
+        )}
       </AdminFilters>
 
       <BulkActionsBar count={selected.size} onClear={() => setSelected(new Set())} busy={bulkBusy}>

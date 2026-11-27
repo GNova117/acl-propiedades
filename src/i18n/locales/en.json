@@ -173,6 +173,7 @@
     "rentada": "Rented"
   },
   "properties": {
+    "onlyMine": "Only my properties",
     "andMoreAdvisors_one": "and {{count}} more",
     "andMoreAdvisors_other": "and {{count}} more",
     "relaxFilter_one": "Remove \"{{filter}}\": {{count}} result",
@@ -423,6 +424,8 @@
     "serverLimited": "Too many messages were sent from your connection. Please try again later or call us."
   },
   "messages": {
+    "hideAlerts_one": "Hide search alerts ({{count}})",
+    "hideAlerts_other": "Hide search alerts ({{count}})",
     "channel": "Channel",
     "search": "Search",
     "searchPlaceholder": "Name, phone, email or text",
@@ -1116,6 +1119,12 @@
     "addSpace": "Add space"
   },
   "clients": {
+    "expediente": {
+      "complete": "File complete",
+      "pending_one": "{{count}} item missing",
+      "pending_other": "{{count}} items missing",
+      "missing": "Missing: {{items}}"
+    },
     "title": "Clients",
     "name": "Name",
     "type": "Client type",
@@ -2109,6 +2118,7 @@
     "reminderLink": "Go to Roles & access"
   },
   "prospects": {
+    "followupSet": "The next follow-up was scheduled for {{date}}.",
     "bulk": {
       "label": "Bulk actions",
       "select": "Select",
@@ -2394,6 +2404,9 @@
     "noResults": "No results for \"{{query}}\".",
     "more": "{{count}} more",
     "groups": {
+      "agenda": "Agenda",
+      "developments": "Developments",
+      "blog": "Blog",
       "properties": "Properties",
       "clients": "Clients",
       "prospects": "Prospects",

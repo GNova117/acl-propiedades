@@ -10,6 +10,7 @@ import {
   emptyProspectForm,
   firstStageWithProspects,
   followUpState,
+  stageChangeFollowup,
   messageToProspectFields,
   prospectToForm,
   todayISO,
@@ -282,5 +283,24 @@ describe("firstStageWithProspects", () => {
 
   it("sin prospectos, la primera etapa", () => {
     expect(firstStageWithProspects([])).toBe("nuevo");
+  });
+});
+
+describe("stageChangeFollowup", () => {
+  const now = new Date(2026, 10, 27, 10, 0, 0); // 27-nov-2026
+  it("sin seguimiento fija uno según la etapa", () => {
+    expect(stageChangeFollowup({ stage: "nuevo", next_followup_at: null }, "interesado", now)).toBe("2026-11-30");
+    expect(stageChangeFollowup({ stage: "nuevo" }, "negociacion", now)).toBe("2026-11-29");
+  });
+  it("con seguimiento vencido también fija uno nuevo", () => {
+    expect(stageChangeFollowup({ stage: "contactado", next_followup_at: "2026-11-01" }, "interesado", now)).toBe("2026-11-30");
+  });
+  it("con seguimiento vigente (hoy o futuro) no lo toca", () => {
+    expect(stageChangeFollowup({ stage: "contactado", next_followup_at: "2026-11-27" }, "interesado", now)).toBeNull();
+    expect(stageChangeFollowup({ stage: "contactado", next_followup_at: "2026-12-05" }, "interesado", now)).toBeNull();
+  });
+  it("etapas cerradas no llevan seguimiento", () => {
+    expect(stageChangeFollowup({ stage: "negociacion" }, "cerrado", now)).toBeNull();
+    expect(stageChangeFollowup({ stage: "negociacion" }, "perdido", now)).toBeNull();
   });
 });

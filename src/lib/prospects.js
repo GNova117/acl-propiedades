@@ -60,6 +60,16 @@ export const FOLLOWUP_OPTIONS = [
   { key: "week2", days: 14 },
 ];
 
+// 430: al avanzar de etapa un prospecto abierto no debe quedar sin siguiente paso. Si no tiene un seguimiento vigente
+// (sin fecha o ya vencido), se le fija uno según la etapa a la que pasa. null = no hace falta tocar nada.
+export const STAGE_FOLLOWUP_DAYS = { nuevo: 1, contactado: 2, interesado: 3, negociacion: 2 };
+export function stageChangeFollowup(prospect, newStage, now = new Date()) {
+  if (!isOpenStage(newStage)) return null;
+  const current = prospect.next_followup_at;
+  if (current && current >= todayISO(now)) return null;
+  return addDaysISO(STAGE_FOLLOWUP_DAYS[newStage] ?? 2, now);
+}
+
 // Campos que se guardan al registrar un contacto. `nextFollowup`: una fecha
 // (YYYY-MM-DD) para programar el siguiente seguimiento, null para dejarlo sin
 // fecha, o undefined para no tocar una fecha futura ya programada (si el
