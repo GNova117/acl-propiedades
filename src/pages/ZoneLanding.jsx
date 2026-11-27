@@ -25,7 +25,7 @@ export default function ZoneLanding() {
   useEffect(() => {
     if (!city) return undefined;
     let active = true;
-    db.getProperties({ activeOnly: true })
+    db.getMarketRows()
       .then((rows) => active && setList(rows))
       .catch(() => active && setList([]));
     return () => {

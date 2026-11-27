@@ -42,4 +42,4 @@ Ya hechos en `docs/auditoria-A-y-B.md`: 351, 357, 360, 368, 376 (pies²), 378, 3
 
 ## E. Rendimiento y estructura (se hacen antes del final, pero con revisión)
 
-Hechos (ver `docs/auditoria-A-y-B.md`): 229, 483–485 (CI), 492, 495 y la parte de 179 que se pudo. Quedan: 221 ciudades que bajan el catálogo dos veces · 226 `AuthProvider` en el sitio público · 234 fuentes (pesos) · 235 three.js del recorrido 360° · 203 404 real para rutas desconocidas · 179 (resto) traducir toda la pantalla de Secretaría (~100 cadenas); Construcción se queda en español por decisión documentada.
+Hechos (ver `docs/auditoria-A-y-B.md`): 221, 226, 229, 234, 483–485 (CI), 492, 495 y la parte de 179 que se pudo. 203 se mantiene como decisión (no se hace). Quedan: 235 three.js del recorrido 360° (cambiar el visor por uno ligero) · 179 (resto) traducir toda la pantalla de Secretaría (~100 cadenas); Construcción se queda en español por decisión documentada.

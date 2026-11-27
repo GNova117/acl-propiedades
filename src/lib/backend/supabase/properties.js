@@ -98,6 +98,14 @@ export const propertiesMethods = {
     };
   },
 
+  // 221: lo mínimo para el resumen de mercado de una ciudad o colonia (zona, tipo, precio, superficie, operación y estatus) de las
+  // propiedades activas: sin fotos, videos ni descripciones. La página ya pedía el catálogo completo dos veces (resumen + listado).
+  async getMarketRows() {
+    return fetchAll(() =>
+      supabase.from("properties").select("id, zone, type, status, active, operation_type, price, area_m2").eq("active", true).order("id"),
+    );
+  },
+
   // Referencias mínimas de TODAS las propiedades (para pantallas que solo muestran código, título, precio y asesores, como Mensajes):
   // evita bajar fotos, videos y descripciones de todo el catálogo.
   async getPropertyRefs() {

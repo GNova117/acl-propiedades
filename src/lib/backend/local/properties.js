@@ -31,6 +31,11 @@ export const propertiesMethods = {
     return buildHomeData(await this.getProperties({ activeOnly: true }));
   },
 
+  async getMarketRows() {
+    const all = await this.getProperties({ activeOnly: true });
+    return all.map((p) => ({ id: p.id, zone: p.zone, type: p.type, status: p.status, active: p.active, operation_type: p.operation_type, price: p.price, area_m2: p.area_m2 }));
+  },
+
   async getPropertyRefs() {
     const all = await this.getProperties({});
     return all.map((p) => ({ id: p.id, code: p.code, title: p.title, price: p.price, advisors: (p.advisors || []).map((a) => ({ id: a.id, name: a.name })) }));

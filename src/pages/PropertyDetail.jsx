@@ -25,7 +25,7 @@ import AlertSignupCard from "../components/AlertSignupCard";
 import RecentlyViewed from "../components/RecentlyViewed";
 import RecentViewsBadge from "../components/RecentViewsBadge";
 import { usePropertyViews } from "../lib/usePropertyViews";
-import { useAuth } from "../context/useAuth.js";
+import { useHasSession } from "../lib/useHasSession";
 import { db } from "../lib/dataStore";
 import { recordPropertyView } from "../lib/recentlyViewed";
 import { buildSimilarCriteria } from "../lib/alertMatch";
@@ -203,12 +203,13 @@ function buildFaq(property, t) {
 export default function PropertyDetail() {
   const { id } = useParams();
   const { t, i18n } = useTranslation();
-  const { isAuthenticated } = useAuth();
   const [property, setProperty] = useState(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [similar, setSimilar] = useState([]);
+  // Solo si la propiedad está desactivada se pregunta si hay sesión de personal (el sitio público no inicializa la sesión).
+  const { has: hasSession, checking: checkingSession } = useHasSession(property?.active === false);
   const recentViews = usePropertyViews(property?.id); // 502: registra la vista (fuera del indicador)
   const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
   const [showPanorama, setShowPanorama] = useState(false);
@@ -362,7 +363,8 @@ export default function PropertyDetail() {
 
   // Una propiedad desactivada (borrador) solo la ve el personal con sesión; para cualquier otra persona es como
   // si no existiera. En Supabase la base ya no la entrega (ver schema.sql); esto cubre el modo demostración.
-  if (!property || (property.active === false && !isAuthenticated)) {
+  if (property?.active === false && checkingSession) return <LoadingState />;
+  if (!property || (property.active === false && !hasSession)) {
     return (
       <>
         <Seo title={t("detail.notFound")} noindex />

@@ -67,11 +67,15 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 505 | Nueva prueba de SQL (`20_politicas_rls.sql`, corre en el CI contra Postgres de verdad): toda tabla pública tiene RLS; un visitante anónimo y una sesión sin apartados no ven mensajes, prospectos, clientes, ventas, liquidaciones, bitácora ni llaves; el anónimo no puede cambiar ni borrar lo de otros. Se comprobó que falla si se apaga la RLS de una tabla o se abre una política. |
 | 179 (parte) | Traducidos al inglés los textos fijos de Liquidación (14), Mi perfil (5), el formulario de asesor y la lista de asesores. **Construcción** queda en español por una decisión que ya estaba documentada en el código (herramienta interna para personal hispanohablante). **Secretaría** (toda la pantalla) sigue sin traducir: es un trabajo aparte de unas 100 cadenas. |
 | 229 | «Mensajes» ya no baja el catálogo completo de propiedades ni todos los prospectos: pide solo código, título, precio y asesores de cada propiedad (`getPropertyRefs`) y solo los ids de los mensajes ya convertidos en prospecto (`getPromotedMessageIds`). |
+| 226 | El sitio público ya no inicializa la sesión de Supabase Auth: `AuthProvider` vive solo dentro del panel (`AuthShell`, que envuelve las rutas `/admin/*`). La ficha pregunta si hay sesión solo cuando la propiedad está desactivada (`useHasSession`). El JS inicial bajó de 265.7 a 260.6 KB. Una prueba vigila que `main.jsx` y las piezas públicas no vuelvan a pedir la sesión. |
+| 221 | Las páginas de ciudad y colonia piden solo 7 columnas de las propiedades activas para su resumen de mercado (`getMarketRows`), no el catálogo completo con fotos. |
+| 234 | Inter pasa a una sola fuente variable (48 KB en lugar de 97 KB). |
+| 203 | Se mantiene la decisión de la tanda 201–220: no se responde 404 real a rutas desconocidas (exigiría listar en el servidor todas las rutas válidas y se desactualiza con cada página nueva); la pantalla dice «404» y lleva `noindex`. |
 | 400 | La ficha trae «Reportar un error»: abre Contacto con el mensaje ya empezado (código y enlace de la publicación). |
 
 ## Pruebas
 
-- Unitarias: 2,115. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,117. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 

@@ -10,7 +10,6 @@ import { installErrorReporting } from "./lib/errorReporter";
 import { db } from "./lib/dataStore";
 import App from "./App.jsx";
 import { ThemeProvider } from "./context/ThemeContext";
-import { AuthProvider } from "./context/AuthContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
 import { CompareProvider } from "./context/CompareContext";
 import LoadingScreen from "./components/LoadingScreen";
@@ -78,16 +77,14 @@ function Root() {
 
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <FavoritesProvider>
-          <CompareProvider>
-            <BrowserRouter>
-              {showLoader && <LoadingScreen />}
-              <App />
-            </BrowserRouter>
-          </CompareProvider>
-        </FavoritesProvider>
-      </AuthProvider>
+      <FavoritesProvider>
+        <CompareProvider>
+          <BrowserRouter>
+            {showLoader && <LoadingScreen />}
+            <App />
+          </BrowserRouter>
+        </CompareProvider>
+      </FavoritesProvider>
     </ThemeProvider>
   );
 }

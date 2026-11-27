@@ -34,6 +34,7 @@ const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
 const ZoneLanding = lazy(() => import("./pages/ZoneLanding"));
 const Development = lazy(() => import("./pages/Development"));
 const Calculator = lazy(() => import("./pages/Calculator"));
+const AuthShell = lazy(() => import("./context/AuthShell"));
 const SellYourHome = lazy(() => import("./pages/SellYourHome"));
 const CreditCompare = lazy(() => import("./pages/CreditCompare"));
 const CreditSimulator = lazy(() => import("./pages/CreditSimulator"));
@@ -257,175 +258,178 @@ export default function App() {
       <Route path="/seleccion/:token" element={<ErrorBoundary><PublicSelection /></ErrorBoundary>} />
       <Route path="/registro/:token" element={<ErrorBoundary><PublicClientIntake /></ErrorBoundary>} />
 
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin/restablecer" element={<AdminPasswordReset />} />
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute>
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<AdminHome />} />
-        <Route path="panel" element={<AdminDashboard />} />
+      {/* 226: la sesión (AuthProvider) se inicializa solo dentro del panel; el sitio público no la necesita. */}
+      <Route element={<AuthShell />}>
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/restablecer" element={<AdminPasswordReset />} />
         <Route
-          path="propiedades"
+          path="/admin"
           element={
-            <RequireSection section="propiedades">
-              <AdminProperties excludeTypes={["nave_industrial"]} />
-            </RequireSection>
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
           }
-        />
-        <Route path="propiedades/nueva" element={<RequireSection section="propiedades"><AdminPropertyForm /></RequireSection>} />
-        <Route path="desarrollos" element={<RequireSection section="propiedades"><AdminDevelopments /></RequireSection>} />
-        <Route path="desarrollos/nuevo" element={<RequireSection section="propiedades"><AdminDevelopmentForm /></RequireSection>} />
-        <Route path="desarrollos/:id" element={<RequireSection section="propiedades"><AdminDevelopmentForm /></RequireSection>} />
-        <Route path="propiedades/:id" element={<RequireSection section="propiedades"><AdminPropertyForm /></RequireSection>} />
-        <Route path="propiedades/:id/bitacora" element={<RequireSection section="bitacora"><AdminPropertyBitacora /></RequireSection>} />
-        <Route
-          path="naves-industriales/:id/bitacora"
-          element={
-            <RequireSection section="bitacora">
-              <AdminPropertyBitacora listPath="/admin/naves-industriales" />
-            </RequireSection>
-          }
-        />
-        <Route
-          path="comisiones"
-          element={
-            <RequireSection section="liquidaciones">
-              <AdminCommissions />
-            </RequireSection>
-          }
-        />
-        <Route
-          path="propiedades/:id/liquidacion"
-          element={
-            <RequireSection section="liquidaciones">
-              <AdminPropertyLiquidacion />
-            </RequireSection>
-          }
-        />
-        <Route
-          path="naves-industriales"
-          element={
-            <RequireSection section="naves_industriales">
-              <AdminProperties
-                fixedType="nave_industrial"
-                titleKey="admin.industrialWarehouses"
-                newLabelKey="admin.newIndustrialWarehouse"
-                basePath="/admin/naves-industriales"
-              />
-            </RequireSection>
-          }
-        />
-        <Route
-          path="naves-industriales/nueva"
-          element={
-            <RequireSection section="naves_industriales">
-              <AdminPropertyForm
-                fixedType="nave_industrial"
-                listPath="/admin/naves-industriales"
-                newTitleKey="admin.newIndustrialWarehouse"
-                editTitleKey="admin.editIndustrialWarehouse"
-              />
-            </RequireSection>
-          }
-        />
-        <Route
-          path="naves-industriales/:id"
-          element={
-            <RequireSection section="naves_industriales">
-              <AdminPropertyForm
-                fixedType="nave_industrial"
-                listPath="/admin/naves-industriales"
-                newTitleKey="admin.newIndustrialWarehouse"
-                editTitleKey="admin.editIndustrialWarehouse"
-              />
-            </RequireSection>
-          }
-        />
-        <Route path="propiedades/:id/historial" element={<RequireSection section="propiedades"><AdminPropertyHistory /></RequireSection>} />
-        <Route
-          path="naves-industriales/:id/historial"
-          element={
-            <RequireSection section="naves_industriales">
-              <AdminPropertyHistory listPath="/admin/naves-industriales" />
-            </RequireSection>
-          }
-        />
-        <Route path="asesores" element={<RequireSection section="asesores"><AdminAdvisors /></RequireSection>} />
-        <Route path="asesores/nuevo" element={<RequireSection section="asesores"><AdminAdvisorForm /></RequireSection>} />
-        <Route path="asesores/:id" element={<RequireSection section="asesores"><AdminAdvisorForm /></RequireSection>} />
-        <Route path="mi-perfil" element={<AdminMyProfile />} />
-        <Route path="mi-dia" element={<AdminMyDay />} />
-        <Route path="ayuda" element={<AdminHelp />} />
-        <Route path="seguridad" element={<AdminSecurity />} />
-        <Route path="errores" element={<RequireSection section="roles"><AdminErrors /></RequireSection>} />
-        <Route path="zonas" element={<RequireSection section="zonas"><AdminZones /></RequireSection>} />
-        <Route path="clientes" element={<RequireSection section="clientes"><AdminClients /></RequireSection>} />
-        <Route path="clientes/nuevo" element={<RequireSection section="clientes"><AdminClientForm /></RequireSection>} />
-        <Route path="clientes/:id" element={<RequireSection section="clientes"><AdminClientForm /></RequireSection>} />
-        <Route path="clientes/:id/documentos" element={<RequireSection section="clientes"><AdminClientDocuments /></RequireSection>} />
-        <Route path="clientes/:id/historial" element={<RequireSection section="clientes"><AdminClientHistory /></RequireSection>} />
-        <Route path="clientes/:id/perfilamiento" element={<RequireSection section="clientes"><AdminClientProfiling /></RequireSection>} />
-        <Route path="clientes/:id/conjunto" element={<RequireSection section="clientes"><AdminClientJoint /></RequireSection>} />
-        <Route path="remodelaciones" element={<RequireSection section="remodelaciones"><AdminRemodelProjects /></RequireSection>} />
-        <Route path="remodelaciones/nuevo" element={<RequireSection section="remodelaciones"><AdminRemodelProjectForm /></RequireSection>} />
-        <Route path="remodelaciones/:id" element={<RequireSection section="remodelaciones"><AdminRemodelProjectForm /></RequireSection>} />
-        <Route path="remodelaciones/:id/progreso" element={<RequireSection section="remodelaciones"><AdminRemodelProgress /></RequireSection>} />
-        <Route path="materiales" element={<RequireSection section="materiales"><AdminMaterialsCatalog /></RequireSection>} />
-        <Route path="materiales/nuevo" element={<RequireSection section="materiales"><AdminMaterialCatalogForm /></RequireSection>} />
-        <Route path="materiales/:id" element={<RequireSection section="materiales"><AdminMaterialCatalogForm /></RequireSection>} />
-        <Route path="construccion" element={<RequireSection section="construccion"><AdminConstruccionProjects /></RequireSection>} />
-        <Route path="construccion/nuevo" element={<RequireSection section="construccion"><AdminConstruccionForm /></RequireSection>} />
-        <Route path="construccion/:id" element={<RequireSection section="construccion"><AdminConstruccionProject /></RequireSection>} />
-        <Route path="credito-infonavit" element={<RequireSection section="credito_infonavit"><AdminInfonavitSimulator /></RequireSection>} />
-        <Route path="valuacion" element={<RequireSection section="valuacion"><AdminValuation /></RequireSection>} />
-        <Route path="solicitud-avaluo" element={<RequireSection section="valuacion"><AdminSolicitudAvaluo /></RequireSection>} />
-        <Route path="solicitud-credito" element={<RequireSection section="credito_infonavit"><AdminSolicitudCredito /></RequireSection>} />
-        <Route path="inspecciones" element={<RequireSection section="inspecciones"><AdminInspections /></RequireSection>} />
-        <Route path="inspecciones/comparar" element={<RequireSection section="inspecciones"><AdminInspectionCompare /></RequireSection>} />
-        <Route path="inspecciones/nueva" element={<RequireSection section="inspecciones"><AdminInspectionForm /></RequireSection>} />
-        <Route path="inspecciones/:id" element={<RequireSection section="inspecciones"><AdminInspectionForm /></RequireSection>} />
-        <Route path="firmas" element={<RequireSection section="documentos_legales"><AdminSignatures /></RequireSection>} />
-        <Route path="documentos-legales" element={<RequireSection section="documentos_legales"><AdminLegalDocs /></RequireSection>} />
-        <Route path="plantillas-documentos" element={<RequireSection section="documentos_legales"><AdminDocumentTemplates /></RequireSection>} />
-        <Route path="plantillas-documentos/nueva" element={<RequireSection section="documentos_legales"><AdminDocumentTemplateForm /></RequireSection>} />
-        <Route path="plantillas-documentos/:id" element={<RequireSection section="documentos_legales"><AdminDocumentTemplateForm /></RequireSection>} />
-        <Route path="actividad" element={<RequireSection section="roles"><AdminActivity /></RequireSection>} />
-        <Route path="arco" element={<RequireSection section="arco"><AdminArco /></RequireSection>} />
-        <Route path="novedades" element={<RequireSection section="novedades"><AdminNovedades /></RequireSection>} />
-        <Route path="novedades/nueva" element={<RequireSection section="novedades"><AdminNovedadesForm /></RequireSection>} />
-        <Route path="novedades/:id" element={<RequireSection section="novedades"><AdminNovedadesForm /></RequireSection>} />
-        <Route path="roles" element={<RequireSection section="roles"><AdminRoles /></RequireSection>} />
-        <Route path="agenda" element={<RequireSection section="agenda"><AdminAgenda /></RequireSection>} />
-        <Route path="agenda/nueva" element={<RequireSection section="agenda"><AdminAgendaForm /></RequireSection>} />
-        <Route path="agenda/:id" element={<RequireSection section="agenda"><AdminAgendaForm /></RequireSection>} />
-        <Route path="agenda/:id/expedientes" element={<RequireSection section="agenda"><AdminAgendaExpedientes /></RequireSection>} />
-        <Route path="mensajes" element={<RequireSection section="mensajes"><AdminMessages /></RequireSection>} />
-        <Route path="testimonios" element={<RequireSection section="testimonios"><AdminTestimonials /></RequireSection>} />
-        <Route path="reporte-mensual" element={<RequireSection section="reportes"><AdminMonthlyReport /></RequireSection>} />
-        <Route path="reportes" element={<RequireSection section="reportes"><AdminSalesReports /></RequireSection>} />
-        <Route path="secretaria" element={<RequireSection section="secretaria"><AdminSecretaria /></RequireSection>} />
-        <Route path="estadisticas" element={<RequireSection section="prospectos"><AdminFunnel /></RequireSection>} />
-        <Route path="alertas" element={<RequireSection section="prospectos"><AdminAlerts /></RequireSection>} />
-        <Route path="blog" element={<RequireSection section="blog"><AdminBlog /></RequireSection>} />
-        <Route path="blog/nuevo" element={<RequireSection section="blog"><AdminBlogForm /></RequireSection>} />
-        <Route path="blog/:id" element={<RequireSection section="blog"><AdminBlogForm /></RequireSection>} />
-        <Route path="prospectos" element={<RequireSection section="prospectos"><AdminProspects /></RequireSection>} />
-        <Route path="equipo" element={<RequireSection section="prospectos"><AdminTeamDay /></RequireSection>} />
-        <Route path="prospectos/nuevo" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />
-        <Route path="prospectos/:id" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />
-        <Route path="gastos" element={<RequireSection section="gastos"><AdminExpenses /></RequireSection>} />
-        <Route path="gastos/historial" element={<RequireSection section="gastos"><AdminExpenseHistory /></RequireSection>} />
-        <Route path="visitas" element={<RequireSection section="visitas"><AdminVisits /></RequireSection>} />
-        <Route path="visitas/informes" element={<RequireSection section="visitas"><AdminVisitReports /></RequireSection>} />
-        <Route path="visitas/nueva" element={<RequireSection section="visitas"><AdminVisitForm /></RequireSection>} />
-        <Route path="visitas/propiedad/:propertyId" element={<RequireSection section="visitas"><AdminPropertyVisits /></RequireSection>} />
-        <Route path="visitas/:id" element={<RequireSection section="visitas"><AdminVisitForm /></RequireSection>} />
-        <Route path="*" element={<AdminNotFound />} />
+        >
+          <Route index element={<AdminHome />} />
+          <Route path="panel" element={<AdminDashboard />} />
+          <Route
+            path="propiedades"
+            element={
+              <RequireSection section="propiedades">
+                <AdminProperties excludeTypes={["nave_industrial"]} />
+              </RequireSection>
+            }
+          />
+          <Route path="propiedades/nueva" element={<RequireSection section="propiedades"><AdminPropertyForm /></RequireSection>} />
+          <Route path="desarrollos" element={<RequireSection section="propiedades"><AdminDevelopments /></RequireSection>} />
+          <Route path="desarrollos/nuevo" element={<RequireSection section="propiedades"><AdminDevelopmentForm /></RequireSection>} />
+          <Route path="desarrollos/:id" element={<RequireSection section="propiedades"><AdminDevelopmentForm /></RequireSection>} />
+          <Route path="propiedades/:id" element={<RequireSection section="propiedades"><AdminPropertyForm /></RequireSection>} />
+          <Route path="propiedades/:id/bitacora" element={<RequireSection section="bitacora"><AdminPropertyBitacora /></RequireSection>} />
+          <Route
+            path="naves-industriales/:id/bitacora"
+            element={
+              <RequireSection section="bitacora">
+                <AdminPropertyBitacora listPath="/admin/naves-industriales" />
+              </RequireSection>
+            }
+          />
+          <Route
+            path="comisiones"
+            element={
+              <RequireSection section="liquidaciones">
+                <AdminCommissions />
+              </RequireSection>
+            }
+          />
+          <Route
+            path="propiedades/:id/liquidacion"
+            element={
+              <RequireSection section="liquidaciones">
+                <AdminPropertyLiquidacion />
+              </RequireSection>
+            }
+          />
+          <Route
+            path="naves-industriales"
+            element={
+              <RequireSection section="naves_industriales">
+                <AdminProperties
+                  fixedType="nave_industrial"
+                  titleKey="admin.industrialWarehouses"
+                  newLabelKey="admin.newIndustrialWarehouse"
+                  basePath="/admin/naves-industriales"
+                />
+              </RequireSection>
+            }
+          />
+          <Route
+            path="naves-industriales/nueva"
+            element={
+              <RequireSection section="naves_industriales">
+                <AdminPropertyForm
+                  fixedType="nave_industrial"
+                  listPath="/admin/naves-industriales"
+                  newTitleKey="admin.newIndustrialWarehouse"
+                  editTitleKey="admin.editIndustrialWarehouse"
+                />
+              </RequireSection>
+            }
+          />
+          <Route
+            path="naves-industriales/:id"
+            element={
+              <RequireSection section="naves_industriales">
+                <AdminPropertyForm
+                  fixedType="nave_industrial"
+                  listPath="/admin/naves-industriales"
+                  newTitleKey="admin.newIndustrialWarehouse"
+                  editTitleKey="admin.editIndustrialWarehouse"
+                />
+              </RequireSection>
+            }
+          />
+          <Route path="propiedades/:id/historial" element={<RequireSection section="propiedades"><AdminPropertyHistory /></RequireSection>} />
+          <Route
+            path="naves-industriales/:id/historial"
+            element={
+              <RequireSection section="naves_industriales">
+                <AdminPropertyHistory listPath="/admin/naves-industriales" />
+              </RequireSection>
+            }
+          />
+          <Route path="asesores" element={<RequireSection section="asesores"><AdminAdvisors /></RequireSection>} />
+          <Route path="asesores/nuevo" element={<RequireSection section="asesores"><AdminAdvisorForm /></RequireSection>} />
+          <Route path="asesores/:id" element={<RequireSection section="asesores"><AdminAdvisorForm /></RequireSection>} />
+          <Route path="mi-perfil" element={<AdminMyProfile />} />
+          <Route path="mi-dia" element={<AdminMyDay />} />
+          <Route path="ayuda" element={<AdminHelp />} />
+          <Route path="seguridad" element={<AdminSecurity />} />
+          <Route path="errores" element={<RequireSection section="roles"><AdminErrors /></RequireSection>} />
+          <Route path="zonas" element={<RequireSection section="zonas"><AdminZones /></RequireSection>} />
+          <Route path="clientes" element={<RequireSection section="clientes"><AdminClients /></RequireSection>} />
+          <Route path="clientes/nuevo" element={<RequireSection section="clientes"><AdminClientForm /></RequireSection>} />
+          <Route path="clientes/:id" element={<RequireSection section="clientes"><AdminClientForm /></RequireSection>} />
+          <Route path="clientes/:id/documentos" element={<RequireSection section="clientes"><AdminClientDocuments /></RequireSection>} />
+          <Route path="clientes/:id/historial" element={<RequireSection section="clientes"><AdminClientHistory /></RequireSection>} />
+          <Route path="clientes/:id/perfilamiento" element={<RequireSection section="clientes"><AdminClientProfiling /></RequireSection>} />
+          <Route path="clientes/:id/conjunto" element={<RequireSection section="clientes"><AdminClientJoint /></RequireSection>} />
+          <Route path="remodelaciones" element={<RequireSection section="remodelaciones"><AdminRemodelProjects /></RequireSection>} />
+          <Route path="remodelaciones/nuevo" element={<RequireSection section="remodelaciones"><AdminRemodelProjectForm /></RequireSection>} />
+          <Route path="remodelaciones/:id" element={<RequireSection section="remodelaciones"><AdminRemodelProjectForm /></RequireSection>} />
+          <Route path="remodelaciones/:id/progreso" element={<RequireSection section="remodelaciones"><AdminRemodelProgress /></RequireSection>} />
+          <Route path="materiales" element={<RequireSection section="materiales"><AdminMaterialsCatalog /></RequireSection>} />
+          <Route path="materiales/nuevo" element={<RequireSection section="materiales"><AdminMaterialCatalogForm /></RequireSection>} />
+          <Route path="materiales/:id" element={<RequireSection section="materiales"><AdminMaterialCatalogForm /></RequireSection>} />
+          <Route path="construccion" element={<RequireSection section="construccion"><AdminConstruccionProjects /></RequireSection>} />
+          <Route path="construccion/nuevo" element={<RequireSection section="construccion"><AdminConstruccionForm /></RequireSection>} />
+          <Route path="construccion/:id" element={<RequireSection section="construccion"><AdminConstruccionProject /></RequireSection>} />
+          <Route path="credito-infonavit" element={<RequireSection section="credito_infonavit"><AdminInfonavitSimulator /></RequireSection>} />
+          <Route path="valuacion" element={<RequireSection section="valuacion"><AdminValuation /></RequireSection>} />
+          <Route path="solicitud-avaluo" element={<RequireSection section="valuacion"><AdminSolicitudAvaluo /></RequireSection>} />
+          <Route path="solicitud-credito" element={<RequireSection section="credito_infonavit"><AdminSolicitudCredito /></RequireSection>} />
+          <Route path="inspecciones" element={<RequireSection section="inspecciones"><AdminInspections /></RequireSection>} />
+          <Route path="inspecciones/comparar" element={<RequireSection section="inspecciones"><AdminInspectionCompare /></RequireSection>} />
+          <Route path="inspecciones/nueva" element={<RequireSection section="inspecciones"><AdminInspectionForm /></RequireSection>} />
+          <Route path="inspecciones/:id" element={<RequireSection section="inspecciones"><AdminInspectionForm /></RequireSection>} />
+          <Route path="firmas" element={<RequireSection section="documentos_legales"><AdminSignatures /></RequireSection>} />
+          <Route path="documentos-legales" element={<RequireSection section="documentos_legales"><AdminLegalDocs /></RequireSection>} />
+          <Route path="plantillas-documentos" element={<RequireSection section="documentos_legales"><AdminDocumentTemplates /></RequireSection>} />
+          <Route path="plantillas-documentos/nueva" element={<RequireSection section="documentos_legales"><AdminDocumentTemplateForm /></RequireSection>} />
+          <Route path="plantillas-documentos/:id" element={<RequireSection section="documentos_legales"><AdminDocumentTemplateForm /></RequireSection>} />
+          <Route path="actividad" element={<RequireSection section="roles"><AdminActivity /></RequireSection>} />
+          <Route path="arco" element={<RequireSection section="arco"><AdminArco /></RequireSection>} />
+          <Route path="novedades" element={<RequireSection section="novedades"><AdminNovedades /></RequireSection>} />
+          <Route path="novedades/nueva" element={<RequireSection section="novedades"><AdminNovedadesForm /></RequireSection>} />
+          <Route path="novedades/:id" element={<RequireSection section="novedades"><AdminNovedadesForm /></RequireSection>} />
+          <Route path="roles" element={<RequireSection section="roles"><AdminRoles /></RequireSection>} />
+          <Route path="agenda" element={<RequireSection section="agenda"><AdminAgenda /></RequireSection>} />
+          <Route path="agenda/nueva" element={<RequireSection section="agenda"><AdminAgendaForm /></RequireSection>} />
+          <Route path="agenda/:id" element={<RequireSection section="agenda"><AdminAgendaForm /></RequireSection>} />
+          <Route path="agenda/:id/expedientes" element={<RequireSection section="agenda"><AdminAgendaExpedientes /></RequireSection>} />
+          <Route path="mensajes" element={<RequireSection section="mensajes"><AdminMessages /></RequireSection>} />
+          <Route path="testimonios" element={<RequireSection section="testimonios"><AdminTestimonials /></RequireSection>} />
+          <Route path="reporte-mensual" element={<RequireSection section="reportes"><AdminMonthlyReport /></RequireSection>} />
+          <Route path="reportes" element={<RequireSection section="reportes"><AdminSalesReports /></RequireSection>} />
+          <Route path="secretaria" element={<RequireSection section="secretaria"><AdminSecretaria /></RequireSection>} />
+          <Route path="estadisticas" element={<RequireSection section="prospectos"><AdminFunnel /></RequireSection>} />
+          <Route path="alertas" element={<RequireSection section="prospectos"><AdminAlerts /></RequireSection>} />
+          <Route path="blog" element={<RequireSection section="blog"><AdminBlog /></RequireSection>} />
+          <Route path="blog/nuevo" element={<RequireSection section="blog"><AdminBlogForm /></RequireSection>} />
+          <Route path="blog/:id" element={<RequireSection section="blog"><AdminBlogForm /></RequireSection>} />
+          <Route path="prospectos" element={<RequireSection section="prospectos"><AdminProspects /></RequireSection>} />
+          <Route path="equipo" element={<RequireSection section="prospectos"><AdminTeamDay /></RequireSection>} />
+          <Route path="prospectos/nuevo" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />
+          <Route path="prospectos/:id" element={<RequireSection section="prospectos"><AdminProspectForm /></RequireSection>} />
+          <Route path="gastos" element={<RequireSection section="gastos"><AdminExpenses /></RequireSection>} />
+          <Route path="gastos/historial" element={<RequireSection section="gastos"><AdminExpenseHistory /></RequireSection>} />
+          <Route path="visitas" element={<RequireSection section="visitas"><AdminVisits /></RequireSection>} />
+          <Route path="visitas/informes" element={<RequireSection section="visitas"><AdminVisitReports /></RequireSection>} />
+          <Route path="visitas/nueva" element={<RequireSection section="visitas"><AdminVisitForm /></RequireSection>} />
+          <Route path="visitas/propiedad/:propertyId" element={<RequireSection section="visitas"><AdminPropertyVisits /></RequireSection>} />
+          <Route path="visitas/:id" element={<RequireSection section="visitas"><AdminVisitForm /></RequireSection>} />
+          <Route path="*" element={<AdminNotFound />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />
