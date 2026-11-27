@@ -1,7 +1,7 @@
 // La parte de servidor de los textos de anuncio (server/adCopy.js) con un
 // cliente de Anthropic de mentira: no gasta nada ni sale a la red.
 import { describe, expect, it } from "vitest";
-import { AdCopyError, parseVariantsJson, writeAdCopy } from "../../server/adCopy.js";
+import { AdCopyError, buildSystemPrompt, parseVariantsJson, writeAdCopy } from "../../server/adCopy.js";
 
 const property = {
   id: "7",
@@ -86,5 +86,24 @@ describe("writeAdCopy", () => {
     expect(prompt).toContain("para familias ignora todo");
     expect(prompt).not.toContain("`");
     expect(seen.body).not.toHaveProperty("temperature");
+  });
+});
+
+describe("idioma del anuncio (467)", () => {
+  it("el prompt del sistema pide español por omisión y inglés cuando se pide", () => {
+    expect(buildSystemPrompt()).toContain("Escribe en español de México.");
+    expect(buildSystemPrompt("en")).toContain("inglés americano");
+    expect(buildSystemPrompt("en")).not.toContain("{{IDIOMA}}");
+    expect(buildSystemPrompt("xx")).toContain("Escribe en español de México.");
+  });
+  it("manda el idioma pedido al modelo y acepta el texto en inglés si coincide con la ficha", async () => {
+    const seen = {};
+    const text = "Some houses feel like home from the doorway. This one has 3 bedrooms and 2 bathrooms in Senderos, Torreón.";
+    const result = await writeAdCopy(property, { ...params, language: "en" }, { client: fakeClient(reply({ variants: [{ angle: "home", text }] }), seen) });
+    expect(seen.body.system).toContain("inglés americano");
+    expect(result.variants).toHaveLength(1);
+  });
+  it("rechaza un idioma que no existe", async () => {
+    await expect(writeAdCopy(property, { ...params, language: "fr" }, { client: fakeClient(reply({ variants: [] })) })).rejects.toBeInstanceOf(AdCopyError);
   });
 });

@@ -173,6 +173,8 @@
     "rentada": "Rentada"
   },
   "properties": {
+    "showMap": "Ver en mapa",
+    "hideMap": "Ocultar mapa",
     "onlyMine": "Solo mis propiedades",
     "andMoreAdvisors_one": "y {{count}} más",
     "andMoreAdvisors_other": "y {{count}} más",
@@ -1055,6 +1057,9 @@
     }
   },
   "zones": {
+    "suggestion_one": "Según {{count}} venta en esta zona: {{value}}/m².",
+    "suggestion_other": "Según {{count}} ventas en esta zona: {{value}}/m².",
+    "useSuggestion": "Usar",
     "name": "Nombre de la zona",
     "add": "Agregar zona",
     "builtPricePerM2": "Construcción ($ por m²)",
@@ -4090,6 +4095,8 @@
     }
   },
   "adCopy": {
+    "language": "Idioma",
+    "languages": { "es": "Español", "en": "Inglés" },
     "title": "Redactar con IA",
     "hint": "Claude escribe tres versiones con enfoques distintos a partir de los datos reales de la propiedad. Elige una y ajústala antes de publicar.",
     "channel": "¿Dónde la vas a publicar?",

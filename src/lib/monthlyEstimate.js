@@ -3,7 +3,8 @@
 // el número de la tarjeta coincide con el que sale en /comparar-creditos.
 // Es solo una referencia para que el cliente sepa si le queda cerca de su
 // presupuesto: no es una oferta ni una aprobación de crédito.
-import { COMPARE_DEFAULTS, pmt } from "./creditCompare";
+import { COMPARE_DEFAULTS } from "./creditCompare";
+import { pmt } from "./loanMath";
 
 // Los créditos hipotecarios que el sitio compara son para vivienda; en
 // terrenos, naves y rentas la cifra no aplica (o confundiría).

@@ -486,7 +486,7 @@ export const operationsMethods = {
   // Textos de anuncio con Claude (api/ad-copy). Solo se manda el id de la
   // propiedad: la función lee los datos de la base. Errores con `code`
   // (limit, no_table, no_function…) para que la pantalla explique qué pasó.
-  async requestAdCopy({ propertyId, channel, tone, extra }) {
+  async requestAdCopy({ propertyId, channel, tone, extra, language }) {
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData?.session?.access_token;
     if (!token) {
@@ -497,7 +497,7 @@ export const operationsMethods = {
     const res = await fetch("/api/ad-copy", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ propertyId, channel, tone, extra }),
+      body: JSON.stringify({ propertyId, channel, tone, extra, language }),
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) {

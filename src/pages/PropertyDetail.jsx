@@ -24,6 +24,7 @@ import PropertyVideo from "../components/PropertyVideo";
 import AlertSignupCard from "../components/AlertSignupCard";
 import RecentlyViewed from "../components/RecentlyViewed";
 import RecentViewsBadge from "../components/RecentViewsBadge";
+import { usePropertyViews } from "../lib/usePropertyViews";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/dataStore";
 import { recordPropertyView } from "../lib/recentlyViewed";
@@ -33,7 +34,7 @@ import { isClosedStatus } from "../lib/propertyStatus";
 import { CALCULATOR_ANCHOR, canEstimateMonthly, estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import { directionsUrl, streetViewUrl, wazeUrl } from "../lib/mapLinks";
 import { listingFrom } from "../lib/listNavigation";
-import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines, publicPlace, propertyListPath, daysSince } from "../lib/format";
+import { formatMXN, formatArea, formatAreaFt2, propertyTypeLabel, propertyShareLines, publicPlace, propertyListPath, daysSince } from "../lib/format";
 import "./PropertyDetail.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
@@ -115,8 +116,8 @@ function buildFichaTecnica(property, t) {
     {
       titleKey: "detail.fichaTecnica.dimensions",
       rows: [
-        [t("detail.fichaTecnica.totalArea"), formatArea(property.area_m2)],
-        [t("detail.areaMinimaDivisible"), property.area_minima_divisible != null ? formatArea(property.area_minima_divisible) : null],
+        [t("detail.fichaTecnica.totalArea"), `${formatArea(property.area_m2)}${formatAreaFt2(property.area_m2) ? ` (≈ ${formatAreaFt2(property.area_m2)})` : ""}`],
+        [t("detail.areaMinimaDivisible"), property.area_minima_divisible != null ? `${formatArea(property.area_minima_divisible)}${formatAreaFt2(property.area_minima_divisible) ? ` (≈ ${formatAreaFt2(property.area_minima_divisible)})` : ""}` : null],
         [t("detail.alturaLibre"), property.altura_libre != null ? `${property.altura_libre} m` : null],
         [t("detail.areaOficina"), property.area_oficina != null ? formatArea(property.area_oficina) : null],
         [t("detail.luzNatural"), property.luz_natural_pct != null ? `${property.luz_natural_pct}%` : null],
@@ -208,6 +209,7 @@ export default function PropertyDetail() {
   const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [similar, setSimilar] = useState([]);
+  const recentViews = usePropertyViews(property?.id); // 502: registra la vista (fuera del indicador)
   const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
   const [showPanorama, setShowPanorama] = useState(false);
   const [showPlan, setShowPlan] = useState(false);
@@ -423,7 +425,7 @@ export default function PropertyDetail() {
                     </Link>
                   </p>
                 )}
-                <RecentViewsBadge propertyId={property.id} />
+                <RecentViewsBadge count={recentViews} />
               </div>
               <div className="property-detail__price-block">
                 <div className="property-detail__price-block-top">

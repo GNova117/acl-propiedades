@@ -170,4 +170,20 @@ test.describe("Tanda A y B", () => {
     await expect(page.locator(".photo-warnings")).toContainText("parece muy oscura");
     await expect(page.locator(".photo-warnings")).toContainText("parece repetida");
   });
+
+  test("el listado del panel muestra el inventario en un mapa", async ({ page, seedAdminSession, go, press }) => {
+    await seedAdminSession();
+    await go("/admin/propiedades");
+    await press(page.getByRole("button", { name: "Ver en mapa" }));
+    await expect(page.locator(".leaflet-container")).toBeVisible();
+    await expect(page.locator(".leaflet-marker-icon").first()).toBeVisible();
+    await press(page.getByRole("button", { name: "Ocultar mapa" }));
+    await expect(page.locator(".leaflet-container")).toHaveCount(0);
+  });
+
+  test("Zonas abre sin errores con las sugerencias de precio por m²", async ({ page, seedAdminSession, go }) => {
+    await seedAdminSession();
+    await go("/admin/zonas");
+    await expect(page.locator(".admin-zone-card").first()).toBeVisible();
+  });
 });

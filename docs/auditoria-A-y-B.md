@@ -44,13 +44,25 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 469 | Al subir fotos de una propiedad se avisa de las muy oscuras, muy quemadas o repetidas (en el navegador, solo aviso). |
 | 470 | La lista del panel marca «Revisar fotos: N meses sin cambios» en propiedades disponibles sin tocar en 6 meses o más. |
 | 472 | Reportes de ventas compara contra el mismo periodo del año anterior (cuántas ventas y volumen, con porcentaje). |
+| 376 | Naves: la ficha técnica muestra también los pies cuadrados («≈ 21,528 ft²»). El precio en dólares **no** se hizo: necesita un tipo de cambio que tú definas (ver pendientes). |
+| 427 | El listado del panel tiene «Ver en mapa» con todas las propiedades filtradas. |
+| 442 | Un solo motor de créditos (`lib/loanMath.js`: pago mensual y su inverso) para el simulador Infonavit del panel, el comparador público y el «desde $X al mes» de las tarjetas. La interfaz sigue siendo de dos pantallas (decisión de diseño en el grupo A). |
+| 443 | Zonas sugiere el precio por m² (construido y terreno) con la mediana de lo vendido en la zona (mínimo 3 ventas), con botón «Usar». |
+| 467 | El generador de anuncios tiene selector de idioma (español o inglés); en inglés se siguen verificando precio, recámaras, baños y m² contra la ficha (sin convertir a dólares ni pies²). |
+| 480 | Revisados los textos heredados: solo quedaba «consultorio» en un comentario de `visitEmail.js`. |
+| 482 | Un solo módulo de «slugs» (`lib/slug.js`): `keySlug` (guion bajo, llaves) y `urlSlug` (guion, direcciones); las tres copias lo usan. |
+| 486 | El lint del CI falla si aparece un aviso nuevo (tope en 24, los de hoy). |
+| 490–491 | Dependencias solo de servidor documentadas (`docs/dependencias-servidor.md`) y una prueba que falla si `src/` las importa; `@napi-rs/canvas` sigue en uso (vistas previas y QR). |
+| 502 | La vista de una propiedad se registra con un hook aparte (`usePropertyViews`); el indicador solo muestra el número. |
+| 503 | Ya estaba cubierto: `agendar-visita.sql` es copia exacta de `schema.sql` y una prueba falla si dejan de coincidir. |
 | 400 | La ficha trae «Reportar un error»: abre Contacto con el mensaje ya empezado (código y enlace de la publicación). |
 
 ## Pruebas
 
-- Unitarias: 2,054. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,075. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 
 - **401** (conteo de propiedades por zona en el filtro): sin una consulta agregada por zona cada conteo pediría el catálogo completo; necesita una función en la base → grupo C (SQL).
+- **375** (página por asesor): el sitio hoy no expone qué propiedades tiene cada asesor (decisión de privacidad) y no hay una consulta pública por asesor → grupo A/C.
 - **424** (gráfica del historial de precios): la base solo guarda el precio anterior, no el historial completo; necesita una tabla nueva → grupo C (SQL).

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
-import { AD_CHANNELS, AD_TONES, MAX_EXTRA_CHARS } from "../lib/adCopy";
+import { AD_CHANNELS, AD_LANGUAGES, AD_TONES, MAX_EXTRA_CHARS } from "../lib/adCopy";
 import "./AdCopyPanel.css";
 
 // "Redactar con IA" dentro de Publicar en redes: Claude escribe tres versiones
@@ -12,6 +12,7 @@ export default function AdCopyPanel({ property, onUse }) {
   const { t } = useTranslation();
   const [channel, setChannel] = useState("facebook");
   const [tone, setTone] = useState("cercano");
+  const [language, setLanguage] = useState("es");
   const [extra, setExtra] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -29,7 +30,7 @@ export default function AdCopyPanel({ property, onUse }) {
     setLoading(true);
     setError("");
     try {
-      const res = await db.requestAdCopy({ propertyId: property.id, channel, tone, extra });
+      const res = await db.requestAdCopy({ propertyId: property.id, channel, tone, extra, language });
       if (res.configured === false) {
         setError(t("adCopy.errors.notConfigured"));
         return;
@@ -75,6 +76,16 @@ export default function AdCopyPanel({ property, onUse }) {
             {AD_TONES.map((c) => (
               <option key={c} value={c}>
                 {t(`adCopy.tones.${c}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="form-field">
+          <label htmlFor="ad-copy-language">{t("adCopy.language")}</label>
+          <select id="ad-copy-language" value={language} onChange={(e) => setLanguage(e.target.value)}>
+            {AD_LANGUAGES.map((c) => (
+              <option key={c} value={c}>
+                {t(`adCopy.languages.${c}`)}
               </option>
             ))}
           </select>

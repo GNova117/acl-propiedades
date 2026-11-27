@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { suggestPricePerM2 } from "../../lib/zonePriceSuggestion";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN, propertyTypeLabel } from "../../lib/format";
@@ -10,6 +11,21 @@ import { confirmDialog, notify } from "../../lib/toast";
 import { notifyLoadError } from "../../lib/loadError";
 
 const normalize = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+// 443: «Según N ventas en esta zona: $X/m²» con botón para usarlo (no se guarda hasta pulsar Guardar).
+function SuggestionHint({ zoneName, kind, properties, current, onUse }) {
+  const { t } = useTranslation();
+  const suggestion = useMemo(() => suggestPricePerM2(properties, zoneName, kind), [properties, zoneName, kind]);
+  if (!suggestion || Number(current) === suggestion.value) return null;
+  return (
+    <span className="form-hint">
+      {t("zones.suggestion", { count: suggestion.count, value: formatMXN(suggestion.value) })}{" "}
+      <button type="button" className="btn btn-link btn-sm" onClick={() => onUse(suggestion.value)}>
+        {t("zones.useSuggestion")}
+      </button>
+    </span>
+  );
+}
 
 export default function AdminZones() {
   const { t } = useTranslation();
@@ -304,6 +320,7 @@ export default function AdminZones() {
                   value={drafts[zone.id]?.built ?? ""}
                   onChange={(e) => setDrafts((prev) => ({ ...prev, [zone.id]: { ...prev[zone.id], built: e.target.value } }))}
                 />
+                <SuggestionHint zoneName={zone.name} kind="built" properties={properties} current={drafts[zone.id]?.built} onUse={(value) => setDrafts((prev) => ({ ...prev, [zone.id]: { ...prev[zone.id], built: value } }))} />
               </div>
               <div className="form-field">
                 <label htmlFor={`zone-land-${zone.id}`}>{t("zones.landPricePerM2")}</label>
@@ -314,6 +331,7 @@ export default function AdminZones() {
                   value={drafts[zone.id]?.land ?? ""}
                   onChange={(e) => setDrafts((prev) => ({ ...prev, [zone.id]: { ...prev[zone.id], land: e.target.value } }))}
                 />
+                <SuggestionHint zoneName={zone.name} kind="land" properties={properties} current={drafts[zone.id]?.land} onUse={(value) => setDrafts((prev) => ({ ...prev, [zone.id]: { ...prev[zone.id], land: value } }))} />
               </div>
               <div className="admin-zone-card__row">
                 <button type="button" className="btn btn-primary btn-sm" onClick={() => handleSave(zone)} disabled={savingId === zone.id}>

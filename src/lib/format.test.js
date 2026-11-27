@@ -6,6 +6,7 @@ import {
   docTypesForClientType,
   DOC_TYPES,
   formatArea,
+  formatAreaFt2,
   formatMXN,
   isPdfDoc,
   numOrNull,
@@ -186,5 +187,17 @@ describe("normalizeMxWhatsapp", () => {
     expect(normalizeMxWhatsapp("+1 415 555 0100")).toBe("14155550100");
     expect(normalizeMxWhatsapp("")).toBe("");
     expect(normalizeMxWhatsapp(null)).toBe("");
+  });
+});
+
+describe("formatAreaFt2", () => {
+  it("convierte m² a pies cuadrados, redondeado", () => {
+    expect(formatAreaFt2(1000)).toBe("10,764 ft²");
+    expect(formatAreaFt2(1)).toBe("11 ft²");
+  });
+  it("valores vacíos o inválidos no muestran nada", () => {
+    expect(formatAreaFt2(0)).toBe("");
+    expect(formatAreaFt2(null)).toBe("");
+    expect(formatAreaFt2("abc")).toBe("");
   });
 });

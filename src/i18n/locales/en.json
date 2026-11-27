@@ -173,6 +173,8 @@
     "rentada": "Rented"
   },
   "properties": {
+    "showMap": "Show on map",
+    "hideMap": "Hide map",
     "onlyMine": "Only my properties",
     "andMoreAdvisors_one": "and {{count}} more",
     "andMoreAdvisors_other": "and {{count}} more",
@@ -1055,6 +1057,9 @@
     }
   },
   "zones": {
+    "suggestion_one": "Based on {{count}} sale in this zone: {{value}}/m².",
+    "suggestion_other": "Based on {{count}} sales in this zone: {{value}}/m².",
+    "useSuggestion": "Use",
     "name": "Zone name",
     "add": "Add zone",
     "builtPricePerM2": "Construction ($ per m²)",
@@ -4090,6 +4095,8 @@
     }
   },
   "adCopy": {
+    "language": "Language",
+    "languages": { "es": "Spanish", "en": "English" },
     "title": "Write with AI",
     "hint": "Claude writes three versions with different angles from the property's real data. Pick one and tweak it before posting.",
     "channel": "Where will you post it?",

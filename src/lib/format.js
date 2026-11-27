@@ -2,6 +2,7 @@
 // usado por ambos backends para los campos numéricos opcionales de
 // propiedades (bedrooms, altura_libre, mantenimiento_pct, etc.), que llegan
 // del formulario como string vacío cuando no se capturan.
+import { keySlug } from "./slug.js";
 export function numOrNull(value) {
   return value === "" || value == null ? null : Number(value);
 }
@@ -59,6 +60,14 @@ export function formatArea(value) {
   return `${new Intl.NumberFormat("es-MX").format(number)} m²`;
 }
 
+// 376: pies cuadrados (los compradores e inversionistas de naves industriales suelen pensar en ft²). 1 m² = 10.7639 ft².
+export const M2_TO_FT2 = 10.7639;
+export function formatAreaFt2(m2) {
+  const number = Number(m2);
+  if (!Number.isFinite(number) || number <= 0) return "";
+  return `${new Intl.NumberFormat("es-MX").format(Math.round(number * M2_TO_FT2))} ft²`;
+}
+
 // Tipos de propiedad: casa/departamento/nave_industrial/terreno vienen
 // sembrados de fábrica, pero desde /admin/zonas (sección "Tipos de
 // propiedad") se pueden agregar más — el catálogo real vive en la tabla
@@ -77,15 +86,7 @@ export function propertyListPath(type) {
 // da a cualquier slug en este proyecto (sin acentos, minúsculas, guión
 // bajo). No se persiste el acento porque `type` funciona como llave para
 // filtros/rutas, no como texto a mostrar.
-export function slugify(text) {
-  return String(text)
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-}
+export const slugify = keySlug;
 
 // Etiqueta a mostrar para un tipo de propiedad: usa la traducción i18n si
 // existe (los 4 tipos de fábrica están traducidos ES/EN); si no — un tipo

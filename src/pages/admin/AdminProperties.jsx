@@ -1,7 +1,7 @@
 import ResponsiveImg from "../../components/ResponsiveImg";
 import { staleListingDays } from "../../lib/photoFreshness";
 import { advisorNames, advisorSummary } from "../../lib/propertyAdvisorLine";
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
@@ -40,6 +40,7 @@ import { confirmDialog, notify } from "../../lib/toast";
 // pasan explícitos — así que un cambio en lote de un solo campo (estatus,
 // activo) tiene que ir con todo lo demás de la propiedad, incluyendo los
 // tres arreglos de medios ya existentes, para no perderlos.
+const PropertyMap = lazy(() => import("../../components/PropertyMap"));
 const NONE = [];
 
 function mediaPreservingPatch(property, patch) {
@@ -112,6 +113,7 @@ export default function AdminProperties({
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkStatus, setBulkStatus] = useState("disponible");
   const [onlyIncomplete, setOnlyIncomplete] = useState(false);
+  const [showMap, setShowMap] = useState(false); // 427: inventario en el mapa
   const [onlyMine, setOnlyMine] = useState(false); // 461: solo las propiedades asignadas a quien tiene la sesión
   const [priceMode, setPriceMode] = useState("percentDown");
   const [priceAmount, setPriceAmount] = useState("");
@@ -342,6 +344,9 @@ export default function AdminProperties({
           <button type="button" className="btn btn-outline" onClick={() => handleExport("xlsx")} disabled={visibleProperties.length === 0}>
             {t("common.exportXlsx")}
           </button>
+          <button type="button" className="btn btn-outline" onClick={() => setShowMap((v) => !v)} aria-pressed={showMap} disabled={visibleProperties.length === 0}>
+            {showMap ? t("properties.hideMap") : t("properties.showMap")}
+          </button>
         </div>
       </div>
 
@@ -494,6 +499,14 @@ export default function AdminProperties({
           {t("bulkActions.deleteSelected")}
         </button>
       </BulkActionsBar>
+
+      {showMap && (
+        <div className="card" style={{ padding: "0.75rem", marginBottom: "1rem" }}>
+          <Suspense fallback={<LoadingState variant="block" height={420} />}>
+            <PropertyMap properties={visibleProperties} height={420} />
+          </Suspense>
+        </div>
+      )}
 
       {/* En el teléfono cada fila es una tarjeta (ver admin-table--cards en admin.css). */}
       <div className="card admin-table-wrapper admin-table-wrapper--cards">
