@@ -1,3 +1,4 @@
+import RowMore from "../../components/RowMore";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -321,35 +322,37 @@ export default function AdminMessages() {
                           {t("messages.estimate")}
                         </Link>
                       )}
-                      {hasSection("prospectos") &&
-                        !isVisitChange &&
-                        (promotedIds.has(message.id) ? (
-                          <Link to="/admin/prospectos" className="btn btn-outline btn-sm">
-                            {t("messages.isProspect")}
+                      <RowMore>
+                        {hasSection("prospectos") &&
+                          !isVisitChange &&
+                          (promotedIds.has(message.id) ? (
+                            <Link to="/admin/prospectos" className="btn btn-outline btn-sm">
+                              {t("messages.isProspect")}
+                            </Link>
+                          ) : (
+                            <button type="button" className="btn btn-outline btn-sm" onClick={() => handleMakeProspect(message)} disabled={promotingId === message.id}>
+                              {t("messages.makeProspect")}
+                            </button>
+                          ))}
+                        {hasSection("clientes") && (
+                          <Link to="/admin/clientes/nuevo" state={{ prefill: clientPrefill(message) }} className="btn btn-outline btn-sm">
+                            {t("messages.createClient")}
                           </Link>
-                        ) : (
-                          <button type="button" className="btn btn-outline btn-sm" onClick={() => handleMakeProspect(message)} disabled={promotingId === message.id}>
-                            {t("messages.makeProspect")}
-                          </button>
-                        ))}
-                      {hasSection("clientes") && (
-                        <Link to="/admin/clientes/nuevo" state={{ prefill: clientPrefill(message) }} className="btn btn-outline btn-sm">
-                          {t("messages.createClient")}
-                        </Link>
-                      )}
-                      {hasSection("agenda") && !isVisitBooking && !isVisitChange && (
-                        <Link to="/admin/agenda/nueva" state={{ prefill: visitPrefill(message) }} className="btn btn-outline btn-sm">
-                          {t("messages.scheduleAppointment")}
-                        </Link>
-                      )}
-                      <button
-                        type="button"
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleDelete(message.id)}
-                        disabled={deletingId === message.id}
-                      >
-                        {t("common.delete")}
-                      </button>
+                        )}
+                        {hasSection("agenda") && !isVisitBooking && !isVisitChange && (
+                          <Link to="/admin/agenda/nueva" state={{ prefill: visitPrefill(message) }} className="btn btn-outline btn-sm">
+                            {t("messages.scheduleAppointment")}
+                          </Link>
+                        )}
+                        <button
+                          type="button"
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleDelete(message.id)}
+                          disabled={deletingId === message.id}
+                        >
+                          {t("common.delete")}
+                        </button>
+                      </RowMore>
                     </td>
                   </tr>
                 );

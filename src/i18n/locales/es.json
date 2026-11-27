@@ -5018,6 +5018,8 @@
     "recent": "Recientes",
     "compact": "Compactar menú",
     "expand": "Expandir menú",
+    "breadcrumb": "Migas de pan",
+    "backTo": "Volver a {{section}}",
     "signedInAs": "Sesión de {{email}}",
     "noRole": "Sin rol"
   },

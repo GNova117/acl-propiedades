@@ -1,3 +1,4 @@
+import RowMore from "../../components/RowMore";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
@@ -365,14 +366,6 @@ export default function AdminSignatures() {
                           <button type="button" className="btn btn-primary btn-sm" onClick={() => download(r)} disabled={busyId === r.id}>
                             {t("signing.admin.downloadSigned")}
                           </button>
-                          <button type="button" className="btn btn-outline btn-sm" onClick={() => startFingerprint(r)}>
-                            {r.fingerprint_at ? t("signing.admin.replaceFingerprint") : t("signing.admin.addFingerprint")}
-                          </button>
-                          {r.client_id && (
-                            <button type="button" className="btn btn-outline btn-sm" onClick={() => saveToFile(r)} disabled={busyId === r.id}>
-                              {r.sealed_at ? t("signing.admin.savedAgain") : t("signing.admin.saveToFile")}
-                            </button>
-                          )}
                         </>
                       )}
                       {(status === "pendiente" || status === "bloqueado" || status === "expirado") && (
@@ -387,17 +380,36 @@ export default function AdminSignatures() {
                               {t("signing.admin.remind")}
                             </button>
                           )}
-                          <button type="button" className="btn btn-outline btn-sm" onClick={() => regenerate(r)} disabled={busyId === r.id}>
-                            {t("signing.admin.newCode")}
-                          </button>
-                          <button type="button" className="btn btn-outline btn-sm" onClick={() => cancel(r)} disabled={busyId === r.id}>
-                            {t("signing.admin.cancel")}
-                          </button>
                         </>
                       )}
-                      <button type="button" className="btn btn-danger btn-sm" onClick={() => remove(r)} disabled={busyId === r.id}>
-                        {t("common.delete")}
-                      </button>
+                      {/* 337: lo de menor uso y lo destructivo, tras «Más». */}
+                      <RowMore>
+                        {status === "firmado" && (
+                          <>
+                            <button type="button" className="btn btn-outline btn-sm" onClick={() => startFingerprint(r)}>
+                              {r.fingerprint_at ? t("signing.admin.replaceFingerprint") : t("signing.admin.addFingerprint")}
+                            </button>
+                            {r.client_id && (
+                              <button type="button" className="btn btn-outline btn-sm" onClick={() => saveToFile(r)} disabled={busyId === r.id}>
+                                {r.sealed_at ? t("signing.admin.savedAgain") : t("signing.admin.saveToFile")}
+                              </button>
+                            )}
+                          </>
+                        )}
+                        {(status === "pendiente" || status === "bloqueado" || status === "expirado") && (
+                          <>
+                            <button type="button" className="btn btn-outline btn-sm" onClick={() => regenerate(r)} disabled={busyId === r.id}>
+                              {t("signing.admin.newCode")}
+                            </button>
+                            <button type="button" className="btn btn-outline btn-sm" onClick={() => cancel(r)} disabled={busyId === r.id}>
+                              {t("signing.admin.cancel")}
+                            </button>
+                          </>
+                        )}
+                        <button type="button" className="btn btn-danger btn-sm" onClick={() => remove(r)} disabled={busyId === r.id}>
+                          {t("common.delete")}
+                        </button>
+                      </RowMore>
                     </td>
                   </tr>
                 );

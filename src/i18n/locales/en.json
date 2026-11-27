@@ -5018,6 +5018,8 @@
     "recent": "Recent",
     "compact": "Compact menu",
     "expand": "Expand menu",
+    "breadcrumb": "Breadcrumb",
+    "backTo": "Back to {{section}}",
     "signedInAs": "Signed in as {{email}}",
     "noRole": "No role"
   },

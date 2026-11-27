@@ -583,3 +583,18 @@
 .admin-layout.is-compact .admin-layout__user {
   display: none;
 }
+
+/* 336: «‹ Volver a …» arriba de las pantallas internas del panel (editar, ficha, bitácora…). */
+.admin-breadcrumb {
+  margin-bottom: 0.75rem;
+}
+
+.admin-breadcrumb__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}

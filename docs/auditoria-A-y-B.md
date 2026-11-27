@@ -87,6 +87,8 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 312 | La ficha ofrece el comparador de créditos una sola vez: dentro de la calculadora (la que se abre con «Personalizar»); la tarjeta aparte solo sale en propiedades sin estimado (terrenos, naves y rentas). |
 | 319 | En la ficha, la aclaración del pago mensual (enganche, plazo y tasa) va detrás de «ⓘ ¿Cómo se calcula?» en lugar de 2–3 renglones siempre visibles. |
 | 323 | En el listado, con más de 6 resultados el aviso «avísame» aparece después de la primera tanda de tarjetas (ocupa todo el ancho de la fila); con pocos resultados sigue al final. |
+| 336 | Las pantallas internas del panel (editar, ficha, bitácora…) traen arriba «‹ Volver a <apartado>», igual en todas; se arma una sola vez en el diseño del panel a partir del menú. Las listas y el inicio no la llevan. |
+| 337 | En Mensajes y Firmas, a la vista queda la acción principal de cada renglón y lo demás (incluido «Eliminar») va tras «Más»; Propiedades, Clientes y Prospectos ya lo tenían. |
 | 331 | Las cifras del inicio del panel enlazan a su lista (propiedades, asesores, clientes, remodelaciones y los totales por tipo) y, donde hay fechas de alta, dicen «+N este mes · M el mes pasado». |
 | 332 | El respaldo y la retención de papelería tienen su propio apartado «Respaldo» en la carpeta Oficina (ruta `/admin/respaldo`); «Roles y accesos» solo trae un enlace, y el aviso del inicio lleva ahí. |
 | 325 | En Prospectos, en teléfono, «Pegar o importar lista», «Importar desde visitas» y los exportes van tras un menú «⋯ Más»; «Nuevo» y «Seleccionar» siguen a la vista. En pantalla grande no cambia nada. |

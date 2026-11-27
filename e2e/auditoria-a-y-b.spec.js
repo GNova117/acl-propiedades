@@ -377,4 +377,16 @@ test.describe("Tanda A y B", () => {
     await press(propiedades);
     await expect(page).toHaveURL(/\/admin\/propiedades$/);
   });
+  test("panel: las pantallas internas traen «Volver a …» a su lista y las listas no", async ({ page, seedAdminSession, go, press }) => {
+    await seedAdminSession();
+    await go("/admin/propiedades");
+    await expect(page.locator(".admin-breadcrumb")).toHaveCount(0);
+    await go("/admin/propiedades/nueva");
+    const volver = page.locator(".admin-breadcrumb a");
+    await expect(volver).toHaveText(/Volver a Propiedades/);
+    await press(volver);
+    await expect(page).toHaveURL(/\/admin\/propiedades$/);
+    await go("/admin");
+    await expect(page.locator(".admin-breadcrumb")).toHaveCount(0);
+  });
 });

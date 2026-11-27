@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Logo from "../../components/Logo";
 import ThemeToggle from "../../components/ThemeToggle";
@@ -377,6 +377,14 @@ export default function AdminLayout() {
           <OfflineBanner />
           <TourBanner />
           <MfaNudge />
+          {/* 336: pantallas internas (editar, ficha, bitácora…): migas con «Volver» a la lista, igual en todas. */}
+          {currentItem && !currentItem.end && pathname.replace(/\/$/, "") !== currentItem.to && (
+            <nav className="admin-breadcrumb" aria-label={t("adminNav.breadcrumb")}>
+              <Link to={currentItem.to} className="admin-breadcrumb__back">
+                <span aria-hidden="true">‹</span> {t("adminNav.backTo", { section: currentLabel })}
+              </Link>
+            </nav>
+          )}
           <ErrorBoundary key={pathname} homePath="/admin">
             <Outlet />
           </ErrorBoundary>
