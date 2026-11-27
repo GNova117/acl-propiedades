@@ -1092,6 +1092,8 @@
     "months": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
   },
   "materialsCatalog": {
+    "priceJumpLine": "{{label}}: de {{before}} a {{after}} (+{{pct}} %).",
+    "priceJumpConfirm": "Es un aumento fuerte. ¿Guardar así?",
     "title": "Materiales",
     "subtitle": "Catálogo de materiales y precios. Los proyectos de remodelación seleccionan de esta lista en vez de capturar precios cada vez.",
     "name": "Nombre del material",
@@ -1586,6 +1588,13 @@
       "commission": "Comisión cobrada"
     },
     "profit": {
+      "monthlyTitle": "Utilidad por mes — {{year}}",
+      "month": "Mes",
+      "sales": "Ventas",
+      "margin": "Margen",
+      "pendingShort_one": "{{count}} sin liquidar",
+      "pendingShort_other": "{{count}} sin liquidar",
+      "noSalesYear": "Sin ventas en este año.",
       "netProfit": "Utilidad neta de la sociedad",
       "commissions": "Comisiones a asesores",
       "detailTitle": "Ganancias por venta — {{period}}",
@@ -1967,6 +1976,7 @@
     }
   },
   "inspections": {
+    "compare": {"button": "Comparar inspecciones", "title": "Comparar inspecciones", "hint": "Elige dos inspecciones de la misma propiedad (por ejemplo, la de entrada y la de salida de un inquilino) para ver qué empeoró, qué mejoró y las fotos lado a lado.", "before": "Antes", "after": "Después", "choose": "Elige una inspección", "suggest": "Sugerir las dos más recientes de esa propiedad", "sameOne": "Elige dos inspecciones distintas.", "summary": "Empeoraron {{worse}} · Mejoraron {{better}} · Cambiaron {{changed}} · Igual {{same}}", "criterion": "Criterio", "change": "Cambio", "photoAlt": "Foto de la inspección", "changes": {"worse": "Empeoró", "better": "Mejoró", "same": "Igual", "changed": "Cambió"}},
     "title": "Inspección",
     "button": "Inspección",
     "newInspection": "Nueva inspección",

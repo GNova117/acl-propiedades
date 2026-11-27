@@ -10,6 +10,7 @@ import {
   advisorPerformance,
   buildSaleRows,
   comparePeriods,
+  monthlyProfit,
   currentInventory,
   filterRows,
   inventorySeries,
@@ -239,6 +240,7 @@ export default function AdminSalesReports() {
   const matrix = useMemo(() => monthlyMatrix(allRows, team, { year, type }), [allRows, team, year, type]);
   const performance = useMemo(() => advisorPerformance(periodRows, team, { year, month }), [periodRows, team, year, month]);
   const profit = useMemo(() => profitSummary(periodRows), [periodRows]);
+  const monthlyProfitRows = useMemo(() => monthlyProfit(allRows, { year, type }), [allRows, year, type]);
   const comparison = useMemo(() => comparePeriods(allRows, { year, month, type }), [allRows, year, month, type]);
   const series = useMemo(() => inventorySeries(properties, allRows, { year, type }), [properties, allRows, year, type]);
   const inventory = useMemo(() => currentInventory(properties, ventas, { type }), [properties, ventas, type]);
@@ -662,6 +664,44 @@ export default function AdminSalesReports() {
               <span>{t("salesReports.profit.pendingNote", { count: profit.pending })}</span>
             </div>
           )}
+
+          <div className="card sr-panel">
+            <div className="sr-panel__header">
+              <h2>{t("salesReports.profit.monthlyTitle", { year })}</h2>
+            </div>
+            <div className="admin-table-wrapper">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>{t("salesReports.profit.month")}</th>
+                    <th>{t("salesReports.profit.sales")}</th>
+                    <th>{t("salesReports.kpi.volume")}</th>
+                    <th>{t("salesReports.kpi.officeProfit")}</th>
+                    <th>{t("salesReports.profit.margin")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {monthlyProfitRows.filter((m) => m.sold > 0).map((m) => (
+                    <tr key={m.month}>
+                      <td>{monthLabels[m.month]}</td>
+                      <td>
+                        {m.sold}
+                        {m.pending > 0 && <span className="form-hint"> ({t("salesReports.profit.pendingShort", { count: m.pending })})</span>}
+                      </td>
+                      <td>{formatMXN(m.volume)}</td>
+                      <td>{m.liquidated > 0 ? formatMXN(m.utilidadOficina) : "—"}</td>
+                      <td>{m.marginPct == null ? "—" : `${m.marginPct} %`}</td>
+                    </tr>
+                  ))}
+                  {monthlyProfitRows.every((m) => m.sold === 0) && (
+                    <tr>
+                      <td colSpan={5}>{t("salesReports.profit.noSalesYear")}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           <div className="card sr-panel">
             <div className="sr-panel__header">

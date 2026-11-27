@@ -195,4 +195,27 @@ test.describe("Tanda A y B", () => {
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex.*noarchive/);
     await expect(page.locator('meta[name="referrer"]')).toHaveAttribute("content", "no-referrer");
   });
+
+  test("material: subir un precio más de 15 % pide confirmar y dice cuánto subió", async ({ page, seedAdminSession, go, press }) => {
+    await seedAdminSession();
+    await go("/admin/materiales");
+    await page.evaluate(() =>
+      localStorage.setItem("acl_local_materials_catalog", JSON.stringify([{ id: "mat-qa", name: "Cemento QA", category: "Obra", unit: "saco", unit_price_internal: 100, unit_price_external: 150, active: true, consumption_rate: null, consumption_basis: null }])),
+    );
+    await go("/admin/materiales/mat-qa");
+    await page.fill("#m-price-internal", "130");
+    await page.evaluate(() => { window.__ACL_AUTO_CONFIRM__ = false; }); // la recarga la vuelve a encender: se apaga ya en la pantalla
+    await press(page.getByRole("button", { name: "Guardar" }));
+    const dialogo = page.getByRole("alertdialog");
+    await expect(dialogo).toContainText("+30 %");
+    await expect(dialogo).toContainText("aumento fuerte");
+  });
+
+  test("Comparar inspecciones abre con sus selectores", async ({ page, seedAdminSession, go }) => {
+    await seedAdminSession();
+    await go("/admin/inspecciones/comparar");
+    await expect(page.getByRole("heading", { name: "Comparar inspecciones" })).toBeVisible();
+    await expect(page.locator("#cmp-a")).toBeVisible();
+    await expect(page.locator("#cmp-b")).toBeVisible();
+  });
 });

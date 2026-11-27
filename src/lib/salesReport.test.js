@@ -4,6 +4,7 @@ import {
   availableYears,
   buildSaleRows,
   comparePeriods,
+  monthlyProfit,
   previousPeriod,
   currentInventory,
   dateParts,
@@ -343,5 +344,34 @@ describe("comparePeriods", () => {
   it("sin ventas el año anterior no hay porcentaje", () => {
     const c = comparePeriods(rows, { year: 2024 });
     expect(c.countPercent).toBeNull();
+  });
+});
+
+describe("monthlyProfit", () => {
+  const row = (year, month, price, profit) => ({ year, month, price, property: { type: "casa" }, profit });
+  const rows = [
+    row(2026, 0, 1000000, { utilidadOficina: 50000, utilidadNeta: 40000 }),
+    row(2026, 0, 500000, null),
+    row(2026, 2, 2000000, { utilidadOficina: 120000, utilidadNeta: 100000 }),
+    row(2025, 0, 900000, { utilidadOficina: 1, utilidadNeta: 1 }),
+  ];
+  const months = monthlyProfit(rows, { year: 2026 });
+
+  it("devuelve los 12 meses", () => {
+    expect(months).toHaveLength(12);
+  });
+  it("suma ventas, volumen y utilidad por mes, y separa lo que falta liquidar", () => {
+    expect(months[0]).toMatchObject({ sold: 2, liquidated: 1, pending: 1, volume: 1500000, utilidadOficina: 50000, utilidadNeta: 40000 });
+  });
+  it("el margen es utilidad entre el volumen de lo liquidado", () => {
+    expect(months[0].marginPct).toBe(5);
+    expect(months[2].marginPct).toBe(6);
+  });
+  it("un mes sin ventas o sin liquidaciones no tiene margen", () => {
+    expect(months[1].sold).toBe(0);
+    expect(months[1].marginPct).toBeNull();
+  });
+  it("solo cuenta el año pedido", () => {
+    expect(months.reduce((sum, m) => sum + m.sold, 0)).toBe(3);
   });
 });

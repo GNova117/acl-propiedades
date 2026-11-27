@@ -223,6 +223,30 @@ export function profitSummary(periodRows) {
   };
 }
 
+// 465: utilidad por mes de un año (12 renglones): cuántas ventas, volumen, utilidad de la oficina y margen (utilidad de la oficina
+// entre el volumen de lo ya liquidado). Solo cuentan para utilidad las ventas con liquidación; las demás se señalan como pendientes.
+export function monthlyProfit(rows, { year, type = "" }) {
+  const scoped = filterRows(rows, { year, type });
+  return Array.from({ length: 12 }, (_, month) => {
+    const sales = scoped.filter((r) => r.month === month);
+    const liquidated = sales.filter((r) => r.profit);
+    const volume = sales.reduce((sum, r) => sum + r.price, 0);
+    const liquidatedVolume = liquidated.reduce((sum, r) => sum + r.price, 0);
+    const utilidadOficina = liquidated.reduce((sum, r) => sum + r.profit.utilidadOficina, 0);
+    const utilidadNeta = liquidated.reduce((sum, r) => sum + r.profit.utilidadNeta, 0);
+    return {
+      month,
+      sold: sales.length,
+      liquidated: liquidated.length,
+      pending: sales.length - liquidated.length,
+      volume,
+      utilidadOficina,
+      utilidadNeta,
+      marginPct: liquidatedVolume > 0 ? Math.round((utilidadOficina / liquidatedVolume) * 1000) / 10 : null,
+    };
+  });
+}
+
 // Altas (propiedades subidas al sistema) vs. ventas por mes de un año.
 export function inventorySeries(properties, rows, { year, type = "" }) {
   const altas = Array(12).fill(0);

@@ -61,11 +61,15 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 494 | `npm run test:coverage` (73 % de líneas, 86 % de funciones, 89 % de ramas en `lib`, servidor y funciones de Supabase) y el CI deja el resumen en cada corrida. |
 | 499 | Las páginas con enlace secreto (firma, documentos, visita, informe, opinión, selección, registro y baja de alertas) comparten un solo hook (`usePrivatePage`): no se indexan ni se archivan, **no mandan la dirección como «referrer»** (antes la visita, los documentos, la baja de alertas y la firma no lo hacían). La firma ya traía su `noindex` y su título con `<Seo>`; solo se le agregó el «referrer». |
 | 501 | Al borrar una propiedad también se borran sus fotos (con sus copias en varios tamaños), videos, fotos 360° y plano de Storage (antes solo los comprobantes de la bitácora). |
+| 450 | «Comparar inspecciones» (en la lista de inspecciones): dos inspecciones lado a lado con qué empeoró, qué mejoró y las fotos de cada una; sugiere las dos más recientes de la propiedad. |
+| 452 | Al editar un material, si un precio sube más de 15 % se pide confirmar (con el antes, el después y el porcentaje). Es contra el precio que tenía al abrirlo: el catálogo no guarda las compras (el historial de compras queda para el grupo C). |
+| 465 | Reportes de ventas → Utilidad: tabla «Utilidad por mes» (ventas, volumen, utilidad de la oficina y margen sobre lo liquidado, con las ventas aún sin liquidar señaladas). |
+| 505 | Nueva prueba de SQL (`20_politicas_rls.sql`, corre en el CI contra Postgres de verdad): toda tabla pública tiene RLS; un visitante anónimo y una sesión sin apartados no ven mensajes, prospectos, clientes, ventas, liquidaciones, bitácora ni llaves; el anónimo no puede cambiar ni borrar lo de otros. Se comprobó que falla si se apaga la RLS de una tabla o se abre una política. |
 | 400 | La ficha trae «Reportar un error»: abre Contacto con el mensaje ya empezado (código y enlace de la publicación). |
 
 ## Pruebas
 
-- Unitarias: 2,090. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,115. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 

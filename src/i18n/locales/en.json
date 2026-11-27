@@ -1092,6 +1092,8 @@
     "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
   },
   "materialsCatalog": {
+    "priceJumpLine": "{{label}}: from {{before}} to {{after}} (+{{pct}}%).",
+    "priceJumpConfirm": "That is a big increase. Save anyway?",
     "title": "Materials",
     "subtitle": "Materials and price catalog. Remodel projects pick from this list instead of entering prices every time.",
     "name": "Material name",
@@ -1586,6 +1588,13 @@
       "commission": "Commission earned"
     },
     "profit": {
+      "monthlyTitle": "Profit by month — {{year}}",
+      "month": "Month",
+      "sales": "Sales",
+      "margin": "Margin",
+      "pendingShort_one": "{{count}} not settled",
+      "pendingShort_other": "{{count}} not settled",
+      "noSalesYear": "No sales this year.",
       "netProfit": "Partnership net profit",
       "commissions": "Advisor commissions",
       "detailTitle": "Profit per sale — {{period}}",
@@ -1967,6 +1976,7 @@
     }
   },
   "inspections": {
+    "compare": {"button": "Compare inspections", "title": "Compare inspections", "hint": "Pick two inspections of the same property (for example a tenant's move-in and move-out) to see what got worse, what improved and the photos side by side.", "before": "Before", "after": "After", "choose": "Choose an inspection", "suggest": "Suggest the two most recent for that property", "sameOne": "Pick two different inspections.", "summary": "Worse {{worse}} · Better {{better}} · Changed {{changed}} · Same {{same}}", "criterion": "Criterion", "change": "Change", "photoAlt": "Inspection photo", "changes": {"worse": "Worse", "better": "Better", "same": "Same", "changed": "Changed"}},
     "title": "Inspection",
     "button": "Inspection",
     "newInspection": "New inspection",

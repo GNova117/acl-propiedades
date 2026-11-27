@@ -66,6 +66,9 @@ export default function AdminInspections() {
       <div className="admin-header">
         <h1>{t("inspections.title")}</h1>
         <div className="admin-header__actions">
+          <Link to="/admin/inspecciones/comparar" className="btn btn-outline">
+            {t("inspections.compare.button")}
+          </Link>
           <Link to="/admin/inspecciones/nueva" className="btn btn-primary">
             {t("inspections.newInspection")}
           </Link>
