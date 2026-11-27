@@ -18,7 +18,7 @@ Numeración = la de `docs/auditoria-areas-de-oportunidad.md` (101–506).
 
 **Accesibilidad que toca varias pantallas**: hechos 250, 252, 253, 254, 255, 257, 258, 259, 260 y 261 (en Contacto y «¿Te interesa?»); quedan 249 marcadores del mapa y gráficas · 261 en el resto de formularios.
 
-**Estilos globales**: 281 `p { color: muted }` · 322 selector de zona con búsqueda.
+**Estilos globales**: 322 selector de zona con búsqueda.
 
 **Panel (diseño)**: completo. Hechos: 325, 326, 329, 330, 331, 332, 333, 334, 335, 336, 337.
 

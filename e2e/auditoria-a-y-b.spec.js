@@ -428,4 +428,15 @@ test.describe("Tanda A y B", () => {
       .evaluateAll((ths) => ths.filter((th) => !th.textContent.trim() && !th.querySelector("[aria-label]")).length);
     expect(vacios, "encabezados <th> sin texto").toBe(0);
   });
+  test("textos largos (descripción de la propiedad y aviso de privacidad) se leen en el color normal, no en gris de apoyo (281)", async ({ page, go }) => {
+    const color = (loc) => loc.first().evaluate((el) => getComputedStyle(el).color);
+    await go("/propiedades/prop-1");
+    const normal = await color(page.locator(".property-detail h1"));
+    const apoyo = await color(page.locator(".property-detail__address"));
+    expect(apoyo, "el gris de apoyo sigue siendo distinto del texto normal").not.toBe(normal);
+    await expect(page.locator(".rich-description p").first()).toBeVisible();
+    expect(await color(page.locator(".rich-description p"))).toBe(normal);
+    await go("/aviso-de-privacidad");
+    expect(await color(page.locator(".privacy-page__block p"))).toBe(normal);
+  });
 });

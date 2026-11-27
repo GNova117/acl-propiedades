@@ -77,6 +77,7 @@
 }
 
 .blog-post__body p {
+  color: var(--color-text); /* 281 */
   line-height: 1.7;
   margin: 0 0 1.1rem;
   white-space: pre-wrap;
