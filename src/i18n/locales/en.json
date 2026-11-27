@@ -66,6 +66,8 @@
     "whatsappText": "Hi, I'm interested in {{property}}."
   },
   "monthlyEstimate": {
+    "infoLabel": "How the monthly payment is calculated",
+    "infoShort": "How is it calculated?",
     "perMonth": "≈ {{amount}}/mo",
     "fromPerMonth": "From ≈ {{amount}} per month",
     "hint": "Estimated with {{down}}% down, {{years}} years and a {{rate}}% rate. For reference only, not a credit offer or approval.",

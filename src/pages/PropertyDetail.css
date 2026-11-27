@@ -426,3 +426,19 @@ body.presentation-mode .property-detail__faq {
 body.presentation-mode .property-detail__layout {
   grid-template-columns: 1fr;
 }
+
+/* 319: «ⓘ ¿Cómo se calcula?» abre la aclaración del pago mensual (antes siempre visible en 2–3 renglones). */
+.property-detail__monthly-info summary {
+  cursor: pointer;
+  color: var(--color-primary);
+  font-weight: 600;
+  list-style: none;
+}
+
+.property-detail__monthly-info summary::-webkit-details-marker {
+  display: none;
+}
+
+.property-detail__monthly-info[open] summary {
+  margin-bottom: 0.15rem;
+}

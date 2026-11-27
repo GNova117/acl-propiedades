@@ -1,4 +1,5 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ALERT_AFTER, alertPlacement } from "../lib/listingAlert";
 import { useNavigationType, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
@@ -660,8 +661,16 @@ export default function Properties({
                 <div className="properties-split__list">
                   <div className="properties-grid">
                     {/* Sin Reveal: las tarjetas del listado arrancaban invisibles y al volver de una ficha (o al imprimir) salían vacías un momento. */}
-                    {properties.map((property) => (
-                      <PropertyCard key={property.id} property={property} nextVisitSlot={nextSlots[property.id]} />
+                    {properties.map((property, index) => (
+                      <Fragment key={property.id}>
+                        <PropertyCard property={property} nextVisitSlot={nextSlots[property.id]} />
+                        {/* 323: con muchos resultados el aviso va después de la primera tanda (casi nadie llega al final de 24 tarjetas). */}
+                        {index === ALERT_AFTER - 1 && alertPlacement(properties.length) === "inline" && !loading && (
+                          <div className="properties-grid__alert">
+                            <AlertSignupCard mode="search" criteria={alertCriteria} matchCount={total} />
+                          </div>
+                        )}
+                      </Fragment>
                     ))}
                   </div>
                   {total > PAGE_SIZE && (
@@ -690,7 +699,7 @@ export default function Properties({
                 )}
               </div>
             )}
-            {!loading && (
+            {!loading && (effectiveView === "map" || alertPlacement(properties.length) === "end") && (
               <AlertSignupCard
                 mode="search"
                 criteria={alertCriteria}

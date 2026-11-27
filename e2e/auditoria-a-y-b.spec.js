@@ -277,4 +277,24 @@ test.describe("Tanda A y B", () => {
       await expect(page.locator("details.share-button").first()).not.toHaveAttribute("open", /.*/);
     }
   });
+
+  test("el aviso «avísame» del listado va al final con pocos resultados (una sola vez)", async ({ page, go }) => {
+    await go("/propiedades");
+    await expect(page.locator(".properties-grid .property-card").first()).toBeVisible();
+    // El seed trae 5 propiedades en este listado (≤ 6): el aviso va después de la rejilla, no dentro. Con más de 6 va dentro (ver listingAlert.test.js).
+    await expect(page.locator(".alert-signup")).toHaveCount(1);
+    await expect(page.locator(".properties-grid .alert-signup")).toHaveCount(0);
+  });
+
+  test("la ficha: la aclaración del pago mensual va tras un ícono de información y el comparador de créditos se ofrece una sola vez", async ({ page, go, press }) => {
+    await go("/propiedades/prop-1");
+    const info = page.locator("details.property-detail__monthly-info");
+    if (await info.count()) {
+      await expect(info).not.toHaveAttribute("open", /.*/);
+      await press(info.locator("summary"));
+      await expect(info).toContainText("enganche");
+    }
+    const enlaces = page.locator('.property-detail a[href^="/comparar-creditos"]');
+    expect(await enlaces.count(), "un solo llamado al comparador de créditos en la ficha").toBeLessThanOrEqual(1);
+  });
 });

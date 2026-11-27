@@ -84,11 +84,14 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 299 | Ya estaba resuelto: Contacto y el pie usan el ícono real de WhatsApp. |
 | 300 | Contacto trae botones grandes «Llamar» y «Escribir por WhatsApp» (la lista de datos sigue debajo). |
 | 305 | El mapa del listado trae una leyenda de colores por tipo (solo los tipos que hay en el mapa; con un solo tipo no se muestra). |
+| 312 | La ficha ofrece el comparador de créditos una sola vez: dentro de la calculadora (la que se abre con «Personalizar»); la tarjeta aparte solo sale en propiedades sin estimado (terrenos, naves y rentas). |
+| 319 | En la ficha, la aclaración del pago mensual (enganche, plazo y tasa) va detrás de «ⓘ ¿Cómo se calcula?» en lugar de 2–3 renglones siempre visibles. |
+| 323 | En el listado, con más de 6 resultados el aviso «avísame» aparece después de la primera tanda de tarjetas (ocupa todo el ancho de la fila); con pocos resultados sigue al final. |
 | 400 | La ficha trae «Reportar un error»: abre Contacto con el mensaje ya empezado (código y enlace de la publicación). |
 
 ## Pruebas
 
-- Unitarias: 2,130. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,133. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 

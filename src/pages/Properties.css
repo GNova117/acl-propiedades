@@ -205,3 +205,8 @@
   height: calc(100vh - 120px);
   min-height: 420px;
 }
+
+/* 323: el aviso «avísame» ocupa todo el ancho de la fila dentro de la rejilla de tarjetas. */
+.properties-grid__alert {
+  grid-column: 1 / -1;
+}

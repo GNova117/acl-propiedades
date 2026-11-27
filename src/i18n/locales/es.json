@@ -66,6 +66,8 @@
     "whatsappText": "Hola, me interesa {{property}}."
   },
   "monthlyEstimate": {
+    "infoLabel": "Cómo se calcula el pago mensual",
+    "infoShort": "¿Cómo se calcula?",
     "perMonth": "≈ {{amount}}/mes",
     "fromPerMonth": "Desde ≈ {{amount}} al mes",
     "hint": "Estimado con {{down}}% de enganche, a {{years}} años y tasa de {{rate}}%. Es solo una referencia, no una oferta ni una aprobación de crédito.",

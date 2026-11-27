@@ -455,7 +455,11 @@ export default function PropertyDetail() {
                 {monthly && (
                   <div className="property-detail__monthly">
                     <strong>{t("monthlyEstimate.fromPerMonth", { amount: formatMXN(monthly.payment) })}</strong>
-                    <span>{t("monthlyEstimate.hint", { down: monthly.downPct, years: monthly.years, rate: monthly.rate })}</span>
+                    {/* 319: la aclaración (enganche, plazo, tasa) va detrás de un ícono de información, no en tres renglones. */}
+                    <details className="property-detail__monthly-info">
+                      <summary aria-label={t("monthlyEstimate.infoLabel")}>ⓘ {t("monthlyEstimate.infoShort")}</summary>
+                      <span>{t("monthlyEstimate.hint", { down: monthly.downPct, years: monthly.years, rate: monthly.rate })}</span>
+                    </details>
                     <button
                       type="button"
                       className="property-detail__monthly-adjust"
@@ -463,7 +467,6 @@ export default function PropertyDetail() {
                     >
                       {t("mortgageCalc.adjust")}
                     </button>
-                    <Link to={`/comparar-creditos?propiedad=${property.id}`}>{t("monthlyEstimate.cta")}</Link>
                   </div>
                 )}
                 <p className="property-detail__credit-notice">{t("detail.creditNotice")}</p>
@@ -598,6 +601,8 @@ export default function PropertyDetail() {
                 la ficha técnica en PDF. */}
             {canEstimateMonthly(property) && <MortgageCalculator property={property} />}
 
+            {/* 312: un solo llamado al comparador de créditos: con calculadora y «Desde ≈ $X» arriba ya está; esta tarjeta solo cuando no hay estimado. */}
+            {!canEstimateMonthly(property) && (
             <div className="card" style={{ padding: "1.1rem 1.25rem", marginBottom: "1.25rem" }}>
               <strong>{t("detail.compareCredits.title")}</strong>
               <p className="form-hint" style={{ margin: "0.25rem 0 0.75rem" }}>{t("detail.compareCredits.text")}</p>
@@ -605,6 +610,7 @@ export default function PropertyDetail() {
                 {t("detail.compareCredits.cta")}
               </Link>
             </div>
+            )}
 
             {property.status === "disponible" ? (
               <AlertSignupCard mode="price" property={property} />
