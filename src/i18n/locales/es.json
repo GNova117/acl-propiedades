@@ -939,6 +939,8 @@
     "totalProperties": "Total de propiedades",
     "activeAdvisors": "Asesores activos",
     "newMessages": "Mensajes nuevos",
+    "trendThisMonth": "+{{count}} este mes",
+    "trendLastMonth": "{{count}} el mes pasado",
     "todayAppointments": "Citas de hoy",
     "noAppointmentsToday": "No hay citas para hoy.",
     "recentProperties": "Propiedades recientes",

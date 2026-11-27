@@ -87,6 +87,7 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 312 | La ficha ofrece el comparador de créditos una sola vez: dentro de la calculadora (la que se abre con «Personalizar»); la tarjeta aparte solo sale en propiedades sin estimado (terrenos, naves y rentas). |
 | 319 | En la ficha, la aclaración del pago mensual (enganche, plazo y tasa) va detrás de «ⓘ ¿Cómo se calcula?» en lugar de 2–3 renglones siempre visibles. |
 | 323 | En el listado, con más de 6 resultados el aviso «avísame» aparece después de la primera tanda de tarjetas (ocupa todo el ancho de la fila); con pocos resultados sigue al final. |
+| 331 | Las cifras del inicio del panel enlazan a su lista (propiedades, asesores, clientes, remodelaciones y los totales por tipo) y, donde hay fechas de alta, dicen «+N este mes · M el mes pasado». |
 | 332 | El respaldo y la retención de papelería tienen su propio apartado «Respaldo» en la carpeta Oficina (ruta `/admin/respaldo`); «Roles y accesos» solo trae un enlace, y el aviso del inicio lleva ahí. |
 | 325 | En Prospectos, en teléfono, «Pegar o importar lista», «Importar desde visitas» y los exportes van tras un menú «⋯ Más»; «Nuevo» y «Seleccionar» siguen a la vista. En pantalla grande no cambia nada. |
 | 326 | En Prospectos, la búsqueda y el selector de asesor dejan el estilo nativo del navegador y usan el mismo borde, radio y foco que los demás campos. |
@@ -99,7 +100,7 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 
 ## Pruebas
 
-- Unitarias: 2,133. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,136. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 

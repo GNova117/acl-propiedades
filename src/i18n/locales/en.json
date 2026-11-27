@@ -939,6 +939,8 @@
     "totalProperties": "Total properties",
     "activeAdvisors": "Active advisors",
     "newMessages": "New messages",
+    "trendThisMonth": "+{{count}} this month",
+    "trendLastMonth": "{{count}} last month",
     "todayAppointments": "Today's appointments",
     "noAppointmentsToday": "No appointments today.",
     "recentProperties": "Recent properties",

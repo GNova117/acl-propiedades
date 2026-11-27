@@ -367,4 +367,14 @@ test.describe("Tanda A y B", () => {
     expect(parseFloat(estilo.radio)).toBeGreaterThan(0);
     expect(estilo.fuente).not.toMatch(/^(system-ui|-apple-system)$/);
   });
+  test("inicio del panel: las cifras enlazan a su lista y muestran las altas de este mes", async ({ page, seedAdminSession, go, press }) => {
+    await seedAdminSession();
+    await go("/admin");
+    const propiedades = page.locator("a.admin-stat-card[href='/admin/propiedades']").first();
+    await expect(propiedades).toBeVisible();
+    // Las propiedades de demostración se dan de alta ahora: el renglón de tendencia dice «+N este mes».
+    await expect(propiedades.locator(".admin-stat-card__trend")).toContainText("este mes");
+    await press(propiedades);
+    await expect(page).toHaveURL(/\/admin\/propiedades$/);
+  });
 });
