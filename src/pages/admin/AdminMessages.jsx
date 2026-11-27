@@ -58,7 +58,7 @@ export default function AdminMessages() {
   const [expandedId, setExpandedId] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
-  const [prospects, setProspects] = useState([]);
+  const [promotedList, setPromotedList] = useState([]); // ids de mensajes que ya son prospecto (sin bajar los prospectos completos)
   const [promotingId, setPromotingId] = useState(null);
 
   const load = ({ silent = false } = {}) => {
@@ -69,7 +69,7 @@ export default function AdminMessages() {
     // copiado: si mañana se reasigna la propiedad a otro asesor, los
     // mensajes viejos apuntan al asesor que la lleva hoy, que es a quien
     // hay que buscar para darles seguimiento.
-    Promise.all([db.getContactMessages(), db.getProperties({})]).then(([messageData, propertyData]) => {
+    Promise.all([db.getContactMessages(), db.getPropertyRefs()]).then(([messageData, propertyData]) => {
       setMessages(messageData);
       setProperties(propertyData);
       setLoading(false);
@@ -88,16 +88,16 @@ export default function AdminMessages() {
 
   // Mensajes que ya son prospecto (para no ofrecer el botón dos veces).
   useEffect(() => {
-    if (hasSection("prospectos")) db.getProspects().then(setProspects).catch(() => setProspects([]));
+    if (hasSection("prospectos")) db.getPromotedMessageIds().then(setPromotedList).catch(() => setPromotedList([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const promotedIds = useMemo(() => new Set(prospects.map((p) => p.message_id).filter(Boolean)), [prospects]);
+  const promotedIds = useMemo(() => new Set(promotedList), [promotedList]);
 
   const handleMakeProspect = async (message) => {
     setPromotingId(message.id);
     try {
       const created = await db.addProspect(messageToProspectFields(message, propertyById.get(message.property_id)));
-      setProspects((prev) => [created, ...prev]);
+      setPromotedList((prev) => [created.message_id ?? message.id, ...prev]);
     } catch (err) {
       notify(err.message || t("messages.makeProspectError"));
     } finally {

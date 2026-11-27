@@ -31,6 +31,11 @@ export const propertiesMethods = {
     return buildHomeData(await this.getProperties({ activeOnly: true }));
   },
 
+  async getPropertyRefs() {
+    const all = await this.getProperties({});
+    return all.map((p) => ({ id: p.id, code: p.code, title: p.title, price: p.price, advisors: (p.advisors || []).map((a) => ({ id: a.id, name: a.name })) }));
+  },
+
   async getPropertiesByIds(ids) {
     const wanted = new Set((ids || []).filter(Boolean));
     return (await this.getProperties({ activeOnly: true })).filter((p) => wanted.has(p.id));

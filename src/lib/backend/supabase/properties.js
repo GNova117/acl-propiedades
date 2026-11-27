@@ -98,6 +98,21 @@ export const propertiesMethods = {
     };
   },
 
+  // Referencias mínimas de TODAS las propiedades (para pantallas que solo muestran código, título, precio y asesores, como Mensajes):
+  // evita bajar fotos, videos y descripciones de todo el catálogo.
+  async getPropertyRefs() {
+    const rows = await fetchAll(() =>
+      supabase.from("properties").select("id, code, title, price, property_advisors(advisor_id, advisors(id, name))").order("created_at", { ascending: false }).order("id"),
+    );
+    return rows.map((row) => ({
+      id: row.id,
+      code: row.code,
+      title: row.title,
+      price: row.price,
+      advisors: (row.property_advisors || []).map((pa) => pa.advisors).filter(Boolean),
+    }));
+  },
+
   // Solo propiedades publicadas (activas), por sus ids: el sitio público las pide así (p. ej. las vendidas del bloque de confianza).
   async getPropertiesByIds(ids) {
     const list = (ids || []).filter(Boolean);

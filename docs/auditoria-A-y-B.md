@@ -65,6 +65,8 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 452 | Al editar un material, si un precio sube más de 15 % se pide confirmar (con el antes, el después y el porcentaje). Es contra el precio que tenía al abrirlo: el catálogo no guarda las compras (el historial de compras queda para el grupo C). |
 | 465 | Reportes de ventas → Utilidad: tabla «Utilidad por mes» (ventas, volumen, utilidad de la oficina y margen sobre lo liquidado, con las ventas aún sin liquidar señaladas). |
 | 505 | Nueva prueba de SQL (`20_politicas_rls.sql`, corre en el CI contra Postgres de verdad): toda tabla pública tiene RLS; un visitante anónimo y una sesión sin apartados no ven mensajes, prospectos, clientes, ventas, liquidaciones, bitácora ni llaves; el anónimo no puede cambiar ni borrar lo de otros. Se comprobó que falla si se apaga la RLS de una tabla o se abre una política. |
+| 179 (parte) | Traducidos al inglés los textos fijos de Liquidación (14), Mi perfil (5), el formulario de asesor y la lista de asesores. **Construcción** queda en español por una decisión que ya estaba documentada en el código (herramienta interna para personal hispanohablante). **Secretaría** (toda la pantalla) sigue sin traducir: es un trabajo aparte de unas 100 cadenas. |
+| 229 | «Mensajes» ya no baja el catálogo completo de propiedades ni todos los prospectos: pide solo código, título, precio y asesores de cada propiedad (`getPropertyRefs`) y solo los ids de los mensajes ya convertidos en prospecto (`getPromotedMessageIds`). |
 | 400 | La ficha trae «Reportar un error»: abre Contacto con el mensaje ya empezado (código y enlace de la publicación). |
 
 ## Pruebas

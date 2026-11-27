@@ -20,6 +20,12 @@ export const prospectsMethods = {
     return fetchAll(() => supabase.from("prospectos").select("*").order("created_at", { ascending: false }).order("id"));
   },
 
+  // Ids de los mensajes que ya se volvieron prospecto (Mensajes no necesita bajar los prospectos completos para saberlo).
+  async getPromotedMessageIds() {
+    const rows = await fetchAll(() => supabase.from("prospectos").select("id, message_id").not("message_id", "is", null).order("id"));
+    return rows.map((r) => r.message_id);
+  },
+
   // Selección de propiedades en un solo enlace (ver schema.sql: property_selections y selection_open). El público solo
   // usa selection_open (anota la apertura); el personal ve y crea filas por RLS (cada asesor las suyas).
   async createSelection({ propertyIds, title, note, advisorId = null, prospectoId = null }) {

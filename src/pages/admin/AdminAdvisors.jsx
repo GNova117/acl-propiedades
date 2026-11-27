@@ -42,9 +42,9 @@ export default function AdminAdvisors() {
           <thead>
             <tr>
               <th></th>
-              <th>Nombre</th>
-              <th>Teléfono</th>
-              <th>Correo</th>
+              <th>{t("advisorsUi.colName")}</th>
+              <th>{t("advisorsUi.colPhone")}</th>
+              <th>{t("advisorsUi.colEmail")}</th>
               <th>{t("common.status")}</th>
               <th>Nosotros</th>
               <th>{t("common.actions")}</th>

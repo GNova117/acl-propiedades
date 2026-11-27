@@ -114,19 +114,19 @@ export default function AdminMyProfile() {
 
       <form className="card admin-form" onSubmit={handleSubmit} noValidate>
         <div className="form-field">
-          <label htmlFor="mp-name">Nombre</label>
+          <label htmlFor="mp-name">{t("profileUi.fieldName")}</label>
           <input id="mp-name" value={form.name} onChange={handleChange("name")} />
           {errors.name && <span className="form-error">{errors.name}</span>}
         </div>
 
         <div className="form-row">
           <div className="form-field">
-            <label htmlFor="mp-phone">Teléfono</label>
+            <label htmlFor="mp-phone">{t("profileUi.fieldPhone")}</label>
             <input id="mp-phone" value={form.phone} onChange={handleChange("phone")} />
             {errors.phone && <span className="form-error">{errors.phone}</span>}
           </div>
           <div className="form-field">
-            <label htmlFor="mp-email">Correo</label>
+            <label htmlFor="mp-email">{t("profileUi.fieldEmail")}</label>
             <input id="mp-email" type="email" value={form.email} onChange={handleChange("email")} />
             {errors.email && <span className="form-error">{errors.email}</span>}
           </div>
@@ -138,9 +138,9 @@ export default function AdminMyProfile() {
         </div>
 
         <div className="form-field">
-          <label htmlFor="mp-bio">Puesto / descripción breve</label>
-          <textarea id="mp-bio" rows={3} value={form.bio} onChange={handleChange("bio")} placeholder="Ej. Asesora Inmobiliaria" />
-          <p className="form-hint">Aparece debajo de tu nombre en la página de Nosotros.</p>
+          <label htmlFor="mp-bio">{t("profileUi.fieldBio")}</label>
+          <textarea id="mp-bio" rows={3} value={form.bio} onChange={handleChange("bio")} placeholder={t("advisorForm.bioPlaceholder")} />
+          <p className="form-hint">{t("profileUi.bioHint")}</p>
         </div>
 
         <div className="form-field">

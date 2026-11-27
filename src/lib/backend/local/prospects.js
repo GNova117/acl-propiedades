@@ -37,6 +37,10 @@ export const prospectsMethods = {
     return readStore(KEYS.prospects, []).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
   },
 
+  async getPromotedMessageIds() {
+    return readStore(KEYS.prospects, []).map((p) => p.message_id).filter(Boolean);
+  },
+
   async getProspectById(id) {
     return readStore(KEYS.prospects, []).find((p) => p.id === id) || null;
   },

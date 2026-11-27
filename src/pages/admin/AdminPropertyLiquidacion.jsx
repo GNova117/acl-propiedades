@@ -129,7 +129,7 @@ export default function AdminPropertyLiquidacion() {
         <form className="card admin-form" onSubmit={handleSubmit} noValidate>
           <div className="form-row">
             <div className="form-field">
-              <label htmlFor="liq-precio-propiedad">Precio de la propiedad</label>
+              <label htmlFor="liq-precio-propiedad">{t("liquidacionUi.price")}</label>
               <div id="liq-precio-propiedad" className="liquidacion-readonly">{formatMXN(propertyPrice)}</div>
               <span className="form-hint">
                 {t("liquidacion.autoFromProperty")}{" "}
@@ -137,7 +137,7 @@ export default function AdminPropertyLiquidacion() {
               </span>
             </div>
             <div className="form-field">
-              <label htmlFor="liq-costo-total">Costo total de liquidación</label>
+              <label htmlFor="liq-costo-total">{t("liquidacionUi.totalCost")}</label>
               <input id="liq-costo-total" type="number" min="0" value={form.costo_total} onChange={handleChange("costo_total")} />
               {errors.costo_total && <span className="form-error">{errors.costo_total}</span>}
             </div>
@@ -145,11 +145,11 @@ export default function AdminPropertyLiquidacion() {
 
           <div className="form-row">
             <div className="form-field">
-              <label htmlFor="liq-devolucion">Devolución al vendedor original</label>
+              <label htmlFor="liq-devolucion">{t("liquidacionUi.refund")}</label>
               <input id="liq-devolucion" type="number" min="0" value={form.devolucion_vendedor} onChange={handleChange("devolucion_vendedor")} />
             </div>
             <div className="form-field">
-              <label htmlFor="liq-remodelacion">Inversión — costo de remodelación</label>
+              <label htmlFor="liq-remodelacion">{t("liquidacionUi.investRemodel")}</label>
               <div id="liq-remodelacion" className="liquidacion-readonly">{formatMXN(inversionRemodelacion)}</div>
               <span className="form-hint">
                 {remodelProject ? (
@@ -166,7 +166,7 @@ export default function AdminPropertyLiquidacion() {
 
           <div className="form-row">
             <div className="form-field">
-              <label htmlFor="liq-servicios">Inversión — pago de servicios</label>
+              <label htmlFor="liq-servicios">{t("liquidacionUi.investServices")}</label>
               <input id="liq-servicios" type="number" min="0" value={form.inversion_servicios} onChange={handleChange("inversion_servicios")} />
             </div>
             <div className="form-field">
@@ -181,7 +181,7 @@ export default function AdminPropertyLiquidacion() {
 
           <div className="form-row">
             <div className="form-field">
-              <label htmlFor="liq-captador">Quién captó la propiedad</label>
+              <label htmlFor="liq-captador">{t("liquidacionUi.whoListed")}</label>
               <select id="liq-captador" value={form.captador_id} onChange={handleChange("captador_id")}>
                 <option value="">—</option>
                 {advisors.map((a) => (
@@ -193,7 +193,7 @@ export default function AdminPropertyLiquidacion() {
               {errors.captador_id && <span className="form-error">{errors.captador_id}</span>}
             </div>
             <div className="form-field">
-              <label htmlFor="liq-vendedor">Quién vendió la propiedad</label>
+              <label htmlFor="liq-vendedor">{t("liquidacionUi.whoSold")}</label>
               <select id="liq-vendedor" value={form.vendedor_id} onChange={handleChange("vendedor_id")}>
                 <option value="">{t("liquidacion.sameAsCaptador")}</option>
                 {advisors.map((a) => (
@@ -207,11 +207,11 @@ export default function AdminPropertyLiquidacion() {
 
           <div className="form-row">
             <div className="form-field">
-              <label htmlFor="liq-tasa-captacion">% Comisión de captación</label>
+              <label htmlFor="liq-tasa-captacion">{t("liquidacionUi.listingPct")}</label>
               <input id="liq-tasa-captacion" type="number" min="0" max="100" value={form.tasa_comision_captacion} onChange={handleChange("tasa_comision_captacion")} />
             </div>
             <div className="form-field">
-              <label htmlFor="liq-tasa-venta">% Comisión de venta (si aplica)</label>
+              <label htmlFor="liq-tasa-venta">{t("liquidacionUi.salePct")}</label>
               <input id="liq-tasa-venta" type="number" min="0" max="100" value={form.tasa_comision_venta} onChange={handleChange("tasa_comision_venta")} />
             </div>
             <div className="form-field">
@@ -237,19 +237,19 @@ export default function AdminPropertyLiquidacion() {
           <table className="liquidacion-breakdown__table">
             <tbody>
               <tr>
-                <td>Precio de la propiedad</td>
+                <td>{t("liquidacionUi.price")}</td>
                 <td>{formatMXN(propertyPrice)}</td>
               </tr>
               <tr>
-                <td>(−) Costo total de liquidación</td>
+                <td>{t("liquidacionUi.lessTotalCost")}</td>
                 <td>−{formatMXN(form.costo_total || 0)}</td>
               </tr>
               <tr>
-                <td>(−) Devolución al vendedor</td>
+                <td>{t("liquidacionUi.lessRefund")}</td>
                 <td>−{formatMXN(form.devolucion_vendedor || 0)}</td>
               </tr>
               <tr>
-                <td>(−) Inversión (remodelación + servicios)</td>
+                <td>{t("liquidacionUi.lessInvest")}</td>
                 <td>−{formatMXN(breakdown.inversion)}</td>
               </tr>
               {gastosTotal > 0 && (
@@ -282,7 +282,7 @@ export default function AdminPropertyLiquidacion() {
                 <td>{formatMXN(breakdown.montoCaptador)}</td>
               </tr>
               <tr className="liquidacion-breakdown__strong">
-                <td>= Utilidad de oficina</td>
+                <td>{t("liquidacionUi.officeProfit")}</td>
                 <td>{formatMXN(breakdown.utilidadOficina)}</td>
               </tr>
               <tr>
@@ -290,7 +290,7 @@ export default function AdminPropertyLiquidacion() {
                 <td>−{formatMXN(breakdown.gastosAdmin)}</td>
               </tr>
               <tr className="liquidacion-breakdown__total">
-                <td>= Utilidad neta de la sociedad</td>
+                <td>{t("liquidacionUi.netProfit")}</td>
                 <td>{formatMXN(breakdown.utilidadNeta)}</td>
               </tr>
             </tbody>

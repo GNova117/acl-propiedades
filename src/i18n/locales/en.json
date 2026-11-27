@@ -2448,6 +2448,34 @@
     "chip_other": "Review photos: {{count}} months unchanged",
     "hint": "This listing has gone over 6 months without changes. Check that its photos are current or update them."
   },
+  "liquidacionUi": {
+    "price": "Property price",
+    "totalCost": "Total settlement cost",
+    "refund": "Refund to the original seller",
+    "investRemodel": "Investment — remodeling cost",
+    "investServices": "Investment — utilities payments",
+    "whoListed": "Who listed the property",
+    "whoSold": "Who sold the property",
+    "listingPct": "% Listing commission",
+    "salePct": "% Sale commission (if applicable)",
+    "lessTotalCost": "(−) Total settlement cost",
+    "lessRefund": "(−) Refund to the seller",
+    "lessInvest": "(−) Investment (remodeling + utilities)",
+    "officeProfit": "= Office profit",
+    "netProfit": "= Net profit of the partnership"
+  },
+  "profileUi": {
+    "fieldName": "Name",
+    "fieldPhone": "Phone",
+    "fieldEmail": "Email",
+    "fieldBio": "Title / short description",
+    "bioHint": "Shown under your name on the About page."
+  },
+  "advisorsUi": {
+    "colName": "Name",
+    "colPhone": "Phone",
+    "colEmail": "Email"
+  },
   "contracts": {
     "sendToSign": "Send to sign (link)",
     "sendError": "Could not create the signature request",
@@ -5373,6 +5401,13 @@
     "photos_other": "{{count}} photos"
   },
   "advisorForm": {
+    "fieldName": "Name",
+    "fieldPhone": "Phone",
+    "fieldEmail": "Email",
+    "fieldBio": "Title / short description",
+    "bioHint": "Shown under the name on the About page — leaving it filled keeps every team card the same height.",
+    "teamHint": "Uncheck it for the company's general contact (e.g. \"ACL Propiedades\") — it stays available as the advisor for properties without an assigned agent, it just stops being listed as a team member.",
+    "bioPlaceholder": "E.g. Real estate advisor",
     "deactivateWarning": "Deactivating this advisor leaves without an owner: {{upcomingCitas}} upcoming appointments, {{openProspects}} open prospects and {{ownedProperties}} properties. Reassign them afterwards. Deactivate?",
     "photoNeeded": "Without a photo they do not appear on the About page: upload one to show them.",
     "whatsappLabel": "WhatsApp (10 digits; saved with the 52 country code)"

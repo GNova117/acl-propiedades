@@ -218,4 +218,15 @@ test.describe("Tanda A y B", () => {
     await expect(page.locator("#cmp-a")).toBeVisible();
     await expect(page.locator("#cmp-b")).toBeVisible();
   });
+
+  test("la tipografía Inter variable se carga y sirve todos los pesos con un solo archivo", async ({ page, go }) => {
+    const fontRequests = [];
+    page.on("request", (r) => /\.woff2/.test(r.url()) && fontRequests.push(r.url()));
+    await go("/");
+    await page.evaluate(() => document.fonts.ready);
+    for (const weight of [400, 500, 600, 700]) {
+      expect(await page.evaluate((w) => document.fonts.check(`${w} 16px Inter`), weight)).toBe(true);
+    }
+    expect(fontRequests.filter((u) => /inter/i.test(u)).length, "Inter se pide en un solo archivo").toBeLessThanOrEqual(1);
+  });
 });

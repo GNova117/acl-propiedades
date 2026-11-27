@@ -42,4 +42,4 @@ Ya hechos en `docs/auditoria-A-y-B.md`: 351, 357, 360, 368, 376 (pies²), 378, 3
 
 ## E. Rendimiento y estructura (se hacen antes del final, pero con revisión)
 
-221 ciudades que bajan el catálogo dos veces · 226 `AuthProvider` en el sitio público · 229 «Mensajes» descarga propiedades y prospectos · 234 fuentes (pesos) · 235 three.js del recorrido 360° · 203 404 real para rutas desconocidas · 179 textos fijos que quedan en el panel (Liquidación, Mi perfil, Construcción, formulario de asesor) · 483–485 y 492 resto del CI y partir el README · 495 ya hecho.
+Hechos (ver `docs/auditoria-A-y-B.md`): 229, 483–485 (CI), 492, 495 y la parte de 179 que se pudo. Quedan: 221 ciudades que bajan el catálogo dos veces · 226 `AuthProvider` en el sitio público · 234 fuentes (pesos) · 235 three.js del recorrido 360° · 203 404 real para rutas desconocidas · 179 (resto) traducir toda la pantalla de Secretaría (~100 cadenas); Construcción se queda en español por decisión documentada.

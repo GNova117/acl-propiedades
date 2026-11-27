@@ -125,19 +125,19 @@ export default function AdminAdvisorForm() {
 
       <form className="card admin-form" onSubmit={handleSubmit} noValidate>
         <div className="form-field">
-          <label htmlFor="a-name">Nombre</label>
+          <label htmlFor="a-name">{t("advisorForm.fieldName")}</label>
           <input id="a-name" value={form.name} onChange={handleChange("name")} />
           {errors.name && <span className="form-error">{errors.name}</span>}
         </div>
 
         <div className="form-row">
           <div className="form-field">
-            <label htmlFor="a-phone">Teléfono</label>
+            <label htmlFor="a-phone">{t("advisorForm.fieldPhone")}</label>
             <input id="a-phone" value={form.phone} onChange={handleChange("phone")} />
             {errors.phone && <span className="form-error">{errors.phone}</span>}
           </div>
           <div className="form-field">
-            <label htmlFor="a-email">Correo</label>
+            <label htmlFor="a-email">{t("advisorForm.fieldEmail")}</label>
             <input id="a-email" type="email" value={form.email} onChange={handleChange("email")} />
             {errors.email && <span className="form-error">{errors.email}</span>}
           </div>
@@ -149,9 +149,9 @@ export default function AdminAdvisorForm() {
         </div>
 
         <div className="form-field">
-          <label htmlFor="a-bio">Puesto / descripción breve</label>
-          <textarea id="a-bio" rows={3} value={form.bio} onChange={handleChange("bio")} placeholder="Ej. Asesora Inmobiliaria" />
-          <p className="form-hint">Aparece debajo del nombre en la página de Nosotros — que no quede en blanco mantiene parejas todas las tarjetas del equipo.</p>
+          <label htmlFor="a-bio">{t("advisorForm.fieldBio")}</label>
+          <textarea id="a-bio" rows={3} value={form.bio} onChange={handleChange("bio")} placeholder={t("advisorForm.bioPlaceholder")} />
+          <p className="form-hint">{t("advisorForm.bioHint")}</p>
           {errors.bio && <span className="form-error">{errors.bio}</span>}
         </div>
 
@@ -175,7 +175,7 @@ export default function AdminAdvisorForm() {
           </label>
           {/* Nosotros solo lista asesores con foto: una tarjeta sin foto se ve incompleta. */}
           {form.show_in_team && !photoFile && !existingPhoto && <p className="form-error">{t("advisorForm.photoNeeded")}</p>}
-          <p className="form-hint">Desmárcalo para el contacto general de la empresa (ej. "ACL Propiedades") — sigue disponible como asesor de propiedades sin agente asignado, solo deja de listarse como integrante del equipo.</p>
+          <p className="form-hint">{t("advisorForm.teamHint")}</p>
         </div>
 
         <div className="admin-form__actions">
