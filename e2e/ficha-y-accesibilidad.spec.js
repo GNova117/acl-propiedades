@@ -221,7 +221,7 @@ test.describe("Tablas del panel: ordenar, columnas y encabezado fijo", () => {
     );
     await go("/admin/clientes");
     await press(page.getByRole("columnheader", { name: /Nombre/ }).getByRole("button"));
-    await expect(page.locator(".admin-table tbody tr.admin-row .cell-name")).toHaveText(["álvaro", "Beatriz", "Zacarías"]);
+    await expect(page.locator(".admin-table tbody tr.admin-row .cell-name__text")).toHaveText(["álvaro", "Beatriz", "Zacarías"]);
   });
 });
 

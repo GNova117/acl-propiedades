@@ -297,7 +297,7 @@ export default function AdminClients() {
                       />
                     </td>
                     <td className="cell-name">
-                      {client.name}
+                      <span className="cell-name__text">{client.name}</span>
                       {(() => {
                         const status = expedienteStatus(client);
                         const missing = status.missing.map((m) => m.label).join(", ");
