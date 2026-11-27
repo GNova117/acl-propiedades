@@ -102,3 +102,47 @@
   grid-column: 2 / -1;
   margin: 0;
 }
+
+/* 449: hoja del día — solo se ve al imprimir; al imprimir se oculta todo lo demás. */
+.day-sheet {
+  display: none;
+}
+
+@media print {
+  body:has(.day-sheet) * {
+    visibility: hidden;
+  }
+
+  body:has(.day-sheet) .day-sheet,
+  body:has(.day-sheet) .day-sheet * {
+    visibility: visible;
+  }
+
+  .day-sheet {
+    display: block;
+    position: absolute;
+    inset: 0 0 auto 0;
+    padding: 1cm;
+    color: #000;
+    background: #fff;
+  }
+
+  .day-sheet h1 {
+    font-size: 16pt;
+    margin: 0 0 0.5cm;
+  }
+
+  .day-sheet table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10pt;
+  }
+
+  .day-sheet th,
+  .day-sheet td {
+    border: 1px solid #444;
+    padding: 0.2cm;
+    text-align: left;
+    vertical-align: top;
+  }
+}

@@ -133,8 +133,8 @@ export default function AdminClients() {
     }
   };
 
-  const handleExport = () => {
-    exportToCsv("clientes.csv", filteredClients, [
+  const handleExport = (ext = "csv") => {
+    exportToCsv(`clientes.${ext}`, filteredClients, [
       { label: t("clients.name"), key: "name" },
       { label: t("clients.type"), value: (c) => clientTypeLabel(t, c.type) },
       { label: t("clients.financiamiento"), value: (c) => financiamientoLabel(t, c.financiamiento) },
@@ -164,8 +164,11 @@ export default function AdminClients() {
           <button type="button" className="btn btn-outline" onClick={() => setShowIntake((v) => !v)} aria-expanded={showIntake}>
             {t("clientIntake.button")}
           </button>
-          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={filteredClients.length === 0}>
+          <button type="button" className="btn btn-outline" onClick={() => handleExport("csv")} disabled={filteredClients.length === 0}>
             {t("common.exportCsv")}
+          </button>
+          <button type="button" className="btn btn-outline" onClick={() => handleExport("xlsx")} disabled={filteredClients.length === 0}>
+            {t("common.exportXlsx")}
           </button>
           <button type="button" className="btn btn-outline" onClick={() => setShowPdfModal(true)}>
             {t("clients.downloadPdf")}

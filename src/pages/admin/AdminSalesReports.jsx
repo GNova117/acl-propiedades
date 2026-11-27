@@ -9,6 +9,7 @@ import {
   availableYears,
   advisorPerformance,
   buildSaleRows,
+  comparePeriods,
   currentInventory,
   filterRows,
   inventorySeries,
@@ -238,6 +239,7 @@ export default function AdminSalesReports() {
   const matrix = useMemo(() => monthlyMatrix(allRows, team, { year, type }), [allRows, team, year, type]);
   const performance = useMemo(() => advisorPerformance(periodRows, team, { year, month }), [periodRows, team, year, month]);
   const profit = useMemo(() => profitSummary(periodRows), [periodRows]);
+  const comparison = useMemo(() => comparePeriods(allRows, { year, month, type }), [allRows, year, month, type]);
   const series = useMemo(() => inventorySeries(properties, allRows, { year, type }), [properties, allRows, year, type]);
   const inventory = useMemo(() => currentInventory(properties, ventas, { type }), [properties, ventas, type]);
   const pending = useMemo(() => pendingSales(properties, ventas), [properties, ventas]);
@@ -462,6 +464,18 @@ export default function AdminSalesReports() {
               </span>
             </div>
           </div>
+
+          {(comparison.prior.count > 0 || comparison.current.count > 0) && (
+            <p className="form-hint sr-compare" role="status">
+              {t("salesReports.compare.line", {
+                period: month == null ? String(comparison.previous.year) : `${monthLabels[month]} ${comparison.previous.year}`,
+                sold: comparison.prior.count,
+                countDelta: `${comparison.countDelta > 0 ? "+" : ""}${comparison.countDelta}`,
+                volume: formatMXN(comparison.prior.volume),
+                volumeChange: comparison.volumePercent == null ? t("salesReports.compare.noBase") : `${comparison.volumePercent > 0 ? "+" : ""}${comparison.volumePercent} %`,
+              })}
+            </p>
+          )}
 
           <InventoryChart series={series} monthLabels={monthLabels} t={t} />
 

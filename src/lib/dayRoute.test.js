@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_STOPS, buildDayRoute, routeUrl } from "./dayRoute";
+import { MAX_STOPS, buildDayRoute, buildDaySheet, routeUrl } from "./dayRoute";
 
 const item = (id, extra = {}, state = "later") => ({ cita: { id, titulo: `Cita ${id}`, hora: "10:00:00", ...extra }, state });
 const props = [
@@ -46,5 +46,23 @@ describe("routeUrl", () => {
     const url = routeUrl([{ query: "Calle 1" }, { query: "Calle 2" }, { query: "Calle 3" }]);
     expect(url).toContain("destination=Calle%203");
     expect(url).toContain("waypoints=Calle%201%7CCalle%202");
+  });
+});
+
+describe("buildDaySheet", () => {
+  it("una fila por cita que falta, con dirección de la propiedad, contacto y notas", () => {
+    const sheet = buildDaySheet(
+      [
+        item("a", { property_id: "p1", contact_name: "Ana", contact_phone: "871", actividades: " llevar llaves " }),
+        item("b", { lugar: "Av. Hidalgo 100" }),
+        item("c", { lugar: "https://maps.app.goo.gl/x" }),
+        item("d", { lugar: "Calle 9" }, "past"),
+      ],
+      [{ id: "p1", code: "ACL-1", title: "Casa Norte", address: "Calle Norte 1" }]
+    );
+    expect(sheet.map((r) => r.id)).toEqual(["a", "b", "c"]);
+    expect(sheet[0]).toMatchObject({ hora: "10:00", propiedad: "ACL-1 · Casa Norte", direccion: "Calle Norte 1", contacto: "Ana · 871", notas: "llevar llaves" });
+    expect(sheet[1].direccion).toBe("Av. Hidalgo 100");
+    expect(sheet[2].direccion).toBe("");
   });
 });

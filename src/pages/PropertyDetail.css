@@ -398,3 +398,31 @@
   font-size: 0.85rem;
   color: var(--color-text-muted, #6b7280);
 }
+
+/* Modo presentación (?presentacion=1): la ficha limpia para mostrarla en la tableta, sin nada del sitio ni formularios. */
+body.presentation-mode .site-header,
+body.presentation-mode .site-footer,
+body.presentation-mode .chat-widget,
+body.presentation-mode .chat-widget__toggle,
+body.presentation-mode .property-detail__sidebar,
+body.presentation-mode .property-detail__similar,
+body.presentation-mode .contact-request-card,
+body.presentation-mode .alert-signup,
+body.presentation-mode .property-detail__present,
+body.presentation-mode .property-detail__report,
+body.presentation-mode .property-detail__code,
+body.presentation-mode .property-detail__faq {
+  display: none !important;
+}
+
+.presentation-exit {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 50;
+  opacity: 0.85;
+}
+
+body.presentation-mode .property-detail__layout {
+  grid-template-columns: 1fr;
+}

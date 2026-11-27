@@ -212,6 +212,12 @@ export default function PropertyDetail() {
   const [showPanorama, setShowPanorama] = useState(false);
   const [showPlan, setShowPlan] = useState(false);
   const location = useLocation();
+  // 448: modo presentación (?presentacion=1) para mostrar la propiedad en la tableta: sin encabezado, pie, chat ni formularios.
+  const presentation = new URLSearchParams(location.search).get("presentacion") === "1";
+  useEffect(() => {
+    document.body.classList.toggle("presentation-mode", presentation);
+    return () => document.body.classList.remove("presentation-mode");
+  }, [presentation]);
   const navigate = useNavigate();
   // Si llegó desde un listado, «Volver» regresa a ese listado (con filtros, página y posición).
   const listFrom = listingFrom(location.state);
@@ -381,6 +387,11 @@ export default function PropertyDetail() {
           &larr; {t("detail.back")}
         </Link>
 
+        {presentation && (
+          <Link to={propertyPath(property)} className="btn btn-primary btn-sm presentation-exit">
+            {t("detail.presentationExit")}
+          </Link>
+        )}
         <div className="property-detail__layout">
           <div>
             <Gallery images={property.images} alt={property.title} />
@@ -422,6 +433,9 @@ export default function PropertyDetail() {
                   <PropertyFlag property={property} />
                   <FavoriteButton propertyId={property.id} className="favorite-button--inline" />
                   <CompareButton propertyId={property.id} className="compare-button--inline" />
+                  <Link to={`${propertyPath(property)}?presentacion=1`} className="btn btn-outline btn-sm property-detail__present">
+                    {t("detail.presentationMode")}
+                  </Link>
                   <ShareButton title={seoTitle} text={shareText} url={`${siteOrigin()}${propertyPath(property)}`} propertyId={property.id} />
                 </div>
                 <span className="property-detail__price">{formatMXN(property.price)}{property.operation_type === "renta" && <small className="property-price-period">{t("propertyOperation.perMonth")}</small>}</span>

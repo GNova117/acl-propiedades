@@ -22,6 +22,11 @@ export function escapeCsvValue(value) {
 // para valores calculados/traducidos (ej. mostrar la etiqueta legible de un
 // enum en vez de su clave interna).
 export function exportToCsv(filename, rows, columns) {
+  // 440: un nombre .xlsx descarga Excel de verdad (números como números, teléfonos como texto); el módulo se baja solo entonces.
+  if (/\.xlsx$/i.test(filename)) {
+    import("./xlsxExport").then((m) => m.exportToXlsx(filename, rows, columns));
+    return;
+  }
   const header = columns.map((c) => escapeCsvValue(c.label)).join(",");
   const lines = rows.map((row) =>
     columns.map((c) => escapeCsvValue(c.value ? c.value(row) : row[c.key])).join(",")

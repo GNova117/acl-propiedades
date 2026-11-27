@@ -136,6 +136,9 @@ function VisitRequestForm({ property, onBack, noSlots }) {
           <Link className="btn btn-primary btn-block" to={`/visita/${done.token}`}>
             {t("scheduleVisit.request.manage")}
           </Link>
+          <button type="button" className="btn btn-outline btn-block" onClick={() => { setDone(null); setForm(withRemembered(initialForm)); }}>
+            {t("scheduleVisit.booking.another")}
+          </button>
         </div>
       </div>
     );

@@ -45,3 +45,24 @@ export function routeUrl(stops) {
   if (waypoints.length > 0) params.push(`waypoints=${waypoints.map(encodeURIComponent).join("%7C")}`);
   return `https://www.google.com/maps/dir/?${params.join("&")}`;
 }
+
+// 449: hoja imprimible del día. Una línea por visita que falta (en orden de hora) con lo que se lleva en la mano:
+// hora, título, dirección (de la propiedad o del lugar escrito), contacto de quien se visita y notas.
+export function buildDaySheet(items, properties = []) {
+  const byId = new Map(properties.map((p) => [p.id, p]));
+  return items
+    .filter(({ state }) => state !== "past")
+    .map(({ cita }) => {
+      const property = cita.property_id ? byId.get(cita.property_id) : null;
+      const lugar = String(cita.lugar || "").trim();
+      return {
+        id: cita.id,
+        hora: cita.hora ? String(cita.hora).slice(0, 5) : "",
+        titulo: cita.titulo || "",
+        propiedad: property ? [property.code, property.title].filter(Boolean).join(" · ") : "",
+        direccion: property?.address || (lugar && !isLink(lugar) ? lugar : ""),
+        contacto: [cita.contact_name, cita.contact_phone].filter(Boolean).join(" · "),
+        notas: String(cita.actividades || "").trim(),
+      };
+    });
+}

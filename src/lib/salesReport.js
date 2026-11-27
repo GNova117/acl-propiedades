@@ -110,6 +110,30 @@ export function filterRows(rows, { year, month = null, type = "" }) {
   );
 }
 
+// 472: el mismo periodo un año antes (mes → mismo mes del año anterior; solo año → el año anterior) y qué tanto cambió.
+export function previousPeriod({ year, month = null }) {
+  return { year: year - 1, month };
+}
+
+const pct = (current, previous) => (previous > 0 ? Math.round(((current - previous) / previous) * 100) : null);
+
+export function comparePeriods(rows, { year, month = null, type = "" }) {
+  const sum = (set) => ({ count: set.length, volume: set.reduce((total, r) => total + r.price, 0) });
+  const current = sum(filterRows(rows, { year, month, type }));
+  const before = previousPeriod({ year, month });
+  const previous = sum(filterRows(rows, { ...before, type }));
+  return {
+    previous: before,
+    current,
+    prior: previous,
+    countDelta: current.count - previous.count,
+    volumeDelta: current.volume - previous.volume,
+    // null cuando el periodo anterior no tiene ventas: no hay base para un porcentaje.
+    countPercent: pct(current.count, previous.count),
+    volumePercent: pct(current.volume, previous.volume),
+  };
+}
+
 // Asesores que cuentan como parte del equipo de ventas: activos y visibles en
 // el equipo (el asesor "ACL Propiedades" de respaldo no vende, solo diluiría
 // el promedio), más cualquiera que sí tenga ventas en el conjunto de filas.

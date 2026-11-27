@@ -161,8 +161,8 @@ export default function AdminProspects() {
     }
   }, [prospectsQ.data, filtered]);
 
-  const handleExport = () => {
-    exportToCsv("prospectos.csv", filtered, [
+  const handleExport = (ext = "csv") => {
+    exportToCsv(`prospectos.${ext}`, filtered, [
       { label: t("prospects.form.name"), key: "name" },
       { label: t("prospects.form.phone"), key: "phone" },
       { label: t("clients.email"), key: "email" },
@@ -322,8 +322,11 @@ export default function AdminProspects() {
               {t("prospects.import", { count: importable.length })}
             </button>
           )}
-          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={filtered.length === 0} title={filtered.length === 0 ? t("common.exportCsvEmpty") : undefined}>
+          <button type="button" className="btn btn-outline" onClick={() => handleExport("csv")} disabled={filtered.length === 0} title={filtered.length === 0 ? t("common.exportCsvEmpty") : undefined}>
             {t("common.exportCsv")}
+          </button>
+          <button type="button" className="btn btn-outline" onClick={() => handleExport("xlsx")} disabled={filtered.length === 0} title={filtered.length === 0 ? t("common.exportCsvEmpty") : undefined}>
+            {t("common.exportXlsx")}
           </button>
         </div>
       </div>

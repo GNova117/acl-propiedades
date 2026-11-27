@@ -258,6 +258,8 @@
     "coloniesTitle": "Neighborhoods in {{city}} with listings"
   },
   "detail": {
+    "presentationMode": "Presentation mode",
+    "presentationExit": "Exit presentation",
     "reportError": "Report an error",
     "reportErrorMessage": "I found a mistake in listing {{code}} ({{url}}): ",
     "priceDropAgo_zero": "Dropped {{amount}} ({{percent}}%) today",
@@ -595,6 +597,7 @@
       "manage": "View or cancel my request"
     },
     "booking": {
+      "another": "Book another visit",
       "addToGoogle": "Add to Google Calendar",
       "loading": "Looking for available times…",
       "chooseDay": "Choose the day",
@@ -696,7 +699,8 @@
     "inactive": "Inactive",
     "close": "Close",
     "search": "Search",
-    "exportCsv": "Export CSV"
+    "exportCsv": "Export CSV",
+    "exportXlsx": "Export Excel"
   },
   "developments": {
     "eyebrow": "Developments",
@@ -1510,6 +1514,10 @@
     "clientSheet": "Client data"
   },
   "salesReports": {
+    "compare": {
+      "line": "Versus {{period}}: {{sold}} sales ({{countDelta}}), volume {{volume}} ({{volumeChange}}).",
+      "noBase": "no basis to compare"
+    },
     "title": "Sales & reports",
     "subtitle": "Internal use — none of this is shown on the public site.",
     "loadError": "Couldn't load the data: {{error}}",
@@ -2419,6 +2427,11 @@
       "keys": "Keys",
       "docs": "Documents (Front desk)"
     }
+  },
+  "photoFreshness": {
+    "chip_one": "Review photos: {{count}} month unchanged",
+    "chip_other": "Review photos: {{count}} months unchanged",
+    "hint": "This listing has gone over 6 months without changes. Check that its photos are current or update them."
   },
   "contracts": {
     "sendToSign": "Send to sign (link)",
@@ -4677,6 +4690,9 @@
     }
   },
   "dayRoute": {
+    "print": "Print day sheet",
+    "sheetTitle": "Today's visits — {{date}}",
+    "sheet": {"time": "Time", "what": "What", "where": "Where", "contact": "Contact", "notes": "Notes"},
     "title": "Today's route",
     "hint": "Your remaining visits today, in time order. The link opens Google Maps with every stop.",
     "open": "Open route in Google Maps",
@@ -4959,6 +4975,11 @@
     "switchLanguage": "Cambiar idioma / Switch language"
   },
   "propertyForm": {
+    "photoWarning": {
+      "dark": "“{{name}}” looks very dark: a bright photo sells better.",
+      "bright": "“{{name}}” looks overexposed (too much light).",
+      "duplicate": "“{{name}}” looks like a duplicate of “{{other}}”."
+    },
     "geoFind": "Find on map",
     "geoSearching": "Searching…",
     "geoEmpty": "Address not found: adjust the text or enter latitude and longitude by hand.",

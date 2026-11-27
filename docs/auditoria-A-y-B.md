@@ -36,11 +36,19 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 357 | Contacto trae «¿Qué buscas?» (comprar, rentar, vender, rentar mi propiedad, otro); el motivo viaja como prefijo del mensaje. |
 | 360 | «Vende tu casa» ofrece «¿Prefieres rentarla?», que abre Contacto con ese motivo ya elegido. |
 | 388 | Los formularios del sitio (Contacto, solicitud de contacto, visita) recuerdan nombre, correo y teléfono después de enviar (solo en el navegador de esa persona). |
+| 389 | Tras agendar una visita (o pedirla) aparece «Agendar otra visita», con los datos ya recordados. |
+| 396 | Ya estaba resuelto: el visor de fotos acerca con pellizco y recorre la foto con el dedo o el cursor. |
+| 440 | Las listas de Propiedades, Clientes, Prospectos y Visitas se exportan también a **Excel de verdad** (.xlsx, sin librerías: números como números, teléfonos como texto, encabezado en negritas y fijo). |
+| 448 | Modo presentación (`?presentacion=1`, botón en la ficha): sin encabezado, pie, chat ni formularios, con botón para salir. |
+| 449 | «Mi día»: «Imprimir hoja del día» con hora, qué, dónde, contacto y notas de cada visita que falta. |
+| 469 | Al subir fotos de una propiedad se avisa de las muy oscuras, muy quemadas o repetidas (en el navegador, solo aviso). |
+| 470 | La lista del panel marca «Revisar fotos: N meses sin cambios» en propiedades disponibles sin tocar en 6 meses o más. |
+| 472 | Reportes de ventas compara contra el mismo periodo del año anterior (cuántas ventas y volumen, con porcentaje). |
 | 400 | La ficha trae «Reportar un error»: abre Contacto con el mensaje ya empezado (código y enlace de la publicación). |
 
 ## Pruebas
 
-- Unitarias: 2,034. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,054. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 

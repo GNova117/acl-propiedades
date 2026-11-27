@@ -258,6 +258,8 @@
     "coloniesTitle": "Colonias de {{city}} con propiedades"
   },
   "detail": {
+    "presentationMode": "Modo presentación",
+    "presentationExit": "Salir de la presentación",
     "reportError": "Reportar un error",
     "reportErrorMessage": "Encontré un error en la publicación {{code}} ({{url}}): ",
     "priceDropAgo_zero": "Bajó {{amount}} ({{percent}} %) hoy",
@@ -595,6 +597,7 @@
       "manage": "Ver o cancelar mi solicitud"
     },
     "booking": {
+      "another": "Agendar otra visita",
       "addToGoogle": "Agregar a Google Calendar",
       "loading": "Buscando horarios disponibles…",
       "chooseDay": "Elige el día",
@@ -696,7 +699,8 @@
     "inactive": "Inactivo",
     "close": "Cerrar",
     "search": "Buscar",
-    "exportCsv": "Exportar CSV"
+    "exportCsv": "Exportar CSV",
+    "exportXlsx": "Exportar Excel"
   },
   "developments": {
     "eyebrow": "Desarrollos",
@@ -1510,6 +1514,10 @@
     "clientSheet": "Datos del cliente"
   },
   "salesReports": {
+    "compare": {
+      "line": "Contra {{period}}: {{sold}} ventas ({{countDelta}}), volumen {{volume}} ({{volumeChange}}).",
+      "noBase": "sin base de comparación"
+    },
     "title": "Ventas y reportes",
     "subtitle": "Uso interno — esta información no se muestra en el sitio público.",
     "loadError": "No se pudieron cargar los datos: {{error}}",
@@ -2419,6 +2427,11 @@
       "keys": "Llaves",
       "docs": "Documentos (Secretaría)"
     }
+  },
+  "photoFreshness": {
+    "chip_one": "Revisar fotos: {{count}} mes sin cambios",
+    "chip_other": "Revisar fotos: {{count}} meses sin cambios",
+    "hint": "Esta propiedad lleva más de 6 meses sin cambios. Revisa que sus fotos sigan vigentes o actualízalas."
   },
   "contracts": {
     "sendToSign": "Enviar a firmar (enlace)",
@@ -4677,6 +4690,9 @@
     }
   },
   "dayRoute": {
+    "print": "Imprimir hoja del día",
+    "sheetTitle": "Visitas del día — {{date}}",
+    "sheet": {"time": "Hora", "what": "Qué", "where": "Dónde", "contact": "Contacto", "notes": "Notas"},
     "title": "Ruta de hoy",
     "hint": "Tus visitas que faltan hoy, en orden de hora. El enlace abre Google Maps con todas las paradas.",
     "open": "Abrir ruta en Google Maps",
@@ -4959,6 +4975,11 @@
     "switchLanguage": "Cambiar idioma / Switch language"
   },
   "propertyForm": {
+    "photoWarning": {
+      "dark": "«{{name}}» parece muy oscura: una foto clara vende mejor.",
+      "bright": "«{{name}}» parece muy quemada (demasiada luz).",
+      "duplicate": "«{{name}}» parece repetida: se ve igual que «{{other}}»."
+    },
     "geoFind": "Buscar en el mapa",
     "geoSearching": "Buscando…",
     "geoEmpty": "No se encontró esa dirección: ajusta el texto o captura la latitud y longitud a mano.",

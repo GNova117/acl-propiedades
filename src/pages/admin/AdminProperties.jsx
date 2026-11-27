@@ -1,4 +1,5 @@
 import ResponsiveImg from "../../components/ResponsiveImg";
+import { staleListingDays } from "../../lib/photoFreshness";
 import { advisorNames, advisorSummary } from "../../lib/propertyAdvisorLine";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -285,8 +286,8 @@ export default function AdminProperties({
     runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { advisor_ids: bulkAdvisorIds(mode, property.advisor_ids, advisor.id) })), targets);
   };
 
-  const handleExport = () => {
-    exportToCsv(`${basePath.split("/").pop()}.csv`, visibleProperties, [
+  const handleExport = (ext = "csv") => {
+    exportToCsv(`${basePath.split("/").pop()}.${ext}`, visibleProperties, [
       { label: t("detail.code"), key: "code" },
       { label: "Título", key: "title" },
       { label: t("properties.type"), value: (p) => propertyTypeLabel(t, p.type) },
@@ -335,8 +336,11 @@ export default function AdminProperties({
             onToggle={(key) => changeColumns(toggleColumn(hiddenCols, key, HIDEABLE))}
             onReset={() => changeColumns(new Set())}
           />
-          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={visibleProperties.length === 0}>
+          <button type="button" className="btn btn-outline" onClick={() => handleExport("csv")} disabled={visibleProperties.length === 0}>
             {t("common.exportCsv")}
+          </button>
+          <button type="button" className="btn btn-outline" onClick={() => handleExport("xlsx")} disabled={visibleProperties.length === 0}>
+            {t("common.exportXlsx")}
           </button>
         </div>
       </div>
@@ -576,9 +580,11 @@ export default function AdminProperties({
                         const contract = contracts.get(property.id);
                         const idle = stalled.get(property.id);
                         const cs = contract ? contractState(contract) : null;
-                        if (!(cs && cs.state !== "vigente") && !idle?.stalled) return null;
+                        const stalePhotos = staleListingDays(property);
+                        if (!(cs && cs.state !== "vigente") && !idle?.stalled && stalePhotos == null) return null;
                         return (
                           <div className="property-flags">
+                            {stalePhotos != null && <span className="prospect-chip prospect-chip--today" title={t("photoFreshness.hint")}>{t("photoFreshness.chip", { count: Math.floor(stalePhotos / 30) })}</span>}
                             {cs && cs.state !== "vigente" && (
                               <span className={`prospect-chip prospect-chip--${cs.state === "vencido" ? "overdue" : "today"}`}>
                                 {t("contract.chip", { kind: t(`contract.kinds.${contract.kind}`), state: t(`contract.states.${cs.state}`, { count: Math.abs(cs.daysLeft) }) })}

@@ -125,4 +125,49 @@ test.describe("Tanda A y B", () => {
     await expect(page.locator(".chat-widget__bubble--assistant", { hasText: "Claro." })).toBeVisible();
     expect(enviado.page.propertyCode).toBe(codigo);
   });
+
+  test("modo presentación: la ficha sin encabezado, pie ni formularios, con botón para salir", async ({ page, go, press }) => {
+    await go("/propiedades/prop-1");
+    await press(page.locator(".property-detail__present"));
+    await expect(page).toHaveURL(/presentacion=1/);
+    await expect(page.locator(".site-header")).toBeHidden();
+    await expect(page.locator(".property-detail__sidebar")).toBeHidden();
+    await press(page.locator(".presentation-exit"));
+    await expect(page).not.toHaveURL(/presentacion=1/);
+    await expect(page.locator(".site-header")).toBeVisible();
+  });
+
+  test("Clientes se exporta a Excel de verdad (.xlsx)", async ({ page, seedAdminSession, go, press }) => {
+    await seedAdminSession();
+    await go("/admin/clientes/nuevo");
+    await page.fill("#c-name", "Cliente Excel QA");
+    await page.selectOption("#c-financiamiento", "contado");
+    await llenarDatosBasicosCliente(page);
+    await press(page.getByRole("button", { name: "Guardar" }));
+    await expect(page).toHaveURL(/\/admin\/clientes$/);
+    const [descarga] = await Promise.all([page.waitForEvent("download"), press(page.getByRole("button", { name: "Exportar Excel" }))]);
+    expect(descarga.suggestedFilename()).toBe("clientes.xlsx");
+    const stream = await descarga.createReadStream();
+    const chunks = [];
+    for await (const chunk of stream) chunks.push(chunk);
+    const bytes = Buffer.concat(chunks);
+    expect(bytes.subarray(0, 2).toString()).toBe("PK"); // un .xlsx es un ZIP
+    expect(bytes.includes(Buffer.from("Cliente Excel QA"))).toBe(true);
+  });
+
+  test("al subir fotos oscuras y repetidas el formulario de propiedad avisa", async ({ page, seedAdminSession, go, press }) => {
+    await seedAdminSession();
+    await go("/admin/propiedades/prop-1");
+    await expect(page.locator("#p-title")).toBeVisible();
+    const siguiente = () => press(page.getByRole("button", { name: "Siguiente", exact: true }));
+    const subir = page.locator(".image-uploader input[type=file]").first();
+    for (let i = 0; i < 5 && !(await subir.isVisible().catch(() => false)) && !(await page.getByRole("button", { name: "Mover foto a la derecha" }).first().isVisible()); i++) await siguiente();
+    const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64");
+    await subir.setInputFiles([
+      { name: "oscura-1.png", mimeType: "image/png", buffer: png },
+      { name: "oscura-2.png", mimeType: "image/png", buffer: png },
+    ]);
+    await expect(page.locator(".photo-warnings")).toContainText("parece muy oscura");
+    await expect(page.locator(".photo-warnings")).toContainText("parece repetida");
+  });
 });

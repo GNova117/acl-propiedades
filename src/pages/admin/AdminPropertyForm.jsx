@@ -7,6 +7,7 @@ import { suspiciousPrice, titleStyleWarning } from "../../lib/priceCheck";
 import { groupZonesByCity, zoneDisplayName } from "../../lib/zones";
 import { searchAddress } from "../../lib/geocode";
 import { moveItem, moveWithMain } from "../../lib/imageOrder";
+import { photoWarnings } from "../../lib/photoCheck";
 import { addressQuery, formatCoordinate } from "../../lib/addressSearch";
 import ImageUploader from "../../components/ImageUploader";
 import VideoUploader from "../../components/VideoUploader";
@@ -119,6 +120,17 @@ export default function AdminPropertyForm({
   const [form, setForm] = useState(() => (fixedType ? { ...EMPTY, type: fixedType } : EMPTY));
   const [zones, setZones] = useState([]);
   const [geo, setGeo] = useState({ status: "idle", results: [] });
+  // 469: análisis de cada foto nueva (brillo y huella) para avisar de fotos oscuras, quemadas o repetidas.
+  const photoAnalysis = useRef(new Map());
+  const [, setPhotoTick] = useState(0);
+  const analyzeNewPhotos = async (files) => {
+    const { analyzePhoto } = await import("../../lib/photoCheck");
+    await Promise.all(files.map(async (file) => {
+      const result = await analyzePhoto(file);
+      if (result) photoAnalysis.current.set(file, result);
+    }));
+    setPhotoTick((n) => n + 1);
+  };
 
   // 408: ubicar la propiedad escribiendo su dirección (Nominatim; solo al pulsar el botón, nunca al teclear).
   const findOnMap = async () => {
@@ -669,7 +681,10 @@ export default function AdminPropertyForm({
               existingImages={existingImages}
               files={newFiles}
               mainIndex={mainIndex}
-              onAddFiles={(files) => setNewFiles((prev) => [...prev, ...files])}
+              onAddFiles={(files) => {
+                setNewFiles((prev) => [...prev, ...files]);
+                analyzeNewPhotos(files);
+              }}
               onRemoveExisting={(index) => {
                 setExistingImages((prev) => prev.filter((_, i) => i !== index));
                 setMainIndex(0);
@@ -688,6 +703,16 @@ export default function AdminPropertyForm({
                 setNewFiles((prev) => moveItem(prev, index, index + delta));
               }}
             />
+            {(() => {
+              const notes = photoWarnings(newFiles.map((f) => photoAnalysis.current.get(f)).filter(Boolean));
+              return notes.length > 0 ? (
+                <ul className="form-hint photo-warnings" role="status">
+                  {notes.map((n, i) => (
+                    <li key={i}>{t(`propertyForm.photoWarning.${n.kind}`, { name: n.name, other: n.of })}</li>
+                  ))}
+                </ul>
+              ) : null;
+            })()}
           </div>
 
           <div className="form-field">

@@ -152,6 +152,10 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
           <a className="btn btn-outline btn-block" href={`https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(whatsappText)}`} target="_blank" rel="noopener noreferrer">
             {t("scheduleVisit.booking.whatsapp")}
           </a>
+          {/* 389: agendar otra visita sin salir de la ficha (los datos ya vienen recordados). */}
+          <button type="button" className="btn btn-outline btn-block" onClick={() => { setBooked(null); setForm(withRemembered(EMPTY)); }}>
+            {t("scheduleVisit.booking.another")}
+          </button>
         </div>
         <p className="form-hint">
           {t("scheduleVisit.booking.changeHint")}{" "}
