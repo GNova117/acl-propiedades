@@ -61,6 +61,7 @@ const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminCommissions = lazy(() => import("./pages/admin/AdminCommissions"));
 const AdminHelp = lazy(() => import("./pages/admin/AdminHelp"));
 const AdminSecurity = lazy(() => import("./pages/admin/AdminSecurity"));
+const AdminBackup = lazy(() => import("./pages/admin/AdminBackup"));
 const AdminErrors = lazy(() => import("./pages/admin/AdminErrors"));
 const AdminPasswordReset = lazy(() => import("./pages/admin/AdminPasswordReset"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
@@ -365,6 +366,7 @@ export default function App() {
           <Route path="mi-dia" element={<AdminMyDay />} />
           <Route path="ayuda" element={<AdminHelp />} />
           <Route path="seguridad" element={<AdminSecurity />} />
+          <Route path="respaldo" element={<RequireSection section="roles"><AdminBackup /></RequireSection>} />
           <Route path="errores" element={<RequireSection section="roles"><AdminErrors /></RequireSection>} />
           <Route path="zonas" element={<RequireSection section="zonas"><AdminZones /></RequireSection>} />
           <Route path="clientes" element={<RequireSection section="clientes"><AdminClients /></RequireSection>} />

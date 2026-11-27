@@ -76,6 +76,7 @@ export const NAV = [
       { section: "reportes", to: "/admin/reporte-mensual", labelKey: "monthly.title" },
       { section: "liquidaciones", to: "/admin/comisiones", labelKey: "commissions.navTitle" },
       { section: "roles", to: "/admin/actividad", labelKey: "activity.title" },
+      { section: "roles", to: "/admin/respaldo", labelKey: "backup.navTitle" },
       { section: "roles", to: "/admin/errores", labelKey: "errors.navTitle" },
       { section: "arco", to: "/admin/arco", labelKey: "arco.navTitle" },
     ],

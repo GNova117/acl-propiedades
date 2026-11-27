@@ -2122,6 +2122,8 @@
     "monthlyPayment": "Cuota / retención mensual estimada"
   },
   "backup": {
+    "navTitle": "Respaldo",
+    "movedHint": "El respaldo y la retención de papelería ahora tienen su propio apartado:",
     "fullTitle": "Respaldo completo (datos + fotos y documentos)",
     "fullHint": "Un solo archivo ZIP con los datos y todas las fotos, INE, contratos y demás archivos guardados. Puede tardar varios minutos y pesar cientos de MB; conviene hacerlo desde una computadora con buena conexión.",
     "includeVideos": "Incluir videos de propiedades (pueden pesar mucho)",
@@ -2147,7 +2149,7 @@
     "error": "No se pudo generar el respaldo",
     "reminderTitle": "Toca respaldar.",
     "reminderText": "Hace más de {{days}} días que no descargas un respaldo de los datos.",
-    "reminderLink": "Ir a Roles y accesos"
+    "reminderLink": "Ir a Respaldo"
   },
   "prospects": {
     "followupSet": "Se programó el siguiente seguimiento para el {{date}}.",

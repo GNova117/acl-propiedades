@@ -45,6 +45,7 @@ export const KEYWORDS = {
   "/admin/errores": "fallas problemas errores del sitio monitoreo bugs errors",
   "/admin/novedades": "noticias novedades avisos anuncios cambios del sistema news updates",
   "/admin/roles": "permisos accesos usuarios roles seguridad quien ve que permissions access",
+  "/admin/respaldo": "respaldo copia de seguridad descargar zip datos fotos retencion backup",
   "/admin/seguridad": "contrasena verificacion dos pasos mfa dispositivos sesion password security 2fa",
   "/admin/ayuda": "ayuda soporte guia tutorial como se usa recorrido preguntas help support guide faq",
 };

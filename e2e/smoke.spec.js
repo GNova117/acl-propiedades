@@ -80,6 +80,7 @@ const ADMIN_ROUTES = [
   "/admin/novedades",
   "/admin/novedades/nueva",
   "/admin/roles",
+  "/admin/respaldo",
   "/admin/agenda",
   "/admin/agenda/nueva",
   "/admin/mensajes",

@@ -41,6 +41,7 @@ export const ICON_BY_PATH = {
   "/admin/roles": "shield",
   "/admin/ayuda": "help",
   "/admin/seguridad": "shield",
+  "/admin/respaldo": "box",
   "/admin/errores": "clipboard",
   "/admin/arco": "shield",
 };

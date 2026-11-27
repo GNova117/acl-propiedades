@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { db } from "../../lib/dataStore";
-import BackupCard from "../../components/BackupCard";
-import RetentionCard from "../../components/RetentionCard";
 import { SECTION_KEYS, ADMIN_ROLE_SLUG } from "../../lib/accessControl";
 import "./admin.css";
 import "./AdminLogin.css";
@@ -175,8 +174,9 @@ export default function AdminRoles() {
         <h1>{t("accessControl.rolesTitle")}</h1>
       </div>
 
-      <BackupCard />
-      <RetentionCard />
+      <p className="form-hint">
+        {t("backup.movedHint")} <Link to="/admin/respaldo">{t("backup.navTitle")}</Link>
+      </p>
 
       <form className="card admin-form" onSubmit={handleAddRole} style={{ maxWidth: 560, marginBottom: "1.5rem" }}>
         <h2 className="profiling-section-title">{t("accessControl.newRole")}</h2>

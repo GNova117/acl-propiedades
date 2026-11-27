@@ -2122,6 +2122,8 @@
     "monthlyPayment": "Estimated monthly payroll deduction"
   },
   "backup": {
+    "navTitle": "Backup",
+    "movedHint": "Backup and records retention now have their own page:",
     "fullTitle": "Full backup (data + photos and documents)",
     "fullHint": "A single ZIP file with the data and every stored photo, ID, contract and other file. It can take several minutes and weigh hundreds of MB; best done from a computer with a good connection.",
     "includeVideos": "Include property videos (they can be very large)",
@@ -2147,7 +2149,7 @@
     "error": "Could not generate the backup",
     "reminderTitle": "Time to back up.",
     "reminderText": "You haven't downloaded a data backup in over {{days}} days.",
-    "reminderLink": "Go to Roles & access"
+    "reminderLink": "Go to Backup"
   },
   "prospects": {
     "followupSet": "The next follow-up was scheduled for {{date}}.",

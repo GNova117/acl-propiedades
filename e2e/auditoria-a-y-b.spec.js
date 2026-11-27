@@ -345,4 +345,13 @@ test.describe("Tanda A y B", () => {
     await expect(page.getByRole("link", { name: "Nuevo prospecto" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Seleccionar", exact: true })).toBeVisible();
   });
+  test("el respaldo tiene su propio apartado en el menú y «Roles y accesos» ya no lo trae", async ({ page, seedAdminSession, go }) => {
+    await seedAdminSession();
+    await go("/admin/respaldo");
+    await expect(page.getByRole("heading", { level: 1, name: "Respaldo" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Respaldo de datos" })).toBeVisible();
+    await go("/admin/roles");
+    await expect(page.getByRole("heading", { name: "Respaldo de datos" })).toHaveCount(0);
+    await expect(page.getByRole("main").getByRole("link", { name: "Respaldo" })).toBeVisible();
+  });
 });
