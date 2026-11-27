@@ -10,7 +10,7 @@
 // La llave ANTHROPIC_API_KEY vive solo en las variables de entorno de Vercel.
 import { createHmac } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { CHAT_LIMITS, clientIp, validateIncomingMessages } from "../src/lib/chatbot.js";
+import { CHAT_LIMITS, clientIp, normalizePropertyCode, summarizePropertiesForChat, validateIncomingMessages } from "../src/lib/chatbot.js";
 import { ChatbotError, DEFAULT_MODEL, runChat } from "../server/chatbot.js";
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -171,9 +171,22 @@ export default async function handler(req, res) {
     return error ? { error: "upstream" } : data;
   };
 
+  // La ficha que la persona tiene abierta (351): solo un código válido, y se lee con la llave anon (propiedades públicas).
+  let currentProperty = "";
+  const pageCode = normalizePropertyCode(body?.page?.propertyCode);
+  if (pageCode) {
+    const { data: row } = await anon
+      .from("properties")
+      .select("code, title, price, zone, bedrooms, area_m2, type, operation_type")
+      .eq("code", pageCode)
+      .eq("active", true)
+      .maybeSingle();
+    if (row) currentProperty = summarizePropertiesForChat([row]);
+  }
+
   try {
     const result = await runChat(
-      { messages, searchProperties, onLead, listVisitSlots, bookVisit },
+      { messages, searchProperties, onLead, listVisitSlots, bookVisit, currentProperty },
       { model: process.env.CHAT_MODEL || DEFAULT_MODEL }
     );
     res.status(200).json({ configured: true, reply: result.reply, leadCaptured: result.leadCaptured, handoff: result.handoff, visitBooked: result.visitBooked });

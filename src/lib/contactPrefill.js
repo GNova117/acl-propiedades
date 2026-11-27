@@ -12,3 +12,16 @@ export function contactPathWithMessage(message) {
   const text = String(message || "").trim().slice(0, MAX_PREFILL);
   return text ? `/contacto?mensaje=${encodeURIComponent(text)}` : "/contacto";
 }
+
+// 357/360: «¿Qué buscas?» en Contacto. El motivo viaja como prefijo del mensaje: así llega a Mensajes sin cambiar la base.
+export const CONTACT_TOPICS = ["comprar", "rentar", "vender", "rentar_mia", "otro"];
+
+export function topicFromSearch(search) {
+  const value = new URLSearchParams(search || "").get("motivo") || "";
+  return CONTACT_TOPICS.includes(value) ? value : "";
+}
+
+export function composeMessage(topicLabel, message) {
+  const text = String(message || "").trim();
+  return topicLabel ? `[${topicLabel}] ${text}` : text;
+}

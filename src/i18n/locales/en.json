@@ -399,6 +399,9 @@
     "paymentMethodsBody": "We accept cash payment, bank financing, INFONAVIT credit, and FOVISSSTE credit, subject to each institution's conditions and required documentation. Check with your advisor for the options available for each property."
   },
   "contact": {
+    "topicLabel": "What are you looking for?",
+    "topicNone": "Choose an option (optional)",
+    "topics": {"comprar": "I want to buy", "rentar": "I want to rent", "vender": "I want to sell my property", "rentar_mia": "I want to rent out my property", "otro": "Other"},
     "openNow": "· Open now",
     "closedNow": "· Closed now",
     "sendAnother": "Send another message",
@@ -2617,6 +2620,7 @@
     "years_other": "{{count}} years"
   },
   "sellHome": {
+    "rentInstead": "Rather rent it out than sell it? Tell us.",
     "seoTitle": "Sell your home or find out what it is worth",
     "title": "How much is your home worth?",
     "subtitle": "Tell us about your property and an advisor will contact you with a value estimate, free and with no commitment.",

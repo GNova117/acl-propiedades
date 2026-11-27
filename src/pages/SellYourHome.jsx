@@ -94,6 +94,9 @@ export default function SellYourHome() {
         <div className="section-heading m-section">
           <h1 style={{ fontSize: "2rem" }}>{t("sellHome.title")}</h1>
           <p>{t("sellHome.subtitle")}</p>
+          <p className="form-hint">
+            <Link to="/contacto?motivo=rentar_mia">{t("sellHome.rentInstead")}</Link>
+          </p>
         </div>
 
         <div className="card public-form-card">

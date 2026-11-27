@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next";
 import ChatIcon from "./icons/ChatIcon";
 import { buildWhatsappHandoffMessage, whatsappHref } from "../lib/chatbot";
 import "./ChatWidget.css";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { parsePropertyRef } from "../lib/propertyUrl.js";
 
 const SESSION_KEY = "acl_chat_session_id";
 const MESSAGES_KEY = "acl_chat_messages";
@@ -40,6 +41,13 @@ function loadSavedMessages() {
 // como plan B (encabezado del panel + aparece también si el chat falla).
 export default function ChatWidget() {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
+  // 351: si la persona está en la ficha de una propiedad, el chat sabe cuál es (solo se manda su código).
+  const viewedPropertyCode = useMemo(() => {
+    const match = /^\/propiedades\/([^/]+)\/?$/.exec(pathname);
+    const ref = match ? parsePropertyRef(decodeURIComponent(match[1])) : null;
+    return ref?.kind === "code" ? ref.code : "";
+  }, [pathname]);
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState(loadSavedMessages);
   const [input, setInput] = useState("");
@@ -81,7 +89,7 @@ export default function ChatWidget() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: sessionIdRef.current, messages: next }),
+        body: JSON.stringify({ sessionId: sessionIdRef.current, messages: next, page: viewedPropertyCode ? { propertyCode: viewedPropertyCode } : undefined }),
       });
       const data = await res.json().catch(() => null);
       if (data?.configured === false) {

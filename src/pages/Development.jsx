@@ -386,7 +386,7 @@ export default function Development() {
         </div>
         <div className="container dev-cta__form">
           <h3>{t("developments.contact.formTitle")}</h3>
-          <ContactForm initialMessage={t("developments.contact.formMessage", { name: development.name })} />
+          <ContactForm showTopic={false} initialMessage={t("developments.contact.formMessage", { name: development.name })} />
         </div>
       </section>
 

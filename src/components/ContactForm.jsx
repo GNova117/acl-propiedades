@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { saveContact, withRemembered } from "../lib/rememberedContact";
 import { Link, useLocation } from "react-router-dom";
-import { prefillMessage } from "../lib/contactPrefill";
+import { CONTACT_TOPICS, composeMessage, prefillMessage, topicFromSearch } from "../lib/contactPrefill";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { trackConversion } from "../lib/conversions";
@@ -20,10 +21,11 @@ const initialForm = { name: "", email: "", phone: "", message: "", empresa: "" }
 const RATE_LIMIT_KEY = "acl_contact_last_submit";
 const RATE_LIMIT_MS = 60_000;
 
-export default function ContactForm({ initialMessage = "" }) {
+export default function ContactForm({ initialMessage = "", showTopic = true }) {
   const { t } = useTranslation();
   const location = useLocation();
-  const [form, setForm] = useState(() => ({ ...initialForm, message: initialMessage || prefillMessage(location.search) }));
+  const [form, setForm] = useState(() => ({ ...withRemembered(initialForm), message: initialMessage || prefillMessage(location.search) }));
+  const [topic, setTopic] = useState(() => (showTopic ? topicFromSearch(location.search) : ""));
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
 
@@ -62,9 +64,11 @@ export default function ContactForm({ initialMessage = "" }) {
     setStatus("sending");
     try {
       const { empresa: _empresa, ...payload } = form;
+      payload.message = composeMessage(topic ? t(`contact.topics.${topic}`) : "", form.message);
       await db.submitContactMessage(payload);
       trackConversion("lead_form", { form: "contacto" });
       markSubmitted(RATE_LIMIT_KEY);
+      saveContact(form);
       setStatus("success");
       setForm(initialForm);
     } catch (err) {
@@ -99,6 +103,18 @@ export default function ContactForm({ initialMessage = "" }) {
           {errors.phone && <span className="form-error">{errors.phone}</span>}
         </div>
       </div>
+
+      {showTopic && (
+        <div className="form-field">
+          <label htmlFor="contact-topic">{t("contact.topicLabel")}</label>
+          <select id="contact-topic" value={topic} onChange={(e) => setTopic(e.target.value)}>
+            <option value="">{t("contact.topicNone")}</option>
+            {CONTACT_TOPICS.map((key) => (
+              <option key={key} value={key}>{t(`contact.topics.${key}`)}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="form-field">
         <label htmlFor="contact-message">{t("contact.message")}</label>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { saveContact, withRemembered } from "../lib/rememberedContact";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
@@ -48,7 +49,7 @@ function buildWhatsappUrl(property, name) {
 
 export default function ContactRequestCard({ property }) {
   const { t } = useTranslation();
-  const [form, setForm] = useState({ name: "", phone: "", empresa: "" });
+  const [form, setForm] = useState(() => withRemembered({ name: "", phone: "", empresa: "" }));
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
   const [via, setVia] = useState("form"); // "form" | "whatsapp": cómo se mandó, para el mensaje de éxito
@@ -96,6 +97,7 @@ export default function ContactRequestCard({ property }) {
         channel: "solicitud",
       });
       markSubmitted(RATE_LIMIT_KEY);
+      saveContact(form);
       setVia("form");
       trackConversion("lead_form", { form: "info_propiedad", property_id: property.id, property_type: property.type });
       setStatus("success");
@@ -131,6 +133,7 @@ export default function ContactRequestCard({ property }) {
         channel: "whatsapp",
       });
       markSubmitted(RATE_LIMIT_KEY);
+      saveContact(form);
     } catch {
       /* el chat ya se abrió */
     }

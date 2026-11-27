@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { saveContact, withRemembered } from "../lib/rememberedContact";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
@@ -42,7 +43,7 @@ function buildVisitMessage(property, { date, time, note }) {
 function VisitRequestForm({ property, onBack, noSlots }) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith("en") ? "en-US" : "es-MX";
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState(() => withRemembered(initialForm));
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
   const [formError, setFormError] = useState("");
@@ -94,6 +95,7 @@ function VisitRequestForm({ property, onBack, noSlots }) {
       }
       if (result?.ok) {
         markSubmitted(RATE_LIMIT_KEY);
+        saveContact(form);
         trackConversion("visit_requested", { property_id: property.id, property_type: property.type });
         setDone({ ...result });
         setForm(initialForm);
@@ -116,6 +118,7 @@ function VisitRequestForm({ property, onBack, noSlots }) {
         property_id: property.id,
       });
       markSubmitted(RATE_LIMIT_KEY);
+        saveContact(form);
       setStatus("success");
       setForm(initialForm);
     } catch {

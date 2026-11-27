@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { saveContact, withRemembered } from "../lib/rememberedContact";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
@@ -23,7 +24,7 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith("en") ? "en-US" : "es-MX";
 
-  const [form, setForm] = useState(EMPTY);
+  const [form, setForm] = useState(() => withRemembered(EMPTY));
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [status, setStatus] = useState("idle"); // idle | sending
@@ -82,6 +83,7 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
       });
       if (result?.ok) {
         trackConversion("visit_booked", { property_id: property.id, property_type: property.type });
+        saveContact(form);
         setBooked({ ...result, note: form.note });
         return;
       }

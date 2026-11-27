@@ -120,7 +120,7 @@ async function runTool(toolUse, deps) {
 // Punto de entrada. `client` se puede inyectar (pruebas); en producción se
 // crea con la llave de entorno. `messages` ya viene validado por quien llama
 // (ver validateIncomingMessages en src/lib/chatbot.js).
-export async function runChat({ messages, searchProperties, onLead, listVisitSlots, bookVisit }, { client, model = DEFAULT_MODEL, budgetMs = 25_000 } = {}) {
+export async function runChat({ messages, searchProperties, onLead, listVisitSlots, bookVisit, currentProperty = "" }, { client, model = DEFAULT_MODEL, budgetMs = 25_000 } = {}) {
   const anthropic = client || new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 0 });
   const deadline = Date.now() + budgetMs;
   const conversation = messages.map((m) => ({ role: m.role, content: m.content }));
@@ -144,7 +144,7 @@ export async function runChat({ messages, searchProperties, onLead, listVisitSlo
             // acota el gasto si algo sale raro, sin cortar una respuesta normal.
             max_tokens: 1024,
             output_config: { effort: "low" },
-            system: buildSystemPrompt(),
+            system: buildSystemPrompt({ currentProperty }),
             tools: CHAT_TOOLS,
             messages: conversation,
           },

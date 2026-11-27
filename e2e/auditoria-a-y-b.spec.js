@@ -88,4 +88,41 @@ test.describe("Tanda A y B", () => {
     await go("/admin/mensajes");
     await expect(page.locator("#message-channel-filter")).toBeVisible();
   });
+
+  test("Contacto: «¿Qué buscas?» llega preseleccionado desde el enlace de rentar mi propiedad", async ({ page, go }) => {
+    await go("/vende-tu-casa");
+    await expect(page.getByRole("link", { name: /rentarla en lugar de venderla/i })).toHaveAttribute("href", "/contacto?motivo=rentar_mia");
+    await go("/contacto?motivo=rentar_mia");
+    await expect(page.locator("#contact-topic")).toHaveValue("rentar_mia");
+  });
+
+  test("Contacto recuerda nombre, correo y teléfono después de enviar", async ({ page, go, press }) => {
+    await go("/contacto");
+    await page.fill("#contact-name", "María Recordada");
+    await page.fill("#contact-email", "maria@example.com");
+    await page.fill("#contact-phone", "8715550123");
+    await page.fill("#contact-message", "Hola, quiero información.");
+    await press(page.locator("form.contact-form button[type=submit]"));
+    await expect(page.locator(".contact-success")).toBeVisible();
+    await go("/contacto");
+    await expect(page.locator("#contact-name")).toHaveValue("María Recordada");
+    await expect(page.locator("#contact-phone")).toHaveValue("8715550123");
+  });
+
+  test("el chat manda el código de la ficha que se está viendo", async ({ page, go, press }) => {
+    let enviado = null;
+    await page.route("**/api/chat", async (route) => {
+      enviado = route.request().postDataJSON();
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ configured: true, reply: "Claro.", leadCaptured: false, handoff: false, visitBooked: false }) });
+    });
+    await go("/propiedades/prop-1");
+    const codigo = (await page.locator(".property-detail__code strong").first().textContent())?.trim();
+    // La dirección canónica lleva el código al final; el chat lo toma de ahí.
+    await expect(page).toHaveURL(new RegExp(`${codigo}$`, "i"));
+    await press(page.locator(".chat-widget__toggle"));
+    await page.locator(".chat-widget__form input").fill("¿Cuánto cuesta esta casa?");
+    await press(page.locator(".chat-widget__form button[type=submit]"));
+    await expect(page.locator(".chat-widget__bubble--assistant", { hasText: "Claro." })).toBeVisible();
+    expect(enviado.page.propertyCode).toBe(codigo);
+  });
 });

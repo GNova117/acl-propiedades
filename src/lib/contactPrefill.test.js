@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contactPathWithMessage, MAX_PREFILL, prefillMessage } from "./contactPrefill";
+import { composeMessage, contactPathWithMessage, MAX_PREFILL, prefillMessage, topicFromSearch } from "./contactPrefill";
 
 describe("prefillMessage", () => {
   it("lee ?mensaje= y recorta espacios", () => {
@@ -23,5 +23,17 @@ describe("contactPathWithMessage", () => {
   });
   it("sin texto lleva a /contacto", () => {
     expect(contactPathWithMessage("  ")).toBe("/contacto");
+  });
+});
+
+describe("motivo de contacto", () => {
+  it("lee ?motivo= solo si es uno conocido", () => {
+    expect(topicFromSearch("?motivo=rentar_mia")).toBe("rentar_mia");
+    expect(topicFromSearch("?motivo=otra-cosa")).toBe("");
+    expect(topicFromSearch("")).toBe("");
+  });
+  it("el motivo va como prefijo del mensaje", () => {
+    expect(composeMessage("Quiero comprar", " Busco casa ")).toBe("[Quiero comprar] Busco casa");
+    expect(composeMessage("", "Hola")).toBe("Hola");
   });
 });

@@ -32,12 +32,17 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 437 | La lista de clientes trae el semáforo del expediente (completo / faltan N datos, con el detalle al pasar el cursor). |
 | 446 | La búsqueda global también encuentra citas de la agenda, desarrollos y artículos del blog. |
 | 461 | «Solo mis propiedades» en la lista del panel (para quien tiene un asesor ligado). |
+| 351 | El chat sabe qué ficha tienes abierta: manda el código y el servidor lo resuelve (solo propiedades públicas) para que «esta casa» tenga sentido. |
+| 357 | Contacto trae «¿Qué buscas?» (comprar, rentar, vender, rentar mi propiedad, otro); el motivo viaja como prefijo del mensaje. |
+| 360 | «Vende tu casa» ofrece «¿Prefieres rentarla?», que abre Contacto con ese motivo ya elegido. |
+| 388 | Los formularios del sitio (Contacto, solicitud de contacto, visita) recuerdan nombre, correo y teléfono después de enviar (solo en el navegador de esa persona). |
 | 400 | La ficha trae «Reportar un error»: abre Contacto con el mensaje ya empezado (código y enlace de la publicación). |
 
 ## Pruebas
 
-- Unitarias: 2,024. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,034. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 
+- **401** (conteo de propiedades por zona en el filtro): sin una consulta agregada por zona cada conteo pediría el catálogo completo; necesita una función en la base → grupo C (SQL).
 - **424** (gráfica del historial de precios): la base solo guarda el precio anterior, no el historial completo; necesita una tabla nueva → grupo C (SQL).

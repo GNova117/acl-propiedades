@@ -270,3 +270,19 @@ describe("clientIp", () => {
     expect(clientIp({ "x-forwarded-for": "no es una ip; drop table" })).toBeNull();
   });
 });
+
+describe("buildSystemPrompt con la ficha abierta", () => {
+  it("sin ficha no agrega contexto", () => {
+    expect(buildSystemPrompt()).not.toContain("Contexto de la página");
+  });
+  it("con ficha dice cuál es y qué significa «esta casa»", () => {
+    const prompt = buildSystemPrompt({ currentProperty: "- ACL-1001 · Casa en Torreón · $1,200,000" });
+    expect(prompt).toContain("Contexto de la página");
+    expect(prompt).toContain("ACL-1001");
+    expect(prompt).toContain("esta casa");
+  });
+  it("recorta un resumen enorme", () => {
+    const prompt = buildSystemPrompt({ currentProperty: "x".repeat(5000) });
+    expect(prompt.length).toBeLessThan(buildSystemPrompt().length + 1000);
+  });
+});

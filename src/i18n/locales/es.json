@@ -399,6 +399,9 @@
     "paymentMethodsBody": "Aceptamos pago de contado, crédito bancario, crédito INFONAVIT y crédito FOVISSSTE, sujetos a las condiciones y documentación que exija cada institución. Consulta con tu asesor las opciones disponibles para cada propiedad."
   },
   "contact": {
+    "topicLabel": "¿Qué buscas?",
+    "topicNone": "Elige una opción (opcional)",
+    "topics": {"comprar": "Quiero comprar", "rentar": "Quiero rentar", "vender": "Quiero vender mi propiedad", "rentar_mia": "Quiero rentar mi propiedad", "otro": "Otro"},
     "openNow": "· Abierto ahora",
     "closedNow": "· Cerrado ahora",
     "sendAnother": "Enviar otro mensaje",
@@ -2617,6 +2620,7 @@
     "years_other": "{{count}} años"
   },
   "sellHome": {
+    "rentInstead": "¿Prefieres rentarla en lugar de venderla? Cuéntanos.",
     "seoTitle": "Vende tu casa o conoce cuánto vale",
     "title": "¿Cuánto vale tu casa?",
     "subtitle": "Cuéntanos de tu propiedad y un asesor te contacta con una estimación de valor, sin costo y sin compromiso.",
