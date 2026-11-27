@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { computeMaterialsTotals } from "../../lib/materialsTotals";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { todayIso } from "../../lib/salesReport";
 import {
   FILE_ACCEPT_ATTR,

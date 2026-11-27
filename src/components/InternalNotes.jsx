@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import { formatVisitDateTime } from "../lib/visitReport";
 import DictationButton from "./DictationButton";
 import { appendDictation } from "../lib/dictation";

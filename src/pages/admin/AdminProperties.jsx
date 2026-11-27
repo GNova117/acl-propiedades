@@ -8,7 +8,7 @@ import { db } from "../../lib/dataStore";
 import { formatMXN, formatArea, propertyTypeLabel, daysSince } from "../../lib/format";
 import { downloadFichaTecnicaPdf } from "../../lib/propertyFichaPdf";
 import { exportToCsv } from "../../lib/csvExport";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import SocialPostModal from "../../components/SocialPostModal";
 import PropertyProspectsModal from "../../components/PropertyProspectsModal";
 import PropertyOffersModal from "../../components/PropertyOffersModal";

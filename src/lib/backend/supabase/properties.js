@@ -1,5 +1,6 @@
 // Backend con Supabase: métodos de «properties» (13). Se juntan en supabaseBackend.js; `this` es el objeto completo, así que
 // un método puede llamar a los de otros módulos como siempre.
+import { propertyMediaPaths } from "../../propertyMediaCleanup.js";
 import { FEATURED_POOL, VIDEO_POOL, buildHomeData } from "../../homeData";
 import { supabase } from "../../supabaseClient";
 import { numOrNull } from "../../format";
@@ -306,9 +307,15 @@ export const propertiesMethods = {
     // 0 filas; si la tabla aún no existe, `data` llega vacío): nada de eso
     // debe impedir borrar la propiedad.
     const { data: logFiles } = await supabase.from("property_log").select("file_path").eq("property_id", id).not("file_path", "is", null);
+    // 501: las fotos, videos, 360° y plano de la propiedad también se limpian (se leen antes de borrar la fila).
+    const { data: media } = await supabase.from("properties").select("images, videos, tour_360_images, floor_plan_url").eq("id", id).maybeSingle();
     const { error } = await supabase.from("properties").delete().eq("id", id);
     if (error) throw error;
     if (logFiles?.length) await supabase.storage.from("property-log-files").remove(logFiles.map((f) => f.file_path));
+    for (const [bucket, paths] of Object.entries(propertyMediaPaths(media))) {
+      const { error: removeError } = await supabase.storage.from(bucket).remove(paths);
+      if (removeError) console.error("deleteProperty: no se pudieron borrar archivos de", bucket, removeError);
+    }
   },
 
   async getPropertyChanges(propertyId) {

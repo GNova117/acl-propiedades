@@ -186,4 +186,13 @@ test.describe("Tanda A y B", () => {
     await go("/admin/zonas");
     await expect(page.locator(".admin-zone-card").first()).toBeVisible();
   });
+
+  test("las páginas con enlace secreto no se indexan ni mandan la dirección como «referrer»", async ({ page, go }) => {
+    await go(`/firmar/${"a".repeat(32)}`);
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    await expect(page.locator('meta[name="referrer"]')).toHaveAttribute("content", "no-referrer");
+    await go(`/visita/${"b".repeat(32)}`);
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex.*noarchive/);
+    await expect(page.locator('meta[name="referrer"]')).toHaveAttribute("content", "no-referrer");
+  });
 });

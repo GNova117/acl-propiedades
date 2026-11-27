@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import { INTAKE_LABEL_MAX, INTAKE_TYPES, INTAKE_VALID_DAYS, intakeMessage, intakeState, intakeUrl } from "../lib/clientIntake";
 import { useLiveRefresh } from "../lib/liveUpdates";
 import { confirmDialog, notify, copyFallback } from "../lib/toast";

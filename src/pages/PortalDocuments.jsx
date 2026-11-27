@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { usePrivatePage } from "../lib/usePrivatePage";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Logo from "../components/Logo";
@@ -32,18 +33,7 @@ export default function PortalDocuments() {
   const state = result.token === token ? result : { status: "loading", payload: null };
   const [consentDone, setConsentDone] = useState(false);
 
-  useEffect(() => {
-    const meta = document.createElement("meta");
-    meta.name = "robots";
-    meta.content = "noindex, nofollow, noarchive";
-    document.head.appendChild(meta);
-    const previousTitle = document.title;
-    document.title = `${t("portal.pageTitle")} | ACL Propiedades`;
-    return () => {
-      meta.remove();
-      document.title = previousTitle;
-    };
-  }, [t]);
+  usePrivatePage(t("portal.pageTitle"));
 
   const load = useCallback(() => {
     db.getPortalStatus(token)

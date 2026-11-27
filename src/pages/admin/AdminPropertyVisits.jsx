@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import VisitReportView from "../../components/VisitReportView";
 import VisitProspect from "../../components/VisitProspect";
 import { formatVisitDate, formatVisitDateTime, reasonLabel, reportUrl } from "../../lib/visitReport";

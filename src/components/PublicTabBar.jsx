@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useFavorites } from "../context/FavoritesContext";
+import { useFavorites } from "../context/useFavorites.js";
 import "./PublicTabBar.css";
 
 // Barra inferior del sitio público en el teléfono: las tres cosas que más se buscan, al alcance del pulgar. En la ficha de

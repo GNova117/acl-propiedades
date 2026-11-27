@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { revalidate } from "../lib/dataCache";
 import { queries } from "../lib/queries";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import { GOAL_METRICS, MAX_GOAL, countMonth, formToGoalColumns, goalProgress, goalsToForm, monthStartISO, validateGoals } from "../lib/goals";
 import "./MonthGoals.css";
 import { notifyLoadError } from "../lib/loadError";

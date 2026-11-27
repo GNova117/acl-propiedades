@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import MarketComparables from "../../components/MarketComparables";
 import ValuationMap from "../../components/ValuationMap";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { db } from "../../lib/dataStore";
 import { formatArea, formatMXN } from "../../lib/format";
 import { groupZonesByCity, zoneDisplayName } from "../../lib/zones";

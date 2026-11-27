@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import SigningCredentials from "../../components/SigningCredentials";
 import { SIGNING_MAX_PDF_BYTES, effectiveStatus, fileToBase64, imageFileToFingerprintPng, signingAgeDays, signingLink, signingReminderText } from "../../lib/signing";
 import { whatsappDigits } from "../../lib/format";

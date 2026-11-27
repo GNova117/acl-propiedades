@@ -55,11 +55,17 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 490–491 | Dependencias solo de servidor documentadas (`docs/dependencias-servidor.md`) y una prueba que falla si `src/` las importa; `@napi-rs/canvas` sigue en uso (vistas previas y QR). |
 | 502 | La vista de una propiedad se registra con un hook aparte (`usePropertyViews`); el indicador solo muestra el número. |
 | 503 | Ya estaba cubierto: `agendar-visita.sql` es copia exacta de `schema.sql` y una prueba falla si dejan de coincidir. |
+| 487 | Los cuatro contextos de React (Auth, Tema, Favoritos y Comparar) separan el hook y el contexto (`useAuth.js`, etc.) del componente proveedor: ya no rompen la recarga en caliente y el lint bajó de 24 a 20 avisos (el tope del CI también). |
+| 492 | El README (226 kB) pasó a 13 kB: el detalle de las funciones se separó por tema en `docs/readme/` (7 archivos; se verificó que no se perdió ninguna línea). |
+| 493 | Pruebas de componentes con Testing Library + jsdom: el formulario de Contacto (validación, anti-spam, motivo, datos recordados, tope de un envío por minuto), la tarjeta «¿Te interesa esta propiedad?» y el hook de páginas privadas. |
+| 494 | `npm run test:coverage` (73 % de líneas, 86 % de funciones, 89 % de ramas en `lib`, servidor y funciones de Supabase) y el CI deja el resumen en cada corrida. |
+| 499 | Las páginas con enlace secreto (firma, documentos, visita, informe, opinión, selección, registro y baja de alertas) comparten un solo hook (`usePrivatePage`): no se indexan ni se archivan, **no mandan la dirección como «referrer»** (antes la visita, los documentos, la baja de alertas y la firma no lo hacían). La firma ya traía su `noindex` y su título con `<Seo>`; solo se le agregó el «referrer». |
+| 501 | Al borrar una propiedad también se borran sus fotos (con sus copias en varios tamaños), videos, fotos 360° y plano de Storage (antes solo los comprobantes de la bitácora). |
 | 400 | La ficha trae «Reportar un error»: abre Contacto con el mensaje ya empezado (código y enlace de la publicación). |
 
 ## Pruebas
 
-- Unitarias: 2,075. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,090. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 

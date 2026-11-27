@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
-import { useFavorites } from "../context/FavoritesContext";
+import { useFavorites } from "../context/useFavorites.js";
 import { clearItems, forgetItem, getItems, groupItems, itemPath } from "../lib/mySpace";
 import "./MySpace.css";
 import { confirmDialog } from "../lib/toast";

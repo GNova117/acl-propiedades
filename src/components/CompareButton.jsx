@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useCompare, MAX_COMPARE } from "../context/CompareContext";
+import { useCompare, MAX_COMPARE } from "../context/useCompare.js";
 import "./CompareButton.css";
 import { notify } from "../lib/toast";
 

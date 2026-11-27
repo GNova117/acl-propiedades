@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import VisitProspect from "../../components/VisitProspect";
 import VisitsByAdvisor from "../../components/VisitsByAdvisor";
 import { VISIT_INTERESTS, formatVisitDateTime, reasonLabel } from "../../lib/visitReport";

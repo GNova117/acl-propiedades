@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { whatsappDigits } from "../../lib/format";
 import { mapsUrl } from "../../lib/calendarEvent";
 import { buildDayPlan } from "../../lib/dayPlan";

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Seo from "../../components/Seo";
 import LoadingState from "../../components/LoadingState";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { db } from "../../lib/dataStore";
 import { getDeviceId } from "../../lib/deviceInfo";
 import { idleLimitMs } from "../../lib/idleSession";

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useCompare } from "../context/CompareContext";
+import { useCompare } from "../context/useCompare.js";
 import "./CompareBar.css";
 
 // Barra flotante «Comparar (N)» del listado: con 2 o más propiedades marcadas se puede ir a la comparación sin buscar el ícono del encabezado.

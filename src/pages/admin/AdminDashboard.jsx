@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN, propertyTypeLabel } from "../../lib/format";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { isBackupStale } from "../../lib/backup";
 import { OPEN_STAGES } from "../../lib/prospects";
 import { activeCitas } from "../../lib/agendaCitas";

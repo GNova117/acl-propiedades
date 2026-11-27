@@ -22,7 +22,7 @@ import AdminSectionSearch from "../../components/AdminSectionSearch";
 import { itemForPath, loadPins, loadRecents, pushRecent, resolveShortcuts, savePins, saveRecents, togglePin } from "../../lib/navShortcuts";
 import { getQueue } from "../../lib/offlineQueue";
 import { startPrecache } from "../../lib/offlineShell";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { db } from "../../lib/dataStore";
 import { liveBus, startLiveUpdates, useLiveRefresh } from "../../lib/liveUpdates";
 import { queries } from "../../lib/queries";

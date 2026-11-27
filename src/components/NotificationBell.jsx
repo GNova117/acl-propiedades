@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePendingToday } from "../lib/usePendingToday";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import { db } from "../lib/dataStore";
 import { isSupabaseConfigured } from "../lib/supabaseClient";
 import { isPushSupported, getExistingSubscription, subscribeToPush, unsubscribeFromPush, subscriptionToRow } from "../lib/pushNotifications";

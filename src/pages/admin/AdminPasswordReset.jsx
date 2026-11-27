@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../../components/Seo";
 import Logo from "../../components/Logo";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { db } from "../../lib/dataStore";
 import { validateNewPassword } from "../../lib/passwordRules";
 import "./AdminLogin.css";

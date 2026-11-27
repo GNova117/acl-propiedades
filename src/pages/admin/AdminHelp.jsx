@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import AdminTour from "../../components/AdminTour";
 import { markTourSeen, searchTopics, visibleTopics } from "../../lib/helpTopics";
 import "./admin.css";

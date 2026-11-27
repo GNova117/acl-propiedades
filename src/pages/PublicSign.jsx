@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { usePrivatePage } from "../lib/usePrivatePage";
 import { rememberItem } from "../lib/mySpace";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -39,13 +40,7 @@ export default function PublicSign() {
   const [downloading, setDownloading] = useState(false);
 
   // Página privada: que los buscadores no la indexen.
-  useEffect(() => {
-    const meta = document.createElement("meta");
-    meta.name = "robots";
-    meta.content = "noindex, nofollow";
-    document.head.appendChild(meta);
-    return () => meta.remove();
-  }, []);
+  usePrivatePage(undefined, { robots: false }); // ya trae su <Seo noindex> y su título; aquí solo falta el «referrer»
 
   useEffect(() => {
     db.signingInfo(token)

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import PropertyCard from "../components/PropertyCard";
 import ShareButton from "../components/ShareButton";
-import { useFavorites } from "../context/FavoritesContext";
+import { useFavorites } from "../context/useFavorites.js";
 import { buildFavoritesShareUrl, parseSharedIds } from "../lib/favoritesShare";
 import "./Properties.css";
 import "./Favorites.css";

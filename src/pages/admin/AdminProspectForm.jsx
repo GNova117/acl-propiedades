@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { propertyTypeLabel } from "../../lib/format";
 import { criteriaSummary } from "../../lib/prospectMatch";
 import { groupZonesByCity, zoneDisplayName } from "../../lib/zones";

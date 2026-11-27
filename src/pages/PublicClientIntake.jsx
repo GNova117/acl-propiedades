@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { usePrivatePage } from "../lib/usePrivatePage";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Logo from "../components/Logo";
@@ -59,22 +60,7 @@ export default function PublicClientIntake() {
   // El asesor que mandó el enlace: al terminar, el cliente puede avisarle por WhatsApp. Sin asesor (o si no se pudo cargar), a la oficina.
   const [advisor, setAdvisor] = useState({ token: null, data: null });
 
-  useEffect(() => {
-    const robots = document.createElement("meta");
-    robots.name = "robots";
-    robots.content = "noindex, nofollow, noarchive";
-    const referrer = document.createElement("meta");
-    referrer.name = "referrer";
-    referrer.content = "no-referrer";
-    document.head.append(robots, referrer);
-    const previousTitle = document.title;
-    document.title = `${t("intake.pageTitle")} | ACL Propiedades`;
-    return () => {
-      robots.remove();
-      referrer.remove();
-      document.title = previousTitle;
-    };
-  }, [t]);
+  usePrivatePage(t("intake.pageTitle"));
 
   useEffect(() => {
     let cancelled = false;

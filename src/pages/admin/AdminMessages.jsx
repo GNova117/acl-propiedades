@@ -6,7 +6,7 @@ import { useLiveRefresh } from "../../lib/liveUpdates";
 import { whatsappDigits } from "../../lib/format";
 import { messageToProspectFields } from "../../lib/prospects";
 import { quickReplyTemplates } from "../../lib/messageTemplates";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import QuickReplyButton from "../../components/QuickReplyButton";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";

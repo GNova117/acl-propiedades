@@ -5,7 +5,7 @@ import { db } from "../../lib/dataStore";
 import { formatMXN } from "../../lib/format";
 import { computeMaterialsTotals } from "../../lib/materialsTotals";
 import { sumExpenses } from "../../lib/propertyLog";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import CommissionsCard from "../../components/CommissionsCard";
 import { EMPTY_LIQUIDACION, computeLiquidacion, toLiquidacionPayload, toLiquidacionFormValues } from "../../lib/liquidacion";
 import "./AdminPropertyLiquidacion.css";

@@ -4,7 +4,7 @@ import BudgetTab from "./budget-tab";
 import FotosTab from "./fotos-tab";
 import SummaryTab from "./summary-tab";
 import { db } from "../../lib/dataStore";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { DEFAULT_CATALOGO } from "../../lib/construccion/budget";
 import { describeSyncError } from "../../lib/construccion/sync";
 import { normalizarNiveles } from "../../lib/construccion/niveles";

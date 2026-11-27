@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import { HOME_CHANGE_EVENT, canUseMyDay, readHomePref, resolveAdminHome, writeHomePref } from "./adminHome";
 
 // Inicio del panel ("mi-dia" o "panel") para quien tiene la sesión, y cómo

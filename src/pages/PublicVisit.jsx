@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { usePrivatePage } from "../lib/usePrivatePage";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Logo from "../components/Logo";
@@ -170,18 +171,7 @@ export default function PublicVisit() {
   const [notice, setNotice] = useState(null); // { tone: "ok" | "error", text }
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    const meta = document.createElement("meta");
-    meta.name = "robots";
-    meta.content = "noindex, nofollow, noarchive";
-    document.head.appendChild(meta);
-    const previousTitle = document.title;
-    document.title = `${t("visitPage.pageTitle")} | ACL Propiedades`;
-    return () => {
-      meta.remove();
-      document.title = previousTitle;
-    };
-  }, [t]);
+  usePrivatePage(t("visitPage.pageTitle"));
 
   const load = useCallback(
     () =>

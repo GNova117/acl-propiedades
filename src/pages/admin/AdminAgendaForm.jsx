@@ -7,7 +7,7 @@ import VisitLinkPanel from "../../components/VisitLinkPanel";
 import { QUICK_TIMES, quickDates } from "../../lib/quickSchedule";
 import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { enqueueCita, isOfflineError, isOnline, newId, withTimeout } from "../../lib/offlineQueue";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";

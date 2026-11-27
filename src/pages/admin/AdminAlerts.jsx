@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { formatMXN, propertyTypeLabel, whatsappDigits } from "../../lib/format";
 import { describeCriteria } from "../../lib/alertMatch";
 import "./admin.css";

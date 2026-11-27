@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import { PROSPECT_STAGES } from "../lib/prospects";
 import { contactAgoText, convertProspectToClient, quickTemplates, telHref, whatsappLink } from "../lib/prospectActions";
 import { prospectToCitaPrefill } from "../lib/prospectAgenda";

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
-import { MAX_COMPARE, useCompare } from "../context/CompareContext";
+import { MAX_COMPARE, useCompare } from "../context/useCompare.js";
 import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "./Compare.css";
 import LoadingState from "../components/LoadingState";

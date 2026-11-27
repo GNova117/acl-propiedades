@@ -26,7 +26,12 @@ jobs:
       - run: npm run typecheck:js
       # supabase/schema.sql debe ser la unión de supabase/migrations/ (npm run schema:build).
       - run: npm run schema:check
-      - run: npm run test
+      # Pruebas con reporte de cobertura de la lógica (lib, servidor, funciones de Supabase); el resumen queda en la corrida.
+      - run: npm run test:coverage
+      - name: Resumen de cobertura
+        if: always()
+        run: |
+          node --input-type=module -e "import { readFileSync, existsSync } from 'node:fs'; if (!existsSync('coverage/coverage-summary.json')) process.exit(0); const t = JSON.parse(readFileSync('coverage/coverage-summary.json','utf8')).total; console.log('### Cobertura de pruebas unitarias\n\n| Líneas | Funciones | Ramas |\n|---|---|---|\n| ' + t.lines.pct + ' % | ' + t.functions.pct + ' % | ' + t.branches.pct + ' % |')" >> "$GITHUB_STEP_SUMMARY"
       - run: npm run build
       # Vulnerabilidades conocidas en dependencias: avisa (no bloquea) las de nivel alto o crítico de lo que se usa en producción.
       - run: npm audit --omit=dev --audit-level=high
