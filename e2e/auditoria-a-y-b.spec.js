@@ -240,6 +240,8 @@ test.describe("Tanda A y B", () => {
     await go("/propiedades");
     const abrir = page.locator(".property-filters__toggle");
     if (await abrir.isVisible()) await press(abrir);
+    // Las amenidades viven dentro de «Más filtros» (arranca cerrado): se abre para ver el grupo y su leyenda.
+    await press(page.locator("details.property-filters__more summary"));
     await expect(page.locator("fieldset.form-field legend").first()).toBeVisible();
     await go("/admin/login");
     await expect(page.locator("main.admin-login")).toBeVisible();
