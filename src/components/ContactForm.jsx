@@ -20,10 +20,10 @@ const initialForm = { name: "", email: "", phone: "", message: "", empresa: "" }
 const RATE_LIMIT_KEY = "acl_contact_last_submit";
 const RATE_LIMIT_MS = 60_000;
 
-export default function ContactForm() {
+export default function ContactForm({ initialMessage = "" }) {
   const { t } = useTranslation();
   const location = useLocation();
-  const [form, setForm] = useState(() => ({ ...initialForm, message: prefillMessage(location.search) }));
+  const [form, setForm] = useState(() => ({ ...initialForm, message: initialMessage || prefillMessage(location.search) }));
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
 

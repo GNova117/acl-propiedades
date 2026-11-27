@@ -5,6 +5,9 @@ import { db } from "../../lib/dataStore";
 import { formatMXN, propertyTypeLabel } from "../../lib/format";
 import { suspiciousPrice, titleStyleWarning } from "../../lib/priceCheck";
 import { groupZonesByCity, zoneDisplayName } from "../../lib/zones";
+import { searchAddress } from "../../lib/geocode";
+import { moveItem, moveWithMain } from "../../lib/imageOrder";
+import { addressQuery, formatCoordinate } from "../../lib/addressSearch";
 import ImageUploader from "../../components/ImageUploader";
 import VideoUploader from "../../components/VideoUploader";
 import Tour360Uploader from "../../components/Tour360Uploader";
@@ -115,6 +118,24 @@ export default function AdminPropertyForm({
 
   const [form, setForm] = useState(() => (fixedType ? { ...EMPTY, type: fixedType } : EMPTY));
   const [zones, setZones] = useState([]);
+  const [geo, setGeo] = useState({ status: "idle", results: [] });
+
+  // 408: ubicar la propiedad escribiendo su dirección (Nominatim; solo al pulsar el botón, nunca al teclear).
+  const findOnMap = async () => {
+    const query = addressQuery(form.address, form.zone);
+    if (!query) return;
+    setGeo({ status: "loading", results: [] });
+    try {
+      const results = await searchAddress(query);
+      setGeo({ status: results.length ? "done" : "empty", results });
+    } catch {
+      setGeo({ status: "error", results: [] });
+    }
+  };
+  const pickGeo = (result) => {
+    setForm((prev) => ({ ...prev, lat: formatCoordinate(result.lat), lng: formatCoordinate(result.lng) }));
+    setGeo({ status: "idle", results: [] });
+  };
   const [advisors, setAdvisors] = useState([]);
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
@@ -437,6 +458,22 @@ export default function AdminPropertyForm({
             <label htmlFor="p-address">{t("propertyForm.address")}</label>
             <input id="p-address" value={form.address} onChange={handleChange("address")} />
             {errors.address && <span className="form-error">{errors.address}</span>}
+            <button type="button" className="btn btn-outline btn-sm" onClick={findOnMap} disabled={!form.address.trim() || geo.status === "loading"} style={{ marginTop: "0.4rem", alignSelf: "flex-start" }}>
+              {geo.status === "loading" ? t("propertyForm.geoSearching") : t("propertyForm.geoFind")}
+            </button>
+            {geo.status === "empty" && <span className="form-hint" role="status">{t("propertyForm.geoEmpty")}</span>}
+            {geo.status === "error" && <span className="form-error" role="alert">{t("propertyForm.geoError")}</span>}
+            {geo.status === "done" && (
+              <ul className="form-hint" role="status" style={{ listStyle: "none", padding: 0, margin: "0.4rem 0 0" }}>
+                {geo.results.map((r) => (
+                  <li key={r.id}>
+                    <button type="button" className="btn btn-link btn-sm" onClick={() => pickGeo(r)} style={{ textAlign: "left" }}>
+                      {r.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="form-row">
@@ -642,6 +679,14 @@ export default function AdminPropertyForm({
                 setMainIndex(0);
               }}
               onSetMain={setMainIndex}
+              onMoveExisting={(index, delta) => {
+                setMainIndex((m) => moveWithMain(m, 0, index, index + delta, existingImages.length));
+                setExistingImages((prev) => moveItem(prev, index, index + delta));
+              }}
+              onMoveNew={(index, delta) => {
+                setMainIndex((m) => moveWithMain(m, existingImages.length, index, index + delta, newFiles.length));
+                setNewFiles((prev) => moveItem(prev, index, index + delta));
+              }}
             />
           </div>
 

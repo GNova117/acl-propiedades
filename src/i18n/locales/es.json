@@ -173,6 +173,8 @@
     "rentada": "Rentada"
   },
   "properties": {
+    "andMoreAdvisors_one": "y {{count}} más",
+    "andMoreAdvisors_other": "y {{count}} más",
     "relaxFilter_one": "Quitar «{{filter}}»: {{count}} resultado",
     "relaxFilter_other": "Quitar «{{filter}}»: {{count}} resultados",
     "newSinceVisit_one": "{{count}} nueva desde tu última visita",
@@ -257,6 +259,10 @@
   "detail": {
     "reportError": "Reportar un error",
     "reportErrorMessage": "Encontré un error en la publicación {{code}} ({{url}}): ",
+    "priceDropAgo_zero": "Bajó {{amount}} ({{percent}} %) hoy",
+    "priceDropAgo_one": "Bajó {{amount}} ({{percent}} %) hace {{count}} día",
+    "priceDropAgo_other": "Bajó {{amount}} ({{percent}} %) hace {{count}} días",
+    "priceDropAgo_nodate": "Bajó {{amount}} ({{percent}} %)",
     "publishedAgo_zero": "Publicada hoy",
     "publishedAgo_one": "Publicada hace {{count}} día",
     "publishedAgo_other": "Publicada hace {{count}} días",
@@ -542,6 +548,10 @@
     "goHome": "Ir al inicio"
   },
   "favorites": {
+    "alertDropped_one": "{{count}} de tus favoritas bajó de precio.",
+    "alertDropped_other": "{{count}} de tus favoritas bajaron de precio.",
+    "alertUnavailable_one": "{{count}} de tus favoritas ya no está disponible.",
+    "alertUnavailable_other": "{{count}} de tus favoritas ya no están disponibles.",
     "title": "Favoritos",
     "subtitle": "Las propiedades que has guardado en este navegador.",
     "empty": "Aún no has guardado ninguna propiedad.",
@@ -784,6 +794,8 @@
       "illustrative": "Fotos y plano del modelo; el departamento puede variar en acabados y vista."
     },
     "contact": {
+      "formTitle": "O déjanos tus datos y te contactamos",
+      "formMessage": "Me interesa el desarrollo {{name}}. Quisiera recibir más información.",
       "title": "¿Te interesa {{name}}?",
       "text": "Te decimos qué departamentos quedan, te mandamos la lista de precios y agendamos tu visita.",
       "whatsapp": "Escribir por WhatsApp",
@@ -875,6 +887,8 @@
     }
   },
   "admin": {
+    "moveImageLeft": "Mover foto a la izquierda",
+    "moveImageRight": "Mover foto a la derecha",
     "loginNetworkError": "No se pudo conectar. Revisa tu conexión e inténtalo de nuevo.",
     "notFound": {
       "title": "Esta pantalla no existe",
@@ -4928,6 +4942,10 @@
     "switchLanguage": "Cambiar idioma / Switch language"
   },
   "propertyForm": {
+    "geoFind": "Buscar en el mapa",
+    "geoSearching": "Buscando…",
+    "geoEmpty": "No se encontró esa dirección: ajusta el texto o captura la latitud y longitud a mano.",
+    "geoError": "No se pudo consultar el mapa ahora. Captura la latitud y longitud a mano.",
     "titleWarning": {"caps": "El título está todo en mayúsculas; se ve poco profesional en el sitio y en Google. ¿Guardar así?", "punctuation": "El título lleva signos de admiración o interrogación repetidos. ¿Guardar así?"},
     "viewOnSite": "Ver en el sitio",
     "descriptionCount_one": "{{count}} carácter (Google muestra unos 155)",

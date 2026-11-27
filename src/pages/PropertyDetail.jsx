@@ -428,6 +428,10 @@ export default function PropertyDetail() {
                 {priceDrop && (
                   <p className="property-detail__was-price">
                     <s>{formatMXN(priceDrop.previousPrice)}</s>
+                    <span className="property-detail__drop-note">
+                      {" "}
+                      {t("detail.priceDropAgo", { amount: formatMXN(priceDrop.amount), percent: priceDrop.percent, count: daysSince(priceDrop.changedAt) ?? 0, context: daysSince(priceDrop.changedAt) == null ? "nodate" : undefined })}
+                    </span>
                   </p>
                 )}
                 {monthly && (

@@ -173,6 +173,8 @@
     "rentada": "Rented"
   },
   "properties": {
+    "andMoreAdvisors_one": "and {{count}} more",
+    "andMoreAdvisors_other": "and {{count}} more",
     "relaxFilter_one": "Remove \"{{filter}}\": {{count}} result",
     "relaxFilter_other": "Remove \"{{filter}}\": {{count}} results",
     "newSinceVisit_one": "{{count}} new since your last visit",
@@ -257,6 +259,10 @@
   "detail": {
     "reportError": "Report an error",
     "reportErrorMessage": "I found a mistake in listing {{code}} ({{url}}): ",
+    "priceDropAgo_zero": "Dropped {{amount}} ({{percent}}%) today",
+    "priceDropAgo_one": "Dropped {{amount}} ({{percent}}%) {{count}} day ago",
+    "priceDropAgo_other": "Dropped {{amount}} ({{percent}}%) {{count}} days ago",
+    "priceDropAgo_nodate": "Dropped {{amount}} ({{percent}}%)",
     "publishedAgo_zero": "Listed today",
     "publishedAgo_one": "Listed {{count}} day ago",
     "publishedAgo_other": "Listed {{count}} days ago",
@@ -542,6 +548,10 @@
     "goHome": "Go home"
   },
   "favorites": {
+    "alertDropped_one": "{{count}} of your favorites dropped in price.",
+    "alertDropped_other": "{{count}} of your favorites dropped in price.",
+    "alertUnavailable_one": "{{count}} of your favorites is no longer available.",
+    "alertUnavailable_other": "{{count}} of your favorites are no longer available.",
     "title": "Favorites",
     "subtitle": "The properties you've saved in this browser.",
     "empty": "You haven't saved any properties yet.",
@@ -784,6 +794,8 @@
       "illustrative": "Photos and plan are of the model; the apartment may differ in finishes and view."
     },
     "contact": {
+      "formTitle": "Or leave your details and we will contact you",
+      "formMessage": "I am interested in the {{name}} development. I would like more information.",
       "title": "Interested in {{name}}?",
       "text": "We'll tell you which apartments are left, send you the price list and schedule your visit.",
       "whatsapp": "Write on WhatsApp",
@@ -875,6 +887,8 @@
     }
   },
   "admin": {
+    "moveImageLeft": "Move photo left",
+    "moveImageRight": "Move photo right",
     "loginNetworkError": "Could not connect. Check your connection and try again.",
     "notFound": {
       "title": "This screen doesn't exist",
@@ -4928,6 +4942,10 @@
     "switchLanguage": "Cambiar idioma / Switch language"
   },
   "propertyForm": {
+    "geoFind": "Find on map",
+    "geoSearching": "Searching…",
+    "geoEmpty": "Address not found: adjust the text or enter latitude and longitude by hand.",
+    "geoError": "The map could not be reached right now. Enter latitude and longitude by hand.",
     "titleWarning": {"caps": "The title is all in capitals, which looks unprofessional on the site and in Google. Save anyway?", "punctuation": "The title has repeated exclamation or question marks. Save anyway?"},
     "viewOnSite": "View on the site",
     "descriptionCount_one": "{{count}} character (Google shows about 155)",

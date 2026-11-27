@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import ContactForm from "../components/ContactForm";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
@@ -382,6 +383,10 @@ export default function Development() {
           <a className="btn btn-primary" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
             {t("developments.contact.whatsapp")}
           </a>
+        </div>
+        <div className="container dev-cta__form">
+          <h3>{t("developments.contact.formTitle")}</h3>
+          <ContactForm initialMessage={t("developments.contact.formMessage", { name: development.name })} />
         </div>
       </section>
 

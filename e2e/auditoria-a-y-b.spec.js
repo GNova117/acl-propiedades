@@ -41,4 +41,34 @@ test.describe("Tanda A y B", () => {
     await go("/admin/ayuda");
     await expect(page.getByText("Atajos de teclado")).toBeVisible();
   });
+
+  test("el mapa del listado deja elegir entre calles y satélite", async ({ page, go, press, isMobile }) => {
+    test.skip(isMobile, "la vista dividida solo existe en pantallas anchas");
+    await go("/propiedades");
+    await press(page.locator(".properties-page__view-toggle button", { hasText: "Dividida" }));
+    await expect(page.locator(".properties-split .leaflet-control-layers")).toBeVisible();
+  });
+
+  test("la página de un desarrollo trae el formulario para dejar datos", async ({ page, go }) => {
+    await go("/desarrollos/torre-aurora");
+    await expect(page.locator(".dev-cta__form textarea[name=message]")).toHaveValue(/Me interesa el desarrollo/);
+  });
+
+  test("la lista del panel dice cuántos días lleva publicada cada propiedad", async ({ page, seedAdminSession, go }) => {
+    await seedAdminSession();
+    await go("/admin/propiedades");
+    await expect(page.locator(".property-meta-line").first()).toContainText(/Publicada/);
+  });
+
+  test("el formulario de propiedad trae buscar dirección en el mapa y mover fotos", async ({ page, seedAdminSession, go, press }) => {
+    await seedAdminSession();
+    await go("/admin/propiedades/prop-1");
+    await expect(page.locator("#p-title")).toBeVisible();
+    const siguiente = () => press(page.getByRole("button", { name: "Siguiente", exact: true }));
+    await siguiente();
+    await expect(page.getByRole("button", { name: "Buscar en el mapa" })).toBeEnabled();
+    const mover = page.getByRole("button", { name: "Mover foto a la derecha" }).first();
+    for (let i = 0; i < 5 && !(await mover.isVisible()); i++) await siguiente();
+    await expect(mover).toBeVisible();
+  });
 });

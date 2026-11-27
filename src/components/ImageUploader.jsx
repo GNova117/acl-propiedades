@@ -4,7 +4,7 @@ import "./ImageUploader.css";
 
 // `showMain={false}`: galerías donde no hay una foto "principal" (p. ej. las fotos
 // de un modelo de departamento), así que no se ofrece el botón de elegirla.
-export default function ImageUploader({ existingImages, files, mainIndex, onRemoveExisting, onAddFiles, onRemoveNew, onSetMain, showMain = true }) {
+export default function ImageUploader({ existingImages, files, mainIndex, onRemoveExisting, onAddFiles, onRemoveNew, onSetMain, onMoveExisting, onMoveNew, showMain = true }) {
   const { t } = useTranslation();
   const [previews, setPreviews] = useState([]);
 
@@ -49,6 +49,16 @@ export default function ImageUploader({ existingImages, files, mainIndex, onRemo
               >
                 ×
               </button>
+              {(item.kind === "existing" ? onMoveExisting : onMoveNew) && (
+                <div className="image-uploader__order">
+                  <button type="button" onClick={() => (item.kind === "existing" ? onMoveExisting : onMoveNew)(item.index, -1)} aria-label={t("admin.moveImageLeft")} disabled={item.index === 0}>
+                    ◀
+                  </button>
+                  <button type="button" onClick={() => (item.kind === "existing" ? onMoveExisting : onMoveNew)(item.index, 1)} aria-label={t("admin.moveImageRight")} disabled={item.index === (item.kind === "existing" ? existingImages.length : files.length) - 1}>
+                    ▶
+                  </button>
+                </div>
+              )}
               {showMain &&
                 (flatIndex === mainIndex ? (
                   <span className="image-uploader__main-badge">★ {t("admin.mainImage")}</span>

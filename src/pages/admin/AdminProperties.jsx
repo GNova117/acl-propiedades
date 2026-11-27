@@ -1,9 +1,10 @@
 import ResponsiveImg from "../../components/ResponsiveImg";
+import { advisorNames, advisorSummary } from "../../lib/propertyAdvisorLine";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { formatMXN, formatArea, propertyTypeLabel } from "../../lib/format";
+import { formatMXN, formatArea, propertyTypeLabel, daysSince } from "../../lib/format";
 import { downloadFichaTecnicaPdf } from "../../lib/propertyFichaPdf";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/AuthContext";
@@ -543,6 +544,12 @@ export default function AdminProperties({
                     <td className="cell-title">
                       {property.title}
                       {(property.advisor_ids || []).length === 0 && <span className="badge badge-reserved property-no-advisor">{t("properties.noAdvisor")}</span>}
+                      {(() => {
+                        const who = advisorSummary(advisorNames(property.advisor_ids, advisors), (n) => t("properties.andMoreAdvisors", { count: n }));
+                        const days = daysSince(property.created_at);
+                        const line = [who, days != null ? t("detail.publishedAgo", { count: days }) : ""].filter(Boolean).join(" · ");
+                        return line ? <div className="form-hint property-meta-line">{line}</div> : null;
+                      })()}
                       {(() => {
                         const c = completeness.get(property.id);
                         if (!c) return null;

@@ -1,7 +1,7 @@
 import ResponsiveImg from "./ResponsiveImg";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, LayersControl, Marker, Popup, Circle, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -249,6 +249,7 @@ function FullscreenButton({ fullscreen, onToggle }) {
 }
 
 export default function PropertyMap({ properties, height = 480, onSearchArea, areaActive = false }) {
+  const { t, i18n } = useTranslation();
   const [fullscreen, setFullscreen] = useState(false);
   const suppressRef = useRef(false);
   const firstLocated = properties.find(hasCoordinates);
@@ -264,10 +265,24 @@ export default function PropertyMap({ properties, height = 480, onSearchArea, ar
   const map = (
     <div className={`property-map ${fullscreen ? "property-map--fullscreen" : ""}`} style={fullscreen ? undefined : { height }}>
       <MapContainer center={center} zoom={11} scrollWheelZoom={false} style={{ height: "100%", width: "100%" }}>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        {/* 383: calles o satélite. key: Leaflet fija los nombres de las capas al crear el control. */}
+        <LayersControl key={i18n.language} position="topright">
+          <LayersControl.BaseLayer checked name={t("valuation.map.streets")}>
+            <TileLayer
+              className="tile-street"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name={t("valuation.map.satellite")}>
+            <TileLayer
+              attribution="Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              maxNativeZoom={19}
+              maxZoom={20}
+            />
+          </LayersControl.BaseLayer>
+        </LayersControl>
         <FitBounds properties={properties} suppress={suppressRef} skip={areaActive} />
         <ClusteredMarkers properties={properties} />
         {onSearchArea && <AreaSearchButton onSearchArea={onSearchArea} suppress={suppressRef} />}

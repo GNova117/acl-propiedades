@@ -370,6 +370,26 @@
   border-color: #fff;
 }
 
+.dev-cta__form {
+  max-width: 640px;
+  margin-top: 2rem;
+}
+
+.dev-cta__form h3 {
+  margin: 0 0 0.75rem;
+  color: var(--color-on-primary);
+}
+
+/* El formulario es una tarjeta clara sobre el fondo oscuro: sus textos vuelven al color normal. */
+.dev-cta__form .contact-form,
+.dev-cta__form .contact-form p:not(.text-success) {
+  color: var(--color-text);
+}
+
+.dev-cta__form .contact-form p.text-success {
+  color: var(--color-success);
+}
+
 .dev-disclaimer {
   max-width: 860px;
   padding-top: 1.75rem;

@@ -12,6 +12,7 @@ import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
 import { siteOrigin } from "../lib/site";
 import { loadPropertiesInOrder } from "../lib/propertiesByIds";
+import { favoritesAlerts } from "../lib/favoritesAlerts";
 
 export default function Favorites() {
   const { t } = useTranslation();
@@ -49,6 +50,7 @@ export default function Favorites() {
 
   const shareUrl = typeof window !== "undefined" ? buildFavoritesShareUrl(siteOrigin(), favorites) : "";
   const shareText = `${t("favoritesShare.shareText")}\n${shareUrl}`;
+  const alerts = useMemo(() => favoritesAlerts(properties), [properties]);
   const allSaved = shared && properties.length > 0 && properties.every((p) => favorites.includes(p.id));
 
   return (
@@ -83,6 +85,13 @@ export default function Favorites() {
                 {t("favoritesShare.viewMine")}
               </Link>
             </div>
+          </div>
+        )}
+
+        {!shared && !loading && (alerts.dropped > 0 || alerts.unavailable > 0) && (
+          <div className="card favorites-banner" role="status">
+            {alerts.dropped > 0 && <p>{t("favorites.alertDropped", { count: alerts.dropped })}</p>}
+            {alerts.unavailable > 0 && <p>{t("favorites.alertUnavailable", { count: alerts.unavailable })}</p>}
           </div>
         )}
 

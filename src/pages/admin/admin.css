@@ -1284,3 +1284,7 @@
   font-size: 0.7rem;
   vertical-align: middle;
 }
+
+.property-meta-line {
+  margin: 0.15rem 0 0;
+}
