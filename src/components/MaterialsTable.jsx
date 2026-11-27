@@ -110,7 +110,7 @@ export default function MaterialsTable({ materials, onChange }) {
                 <th>{t("remodelCalculator.totalInternal")}</th>
                 <th>{t("remodelCalculator.totalExternal")}</th>
                 <th>{t("remodelCalculator.savings")}</th>
-                <th />
+                <th><span className="visually-hidden-cell">{t("common.actions")}</span></th>
               </tr>
             </thead>
             <tbody>

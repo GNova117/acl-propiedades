@@ -334,7 +334,7 @@ export default function AdminRoles() {
               <th>{t("accessControl.accessEmail")}</th>
               <th>{t("accessControl.accessRole")}</th>
               <th>{t("accessControl.accessAdvisor")}</th>
-              <th></th>
+              <th><span className="visually-hidden-cell">{t("common.actions")}</span></th>
             </tr>
           </thead>
           <tbody>

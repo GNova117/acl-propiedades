@@ -41,7 +41,7 @@ export default function AdminAdvisors() {
         <table className="admin-table">
           <thead>
             <tr>
-              <th></th>
+              <th><span className="visually-hidden-cell">{t("common.photo")}</span></th>
               <th>{t("advisorsUi.colName")}</th>
               <th>{t("advisorsUi.colPhone")}</th>
               <th>{t("advisorsUi.colEmail")}</th>

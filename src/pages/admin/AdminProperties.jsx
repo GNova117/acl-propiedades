@@ -516,7 +516,7 @@ export default function AdminProperties({
               <th className="cell-select" data-label={t("bulkActions.selectAll")}>
                 <input type="checkbox" checked={allVisibleSelected} onChange={toggleAll} aria-label={t("bulkActions.selectAll")} />
               </th>
-              <th></th>
+              <th><span className="visually-hidden-cell">{t("common.photo")}</span></th>
               <SortableTh column="code" sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))} colProps={col("code")}>
                 {t("detail.code")}
               </SortableTh>

@@ -84,7 +84,7 @@ export default function Compare() {
               <table className="compare-table">
                 <thead>
                   <tr>
-                    <th className="compare-table__row-label"></th>
+                    <th className="compare-table__row-label"><span className="visually-hidden-cell">{t("compare.feature")}</span></th>
                     {properties.map((property) => (
                       <th key={property.id}>
                         <div className="compare-table__column-head">
@@ -119,7 +119,7 @@ export default function Compare() {
                     </tr>
                   ))}
                   <tr>
-                    <th className="compare-table__row-label"></th>
+                    <th className="compare-table__row-label"><span className="visually-hidden-cell">{t("common.actions")}</span></th>
                     {properties.map((property) => (
                       <td key={property.id}>
                         <Link to={propertyPath(property)} className="btn btn-primary btn-sm">

@@ -93,6 +93,8 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 332 | El respaldo y la retención de papelería tienen su propio apartado «Respaldo» en la carpeta Oficina (ruta `/admin/respaldo`); «Roles y accesos» solo trae un enlace, y el aviso del inicio lleva ahí. |
 | 325 | En Prospectos, en teléfono, «Pegar o importar lista», «Importar desde visitas» y los exportes van tras un menú «⋯ Más»; «Nuevo» y «Seleccionar» siguen a la vista. En pantalla grande no cambia nada. |
 | 326 | En Prospectos, la búsqueda y el selector de asesor dejan el estilo nativo del navegador y usan el mismo borde, radio y foco que los demás campos. |
+| 254 | En las tablas del panel, los `<th>` vacíos ahora tienen texto para lectores de pantalla («Foto», «Acciones», «Característica») y la zona de una tabla que se desborda de lado se vuelve enfocable con teclado y con nombre («Tabla con desplazamiento horizontal»): un solo efecto en el diseño del panel (`scrollableRegions.js`) en vez de editar las 43 tablas. Solo se marca la que de verdad se desborda. |
+| 254 | En las tablas del panel, los `<th>` vacíos ahora tienen texto para lectores de pantalla («Foto», «Acciones», «Característica») y la zona de una tabla que se desborda de lado se vuelve enfocable con teclado y con nombre («Tabla con desplazamiento horizontal»): un solo efecto en el diseño del panel (`scrollableRegions.js`) en vez de editar las 43 tablas. Solo se marca la que de verdad se desborda. |
 | 258 | Áreas táctiles de al menos 32 px en el pie (enlaces legales), títulos de tarjetas y desarrollos, datos de contacto, «Volver», «¿Cómo se calcula?», «Personalizar», preguntas frecuentes, «Pantalla completa» y acercar/alejar del mapa. Quedan fuera lo que no es nuestro: atribución de Leaflet/OpenStreetMap, barra de rango y círculos de radio nativos. |
 | 259 | El botón «Comparar» de tarjetas y ficha trae su palabra (antes era un cuadro vacío); su nombre accesible es el texto visible y `aria-pressed` dice si está marcado. |
 | 294 | Los `z-index` de 100 o más salen de una escala de variables en `index.css` (`--z-header`, `--z-chat`, `--z-dialog`, `--z-toast`, `--z-lightbox`…), con los mismos valores de antes (no cambia nada a la vista). Una prueba (`zIndexScale.test.js`) impide números sueltos nuevos y vigila el orden de las capas. |
@@ -105,7 +107,7 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 
 ## Pruebas
 
-- Unitarias: 2,138. e2e local: 959 (+31 omitidas). CI de GitHub en verde para `e23d276`. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,141. e2e local: 959 (+31 omitidas). CI de GitHub en verde para `e23d276`. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 

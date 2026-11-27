@@ -409,4 +409,23 @@ test.describe("Tanda A y B", () => {
     await press(boton);
     await expect(boton).toHaveAttribute("aria-pressed", "true");
   });
+  test("panel: la tabla que se desborda en teléfono se puede enfocar con teclado y tiene nombre; los encabezados vacíos dicen «Acciones» (254)", async ({ page, seedAdminSession, go, isMobile }) => {
+    test.skip(!isMobile, "el desborde horizontal solo se da en teléfono");
+    await seedAdminSession();
+    await go("/admin/propiedades");
+    const zona = page.locator(".admin-table-wrapper").first();
+    await expect(zona).toBeVisible();
+    const desborda = await zona.evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+    if (desborda) {
+      await expect(zona).toHaveAttribute("tabindex", "0");
+      await expect(zona).toHaveAttribute("role", "region");
+      await expect(zona).toHaveAttribute("aria-label", /desplazamiento/i);
+    }
+    await expect(page.locator(".admin-table thead th", { hasText: "Acciones" }).first()).toBeAttached();
+    // Un <th> con solo un campo (la casilla «Seleccionar todo») vale si el campo tiene nombre.
+    const vacios = await page
+      .locator(".admin-table thead th")
+      .evaluateAll((ths) => ths.filter((th) => !th.textContent.trim() && !th.querySelector("[aria-label]")).length);
+    expect(vacios, "encabezados <th> sin texto").toBe(0);
+  });
 });

@@ -16,7 +16,7 @@ Numeración = la de `docs/auditoria-areas-de-oportunidad.md` (101–506).
 
 **Ficha y tarjetas**: 251 botones dentro de enlaces y 3 enlaces por tarjeta · 285 estilos de impresión de la ficha · 302 testimonios con página y reseñas · 308 formularios duplicados en la ficha · 317 foto y nombre del asesor en la visita.
 
-**Accesibilidad que toca varias pantallas**: hechos 250, 252, 253, 255, 257, 260 y 261 (en Contacto y «¿Te interesa?»); quedan 249 marcadores del mapa y gráficas · 254 tablas del panel con `<th>` vacíos y desplazamiento sin teclado · 261 en el resto de formularios.
+**Accesibilidad que toca varias pantallas**: hechos 250, 252, 253, 254, 255, 257, 258, 259, 260 y 261 (en Contacto y «¿Te interesa?»); quedan 249 marcadores del mapa y gráficas · 261 en el resto de formularios.
 
 **Estilos globales**: 281 `p { color: muted }` · 322 selector de zona con búsqueda.
 

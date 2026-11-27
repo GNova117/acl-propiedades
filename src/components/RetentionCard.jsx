@@ -51,7 +51,7 @@ function DataRetention() {
             <th>{t("dataRetention.due")}</th>
             <th>{t("dataRetention.state")}</th>
             <th>{t("dataRetention.lastRun")}</th>
-            <th />
+            <th><span className="visually-hidden-cell">{t("common.actions")}</span></th>
           </tr>
         </thead>
         <tbody>

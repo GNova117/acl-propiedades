@@ -409,6 +409,17 @@ fieldset.form-field {
   white-space: nowrap;
 }
 
+/* Texto solo para lectores de pantalla en un encabezado de tabla (<th>). A diferencia de .visually-hidden (position:
+   absolute), se queda en el flujo: dentro de una tabla que se desplaza de lado, un hijo absoluto se salía del recorte y
+   ensanchaba toda la página. */
+.visually-hidden-cell {
+  display: block;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 .spinner {
   width: 1.1em;
   height: 1.1em;
