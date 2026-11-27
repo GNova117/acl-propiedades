@@ -47,7 +47,7 @@ export default function DayRouteCard({ agenda, properties }) {
           </button>
           {/* Solo al imprimir: la hoja del día (el resto de la pantalla se oculta, ver MyDayPanels.css). */}
           <div className="day-sheet" aria-hidden="true">
-            <h1>{t("dayRoute.sheetTitle", { date: new Date().toLocaleDateString("es-MX", { dateStyle: "full" }) })}</h1>
+            <p className="day-sheet__title">{t("dayRoute.sheetTitle", { date: new Date().toLocaleDateString("es-MX", { dateStyle: "full" }) })}</p>
             <table>
               <thead>
                 <tr>

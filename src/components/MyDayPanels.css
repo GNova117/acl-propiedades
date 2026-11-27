@@ -127,8 +127,9 @@
     background: #fff;
   }
 
-  .day-sheet h1 {
+  .day-sheet__title {
     font-size: 16pt;
+    font-weight: 700;
     margin: 0 0 0.5cm;
   }
 
