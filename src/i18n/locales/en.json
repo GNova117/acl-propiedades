@@ -703,6 +703,7 @@
     "status": "Status",
     "active": "Active",
     "inactive": "Inactive",
+    "toggleActiveHint": "Click to turn on or off",
     "close": "Close",
     "search": "Search",
     "exportCsv": "Export CSV",

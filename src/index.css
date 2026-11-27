@@ -484,3 +484,38 @@ p a:not(.btn),
     text-align: center;
   }
 }
+
+/* 329: «Activo/Inactivo» se ve como un interruptor (con su palanca), no como una etiqueta más. */
+.badge--switch {
+  border: 1px solid currentColor;
+  cursor: pointer;
+}
+
+.badge--switch__track {
+  position: relative;
+  width: 1.6rem;
+  height: 0.9rem;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+.badge--switch__track::after {
+  content: "";
+  position: absolute;
+  top: 0.1rem;
+  left: 0.1rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+}
+
+.badge--switch[aria-checked="true"] .badge--switch__track::after {
+  transform: translateX(0.7rem);
+}
+
+.badge--switch:hover {
+  filter: brightness(0.95);
+}

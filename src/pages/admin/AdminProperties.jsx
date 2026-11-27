@@ -615,7 +615,8 @@ export default function AdminProperties({
                     <td className="cell-area" {...col("area")}>{formatArea(property.area_m2)}</td>
                     <td className="cell-status" {...col("status")}>{t(`propertyStatus.${property.status}`)}</td>
                     <td className="cell-active" {...col("active")}>
-                      <button type="button" className={`badge ${property.active ? "badge-available" : "badge-sold"}`} onClick={() => toggleActive(property)}>
+                      <button type="button" role="switch" aria-checked={Boolean(property.active)} className={`badge badge--switch ${property.active ? "badge-available" : "badge-sold"}`} title={t("common.toggleActiveHint")} onClick={() => toggleActive(property)}>
+                        <span className="badge--switch__track" aria-hidden="true" />
                         {property.active ? t("common.active") : t("common.inactive")}
                       </button>
                     </td>

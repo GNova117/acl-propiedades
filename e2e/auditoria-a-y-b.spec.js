@@ -320,4 +320,13 @@ test.describe("Tanda A y B", () => {
     await expect(caja).toHaveAttribute("placeholder", /^Buscar…/);
     await expect(caja).toHaveAttribute("aria-label", /cliente, propiedad/);
   });
+  test("panel: «Activo/Inactivo» de la tabla de propiedades es un interruptor que cambia de estado", async ({ page, seedAdminSession, go, press }) => {
+    await seedAdminSession();
+    await go("/admin/propiedades");
+    const interruptor = page.locator("button.badge--switch").first();
+    await expect(interruptor).toBeVisible();
+    const antes = await interruptor.getAttribute("aria-checked");
+    await press(interruptor);
+    await expect(page.locator("button.badge--switch").first()).not.toHaveAttribute("aria-checked", antes);
+  });
 });
