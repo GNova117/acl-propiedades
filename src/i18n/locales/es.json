@@ -173,6 +173,7 @@
     "rentada": "Rentada"
   },
   "properties": {
+    "mapLegend": "Colores de los marcadores por tipo de propiedad",
     "showMap": "Ver en mapa",
     "hideMap": "Ocultar mapa",
     "onlyMine": "Solo mis propiedades",
@@ -403,6 +404,8 @@
     "paymentMethodsBody": "Aceptamos pago de contado, crédito bancario, crédito INFONAVIT y crédito FOVISSSTE, sujetos a las condiciones y documentación que exija cada institución. Consulta con tu asesor las opciones disponibles para cada propiedad."
   },
   "contact": {
+    "callCta": "Llamar",
+    "whatsappCta": "Escribir por WhatsApp",
     "topicLabel": "¿Qué buscas?",
     "topicNone": "Elige una opción (opcional)",
     "topics": {"comprar": "Quiero comprar", "rentar": "Quiero rentar", "vender": "Quiero vender mi propiedad", "rentar_mia": "Quiero rentar mi propiedad", "otro": "Otro"},

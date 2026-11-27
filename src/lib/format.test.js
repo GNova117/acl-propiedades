@@ -8,6 +8,7 @@ import {
   formatArea,
   formatAreaFt2,
   formatMXN,
+  statusBadgeClass,
   isPdfDoc,
   numOrNull,
   propertyListPath,
@@ -199,5 +200,18 @@ describe("formatAreaFt2", () => {
     expect(formatAreaFt2(0)).toBe("");
     expect(formatAreaFt2(null)).toBe("");
     expect(formatAreaFt2("abc")).toBe("");
+  });
+});
+
+describe("statusBadgeClass", () => {
+  it("cada estatus conocido tiene su color", () => {
+    expect(statusBadgeClass("disponible")).toBe("badge-available");
+    expect(statusBadgeClass("apartada")).toBe("badge-reserved");
+    expect(statusBadgeClass("vendida")).toBe("badge-sold");
+    expect(statusBadgeClass("rentada")).toBe("badge-sold");
+  });
+  it("un estatus desconocido sale neutro, no rojo", () => {
+    expect(statusBadgeClass("en_negociacion")).toBe("badge-neutral");
+    expect(statusBadgeClass(undefined)).toBe("badge-neutral");
   });
 });

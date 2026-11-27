@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, LayersControl, Marker, Popup, Circle, useMap, 
 import L from "leaflet";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { formatMXN, formatArea } from "../lib/format";
+import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "leaflet/dist/leaflet.css";
 import "./PropertyMap.css";
 import { propertyPath } from "../lib/propertyUrl.js";
@@ -231,6 +231,23 @@ function ClusteredMarkers({ properties }) {
   })];
 }
 
+// 305: leyenda de colores de los marcadores (solo los tipos que de verdad hay en el mapa).
+function MapLegend({ properties }) {
+  const { t } = useTranslation();
+  const types = [...new Set(properties.filter(hasCoordinates).map((p) => p.type))].filter((type) => TYPE_COLORS[type]);
+  if (types.length < 2) return null;
+  return (
+    <ul className="map-legend" aria-label={t("properties.mapLegend")}>
+      {types.map((type) => (
+        <li key={type}>
+          <span className="map-legend__dot" style={{ background: TYPE_COLORS[type] }} aria-hidden="true" />
+          {propertyTypeLabel(t, type)}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function FullscreenButton({ fullscreen, onToggle }) {
   const { t } = useTranslation();
   const map = useMap();
@@ -288,6 +305,7 @@ export default function PropertyMap({ properties, height = 480, onSearchArea, ar
         {onSearchArea && <AreaSearchButton onSearchArea={onSearchArea} suppress={suppressRef} />}
         <FullscreenButton fullscreen={fullscreen} onToggle={() => setFullscreen((v) => !v)} />
       </MapContainer>
+      <MapLegend properties={properties} />
     </div>
   );
 

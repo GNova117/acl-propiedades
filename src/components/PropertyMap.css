@@ -132,3 +132,35 @@
 .map-area-search button:hover {
   background: var(--color-primary);
 }
+
+/* 305: leyenda de colores por tipo, abajo a la izquierda sobre el mapa. */
+.map-legend {
+  position: absolute;
+  left: 0.6rem;
+  bottom: 1.6rem;
+  z-index: 750; /* sobre los marcadores (600) y los globos (700) de Leaflet */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.8rem;
+  max-width: calc(100% - 1.2rem);
+  margin: 0;
+  padding: 0.35rem 0.6rem;
+  list-style: none;
+  font-size: 0.75rem;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.map-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.map-legend__dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+}

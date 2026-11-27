@@ -173,6 +173,7 @@
     "rentada": "Rented"
   },
   "properties": {
+    "mapLegend": "Marker colors by property type",
     "showMap": "Show on map",
     "hideMap": "Hide map",
     "onlyMine": "Only my properties",
@@ -403,6 +404,8 @@
     "paymentMethodsBody": "We accept cash payment, bank financing, INFONAVIT credit, and FOVISSSTE credit, subject to each institution's conditions and required documentation. Check with your advisor for the options available for each property."
   },
   "contact": {
+    "callCta": "Call",
+    "whatsappCta": "Message on WhatsApp",
     "topicLabel": "What are you looking for?",
     "topicNone": "Choose an option (optional)",
     "topics": {"comprar": "I want to buy", "rentar": "I want to rent", "vender": "I want to sell my property", "rentar_mia": "I want to rent out my property", "otro": "Other"},

@@ -34,7 +34,7 @@ import { isClosedStatus } from "../lib/propertyStatus";
 import { CALCULATOR_ANCHOR, canEstimateMonthly, estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import { directionsUrl, streetViewUrl, wazeUrl } from "../lib/mapLinks";
 import { listingFrom } from "../lib/listNavigation";
-import { formatMXN, formatArea, formatAreaFt2, propertyTypeLabel, propertyShareLines, publicPlace, propertyListPath, daysSince } from "../lib/format";
+import { statusBadgeClass, formatMXN, formatArea, formatAreaFt2, propertyTypeLabel, propertyShareLines, publicPlace, propertyListPath, daysSince } from "../lib/format";
 import "./PropertyDetail.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
@@ -431,7 +431,7 @@ export default function PropertyDetail() {
               </div>
               <div className="property-detail__price-block">
                 <div className="property-detail__price-block-top">
-                  <span className={`badge badge-${property.status === "disponible" ? "available" : property.status === "apartada" ? "reserved" : "sold"}`}>
+                  <span className={`badge ${statusBadgeClass(property.status)}`}>
                     {t(`propertyStatus.${property.status}`)}
                   </span>
                   <PropertyFlag property={property} />

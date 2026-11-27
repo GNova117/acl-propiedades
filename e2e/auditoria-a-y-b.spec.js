@@ -252,4 +252,27 @@ test.describe("Tanda A y B", () => {
     await expect(page.locator("#contact-name")).toHaveAttribute("aria-describedby", "contact-name-error");
     await expect(page.locator("#contact-name-error")).toBeVisible();
   });
+
+  test("Contacto trae botones grandes de Llamar y WhatsApp", async ({ page, go }) => {
+    await go("/contacto");
+    await expect(page.getByRole("link", { name: "Llamar" })).toHaveAttribute("href", /^tel:/);
+    await expect(page.getByRole("link", { name: /Escribir por WhatsApp/ })).toHaveAttribute("href", /wa\.me/);
+  });
+
+  test("«Más filtros» arranca cerrado y el menú de compartir se cierra al tocar fuera", async ({ page, go, press, isMobile }) => {
+    await go("/propiedades");
+    if (isMobile) {
+      const abrir = page.locator(".property-filters__toggle");
+      if (await abrir.isVisible()) await press(abrir);
+    }
+    await expect(page.locator("details.property-filters__more")).not.toHaveAttribute("open", /.*/);
+    await go("/propiedades/prop-1");
+    const resumen = page.locator("details.share-button summary").first();
+    if (await resumen.isVisible().catch(() => false)) {
+      await press(resumen);
+      await expect(page.locator("details.share-button").first()).toHaveAttribute("open", /.*/);
+      await page.locator("h1").first().click({ position: { x: 5, y: 5 } });
+      await expect(page.locator("details.share-button").first()).not.toHaveAttribute("open", /.*/);
+    }
+  });
 });

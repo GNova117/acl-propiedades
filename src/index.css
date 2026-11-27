@@ -286,6 +286,11 @@ ul {
   color: var(--color-danger);
 }
 
+.badge-neutral {
+  background: var(--color-surface-alt, rgba(100, 116, 139, 0.14));
+  color: var(--color-text-muted);
+}
+
 .testimonial-stars {
   color: var(--color-warning);
   letter-spacing: 0.1em;

@@ -14,11 +14,11 @@ Numeración = la de `docs/auditoria-areas-de-oportunidad.md` (101–506).
 
 **Inicio y navegación**: 222 fondos del inicio con `srcset`/carga diferida · 264 hero a pantalla completa y buscador bajo el pliegue · 265 panel de naves «Próximamente» · 266 inicio muy largo en teléfono · 267 «Torres y desarrollos» ocupa la primera pantalla · 268 logotipo pequeño · 269 teléfono/WhatsApp en el encabezado · 270 menú con Desarrollos, Terrenos y Favoritos · 271 el chat tapa texto en la ficha · 277 «Nosotros» con historia, años, certificaciones y fotos · 286 buscador del inicio vs filtros del listado (dos interfaces) · 297 migas de pan visibles · 298 primera pantalla de la ficha en laptop · 315 bloque para vendedores · 316 desarrollos y herramientas en el inicio · 318 menos botones en el encabezado del teléfono · 320 categorías repetidas con el hero.
 
-**Ficha y tarjetas**: 251 botones dentro de enlaces y 3 enlaces por tarjeta · 259 botón «Comparar» sin texto · 276 color de estatus desconocido · 285 estilos de impresión de la ficha · 299 ícono de WhatsApp reconocible · 300 botones «Llamar» y «WhatsApp» en Contacto · 302 testimonios con página y reseñas · 305 leyenda de colores del mapa · 308 formularios duplicados en la ficha · 312 dos llamados al comparador de créditos · 317 foto y nombre del asesor en la visita · 319 pago mensual resumido con ícono de información.
+**Ficha y tarjetas**: 251 botones dentro de enlaces y 3 enlaces por tarjeta · 259 botón «Comparar» sin texto · 285 estilos de impresión de la ficha · 302 testimonios con página y reseñas · 308 formularios duplicados en la ficha · 312 dos llamados al comparador de créditos · 317 foto y nombre del asesor en la visita · 319 pago mensual resumido con ícono de información.
 
 **Accesibilidad que toca varias pantallas**: hechos 250, 252, 253, 255, 257, 260 y 261 (en Contacto y «¿Te interesa?»); quedan 249 marcadores del mapa y gráficas · 254 tablas del panel con `<th>` vacíos y desplazamiento sin teclado · 258 áreas táctiles < 32 px · 261 en el resto de formularios.
 
-**Estilos globales**: 281 `p { color: muted }` · 287 «Más filtros» abierto · 289 tipos desactivados en el buscador · 290 menú de compartir que no se cierra · 294 escala de `z-index` · 322 selector de zona con búsqueda · 323 posición del formulario de alerta.
+**Estilos globales**: 281 `p { color: muted }` · 294 escala de `z-index` · 322 selector de zona con búsqueda · 323 posición del formulario de alerta.
 
 **Panel (diseño)**: 325–326 acciones de Prospectos en teléfono · 329–330 «Activo» parece botón y aviso «Toca respaldar» · 331 cifras con comparación y enlaces · 332 respaldo fuera de Roles · 333 agrupación del menú · 334–337 buscador corto, quién inició sesión, migas y acciones de tablas.
 

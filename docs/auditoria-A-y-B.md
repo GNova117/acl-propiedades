@@ -77,11 +77,18 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 255 | La foto del asesor en su tarjeta lleva `alt=""` (su nombre ya está al lado). |
 | 257, 260 | `prefers-reduced-motion`: el hero (crecer y zoom), la pantalla de carga y el spinner (que gira más despacio) respetan la preferencia. El visor de fotos, Reveal y las partículas ya la respetaban. |
 | 261 | Contacto y la tarjeta «¿Te interesa?»: cada campo con error apunta a su mensaje (`aria-describedby`), al enviar con errores el foco va al primer campo con error y el aviso de éxito ya era `status`. El resto de formularios queda para otra pasada con el mismo helper (`lib/formErrors.js`). |
+| 276 | Un estatus que no es disponible, apartada, vendida o rentada sale en gris neutro (`badge-neutral`), no con el rojo de «vendida». |
+| 287 | «Más filtros» arranca cerrado y se abre solo si ya hay aplicado alguno de los de adentro (superficie, recámaras, baños, estacionamientos o amenidades). |
+| 289 | El buscador del inicio y el listado ya no ofrecen tipos de propiedad desactivados. |
+| 290 | El menú de compartir en escritorio se cierra al tocar fuera, con Escape (devuelve el foco al botón) y al elegir una opción; tras copiar el enlace muestra «Enlace copiado» un momento y se cierra. |
+| 299 | Ya estaba resuelto: Contacto y el pie usan el ícono real de WhatsApp. |
+| 300 | Contacto trae botones grandes «Llamar» y «Escribir por WhatsApp» (la lista de datos sigue debajo). |
+| 305 | El mapa del listado trae una leyenda de colores por tipo (solo los tipos que hay en el mapa; con un solo tipo no se muestra). |
 | 400 | La ficha trae «Reportar un error»: abre Contacto con el mensaje ya empezado (código y enlace de la publicación). |
 
 ## Pruebas
 
-- Unitarias: 2,122. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,130. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 

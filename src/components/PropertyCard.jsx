@@ -9,7 +9,7 @@ import ShareButton from "./ShareButton";
 import PropertyFlag from "./PropertyFlag";
 import PropertyImageCarousel from "./PropertyImageCarousel";
 import { cardImages } from "../lib/cardImages";
-import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
+import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines, statusBadgeClass } from "../lib/format";
 import { getPropertyBadge } from "../lib/propertyBadges";
 import { nextVisitTag } from "../lib/nextVisit";
 import { estimateMonthlyPayment } from "../lib/monthlyEstimate";
@@ -43,7 +43,7 @@ export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
     <article className="property-card card">
       <Link to={propertyPath(property)} state={linkState} className="property-card__image-link">
         <PropertyImageCarousel images={cardImages(property)} alt={property.title} />
-        <span className={`badge badge-${property.status === "disponible" ? "available" : property.status === "apartada" ? "reserved" : "sold"} property-card__badge`}>
+        <span className={`badge ${statusBadgeClass(property.status)} property-card__badge`}>
           {t(`propertyStatus.${property.status}`)}
         </span>
         <PropertyFlag property={property} className="property-flag--card" />

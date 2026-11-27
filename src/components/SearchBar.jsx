@@ -93,7 +93,7 @@ export default function SearchBar() {
           <label htmlFor="search-type">{t("hero.searchType")}</label>
           <select id="search-type" name="type" value={form.type} onChange={handleChange}>
             <option value="">{t("hero.allTypes")}</option>
-            {propertyTypes.map((pt) => (
+            {propertyTypes.filter((pt) => pt.active !== false).map((pt) => (
               <option key={pt.id} value={pt.key}>
                 {propertyTypeLabel(t, pt.key)}
               </option>

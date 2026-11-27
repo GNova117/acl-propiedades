@@ -102,3 +102,15 @@
 .contact-page__open--yes {
   color: var(--color-success);
 }
+
+.contact-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0.25rem 0 1rem;
+}
+
+.contact-page__actions .btn {
+  flex: 1 1 9rem;
+  justify-content: center;
+}

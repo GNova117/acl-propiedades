@@ -299,7 +299,7 @@ export default function Properties({
 
   const sectionTypes = useMemo(() => {
     if (fixedType) return [fixedType];
-    return propertyTypes.map((pt) => pt.key).filter((key) => !excludeTypes.includes(key));
+    return propertyTypes.filter((pt) => pt.active !== false).map((pt) => pt.key).filter((key) => !excludeTypes.includes(key)); // 289: sin tipos desactivados
   }, [fixedType, excludeTypes, propertyTypes]);
 
   // Con un solo tipo en la sección no tiene caso mostrar el filtro de Tipo.

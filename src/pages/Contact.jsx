@@ -41,6 +41,15 @@ export default function Contact() {
           <div className="contact-page__map-block">
             <div className="card contact-page__info">
               <h3>{t("contact.directTitle")}</h3>
+              {/* 300: llamar o escribir con un toque, en botones grandes. */}
+              <div className="contact-page__actions">
+                <a className="btn btn-primary" href={`tel:${OFFICE_PHONE_TEL}`}>
+                  {t("contact.callCta")}
+                </a>
+                <a className="btn btn-outline" href={OFFICE_WHATSAPP_HREF} target="_blank" rel="noreferrer">
+                  <WhatsAppIcon size={16} /> {t("contact.whatsappCta")}
+                </a>
+              </div>
               <ul className="contact-page__info-list">
                 <li>
                   <a href={`tel:${OFFICE_PHONE_TEL}`}>{OFFICE_PHONE_DISPLAY}</a>

@@ -3,6 +3,15 @@
 // propiedades (bedrooms, altura_libre, mantenimiento_pct, etc.), que llegan
 // del formulario como string vacío cuando no se capturan.
 import { keySlug } from "./slug.js";
+// 276: clase de la etiqueta de estatus. Disponible = verde, apartada = ámbar, vendida o rentada = rojo; cualquier estatus que no se
+// conozca (uno nuevo) sale neutro, no con el rojo de «vendida».
+export function statusBadgeClass(status) {
+  if (status === "disponible") return "badge-available";
+  if (status === "apartada") return "badge-reserved";
+  if (status === "vendida" || status === "rentada") return "badge-sold";
+  return "badge-neutral";
+}
+
 export function numOrNull(value) {
   return value === "" || value == null ? null : Number(value);
 }

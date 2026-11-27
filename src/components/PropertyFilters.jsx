@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { hasMoreFiltersApplied } from "../lib/moreFilters";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { propertyTypeLabel } from "../lib/format";
@@ -214,7 +215,8 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
         </div>
       </div>
 
-      <details className="property-filters__more" open>
+      {/* 287: «Más filtros» arranca cerrado (antes `open`, que no ocultaba nada) y se abre solo si ya hay alguno de ellos aplicado. */}
+      <details className="property-filters__more" open={hasMoreFiltersApplied(filters) || undefined}>
         <summary>{t("properties.moreFilters")}</summary>
 
         <div className="form-row">
