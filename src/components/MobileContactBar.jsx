@@ -7,6 +7,7 @@ import { siteOrigin } from "../lib/site";
 
 export const OPEN_SCHEDULE_EVENT = "acl:open-schedule-visit";
 export const SCHEDULE_TARGET_ID = "agendar-visita";
+export const OPEN_CHAT_EVENT = "acl:open-chat";
 
 // Barra fija al pie de la ficha de propiedad en pantallas angostas, donde
 // "Agendar visita" queda hasta el final de la página. "Agendar visita" baja
@@ -40,6 +41,9 @@ export default function MobileContactBar({ property }) {
       <a className="btn btn-outline mobile-contact-bar__whatsapp" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
         {t("mobileBar.whatsapp")}
       </a>
+      <button type="button" className="btn btn-outline mobile-contact-bar__chat" onClick={() => window.dispatchEvent(new Event(OPEN_CHAT_EVENT))}>
+        {t("mobileBar.chat")}
+      </button>
     </div>
   );
 }

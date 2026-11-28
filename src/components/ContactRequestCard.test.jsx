@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "../i18n";
+import { resetSharedContact } from "../lib/sharedContact";
 
 const submitContactMessage = vi.fn();
 vi.mock("../lib/dataStore", () => ({ db: { submitContactMessage: (...args) => submitContactMessage(...args) } }));
@@ -24,6 +25,7 @@ const renderCard = () =>
 
 beforeEach(() => {
   localStorage.clear();
+  resetSharedContact(); // lo compartido entre formularios vive en memoria del módulo: cada prueba parte de cero
   submitContactMessage.mockReset();
   submitContactMessage.mockResolvedValue({});
 });

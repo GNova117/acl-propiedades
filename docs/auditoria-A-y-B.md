@@ -93,6 +93,11 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 332 | El respaldo y la retención de papelería tienen su propio apartado «Respaldo» en la carpeta Oficina (ruta `/admin/respaldo`); «Roles y accesos» solo trae un enlace, y el aviso del inicio lleva ahí. |
 | 325 | En Prospectos, en teléfono, «Pegar o importar lista», «Importar desde visitas» y los exportes van tras un menú «⋯ Más»; «Nuevo» y «Seleccionar» siguen a la vista. En pantalla grande no cambia nada. |
 | 326 | En Prospectos, la búsqueda y el selector de asesor dejan el estilo nativo del navegador y usan el mismo borde, radio y foco que los demás campos. |
+| 271 | En teléfono el botón flotante del chat ya no tapa el texto de la ficha: el chat se abre desde un tercer botón «Chat» en la barra de contacto (junto a «Agendar visita» y «WhatsApp»); el flotante solo reaparece con el chat abierto, para poder cerrarlo. (Ocultarlo sin más habría quitado el chat que manda el código de la propiedad.) |
+| 285 | La ficha se imprime limpia (o «Guardar como PDF»): sin menú, pie, chat, barras, formularios, mapa, migas ni enlaces de volver; texto negro sobre blanco; una sola foto; tarjetas sin partirse a la mitad. |
+| 297 | La ficha muestra migas de pan (Inicio › tipo › título) y son la misma lista que se manda a Google en los datos estructurados, así que nunca se contradicen. Van en el mismo renglón que «Volver a propiedades». |
+| 298 | En laptop (1366×800) la galería se limita a ~46 % del alto de pantalla y el título, el estatus y el precio se ven en la primera pantalla. |
+| 308 | Lo que se escribe en un formulario de la ficha (contacto, visita, reserva, alerta) rellena los campos vacíos de los otros y no se pisa lo ya escrito. Solo vive en memoria: no se guarda en el navegador hasta enviar un formulario. |
 | 268 | El logotipo del encabezado pasa de ~56 a ~85 px de ancho (3.3 em de alto; el encabezado conserva sus 72 px). |
 | 269 | El teléfono de la oficina (`tel:`) va siempre a la vista en el encabezado de pantalla grande; en laptop chica queda solo el ícono. |
 | 270 | En teléfono el menú trae «Favoritos» con texto. (Falta «Desarrollos»: hoy no existe una página que liste los desarrollos; se hace junto con el inicio.) |
@@ -115,7 +120,7 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 
 ## Pruebas
 
-- Unitarias: 2,146. e2e local: 972 (+32 omitidas). e2e local: 959 (+31 omitidas). CI de GitHub en verde para `e23d276`. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,152. e2e local: 972 (+32 omitidas). e2e local: 959 (+31 omitidas). CI de GitHub en verde para `e23d276`. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 

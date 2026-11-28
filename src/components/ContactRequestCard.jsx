@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { fillBlanks, useSharedContact } from "../lib/sharedContact";
 import { saveContact, withRemembered } from "../lib/rememberedContact";
 import { errorId, fieldErrorProps, focusFirstError } from "../lib/formErrors";
 import { Link } from "react-router-dom";
@@ -50,7 +51,8 @@ function buildWhatsappUrl(property, name) {
 
 export default function ContactRequestCard({ property }) {
   const { t } = useTranslation();
-  const [form, setForm] = useState(() => withRemembered({ name: "", phone: "", empresa: "" }));
+  const [form, setForm] = useState(() => fillBlanks(withRemembered({ name: "", phone: "", empresa: "" })));
+  const shareContact = useSharedContact(setForm); // 308: lo escrito aquí rellena los campos vacíos de los otros formularios de la ficha
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
   const [via, setVia] = useState("form"); // "form" | "whatsapp": cómo se mandó, para el mensaje de éxito
@@ -159,7 +161,7 @@ export default function ContactRequestCard({ property }) {
       <h2 className="contact-request-card__title">{t("contactRequest.title")}</h2>
       <p className="form-hint">{t("contactRequest.subtitle")}</p>
 
-      <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={handleSubmit} onBlur={() => shareContact(form)} noValidate>
         <div aria-hidden="true" className="hp-field">
           <label htmlFor="callback-empresa">Empresa</label>
           <input id="callback-empresa" name="empresa" value={form.empresa} onChange={handleChange} tabIndex={-1} autoComplete="off" />

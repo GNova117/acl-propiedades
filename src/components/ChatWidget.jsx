@@ -49,6 +49,12 @@ export default function ChatWidget() {
     return ref?.kind === "code" ? ref.code : "";
   }, [pathname]);
   const [open, setOpen] = useState(false);
+  // La barra de contacto de la ficha (teléfono) abre el chat con este evento; el botón flotante se oculta ahí para no tapar texto.
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener("acl:open-chat", onOpen);
+    return () => window.removeEventListener("acl:open-chat", onOpen);
+  }, []);
   const [messages, setMessages] = useState(loadSavedMessages);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);

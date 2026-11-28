@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { fillBlanks, useSharedContact } from "../lib/sharedContact";
 import { errorId, fieldErrorProps, focusFirstError } from "../lib/formErrors";
 import { saveContact, withRemembered } from "../lib/rememberedContact";
 import { Link } from "react-router-dom";
@@ -25,7 +26,8 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith("en") ? "en-US" : "es-MX";
 
-  const [form, setForm] = useState(() => withRemembered(EMPTY));
+  const [form, setForm] = useState(() => fillBlanks(withRemembered(EMPTY)));
+  const shareContact = useSharedContact(setForm); // 308
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [status, setStatus] = useState("idle"); // idle | sending
@@ -170,7 +172,7 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
   }
 
   return (
-    <form className="visit-booking" onSubmit={handleSubmit} noValidate>
+    <form className="visit-booking" onSubmit={handleSubmit} onBlur={() => shareContact(form)} noValidate>
       <VisitSlotPicker selection={selection} locale={locale} />
 
       {activeTime && (

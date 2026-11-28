@@ -43,6 +43,7 @@ import SuggestedProperties from "../components/SuggestedProperties";
 import { breadcrumbJsonLd, faqJsonLd, propertyListingJsonLd } from "../lib/structuredData.js";
 import { siteOrigin } from "../lib/site.js";
 import { colonyPath } from "../lib/zoneLandingPages.js";
+import Breadcrumbs from "../components/Breadcrumbs";
 
 // Leaflet (react-leaflet + leaflet, ~150KB) queda fuera del bundle
 // principal del sitio público — aquí siempre se termina mostrando (no es
@@ -281,22 +282,27 @@ export default function PropertyDetail() {
     return `${lead}${(property.description || "").slice(0, remaining)}`.trim();
   }, [property, t]);
 
+  // 297: la misma lista alimenta las migas que se ven y los datos estructurados para Google.
+  const crumbs = useMemo(() => {
+    if (!property) return [];
+    const listName = property.type === "terreno" ? t("nav.land") : property.type === "nave_industrial" ? t("nav.industrial") : t("nav.properties");
+    return [
+      { name: t("nav.home"), path: "/" },
+      { name: listName, path: propertyListPath(property.type) },
+      { name: property.title, path: propertyPath(property) },
+    ];
+  }, [property, t]);
+
   const jsonLd = useMemo(() => {
     if (!property || typeof window === "undefined") return undefined;
     const origin = siteOrigin();
     const url = `${origin}${propertyPath(property)}`;
-    const listPath = propertyListPath(property.type);
-    const listName = property.type === "terreno" ? t("nav.land") : property.type === "nave_industrial" ? t("nav.industrial") : t("nav.properties");
     return [
       propertyListingJsonLd({ property, url }),
-      breadcrumbJsonLd([
-        { name: t("nav.home"), url: origin },
-        { name: listName, url: `${origin}${listPath}` },
-        { name: property.title, url },
-      ]),
+      breadcrumbJsonLd(crumbs.map((crumb) => ({ name: crumb.name, url: crumb.path === "/" ? origin : `${origin}${crumb.path}` }))),
       faqJsonLd(buildFaq(property, t)),
     ].filter(Boolean);
-  }, [property, t]);
+  }, [property, t, crumbs]);
 
   const propertyAmenities = useMemo(() => {
     if (!property?.amenities?.length) return [];
@@ -387,9 +393,12 @@ export default function PropertyDetail() {
       <Seo title={seoTitle} description={seoDescription} image={`${siteOrigin()}/api/og?id=${encodeURIComponent(property.id)}`} jsonLd={jsonLd} noindex={property.active === false} />
 
       <div className="container property-detail">
-        <Link to={listFrom || "/propiedades"} onClick={handleBack} className="property-detail__back">
-          &larr; {t("detail.back")}
-        </Link>
+        <div className="property-detail__nav">
+          <Breadcrumbs items={crumbs} />
+          <Link to={listFrom || "/propiedades"} onClick={handleBack} className="property-detail__back">
+            &larr; {t("detail.back")}
+          </Link>
+        </div>
 
         {presentation && (
           <Link to={propertyPath(property)} className="btn btn-primary btn-sm presentation-exit">

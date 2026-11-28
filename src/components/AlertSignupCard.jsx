@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { fillBlanks, useSharedContact } from "../lib/sharedContact";
 import { errorId, fieldErrorProps, focusFirstError } from "../lib/formErrors";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -32,7 +33,8 @@ const ERRORS = {
 // similar" en una propiedad ya vendida/apartada, reusando mode="search".
 export default function AlertSignupCard({ mode, variant = mode, criteria, property, matchCount }) {
   const { t } = useTranslation();
-  const [form, setForm] = useState({ name: "", phone: "", email: "", empresa: "" });
+  const [form, setForm] = useState(() => fillBlanks({ name: "", phone: "", email: "", empresa: "" }));
+  const shareContact = useSharedContact(setForm); // 308
   const [contactMethod, setContactMethod] = useState("whatsapp");
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle"); // idle | sending | success | duplicate | error
@@ -168,7 +170,7 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
         </p>
       )}
 
-      <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={handleSubmit} onBlur={() => shareContact(form)} noValidate>
         <div aria-hidden="true" className="hp-field">
           <label htmlFor={`alert-${mode}-empresa`}>Empresa</label>
           <input id={`alert-${mode}-empresa`} name="empresa" value={form.empresa} onChange={change} tabIndex={-1} autoComplete="off" />

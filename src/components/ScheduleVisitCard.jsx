@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { fillBlanks, useSharedContact } from "../lib/sharedContact";
 import { errorId, fieldErrorProps, focusFirstError } from "../lib/formErrors";
 import { saveContact, withRemembered } from "../lib/rememberedContact";
 import { Link } from "react-router-dom";
@@ -44,7 +45,8 @@ function buildVisitMessage(property, { date, time, note }) {
 function VisitRequestForm({ property, onBack, noSlots }) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith("en") ? "en-US" : "es-MX";
-  const [form, setForm] = useState(() => withRemembered(initialForm));
+  const [form, setForm] = useState(() => fillBlanks(withRemembered(initialForm)));
+  const shareContact = useSharedContact(setForm); // 308
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
   const [formError, setFormError] = useState("");
@@ -149,7 +151,7 @@ function VisitRequestForm({ property, onBack, noSlots }) {
   if (status === "success") return <p className="form-hint text-success">{t("scheduleVisit.success")}</p>;
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
+    <form onSubmit={handleSubmit} onBlur={() => shareContact(form)} noValidate>
       {onBack && (
         <p className="visit-booking__alt">
           <button type="button" className="visit-booking__link" onClick={onBack}>

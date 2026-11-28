@@ -119,7 +119,9 @@ test.describe("Tanda A y B", () => {
     const codigo = (await page.locator(".property-detail__code strong").first().textContent())?.trim();
     // La dirección canónica lleva el código al final; el chat lo toma de ahí.
     await expect(page).toHaveURL(new RegExp(`${codigo}$`, "i"));
-    await press(page.locator(".chat-widget__toggle"));
+    // En teléfono el chat de la ficha se abre desde su botón en la barra de contacto; en pantalla grande, con el flotante.
+    const desdeLaBarra = page.locator(".mobile-contact-bar__chat");
+    await press((await desdeLaBarra.isVisible()) ? desdeLaBarra : page.locator(".chat-widget__toggle"));
     await page.locator(".chat-widget__form input").fill("¿Cuánto cuesta esta casa?");
     await press(page.locator(".chat-widget__form button[type=submit]"));
     await expect(page.locator(".chat-widget__bubble--assistant", { hasText: "Claro." })).toBeVisible();
@@ -526,5 +528,81 @@ test.describe("Tanda A y B", () => {
       await expect(page.locator(".site-header__actions .lang-toggle")).toBeVisible();
       await expect(page.locator(".site-nav").getByRole("link", { name: "Favoritos" })).toHaveCount(0);
     }
+  });
+  test("ficha: migas de pan visibles que coinciden con los datos estructurados (297)", async ({ page, go }) => {
+    await go("/propiedades/prop-1");
+    const migas = page.getByRole("navigation", { name: "Migas de pan" });
+    await expect(migas).toBeVisible();
+    const items = migas.locator("li");
+    expect(await items.count()).toBe(3);
+    await expect(items.first().getByRole("link", { name: "Inicio" })).toHaveAttribute("href", "/");
+    await expect(items.nth(1).getByRole("link")).toHaveAttribute("href", /^\/propiedades/);
+    await expect(items.last().locator("[aria-current=page]")).toBeVisible();
+    // Lo que se ve y lo que se manda a Google dicen lo mismo.
+    const visibles = await items.allTextContents();
+    const data = await page.locator("script#seo-jsonld").evaluate((el) => JSON.parse(el.textContent));
+    const lista = data.find((item) => item["@type"] === "BreadcrumbList").itemListElement.map((item) => item.name);
+    expect(lista).toEqual(visibles.map((texto) => texto.trim()));
+  });
+
+  test("ficha en laptop: título y precio se ven en la primera pantalla sin bajar (298)", async ({ page, go, isMobile }) => {
+    test.skip(isMobile, "solo aplica a pantalla de laptop");
+    await page.setViewportSize({ width: 1366, height: 800 });
+    await go("/propiedades/prop-1");
+    const h1 = await page.locator(".property-detail h1").evaluate((el) => el.getBoundingClientRect().bottom);
+    const precio = await page.locator(".property-detail__price").evaluate((el) => el.getBoundingClientRect().bottom);
+    expect(h1, "el título termina dentro de los 800 px de la primera pantalla").toBeLessThanOrEqual(800);
+    expect(precio, "el precio termina dentro de los 800 px de la primera pantalla").toBeLessThanOrEqual(800);
+  });
+
+  test("ficha en teléfono: el botón flotante del chat no tapa el texto y el chat se abre desde la barra de contacto (271)", async ({ page, go, press, isMobile }) => {
+    test.skip(!isMobile, "solo aplica a teléfono");
+    await go("/");
+    await expect(page.locator(".chat-widget__toggle")).toBeVisible();
+    await go("/propiedades/prop-1");
+    await expect(page.locator(".property-detail h1").first()).toBeVisible();
+    await expect(page.locator(".chat-widget__toggle")).toBeHidden();
+    // El chat sigue al alcance desde la barra de contacto de la ficha (junto a «Agendar visita» y «WhatsApp»).
+    await expect(page.locator(".mobile-contact-bar")).toBeVisible();
+    await press(page.locator(".mobile-contact-bar__chat"));
+    await expect(page.locator(".chat-widget__panel")).toBeVisible();
+    // Con el chat abierto, el botón flotante reaparece (como «×») para poder cerrarlo.
+    await expect(page.locator(".chat-widget__toggle")).toBeVisible();
+    await press(page.locator(".chat-widget__toggle"));
+    await expect(page.locator(".chat-widget__panel")).toHaveCount(0);
+  });
+
+  test("ficha: al imprimir no salen menú, chat, formularios ni mapa, pero sí el título y el precio (285)", async ({ page, go }) => {
+    await go("/propiedades/prop-1");
+    await expect(page.locator(".property-detail h1").first()).toBeVisible();
+    await page.emulateMedia({ media: "print" });
+    for (const selector of [".site-header", ".site-footer", ".chat-widget__toggle", ".contact-request-card", ".alert-signup", ".property-detail__sidebar", ".breadcrumbs", ".property-detail__back"]) {
+      const visibles = await page.locator(selector).evaluateAll((els) => els.filter((el) => getComputedStyle(el).display !== "none").length);
+      expect(visibles, `${selector} no debe imprimirse`).toBe(0);
+    }
+    await expect(page.locator(".property-detail h1").first()).toBeVisible();
+    await expect(page.locator(".property-detail__price")).toBeVisible();
+    const color = await page.locator(".property-detail__address").evaluate((el) => getComputedStyle(el).color);
+    expect(color, "texto negro al imprimir").toBe("rgb(0, 0, 0)");
+  });
+
+  test("ficha: lo escrito en un formulario rellena los campos vacíos de los otros y no se guarda hasta enviar (308)", async ({ page, go }) => {
+    await go("/propiedades/prop-1");
+    const contacto = page.locator(".contact-request-card");
+    const alerta = page.locator(".alert-signup").first();
+    await expect(contacto).toBeVisible();
+    await expect(alerta).toBeVisible();
+    await contacto.locator("input[name=name]").fill("Ana Compartida QA");
+    await contacto.locator("input[name=phone]").fill("871 555 0101");
+    await contacto.locator("input[name=phone]").blur();
+    await expect(alerta.locator("input[name=name]")).toHaveValue("Ana Compartida QA");
+    await expect(alerta.locator("input[name=phone]")).toHaveValue("871 555 0101");
+    // Lo que alguien ya escribió en un campo no se pisa.
+    await alerta.locator("input[name=name]").fill("Otro Nombre");
+    await contacto.locator("input[name=name]").fill("Ana Compartida QA 2");
+    await contacto.locator("input[name=name]").blur();
+    await expect(alerta.locator("input[name=name]")).toHaveValue("Otro Nombre");
+    // Sin enviar, nada se guarda en el navegador.
+    expect(await page.evaluate(() => localStorage.getItem("acl_remembered_contact"))).toBeNull();
   });
 });

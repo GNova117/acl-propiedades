@@ -63,6 +63,7 @@
     "soldInDays_other": "Sold in {{count}} days"
   },
   "mobileBar": {
+    "chat": "Chat",
     "schedule": "Schedule a visit",
     "whatsapp": "WhatsApp",
     "whatsappText": "Hi, I'm interested in {{property}}."
@@ -5015,6 +5016,9 @@
     "confirm": "OK",
     "undo": "Undo",
     "region": "Notices"
+  },
+  "breadcrumbs": {
+    "label": "Breadcrumb"
   },
   "zoneCombobox": {
     "list": "Areas"

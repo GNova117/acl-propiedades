@@ -12,9 +12,9 @@ Numeración = la de `docs/auditoria-areas-de-oportunidad.md` (101–506).
 
 ## A. Necesitan diseño o decisión tuya (sin SQL)
 
-**Inicio y navegación**: 222 fondos del inicio con `srcset`/carga diferida · 264 hero a pantalla completa y buscador bajo el pliegue · 265 panel de naves «Próximamente» · 266 inicio muy largo en teléfono · 267 «Torres y desarrollos» ocupa la primera pantalla · 270 «Desarrollos» en el menú (falta la página que los liste) · 271 el chat tapa texto en la ficha · 277 «Nosotros» con historia, años, certificaciones y fotos · 286 buscador del inicio vs filtros del listado (dos interfaces) · 298 primera pantalla de la ficha en laptop · 315 bloque para vendedores · 316 desarrollos y herramientas en el inicio · 320 categorías repetidas con el hero.
+**Inicio y navegación**: 222 fondos del inicio con `srcset`/carga diferida · 264 hero a pantalla completa y buscador bajo el pliegue · 265 panel de naves «Próximamente» · 266 inicio muy largo en teléfono · 267 «Torres y desarrollos» ocupa la primera pantalla · 270 «Desarrollos» en el menú (falta la página que los liste) · 277 «Nosotros» con historia, años, certificaciones y fotos · 286 buscador del inicio vs filtros del listado (dos interfaces) · 315 bloque para vendedores · 316 desarrollos y herramientas en el inicio · 320 categorías repetidas con el hero.
 
-**Ficha y tarjetas**: 251 botones dentro de enlaces y 3 enlaces por tarjeta (revisado: el carrusel de fotos tiene botones de siguiente/anterior y se desliza con el dedo, así que sacarlos del enlace exige rediseñar la tarjeta —un enlace que cubra toda la tarjeta rompe el deslizado—; falta decidir el diseño) · 285 estilos de impresión de la ficha · 302 testimonios con página y reseñas · 308 formularios duplicados en la ficha.
+**Ficha y tarjetas**: 251 botones dentro de enlaces y 3 enlaces por tarjeta (revisado: el carrusel de fotos tiene botones de siguiente/anterior y se desliza con el dedo, así que sacarlos del enlace exige rediseñar la tarjeta —un enlace que cubra toda la tarjeta rompe el deslizado—; falta decidir el diseño) · 302 testimonios con página y reseñas.
 
 **Accesibilidad que toca varias pantallas**: hechos 250, 252, 253, 254, 255, 257, 258, 259, 260 y 261 (en Contacto, «¿Te interesa?», solicitud y reserva de visita y alerta «avísame»); quedan 249 marcadores del mapa y gráficas · 261 en el resto de formularios.
 

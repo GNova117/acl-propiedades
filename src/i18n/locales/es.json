@@ -63,6 +63,7 @@
     "soldInDays_other": "Vendida en {{count}} días"
   },
   "mobileBar": {
+    "chat": "Chat",
     "schedule": "Agendar visita",
     "whatsapp": "WhatsApp",
     "whatsappText": "Hola, me interesa {{property}}."
@@ -5015,6 +5016,9 @@
     "confirm": "Aceptar",
     "undo": "Deshacer",
     "region": "Avisos"
+  },
+  "breadcrumbs": {
+    "label": "Migas de pan"
   },
   "zoneCombobox": {
     "list": "Zonas"

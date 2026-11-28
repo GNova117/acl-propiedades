@@ -417,6 +417,7 @@ body.presentation-mode .alert-signup,
 body.presentation-mode .property-detail__present,
 body.presentation-mode .property-detail__report,
 body.presentation-mode .property-detail__code,
+body.presentation-mode .breadcrumbs,
 body.presentation-mode .property-detail__faq {
   display: none !important;
 }
@@ -450,4 +451,114 @@ body.presentation-mode .property-detail__layout {
 
 .property-detail__monthly-info[open] summary {
   margin-bottom: 0.15rem;
+}
+
+/* 298: en laptop (1366×800) la primera pantalla era solo la galería; con la galería más baja, título, precio y estatus
+   ya se ven sin bajar. En teléfono y tableta no cambia (ahí la galería usa todo el ancho). */
+@media (min-width: 981px) {
+  .property-detail .gallery__main {
+    aspect-ratio: auto;
+    height: clamp(300px, 46vh, 440px);
+  }
+}
+
+/* 285: imprimir la ficha (o «Guardar como PDF» del navegador): sin menú, chat, barras ni formularios, sin el mapa
+   (sus piezas no se imprimen), texto negro sobre blanco y sin cortar tarjetas a la mitad. */
+@media print {
+  .site-header,
+  .site-footer,
+  .skip-link,
+  .public-tab-bar,
+  .mobile-contact-bar,
+  .sticky-price-bar,
+  .chat-widget,
+  .chat-widget__toggle,
+  .compare-bar,
+  .cookie-banner,
+  .toast,
+  .property-detail__sidebar,
+  .property-detail__similar,
+  .property-detail__faq,
+  .property-detail__back,
+  .property-detail__present,
+  .property-detail__report,
+  .property-detail__tour360-btn,
+  .property-detail__map-actions,
+  .property-detail__monthly-adjust,
+  .property-map,
+  .gallery__thumbs,
+  .gallery__counter,
+  .gallery__expand-badge,
+  .favorite-button,
+  .compare-button,
+  .share-button,
+  .alert-signup,
+  .contact-request-card,
+  .mortgage-calc {
+    display: none !important;
+  }
+
+  body,
+  .property-detail {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .property-detail {
+    padding: 0;
+  }
+
+  .property-detail__layout {
+    display: block;
+  }
+
+  .property-detail .gallery__main {
+    aspect-ratio: auto;
+    height: 9cm;
+  }
+
+  .property-detail section,
+  .property-detail__ficha-card,
+  .property-detail__features {
+    break-inside: avoid;
+  }
+
+  .property-detail p,
+  .property-detail li,
+  .property-detail dd,
+  .property-detail dt,
+  .property-detail__address,
+  .property-detail__code,
+  .property-detail__monthly {
+    color: #000 !important;
+  }
+}
+
+/* Migas y «Volver» en un solo renglón (en teléfono, una debajo de la otra): la primera pantalla se aprovecha para la galería. */
+.property-detail__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.property-detail__nav .breadcrumbs,
+.property-detail__nav .property-detail__back {
+  margin-bottom: 0;
+}
+
+.property-detail__nav .breadcrumbs {
+  flex: 0 1 auto;
+}
+
+body.presentation-mode .property-detail__nav {
+  display: none;
+}
+
+@media print {
+  .property-detail__nav {
+    display: none;
+  }
 }
