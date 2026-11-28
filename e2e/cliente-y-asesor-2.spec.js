@@ -322,7 +322,7 @@ test.describe("Prospectos: arrastrar, calificación y secuencia", () => {
     expect(await nombres()).toEqual(["Segundo Caliente", "Primero Frío"]);
   });
 
-  test("secuencia: un prospecto nuevo muestra el paso 1 con el mensaje listo; al registrar contactos avanza y se detiene al avanzar de etapa", async ({ page, go, press }) => {
+  test("secuencia: un prospecto nuevo muestra el paso 1 con el mensaje listo; al registrar contactos avanza y se detiene al avanzar de etapa", async ({ page, go }) => {
     await go("/admin/prospectos");
     await poner(page, "acl_local_prospectos", [prospecto("q1", "Luis Secuencia", { source: "whatsapp", property_id: "prop-1" })]);
     await go("/admin/prospectos");

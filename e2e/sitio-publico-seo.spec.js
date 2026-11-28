@@ -4,7 +4,6 @@ import { test, expect } from "./fixtures.js";
 // direcciones legibles de las fichas y lo que Google lee (canonical, hreflang, datos estructurados).
 
 const SENDEROS_SLUG = "casa-en-residencial-senderos-ACL-1001";
-const attr = (page, selector, name) => page.locator(selector).first().getAttribute(name);
 const jsonLd = async (page) => JSON.parse(await page.locator("script#seo-jsonld").textContent());
 
 test.describe("Direcciones legibles y SEO", () => {

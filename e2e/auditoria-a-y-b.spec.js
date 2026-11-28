@@ -506,7 +506,7 @@ test.describe("Tanda A y B", () => {
     await expect(nombre).toHaveAttribute("aria-describedby", `${id}-error`);
     await expect(page.locator(`#${id}-error`)).toBeVisible();
   });
-  test("encabezado: logotipo más grande, teléfono a la vista en pantalla grande y, en teléfono, tema e idioma dentro del menú (268, 269, 270, 318)", async ({ page, go, press, isMobile, abrirMenuSitio }) => {
+  test("encabezado: logotipo más grande, teléfono a la vista en pantalla grande y, en teléfono, tema e idioma dentro del menú (268, 269, 270, 318)", async ({ page, go, isMobile, abrirMenuSitio }) => {
     await go("/");
     const logo = await page.locator(".site-header__logo .acl-logo").evaluate((el) => el.getBoundingClientRect().height);
     expect(logo, "alto del logotipo del encabezado (px)").toBeGreaterThanOrEqual(44);
