@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { whatsappDigits } from "../../lib/format";
-import { useAuth } from "../../context/AuthContext";
+import { normalizeMxWhatsapp } from "../../lib/format";
+import { useAuth } from "../../context/useAuth.js";
 import VisitScheduleEditor from "../../components/VisitScheduleEditor";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const EMPTY = { name: "", phone: "", email: "", whatsapp: "", bio: "" };
 
@@ -53,7 +54,7 @@ export default function AdminMyProfile() {
       });
       setExistingPhoto(advisor.photo_url || "");
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [advisorId]);
 
   useEffect(() => {
@@ -87,7 +88,7 @@ export default function AdminMyProfile() {
         name: form.name,
         phone: form.phone,
         email: form.email.trim().toLowerCase(),
-        whatsapp: whatsappDigits(form.whatsapp),
+        whatsapp: normalizeMxWhatsapp(form.whatsapp),
         bio: form.bio,
         existingPhoto,
         photoFile,
@@ -95,7 +96,7 @@ export default function AdminMyProfile() {
       setPhotoFile(null);
       setSaved(true);
     } catch (err) {
-      notify(err.message || "Error al guardar");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }
@@ -113,33 +114,33 @@ export default function AdminMyProfile() {
 
       <form className="card admin-form" onSubmit={handleSubmit} noValidate>
         <div className="form-field">
-          <label htmlFor="mp-name">Nombre</label>
+          <label htmlFor="mp-name">{t("profileUi.fieldName")}</label>
           <input id="mp-name" value={form.name} onChange={handleChange("name")} />
           {errors.name && <span className="form-error">{errors.name}</span>}
         </div>
 
         <div className="form-row">
           <div className="form-field">
-            <label htmlFor="mp-phone">Teléfono</label>
+            <label htmlFor="mp-phone">{t("profileUi.fieldPhone")}</label>
             <input id="mp-phone" value={form.phone} onChange={handleChange("phone")} />
             {errors.phone && <span className="form-error">{errors.phone}</span>}
           </div>
           <div className="form-field">
-            <label htmlFor="mp-email">Correo</label>
+            <label htmlFor="mp-email">{t("profileUi.fieldEmail")}</label>
             <input id="mp-email" type="email" value={form.email} onChange={handleChange("email")} />
             {errors.email && <span className="form-error">{errors.email}</span>}
           </div>
         </div>
 
         <div className="form-field">
-          <label htmlFor="mp-whatsapp">WhatsApp (formato 521XXXXXXXXXX)</label>
+          <label htmlFor="mp-whatsapp">{t("advisorForm.whatsappLabel")}</label>
           <input id="mp-whatsapp" value={form.whatsapp} onChange={handleChange("whatsapp")} />
         </div>
 
         <div className="form-field">
-          <label htmlFor="mp-bio">Puesto / descripción breve</label>
-          <textarea id="mp-bio" rows={3} value={form.bio} onChange={handleChange("bio")} placeholder="Ej. Asesora Inmobiliaria" />
-          <p className="form-hint">Aparece debajo de tu nombre en la página de Nosotros.</p>
+          <label htmlFor="mp-bio">{t("profileUi.fieldBio")}</label>
+          <textarea id="mp-bio" rows={3} value={form.bio} onChange={handleChange("bio")} placeholder={t("advisorForm.bioPlaceholder")} />
+          <p className="form-hint">{t("profileUi.bioHint")}</p>
         </div>
 
         <div className="form-field">

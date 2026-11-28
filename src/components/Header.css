@@ -1,7 +1,7 @@
 .site-header {
   position: sticky;
   top: 0;
-  z-index: 200;
+  z-index: var(--z-header);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   backdrop-filter: blur(6px);
@@ -94,7 +94,7 @@
   border-radius: 1px;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 1180px) {
   .site-header__burger {
     display: flex;
   }
@@ -108,7 +108,10 @@
     border-bottom: 1px solid var(--color-border);
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.25s ease;
+    /* Cerrado: invisible también para el teclado y los lectores de pantalla (antes sus enlaces seguían recibiendo Tab).
+       La visibilidad se quita al terminar la animación de cierre y vuelve al instante al abrir. */
+    visibility: hidden;
+    transition: max-height 0.25s ease, visibility 0s linear 0.25s;
   }
 
   /* Alto del menú abierto = lo que quepa en pantalla, con scroll si hace falta:
@@ -117,6 +120,8 @@
   .site-nav--open {
     max-height: calc(100vh - 72px);
     overflow-y: auto;
+    visibility: visible;
+    transition-delay: 0s;
   }
 
   .site-nav ul {
@@ -134,5 +139,87 @@
     display: block;
     padding: 0.75rem 0;
     border-bottom: 1px solid var(--color-border);
+  }
+}
+
+/* 268: el logotipo del encabezado medía ~56 px de ancho y era casi ilegible; ahora más grande (el alto del encabezado no cambia). */
+.site-header__logo .acl-logo--sm {
+  height: 3.3em;
+}
+
+/* 269: teléfono visible en pantalla grande (en laptop chica se oculta para no apretar el menú). */
+.site-header__phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-right: 0.35rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+@media (max-width: 1299px) {
+  .site-header__phone span {
+    display: none;
+  }
+
+  .site-header__phone {
+    width: 38px;
+    height: 38px;
+    justify-content: center;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    margin-right: 0;
+  }
+}
+
+/* 318: dentro del menú del teléfono: llamar y los dos interruptores (tema e idioma). */
+.site-nav__extras {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.25rem 1.5rem 1.25rem;
+}
+
+.site-nav__call {
+  justify-content: center;
+}
+
+.site-nav__tools {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (max-width: 1180px) {
+  .site-header__logo .acl-logo--sm {
+    height: 2.9em;
+  }
+}
+
+.site-nav .site-nav__call {
+  display: flex;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-primary);
+}
+
+/* El menú del sitio ahora tiene hasta 8 enlaces más el teléfono: en la laptop se partían en dos renglones. El encabezado usa un
+   contenedor un poco más ancho que el resto de la página, los enlaces no se parten y, en pantallas medianas, se aprietan los
+   espacios. Por debajo de 1180 px el menú pasa al botón de hamburguesa (con 8 enlaces ya no cabe antes). */
+.site-header .container {
+  max-width: 1360px;
+}
+
+.site-nav a {
+  white-space: nowrap;
+}
+
+@media (min-width: 1181px) and (max-width: 1299px) {
+  .site-nav ul {
+    gap: 1.25rem;
   }
 }

@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { whatsappDigits } from "../lib/format";
 import "./AdvisorCard.css";
 import { propertyPath } from "../lib/propertyUrl.js";
+import { siteOrigin } from "../lib/site";
 
 // `property`: opcional — cuando la tarjeta se muestra en la ficha de una
 // propiedad (no en /nosotros, donde no aplica), precarga el WhatsApp con
@@ -10,7 +11,7 @@ import { propertyPath } from "../lib/propertyUrl.js";
 function buildWhatsappHref(advisor, property) {
   const number = whatsappDigits(advisor.whatsapp);
   if (!property) return `https://wa.me/${number}`;
-  const url = `${window.location.origin}${propertyPath(property)}`;
+  const url = `${siteOrigin()}${propertyPath(property)}`;
   const title = property.title.trim();
   const label = property.code ? `${title} (${property.code})` : title;
   const text = `Hola, me interesa la propiedad ${label} — ${url}`;
@@ -23,7 +24,7 @@ export default function AdvisorCard({ advisor, property }) {
 
   return (
     <div className="advisor-card card">
-      {advisor.photo_url && <img src={advisor.photo_url} alt={advisor.name} className="advisor-card__photo" loading="lazy" decoding="async" />}
+      {advisor.photo_url && <img src={advisor.photo_url} alt="" className="advisor-card__photo" loading="lazy" decoding="async" />}
       <h4>{advisor.name}</h4>
       {advisor.bio && <p className="advisor-card__bio">{advisor.bio}</p>}
       <div className="advisor-card__actions">

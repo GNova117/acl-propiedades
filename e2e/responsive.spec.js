@@ -79,7 +79,8 @@ test.describe("Móvil y tableta", () => {
     await press(page.getByRole("button", { name: "Abrir menú" }));
     const nav = page.locator(".site-nav--open");
     await expect(nav).toBeVisible();
-    await expect.poll(() => page.locator(".site-nav a").count()).toBe(8);
+    // 8 enlaces de página + «Desarrollos» (hay uno publicado) + «Favoritos» (solo en el menú del teléfono) = 10; el botón «Llamar» no es un enlace de página.
+    await expect.poll(() => page.locator(".site-nav li a").count()).toBe(10);
     await page.waitForTimeout(400); // fin de la transición de apertura
     const clipped = await page.evaluate(() => {
       const bottom = document.querySelector(".site-nav").getBoundingClientRect().bottom;
@@ -110,7 +111,8 @@ test.describe("Móvil y tableta", () => {
     await go("/propiedades");
     const card = page.locator(".property-card", { has: page.locator('a[href$="-ACL-1001"]') }).first();
     await expect(card).toBeVisible();
-    await expect(card.locator(".property-card__image-link img"), "la tarjeta sin foto no debe pintar <img>").toHaveCount(0);
+    // Sin foto la tarjeta muestra la imagen de reemplazo propia (nunca un <img> vacío ni un hueco).
+    await expect(card.locator(".property-card__image-link img")).toHaveAttribute("src", "/sin-foto.svg");
     expect(await emptyImgs(), "/propiedades").toBe(0);
 
     await press(card.locator(".compare-button"));

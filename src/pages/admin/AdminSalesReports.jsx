@@ -4,11 +4,13 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { formatMXN, propertyTypeLabel } from "../../lib/format";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import {
   availableYears,
   advisorPerformance,
   buildSaleRows,
+  comparePeriods,
+  monthlyProfit,
   currentInventory,
   filterRows,
   inventorySeries,
@@ -132,6 +134,7 @@ function InventoryChart({ series, monthLabels, t }) {
                 <div
                   key={s.month}
                   className="sr-chart__col"
+                  role="group"
                   tabIndex={0}
                   onMouseEnter={() => setHover(s.month)}
                   onMouseLeave={() => setHover(null)}
@@ -238,6 +241,8 @@ export default function AdminSalesReports() {
   const matrix = useMemo(() => monthlyMatrix(allRows, team, { year, type }), [allRows, team, year, type]);
   const performance = useMemo(() => advisorPerformance(periodRows, team, { year, month }), [periodRows, team, year, month]);
   const profit = useMemo(() => profitSummary(periodRows), [periodRows]);
+  const monthlyProfitRows = useMemo(() => monthlyProfit(allRows, { year, type }), [allRows, year, type]);
+  const comparison = useMemo(() => comparePeriods(allRows, { year, month, type }), [allRows, year, month, type]);
   const series = useMemo(() => inventorySeries(properties, allRows, { year, type }), [properties, allRows, year, type]);
   const inventory = useMemo(() => currentInventory(properties, ventas, { type }), [properties, ventas, type]);
   const pending = useMemo(() => pendingSales(properties, ventas), [properties, ventas]);
@@ -374,7 +379,7 @@ export default function AdminSalesReports() {
         </div>
       </div>
 
-      {loadError && <p className="form-error">{t("salesReports.loadError", { error: loadError })}</p>}
+      {loadError && <p className="form-error" role="alert">{t("salesReports.loadError", { error: loadError })}</p>}
 
       <div className="sr-filters card">
         <div className="form-field">
@@ -462,6 +467,18 @@ export default function AdminSalesReports() {
               </span>
             </div>
           </div>
+
+          {(comparison.prior.count > 0 || comparison.current.count > 0) && (
+            <p className="form-hint sr-compare" role="status">
+              {t("salesReports.compare.line", {
+                period: month == null ? String(comparison.previous.year) : `${monthLabels[month]} ${comparison.previous.year}`,
+                sold: comparison.prior.count,
+                countDelta: `${comparison.countDelta > 0 ? "+" : ""}${comparison.countDelta}`,
+                volume: formatMXN(comparison.prior.volume),
+                volumeChange: comparison.volumePercent == null ? t("salesReports.compare.noBase") : `${comparison.volumePercent > 0 ? "+" : ""}${comparison.volumePercent} %`,
+              })}
+            </p>
+          )}
 
           <InventoryChart series={series} monthLabels={monthLabels} t={t} />
 
@@ -648,6 +665,44 @@ export default function AdminSalesReports() {
               <span>{t("salesReports.profit.pendingNote", { count: profit.pending })}</span>
             </div>
           )}
+
+          <div className="card sr-panel">
+            <div className="sr-panel__header">
+              <h2>{t("salesReports.profit.monthlyTitle", { year })}</h2>
+            </div>
+            <div className="admin-table-wrapper">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>{t("salesReports.profit.month")}</th>
+                    <th>{t("salesReports.profit.sales")}</th>
+                    <th>{t("salesReports.kpi.volume")}</th>
+                    <th>{t("salesReports.kpi.officeProfit")}</th>
+                    <th>{t("salesReports.profit.margin")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {monthlyProfitRows.filter((m) => m.sold > 0).map((m) => (
+                    <tr key={m.month}>
+                      <td>{monthLabels[m.month]}</td>
+                      <td>
+                        {m.sold}
+                        {m.pending > 0 && <span className="form-hint"> ({t("salesReports.profit.pendingShort", { count: m.pending })})</span>}
+                      </td>
+                      <td>{formatMXN(m.volume)}</td>
+                      <td>{m.liquidated > 0 ? formatMXN(m.utilidadOficina) : "—"}</td>
+                      <td>{m.marginPct == null ? "—" : `${m.marginPct} %`}</td>
+                    </tr>
+                  ))}
+                  {monthlyProfitRows.every((m) => m.sold === 0) && (
+                    <tr>
+                      <td colSpan={5}>{t("salesReports.profit.noSalesYear")}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           <div className="card sr-panel">
             <div className="sr-panel__header">

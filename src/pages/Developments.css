@@ -1,0 +1,6 @@
+.developments-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 380px));
+  justify-content: center;
+  gap: 1.5rem;
+}

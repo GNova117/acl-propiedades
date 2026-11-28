@@ -13,6 +13,7 @@ import {
   validateIncomingMessages,
   validateLeadArgs,
   whatsappHref,
+  clientIp,
 } from "./chatbot";
 
 describe("buildSystemPrompt", () => {
@@ -251,5 +252,37 @@ describe("agendar visitas desde el chat", () => {
     expect(validateHandoffArgs({ motivo: "precio" }).lead).toBeNull();
     const { lead } = validateHandoffArgs({ motivo: "precio", telefono: "871 555 0101" });
     expect(lead).toMatchObject({ name: "Contacto del chat", phone: "8715550101", interest: "PIDE UN ASESOR: precio" });
+  });
+});
+
+describe("clientIp", () => {
+  it("toma la primera IP de x-forwarded-for", () => {
+    expect(clientIp({ "x-forwarded-for": "187.190.1.2, 76.76.21.21" })).toBe("187.190.1.2");
+  });
+
+  it("usa x-real-ip si no hay x-forwarded-for y acepta IPv6", () => {
+    expect(clientIp({ "x-real-ip": "2806:2f0:1::ABCD" })).toBe("2806:2f0:1::abcd");
+  });
+
+  it("devuelve nulo sin encabezados o con basura", () => {
+    expect(clientIp({})).toBeNull();
+    expect(clientIp()).toBeNull();
+    expect(clientIp({ "x-forwarded-for": "no es una ip; drop table" })).toBeNull();
+  });
+});
+
+describe("buildSystemPrompt con la ficha abierta", () => {
+  it("sin ficha no agrega contexto", () => {
+    expect(buildSystemPrompt()).not.toContain("Contexto de la página");
+  });
+  it("con ficha dice cuál es y qué significa «esta casa»", () => {
+    const prompt = buildSystemPrompt({ currentProperty: "- ACL-1001 · Casa en Torreón · $1,200,000" });
+    expect(prompt).toContain("Contexto de la página");
+    expect(prompt).toContain("ACL-1001");
+    expect(prompt).toContain("esta casa");
+  });
+  it("recorta un resumen enorme", () => {
+    const prompt = buildSystemPrompt({ currentProperty: "x".repeat(5000) });
+    expect(prompt.length).toBeLessThan(buildSystemPrompt().length + 1000);
   });
 });

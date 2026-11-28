@@ -55,14 +55,14 @@ describe("bookingToCalendarEvent", () => {
 
   it("el archivo de calendario dura lo que dura la visita (90 min), no siempre una hora", () => {
     const ics = citaToIcs(bookingToCalendarEvent(result), { now: new Date("2026-11-03T12:00:00Z") });
-    expect(ics).toContain("DTSTART:20261105T160000");
-    expect(ics).toContain("DTEND:20261105T173000");
+    expect(ics).toContain("DTSTART:20261105T220000Z");
+    expect(ics).toContain("DTEND:20261105T233000Z");
   });
 
   it("sin duración sigue durando una hora y sin código ni nota no inventa nada", () => {
     const event = bookingToCalendarEvent({ ...result, duracion_min: undefined, property: { title: "Casa", address: "" } });
     expect(event.titulo).toBe("Visita: Casa");
     expect(event.actividades).toBeNull();
-    expect(citaToIcs(event, { now: new Date("2026-11-03T12:00:00Z") })).toContain("DTEND:20261105T170000");
+    expect(citaToIcs(event, { now: new Date("2026-11-03T12:00:00Z") })).toContain("DTEND:20261105T230000Z");
   });
 });

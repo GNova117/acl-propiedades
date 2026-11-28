@@ -1,6 +1,9 @@
 {
   "nav": {
+    "developments": "Desarrollos",
     "buyerGuide": "Guía del comprador",
+    "favorites": "Favoritos",
+    "call": "Llamar {{phone}}",
     "compareCredits": "Comparar créditos",
     "sellHome": "Vende tu casa",
     "blog": "Blog",
@@ -16,6 +19,8 @@
     "mySpace": "Mi espacio"
   },
   "hero": {
+    "callPrompt": "¿Prefieres hablar con alguien? Llámanos al",
+    "maxPricePlaceholder": "Sin límite",
     "title": "Encuentra tu próxima propiedad en La Comarca Lagunera",
     "subtitle": "Casas, departamentos y naves industriales en Torreón, Gómez Palacio y Lerdo, con asesoría certificada en INFONAVIT, bancario y FOVISSSTE.",
     "searchType": "Tipo de propiedad",
@@ -26,12 +31,6 @@
     "allTypes": "Todos los tipos",
     "allZones": "Todas las zonas",
     "allOperations": "Todas las operaciones"
-  },
-  "splitHero": {
-    "cta": "Ver más",
-    "comingSoon": "Próximamente",
-    "properties": { "title": "Propiedades", "subtitle": "Casas, departamentos y terrenos" },
-    "industrial": { "title": "Naves Industriales", "subtitle": "Espacios comerciales e industriales" }
   },
   "badges": {
     "new": "Nuevo",
@@ -60,11 +59,13 @@
     "soldInDays_other": "Vendida en {{count}} días"
   },
   "mobileBar": {
+    "chat": "Chat",
     "schedule": "Agendar visita",
     "whatsapp": "WhatsApp",
     "whatsappText": "Hola, me interesa {{property}}."
   },
   "monthlyEstimate": {
+    "infoShort": "¿Cómo se calcula?",
     "perMonth": "≈ {{amount}}/mes",
     "fromPerMonth": "Desde ≈ {{amount}} al mes",
     "hint": "Estimado con {{down}}% de enganche, a {{years}} años y tasa de {{rate}}%. Es solo una referencia, no una oferta ni una aprobación de crédito.",
@@ -157,6 +158,7 @@
     "local_comercial": "Local Comercial"
   },
   "propertyOperation": {
+    "perMonth": "/mes",
     "compra": "Venta",
     "renta": "Renta"
   },
@@ -167,9 +169,26 @@
   "propertyStatus": {
     "disponible": "Disponible",
     "apartada": "Apartada",
-    "vendida": "Vendida"
+    "vendida": "Vendida",
+    "rentada": "Rentada"
   },
   "properties": {
+    "mapLegend": "Colores de los marcadores por tipo de propiedad",
+    "showMap": "Ver en mapa",
+    "hideMap": "Ocultar mapa",
+    "onlyMine": "Solo mis propiedades",
+    "andMoreAdvisors_one": "y {{count}} más",
+    "andMoreAdvisors_other": "y {{count}} más",
+    "relaxFilter_one": "Quitar «{{filter}}»: {{count}} resultado",
+    "relaxFilter_other": "Quitar «{{filter}}»: {{count}} resultados",
+    "newSinceVisit_one": "{{count}} nueva desde tu última visita",
+    "newSinceVisit_other": "{{count}} nuevas desde tu última visita",
+    "noAdvisor": "Sin asesor",
+    "codeSearchError": "No se pudo buscar. Revisa tu conexión e inténtalo de nuevo.",
+    "statusFilter": "Estatus",
+    "statusDefault": "Disponibles y apartadas",
+    "statusOnlyAvailable": "Solo disponibles",
+    "statusAll": "Incluir vendidas y rentadas",
     "title": "Propiedades disponibles",
     "subtitle": "Filtra por tipo, zona, precio y superficie para encontrar tu propiedad ideal.",
     "industrialTitle": "Naves industriales disponibles",
@@ -242,6 +261,28 @@
     "coloniesTitle": "Colonias de {{city}} con propiedades"
   },
   "detail": {
+    "presentationMode": "Modo presentación",
+    "presentationExit": "Salir de la presentación",
+    "reportError": "Reportar un error",
+    "reportErrorMessage": "Encontré un error en la publicación {{code}} ({{url}}): ",
+    "priceDropAgo_zero": "Bajó {{amount}} ({{percent}} %) hoy",
+    "priceDropAgo_one": "Bajó {{amount}} ({{percent}} %) hace {{count}} día",
+    "priceDropAgo_other": "Bajó {{amount}} ({{percent}} %) hace {{count}} días",
+    "priceDropAgo_nodate": "Bajó {{amount}} ({{percent}} %)",
+    "publishedAgo_zero": "Publicada hoy",
+    "publishedAgo_one": "Publicada hace {{count}} día",
+    "publishedAgo_other": "Publicada hace {{count}} días",
+    "updatedOn": "Actualizada el {{date}}",
+    "seoTitleSold": "Vendida · {{type}} en {{zone}}",
+    "seoTitleRented": "Rentada · {{type}} en {{zone}}",
+    "seoTitle": "{{type}} en {{operation}} — {{zone}} · {{price}}",
+    "seoLead": "{{facts}} en {{zone}}. ",
+    "codeLabel": "Código",
+    "rentedTitle": "Esta propiedad ya se rentó",
+    "soldTitle": "Esta propiedad ya se vendió",
+    "soldText": "Ya no se pueden agendar visitas. Mira otras propiedades parecidas o déjanos tus datos más abajo para avisarte de algo similar.",
+    "soldCta": "Ver propiedades disponibles",
+    "locationApproximate": "Ubicación aproximada: el vendedor prefiere no publicar el punto exacto. Tu asesor te da la dirección al agendar la visita.",
     "compareCredits": {
       "title": "¿Cómo la pagarías?",
       "text": "Compara Infonavit, crédito bancario y contado para esta casa: cuánto necesitas al inicio y cuánto pagarías al mes.",
@@ -331,8 +372,16 @@
     }
   },
   "calculator": {
+    "askFormal": "Pedir estimación formal",
+    "talkToAdvisor": "Hablar con un asesor",
+    "whatsappText": "Hola, usé la calculadora del sitio: {{type}} de {{area}} m² en {{zone}}, estimación {{value}}. Me gustaría una estimación formal.",
     "title": "Calculadora de valor estimado",
-    "subtitle": "Obtén una estimación referencial del valor de una propiedad según su superficie, zona y tipo.",
+    "subtitle": "Obtén una estimación referencial del valor de una propiedad según su terreno, su construcción, la zona y el tipo. Es la misma fórmula de «Vende tu casa».",
+    "landArea": "Terreno (m²)",
+    "builtArea": "Construcción (m²)",
+    "landPricePerM2": "Terreno por m²",
+    "incomplete": "Para estimar necesitamos una zona con precio de referencia y las superficies. Pide la estimación formal y un asesor la calcula contigo.",
+    "whatsappTextNoEstimate": "Hola, quiero una estimación formal del valor de mi propiedad.",
     "area": "Superficie (m²)",
     "zone": "Zona",
     "type": "Tipo de propiedad",
@@ -360,6 +409,14 @@
     "paymentMethodsBody": "Aceptamos pago de contado, crédito bancario, crédito INFONAVIT y crédito FOVISSSTE, sujetos a las condiciones y documentación que exija cada institución. Consulta con tu asesor las opciones disponibles para cada propiedad."
   },
   "contact": {
+    "callCta": "Llamar",
+    "whatsappCta": "Escribir por WhatsApp",
+    "topicLabel": "¿Qué buscas?",
+    "topicNone": "Elige una opción (opcional)",
+    "topics": {"comprar": "Quiero comprar", "rentar": "Quiero rentar", "vender": "Quiero vender mi propiedad", "rentar_mia": "Quiero rentar mi propiedad", "otro": "Otro"},
+    "openNow": "· Abierto ahora",
+    "closedNow": "· Cerrado ahora",
+    "sendAnother": "Enviar otro mensaje",
     "title": "Contáctanos",
     "subtitle": "¿Tienes dudas o buscas una propiedad específica? Escríbenos y un asesor te contactará.",
     "directTitle": "Contacto directo",
@@ -376,10 +433,30 @@
     "invalidEmail": "Correo electrónico no válido",
     "privacyNotice": "Al enviar este formulario, tus datos serán tratados conforme a nuestro",
     "privacyLinkLabel": "Aviso de Privacidad",
+    "showMap": "Ver mapa",
+    "mapNotice": "El mapa lo ofrece Google y, al verlo, Google recibe tu dirección IP.",
     "mapTitle": "Ubicación de ACL Propiedades",
     "serverLimited": "Se enviaron demasiados mensajes desde tu conexión. Inténtalo de nuevo en un rato o llámanos por teléfono."
   },
   "messages": {
+    "hideAlerts_one": "Ocultar alertas de búsqueda ({{count}})",
+    "hideAlerts_other": "Ocultar alertas de búsqueda ({{count}})",
+    "channel": "Canal",
+    "search": "Buscar",
+    "searchPlaceholder": "Nombre, teléfono, correo o texto",
+    "subtitle": "Todo lo que llega al sitio: formulario de contacto, solicitudes de visita, WhatsApp, alertas, estimaciones y comparador. Filtra por canal para separarlo.",
+    "channels": {
+      "contacto": "Formulario de contacto",
+      "visita": "Visita agendada",
+      "visita_solicitud": "Solicitud de visita",
+      "visita_cambio": "Cambio de visita",
+      "whatsapp": "WhatsApp",
+      "alerta": "Alerta",
+      "simulador": "Simulador de crédito",
+      "estimacion": "Estimación de valor",
+      "comparador": "Comparador de créditos",
+      "guia": "Guía del comprador"
+    },
     "via_alerta": "Pidió avisos por WhatsApp",
     "via_comparador": "Desde el comparador de créditos",
     "via_whatsapp": "Desde WhatsApp",
@@ -395,7 +472,6 @@
     "viaWhatsapp": "Desde WhatsApp",
     "makeProspectError": "No se pudo pasar a prospecto",
     "title": "Mensajes de contacto",
-    "subtitle": "Mensajes enviados desde el formulario de contacto del sitio público.",
     "date": "Fecha",
     "noResults": "Aún no hay mensajes de contacto.",
     "statusNew": "Nuevo",
@@ -425,6 +501,12 @@
     }
   },
   "testimonials": {
+    "pageTitle": "Lo que dicen nuestros clientes",
+    "pageSubtitle": "Opiniones de quienes ya compraron, vendieron o rentaron con nosotros.",
+    "pageSeoDescription": "Opiniones y testimonios de clientes de ACL Propiedades que compraron, vendieron o rentaron una propiedad en La Comarca Lagunera.",
+    "pageEmptyTitle": "Aún no hay testimonios",
+    "pageEmptyText": "Estamos reuniendo las opiniones de nuestros clientes. Mientras tanto, mira las propiedades disponibles.",
+    "viewAll": "Ver todos los testimonios",
     "title": "Testimonios",
     "subtitle": "Se muestran en la sección \"Lo que dicen nuestros clientes\" del inicio — solo los marcados como Activos.",
     "new": "Nuevo testimonio",
@@ -437,6 +519,12 @@
     "homeTitle": "Lo que dicen nuestros clientes"
   },
   "blog": {
+    "share": "Compartir este artículo",
+    "spanishOnly": "Los artículos están disponibles solo en español por ahora.",
+    "readTime_one": "{{count}} min de lectura",
+    "readTime_other": "{{count}} min de lectura",
+    "byline": "Por el equipo de ACL Propiedades",
+    "related": "Sigue leyendo",
     "eyebrow": "Blog",
     "title": "Blog de ACL Propiedades",
     "subtitle": "Guías y consejos sobre compra, venta y renta de propiedades en La Comarca Lagunera.",
@@ -484,6 +572,10 @@
     "goHome": "Ir al inicio"
   },
   "favorites": {
+    "alertDropped_one": "{{count}} de tus favoritas bajó de precio.",
+    "alertDropped_other": "{{count}} de tus favoritas bajaron de precio.",
+    "alertUnavailable_one": "{{count}} de tus favoritas ya no está disponible.",
+    "alertUnavailable_other": "{{count}} de tus favoritas ya no están disponibles.",
     "title": "Favoritos",
     "subtitle": "Las propiedades que has guardado en este navegador.",
     "empty": "Aún no has guardado ninguna propiedad.",
@@ -502,6 +594,7 @@
     "success": "¡Listo! Un asesor te contactará muy pronto."
   },
   "scheduleVisit": {
+    "timePlaceholder": "Elige una hora",
     "title": "¿Quieres visitarla?",
     "subtitle": "Agenda una visita y conoce la propiedad con un asesor de ACL.",
     "cta": "Agendar visita",
@@ -520,6 +613,8 @@
       "manage": "Ver o cancelar mi solicitud"
     },
     "booking": {
+      "another": "Agendar otra visita",
+      "addToGoogle": "Agregar a Google Calendar",
       "loading": "Buscando horarios disponibles…",
       "chooseDay": "Elige el día",
       "chooseTime": "Elige la hora",
@@ -556,10 +651,19 @@
     }
   },
   "compare": {
+    "barCta": "Comparar ({{count}})",
+    "pricePerM2": "Precio por m²",
+    "monthly": "Pago mensual estimado",
+    "bestValue": "mejor valor",
+    "share": "Copiar enlace de la comparación",
+    "copied": "¡Enlace copiado!",
+    "copyManual": "Copia este enlace para compartir la comparación",
     "title": "Comparar propiedades",
     "subtitle": "Compara hasta 4 propiedades lado a lado antes de decidir.",
     "empty": "No tienes propiedades para comparar todavía.",
     "browseCta": "Ver propiedades",
+    "short": "Comparar",
+    "feature": "Característica",
     "add": "Agregar a comparar",
     "remove": "Quitar de comparar",
     "removeOne": "Quitar",
@@ -569,7 +673,8 @@
     "parking": "Estacionamiento"
   },
   "footer": {
-    "tagline": "Compra y venta de casas, terrenos, locales comerciales y naves industriales en La Comarca Lagunera.",
+    "termsLink": "Términos y condiciones",
+    "tagline": "Compra y venta de casas, departamentos, terrenos y naves industriales en La Comarca Lagunera.",
     "quickLinks": "Enlaces rápidos",
     "zones": "Zonas",
     "contactInfo": "Contacto",
@@ -596,6 +701,8 @@
     "someFailed": "Algunos registros no se pudieron actualizar — vuelve a intentar."
   },
   "common": {
+    "exportCsvEmpty": "No hay nada que exportar con los filtros actuales",
+    "saveError": "No se pudo guardar. Inténtalo de nuevo.",
     "more": "Más",
     "loading": "Cargando...",
     "save": "Guardar",
@@ -608,11 +715,19 @@
     "status": "Estado",
     "active": "Activo",
     "inactive": "Inactivo",
+    "toggleActiveHint": "Clic para activar o desactivar",
+    "photo": "Foto",
     "close": "Cerrar",
     "search": "Buscar",
-    "exportCsv": "Exportar CSV"
+    "exportCsv": "Exportar CSV",
+    "exportXlsx": "Exportar Excel"
   },
   "developments": {
+    "listTitle": "Torres y desarrollos",
+    "listSeoDescription": "Torres y desarrollos de ACL Propiedades en La Comarca Lagunera: proyectos completos con varios departamentos disponibles, desde un mismo lugar.",
+    "listEmptyTitle": "Pronto habrá desarrollos",
+    "listEmptyText": "Por ahora no hay desarrollos publicados. Mientras tanto, mira todas las propiedades disponibles.",
+    "viewAll": "Ver todos los desarrollos",
     "eyebrow": "Desarrollos",
     "stripTitle": "Torres y desarrollos",
     "stripSubtitle": "Proyectos completos con varios departamentos disponibles, desde un mismo lugar.",
@@ -714,6 +829,8 @@
       "illustrative": "Fotos y plano del modelo; el departamento puede variar en acabados y vista."
     },
     "contact": {
+      "formTitle": "O déjanos tus datos y te contactamos",
+      "formMessage": "Me interesa el desarrollo {{name}}. Quisiera recibir más información.",
       "title": "¿Te interesa {{name}}?",
       "text": "Te decimos qué departamentos quedan, te mandamos la lista de precios y agendamos tu visita.",
       "whatsapp": "Escribir por WhatsApp",
@@ -805,6 +922,15 @@
     }
   },
   "admin": {
+    "moveImageLeft": "Mover foto a la izquierda",
+    "moveImageRight": "Mover foto a la derecha",
+    "loginNetworkError": "No se pudo conectar. Revisa tu conexión e inténtalo de nuevo.",
+    "notFound": {
+      "title": "Esta pantalla no existe",
+      "text": "La dirección no corresponde a ninguna pantalla del panel. Puede que el enlace esté viejo.",
+      "back": "Ir al panel"
+    },
+    "tabSuffix": "Panel ACL",
     "loginTitle": "Acceso administrador",
     "email": "Correo",
     "password": "Contraseña",
@@ -815,7 +941,8 @@
       "clientes": "Clientes",
       "herramientas": "Herramientas",
       "obra": "Obra",
-      "oficina": "Oficina"
+      "oficina": "Oficina",
+      "sitio": "Sitio web"
     },
     "menu": "Menú",
     "logout": "Cerrar sesión",
@@ -830,6 +957,8 @@
     "totalProperties": "Total de propiedades",
     "activeAdvisors": "Asesores activos",
     "newMessages": "Mensajes nuevos",
+    "trendThisMonth": "+{{count}} este mes",
+    "trendLastMonth": "{{count}} el mes pasado",
     "todayAppointments": "Citas de hoy",
     "noAppointmentsToday": "No hay citas para hoy.",
     "recentProperties": "Propiedades recientes",
@@ -917,7 +1046,9 @@
       "gastos": "Desglose de gastos",
       "secretaria": "Secretaría",
       "prospectos": "Prospectos",
-      "blog": "Blog"
+      "blog": "Blog",
+      "arco": "Derechos ARCO (consultar y borrar datos de una persona)",
+      "membrete": "Plantilla membretada (PDF con logotipo)"
     },
     "rolesTitle": "Roles",
     "newRole": "Nuevo rol",
@@ -952,6 +1083,9 @@
     }
   },
   "zones": {
+    "suggestion_one": "Según {{count}} venta en esta zona: {{value}}/m².",
+    "suggestion_other": "Según {{count}} ventas en esta zona: {{value}}/m².",
+    "useSuggestion": "Usar",
     "name": "Nombre de la zona",
     "add": "Agregar zona",
     "builtPricePerM2": "Construcción ($ por m²)",
@@ -984,6 +1118,8 @@
     "months": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
   },
   "materialsCatalog": {
+    "priceJumpLine": "{{label}}: de {{before}} a {{after}} (+{{pct}} %).",
+    "priceJumpConfirm": "Es un aumento fuerte. ¿Guardar así?",
     "title": "Materiales",
     "subtitle": "Catálogo de materiales y precios. Los proyectos de remodelación seleccionan de esta lista en vez de capturar precios cada vez.",
     "name": "Nombre del material",
@@ -1023,6 +1159,12 @@
     "addSpace": "Agregar espacio"
   },
   "clients": {
+    "expediente": {
+      "complete": "Expediente completo",
+      "pending_one": "Falta {{count}} dato",
+      "pending_other": "Faltan {{count}} datos",
+      "missing": "Falta: {{items}}"
+    },
     "title": "Clientes",
     "name": "Nombre",
     "type": "Tipo de cliente",
@@ -1405,6 +1547,10 @@
     "clientSheet": "Datos del cliente"
   },
   "salesReports": {
+    "compare": {
+      "line": "Contra {{period}}: {{sold}} ventas ({{countDelta}}), volumen {{volume}} ({{volumeChange}}).",
+      "noBase": "sin base de comparación"
+    },
     "title": "Ventas y reportes",
     "subtitle": "Uso interno — esta información no se muestra en el sitio público.",
     "loadError": "No se pudieron cargar los datos: {{error}}",
@@ -1468,6 +1614,13 @@
       "commission": "Comisión cobrada"
     },
     "profit": {
+      "monthlyTitle": "Utilidad por mes — {{year}}",
+      "month": "Mes",
+      "sales": "Ventas",
+      "margin": "Margen",
+      "pendingShort_one": "{{count}} sin liquidar",
+      "pendingShort_other": "{{count}} sin liquidar",
+      "noSalesYear": "Sin ventas en este año.",
       "netProfit": "Utilidad neta de la sociedad",
       "commissions": "Comisiones a asesores",
       "detailTitle": "Ganancias por venta — {{period}}",
@@ -1786,6 +1939,7 @@
       "confirmRegenerate": "¿Generar un enlace nuevo? El enlace anterior dejará de funcionar y el vendedor necesitará el nuevo.",
       "confirmDisable": "¿Desactivar el enlace? El vendedor ya no podrá abrir su informe hasta que crees uno nuevo.",
       "createdOn": "Enlace creado el {{date}}.",
+      "expiresOn": "Vence el {{date}}.",
       "rotateHint": "Cualquiera que tenga el enlace puede ver el informe: compártelo solo con el vendedor.",
       "emailLabel": "Correo del vendedor",
       "emailSend": "Enviar por correo",
@@ -1848,6 +2002,7 @@
     }
   },
   "inspections": {
+    "compare": {"button": "Comparar inspecciones", "title": "Comparar inspecciones", "hint": "Elige dos inspecciones de la misma propiedad (por ejemplo, la de entrada y la de salida de un inquilino) para ver qué empeoró, qué mejoró y las fotos lado a lado.", "before": "Antes", "after": "Después", "choose": "Elige una inspección", "suggest": "Sugerir las dos más recientes de esa propiedad", "sameOne": "Elige dos inspecciones distintas.", "summary": "Empeoraron {{worse}} · Mejoraron {{better}} · Cambiaron {{changed}} · Igual {{same}}", "criterion": "Criterio", "change": "Cambio", "photoAlt": "Foto de la inspección", "changes": {"worse": "Empeoró", "better": "Mejoró", "same": "Igual", "changed": "Cambió"}},
     "title": "Inspección",
     "button": "Inspección",
     "newInspection": "Nueva inspección",
@@ -1968,6 +2123,7 @@
     "noRemodelProject": "Esta propiedad aún no tiene un proyecto de remodelación vinculado."
   },
   "infonavit": {
+    "sexChoose": "Elige una opción",
     "title": "Simulador de crédito Infonavit",
     "subtitle": "Estima tu crédito Infonavit tradicional, tu cuota mensual y tu capacidad total de compra a partir de tu edad, salario y ahorro en la Subcuenta de Vivienda.",
     "age": "Edad",
@@ -1986,6 +2142,8 @@
     "monthlyPayment": "Cuota / retención mensual estimada"
   },
   "backup": {
+    "navTitle": "Respaldo",
+    "movedHint": "El respaldo y la retención de papelería ahora tienen su propio apartado:",
     "fullTitle": "Respaldo completo (datos + fotos y documentos)",
     "fullHint": "Un solo archivo ZIP con los datos y todas las fotos, INE, contratos y demás archivos guardados. Puede tardar varios minutos y pesar cientos de MB; conviene hacerlo desde una computadora con buena conexión.",
     "includeVideos": "Incluir videos de propiedades (pueden pesar mucho)",
@@ -2011,9 +2169,10 @@
     "error": "No se pudo generar el respaldo",
     "reminderTitle": "Toca respaldar.",
     "reminderText": "Hace más de {{days}} días que no descargas un respaldo de los datos.",
-    "reminderLink": "Ir a Roles y accesos"
+    "reminderLink": "Ir a Respaldo"
   },
   "prospects": {
+    "followupSet": "Se programó el siguiente seguimiento para el {{date}}.",
     "bulk": {
       "label": "Acciones en lote",
       "select": "Seleccionar",
@@ -2295,10 +2454,14 @@
     "callTo": "Llamar a {{name}}",
     "whatsappTo": "WhatsApp a {{name}}",
     "placeholder": "Buscar cliente, propiedad, teléfono…  ( / )",
+    "placeholderShort": "Buscar…  ( / )",
     "loading": "Buscando…",
     "noResults": "Sin resultados para \"{{query}}\".",
     "more": "{{count}} más",
     "groups": {
+      "agenda": "Agenda",
+      "developments": "Desarrollos",
+      "blog": "Blog",
       "properties": "Propiedades",
       "clients": "Clientes",
       "prospects": "Prospectos",
@@ -2308,6 +2471,39 @@
       "keys": "Llaves",
       "docs": "Documentos (Secretaría)"
     }
+  },
+  "photoFreshness": {
+    "chip_one": "Revisar fotos: {{count}} mes sin cambios",
+    "chip_other": "Revisar fotos: {{count}} meses sin cambios",
+    "hint": "Esta propiedad lleva más de 6 meses sin cambios. Revisa que sus fotos sigan vigentes o actualízalas."
+  },
+  "liquidacionUi": {
+    "price": "Precio de la propiedad",
+    "totalCost": "Costo total de liquidación",
+    "refund": "Devolución al vendedor original",
+    "investRemodel": "Inversión — costo de remodelación",
+    "investServices": "Inversión — pago de servicios",
+    "whoListed": "Quién captó la propiedad",
+    "whoSold": "Quién vendió la propiedad",
+    "listingPct": "% Comisión de captación",
+    "salePct": "% Comisión de venta (si aplica)",
+    "lessTotalCost": "(−) Costo total de liquidación",
+    "lessRefund": "(−) Devolución al vendedor",
+    "lessInvest": "(−) Inversión (remodelación + servicios)",
+    "officeProfit": "= Utilidad de oficina",
+    "netProfit": "= Utilidad neta de la sociedad"
+  },
+  "profileUi": {
+    "fieldName": "Nombre",
+    "fieldPhone": "Teléfono",
+    "fieldEmail": "Correo",
+    "fieldBio": "Puesto / descripción breve",
+    "bioHint": "Aparece debajo de tu nombre en la página de Nosotros."
+  },
+  "advisorsUi": {
+    "colName": "Nombre",
+    "colPhone": "Teléfono",
+    "colEmail": "Correo"
   },
   "contracts": {
     "sendToSign": "Enviar a firmar (enlace)",
@@ -2509,6 +2705,7 @@
     "years_other": "{{count}} años"
   },
   "sellHome": {
+    "rentInstead": "¿Prefieres rentarla en lugar de venderla? Cuéntanos.",
     "seoTitle": "Vende tu casa o conoce cuánto vale",
     "title": "¿Cuánto vale tu casa?",
     "subtitle": "Cuéntanos de tu propiedad y un asesor te contacta con una estimación de valor, sin costo y sin compromiso.",
@@ -2616,6 +2813,7 @@
       "badImage": "No se pudo leer esa imagen."
     },
     "public": {
+      "tabTitle": "Firma de documento",
       "title": "Firma de documento",
       "codeIntro": "Vas a revisar y firmar «{{title}}». Escribe el código de 6 dígitos que te dio tu asesor.",
       "codeLabel": "Código",
@@ -3097,6 +3295,7 @@
       "hintDrawing": "Haz clic en cada esquina del {{kind}}. Con 3 o más puntos, cierra la figura. Después puedes arrastrar los vértices para ajustar.",
       "currentArea": "Área actual",
       "satellite": "Satélite",
+      "label": "Mapa para marcar el terreno o la zona a valuar. Usa las flechas para moverte y más y menos para acercar o alejar.",
       "streets": "Calles",
       "attribution": "Imagen satelital: Esri, Maxar, Earthstar Geographics. Búsqueda: OpenStreetMap."
     }
@@ -3207,9 +3406,17 @@
     }
   },
   "recentlyViewed": {
+    "clear": "Borrar historial",
     "title": "Vistos recientemente"
   },
   "chatWidget": {
+    "listLabel": "Conversación con el asistente",
+    "starterBuy": "Busco casa en Torreón",
+    "starterSell": "Quiero vender mi propiedad",
+    "starterAdvisor": "Hablar con un asesor",
+    "newChat": "Nueva conversación",
+    "rateLimited": "Llegaste al límite de mensajes por ahora. Si quieres seguir, escríbenos por WhatsApp y un asesor te atiende.",
+    "aiNotice": "Este asistente es una inteligencia artificial: lo que escribas lo procesa un proveedor externo. No compartas datos sensibles (contraseñas, datos bancarios). Si dejas tu teléfono o correo, un asesor te contactará.",
     "title": "Asistente ACL Propiedades",
     "open": "Abrir chat",
     "close": "Cerrar chat",
@@ -3222,6 +3429,7 @@
     "error": "Algo salió mal. Intenta de nuevo o escríbenos por WhatsApp."
   },
   "gallery": {
+    "download": "Descargar esta foto",
     "expand": "Ampliar",
     "counter": "{{current}} / {{total}}",
     "prev": "Foto anterior",
@@ -3251,10 +3459,28 @@
     "saveError": "Error al guardar la nota",
     "deleteError": "Error al eliminar la nota"
   },
+  "cookieBanner": {
+    "title": "Tu privacidad",
+    "text": "Usamos Google Analytics para medir cómo se usa el sitio y mejorarlo. Solo se carga si lo aceptas.",
+    "privacy": "Aviso de Privacidad",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "preferences": "Preferencias de cookies"
+  },
+  "tokenLink": { "validUntil": "Este enlace vence el {{date}}." },
+  "retention": {
+    "title": "Papelería de clientes",
+    "rule": "Los documentos de un cliente se conservan {{years}} años desde la última actividad con él (alta, edición, documento, trámite o cita) y después se depuran. Si hay movimiento, el plazo vuelve a empezar.",
+    "due": "{{documents}} documentos de {{clients}} clientes ya cumplieron el plazo (el más antiguo, con última actividad el {{date}}).",
+    "none": "Ninguna papelería ha cumplido el plazo.",
+    "lastDry": "Última revisión: {{date}} (simulacro, no se borró nada): {{due}} documentos vencidos.",
+    "lastReal": "Última depuración: {{date}}: {{due}} vencidos, {{deleted}} borrados, {{failed}} archivos que no se pudieron borrar (se reintentan el mes siguiente).",
+    "noRuns": "La depuración corre el día 1 de cada mes. Empieza como simulacro: solo cuenta lo vencido; no borra nada hasta que se active."
+  },
   "privacy": {
     "title": "Aviso de Privacidad",
     "intro": "ACL Propiedades es responsable del tratamiento de tus datos personales conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) y a la NOM-247-SE-2021.",
-    "updated": "Última actualización: septiembre de 2026",
+    "updated": "Última actualización: noviembre de 2026",
     "sections": [
       {
         "title": "Responsable del tratamiento",
@@ -3262,7 +3488,7 @@
       },
       {
         "title": "Datos personales que recabamos",
-        "body": "A través del formulario de contacto de este sitio recabamos tu nombre, correo electrónico, teléfono y el contenido del mensaje que decidas compartir. Si más adelante inicias un proceso de compra, venta, renta o asesoría con uno de nuestros asesores, podríamos solicitarte datos adicionales necesarios para ese trámite; esos datos se recaban directamente por el asesor, no a través de este sitio web."
+        "body": "A través de este sitio recabamos los datos que tú decides compartir: nombre, correo electrónico, teléfono o WhatsApp y el contenido de tu mensaje, ya sea en el formulario de contacto, al solicitar o agendar una visita, al pedir la estimación del valor de tu propiedad, al usar el comparador de créditos, al descargar la guía del comprador o al suscribirte a avisos de propiedades nuevas o de baja de precio. También conversas con nuestro asistente virtual (ver sección correspondiente) y, solo si lo aceptas, medimos el uso del sitio con Google Analytics. Si más adelante inicias un proceso de compra, venta, renta o asesoría con uno de nuestros asesores, podríamos solicitarte datos adicionales necesarios para ese trámite; esos datos se recaban directamente por el asesor, no a través de este sitio web, salvo que uses el portal de documentos descrito más abajo."
       },
       {
         "title": "Finalidades del tratamiento",
@@ -3270,7 +3496,7 @@
       },
       {
         "title": "Transferencia de datos",
-        "body": "No compartimos, vendemos ni transferimos tus datos personales a terceros, salvo que sea necesario para cumplir con una obligación legal o un requerimiento de autoridad competente."
+        "body": "No vendemos tus datos personales. Para operar este sitio nos apoyamos en proveedores que tratan datos por cuenta de ACL Propiedades y solo para ese fin: alojamiento del sitio y base de datos (Vercel y Supabase), envío de correos (Resend), mensajes de WhatsApp (Meta), el asistente virtual (Anthropic) y, si lo aceptas, medición de uso (Google Analytics). Algunos de estos proveedores pueden almacenar o procesar información en servidores ubicados fuera de México. Fuera de esos casos, solo compartimos tus datos con terceros si es necesario para cumplir con una obligación legal o un requerimiento de autoridad competente."
       },
       {
         "title": "Derechos ARCO",
@@ -3278,11 +3504,23 @@
       },
       {
         "title": "Cookies y tecnologías de rastreo",
-        "body": "Usamos Google Analytics para entender cómo se usa el sitio (páginas visitadas, tiempo de permanencia, origen del tráfico); esto implica que cierta información de tu navegación se comparte con Google. No usamos cookies con fines publicitarios ni vendemos tu información de navegación a terceros. También usamos el almacenamiento local de tu navegador para recordar tu preferencia de idioma y de apariencia (modo claro/oscuro)."
+        "body": "Usamos Google Analytics para entender cómo se usa el sitio (páginas visitadas, tiempo de permanencia, origen del tráfico) solo si lo aceptas en el aviso de cookies que aparece al entrar; si lo rechazas, no se carga. Puedes cambiar tu decisión en cualquier momento desde «Preferencias de cookies», al pie de la página. Si lo aceptas, cierta información de tu navegación se comparte con Google. No usamos cookies con fines publicitarios ni vendemos tu información de navegación a terceros. También usamos el almacenamiento local de tu navegador para recordar tus preferencias (idioma, apariencia, favoritos, propiedades vistas) y un identificador anónimo para contar cuántas personas vieron una propiedad. Los mapas de Google (por ejemplo, en Contacto) solo se cargan cuando pulsas «Ver mapa»; los mapas de propiedades usan mosaicos de OpenStreetMap, que reciben tu dirección IP al cargarse."
       },
       {
         "title": "Portal de documentos (Constancia Fiscal y Acta de Nacimiento)",
         "body": "Si usas nuestro portal de documentos (/documentos/<enlace>) para subir tu Constancia de Situación Fiscal o tu Acta de Nacimiento, tratamos los datos que esos documentos contienen (RFC, CURP, nombre, domicilio fiscal, fecha de nacimiento) únicamente para el trámite por el que tu asesor te compartió el enlace. Los archivos se guardan cifrados en un almacenamiento privado, solo el personal autorizado de ACL Propiedades puede verlos mediante enlaces firmados y con vigencia limitada, y nunca te pedimos ni guardamos tu contraseña del SAT, tu e.firma ni tu CIEC — tú descargas esos documentos directamente del sitio oficial correspondiente. Conservamos estos documentos mientras dure tu trámite y, en adelante, conforme a la política de retención vigente de ACL Propiedades; puedes solicitar su eliminación anticipada ejerciendo tus derechos ARCO."
+      },
+      {
+        "title": "Asistente virtual (chat)",
+        "body": "El chat del sitio es un asistente con inteligencia artificial: el texto que escribes se envía a un proveedor externo (Anthropic) para generar la respuesta, y ninguna persona lo lee en ese momento. No escribas en él datos sensibles (contraseñas, datos bancarios, CURP, etc.). Si le compartes tu nombre y tu teléfono o correo para que te contacte un asesor, los guardamos como un prospecto de ACL Propiedades. La conversación se conserva solo en tu navegador mientras la pestaña esté abierta; en nuestro servidor únicamente registramos que se hizo una consulta (sin su contenido y con una huella cifrada de tu dirección IP) para limitar abusos, y ese registro se borra a la semana."
+      },
+      {
+        "title": "Firma electrónica de documentos",
+        "body": "Si firmas un documento a través de un enlace de firma de ACL Propiedades, guardamos tu nombre, el trazo de tu firma, la fecha y hora, la dirección IP desde la que firmas y una huella digital (hash) del documento, para poder acreditar que lo firmado es lo mismo que revisaste. Conservamos el documento enviado a firma, con su firma y huella, 6 meses; pasado ese plazo se elimina de nuestros sistemas (conserva tu copia)."
+      },
+      {
+        "title": "Cuánto tiempo conservamos tus datos",
+        "body": "Los mensajes que nos envías por el formulario de contacto se conservan 1 semana. Tus datos como prospecto (nombre, teléfono, correo y el seguimiento de tu consulta) se conservan 1 mes desde la última vez que estuvimos en contacto; si hay un seguimiento programado contigo, desde esa fecha. Los documentos enviados a firma, 6 meses. Si te registras como cliente, los documentos de tu expediente se conservan 3 años desde la última actividad contigo y después se eliminan. Puedes pedir que borremos tus datos antes ejerciendo tus derechos ARCO."
       },
       {
         "title": "Cambios a este aviso",
@@ -3353,6 +3591,8 @@
     "cancelAdd": "Cancelar"
   },
   "agenda": {
+    "overlapWarning_one": "Este asesor ya tiene «{{title}}» a esa hora. ¿Guardar de todos modos?",
+    "overlapWarning_other": "Este asesor ya tiene {{count}} citas que se empalman a esa hora (entre ellas «{{title}}»). ¿Guardar de todos modos?",
     "quick": {
       "label": "Fecha y hora rápidas",
       "today": "Hoy",
@@ -3850,6 +4090,7 @@
     "whatsappText": "Hola {{name}}, soy {{advisor}} de ACL Propiedades. Tu visita ({{title}}) quedó para el {{when}}. En este enlace puedes confirmar que asistirás, cambiar el horario o cancelarla: {{link}}"
   },
   "visitPage": {
+    "addToGoogle": "Google Calendar",
     "pageTitle": "Tu visita",
     "invalidTitle": "Enlace no válido",
     "invalidBody": "Este enlace no corresponde a ninguna visita. Revisa que esté completo o escríbenos por WhatsApp.",
@@ -3923,6 +4164,8 @@
     }
   },
   "adCopy": {
+    "language": "Idioma",
+    "languages": { "es": "Español", "en": "Inglés" },
     "title": "Redactar con IA",
     "hint": "Claude escribe tres versiones con enfoques distintos a partir de los datos reales de la propiedad. Elige una y ajústala antes de publicar.",
     "channel": "¿Dónde la vas a publicar?",
@@ -4523,6 +4766,9 @@
     }
   },
   "dayRoute": {
+    "print": "Imprimir hoja del día",
+    "sheetTitle": "Visitas del día — {{date}}",
+    "sheet": {"time": "Hora", "what": "Qué", "where": "Dónde", "contact": "Contacto", "notes": "Notas"},
     "title": "Ruta de hoy",
     "hint": "Tus visitas que faltan hoy, en orden de hora. El enlace abre Google Maps con todas las paradas.",
     "open": "Abrir ruta en Google Maps",
@@ -4742,6 +4988,7 @@
       }
     },
     "topics": {
+      "shortcuts": { "title": "Atajos de teclado", "points": ["Pulsa «G» y luego una letra para ir a una pantalla: G D inicio del panel, G H Mi día, G P Prospectos, G C Clientes, G A Agenda, G M Mensajes, G O propiedades.", "«/» abre la búsqueda global desde cualquier pantalla.", "Los atajos no se activan mientras escribes en un campo."] },
       "myDay": {
         "title": "Mi día",
         "points": ["Junta lo de hoy: citas en orden de hora, prospectos sin atender, seguimientos vencidos y los de hoy.", "«Ruta de hoy» abre Google Maps con todas tus visitas que faltan como paradas.", "«Propiedades nuevas para tus prospectos» muestra lo publicado esta semana que le encaja a alguien; tú decides si le avisas.", "Aquí también salen los apartados y las exclusivas por vencer, tus comisiones y la tabla del mes del equipo."]
@@ -4783,15 +5030,68 @@
     "undo": "Deshacer",
     "region": "Avisos"
   },
+  "breadcrumbs": {
+    "label": "Migas de pan"
+  },
+  "priceAlert": {
+    "confirm_one": "Bajas el precio de {{from}} a {{to}}. Una persona pidió que le avisemos si baja de precio: le llegará un mensaje en la próxima hora. ¿Guardar el cambio?",
+    "confirm_other": "Bajas el precio de {{from}} a {{to}}. {{count}} personas pidieron que les avisemos si baja de precio: les llegará un mensaje en la próxima hora. ¿Guardar el cambio?"
+  },
+  "ownerMessage": {
+    "title": "Avisar al dueño",
+    "intro": "Mensaje para contarle al dueño cómo va «{{title}}». Edítalo si quieres, cópialo o ábrelo en WhatsApp y elige a quién enviarlo.",
+    "statusLabel": "Estatus que se le avisa",
+    "textLabel": "Mensaje",
+    "copy": "Copiar mensaje",
+    "copied": "Copiado ✓",
+    "copiedHint": "Mensaje copiado al portapapeles.",
+    "whatsapp": "Abrir en WhatsApp",
+    "action": "Avisar al dueño",
+    "templates": {
+      "disponible": "Hola, te aviso que tu propiedad «{{title}}» ({{code}}) ya está publicada y disponible en nuestro sitio: {{url}}\nCualquier novedad o visita te la comparto de inmediato.",
+      "apartada": "Hola, buenas noticias: recibimos un apartado por tu propiedad «{{title}}» ({{code}}). Estamos coordinando los siguientes pasos con el interesado y te mantengo al tanto.",
+      "vendida": "Hola, ¡felicidades! Tu propiedad «{{title}}» ({{code}}) quedó como vendida. Te contacto para los siguientes pasos: documentos, escrituración y liquidación.",
+      "rentada": "Hola, ¡buenas noticias! Tu propiedad «{{title}}» ({{code}}) quedó rentada. Te contacto para coordinar los detalles del contrato y la entrega."
+    }
+  },
+  "saleData": {
+    "title": "Datos de la venta",
+    "intro": "Marcaste «{{title}}» como vendida. Registra la venta ahora para que Reportes y «días para vender» queden al día.",
+    "date": "Fecha de la venta",
+    "advisor": "Asesor que la cerró",
+    "noAdvisor": "Sin asesor",
+    "save": "Guardar venta",
+    "skip": "Omitir por ahora",
+    "skipHint": "Si la omites, la propiedad queda vendida y aparece como «pendiente de registrar» en Reportes.",
+    "error": "No se pudo guardar la venta. Intenta de nuevo.",
+    "saved": "Venta registrada.",
+    "bulkPending": "{{count}} propiedades quedaron como vendidas sin registrar su venta. Regístralas desde Reportes (pendientes).",
+    "errors": {
+      "required": "Pon la fecha de la venta.",
+      "invalidDate": "La fecha no es válida.",
+      "futureDate": "La fecha no puede ser futura."
+    }
+  },
+  "zoneCombobox": {
+    "list": "Zonas"
+  },
   "adminNav": {
     "pin": "Fijar arriba",
     "unpin": "Quitar de fijados",
     "pinned": "Fijados",
     "recent": "Recientes",
     "compact": "Compactar menú",
-    "expand": "Expandir menú"
+    "expand": "Expandir menú",
+    "scrollTable": "Tabla con desplazamiento",
+    "breadcrumb": "Migas de pan",
+    "backTo": "Volver a {{section}}",
+    "signedInAs": "Sesión de {{email}}",
+    "noRole": "Sin rol"
   },
   "a11y": {
+    "closeMenu": "Cerrar menú",
+    "switchToEnglish": "EN · Switch to English",
+    "switchToSpanish": "ES · Cambiar a español",
     "skipToContent": "Saltar al contenido",
     "mainNav": "Navegación principal",
     "openMenu": "Abrir menú",
@@ -4801,6 +5101,28 @@
     "switchLanguage": "Cambiar idioma / Switch language"
   },
   "propertyForm": {
+    "photoWarning": {
+      "dark": "«{{name}}» parece muy oscura: una foto clara vende mejor.",
+      "bright": "«{{name}}» parece muy quemada (demasiada luz).",
+      "duplicate": "«{{name}}» parece repetida: se ve igual que «{{other}}»."
+    },
+    "geoFind": "Buscar en el mapa",
+    "geoSearching": "Buscando…",
+    "geoEmpty": "No se encontró esa dirección: ajusta el texto o captura la latitud y longitud a mano.",
+    "geoError": "No se pudo consultar el mapa ahora. Captura la latitud y longitud a mano.",
+    "titleWarning": {"caps": "El título está todo en mayúsculas; se ve poco profesional en el sitio y en Google. ¿Guardar así?", "punctuation": "El título lleva signos de admiración o interrogación repetidos. ¿Guardar así?"},
+    "viewOnSite": "Ver en el sitio",
+    "descriptionCount_one": "{{count}} carácter (Google muestra unos 155)",
+    "descriptionCount_other": "{{count}} caracteres (Google muestra unos 155)",
+    "priceWarning": {"lowSale": "El precio {{price}} es muy bajo para una venta: ¿falta un cero? ¿Guardar así?", "highSale": "El precio {{price}} es muy alto para una venta: ¿sobra un cero? ¿Guardar así?", "lowRent": "El precio {{price}} es muy bajo para una renta mensual: ¿falta un cero? ¿Guardar así?", "highRent": "El precio {{price}} es muy alto para una renta mensual: ¿sobra un cero? ¿Guardar así?"},
+    "title": "Título",
+    "priceMxn": "Precio (MXN)",
+    "address": "Dirección",
+    "lat": "Latitud",
+    "lng": "Longitud",
+    "parking": "Estacionamientos",
+    "locationApproximate": "Mostrar solo la zona, no el punto exacto (ubicación aproximada)",
+    "locationApproximateHint": "En el sitio se verá un círculo de unos 500 m y la zona, sin la calle, sin «Cómo llegar» ni Street View. Las coordenadas exactas solo las ven quienes tienen Propiedades. Capture en «Dirección» solo la colonia.",
     "descriptionHint": "Deja una línea en blanco para separar párrafos y empieza una línea con «- » para hacer una lista (con «1. » para numerarla). En el sitio se ve con sus párrafos y viñetas.",
     "steps": {
       "basics": "Datos básicos",
@@ -4845,6 +5167,7 @@
     "featured": "Mientras tanto, mira estas propiedades"
   },
   "propertyMap": {
+    "label": "Mapa de propiedades. Usa las flechas para moverte, más y menos para acercar o alejar, y Tab para llegar a cada propiedad.",
     "cluster": "{{count}} propiedades juntas: acercar el mapa"
   },
   "charts": {
@@ -5005,5 +5328,185 @@
       "rateLimited": "Ya mandaste varios reportes seguidos. Inténtalo de nuevo en un rato.",
       "generic": "No se pudo enviar el reporte. Inténtalo de nuevo."
     }
+  },
+  "loadError": {
+    "title": "No pudimos cargar esta página",
+    "text": "Revisa tu conexión e inténtalo de nuevo.",
+    "retry": "Reintentar"
+  },
+  "terms": {
+    "title": "Términos y condiciones de uso",
+    "intro": "Al usar este sitio aceptas las siguientes condiciones. Si no estás de acuerdo con ellas, te pedimos no utilizarlo.",
+    "updated": "Última actualización: noviembre de 2026",
+    "sections": [
+      {
+        "title": "Quiénes somos y qué ofrece este sitio",
+        "body": "Este sitio es de ACL Propiedades, con domicilio en Blvd. Independencia, Local 16, Plaza San Luciano, Torreón, Coahuila. Sirve para consultar propiedades en venta y renta en La Comarca Lagunera, usar herramientas informativas y contactar a nuestros asesores. ACL Propiedades interviene como intermediario inmobiliario: las operaciones se formalizan por escrito con el asesor, nunca solo por medio de este sitio."
+      },
+      {
+        "title": "Información de las propiedades",
+        "body": "Procuramos que precios, medidas, fotografías y descripciones sean veraces y estén al día, pero pueden cambiar sin previo aviso (precio, disponibilidad, apartado o venta). Lo publicado en el sitio es informativo y no constituye una oferta vinculante. Las fotografías, planos y recorridos pueden ser ilustrativos. Antes de decidir, confirma los datos con tu asesor y revisa la documentación del inmueble."
+      },
+      {
+        "title": "Calculadoras, estimaciones y comparador de créditos",
+        "body": "Las herramientas del sitio (calculadora de valor, estimación de pago mensual, comparador de créditos, guía del comprador) son una referencia. No son un avalúo, una oferta, una cotización ni una aprobación de crédito; los resultados dependen de datos y tasas que cambian y de la decisión de cada institución. Para cifras definitivas consulta a un asesor y a la institución financiera."
+      },
+      {
+        "title": "Asistente virtual",
+        "body": "El chat del sitio es un asistente con inteligencia artificial. Puede equivocarse o no tener información actualizada, y sus respuestas no sustituyen la orientación de un asesor ni constituyen asesoría legal, fiscal o financiera. No escribas en él datos sensibles. Puedes pedir hablar con una persona en cualquier momento."
+      },
+      {
+        "title": "Uso aceptable",
+        "body": "Te comprometes a usar el sitio de buena fe y con datos verdaderos. No está permitido: copiar o extraer de forma masiva o automatizada el contenido, hacerse pasar por otra persona, enviar formularios de manera automatizada o con datos falsos, intentar acceder a áreas privadas o dañar la seguridad o el funcionamiento del sitio. Podemos bloquear el acceso a quien incumpla estas condiciones."
+      },
+      {
+        "title": "Propiedad intelectual",
+        "body": "La marca, el logotipo, los textos, las fotografías, los planos y el diseño del sitio pertenecen a ACL Propiedades o a quien nos autorizó a usarlos. Puedes compartir los enlaces de las propiedades con fines personales; cualquier otro uso, reproducción o explotación requiere nuestro permiso por escrito."
+      },
+      {
+        "title": "Servicios y enlaces de terceros",
+        "body": "El sitio se apoya en servicios de terceros (por ejemplo WhatsApp, Google Maps o los mapas de OpenStreetMap) y puede enlazar a otros sitios. No controlamos ni somos responsables de su contenido, disponibilidad o políticas; su uso se rige por sus propios términos."
+      },
+      {
+        "title": "Limitación de responsabilidad",
+        "body": "El sitio se ofrece tal como está y puede tener interrupciones o errores. En la medida que lo permita la ley, ACL Propiedades no responde por daños derivados de usar o no poder usar el sitio, ni de decisiones tomadas únicamente con la información publicada sin confirmarla con un asesor. Nada de lo anterior limita los derechos que la ley te reconoce como consumidor."
+      },
+      {
+        "title": "Datos personales",
+        "body": "El tratamiento de tus datos personales se rige por nuestro Aviso de Privacidad, que forma parte de estas condiciones."
+      },
+      {
+        "title": "Cambios a estas condiciones",
+        "body": "Podemos modificar estas condiciones; la versión vigente es la publicada en esta página, con su fecha de actualización. Si sigues usando el sitio después de un cambio, entendemos que lo aceptas."
+      },
+      {
+        "title": "Ley aplicable y jurisdicción",
+        "body": "Estas condiciones se rigen por las leyes de los Estados Unidos Mexicanos. Para cualquier controversia, las partes se someten a los tribunales competentes de Torreón, Coahuila, sin perjuicio de los derechos del consumidor ante la Procuraduría Federal del Consumidor (PROFECO)."
+      }
+    ]
+  },
+  "pdfViewer": {
+    "pages": "{{count}} páginas"
+  },
+  "arco": {
+    "navTitle": "Derechos ARCO",
+    "title": "Derechos ARCO: datos de una persona",
+    "subtitle": "Atiende a quien pide ver o borrar sus datos personales. Rectificación y oposición se hacen con las pantallas de siempre (editar el registro o quitar la alerta).",
+    "queryLabel": "Teléfono o correo de la persona",
+    "queryPlaceholder": "871 123 4567 o nombre@correo.com",
+    "queryHint": "Se busca solo por teléfono (10 dígitos) o por correo completo, nunca por nombre, para no mezclar a dos personas.",
+    "search": "Buscar",
+    "error": "No se pudo completar la solicitud.",
+    "resultsTitle_one": "Se encontró {{count}} registro",
+    "resultsTitle_other": "Se encontraron {{count}} registros",
+    "none": "No hay datos de esa persona.",
+    "andMore": "…y {{count}} más",
+    "download": "Descargar copia (acceso)",
+    "erase": "Borrar sus datos ({{count}})",
+    "confirm": "Se borrarán o anonimizarán {{count}} registros de esta persona. No se puede deshacer. Los clientes registrados no se borran (su papelería se conserva 3 años). ¿Continuar?",
+    "doneTitle": "Solicitud atendida",
+    "doneNote": "Los clientes registrados se conservan por obligación legal. Quita también a la persona de listas fuera del sistema (WhatsApp, hojas de cálculo) y responde a quien la pidió.",
+    "historyTitle": "Solicitudes atendidas",
+    "historyEmpty": "Todavía no hay solicitudes.",
+    "when": "Cuándo",
+    "kind": "Tipo",
+    "who": "Atendió",
+    "kinds": {
+      "acceso": "Acceso",
+      "cancelacion": "Cancelación"
+    },
+    "action": {
+      "delete": "Se borra",
+      "scrub": "Se anonimiza",
+      "retain": "Se conserva (3 años)"
+    },
+    "sources": {
+      "contact_messages": "Mensajes de contacto",
+      "prospectos": "Prospectos",
+      "property_alerts": "Alertas",
+      "agenda_citas": "Citas",
+      "property_visits": "Visitas",
+      "property_holds": "Apartados",
+      "clients": "Clientes",
+      "retenidos": "Clientes conservados"
+    }
+  },
+  "dataRetention": {
+    "title": "Depuración de datos personales",
+    "intro": "Cada día se revisa qué ya cumplió su plazo. «Simulacro» solo cuenta lo que se borraría, sin borrar; revisa la cifra y activa cada regla cuando estés de acuerdo. Borrar es definitivo.",
+    "what": "Datos",
+    "rule": "Plazo",
+    "due": "Ya vencidos",
+    "state": "Estado",
+    "lastRun": "Última corrida",
+    "active": "Borrando",
+    "dry": "Simulacro",
+    "turnOn": "Activar borrado",
+    "turnOff": "Volver a simulacro",
+    "noRuns": "Aún no corre",
+    "lastRunText": "{{date}}: {{due}} vencidos, {{deleted}} borrados",
+    "confirmOn": "A partir de la próxima corrida se borrarán definitivamente {{name}} que cumplan su plazo (hoy son {{due}}). ¿Activar?",
+    "confirmOff": "{{name}}: se deja de borrar y vuelve el simulacro. ¿Continuar?",
+    "error": "No se pudo cambiar la regla.",
+    "kinds": {
+      "chats": "Chats (sesiones e IP del asistente)",
+      "mensajes": "Mensajes de contacto",
+      "prospectos": "Prospectos",
+      "contratos": "Contratos enviados a firma"
+    },
+    "periods": {
+      "chats": "1 semana",
+      "mensajes": "1 semana",
+      "prospectos": "1 mes sin actividad",
+      "contratos": "6 meses"
+    }
+  },
+  "home": {
+    "tools": {
+      "eyebrow": "Herramientas para el comprador",
+      "title": "Decide con números, no con corazonadas",
+      "cta": "Abrir",
+      "credits": { "title": "Compara créditos", "text": "Infonavit, Fovissste y bancario lado a lado: cuánto pagarías al mes con cada uno." },
+      "guide": { "title": "Guía del comprador", "text": "Presupuesto, créditos, documentos y el paso a paso para comprar. Descárgala gratis." },
+      "calculator": { "title": "Calculadora de valor", "text": "Estima cuánto vale una propiedad según su terreno, su construcción y la zona." }
+    },
+    "sell": {
+      "eyebrow": "¿Quieres vender o rentar?",
+      "title": "Te decimos cuánto vale tu propiedad",
+      "text": "Cuéntanos de tu casa, departamento, terreno o nave y un asesor te da una estimación sin compromiso y te explica cómo la promovemos.",
+      "cta": "Quiero vender mi propiedad",
+      "ctaSecondary": "Hablar con un asesor"
+    },
+    "seoTitle": "ACL Propiedades | Inmobiliaria en La Comarca Lagunera",
+    "seoDescription": "ACL Propiedades: compra, venta y asesoría inmobiliaria certificada de casas, departamentos y terrenos en Torreón, Gómez Palacio y Lerdo."
+  },
+  "zoneFaq": {
+    "title": "Preguntas frecuentes sobre {{place}}",
+    "whatQ": "¿Qué propiedades hay en {{place}}?",
+    "whatA": "Hoy tenemos {{count}} propiedades disponibles en {{place}}. Usa los filtros para afinar por tipo, precio, zona y tamaño.",
+    "whatANone": "Estamos actualizando las propiedades de {{place}}. Déjanos tus datos y te avisamos cuando haya algo de tu interés.",
+    "priceQ": "¿Cuánto cuesta una propiedad en {{place}}?",
+    "priceA": "El precio mediano de lo disponible hoy en {{place}} es {{price}}. Cada propiedad muestra su precio y, en las de venta, una mensualidad estimada.",
+    "priceANone": "El precio depende del tipo, la zona y la superficie de cada propiedad en {{place}}. Cada ficha muestra su precio y una mensualidad estimada.",
+    "creditQ": "¿Puedo comprar con crédito INFONAVIT, bancario o FOVISSSTE?",
+    "creditA": "Sí. Nuestros asesores te orientan con INFONAVIT, crédito bancario y FOVISSSTE, y puedes comparar opciones en la sección Comparar créditos.",
+    "visitQ": "¿Cómo agendo una visita?",
+    "visitA": "Abre la propiedad que te interese y elige día y hora en «Agendar visita», o escríbenos por WhatsApp y un asesor te acompaña."
+  },
+  "propertyCard": {
+    "photos_one": "{{count}} foto",
+    "photos_other": "{{count}} fotos"
+  },
+  "advisorForm": {
+    "fieldName": "Nombre",
+    "fieldPhone": "Teléfono",
+    "fieldEmail": "Correo",
+    "fieldBio": "Puesto / descripción breve",
+    "bioHint": "Aparece debajo del nombre en la página de Nosotros — que no quede en blanco mantiene parejas todas las tarjetas del equipo.",
+    "teamHint": "Desmárcalo para el contacto general de la empresa (ej. \"ACL Propiedades\") — sigue disponible como asesor de propiedades sin agente asignado, solo deja de listarse como integrante del equipo.",
+    "bioPlaceholder": "Ej. Asesora Inmobiliaria",
+    "deactivateWarning": "Al desactivar a este asesor se quedan sin responsable: {{upcomingCitas}} citas por venir, {{openProspects}} prospectos abiertos y {{ownedProperties}} propiedades. Reasígnalos después. ¿Desactivar?",
+    "photoNeeded": "Sin foto no aparece en Nosotros: sube una para que se muestre.",
+    "whatsappLabel": "WhatsApp (10 dígitos; se guarda con la lada 52)"
   }
 }

@@ -3,8 +3,9 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../../components/Seo";
 import Logo from "../../components/Logo";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { db } from "../../lib/dataStore";
+import { isLoginNetworkError } from "../../lib/loginError";
 import "./AdminLogin.css";
 
 export default function AdminLogin() {
@@ -21,8 +22,12 @@ export default function AdminLogin() {
   const [resetInfo, setResetInfo] = useState("");
   const [code, setCode] = useState("");
 
+  // Si la persona llegó por un enlace profundo (un aviso de WhatsApp a un prospecto), tras iniciar sesión vuelve ahí y no al inicio.
+  const from = location.state?.from;
+  const target = from?.pathname?.startsWith("/admin") && from.pathname !== "/admin/login" ? `${from.pathname}${from.search || ""}${from.hash || ""}` : "/admin";
+
   if (isAuthenticated) {
-    return <Navigate to={location.state?.from?.pathname || "/admin"} replace />;
+    return <Navigate to={target} replace />;
   }
 
   const handleSubmit = async (e) => {
@@ -31,9 +36,10 @@ export default function AdminLogin() {
     setLoading(true);
     try {
       await login(email, password);
-      navigate("/admin", { replace: true });
-    } catch {
-      setError(t("admin.loginError"));
+      navigate(target, { replace: true });
+    } catch (err) {
+      // Sin red o con el servidor caído no se culpa a la contraseña.
+      setError(t(isLoginNetworkError(err) ? "admin.loginNetworkError" : "admin.loginError"));
     } finally {
       setLoading(false);
     }
@@ -77,7 +83,7 @@ export default function AdminLogin() {
 
   if (mfaPending) {
     return (
-      <div className="admin-login">
+      <main className="admin-login">
         <Seo title={t("admin.loginTitle")} noindex />
         <form className="admin-login__card card" onSubmit={handleCode}>
           <div className="admin-login__logo">
@@ -108,12 +114,12 @@ export default function AdminLogin() {
             {t("mfa.useOtherAccount")}
           </button>
         </form>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="admin-login">
+    <main className="admin-login">
       <Seo title={t("admin.loginTitle")} noindex />
       <form className="admin-login__card card" onSubmit={forgot ? handleForgot : handleSubmit}>
         <div className="admin-login__logo">
@@ -178,6 +184,6 @@ export default function AdminLogin() {
           {forgot ? t("passwordReset.backToLogin") : t("passwordReset.forgot")}
         </button>
       </form>
-    </div>
+    </main>
   );
 }

@@ -5,6 +5,7 @@ import { db } from "../../lib/dataStore";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const EMPTY = { title: "", body: "" };
 
@@ -26,7 +27,7 @@ export default function AdminNovedadesForm() {
       if (!update) return;
       setForm({ title: update.title, body: update.body });
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [id, isEdit]);
 
   const handleChange = (field) => (e) => {
@@ -53,7 +54,7 @@ export default function AdminNovedadesForm() {
       }
       navigate("/admin/novedades");
     } catch (err) {
-      notify(err.message || "Error al guardar la entrada");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }

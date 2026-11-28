@@ -120,8 +120,11 @@ describe("modo demo: horarios con los asesores disponibles", () => {
   it("cada horario dice qué asesores están libres a esa hora (nombre y foto, sin contacto)", async () => {
     await db.saveAdvisorVisitSchedule(advisorA, { settings: { ...DEFAULT_VISIT_SETTINGS, enabled: true }, weekly: DEFAULT_WEEKLY_SCHEDULE }); // 10–18
     await db.saveAdvisorVisitSchedule(advisorB, { settings: { ...DEFAULT_VISIT_SETTINGS, enabled: true }, weekly: [1, 2, 3, 4, 5, 6, 0].map((weekday) => ({ weekday, start_time: "12:00", end_time: "14:00" })) });
-    const slots = await db.getVisitSlots(property.id);
-    const at = (hora) => slots.find((s) => s.hora === hora);
+    // Un día de entre semana lejano: así la prueba no depende de la hora ni del día en que corre (hoy ya pasó, o es domingo).
+    let dia = fecha();
+    while ([0, 6].includes(new Date(`${dia}T12:00:00Z`).getUTCDay())) dia = addDays(dia, 1);
+    const slots = await db.getVisitSlots(property.id, { from: dia, days: 1 });
+    const at = (hora) => slots.find((s) => s.hora === hora && s.fecha === dia);
 
     expect(at("10:00").advisors.map((a) => a.id)).toEqual([advisorA]);
     expect(at("12:00").advisors).toHaveLength(2);

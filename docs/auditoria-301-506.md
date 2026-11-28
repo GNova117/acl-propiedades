@@ -1,0 +1,69 @@
+# Auditoría: puntos 301–506 (octava tanda y pendientes)
+
+Esta tanda cierra lo que se puede arreglar con seguridad y sin una decisión de negocio. Lo demás son **funciones nuevas o rediseños** que conviene priorizar contigo antes de construirlos; están agrupados al final.
+
+## Despliegue
+
+Publicar el sitio (merge a `main`) y **aplicar las migraciones 0129 (índices) y 0130 (`updated_at` de propiedades)** (`npm run db:migrate` o SQL Editor; son re-ejecutables).
+
+## Hecho
+
+| # | Qué cambió |
+|---|---|
+| 288 | «Limpiar» del filtro queda deshabilitado cuando no hay filtros. |
+| 291 | «Copiar enlace» copia solo el enlace (antes el bloque completo con emojis). |
+| 296 | Sin reseñas de Google configuradas, el inicio ya no muestra el cuadro difuminado de «Próximamente». |
+| 301 | En Contacto, el formulario ya no se estira hasta la altura del mapa. |
+| 303 | Ya estaba resuelto: la foto principal muestra su contador («1/12»). |
+| 304 | Las tarjetas del listado muestran cuántas fotos tiene la propiedad. |
+| 306 | En modo oscuro los mosaicos del mapa se oscurecen (ya no deslumbran). |
+| 310 | Ya estaba resuelto: la calculadora tiene campo numérico además del deslizador. |
+| 313 | Tras enviar Contacto aparece «Enviar otro mensaje» (y el aviso se anuncia a lectores de pantalla). |
+| 314 | La página «Sin conexión» está en español e inglés, ya no habla de «tus datos» (era del panel) y trae el teléfono de la oficina. |
+| 321 | Ya estaba resuelto: la etiqueta de rebaja muestra el porcentaje. |
+| 324 | En teléfono las tarjetas de cifras del panel van de dos en dos. |
+| 327 | «Exportar CSV» deshabilitado explica por qué (texto al pasar el cursor). |
+| 328 | El botón flotante «+» ya no tapa la columna de acciones de la última fila de las tablas del panel. |
+| 379 | «Vistos recientemente» tiene botón «Borrar historial». |
+| 345 | La ficha dice «Publicada hace X días» y «Actualizada el…». |
+| 346 | «Propiedades similares» prioriza el precio parecido (±20 %), misma zona primero. |
+| 353 | El chat tiene «Nueva conversación». |
+| 367 | La visita agendada ofrece «Agregar a Google Calendar» además del archivo `.ics`. |
+| 369 | La dirección de Contacto es un enlace a «Cómo llegar». |
+| 380 | El visor de fotos tiene botón para descargar la foto actual. |
+| 382 | El globo del mapa muestra también recámaras y baños. |
+| 384 | El buscador del inicio recuerda la última búsqueda en ese navegador. |
+| 410 | Al guardar una propiedad con un precio que parece error de captura (p. ej. $2,450 en una venta o $15,000,000 en una renta) se pide confirmar. |
+| 462 | En la lista de propiedades del panel se marca «Sin asesor». |
+| 475 | El formulario de propiedad trae «Ver en el sitio». |
+| 476 | Contador de caracteres en la descripción (Google muestra ~155). |
+| 479 | **Migración 0130**: `updated_at` de propiedades lo fija la base en cada cambio real (ya no depende del navegador). Prueba SQL 19. |
+| 349 | El comparador suma precio por m² y pago mensual estimado, y resalta el mejor valor de cada renglón. |
+| 352 | Los códigos de propiedad que menciona el chat (ACL-1001) son enlaces a su ficha. |
+| 361 | «Vende tu casa» ya no exige los m² de terreno. |
+| 362–363 | La calculadora usa el precio por m² de terreno de la zona para terrenos y termina en dos acciones: «Pedir estimación formal» y «Hablar con un asesor» (WhatsApp con la estimación). |
+| 395 | El chat ofrece tres arranques con un toque («Busco casa en Torreón», «Quiero vender mi propiedad», «Hablar con un asesor»). |
+| 397–398 | La comparación se comparte por enlace (`/comparar?ids=…`) y el listado trae la barra flotante «Comparar (N)». |
+| 399 | El listado dice «N nuevas desde tu última visita». |
+| 407, 415 | Mensajes: subtítulo corregido (dice todo lo que llega, no solo el formulario de contacto), filtro por canal y búsqueda de texto. |
+| 417 | El WhatsApp de un asesor se guarda siempre como 52 + 10 dígitos (acepta 10 dígitos, +52 y el formato viejo 521). |
+| 423 | Al guardar una propiedad con título en mayúsculas o con signos repetidos se pide confirmar. |
+| 483 | El CI guarda Chromium de Playwright en caché. |
+| 495 | El flujo de Novedades limpia el cuerpo del PR (sin markdown ni enlaces internos) y lo recorta a 800 caracteres. |
+| 477 | Ya resuelto con la migración 0127: `chat_rate_limits` se limpia a diario (1 semana). |
+| 478 | Falso positivo: «whatsapp» aparece una sola vez en la expresión de robots. |
+| 484 | El CI cancela las corridas viejas del mismo PR (`concurrency`). |
+| 485 | El CI corre `npm audit` (avisa de vulnerabilidades altas o críticas de producción; no bloquea). |
+| 488 | `engines` en `package.json` (Node ≥ 22) y `.nvmrc`. |
+| 489 | `.editorconfig` (formateador y ganchos quedan por decidir). |
+| 496 | Las funciones de WhatsApp responden «no configurado» en lugar de tronar si faltan las credenciales. |
+| 497 | `index.html` tiene `<noscript>` con el teléfono de la oficina. |
+| 498 | El manifiesto ya no bloquea la orientación: la app instalada gira en tableta horizontal. |
+
+## Pendiente
+
+La lista de lo que falta vive en **`docs/pendientes-para-el-final.md`** (agrupada: diseño y decisión, construibles sin SQL, necesitan SQL/Supabase, datos o cuentas tuyas, rendimiento y estructura). Ahí también está el acuerdo de cómo se maneja el SQL: todo junto en `supabase/pendiente-de-aplicar-0118-en-adelante.sql`.
+
+## Pruebas
+
+- Unitarias: 1,959. Verificación de e2e: ver el PR.

@@ -100,7 +100,7 @@ export default function BackupCard() {
         {running ? <span className="spinner" /> : null}
         {running ? t("backup.running") : t("backup.download")}
       </button>
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
       {result && (
         <p className="form-hint mt-3">
           {t("backup.done", { rows: rowCount, tables: Object.keys(result.counts).length, mb: (result.bytes / 1048576).toFixed(2) })}

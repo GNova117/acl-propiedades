@@ -1,7 +1,7 @@
 .document-capture {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: var(--z-dialog-low);
   background: var(--color-bg);
   display: flex;
   flex-direction: column;

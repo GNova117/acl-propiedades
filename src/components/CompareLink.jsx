@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useCompare } from "../context/CompareContext";
+import { useCompare } from "../context/useCompare.js";
 import "./CompareLink.css";
 
 // A diferencia de FavoritesLink (siempre visible), este ícono solo

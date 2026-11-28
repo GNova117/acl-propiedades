@@ -5,6 +5,8 @@ import { db } from "../../lib/dataStore";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
+import { useUnsavedChanges } from "../../lib/useUnsavedChanges";
 
 const EMPTY = { title: "", excerpt: "", body: "", published: false };
 
@@ -23,6 +25,8 @@ export default function AdminBlogForm() {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
+  // Cerrar la pestaña con cambios sin guardar pide confirmar.
+  useUnsavedChanges(form, { ready: !loading, enabled: !saving });
 
   useEffect(() => {
     if (!isEdit) return;
@@ -33,7 +37,7 @@ export default function AdminBlogForm() {
       setForm({ title: post.title, excerpt: post.excerpt || "", body: post.body, published: post.published });
       setExistingCover(post.cover_image || "");
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [id, isEdit]);
 
   useEffect(() => {
@@ -72,7 +76,7 @@ export default function AdminBlogForm() {
       }
       navigate("/admin/blog");
     } catch (err) {
-      notify(err.message || "Error al guardar el artículo");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }

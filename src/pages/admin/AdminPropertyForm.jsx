@@ -2,8 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { propertyTypeLabel } from "../../lib/format";
+import { formatMXN, propertyTypeLabel } from "../../lib/format";
+import { suspiciousPrice, titleStyleWarning } from "../../lib/priceCheck";
 import { groupZonesByCity, zoneDisplayName } from "../../lib/zones";
+import { searchAddress } from "../../lib/geocode";
+import { moveItem, moveWithMain } from "../../lib/imageOrder";
+import { photoWarnings } from "../../lib/photoCheck";
+import { addressQuery, formatCoordinate } from "../../lib/addressSearch";
 import ImageUploader from "../../components/ImageUploader";
 import VideoUploader from "../../components/VideoUploader";
 import Tour360Uploader from "../../components/Tour360Uploader";
@@ -11,9 +16,15 @@ import FloorPlanField from "../../components/FloorPlanField";
 import InternalNotes from "../../components/InternalNotes";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
-import { notify } from "../../lib/toast";
+import { confirmDialog, notify } from "../../lib/toast";
 import { STEPS, clampStep, firstStepWithErrors, progressPercent, stepsWithErrors } from "../../lib/propertyFormSteps";
 import { clearDraft, draftKey, isMeaningful, loadDraft, saveDraft } from "../../lib/formDraft";
+import { notifyLoadError } from "../../lib/loadError";
+import { useUnsavedChanges } from "../../lib/useUnsavedChanges";
+import SaleDataModal from "../../components/SaleDataModal";
+import { needsSaleData } from "../../lib/saleData";
+import { priceAlertNotice } from "../../lib/priceAlertNotice";
+import { useAuth } from "../../context/useAuth.js";
 
 const EMPTY = {
   title: "",
@@ -28,6 +39,7 @@ const EMPTY = {
   address: "",
   lat: "",
   lng: "",
+  location_approximate: false,
   status: "disponible",
   operation_type: "compra",
   active: true,
@@ -68,6 +80,7 @@ function propertyToForm(property) {
     address: property.address,
     lat: property.lat,
     lng: property.lng,
+    location_approximate: property.location_approximate === true,
     status: property.status,
     operation_type: property.operation_type || "compra",
     active: property.active,
@@ -110,7 +123,39 @@ export default function AdminPropertyForm({
 
   const [form, setForm] = useState(() => (fixedType ? { ...EMPTY, type: fixedType } : EMPTY));
   const [zones, setZones] = useState([]);
+  const [geo, setGeo] = useState({ status: "idle", results: [] });
+  // 469: análisis de cada foto nueva (brillo y huella) para avisar de fotos oscuras, quemadas o repetidas.
+  const photoAnalysis = useRef(new Map());
+  const [, setPhotoTick] = useState(0);
+  const analyzeNewPhotos = async (files) => {
+    const { analyzePhoto } = await import("../../lib/photoCheck");
+    await Promise.all(files.map(async (file) => {
+      const result = await analyzePhoto(file);
+      if (result) photoAnalysis.current.set(file, result);
+    }));
+    setPhotoTick((n) => n + 1);
+  };
+
+  // 408: ubicar la propiedad escribiendo su dirección (Nominatim; solo al pulsar el botón, nunca al teclear).
+  const findOnMap = async () => {
+    const query = addressQuery(form.address, form.zone);
+    if (!query) return;
+    setGeo({ status: "loading", results: [] });
+    try {
+      const results = await searchAddress(query);
+      setGeo({ status: results.length ? "done" : "empty", results });
+    } catch {
+      setGeo({ status: "error", results: [] });
+    }
+  };
+  const pickGeo = (result) => {
+    setForm((prev) => ({ ...prev, lat: formatCoordinate(result.lat), lng: formatCoordinate(result.lng) }));
+    setGeo({ status: "idle", results: [] });
+  };
   const [advisors, setAdvisors] = useState([]);
+  const { hasSection } = useAuth();
+  // 459: al guardar una propiedad que pasó a «vendida» se piden los datos de la venta antes de salir.
+  const [saleFor, setSaleFor] = useState(null);
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
   const [propertyCode, setPropertyCode] = useState("");
@@ -128,6 +173,8 @@ export default function AdminPropertyForm({
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
+  // Cerrar la pestaña con cambios sin guardar pide confirmar.
+  useUnsavedChanges(form, { ready: !loading, enabled: !saving });
   const [step, setStep] = useState(0);
   // Borrador automático (ver lib/formDraft.js): lo capturado se guarda en este navegador y se ofrece recuperarlo.
   const [searchParams] = useSearchParams();
@@ -139,9 +186,9 @@ export default function AdminPropertyForm({
   const [draftSavedAt, setDraftSavedAt] = useState(null);
 
   useEffect(() => {
-    db.getZones().then(setZones);
-    db.getAdvisors().then(setAdvisors);
-    db.getPropertyTypes().then(setPropertyTypes);
+    db.getZones().then(setZones).catch(notifyLoadError);
+    db.getAdvisors().then(setAdvisors).catch(notifyLoadError);
+    db.getPropertyTypes().then(setPropertyTypes).catch(notifyLoadError);
     db.getAmenities().then(setAmenitiesCatalog).catch(() => setAmenitiesCatalog([]));
   }, []);
 
@@ -157,7 +204,7 @@ export default function AdminPropertyForm({
       setFloorPlanUrl(property.floor_plan_url || "");
       setPropertyCode(property.code || "");
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [id, isEdit]);
 
   // /nueva?duplicar=<id>: una propiedad nueva con los datos de otra parecida (los de siempre se copian; fotos, videos,
@@ -175,7 +222,7 @@ export default function AdminPropertyForm({
         status: "disponible",
         active: false,
       });
-    });
+    }).catch(notifyLoadError);
     return () => {
       cancelled = true;
     };
@@ -247,6 +294,23 @@ export default function AdminPropertyForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
+    // Un precio que parece error de captura (p. ej. $2,450 en una venta): se pide confirmar antes de guardar.
+    const priceWarning = suspiciousPrice(form.operation_type, form.price);
+    const titleWarning = titleStyleWarning(form.title);
+    if (titleWarning && !(await confirmDialog(t(`propertyForm.titleWarning.${titleWarning}`)))) return;
+    if (priceWarning && !(await confirmDialog(t(`propertyForm.priceWarning.${priceWarning}`, { price: formatMXN(form.price) })))) return;
+    // 458: si baja el precio, se dice a cuántas personas con alerta de baja les va a llegar el aviso (lo manda el servidor) y se confirma.
+    if (isEdit && hasSection("prospectos") && Number(form.price) < Number(baselineRef.current.price)) {
+      try {
+        const notice = priceAlertNotice({ oldPrice: baselineRef.current.price, newPrice: form.price, alerts: await db.getAlerts(), propertyId: id });
+        if (notice.drop && notice.count > 0) {
+          const message = t("priceAlert.confirm", { count: notice.count, from: formatMXN(baselineRef.current.price), to: formatMXN(form.price) });
+          if (!(await confirmDialog(message))) return;
+        }
+      } catch {
+        // Sin permiso para ver las alertas o sin conexión: se guarda como siempre.
+      }
+    }
     setSaving(true);
     try {
       const payload = {
@@ -270,9 +334,22 @@ export default function AdminPropertyForm({
         }
       }
       clearDraft(draftStorageKey);
+      // 459: si pasó a «vendida» y todavía no tiene venta registrada, se piden fecha y asesor en este mismo paso.
+      if (hasSection("reportes")) {
+        try {
+          const savedId = isEdit ? id : saved?.id;
+          const ventas = await db.getVentas();
+          if (savedId && needsSaleData({ previousStatus: isEdit ? baselineRef.current.status : undefined, nextStatus: form.status, hasSale: ventas.some((v) => v.property_id === savedId) })) {
+            setSaleFor({ id: savedId, title: form.title, advisor_ids: form.advisor_ids || [] });
+            return;
+          }
+        } catch {
+          // Sin permiso para ver las ventas o sin conexión: se sigue como siempre (la venta se registra desde Reportes).
+        }
+      }
       navigate(listPath);
     } catch (err) {
-      notify(err.message || "Error al guardar");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }
@@ -289,6 +366,12 @@ export default function AdminPropertyForm({
       <div className="admin-header">
         <div>
           <h1>{isEdit ? t(editTitleKey) : t(newTitleKey)}</h1>
+          {/* Atajo a la ficha pública (la dirección con el id se corrige sola a la legible). */}
+          {isEdit && (
+            <a className="btn btn-outline btn-sm" href={`/propiedades/${id}`} target="_blank" rel="noopener noreferrer">
+              {t("propertyForm.viewOnSite")}
+            </a>
+          )}
           {isEdit && propertyCode && <p className="form-hint">{t("detail.code")}: {propertyCode}</p>}
         </div>
       </div>
@@ -341,7 +424,7 @@ export default function AdminPropertyForm({
           <h2 className="admin-form__step-title" id="p-step-title-0">{t("propertyForm.steps.basics")}</h2>
           <div className="form-row">
             <div className="form-field">
-              <label htmlFor="p-title">Título</label>
+              <label htmlFor="p-title">{t("propertyForm.title")}</label>
               <input id="p-title" value={form.title} onChange={handleChange("title")} />
               {errors.title && <span className="form-error">{errors.title}</span>}
             </div>
@@ -360,12 +443,14 @@ export default function AdminPropertyForm({
           <div className="form-field">
             <label htmlFor="p-description">{t("detail.description")}</label>
             <textarea id="p-description" rows={4} value={form.description} onChange={handleChange("description")} />
+            {/* Google corta la descripción a ~155 caracteres: se avisa cuántos lleva. */}
+            <span className="form-hint">{t("propertyForm.descriptionCount", { count: form.description.length })}</span>
             <span className="form-hint">{t("propertyForm.descriptionHint")}</span>
           </div>
 
           <div className="form-row">
             <div className="form-field">
-              <label htmlFor="p-price">Precio (MXN)</label>
+              <label htmlFor="p-price">{t("propertyForm.priceMxn")}</label>
               <input id="p-price" type="number" min="0" value={form.price} onChange={handleChange("price")} />
               {errors.price && <span className="form-error">{errors.price}</span>}
             </div>
@@ -400,6 +485,7 @@ export default function AdminPropertyForm({
                 <option value="disponible">{t("propertyStatus.disponible")}</option>
                 <option value="apartada">{t("propertyStatus.apartada")}</option>
                 <option value="vendida">{t("propertyStatus.vendida")}</option>
+                <option value="rentada">{t("propertyStatus.rentada")}</option>
               </select>
             </div>
           </div>
@@ -413,22 +499,45 @@ export default function AdminPropertyForm({
           </div>
 
           <div className="form-field">
-            <label htmlFor="p-address">Dirección</label>
+            <label htmlFor="p-address">{t("propertyForm.address")}</label>
             <input id="p-address" value={form.address} onChange={handleChange("address")} />
             {errors.address && <span className="form-error">{errors.address}</span>}
+            <button type="button" className="btn btn-outline btn-sm" onClick={findOnMap} disabled={!form.address.trim() || geo.status === "loading"} style={{ marginTop: "0.4rem", alignSelf: "flex-start" }}>
+              {geo.status === "loading" ? t("propertyForm.geoSearching") : t("propertyForm.geoFind")}
+            </button>
+            {geo.status === "empty" && <span className="form-hint" role="status">{t("propertyForm.geoEmpty")}</span>}
+            {geo.status === "error" && <span className="form-error" role="alert">{t("propertyForm.geoError")}</span>}
+            {geo.status === "done" && (
+              <ul className="form-hint" role="status" style={{ listStyle: "none", padding: 0, margin: "0.4rem 0 0" }}>
+                {geo.results.map((r) => (
+                  <li key={r.id}>
+                    <button type="button" className="btn btn-link btn-sm" onClick={() => pickGeo(r)} style={{ textAlign: "left" }}>
+                      {r.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="form-row">
             <div className="form-field">
-              <label htmlFor="p-lat">Latitud</label>
+              <label htmlFor="p-lat">{t("propertyForm.lat")}</label>
               <input id="p-lat" type="number" step="any" value={form.lat} onChange={handleChange("lat")} />
             </div>
             <div className="form-field">
-              <label htmlFor="p-lng">Longitud</label>
+              <label htmlFor="p-lng">{t("propertyForm.lng")}</label>
               <input id="p-lng" type="number" step="any" value={form.lng} onChange={handleChange("lng")} />
             </div>
           </div>
           {errors.lat && <span className="form-error">{errors.lat}</span>}
+          <label className="form-field form-field--check" htmlFor="p-approx">
+            <span>
+              <input id="p-approx" type="checkbox" checked={form.location_approximate} onChange={handleChange("location_approximate")} />{" "}
+              {t("propertyForm.locationApproximate")}
+            </span>
+            <span className="form-hint">{t("propertyForm.locationApproximateHint")}</span>
+          </label>
         </div>
 
         <div className="admin-form__step" id="p-step-2" role="group" aria-labelledby="p-step-title-2" hidden={step !== 2}>
@@ -443,7 +552,7 @@ export default function AdminPropertyForm({
               <input id="p-bathrooms" type="number" min="0" step="0.5" value={form.bathrooms} onChange={handleChange("bathrooms")} />
             </div>
             <div className="form-field">
-              <label htmlFor="p-parking">Estacionamientos</label>
+              <label htmlFor="p-parking">{t("propertyForm.parking")}</label>
               <input id="p-parking" type="number" min="0" value={form.parking} onChange={handleChange("parking")} />
             </div>
           </div>
@@ -604,7 +713,10 @@ export default function AdminPropertyForm({
               existingImages={existingImages}
               files={newFiles}
               mainIndex={mainIndex}
-              onAddFiles={(files) => setNewFiles((prev) => [...prev, ...files])}
+              onAddFiles={(files) => {
+                setNewFiles((prev) => [...prev, ...files]);
+                analyzeNewPhotos(files);
+              }}
               onRemoveExisting={(index) => {
                 setExistingImages((prev) => prev.filter((_, i) => i !== index));
                 setMainIndex(0);
@@ -614,7 +726,25 @@ export default function AdminPropertyForm({
                 setMainIndex(0);
               }}
               onSetMain={setMainIndex}
+              onMoveExisting={(index, delta) => {
+                setMainIndex((m) => moveWithMain(m, 0, index, index + delta, existingImages.length));
+                setExistingImages((prev) => moveItem(prev, index, index + delta));
+              }}
+              onMoveNew={(index, delta) => {
+                setMainIndex((m) => moveWithMain(m, existingImages.length, index, index + delta, newFiles.length));
+                setNewFiles((prev) => moveItem(prev, index, index + delta));
+              }}
             />
+            {(() => {
+              const notes = photoWarnings(newFiles.map((f) => photoAnalysis.current.get(f)).filter(Boolean));
+              return notes.length > 0 ? (
+                <ul className="form-hint photo-warnings" role="status">
+                  {notes.map((n, i) => (
+                    <li key={i}>{t(`propertyForm.photoWarning.${n.kind}`, { name: n.name, other: n.of })}</li>
+                  ))}
+                </ul>
+              ) : null;
+            })()}
           </div>
 
           <div className="form-field">
@@ -677,6 +807,17 @@ export default function AdminPropertyForm({
       </form>
 
       {isEdit && <InternalNotes entityType="property" entityId={id} />}
+
+      {saleFor && (
+        <SaleDataModal
+          property={saleFor}
+          advisors={advisors}
+          onDone={(registered) => {
+            if (registered) notify(t("saleData.saved"));
+            navigate(listPath);
+          }}
+        />
+      )}
     </div>
   );
 }

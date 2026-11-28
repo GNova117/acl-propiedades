@@ -11,7 +11,7 @@
   padding: 3.5rem 1.5rem 2.5rem;
 }
 
-.site-footer h4 {
+.site-footer__title {
   color: var(--color-on-primary);
   font-size: 0.95rem;
   letter-spacing: 0.05em;
@@ -92,6 +92,9 @@
 }
 
 .site-footer__bottom-row a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem; /* 258: área táctil de al menos 32 px */
   color: #93a1b8;
 }
 
@@ -109,4 +112,17 @@
   .site-footer__grid {
     grid-template-columns: 1fr;
   }
+}
+
+.site-footer__link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #93a1b8;
+  font: inherit;
+  cursor: pointer;
+}
+
+.site-footer__link-button:hover {
+  color: #ffffff;
 }

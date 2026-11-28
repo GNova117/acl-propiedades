@@ -5,7 +5,7 @@ import { BUYER_GUIDE } from "./buyerGuide";
 import { buildBuyerGuidePdf } from "./buyerGuidePdf";
 import { COMPARE_DEFAULTS } from "./creditCompare";
 
-const template = readFileSync(new URL("../../public/plantilla_acl.pdf", import.meta.url));
+const template = readFileSync(new URL("../../server/assets/plantilla_acl.pdf", import.meta.url));
 
 describe("BUYER_GUIDE", () => {
   it("usa los mismos valores de referencia que el comparador de créditos", () => {

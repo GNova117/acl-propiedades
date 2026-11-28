@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Logo from "../../components/Logo";
 import ThemeToggle from "../../components/ThemeToggle";
@@ -17,11 +17,14 @@ import TourBanner from "../../components/TourBanner";
 import NavIcon from "../../components/NavIcon";
 import { ICON_BY_GROUP, ICON_BY_PATH } from "../../lib/navIcons";
 import { NAV } from "../../lib/adminNav";
+import { isTypingTarget, nextShortcutState } from "../../lib/adminShortcuts";
 import AdminSectionSearch from "../../components/AdminSectionSearch";
 import { itemForPath, loadPins, loadRecents, pushRecent, resolveShortcuts, savePins, saveRecents, togglePin } from "../../lib/navShortcuts";
 import { getQueue } from "../../lib/offlineQueue";
 import { startPrecache } from "../../lib/offlineShell";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
+import { useScrollableRegions } from "../../lib/scrollableRegions";
+import { useFormErrorLinks } from "../../lib/formErrorLinks";
 import { db } from "../../lib/dataStore";
 import { liveBus, startLiveUpdates, useLiveRefresh } from "../../lib/liveUpdates";
 import { queries } from "../../lib/queries";
@@ -46,9 +49,26 @@ const isInside = (pathname, to) => pathname === to || pathname.startsWith(`${to}
 
 export default function AdminLayout() {
   const { t } = useTranslation();
-  const { logout, hasSection, advisorId, session } = useAuth();
+  const { logout, hasSection, advisorId, session, role } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+
+  // Atajos «G» + letra para ir a una pantalla (ver lib/adminShortcuts.js y la Ayuda).
+  useEffect(() => {
+    let state = { pendingAt: 0 };
+    const onKey = (event) => {
+      state = nextShortcutState(state, event.key, Date.now(), { typing: isTypingTarget(document.activeElement), modifier: event.ctrlKey || event.metaKey || event.altKey });
+      if (state.target) {
+        navigate(state.target);
+        state = { pendingAt: 0 };
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [navigate]);
+  const contentRef = useRef(null);
+  useScrollableRegions(contentRef, t("adminNav.scrollTable"));
+  useFormErrorLinks(); // 261
   const [newMessagesCount, setNewMessagesCount] = useState(0);
   const [openGroups, setOpenGroups] = useState(readOpen);
   // Atajos del menú (ver lib/navShortcuts.js): lo fijado arriba, lo visitado hace poco y el modo compacto (solo iconos).
@@ -128,6 +148,13 @@ export default function AdminLayout() {
   // Todos los elementos que la persona puede usar, en el orden del menú (para fijados y recientes).
   const allItems = visibleNav.flatMap((entry) => (entry.items ? entry.items : [entry]));
   const itemPaths = allItems.map((i) => i.to);
+
+  // Título de la pestaña = la pantalla donde está (antes todas decían lo mismo y con varias abiertas no se distinguían).
+  const currentItem = allItems.filter((i) => (i.end ? pathname === i.to : isInside(pathname, i.to))).sort((a, b) => b.to.length - a.to.length)[0];
+  const currentLabel = currentItem ? currentItem.label || t(currentItem.labelKey) : "";
+  useEffect(() => {
+    document.title = currentLabel ? `${currentLabel} · ${t("admin.tabSuffix")}` : t("admin.tabSuffix");
+  }, [currentLabel, t]);
   const pinnedSet = new Set(pins.filter((to) => itemPaths.includes(to)));
   // Un elemento fijado se mueve arriba: ya no se repite en su carpeta (ni como enlace suelto).
   const navWithoutPinned = visibleNav
@@ -316,6 +343,12 @@ export default function AdminLayout() {
           <span className="admin-layout__nav-label">{compact ? t("adminNav.expand") : t("adminNav.compact")}</span>
         </button>
         <ReportProblem compact={compact} />
+        {email && (
+          <p className="admin-layout__user" title={t("adminNav.signedInAs", { email })}>
+            <span className="admin-layout__user-email">{email}</span>
+            <span className="admin-layout__user-role">{role?.name || t("adminNav.noRole")}</span>
+          </p>
+        )}
         <button type="button" className="admin-layout__logout" onClick={handleLogout} title={compact ? t("admin.logout") : undefined}>
           <span className="admin-layout__logout-icon" aria-hidden="true">⏻</span>
           <span className="admin-layout__nav-label">{t("admin.logout")}</span>
@@ -345,10 +378,18 @@ export default function AdminLayout() {
             <LanguageToggle />
           </div>
         </header>
-        <main className="admin-layout__content">
+        <main className="admin-layout__content" ref={contentRef}>
           <OfflineBanner />
           <TourBanner />
           <MfaNudge />
+          {/* 336: pantallas internas (editar, ficha, bitácora…): migas con «Volver» a la lista, igual en todas. */}
+          {currentItem && !currentItem.end && pathname.replace(/\/$/, "") !== currentItem.to && (
+            <nav className="admin-breadcrumb" aria-label={t("adminNav.breadcrumb")}>
+              <Link to={currentItem.to} className="admin-breadcrumb__back">
+                <span aria-hidden="true">‹</span> {t("adminNav.backTo", { section: currentLabel })}
+              </Link>
+            </nav>
+          )}
           <ErrorBoundary key={pathname} homePath="/admin">
             <Outlet />
           </ErrorBoundary>

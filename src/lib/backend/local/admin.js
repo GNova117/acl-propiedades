@@ -8,6 +8,30 @@ import { MFA_OK_KEY, KEYS, readStore, writeStore, uid, authListeners, getSession
 export const adminMethods = {
   mode: "local",
 
+  // La depuración de papelería vive en la base (migración 0123): el modo demostración no la tiene.
+  async getRetentionSummary() {
+    return null;
+  },
+
+  // Derechos ARCO viven en la base (migración 0125): el modo demostración no los tiene.
+  async arcoSearch() {
+    throw new Error("Los derechos ARCO requieren la base de datos (no están en el modo demostración).");
+  },
+  async arcoCancel() {
+    throw new Error("Los derechos ARCO requieren la base de datos (no están en el modo demostración).");
+  },
+  async getArcoRequests() {
+    return [];
+  },
+
+  // La depuración de datos vive en la base (migración 0127): el modo demostración no la tiene.
+  async getDataRetention() {
+    return null;
+  },
+  async setDataRetention() {
+    throw new Error("La depuración de datos requiere la base de datos (no está en el modo demostración).");
+  },
+
   // Registro de actividad: en modo demo no hay base ni triggers, así que no hay registro.
   async getAuditLog() {
     return [];

@@ -82,7 +82,7 @@
 
 /* Torres y desarrollos: franja arriba del listado general */
 .properties-page__developments {
-  margin-bottom: 2.25rem;
+  margin: 3rem 0 2.25rem;
 }
 
 .properties-page__developments-head h3 {
@@ -96,7 +96,8 @@
 
 .properties-page__developments-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 380px));
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 380px));
+  justify-content: center;
   gap: 1.25rem;
 }
 
@@ -204,4 +205,9 @@
   top: 90px;
   height: calc(100vh - 120px);
   min-height: 420px;
+}
+
+/* 323: el aviso «avísame» ocupa todo el ancho de la fila dentro de la rejilla de tarjetas. */
+.properties-grid__alert {
+  grid-column: 1 / -1;
 }

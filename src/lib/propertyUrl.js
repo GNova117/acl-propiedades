@@ -35,3 +35,30 @@ export function parsePropertyRef(param) {
 
 // ¿La dirección que se usó es la canónica de esa propiedad?
 export const isCanonicalSlug = (param, property) => String(param) === propertySlug(property);
+
+// Lo que la persona escribe en «Buscar por código» → el código completo. Acepta «ACL-1001», «acl 1001», «acl1001» y solo «1001».
+export function normalizePropertyCode(input) {
+  const text = String(input ?? "").trim().toUpperCase();
+  const digits = text.match(/^(?:ACL)?[\s-]*(\d{1,8})$/);
+  if (digits) return `ACL-${digits[1]}`;
+  return text;
+}
+
+// A qué listado mandar a quien abrió el enlace de una propiedad que ya no existe: el título de la dirección legible delata el tipo
+// («terreno-en-…», «nave-industrial-en-…»); sin pista, el listado general.
+export function listPathForMissingProperty(param) {
+  const slug = String(param || "").toLowerCase();
+  if (/^terreno(-|$)/.test(slug)) return "/terrenos";
+  if (/^nave(-|$)/.test(slug)) return "/naves-industriales";
+  return "/propiedades";
+}
+
+// El tipo de propiedad que sugiere el título de una dirección que ya no existe (para ofrecer algo parecido); undefined si no hay pista.
+export function suggestedTypeForMissing(param) {
+  const slug = String(param || "").toLowerCase();
+  if (/^terreno(-|$)/.test(slug)) return "terreno";
+  if (/^nave(-|$)/.test(slug)) return "nave_industrial";
+  if (/^departamento(-|$)/.test(slug)) return "departamento";
+  if (/^casa(-|$)/.test(slug)) return "casa";
+  return undefined;
+}

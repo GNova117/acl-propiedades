@@ -90,7 +90,7 @@ export default function PortalDocumentCard({ token, item, officialUrl, backupDoc
       </div>
 
       {state === "corregir" && doc?.review_notes && (
-        <p className="form-error">{t("portal.rejectedNote", { reason: doc.review_notes })}</p>
+        <p className="form-error" role="alert">{t("portal.rejectedNote", { reason: doc.review_notes })}</p>
       )}
       {state === "recibido" && <p className="form-hint">{t("portal.checklist.receivedHint")}</p>}
       {doc?.extracted_data?.alertaVigencia && <p className="form-hint portal-doc-card__warning">{t("portal.ageWarning")}</p>}
@@ -120,7 +120,7 @@ export default function PortalDocumentCard({ token, item, officialUrl, backupDoc
             {uploading ? <span className="spinner" /> : null}
             {uploading ? t("portal.upload.uploading") : uploadLabel}
           </label>
-          {uploadError && <p className="form-error">{uploadError}</p>}
+          {uploadError && <p className="form-error" role="alert">{uploadError}</p>}
         </div>
       )}
 
@@ -170,7 +170,7 @@ export default function PortalDocumentCard({ token, item, officialUrl, backupDoc
             )}
             {doc && backupDoc && <span className="form-hint">{t("portal.upload.backupAdded")}</span>}
           </div>
-          {uploadError && <p className="form-error">{uploadError}</p>}
+          {uploadError && <p className="form-error" role="alert">{uploadError}</p>}
         </>
       )}
     </div>

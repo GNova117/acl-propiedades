@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import { db } from "../lib/dataStore";
 import { PROBLEM_MAX_LENGTH, buildProblemPayload, validateProblem } from "../lib/problemReport";
 import "./PropertyProspectsModal.css";

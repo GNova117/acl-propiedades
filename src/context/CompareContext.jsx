@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { CompareContext, MAX_COMPARE } from "./useCompare.js";
 
 // Comparador de propiedades — mismo patrón que FavoritesContext (100%
 // localStorage, sin cuenta ni backend): un visitante marca hasta
@@ -8,8 +9,6 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 // volver más tarde, comparar es una selección corta y temporal mientras
 // se decide entre 2-4 opciones parecidas.
 const STORAGE_KEY = "acl_compare";
-export const MAX_COMPARE = 4;
-const CompareContext = createContext(null);
 
 function readCompare() {
   try {
@@ -86,8 +85,3 @@ export function CompareProvider({ children }) {
   );
 }
 
-export function useCompare() {
-  const ctx = useContext(CompareContext);
-  if (!ctx) throw new Error("useCompare debe usarse dentro de CompareProvider");
-  return ctx;
-}

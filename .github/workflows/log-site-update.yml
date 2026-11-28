@@ -4,10 +4,15 @@ name: Registrar cambio en Novedades del sitio
 # quedó publicado), esto inserta una entrada automática en site_updates
 # con el título y la descripción del PR — así nadie tiene que entrar al
 # panel a escribirla a mano, como pide el apartado /admin/novedades.
-# Necesita dos secretos del repositorio (Settings > Secrets and variables >
-# Actions), documentados en el README: SUPABASE_URL y
-# SUPABASE_SERVICE_ROLE_KEY. Si no están configurados, el paso se salta
-# sin tronar el workflow (por ejemplo, en un fork antes de configurarlos).
+# Necesita tres secretos del repositorio (Settings > Secrets and variables >
+# Actions): SUPABASE_URL, SUPABASE_ANON_KEY (la llave pública, la misma que
+# usa el sitio) y NOVEDADES_TOKEN (un valor largo y aleatorio que también se
+# guarda en Vault de Supabase con el nombre `novedades_token`, ver la
+# migración 0124). Llama a la función registrar_novedad, que solo puede
+# insertar una fila en site_updates: si el token se filtra, lo máximo que
+# alguien consigue es escribir una novedad — ya no se guarda la llave
+# service_role (acceso total a la base) en GitHub. Si faltan, el paso se
+# salta sin tronar el workflow (por ejemplo, en un fork).
 
 on:
   pull_request:
@@ -22,27 +27,34 @@ jobs:
       - name: Insertar la entrada en site_updates
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          NOVEDADES_TOKEN: ${{ secrets.NOVEDADES_TOKEN }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: |
-          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
-            echo "Faltan los secretos SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY en este repositorio; se omite el registro automático de esta entrada (ver README, sección Novedades del sitio)."
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ] || [ -z "$NOVEDADES_TOKEN" ]; then
+            echo "Faltan los secretos SUPABASE_URL / SUPABASE_ANON_KEY / NOVEDADES_TOKEN en este repositorio; se omite el registro automático de esta entrada (ver README, sección Novedades del sitio)."
             exit 0
           fi
 
+          # El cuerpo del PR llega con markdown, enlaces internos y comentarios: se limpia y se recorta (Novedades es para leerse rápido).
+          CLEAN_BODY=$(printf '%s' "${PR_BODY:-Sin descripción.}" | sed -E 's/<!--[^>]*-->//g; s/!\[[^]]*\]\([^)]*\)//g; s/\[([^]]*)\]\([^)]*\)/\1/g; s/^#+ *//; s/\*\*//g' | head -c 800)
+
           PAYLOAD=$(jq -n \
+            --arg token "$NOVEDADES_TOKEN" \
             --arg title "$PR_TITLE" \
-            --arg body "${PR_BODY:-Sin descripción.}" \
+            --arg body "${CLEAN_BODY:-Sin descripción.}" \
             --arg url "$PR_URL" \
             --arg author "$PR_AUTHOR" \
-            '{title: $title, body: ($body + "\n\nPR: " + $url), created_by: $author}')
+            '{p_token: $token, p_title: $title, p_body: ($body + "\n\nPR: " + $url), p_author: $author}')
 
-          curl -sS -f -X POST "$SUPABASE_URL/rest/v1/site_updates" \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+          RESPONSE=$(curl -sS -f -X POST "$SUPABASE_URL/rest/v1/rpc/registrar_novedad" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
             -H "Content-Type: application/json" \
-            -H "Prefer: return=minimal" \
-            -d "$PAYLOAD"
+            -d "$PAYLOAD")
+          echo "$RESPONSE"
+          # La función responde {"ok": true} o {"error": "..."}: un token equivocado no es un error HTTP.
+          echo "$RESPONSE" | jq -e '.ok == true' > /dev/null

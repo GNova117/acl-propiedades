@@ -84,3 +84,26 @@
   color: var(--color-on-primary);
   font-weight: 700;
 }
+
+.image-uploader__order {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  gap: 2px;
+}
+
+.image-uploader__order button {
+  min-width: 28px;
+  min-height: 28px;
+  border: 0;
+  background: rgba(10, 14, 20, 0.65);
+  color: var(--color-on-primary);
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.image-uploader__order button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}

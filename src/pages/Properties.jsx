@@ -1,11 +1,12 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ALERT_AFTER, alertPlacement } from "../lib/listingAlert";
 import { useNavigationType, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import PropertyFilters from "../components/PropertyFilters";
 import PropertyCard from "../components/PropertyCard";
-import Reveal from "../components/Reveal";
 import AlertSignupCard from "../components/AlertSignupCard";
+import CompareBar from "../components/CompareBar";
 import DevelopmentCard from "../components/DevelopmentCard";
 import { filtersToCriteria } from "../lib/alertMatch";
 import { buildActiveFilterChips } from "../lib/activeFilters";
@@ -13,6 +14,7 @@ import { boundsFromParam, boundsToParam } from "../lib/propertySearch";
 import { propertyTypeLabel } from "../lib/format";
 import { indexNextSlots } from "../lib/nextVisit";
 import { useMediaQuery } from "../lib/useMediaQuery";
+import { useDebouncedValue } from "../lib/useDebouncedValue";
 import { propertyMatchesCity } from "../lib/zoneLandingPages";
 import { db } from "../lib/dataStore";
 import "./Properties.css";
@@ -31,6 +33,9 @@ const EMPTY_FILTERS = {
   bounds: null,
   type: "",
   operationType: "",
+  // "" = disponibles y apartadas (las vendidas ya no se ofrecen como si estuvieran a la venta); "disponible" = solo disponibles;
+  // "todas" = también las vendidas.
+  status: "",
   tipoNave: "",
   zone: "",
   minPrice: "",
@@ -42,6 +47,23 @@ const EMPTY_FILTERS = {
   minParking: "",
   amenities: [],
   sortBy: "newest",
+};
+
+const LAST_VISIT_KEY = "acl_last_list_visit";
+const readLastVisit = () => {
+  try {
+    const value = Number(localStorage.getItem(LAST_VISIT_KEY));
+    return Number.isFinite(value) && value > 0 ? value : null;
+  } catch {
+    return null;
+  }
+};
+const writeLastVisit = () => {
+  try {
+    localStorage.setItem(LAST_VISIT_KEY, String(Date.now()));
+  } catch {
+    /* sin almacenamiento */
+  }
 };
 
 const SORT_OPTIONS = ["newest", "price_asc", "price_desc", "area_desc"];
@@ -145,6 +167,8 @@ export default function Properties({
   title,
   subtitle,
   headerExtra,
+  footerExtra,
+  jsonLd,
   cityFilter,
   zoneFilter,
   noindex = false,
@@ -160,6 +184,7 @@ export default function Properties({
     bounds: boundsFromParam(searchParams.get("area")),
     type: searchParams.get("tipo") || "",
     operationType: searchParams.get("operacion") || "",
+    status: ["disponible", "todas"].includes(searchParams.get("estatus")) ? searchParams.get("estatus") : "",
     tipoNave: searchParams.get("navetipo") || "",
     zone: searchParams.get("zona") || "",
     minPrice: searchParams.get("min") || "",
@@ -181,7 +206,12 @@ export default function Properties({
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
   const [typesLoaded, setTypesLoaded] = useState(false);
+  // «N nuevas desde tu última visita»: la fecha de la visita anterior se lee una vez y se actualiza al salir.
+  const lastVisitRef = useRef(readLastVisit());
+  useEffect(() => () => writeLastVisit(), []);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [view, setView] = useState(() => viewFromParam(searchParams.get("vista")));
   const [developments, setDevelopments] = useState([]);
   const [searchText, setSearchText] = useState(() => searchParams.get("q") || "");
@@ -226,6 +256,7 @@ export default function Properties({
     if (filters.q) params.set("q", filters.q);
     if (filters.type) params.set("tipo", filters.type);
     if (filters.operationType) params.set("operacion", filters.operationType);
+    if (filters.status) params.set("estatus", filters.status);
     if (filters.tipoNave) params.set("navetipo", filters.tipoNave);
     if (filters.zone) params.set("zona", filters.zone);
     if (filters.minPrice) params.set("min", filters.minPrice);
@@ -269,7 +300,7 @@ export default function Properties({
 
   const sectionTypes = useMemo(() => {
     if (fixedType) return [fixedType];
-    return propertyTypes.map((pt) => pt.key).filter((key) => !excludeTypes.includes(key));
+    return propertyTypes.filter((pt) => pt.active !== false).map((pt) => pt.key).filter((key) => !excludeTypes.includes(key)); // 289: sin tipos desactivados
   }, [fixedType, excludeTypes, propertyTypes]);
 
   // Con un solo tipo en la sección no tiene caso mostrar el filtro de Tipo.
@@ -285,28 +316,39 @@ export default function Properties({
   // Criterios de la alerta de búsqueda = los filtros que la persona tiene puestos.
   const alertCriteria = useMemo(() => filtersToCriteria(filters, { fixedType }), [filters, fixedType]);
 
-  const queryFilters = useMemo(
-    () => ({
+  // Renta o venta: en Propiedades y también en Naves Industriales (muchas se rentan); Terrenos casi no se rentan, ahí no se ofrece.
+  const showOperation = !fixedType || fixedType === "nave_industrial";
+
+  // Los filtros del listado → lo que se le pide a la base. Es una función para poder probar «¿y si quito este filtro?» (ver abajo).
+  const buildQuery = useCallback(
+    (f) => ({
       activeOnly: true,
-      type: fixedType || filters.type || undefined,
-      types: fixedType || filters.type ? undefined : sectionTypes,
-      operation_type: fixedType ? undefined : filters.operationType || undefined,
-      tipo_nave: fixedType === "nave_industrial" ? filters.tipoNave || undefined : undefined,
-      zone: zoneFilter || filters.zone || undefined,
-      minPrice: filters.minPrice ? Number(filters.minPrice) : undefined,
-      maxPrice: filters.maxPrice ? Number(filters.maxPrice) : undefined,
-      minArea: filters.minArea ? Number(filters.minArea) : undefined,
-      maxArea: filters.maxArea ? Number(filters.maxArea) : undefined,
-      minBedrooms: filters.minBedrooms ? Number(filters.minBedrooms) : undefined,
-      minBathrooms: filters.minBathrooms ? Number(filters.minBathrooms) : undefined,
-      minParking: filters.minParking ? Number(filters.minParking) : undefined,
-      amenities: filters.amenities.length ? filters.amenities : undefined,
-      q: filters.q || undefined,
-      bounds: filters.bounds || undefined,
-      sortBy: filters.sortBy,
+      type: fixedType || f.type || undefined,
+      types: fixedType || f.type ? undefined : sectionTypes,
+      operation_type: showOperation ? f.operationType || undefined : undefined,
+      statuses: f.status === "todas" ? undefined : f.status === "disponible" ? ["disponible"] : ["disponible", "apartada"],
+      tipo_nave: fixedType === "nave_industrial" ? f.tipoNave || undefined : undefined,
+      zone: zoneFilter || f.zone || undefined,
+      // Una colonia fija (página de aterrizaje) coincide exacto; lo que la persona escribe a mano, por parte del nombre.
+      zoneExact: zoneFilter ? true : undefined,
+      minPrice: f.minPrice ? Number(f.minPrice) : undefined,
+      maxPrice: f.maxPrice ? Number(f.maxPrice) : undefined,
+      minArea: f.minArea ? Number(f.minArea) : undefined,
+      maxArea: f.maxArea ? Number(f.maxArea) : undefined,
+      minBedrooms: f.minBedrooms ? Number(f.minBedrooms) : undefined,
+      minBathrooms: f.minBathrooms ? Number(f.minBathrooms) : undefined,
+      minParking: f.minParking ? Number(f.minParking) : undefined,
+      amenities: f.amenities.length ? f.amenities : undefined,
+      q: f.q || undefined,
+      bounds: f.bounds || undefined,
+      sortBy: f.sortBy,
     }),
-    [filters, fixedType, sectionTypes, zoneFilter]
+    [fixedType, sectionTypes, zoneFilter, showOperation]
   );
+  const queryFilters = useMemo(() => buildQuery(filters), [buildQuery, filters]);
+
+  // Cada tecla en precio, superficie o zona cambia `queryFilters`; a la base solo se le pregunta cuando la persona hace una pausa.
+  const fetchFilters = useDebouncedValue(queryFilters, 300);
 
   // Mapa, vista dividida y filtro por ciudad piden el conjunto completo (cada
   // propiedad es un pin; la ciudad se resuelve en el cliente, ver `cityFilter`).
@@ -314,15 +356,20 @@ export default function Properties({
     if (!needsFullSet) return undefined;
     let active = true;
     setLoading(true);
-    db.getProperties(queryFilters)
+    setLoadFailed(false);
+    db.getProperties(fetchFilters)
       .then((data) => {
         if (active) setAllMatches(cityFilter ? data.filter((property) => propertyMatchesCity(property, cityFilter)) : data);
+      })
+      .catch((err) => {
+        console.error("getProperties", err);
+        if (active) setLoadFailed(true);
       })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, [needsFullSet, queryFilters, cityFilter]);
+  }, [needsFullSet, fetchFilters, cityFilter, reloadKey]);
 
   // La lista normal pide su página directo al servidor. Mientras llega la nueva
   // se siguen mostrando los resultados anteriores (atenuados): no brinca la página.
@@ -330,15 +377,21 @@ export default function Properties({
     if (needsFullSet) return undefined;
     let active = true;
     setLoading(true);
-    db.getProperties({ ...queryFilters, page, pageSize: PAGE_SIZE })
+    setLoadFailed(false);
+    db.getProperties({ ...fetchFilters, page, pageSize: PAGE_SIZE })
       .then(({ data, total: count }) => {
         if (active) setPageData({ data, total: count });
+      })
+      .catch((err) => {
+        // Antes la lista se quedaba con los resultados de la búsqueda anterior y sin aviso: parecía que el filtro no hacía nada.
+        console.error("getProperties", err);
+        if (active) setLoadFailed(true);
       })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, [needsFullSet, queryFilters, page]);
+  }, [needsFullSet, fetchFilters, page, reloadKey]);
 
   const pins = needsFullSet ? allMatches || EMPTY_LIST : pageData.data;
   const total = needsFullSet ? pins.length : pageData.total;
@@ -347,6 +400,7 @@ export default function Properties({
     [needsFullSet, effectiveView, pins, page]
   );
   const lastPage = Math.max(0, Math.ceil(total / PAGE_SIZE) - 1);
+  const newSinceVisit = lastVisitRef.current ? properties.filter((p) => p.created_at && new Date(p.created_at).getTime() > lastVisitRef.current).length : 0;
 
   // «Visítala mañana»: el primer horario libre de las tarjetas que se ven (una sola consulta por página).
   // Si la base aún no tiene la función, simplemente no salen etiquetas.
@@ -401,6 +455,31 @@ export default function Properties({
   // con una búsqueda activa las torres estorbarían a lo que la persona pidió.
   const showDevelopments = !fixedType && !cityFilter && !zoneFilter && !hasActiveFilters && page === 0 && effectiveView === "list" && developments.length > 0;
 
+  // Sin resultados: se prueba quitar cada filtro por separado y se sugiere el que más devuelve («sin el precio máximo hay 7»).
+  const [relax, setRelax] = useState(null);
+  useEffect(() => {
+    if (loading || total > 0 || chips.length === 0) {
+      setRelax(null);
+      return undefined;
+    }
+    let active = true;
+    Promise.all(
+      chips.slice(0, 6).map(async (chip) => {
+        const result = await db.getProperties({ ...buildQuery({ ...filters, ...chip.patch }), page: 0, pageSize: 1 });
+        return { chip, count: result.total };
+      })
+    )
+      .then((options) => {
+        if (!active) return;
+        const best = options.filter((o) => o.count > 0).sort((a, b) => b.count - a.count)[0];
+        setRelax(best || null);
+      })
+      .catch(() => active && setRelax(null));
+    return () => {
+      active = false;
+    };
+  }, [loading, total, chips, filters, buildQuery]);
+
   const pageTitle = title || t(titleKey);
   const pageSubtitle = subtitle || t(subtitleKey);
 
@@ -410,7 +489,7 @@ export default function Properties({
         <Seo title={pageTitle} description={pageSubtitle} />
         <div className="container properties-page">
           <div className="section-heading m-section">
-            <h2>{pageTitle}</h2>
+            <h1>{pageTitle}</h1>
           </div>
           <EmptyState illustration="calendar" title={t("emptyState.comingSoonTitle")} text={t("properties.comingSoon")}>
             <NotifyMeCta section={pageTitle} />
@@ -422,29 +501,15 @@ export default function Properties({
 
   return (
     <>
-      <Seo title={pageTitle} description={pageSubtitle} noindex={noindex} />
+      <Seo title={pageTitle} description={pageSubtitle} noindex={noindex} jsonLd={jsonLd} />
 
       <div className="container properties-page" onClickCapture={rememberScroll}>
         <div className="section-heading m-section">
-          <h2>{pageTitle}</h2>
+          <h1>{pageTitle}</h1>
           <p>{pageSubtitle}</p>
         </div>
 
         {headerExtra}
-
-        {showDevelopments && (
-          <section className="properties-page__developments" aria-labelledby="developments-strip-title">
-            <div className="properties-page__developments-head">
-              <h3 id="developments-strip-title">{t("developments.stripTitle")}</h3>
-              <p>{t("developments.stripSubtitle")}</p>
-            </div>
-            <div className="properties-page__developments-grid">
-              {developments.map((development) => (
-                <DevelopmentCard key={development.id} development={development} />
-              ))}
-            </div>
-          </section>
-        )}
 
         <div className="properties-page__layout">
           <aside>
@@ -452,7 +517,7 @@ export default function Properties({
               filters={filters}
               zones={zones}
               typeOptions={typeOptions}
-              showOperation={!fixedType}
+              showOperation={showOperation}
               showNaveTipo={fixedType === "nave_industrial"}
               showHomeFilters={fixedType !== "terreno"}
               onChange={goToFilters}
@@ -509,7 +574,10 @@ export default function Properties({
             )}
 
             <div className="properties-page__toolbar">
-              <span aria-live="polite">{t(total === 1 ? "properties.results_one" : "properties.results_other", { count: total })}</span>
+              <span aria-live="polite">
+                {t(total === 1 ? "properties.results_one" : "properties.results_other", { count: total })}
+                {newSinceVisit > 0 && <strong className="properties-page__new"> · {t("properties.newSinceVisit", { count: newSinceVisit })}</strong>}
+              </span>
               <div className="properties-page__toolbar-actions">
                 <select
                   aria-label={t("properties.sortBy")}
@@ -544,7 +612,13 @@ export default function Properties({
               </div>
             </div>
 
-            {loading && properties.length === 0 ? (
+            {loadFailed && !loading ? (
+              <EmptyState illustration="signpost" title={t("loadError.title")} text={t("loadError.text")}>
+                <button type="button" className="btn btn-primary" onClick={() => setReloadKey((n) => n + 1)}>
+                  {t("loadError.retry")}
+                </button>
+              </EmptyState>
+            ) : loading && properties.length === 0 ? (
               <LoadingState variant="cards" />
             ) : total === 0 ? (
               <EmptyState
@@ -552,6 +626,11 @@ export default function Properties({
                 title={t(hasActiveFilters ? "emptyState.noResultsTitle" : "emptyState.emptySectionTitle")}
                 text={t(hasActiveFilters ? "properties.noResults" : "properties.emptySection")}
               >
+                {relax && (
+                  <button type="button" className="btn btn-primary btn-sm" onClick={() => goToFilters((prev) => ({ ...prev, ...relax.chip.patch }))}>
+                    {t("properties.relaxFilter", { filter: relax.chip.label, count: relax.count })}
+                  </button>
+                )}
                 {hasActiveFilters && (
                   <button type="button" className="btn btn-outline btn-sm" onClick={() => goToFilters(EMPTY_FILTERS)}>
                     {t("activeFilters.clearAll")}
@@ -567,10 +646,17 @@ export default function Properties({
               <div className={effectiveView === "split" ? "properties-split" : undefined}>
                 <div className="properties-split__list">
                   <div className="properties-grid">
+                    {/* Sin Reveal: las tarjetas del listado arrancaban invisibles y al volver de una ficha (o al imprimir) salían vacías un momento. */}
                     {properties.map((property, index) => (
-                      <Reveal key={property.id} delay={(index % 6) * 70}>
+                      <Fragment key={property.id}>
                         <PropertyCard property={property} nextVisitSlot={nextSlots[property.id]} />
-                      </Reveal>
+                        {/* 323: con muchos resultados el aviso va después de la primera tanda (casi nadie llega al final de 24 tarjetas). */}
+                        {index === ALERT_AFTER - 1 && alertPlacement(properties.length) === "inline" && !loading && (
+                          <div className="properties-grid__alert">
+                            <AlertSignupCard mode="search" criteria={alertCriteria} matchCount={total} />
+                          </div>
+                        )}
+                      </Fragment>
                     ))}
                   </div>
                   {total > PAGE_SIZE && (
@@ -599,16 +685,32 @@ export default function Properties({
                 )}
               </div>
             )}
-            {!loading && (
+            {!loading && (effectiveView === "map" || alertPlacement(properties.length) === "end") && (
               <AlertSignupCard
                 mode="search"
                 criteria={alertCriteria}
                 matchCount={total}
-                key={JSON.stringify(alertCriteria)}
               />
             )}
           </div>
         </div>
+        {/* 267: la tira de torres y desarrollos ocupaba toda la primera pantalla; ahora va después de los resultados (filtros y lista primero). */}
+        {showDevelopments && (
+          <section className="properties-page__developments" aria-labelledby="developments-strip-title">
+            <div className="properties-page__developments-head">
+              <h3 id="developments-strip-title">{t("developments.stripTitle")}</h3>
+              <p>{t("developments.stripSubtitle")}</p>
+            </div>
+            <div className="properties-page__developments-grid">
+              {developments.map((development) => (
+                <DevelopmentCard key={development.id} development={development} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {footerExtra}
+        <CompareBar />
       </div>
     </>
   );

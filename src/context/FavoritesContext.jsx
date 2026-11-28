@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { FavoritesContext } from "./useFavorites.js";
 import { mergeFavorites } from "../lib/favoritesShare";
 
 // Favoritos de visitante — 100% localStorage, sin cuenta ni backend (a
@@ -8,7 +9,6 @@ import { mergeFavorites } from "../lib/favoritesShare";
 // marcado en una tarjeta se refleje al instante en la ficha de la
 // propiedad y en el contador del header sin recargar la página.
 const STORAGE_KEY = "acl_favorites";
-const FavoritesContext = createContext(null);
 
 function readFavorites() {
   try {
@@ -66,8 +66,3 @@ export function FavoritesProvider({ children }) {
   );
 }
 
-export function useFavorites() {
-  const ctx = useContext(FavoritesContext);
-  if (!ctx) throw new Error("useFavorites debe usarse dentro de FavoritesProvider");
-  return ctx;
-}

@@ -19,7 +19,9 @@ export default function About() {
   const [advisors, setAdvisors] = useState([]);
 
   useEffect(() => {
-    db.getAdvisors().then((data) => setAdvisors(data.filter((a) => a.active !== false && a.show_in_team !== false)));
+    db.getAdvisors()
+      .then((data) => setAdvisors(data.filter((a) => a.active !== false && a.show_in_team !== false && a.photo_url)))
+      .catch(() => {}); // sin red: la página se ve sin el equipo, no se rompe
   }, []);
 
   return (
@@ -28,7 +30,7 @@ export default function About() {
 
       <div className="container about-page">
         <div className="section-heading m-section">
-          <h2>{t("about.title")}</h2>
+          <h1>{t("about.title")}</h1>
           <p>{t("about.intro")}</p>
         </div>
 

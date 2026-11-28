@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { propertyTypeLabel } from "../../lib/format";
 import { criteriaSummary } from "../../lib/prospectMatch";
 import { groupZonesByCity, zoneDisplayName } from "../../lib/zones";
@@ -24,6 +24,8 @@ import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
 import "./AdminProspects.css";
+import { notifyLoadError } from "../../lib/loadError";
+import { useUnsavedChanges } from "../../lib/useUnsavedChanges";
 
 // Alta y edición de un prospecto. El asesor con login vinculado siempre queda
 // como responsable; el correo de oficina (sin asesor vinculado) elige quién lo lleva.
@@ -56,6 +58,8 @@ export default function AdminProspectForm() {
   const [loading, setLoading] = useState(isEdit);
   const [notFound, setNotFound] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Cerrar la pestaña con cambios sin guardar pide confirmar.
+  useUnsavedChanges(form, { ready: !loading, enabled: !saving });
   const [saveError, setSaveError] = useState("");
   // Coincidencias con un prospecto o cliente que ya existe (solo al dar de alta);
   // mientras haya, guardar pide confirmarlo con "Guardar de todos modos".
@@ -333,7 +337,7 @@ export default function AdminProspectForm() {
           onMerged={(removedId) => {
             // El otro ya no existe: sale de las listas en caché y se vuelve a leer este (datos y línea de tiempo).
             mutateCache("prospects", (list) => (Array.isArray(list) ? list.filter((p) => p.id !== removedId) : list));
-            db.getProspectById(id).then((fresh) => fresh && setProspect(fresh));
+            db.getProspectById(id).then((fresh) => fresh && setProspect(fresh)).catch(notifyLoadError);
             setHistoryKey((k) => k + 1);
           }}
         />

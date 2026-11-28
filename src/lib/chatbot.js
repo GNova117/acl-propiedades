@@ -32,9 +32,26 @@ export const CHAT_LIMITS = {
   maxTotalChars: 12000,
   sessionHourlyLimit: 30,
   dailyLimit: 500,
+  // Por IP, además del tope por sesión: el id de sesión lo genera el navegador y se rota gratis, así que solo
+  // con él un script agotaba el cupo diario de todos. Holgados a propósito: en las redes celulares muchas
+  // personas comparten una misma IP pública.
+  ipHourlyLimit: 80,
+  ipDailyLimit: 200,
 };
 
-export function buildSystemPrompt() {
+// IP del visitante según los encabezados que pone Vercel (x-forwarded-for: la primera es la del cliente;
+// x-real-ip de respaldo). `headers` es el objeto de Node (llaves en minúsculas). Nulo si no hay una IP válida.
+export function clientIp(headers = {}) {
+  const forwarded = String(headers["x-forwarded-for"] ?? "").split(",")[0].trim();
+  const candidate = forwarded || String(headers["x-real-ip"] ?? "").trim();
+  return /^[0-9a-fA-F:.]{3,45}$/.test(candidate) ? candidate.toLowerCase() : null;
+}
+
+// `currentProperty`: renglón ya resumido (summarizePropertiesForChat) de la ficha que la persona tiene abierta, o "".
+export function buildSystemPrompt({ currentProperty = "" } = {}) {
+  const pageContext = currentProperty
+    ? `\n\nContexto de la página: la persona está viendo ahora esta propiedad:\n${String(currentProperty).slice(0, 400)}\nSi dice «esta casa», «esta propiedad», «aquí» o algo parecido, se refiere a esa; no se la repitas si no te lo piden.`
+    : "";
   return `Eres el asistente virtual de ACL Propiedades, una inmobiliaria en ${OFFICE_INFO.zones}. Ayudas a quien visita el sitio a encontrar propiedades y resuelves dudas generales sobre comprar, vender o rentar.
 
 Datos de la oficina (solo los usas si te los piden, no los repitas sin que venga al caso):
@@ -50,7 +67,7 @@ Reglas:
 - Si no puedes resolver algo, si la persona lo pide explícitamente, o si la conversación se está complicando, dile con naturalidad que puede escribirle directo a un asesor por WhatsApp (el botón ya está visible en el chat, no hace falta que des el número).
 - Para AGENDAR UNA VISITA a una propiedad: primero consulta horarios_visita con su código (lo ves en los resultados de buscar_propiedades); ofrece 2 o 3 horarios de los que devuelva, NUNCA inventes uno. Cuando la persona elija uno, pídele (si aún no los tienes) nombre completo, correo y teléfono, confírmale el resumen y SOLO entonces usa agendar_visita. Si la propiedad no tiene horarios en línea, o agendar_visita falla dos veces, usa pasar_a_asesor.
 - Usa pasar_a_asesor cuando la persona pida hablar con un asesor o una persona, cuando no puedas resolver lo que necesita o cuando la conversación se complique. Avísale con naturalidad que un asesor le escribirá y que también puede seguir por WhatsApp desde el botón del chat.
-- Nunca pidas contraseñas, datos bancarios completos ni documentos de identidad por este chat.`;
+- Nunca pidas contraseñas, datos bancarios completos ni documentos de identidad por este chat.${pageContext}`;
 }
 
 export const CHAT_TOOLS = [

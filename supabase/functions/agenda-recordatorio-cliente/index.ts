@@ -16,6 +16,8 @@
 // La lógica de armar el mensaje está en funciones puras y exportadas para poder
 // probarlas fuera de Deno; el servidor solo arranca dentro de Deno.
 
+import { isCronAuthorized } from "../_shared/cronAuth.js";
+
 const GRAPH_VERSION = "v25.0";
 
 type Named = { name: string; phone?: string | null } | null;
@@ -105,15 +107,18 @@ export function buildPayload(reminder: ReturnType<typeof buildReminders>["remind
 }
 
 async function handler(req: Request): Promise<Response> {
-  const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || req.headers.get("x-cron-secret") !== cronSecret) {
+  if (!(await isCronAuthorized(req, "agenda-recordatorio-cliente"))) {
     return new Response("unauthorized", { status: 401 });
   }
 
   const { createClient } = await import("jsr:@supabase/supabase-js@2");
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const whatsappToken = Deno.env.get("WHATSAPP_TOKEN")!;
-  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID")!;
+  const whatsappToken = Deno.env.get("WHATSAPP_TOKEN");
+  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
+  // Sin las credenciales de WhatsApp se responde «no configurado» (antes tronaba sin un mensaje claro).
+  if (!whatsappToken || !phoneNumberId) {
+    return new Response(JSON.stringify({ ok: false, error: "whatsapp_not_configured" }), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
 
   const fecha = tomorrowInMexico();
 

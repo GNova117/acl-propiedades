@@ -23,6 +23,15 @@ function readIds() {
   }
 }
 
+// Borra el historial («Vistos recientemente») de este navegador.
+export function clearRecentlyViewed() {
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* sin almacenamiento: no hay nada que borrar */
+  }
+}
+
 function writeIds(ids) {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));

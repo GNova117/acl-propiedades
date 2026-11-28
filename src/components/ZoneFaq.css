@@ -1,0 +1,24 @@
+.zone-faq {
+  margin: 2.5rem auto 0;
+  max-width: 760px;
+}
+
+.zone-faq h2 {
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+.zone-faq details {
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.75rem 0;
+}
+
+.zone-faq summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.zone-faq p {
+  margin: 0.6rem 0 0;
+  color: var(--color-text-muted, #5b6472);
+}

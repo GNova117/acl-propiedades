@@ -1,10 +1,7 @@
 // Piezas compartidas por los módulos de Backend de modo demo (localStorage) (ver localBackend.js): constantes y ayudantes de este lado.
-import { CLIENT_EXPEDIENTE_KEYS } from "../../clientExpedienteFields";
 import { matchesBounds, matchesSearch } from "../../propertySearch";
 
-export function clientExpedientePayload(data) {
-  return Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, data[key] || null]));
-}
+export { clientExpedientePayload } from "../../backendRules";
 
 // Marca (solo de esta pestaña/sesión del navegador) de que ya se confirmó el código de dos pasos en modo demo.
 export const MFA_OK_KEY = "acl_local_mfa_ok";
@@ -189,8 +186,12 @@ export function matchesFilters(property, filters = {}) {
   if (filters.type && property.type !== filters.type) return false;
   else if (!filters.type && filters.types && !filters.types.includes(property.type)) return false;
   if (filters.operation_type && property.operation_type !== filters.operation_type) return false;
+  if (filters.statuses?.length && !filters.statuses.includes(property.status ?? "disponible")) return false;
   if (filters.tipo_nave && property.tipo_nave !== filters.tipo_nave) return false;
-  if (filters.zone && property.zone !== filters.zone) return false;
+  if (filters.zone) {
+    const fold = (text) => String(text ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+    if (filters.zoneExact ? property.zone !== filters.zone : !fold(property.zone).includes(fold(filters.zone))) return false;
+  }
   if (filters.minPrice != null && property.price < filters.minPrice) return false;
   if (filters.maxPrice != null && property.price > filters.maxPrice) return false;
   if (filters.minArea != null && property.area_m2 < filters.minArea) return false;

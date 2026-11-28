@@ -6,6 +6,7 @@ import { compressImageFiles } from "../../imageCompression";
 import { DEVELOPMENTS_SEED } from "../../developmentsSeed";
 import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } from "../../developments";
 import { KEYS, BLOG_POSTS_SEED, readStore, writeStore, FILE_QUOTA_MESSAGE, writeStoreOrThrowFriendly, uid, fileToDataUrl, filesToDataUrls, getSession } from "./shared.js";
+import { testimonialFields, siteUpdateFields } from "../../backendRules";
 
 export const contentMethods = {
   async getTestimonials() {
@@ -17,10 +18,7 @@ export const contentMethods = {
     const testimonials = readStore(KEYS.testimonials, []);
     const record = {
       id: uid("testimonial"),
-      name: data.name.trim(),
-      role: data.role?.trim() || null,
-      quote: data.quote.trim(),
-      rating: Number(data.rating) || 5,
+      ...testimonialFields(data),
       active: true,
       created_at: new Date().toISOString(),
     };
@@ -35,10 +33,7 @@ export const contentMethods = {
     if (idx === -1) throw new Error("Testimonio no encontrado");
     testimonials[idx] = {
       ...testimonials[idx],
-      name: data.name.trim(),
-      role: data.role?.trim() || null,
-      quote: data.quote.trim(),
-      rating: Number(data.rating) || 5,
+      ...testimonialFields(data),
     };
     writeStore(KEYS.testimonials, testimonials);
     return testimonials[idx];
@@ -213,8 +208,7 @@ export const contentMethods = {
     const now = new Date().toISOString();
     const record = {
       id: uid("update"),
-      title: data.title.trim(),
-      body: data.body.trim(),
+      ...siteUpdateFields(data),
       created_by: DEMO_ADMIN.email,
       created_at: now,
       updated_at: now,
@@ -230,8 +224,7 @@ export const contentMethods = {
     if (idx === -1) throw new Error("Entrada no encontrada");
     updates[idx] = {
       ...updates[idx],
-      title: data.title.trim(),
-      body: data.body.trim(),
+      ...siteUpdateFields(data),
       updated_at: new Date().toISOString(),
     };
     writeStore(KEYS.siteUpdates, updates);

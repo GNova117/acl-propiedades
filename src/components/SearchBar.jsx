@@ -4,14 +4,37 @@ import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { propertyListPath, propertyTypeLabel } from "../lib/format";
 import "./SearchBar.css";
+import ZoneCombobox from "./ZoneCombobox";
 import { propertyPath } from "../lib/propertyUrl.js";
+
+const LAST_SEARCH_KEY = "acl_last_search";
+const EMPTY_SEARCH = { type: "", zone: "", minPrice: "", maxPrice: "" };
+
+function readLastSearch() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LAST_SEARCH_KEY) || "null");
+    if (!saved || typeof saved !== "object") return EMPTY_SEARCH;
+    return Object.fromEntries(Object.keys(EMPTY_SEARCH).map((key) => [key, typeof saved[key] === "string" || typeof saved[key] === "number" ? String(saved[key]) : ""]));
+  } catch {
+    return EMPTY_SEARCH;
+  }
+}
+
+function rememberSearch(form) {
+  try {
+    localStorage.setItem(LAST_SEARCH_KEY, JSON.stringify(form));
+  } catch {
+    /* sin almacenamiento: simplemente no se recuerda */
+  }
+}
 
 export default function SearchBar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [zones, setZones] = useState([]);
   const [propertyTypes, setPropertyTypes] = useState([]);
-  const [form, setForm] = useState({ type: "", zone: "", minPrice: "", maxPrice: "" });
+  // La última búsqueda se recuerda en este navegador: quien vuelve al inicio la encuentra puesta.
+  const [form, setForm] = useState(readLastSearch);
   const [codeInput, setCodeInput] = useState("");
   const [codeError, setCodeError] = useState(false);
   const [searchingCode, setSearchingCode] = useState(false);
@@ -33,9 +56,14 @@ export default function SearchBar() {
     // conviven ahí); en los apartados de un solo tipo ya está implícito.
     if (form.type && path === "/propiedades") params.set("tipo", form.type);
     if (form.zone) params.set("zona", form.zone);
-    if (form.minPrice) params.set("min", form.minPrice);
-    if (form.maxPrice) params.set("max", form.maxPrice);
-    navigate(`${path}?${params.toString()}`);
+    // Si el mínimo quedó mayor que el máximo se acomodan (con los dos al revés no había resultados y sin explicación).
+    let { minPrice, maxPrice } = form;
+    if (minPrice && maxPrice && Number(minPrice) > Number(maxPrice)) [minPrice, maxPrice] = [maxPrice, minPrice];
+    if (minPrice) params.set("min", minPrice);
+    if (maxPrice) params.set("max", maxPrice);
+    const query = params.toString();
+    rememberSearch({ ...form, minPrice: minPrice || "", maxPrice: maxPrice || "" });
+    navigate(query ? `${path}?${query}` : path);
   };
 
   const handleCodeSearch = async (e) => {
@@ -50,6 +78,10 @@ export default function SearchBar() {
       } else {
         setCodeError(true);
       }
+    } catch (err) {
+      // Sin red el botón se quedaba en «buscando»: ahora avisa que no se pudo buscar.
+      console.error("getPropertyByCode", err);
+      setCodeError("network");
     } finally {
       setSearchingCode(false);
     }
@@ -62,7 +94,7 @@ export default function SearchBar() {
           <label htmlFor="search-type">{t("hero.searchType")}</label>
           <select id="search-type" name="type" value={form.type} onChange={handleChange}>
             <option value="">{t("hero.allTypes")}</option>
-            {propertyTypes.map((pt) => (
+            {propertyTypes.filter((pt) => pt.active !== false).map((pt) => (
               <option key={pt.id} value={pt.key}>
                 {propertyTypeLabel(t, pt.key)}
               </option>
@@ -72,12 +104,7 @@ export default function SearchBar() {
 
         <div className="search-bar__field">
           <label htmlFor="search-zone">{t("hero.searchZone")}</label>
-          <input id="search-zone" name="zone" list="search-bar-zones" value={form.zone} onChange={handleChange} placeholder={t("hero.allZones")} />
-          <datalist id="search-bar-zones">
-            {zones.map((zone) => (
-              <option key={zone.id} value={zone.name} />
-            ))}
-          </datalist>
+          <ZoneCombobox id="search-zone" name="zone" value={form.zone} onChange={handleChange} zones={zones} placeholder={t("hero.allZones")} />
         </div>
 
         <div className="search-bar__field">
@@ -87,7 +114,7 @@ export default function SearchBar() {
 
         <div className="search-bar__field">
           <label htmlFor="search-max">{t("hero.searchMax")}</label>
-          <input id="search-max" name="maxPrice" type="number" min="0" placeholder="$10,000,000" value={form.maxPrice} onChange={handleChange} />
+          <input id="search-max" name="maxPrice" type="number" min="0" placeholder={t("hero.maxPricePlaceholder")} value={form.maxPrice} onChange={handleChange} />
         </div>
 
         <button type="submit" className="btn btn-primary search-bar__submit">
@@ -109,7 +136,7 @@ export default function SearchBar() {
         <button type="submit" className="btn btn-outline btn-sm" disabled={searchingCode || !codeInput.trim()}>
           {t("properties.codeSearchButton")}
         </button>
-        {codeError && <span className="form-error">{t("properties.codeNotFound")}</span>}
+        {codeError && <span className="form-error">{t(codeError === "network" ? "properties.codeSearchError" : "properties.codeNotFound")}</span>}
       </form>
     </div>
   );

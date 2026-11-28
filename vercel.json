@@ -30,6 +30,15 @@
       ]
     },
     {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
       "source": "/sw.js",
       "headers": [
         {
@@ -74,7 +83,7 @@
     },
     "api/media.js": {
       "maxDuration": 15,
-      "includeFiles": "server/fonts/**"
+      "includeFiles": "server/{fonts,assets}/**"
     }
   },
   "rewrites": [
@@ -85,6 +94,10 @@
     {
       "source": "/api/agenda-ics",
       "destination": "/api/media?kind=ics"
+    },
+    {
+      "source": "/api/plantilla",
+      "destination": "/api/media?kind=plantilla"
     },
     {
       "source": "/sitemap.xml",

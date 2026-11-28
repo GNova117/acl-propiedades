@@ -3,9 +3,11 @@ import { useTranslation } from "react-i18next";
 import { OFFICE_WHATSAPP } from "../lib/office";
 import "./MobileContactBar.css";
 import { propertyPath } from "../lib/propertyUrl.js";
+import { siteOrigin } from "../lib/site";
 
 export const OPEN_SCHEDULE_EVENT = "acl:open-schedule-visit";
 export const SCHEDULE_TARGET_ID = "agendar-visita";
+export const OPEN_CHAT_EVENT = "acl:open-chat";
 
 // Barra fija al pie de la ficha de propiedad en pantallas angostas, donde
 // "Agendar visita" queda hasta el final de la página. "Agendar visita" baja
@@ -22,7 +24,7 @@ export default function MobileContactBar({ property }) {
   }, []);
 
   const label = property.code ? `${property.title.trim()} (${property.code})` : property.title.trim();
-  const text = `${t("mobileBar.whatsappText", { property: label })}\n${window.location.origin}${propertyPath(property)}`;
+  const text = `${t("mobileBar.whatsappText", { property: label })}\n${siteOrigin()}${propertyPath(property)}`;
   const whatsappUrl = `https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(text)}`;
 
   const handleSchedule = () => {
@@ -39,6 +41,9 @@ export default function MobileContactBar({ property }) {
       <a className="btn btn-outline mobile-contact-bar__whatsapp" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
         {t("mobileBar.whatsapp")}
       </a>
+      <button type="button" className="btn btn-outline mobile-contact-bar__chat" onClick={() => window.dispatchEvent(new Event(OPEN_CHAT_EVENT))}>
+        {t("mobileBar.chat")}
+      </button>
     </div>
   );
 }

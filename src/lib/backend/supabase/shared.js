@@ -1,6 +1,5 @@
 // Piezas compartidas por los módulos de Backend con Supabase (ver supabaseBackend.js): constantes y ayudantes de este lado.
 import { supabase } from "../../supabaseClient";
-import { CLIENT_EXPEDIENTE_KEYS } from "../../clientExpedienteFields";
 import { compressImageFile, compressImageFiles, makeImageVariants } from "../../imageCompression";
 import { markVariantName, variantUrl } from "../../imageVariants";
 
@@ -10,12 +9,39 @@ export function isMissingTable(error) {
   return error?.code === "42P01" || error?.code === "PGRST205";
 }
 
-// Los campos del expediente del cliente (NSS, contraseña del portal, número
-// de crédito y las 2 referencias) se guardan igual al crear y al editar — se
-// arman desde una sola lista para no repetirlos campo por campo.
-export function clientExpedientePayload(data) {
-  return Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, data[key] || null]));
+// PostgREST corta cualquier consulta en 1000 filas (el `max-rows` del proyecto) sin avisar: una lista del panel con más
+// registros se vería "completa" pero le faltarían los más viejos. `fetchAll` pide por páginas hasta traerlo todo.
+// `build` recibe la consulta base ya con su orden y devuelve la consulta lista; se vuelve a llamar por página.
+export const PAGE_SIZE = 1000;
+export const MAX_PAGES = 50; // tope de seguridad: 50 000 filas
+export async function fetchAll(buildQuery) {
+  const rows = [];
+  for (let page = 0; page < MAX_PAGES; page += 1) {
+    const from = page * PAGE_SIZE;
+    const { data, error } = await buildQuery().range(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    const chunk = data || [];
+    rows.push(...chunk);
+    if (chunk.length < PAGE_SIZE) break;
+  }
+  return rows;
 }
+
+// Varias piezas de una misma pantalla piden la misma lista casi a la vez (el encabezado, el buscador, el inicio y el listado pedían los
+// tipos de propiedad por separado: hasta 4 consultas iguales). Con esto comparten una sola y la reutilizan unos segundos.
+// `forget(key)` la suelta (al guardar un cambio que la modifica).
+const shortLived = new Map();
+export function shareBriefly(key, load, ttlMs = 5000) {
+  const hit = shortLived.get(key);
+  if (hit && Date.now() - hit.at < ttlMs) return hit.promise;
+  const promise = load();
+  shortLived.set(key, { at: Date.now(), promise });
+  promise.catch(() => shortLived.delete(key));
+  return promise;
+}
+export const forgetShared = (key) => shortLived.delete(key);
+
+export { clientExpedientePayload } from "../../backendRules";
 
 // Supabase Storage rechaza ciertos caracteres en la key del objeto (espacios,
 // acentos, "{"/"}", etc. — el nombre real del archivo que sube el usuario no
@@ -113,13 +139,29 @@ export function mapPropertyRow(row) {
   };
 }
 
-export const PROPERTY_SELECT = "*, property_advisors(advisor_id, advisors(*))";
+// Del asesor, el público solo puede leer estas columnas (ver la migración 0118): teléfono, correo y WhatsApp salen por
+// team_advisors() y selection_advisor(). El personal con sesión sí ve todo — el panel usa el teléfono del asesor (ficha en
+// PDF, enviar propiedad, mensajes).
+export const PUBLIC_ADVISOR_COLUMNS = "id, name, photo_url, bio, active, show_in_team, created_at";
+export const PROPERTY_SELECT_STAFF = "*, property_advisors(advisor_id, advisors(*))";
+export const PROPERTY_SELECT_PUBLIC = `*, property_advisors(advisor_id, advisors(${PUBLIC_ADVISOR_COLUMNS}))`;
+
+// getSession() lee la sesión guardada en el navegador (sin red), así que es barato pedirla en cada consulta.
+export async function hasStaffSession() {
+  const { data } = await supabase.auth.getSession();
+  return Boolean(data?.session);
+}
+
+export async function propertySelect() {
+  return (await hasStaffSession()) ? PROPERTY_SELECT_STAFF : PROPERTY_SELECT_PUBLIC;
+}
 
 export const PROPERTY_SORTERS = {
   newest: [["created_at", false], ["id", true]],
-  price_asc: [["price", true]],
-  price_desc: [["price", false]],
-  area_desc: [["area_m2", false]],
+  // Todos terminan en `id`: con precios o superficies iguales el orden era ambiguo y, al paginar, una propiedad podía repetirse o saltarse.
+  price_asc: [["price", true], ["id", true]],
+  price_desc: [["price", false], ["id", true]],
+  area_desc: [["area_m2", false], ["id", true]],
 };
 
 export const SECRETARIA_TABLES = { keys: "secretaria_llaves", docs: "secretaria_documentos" };

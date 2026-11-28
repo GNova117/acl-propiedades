@@ -1,8 +1,13 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { saveContact, withRemembered } from "../lib/rememberedContact";
+import { Link, useLocation } from "react-router-dom";
+import { errorId, fieldErrorProps, focusFirstError } from "../lib/formErrors";
+import { CONTACT_TOPICS, composeMessage, prefillMessage, topicFromSearch } from "../lib/contactPrefill";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { trackConversion } from "../lib/conversions";
+import { lastSubmitAt, markSubmitted } from "../lib/rateLimitStore";
+import { isValidPhone } from "../lib/lead";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -17,9 +22,11 @@ const initialForm = { name: "", email: "", phone: "", message: "", empresa: "" }
 const RATE_LIMIT_KEY = "acl_contact_last_submit";
 const RATE_LIMIT_MS = 60_000;
 
-export default function ContactForm() {
+export default function ContactForm({ initialMessage = "", showTopic = true }) {
   const { t } = useTranslation();
-  const [form, setForm] = useState(initialForm);
+  const location = useLocation();
+  const [form, setForm] = useState(() => ({ ...withRemembered(initialForm), message: initialMessage || prefillMessage(location.search) }));
+  const [topic, setTopic] = useState(() => (showTopic ? topicFromSearch(location.search) : ""));
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
 
@@ -28,8 +35,12 @@ export default function ContactForm() {
     if (!form.name.trim()) next.name = t("contact.required");
     if (!form.email.trim()) next.email = t("contact.required");
     else if (!EMAIL_RE.test(form.email)) next.email = t("contact.invalidEmail");
+    // El teléfono es opcional, pero si se escribe debe ser un teléfono (antes aceptaba «abc» o 3 dígitos).
+    if (form.phone.trim() && !isValidPhone(form.phone)) next.phone = t("contactRequest.invalidPhone");
     if (!form.message.trim()) next.message = t("contact.required");
     setErrors(next);
+    // 261: con errores el foco va al primer campo que lo tiene.
+    focusFirstError(next, ["name", "email", "phone", "message"], { name: "contact-name", email: "contact-email", phone: "contact-phone", message: "contact-message" });
     return Object.keys(next).length === 0;
   };
 
@@ -47,7 +58,7 @@ export default function ContactForm() {
       return;
     }
 
-    const lastSubmit = Number(window.localStorage.getItem(RATE_LIMIT_KEY) || 0);
+    const lastSubmit = lastSubmitAt(RATE_LIMIT_KEY);
     if (Date.now() - lastSubmit < RATE_LIMIT_MS) {
       setStatus("rateLimited");
       return;
@@ -56,9 +67,11 @@ export default function ContactForm() {
     setStatus("sending");
     try {
       const { empresa: _empresa, ...payload } = form;
+      payload.message = composeMessage(topic ? t(`contact.topics.${topic}`) : "", form.message);
       await db.submitContactMessage(payload);
       trackConversion("lead_form", { form: "contacto" });
-      window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
+      markSubmitted(RATE_LIMIT_KEY);
+      saveContact(form);
       setStatus("success");
       setForm(initialForm);
     } catch (err) {
@@ -77,31 +90,51 @@ export default function ContactForm() {
 
       <div className="form-field">
         <label htmlFor="contact-name">{t("contact.name")}</label>
-        <input id="contact-name" name="name" value={form.name} onChange={handleChange} aria-invalid={Boolean(errors.name)} />
-        {errors.name && <span className="form-error">{errors.name}</span>}
+        <input id="contact-name" name="name" autoComplete="name" value={form.name} onChange={handleChange} {...fieldErrorProps("contact-name", errors.name)} />
+        {errors.name && <span id={errorId("contact-name")} className="form-error">{errors.name}</span>}
       </div>
 
       <div className="form-row">
         <div className="form-field">
           <label htmlFor="contact-email">{t("contact.email")}</label>
-          <input id="contact-email" name="email" type="email" value={form.email} onChange={handleChange} aria-invalid={Boolean(errors.email)} />
-          {errors.email && <span className="form-error">{errors.email}</span>}
+          <input id="contact-email" name="email" type="email" autoComplete="email" value={form.email} onChange={handleChange} {...fieldErrorProps("contact-email", errors.email)} />
+          {errors.email && <span id={errorId("contact-email")} className="form-error">{errors.email}</span>}
         </div>
         <div className="form-field">
           <label htmlFor="contact-phone">{t("contact.phone")}</label>
-          <input id="contact-phone" name="phone" type="tel" value={form.phone} onChange={handleChange} />
+          <input id="contact-phone" name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={handleChange} {...fieldErrorProps("contact-phone", errors.phone)} />
+          {errors.phone && <span id={errorId("contact-phone")} className="form-error">{errors.phone}</span>}
         </div>
       </div>
 
+      {showTopic && (
+        <div className="form-field">
+          <label htmlFor="contact-topic">{t("contact.topicLabel")}</label>
+          <select id="contact-topic" value={topic} onChange={(e) => setTopic(e.target.value)}>
+            <option value="">{t("contact.topicNone")}</option>
+            {CONTACT_TOPICS.map((key) => (
+              <option key={key} value={key}>{t(`contact.topics.${key}`)}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className="form-field">
         <label htmlFor="contact-message">{t("contact.message")}</label>
-        <textarea id="contact-message" name="message" rows={5} value={form.message} onChange={handleChange} aria-invalid={Boolean(errors.message)} />
-        {errors.message && <span className="form-error">{errors.message}</span>}
+        <textarea id="contact-message" name="message" rows={5} value={form.message} onChange={handleChange} {...fieldErrorProps("contact-message", errors.message)} />
+        {errors.message && <span id={errorId("contact-message")} className="form-error">{errors.message}</span>}
       </div>
 
-      {status === "success" && <p className="form-hint text-success">{t("contact.success")}</p>}
-      {status === "error" && <p className="form-error">{t("contact.error")}</p>}
-      {status === "rateLimited" && <p className="form-error">{t("contact.rateLimited")}</p>}
+      {status === "success" && (
+        <div className="contact-success" role="status">
+          <p className="form-hint text-success">{t("contact.success")}</p>
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => setStatus("idle")}>
+            {t("contact.sendAnother")}
+          </button>
+        </div>
+      )}
+      {status === "error" && <p className="form-error" role="alert">{t("contact.error")}</p>}
+      {status === "rateLimited" && <p className="form-error" role="alert">{t("contact.rateLimited")}</p>}
       {status === "serverLimited" && <p className="form-error" role="alert">{t("contact.serverLimited")}</p>}
 
       <p className="form-hint mb-4">

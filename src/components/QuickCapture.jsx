@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import { db } from "../lib/dataStore";
 import { quickProspectFields, validateQuickProspect } from "../lib/quickProspect";
 import { mutate } from "../lib/dataCache";

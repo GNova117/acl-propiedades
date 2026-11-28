@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useCompare, MAX_COMPARE } from "../context/CompareContext";
+import { useCompare, MAX_COMPARE } from "../context/useCompare.js";
 import "./CompareButton.css";
 import { notify } from "../lib/toast";
 
@@ -29,19 +29,20 @@ export default function CompareButton({ propertyId, className = "" }) {
       onClick={handleClick}
       disabled={disabled}
       aria-pressed={active}
-      aria-label={label}
       title={label}
     >
       {active ? (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3.5" y="3.5" width="17" height="17" rx="4" />
           <path d="M8 12.5l2.7 2.7L16.5 9" />
         </svg>
       ) : (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="3.5" y="3.5" width="17" height="17" rx="4" />
         </svg>
       )}
+      {/* 259: el botón decía solo «☐»; ahora trae su palabra. El nombre accesible es el texto visible y aria-pressed dice si está marcado. */}
+      <span className="compare-button__text">{t("compare.short")}</span>
     </button>
   );
 }

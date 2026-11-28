@@ -21,7 +21,7 @@ describe("serveAgendaFeed", () => {
     expect(out.headers["Content-Type"]).toContain("text/calendar");
     expect(out.headers["Cache-Control"]).toContain("private");
     expect(out.body).toContain("SUMMARY:Visita Casa Norte");
-    expect(out.body).toContain("DTSTART:20261120T100000");
+    expect(out.body).toContain("DTSTART:20261120T160000Z");
   });
 
   it("una agenda sin citas es un calendario válido vacío", async () => {

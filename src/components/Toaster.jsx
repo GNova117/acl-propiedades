@@ -1,4 +1,4 @@
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import { dismiss, getConfirmRequest, getToasts, resolveConfirm, subscribe } from "../lib/toast";
 import "./Toaster.css";
@@ -45,18 +45,25 @@ function ConfirmModal({ request }) {
   const { t } = useTranslation();
   const boxRef = useRef(null);
   const { message, opts } = request;
+  const [text, setText] = useState(opts.defaultValue ?? "");
 
   useEffect(() => {
     const previous = document.activeElement;
     const buttons = boxRef.current?.querySelectorAll("button") ?? [];
-    (opts.danger ? buttons[0] : buttons[buttons.length - 1])?.focus();
+    const field = boxRef.current?.querySelector("input");
+    if (field) {
+      field.focus();
+      field.select();
+    } else {
+      (opts.danger ? buttons[0] : buttons[buttons.length - 1])?.focus();
+    }
     const onKey = (e) => {
       if (e.key === "Escape") {
         e.preventDefault();
         resolveConfirm(false);
       }
       if (e.key === "Tab" && boxRef.current) {
-        const focusable = [...boxRef.current.querySelectorAll("button")];
+        const focusable = [...boxRef.current.querySelectorAll("button, input")];
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
         if (e.shiftKey && document.activeElement === first) {
@@ -82,11 +89,30 @@ function ConfirmModal({ request }) {
         <p id="confirm-dialog-message" className="confirm-dialog__message">
           {message}
         </p>
+        {opts.input && (
+          <input
+            className="confirm-dialog__input"
+            aria-label={message}
+            value={text}
+            readOnly={Boolean(opts.readOnly)}
+            placeholder={opts.placeholder || ""}
+            onChange={(e) => setText(e.target.value)}
+            onFocus={(e) => opts.readOnly && e.target.select()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                resolveConfirm(true, text);
+              }
+            }}
+          />
+        )}
         <div className="confirm-dialog__actions">
-          <button type="button" className="btn btn-outline" onClick={() => resolveConfirm(false)}>
-            {opts.cancelLabel || t("toast.cancel")}
-          </button>
-          <button type="button" className={`btn ${opts.danger ? "btn-danger" : "btn-primary"}`} onClick={() => resolveConfirm(true)}>
+          {!opts.hideCancel && (
+            <button type="button" className="btn btn-outline" onClick={() => resolveConfirm(false)}>
+              {opts.cancelLabel || t("toast.cancel")}
+            </button>
+          )}
+          <button type="button" className={`btn ${opts.danger ? "btn-danger" : "btn-primary"}`} onClick={() => resolveConfirm(true, text)}>
             {opts.confirmLabel || t("toast.confirm")}
           </button>
         </div>
@@ -107,7 +133,7 @@ export default function Toaster() {
           <ToastItem key={item.id} toast={item} />
         ))}
       </div>
-      {request && <ConfirmModal request={request} />}
+      {request && <ConfirmModal key={request.id} request={request} />}
     </>
   );
 }

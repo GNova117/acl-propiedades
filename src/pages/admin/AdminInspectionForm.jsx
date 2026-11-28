@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import SignatureModal from "../../components/SignatureModal";
 import InspectionChecklist from "../../components/InspectionChecklist";
 import { buildInspectionLabels, downloadInspectionPdf } from "../../lib/inspectionPdf";

@@ -71,7 +71,7 @@ export default function AdminPortalDocumentReview({ doc, clientId, onChanged }) 
           </div>
         </>
       )}
-      {doc.review_status === "rechazado" && doc.review_notes && <p className="form-error">{t("adminPortal.rejectedReason", { reason: doc.review_notes })}</p>}
+      {doc.review_status === "rechazado" && doc.review_notes && <p className="form-error" role="alert">{t("adminPortal.rejectedReason", { reason: doc.review_notes })}</p>}
     </div>
   );
 }

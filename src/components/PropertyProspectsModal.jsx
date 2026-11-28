@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { criteriaSummary } from "../lib/prospectMatch";
 import { sendLink, suggestPropertyMessage } from "../lib/prospectMessages";
 import "./PropertyProspectsModal.css";
+import { siteOrigin } from "../lib/site";
 
 // "Prospectos que encajan" con una propiedad (Propiedades del admin): lista los
 // prospectos abiertos cuyo "qué busca" coincide, con un botón para mandarles la
@@ -11,7 +12,7 @@ import "./PropertyProspectsModal.css";
 // filtrado y ordenado (prospectMatch.matchingProspects).
 export default function PropertyProspectsModal({ property, prospects, onClose }) {
   const { t } = useTranslation();
-  const url = `${window.location.origin}/propiedades/${property.id}`;
+  const url = `${siteOrigin()}/propiedades/${property.id}`;
 
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();

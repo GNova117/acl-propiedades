@@ -9,8 +9,7 @@ import { formatMXN } from "./format";
 import { OFFICE_WHATSAPP } from "./office";
 import { fileSafe, sanitize, wrapText } from "./propertyFichaPdf";
 import { propertyUrl } from "./socialPost";
-
-const TEMPLATE_URL = "/plantilla_acl.pdf";
+import { loadLetterhead } from "./letterhead";
 
 // Corrección de errores "Q" (25 %): aguanta un letrero sucio, rayado o con sol
 // mejor que la "M" de costumbre, a cambio de unos módulos más.
@@ -125,10 +124,7 @@ export async function buildQrSignPdf(property, { origin, template, logo = true }
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const templateBytes =
     template ??
-    (await fetch(TEMPLATE_URL).then((res) => {
-      if (!res.ok) throw new Error("No se pudo cargar la plantilla membretada");
-      return res.arrayBuffer();
-    }));
+    (await loadLetterhead());
   const doc = await PDFDocument.load(templateBytes);
   const page = doc.getPages()[0];
   const { width: pageWidth } = page.getSize();

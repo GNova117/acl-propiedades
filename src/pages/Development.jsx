@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import ContactForm from "../components/ContactForm";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
@@ -16,12 +17,13 @@ import {
   developmentWhatsappText,
   EMPTY_UNIT_FILTERS,
 } from "../lib/developments";
-import { formatMXN, formatArea } from "../lib/format";
+import { formatMXN, formatArea, formatDeliveryDate } from "../lib/format";
 import { estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import { OFFICE_WHATSAPP } from "../lib/office";
 import "../components/development/development.css";
 import "./Development.css";
 import LoadingState from "../components/LoadingState";
+import { siteOrigin } from "../lib/site";
 
 const SORT_OPTIONS = ["floor_desc", "floor_asc", "price_asc", "price_desc"];
 const PAGE_SIZE = 12;
@@ -64,7 +66,7 @@ function UnitCard({ unit, onOpen, t }) {
 
 export default function Development() {
   const { slug } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [development, setDevelopment] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -119,7 +121,7 @@ export default function Development() {
     );
   }
 
-  const pageUrl = `${window.location.origin}/desarrollos/${development.slug}`;
+  const pageUrl = `${siteOrigin()}/desarrollos/${development.slug}`;
   const whatsappUrl = `https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(developmentWhatsappText(development, pageUrl))}`;
   const seoImage = development.hero_image?.startsWith("http") ? development.hero_image : undefined;
   const filtersActive = filters.model || filters.bedrooms !== "" || filters.floorFrom !== "" || filters.maxPrice || filters.status !== "disponible";
@@ -170,7 +172,7 @@ export default function Development() {
         />
         <Stat label={t("developments.stats.bedrooms")} value={bedroomsLabel} />
         <Stat label={t("developments.stats.area")} value={sizeLabel} />
-        {development.delivery_date && <Stat label={t("developments.stats.delivery")} value={development.delivery_date} />}
+        {development.delivery_date && <Stat label={t("developments.stats.delivery")} value={formatDeliveryDate(development.delivery_date, i18n.language)} />}
       </section>
 
       {development.description && (
@@ -381,6 +383,10 @@ export default function Development() {
           <a className="btn btn-primary" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
             {t("developments.contact.whatsapp")}
           </a>
+        </div>
+        <div className="container dev-cta__form">
+          <h3>{t("developments.contact.formTitle")}</h3>
+          <ContactForm showTopic={false} initialMessage={t("developments.contact.formMessage", { name: development.name })} />
         </div>
       </section>
 

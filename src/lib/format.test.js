@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatDeliveryDate,
+  normalizeMxWhatsapp,
+  daysSince,
   docTypesForClientType,
   DOC_TYPES,
   formatArea,
+  formatAreaFt2,
   formatMXN,
+  statusBadgeClass,
   isPdfDoc,
   numOrNull,
   propertyListPath,
@@ -147,5 +152,66 @@ describe("whatsappUrl", () => {
     expect(whatsappUrl("")).toBeNull();
     expect(whatsappUrl(null)).toBeNull();
     expect(whatsappUrl("sin teléfono")).toBeNull();
+  });
+});
+
+describe("formatDeliveryDate", () => {
+  it("da formato a una fecha ISO y respeta el texto libre", () => {
+    expect(formatDeliveryDate("2027-06-01", "es-MX")).toBe("junio de 2027");
+    expect(formatDeliveryDate("2027-06", "es-MX")).toBe("junio de 2027");
+    expect(formatDeliveryDate("2027-06-01", "en")).toBe("June 2027");
+    expect(formatDeliveryDate("Segundo semestre 2027")).toBe("Segundo semestre 2027");
+    expect(formatDeliveryDate("2027-13-01")).toBe("2027-13-01");
+    expect(formatDeliveryDate(null)).toBe("");
+  });
+});
+
+describe("daysSince", () => {
+  const now = new Date("2026-11-26T12:00:00Z");
+  it("cuenta días enteros y nunca negativos", () => {
+    expect(daysSince("2026-11-26T08:00:00Z", now)).toBe(0);
+    expect(daysSince("2026-11-21T12:00:00Z", now)).toBe(5);
+    expect(daysSince("2026-12-01T12:00:00Z", now)).toBe(0);
+    expect(daysSince("no-es-fecha", now)).toBeNull();
+    expect(daysSince(null, now)).toBeNull();
+  });
+});
+
+describe("normalizeMxWhatsapp", () => {
+  it("deja todo en 52 + 10 dígitos", () => {
+    expect(normalizeMxWhatsapp("871 324 3271")).toBe("528713243271");
+    expect(normalizeMxWhatsapp("+52 871 324 3271")).toBe("528713243271");
+    expect(normalizeMxWhatsapp("5218713243271")).toBe("528713243271");
+    expect(normalizeMxWhatsapp("528713243271")).toBe("528713243271");
+  });
+  it("un número del extranjero o vacío no se inventa", () => {
+    expect(normalizeMxWhatsapp("+1 415 555 0100")).toBe("14155550100");
+    expect(normalizeMxWhatsapp("")).toBe("");
+    expect(normalizeMxWhatsapp(null)).toBe("");
+  });
+});
+
+describe("formatAreaFt2", () => {
+  it("convierte m² a pies cuadrados, redondeado", () => {
+    expect(formatAreaFt2(1000)).toBe("10,764 ft²");
+    expect(formatAreaFt2(1)).toBe("11 ft²");
+  });
+  it("valores vacíos o inválidos no muestran nada", () => {
+    expect(formatAreaFt2(0)).toBe("");
+    expect(formatAreaFt2(null)).toBe("");
+    expect(formatAreaFt2("abc")).toBe("");
+  });
+});
+
+describe("statusBadgeClass", () => {
+  it("cada estatus conocido tiene su color", () => {
+    expect(statusBadgeClass("disponible")).toBe("badge-available");
+    expect(statusBadgeClass("apartada")).toBe("badge-reserved");
+    expect(statusBadgeClass("vendida")).toBe("badge-sold");
+    expect(statusBadgeClass("rentada")).toBe("badge-sold");
+  });
+  it("un estatus desconocido sale neutro, no rojo", () => {
+    expect(statusBadgeClass("en_negociacion")).toBe("badge-neutral");
+    expect(statusBadgeClass(undefined)).toBe("badge-neutral");
   });
 });

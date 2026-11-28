@@ -4,8 +4,8 @@
 // pdf-lib cargado bajo demanda).
 
 import { change } from "./monthlyReport";
+import { loadLetterhead } from "./letterhead";
 
-const TEMPLATE_URL = "/plantilla_acl.pdf";
 const MARGIN_LEFT = 60;
 const CONTENT_WIDTH = 612 - 60 * 2;
 const TOP_Y = 628;
@@ -53,10 +53,7 @@ export async function buildMonthlyReportPdf(report, labels, { template } = {}) {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const templateBytes =
     template ??
-    (await fetch(TEMPLATE_URL).then((res) => {
-      if (!res.ok) throw new Error("No se pudo cargar la plantilla membretada");
-      return res.arrayBuffer();
-    }));
+    (await loadLetterhead());
 
   const doc = await PDFDocument.load(templateBytes);
   const templateDoc = await PDFDocument.load(templateBytes);

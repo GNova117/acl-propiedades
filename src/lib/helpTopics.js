@@ -10,6 +10,7 @@ export const HELP_TOPICS = [
   { key: "visits", sections: ["visitas"], to: "/admin/visitas" },
   { key: "commissions", sections: ["liquidaciones"], to: "/admin/comisiones" },
   { key: "roles", sections: ["roles"], to: "/admin/roles" },
+  { key: "shortcuts", sections: null, to: null },
   { key: "account", sections: null, to: null },
 ];
 

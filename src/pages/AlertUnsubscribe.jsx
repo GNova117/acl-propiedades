@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { usePrivatePage } from "../lib/usePrivatePage";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
@@ -12,13 +13,7 @@ export default function AlertUnsubscribe() {
   const { t } = useTranslation();
   const [state, setState] = useState("idle"); // idle | working | done | notFound | error
 
-  useEffect(() => {
-    const meta = document.createElement("meta");
-    meta.name = "robots";
-    meta.content = "noindex, nofollow";
-    document.head.appendChild(meta);
-    return () => meta.remove();
-  }, []);
+  usePrivatePage(undefined);
 
   const unsubscribe = async () => {
     setState("working");
@@ -52,7 +47,7 @@ export default function AlertUnsubscribe() {
             <>
               <h1 style={{ fontSize: "1.6rem" }}>{t("alerts.unsubscribe.title")}</h1>
               <p className="form-hint">{t("alerts.unsubscribe.text")}</p>
-              {state === "error" && <p className="form-error">{t("alerts.errors.generic")}</p>}
+              {state === "error" && <p className="form-error" role="alert">{t("alerts.errors.generic")}</p>}
               <button type="button" className="btn btn-primary" onClick={unsubscribe} disabled={state === "working"}>
                 {state === "working" ? <span className="spinner" /> : null}
                 {t("alerts.unsubscribe.button")}

@@ -13,6 +13,7 @@
 // "hoy hay N propiedades que coinciden"); las pruebas comparan ambas.
 
 import { escapeHtml, renderEmail } from "../_shared/emailLayout.js";
+import { isCronAuthorized } from "../_shared/cronAuth.js";
 
 const GRAPH_VERSION = "v25.0";
 const DEFAULT_SITE_URL = "https://acl-propiedades.com";
@@ -228,8 +229,7 @@ async function sendEmail(to: string, subject: string, html: string) {
 }
 
 async function handler(req: Request): Promise<Response> {
-  const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || req.headers.get("x-cron-secret") !== cronSecret) {
+  if (!(await isCronAuthorized(req, "alertas-propiedades"))) {
     return new Response("unauthorized", { status: 401 });
   }
   if (isQuietHour()) {

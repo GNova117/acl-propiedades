@@ -6,7 +6,7 @@
   "start_url": "/?origen=app",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "lang": "es-MX",
   "background_color": "#ffffff",
   "theme_color": "#0d3b73",

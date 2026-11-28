@@ -1,14 +1,19 @@
 import { useState } from "react";
+import { fillBlanks, useSharedContact } from "../lib/sharedContact";
+import { errorId, fieldErrorProps, focusFirstError } from "../lib/formErrors";
+import { saveContact, withRemembered } from "../lib/rememberedContact";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
 import { trackConversion } from "../lib/conversions";
-import { citaToIcs, downloadIcs, mapsUrl } from "../lib/calendarEvent";
+import { citaToIcs, downloadIcs, googleCalendarUrl, mapsUrl } from "../lib/calendarEvent";
 import { OFFICE_WHATSAPP } from "../lib/office";
 import { advisorsForSlot, bookingFieldErrors } from "../lib/visitSlots";
 import { bookingErrorField, bookingErrorKey, bookingToCalendarEvent, formatSlotDay, formatSlotTime } from "../lib/visitBookingUi";
 import { useSlotSelection } from "../lib/useSlotSelection";
 import VisitSlotPicker from "./VisitSlotPicker";
+import { copyFallback } from "../lib/toast";
+import { siteOrigin } from "../lib/site";
 
 const EMPTY = { name: "", email: "", phone: "", note: "", empresa: "" };
 
@@ -21,7 +26,8 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith("en") ? "en-US" : "es-MX";
 
-  const [form, setForm] = useState(EMPTY);
+  const [form, setForm] = useState(() => fillBlanks(withRemembered(EMPTY)));
+  const shareContact = useSharedContact(setForm); // 308
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [status, setStatus] = useState("idle"); // idle | sending
@@ -59,6 +65,7 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
     const fields = Object.keys(codes);
     if (fields.length > 0) {
       setErrors(Object.fromEntries(fields.map((field) => [field, fieldMessage(field, codes[field])])));
+      focusFirstError(codes, ["name", "email", "phone", "note"], { name: "booking-name", email: "booking-email", phone: "booking-phone", note: "booking-note" });
       return;
     }
     // Campo trampa para bots (invisible para personas): no se manda nada.
@@ -80,6 +87,7 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
       });
       if (result?.ok) {
         trackConversion("visit_booked", { property_id: property.id, property_type: property.type });
+        saveContact(form);
         setBooked({ ...result, note: form.note });
         return;
       }
@@ -108,14 +116,15 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
       const event = bookingToCalendarEvent(booked, { titlePrefix: t("scheduleVisit.booking.eventPrefix"), note: booked.note });
       downloadIcs(`visita-${booked.fecha}.ics`, citaToIcs(event, { advisorName: booked.advisor?.name || "" }));
     };
+    const googleHref = googleCalendarUrl(bookingToCalendarEvent(booked, { titlePrefix: t("scheduleVisit.booking.eventPrefix"), note: booked.note }), { advisorName: booked.advisor?.name || "" });
     // Con el enlace de su visita el cliente la confirma, la cambia o la cancela (/visita/:token).
-    const manageUrl = `${window.location.origin}/visita/${booked.token}`;
+    const manageUrl = `${siteOrigin()}/visita/${booked.token}`;
     const copyLink = async () => {
       try {
         await navigator.clipboard.writeText(manageUrl);
         setLinkCopied(true);
       } catch {
-        window.prompt(t("scheduleVisit.booking.copyLinkFallback"), manageUrl);
+        copyFallback(t("scheduleVisit.booking.copyLinkFallback"), manageUrl);
       }
     };
     // El WhatsApp es el de la oficina: la ficha no publica los datos de contacto de cada asesor.
@@ -134,6 +143,11 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
           <button type="button" className="btn btn-outline btn-block" onClick={addToCalendar}>
             {t("scheduleVisit.booking.addToCalendar")}
           </button>
+          {googleHref && (
+            <a className="btn btn-outline btn-block" href={googleHref} target="_blank" rel="noopener noreferrer">
+              {t("scheduleVisit.booking.addToGoogle")}
+            </a>
+          )}
           {booked.property?.address && (
             <a className="btn btn-outline btn-block" href={mapsUrl(booked.property.address)} target="_blank" rel="noopener noreferrer">
               {t("scheduleVisit.booking.directions")}
@@ -142,6 +156,10 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
           <a className="btn btn-outline btn-block" href={`https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(whatsappText)}`} target="_blank" rel="noopener noreferrer">
             {t("scheduleVisit.booking.whatsapp")}
           </a>
+          {/* 389: agendar otra visita sin salir de la ficha (los datos ya vienen recordados). */}
+          <button type="button" className="btn btn-outline btn-block" onClick={() => { setBooked(null); setForm(withRemembered(EMPTY)); }}>
+            {t("scheduleVisit.booking.another")}
+          </button>
         </div>
         <p className="form-hint">
           {t("scheduleVisit.booking.changeHint")}{" "}
@@ -154,7 +172,7 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
   }
 
   return (
-    <form className="visit-booking" onSubmit={handleSubmit} noValidate>
+    <form className="visit-booking" onSubmit={handleSubmit} onBlur={() => shareContact(form)} noValidate>
       <VisitSlotPicker selection={selection} locale={locale} />
 
       {activeTime && (
@@ -175,27 +193,27 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
 
       <div className="form-field">
         <label htmlFor="booking-name">{t("contact.name")}</label>
-        <input id="booking-name" name="name" value={form.name} onChange={handleChange} autoComplete="name" aria-invalid={Boolean(errors.name)} />
-        {errors.name && <span className="form-error">{errors.name}</span>}
+        <input id="booking-name" name="name" value={form.name} onChange={handleChange} autoComplete="name" {...fieldErrorProps("booking-name", errors.name)} />
+        {errors.name && <span id={errorId("booking-name")} className="form-error">{errors.name}</span>}
       </div>
 
       <div className="form-row">
         <div className="form-field">
           <label htmlFor="booking-email">{t("contact.email")}</label>
-          <input id="booking-email" name="email" type="email" value={form.email} onChange={handleChange} autoComplete="email" aria-invalid={Boolean(errors.email)} />
-          {errors.email && <span className="form-error">{errors.email}</span>}
+          <input id="booking-email" name="email" type="email" value={form.email} onChange={handleChange} autoComplete="email" {...fieldErrorProps("booking-email", errors.email)} />
+          {errors.email && <span id={errorId("booking-email")} className="form-error">{errors.email}</span>}
         </div>
         <div className="form-field">
           <label htmlFor="booking-phone">{t("contact.phone")}</label>
-          <input id="booking-phone" name="phone" type="tel" value={form.phone} onChange={handleChange} autoComplete="tel" aria-invalid={Boolean(errors.phone)} />
-          {errors.phone && <span className="form-error">{errors.phone}</span>}
+          <input id="booking-phone" name="phone" type="tel" value={form.phone} onChange={handleChange} autoComplete="tel" {...fieldErrorProps("booking-phone", errors.phone)} />
+          {errors.phone && <span id={errorId("booking-phone")} className="form-error">{errors.phone}</span>}
         </div>
       </div>
 
       <div className="form-field">
         <label htmlFor="booking-note">{t("scheduleVisit.note")}</label>
-        <textarea id="booking-note" name="note" rows={2} value={form.note} onChange={handleChange} placeholder={t("scheduleVisit.booking.notePlaceholder")} aria-invalid={Boolean(errors.note)} />
-        {errors.note && <span className="form-error">{errors.note}</span>}
+        <textarea id="booking-note" name="note" rows={2} value={form.note} onChange={handleChange} placeholder={t("scheduleVisit.booking.notePlaceholder")} {...fieldErrorProps("booking-note", errors.note)} />
+        {errors.note && <span id={errorId("booking-note")} className="form-error">{errors.note}</span>}
       </div>
 
       {formError && (

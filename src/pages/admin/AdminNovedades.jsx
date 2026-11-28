@@ -5,6 +5,7 @@ import { db } from "../../lib/dataStore";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog, notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const formatDate = (iso, locale) =>
   new Date(iso).toLocaleString(locale === "en" ? "en-US" : "es-MX", { dateStyle: "long", timeStyle: "short" });
@@ -26,7 +27,7 @@ export default function AdminNovedades() {
     db.getSiteUpdates().then((data) => {
       setUpdates(data);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   };
 
   useEffect(load, []);

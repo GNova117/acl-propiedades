@@ -1,0 +1,6 @@
+.sale-data__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1.1rem 0 0.5rem;
+}

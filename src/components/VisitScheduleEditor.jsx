@@ -252,20 +252,20 @@ export default function VisitScheduleEditor({ advisorId }) {
             </button>
           </div>
         ))}
-        {showIssues && issues.some((i) => i.code === "invalid_time_off") && <p className="form-error">{t("visitSchedule.issues.invalid_time_off")}</p>}
+        {showIssues && issues.some((i) => i.code === "invalid_time_off") && <p className="form-error" role="alert">{t("visitSchedule.issues.invalid_time_off")}</p>}
         <button type="button" className="btn btn-outline btn-sm" onClick={addTimeOff}>
           {t("visitSchedule.addTimeOff")}
         </button>
       </div>
 
-      {settings.enabled && !hasWindows && <p className="form-error">{t("visitSchedule.enabledWithoutWindows")}</p>}
+      {settings.enabled && !hasWindows && <p className="form-error" role="alert">{t("visitSchedule.enabledWithoutWindows")}</p>}
       {previewCount != null && hasWindows && (
         <p className="visit-schedule__preview" role="status">
           {t("visitSchedule.preview", { count: previewCount, days: PREVIEW_DAYS })}
         </p>
       )}
 
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
       <div className="admin-form__actions">
         <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving}>
           {saving ? <span className="spinner" /> : null}

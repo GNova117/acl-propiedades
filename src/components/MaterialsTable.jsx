@@ -6,6 +6,7 @@ import { formatMXN } from "../lib/format";
 import { computeMaterialsTotals } from "../lib/materialsTotals";
 import "./MaterialsTable.css";
 import LoadingState from "./LoadingState";
+import { notifyLoadError } from "../lib/loadError";
 
 function uid() {
   return `mat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -44,7 +45,7 @@ export default function MaterialsTable({ materials, onChange }) {
     db.getMaterialsCatalog({ activeOnly: true }).then((data) => {
       setCatalog(data);
       setLoadingCatalog(false);
-    });
+    }).catch(notifyLoadError);
   }, []);
 
   const updateRow = (id, field, value) => {
@@ -109,7 +110,7 @@ export default function MaterialsTable({ materials, onChange }) {
                 <th>{t("remodelCalculator.totalInternal")}</th>
                 <th>{t("remodelCalculator.totalExternal")}</th>
                 <th>{t("remodelCalculator.savings")}</th>
-                <th />
+                <th><span className="visually-hidden-cell">{t("common.actions")}</span></th>
               </tr>
             </thead>
             <tbody>

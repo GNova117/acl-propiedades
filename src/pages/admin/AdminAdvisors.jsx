@@ -5,6 +5,7 @@ import { db } from "../../lib/dataStore";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 export default function AdminAdvisors() {
   const { t } = useTranslation();
@@ -16,7 +17,7 @@ export default function AdminAdvisors() {
     db.getAdvisors().then((data) => {
       setAdvisors(data);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   };
 
   useEffect(load, []);
@@ -40,10 +41,10 @@ export default function AdminAdvisors() {
         <table className="admin-table">
           <thead>
             <tr>
-              <th></th>
-              <th>Nombre</th>
-              <th>Teléfono</th>
-              <th>Correo</th>
+              <th><span className="visually-hidden-cell">{t("common.photo")}</span></th>
+              <th>{t("advisorsUi.colName")}</th>
+              <th>{t("advisorsUi.colPhone")}</th>
+              <th>{t("advisorsUi.colEmail")}</th>
               <th>{t("common.status")}</th>
               <th>Nosotros</th>
               <th>{t("common.actions")}</th>

@@ -16,6 +16,7 @@ import "./admin.css";
 import "./AdminDevelopmentForm.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog, notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const EMPTY_MODEL = { name: "", area_m2: "", bedrooms: "", bathrooms: "", parking: "", description: "", existingImages: [], imageFiles: [], existingPlan: "", planFile: null };
 
@@ -113,7 +114,7 @@ export default function AdminDevelopmentForm() {
       );
       setUnits(development.units || []);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [id, isEdit, navigate]);
 
   useEffect(() => {

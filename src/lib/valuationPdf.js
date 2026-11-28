@@ -3,8 +3,9 @@
 // aquí mismo: se descargan los mosaicos de Esri que cubren las figuras, se
 // pegan en un canvas y se dibujan encima los polígonos. Si el navegador no
 // puede leer los mosaicos (sin red, CORS), el PDF sale igual sin mapa.
+import { loadLetterhead } from "./letterhead";
 
-const TEMPLATE_URL = "/plantilla_acl.pdf";
+
 const MARGIN_LEFT = 60;
 const CONTENT_WIDTH = 612 - 60 * 2;
 const TOP_Y = 628;
@@ -138,10 +139,7 @@ export async function buildValuationPdf(data, labels, { template } = {}) {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const templateBytes =
     template ??
-    (await fetch(TEMPLATE_URL).then((res) => {
-      if (!res.ok) throw new Error("No se pudo cargar la plantilla membretada");
-      return res.arrayBuffer();
-    }));
+    (await loadLetterhead());
 
   const doc = await PDFDocument.load(templateBytes);
   const page = doc.getPages()[0];

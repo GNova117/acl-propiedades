@@ -22,7 +22,7 @@ export function getPriceDrop(property, now = Date.now()) {
   const current = Number(property?.price);
   if (!(previous > current) || !(current > 0)) return null;
   if (ageInDays(property.price_changed_at, now) > PRICE_DROP_DAYS) return null;
-  return { previousPrice: previous, percent: Math.round(((previous - current) / previous) * 100) };
+  return { previousPrice: previous, amount: previous - current, percent: Math.round(((previous - current) / previous) * 100), changedAt: property.price_changed_at };
 }
 
 // Una sola etiqueta por propiedad (la rebaja pesa más que "Nuevo"). Solo se

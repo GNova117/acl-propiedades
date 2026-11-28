@@ -1,3 +1,4 @@
+import RowMore from "../../components/RowMore";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -6,11 +7,12 @@ import { useLiveRefresh } from "../../lib/liveUpdates";
 import { whatsappDigits } from "../../lib/format";
 import { messageToProspectFields } from "../../lib/prospects";
 import { quickReplyTemplates } from "../../lib/messageTemplates";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import QuickReplyButton from "../../components/QuickReplyButton";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog, notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const PREVIEW_LENGTH = 80;
 
@@ -50,10 +52,14 @@ export default function AdminMessages() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
   const [advisorFilter, setAdvisorFilter] = useState("");
+  const [channelFilter, setChannelFilter] = useState("");
+  // 416: las alertas de búsqueda llenan la bandeja; con la casilla se esconden (y se dice cuántas hay).
+  const [hideAlerts, setHideAlerts] = useState(false);
+  const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
-  const [prospects, setProspects] = useState([]);
+  const [promotedList, setPromotedList] = useState([]); // ids de mensajes que ya son prospecto (sin bajar los prospectos completos)
   const [promotingId, setPromotingId] = useState(null);
 
   const load = ({ silent = false } = {}) => {
@@ -64,11 +70,11 @@ export default function AdminMessages() {
     // copiado: si mañana se reasigna la propiedad a otro asesor, los
     // mensajes viejos apuntan al asesor que la lleva hoy, que es a quien
     // hay que buscar para darles seguimiento.
-    Promise.all([db.getContactMessages(), db.getProperties({})]).then(([messageData, propertyData]) => {
+    Promise.all([db.getContactMessages(), db.getPropertyRefs()]).then(([messageData, propertyData]) => {
       setMessages(messageData);
       setProperties(propertyData);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   };
 
   useEffect(() => {
@@ -83,16 +89,16 @@ export default function AdminMessages() {
 
   // Mensajes que ya son prospecto (para no ofrecer el botón dos veces).
   useEffect(() => {
-    if (hasSection("prospectos")) db.getProspects().then(setProspects).catch(() => setProspects([]));
+    if (hasSection("prospectos")) db.getPromotedMessageIds().then(setPromotedList).catch(() => setPromotedList([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const promotedIds = useMemo(() => new Set(prospects.map((p) => p.message_id).filter(Boolean)), [prospects]);
+  const promotedIds = useMemo(() => new Set(promotedList), [promotedList]);
 
   const handleMakeProspect = async (message) => {
     setPromotingId(message.id);
     try {
       const created = await db.addProspect(messageToProspectFields(message, propertyById.get(message.property_id)));
-      setProspects((prev) => [created, ...prev]);
+      setPromotedList((prev) => [created.message_id ?? message.id, ...prev]);
     } catch (err) {
       notify(err.message || t("messages.makeProspectError"));
     } finally {
@@ -113,6 +119,13 @@ export default function AdminMessages() {
   const filtered = useMemo(() => {
     return messages.filter((m) => {
       if (statusFilter && (m.status || "nuevo") !== statusFilter) return false;
+      // Por canal: el formulario de contacto, la solicitud de visita, WhatsApp, alertas, estimaciones, comparador…
+      if (channelFilter && (m.channel || "contacto") !== channelFilter) return false;
+      if (hideAlerts && !channelFilter && m.channel === "alerta") return false;
+      if (search.trim()) {
+        const needle = search.trim().toLowerCase();
+        if (![m.name, m.email, m.phone, m.message].some((value) => String(value || "").toLowerCase().includes(needle))) return false;
+      }
       if (advisorFilter) {
         const advisors = propertyById.get(m.property_id)?.advisors || [];
         // "Sin asesor": mensajes del formulario de Contacto (sin propiedad)
@@ -124,7 +137,11 @@ export default function AdminMessages() {
       }
       return true;
     });
-  }, [messages, statusFilter, advisorFilter, propertyById]);
+  }, [messages, statusFilter, advisorFilter, channelFilter, hideAlerts, search, propertyById]);
+  const alertCount = useMemo(() => messages.filter((m) => m.channel === "alerta").length, [messages]);
+
+  // Los canales que de verdad hay en la bandeja (para el filtro).
+  const channelOptions = useMemo(() => [...new Set(messages.map((m) => m.channel || "contacto"))].sort(), [messages]);
 
   const handleToggleStatus = async (message) => {
     const next = (message.status || "nuevo") === "nuevo" ? "atendido" : "nuevo";
@@ -159,7 +176,7 @@ export default function AdminMessages() {
       </div>
       <p className="form-hint mt-n3 mb-5">{t("messages.subtitle")}</p>
 
-      <div className="form-row" style={{ maxWidth: 560, marginBottom: "1.25rem" }}>
+      <div className="form-row" style={{ flexWrap: "wrap", marginBottom: "1.25rem" }}>
         <div className="form-field">
           <label htmlFor="message-status-filter">{t("common.status")}</label>
           <select id="message-status-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
@@ -167,6 +184,26 @@ export default function AdminMessages() {
             <option value="nuevo">{t("messages.statusNew")}</option>
             <option value="atendido">{t("messages.statusHandled")}</option>
           </select>
+        </div>
+        <div className="form-field">
+          <label htmlFor="message-channel-filter">{t("messages.channel")}</label>
+          <select id="message-channel-filter" value={channelFilter} onChange={(e) => setChannelFilter(e.target.value)}>
+            <option value="">{t("messages.filterAll")}</option>
+            {channelOptions.map((channel) => (
+              <option key={channel} value={channel}>{t(`messages.channels.${channel}`, { defaultValue: channel })}</option>
+            ))}
+          </select>
+        </div>
+        {alertCount > 0 && (
+          <label className="form-field form-field--check" htmlFor="message-hide-alerts">
+            <span>
+              <input id="message-hide-alerts" type="checkbox" checked={hideAlerts} onChange={(e) => setHideAlerts(e.target.checked)} /> {t("messages.hideAlerts", { count: alertCount })}
+            </span>
+          </label>
+        )}
+        <div className="form-field">
+          <label htmlFor="message-search">{t("messages.search")}</label>
+          <input id="message-search" type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("messages.searchPlaceholder")} />
         </div>
         <div className="form-field">
           <label htmlFor="message-advisor-filter">{t("messages.advisor")}</label>
@@ -285,35 +322,37 @@ export default function AdminMessages() {
                           {t("messages.estimate")}
                         </Link>
                       )}
-                      {hasSection("prospectos") &&
-                        !isVisitChange &&
-                        (promotedIds.has(message.id) ? (
-                          <Link to="/admin/prospectos" className="btn btn-outline btn-sm">
-                            {t("messages.isProspect")}
+                      <RowMore>
+                        {hasSection("prospectos") &&
+                          !isVisitChange &&
+                          (promotedIds.has(message.id) ? (
+                            <Link to="/admin/prospectos" className="btn btn-outline btn-sm">
+                              {t("messages.isProspect")}
+                            </Link>
+                          ) : (
+                            <button type="button" className="btn btn-outline btn-sm" onClick={() => handleMakeProspect(message)} disabled={promotingId === message.id}>
+                              {t("messages.makeProspect")}
+                            </button>
+                          ))}
+                        {hasSection("clientes") && (
+                          <Link to="/admin/clientes/nuevo" state={{ prefill: clientPrefill(message) }} className="btn btn-outline btn-sm">
+                            {t("messages.createClient")}
                           </Link>
-                        ) : (
-                          <button type="button" className="btn btn-outline btn-sm" onClick={() => handleMakeProspect(message)} disabled={promotingId === message.id}>
-                            {t("messages.makeProspect")}
-                          </button>
-                        ))}
-                      {hasSection("clientes") && (
-                        <Link to="/admin/clientes/nuevo" state={{ prefill: clientPrefill(message) }} className="btn btn-outline btn-sm">
-                          {t("messages.createClient")}
-                        </Link>
-                      )}
-                      {hasSection("agenda") && !isVisitBooking && !isVisitChange && (
-                        <Link to="/admin/agenda/nueva" state={{ prefill: visitPrefill(message) }} className="btn btn-outline btn-sm">
-                          {t("messages.scheduleAppointment")}
-                        </Link>
-                      )}
-                      <button
-                        type="button"
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleDelete(message.id)}
-                        disabled={deletingId === message.id}
-                      >
-                        {t("common.delete")}
-                      </button>
+                        )}
+                        {hasSection("agenda") && !isVisitBooking && !isVisitChange && (
+                          <Link to="/admin/agenda/nueva" state={{ prefill: visitPrefill(message) }} className="btn btn-outline btn-sm">
+                            {t("messages.scheduleAppointment")}
+                          </Link>
+                        )}
+                        <button
+                          type="button"
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleDelete(message.id)}
+                          disabled={deletingId === message.id}
+                        >
+                          {t("common.delete")}
+                        </button>
+                      </RowMore>
                     </td>
                   </tr>
                 );

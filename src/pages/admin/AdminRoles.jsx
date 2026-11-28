@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { db } from "../../lib/dataStore";
-import BackupCard from "../../components/BackupCard";
 import { SECTION_KEYS, ADMIN_ROLE_SLUG } from "../../lib/accessControl";
 import "./admin.css";
 import "./AdminLogin.css";
 import { confirmDialog, notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 export default function AdminRoles() {
   const { t } = useTranslation();
@@ -35,7 +36,7 @@ export default function AdminRoles() {
       setRoles(roleData);
       setAccess(accessData);
       setAdvisors(advisorData);
-    });
+    }).catch(notifyLoadError);
   };
 
   useEffect(load, []);
@@ -173,7 +174,9 @@ export default function AdminRoles() {
         <h1>{t("accessControl.rolesTitle")}</h1>
       </div>
 
-      <BackupCard />
+      <p className="form-hint">
+        {t("backup.movedHint")} <Link to="/admin/respaldo">{t("backup.navTitle")}</Link>
+      </p>
 
       <form className="card admin-form" onSubmit={handleAddRole} style={{ maxWidth: 560, marginBottom: "1.5rem" }}>
         <h2 className="profiling-section-title">{t("accessControl.newRole")}</h2>
@@ -331,7 +334,7 @@ export default function AdminRoles() {
               <th>{t("accessControl.accessEmail")}</th>
               <th>{t("accessControl.accessRole")}</th>
               <th>{t("accessControl.accessAdvisor")}</th>
-              <th></th>
+              <th><span className="visually-hidden-cell">{t("common.actions")}</span></th>
             </tr>
           </thead>
           <tbody>
@@ -339,7 +342,7 @@ export default function AdminRoles() {
               <tr key={row.id}>
                 <td>{row.email}</td>
                 <td>
-                  <select value={row.role_id} onChange={(e) => handleChangeAccessRole(row, e.target.value)} disabled={changingAccessId === row.id}>
+                  <select aria-label={`${t("accessControl.accessRole")}: ${row.email}`} value={row.role_id} onChange={(e) => handleChangeAccessRole(row, e.target.value)} disabled={changingAccessId === row.id}>
                     {roles.map((role) => (
                       <option key={role.id} value={role.id}>
                         {role.name}
@@ -349,6 +352,7 @@ export default function AdminRoles() {
                 </td>
                 <td>
                   <select
+                    aria-label={`${t("accessControl.accessAdvisor")}: ${row.email}`}
                     value={row.advisor_id || ""}
                     onChange={(e) => handleChangeAccessAdvisor(row, e.target.value)}
                     disabled={changingAccessId === row.id}

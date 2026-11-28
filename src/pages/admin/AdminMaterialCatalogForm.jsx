@@ -5,7 +5,10 @@ import { db } from "../../lib/dataStore";
 import { CONSUMPTION_BASES } from "../../lib/materialConsumption";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
-import { notify } from "../../lib/toast";
+import { confirmDialog, notify } from "../../lib/toast";
+import { formatMXN } from "../../lib/format";
+import { materialPriceJumps } from "../../lib/materialPriceAlert";
+import { notifyLoadError } from "../../lib/loadError";
 
 const EMPTY = {
   name: "",
@@ -28,11 +31,13 @@ export default function AdminMaterialCatalogForm() {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
+  const [original, setOriginal] = useState(null); // 452: lo que tenía el material al abrirlo (para avisar de un aumento fuerte)
 
   useEffect(() => {
     if (!isEdit) return;
     db.getMaterialCatalogItemById(id).then((item) => {
       if (!item) return;
+      setOriginal(item);
       setForm({
         name: item.name,
         category: item.category || "",
@@ -44,7 +49,7 @@ export default function AdminMaterialCatalogForm() {
         active: item.active !== false,
       });
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [id, isEdit]);
 
   const handleChange = (field) => (e) => {
@@ -62,6 +67,11 @@ export default function AdminMaterialCatalogForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
+    const jumps = isEdit ? materialPriceJumps(original, form) : [];
+    if (jumps.length > 0) {
+      const lines = jumps.map((j) => t("materialsCatalog.priceJumpLine", { label: t(j.field === "unit_price_internal" ? "remodelCalculator.unitPriceInternal" : "remodelCalculator.unitPriceExternal"), before: formatMXN(j.before), after: formatMXN(j.after), pct: j.pct })).join("\n");
+      if (!(await confirmDialog(`${lines}\n${t("materialsCatalog.priceJumpConfirm")}`))) return;
+    }
     setSaving(true);
     try {
       if (isEdit) {
@@ -71,7 +81,7 @@ export default function AdminMaterialCatalogForm() {
       }
       navigate("/admin/materiales");
     } catch (err) {
-      notify(err.message || "Error al guardar");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }

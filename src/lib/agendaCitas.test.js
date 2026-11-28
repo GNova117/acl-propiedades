@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activeCitas, canRegisterVisit, citaContact, citaDuration, citaStatus, citaToVisitPrefill, isCancelled, isOpenRequest, isPending, openRequests, statusActions, visitLink, visitLinkTextKey, visitsToClose, visitsToConfirm } from "./agendaCitas";
+import { findOverlappingCitas, activeCitas, canRegisterVisit, citaContact, citaDuration, citaStatus, citaToVisitPrefill, isCancelled, isOpenRequest, isPending, openRequests, statusActions, visitLink, visitLinkTextKey, visitsToClose, visitsToConfirm } from "./agendaCitas";
 
 // Hoy a las 12:00 (hora local), construido con partes para no depender de la zona horaria.
 const now = new Date();
@@ -166,5 +166,27 @@ describe("estatus heredado 'pendiente'", () => {
     expect(isPending({ status: "pendiente" })).toBe(true);
     expect(statusActions({ status: "pendiente", advisor_id: "a1" })).toEqual(["realizada", "no_asistio", "cancelada"]);
     expect(activeCitas([{ status: "pendiente", advisor_id: "a1" }])).toHaveLength(1);
+  });
+});
+
+describe("findOverlappingCitas", () => {
+  const base = { advisor_id: "a1", fecha: "2026-12-01", hora: "10:00", duracion_min: 60 };
+  it("detecta una cita del mismo asesor que se empalma", () => {
+    const others = [{ id: "x", advisor_id: "a1", fecha: "2026-12-01", hora: "10:30", duracion_min: 60, titulo: "Otra" }];
+    expect(findOverlappingCitas(base, others)).toHaveLength(1);
+  });
+  it("no cuenta otro asesor, otro día, canceladas, la misma cita ni las contiguas", () => {
+    const others = [
+      { id: "1", advisor_id: "a2", fecha: "2026-12-01", hora: "10:00" },
+      { id: "2", advisor_id: "a1", fecha: "2026-12-02", hora: "10:00" },
+      { id: "3", advisor_id: "a1", fecha: "2026-12-01", hora: "10:00", status: "cancelada" },
+      { id: "yo", advisor_id: "a1", fecha: "2026-12-01", hora: "10:00" },
+      { id: "5", advisor_id: "a1", fecha: "2026-12-01", hora: "11:00" }, // empieza justo cuando termina
+    ];
+    expect(findOverlappingCitas({ ...base, id: "yo" }, others)).toEqual([]);
+  });
+  it("una cita sin hora o sin asesor no se empalma", () => {
+    expect(findOverlappingCitas({ ...base, hora: "" }, [{ id: "x", advisor_id: "a1", fecha: "2026-12-01", hora: "10:00" }])).toEqual([]);
+    expect(findOverlappingCitas({ ...base, advisor_id: "" }, [])).toEqual([]);
   });
 });

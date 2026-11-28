@@ -1,9 +1,32 @@
-/* Puntos de corte: solo hay cuatro (max-width) — 480 (teléfono chico), 640 (teléfono), 860 (tableta: el menú del panel pasa a
-   cajón) y 980 (laptop chica) — más el par 641/861 de los pocos @media (min-width). Las media queries no aceptan variables,
+/* Puntos de corte: solo hay cinco (max-width) — 480 (teléfono chico), 640 (teléfono), 860 (tableta: el menú del panel pasa a
+   cajón), 980 (laptop chica) y 1180 (el menú del sitio público pasa a hamburguesa: con 8 enlaces no cabe antes) — más el par 641/861 de los pocos @media (min-width). Las media queries no aceptan variables,
    así que usa estos números tal cual. La única excepción es la tabla de Propiedades (admin.css, 1500 px), que oculta una
    columna por falta de ancho, no por el tipo de pantalla. */
 
 :root {
+  /* Escala de capas (z-index). De menor a mayor; los valores locales de 1 a 50 (apilar un elemento sobre su vecino dentro de
+     un mismo componente) se quedan como número. Todo lo de 100 o más usa una de estas variables: una prueba
+     (zIndexScale.test.js) vigila que no vuelvan los números sueltos. Cambiar una capa aquí la mueve en todo el sitio. */
+  --z-sticky: 150; /* barra de precio fija, partículas de temporada: debajo del encabezado */
+  --z-header: 200; /* encabezado del sitio */
+  --z-dialog-low: 200; /* captura/vista previa de documentos y avalúo (diálogos del panel de menor jerarquía) */
+  --z-tabbar: 440; /* barra inferior del sitio en teléfono */
+  --z-contact-bar: 450; /* barra de contacto en teléfono (sobre la barra inferior) */
+  --z-chat: 500; /* botón y ventana del chat / WhatsApp */
+  --z-overlay: 900; /* aviso de cookies, captura rápida y menú lateral del panel (cajón) */
+  --z-popover: 950; /* resultados del buscador, campana y velo del cajón del panel */
+  --z-drawer: 1000; /* paneles que cubren la pantalla: cajón del panel, filtros en teléfono, desarrollos */
+  --z-system-dialog: 1200; /* aviso por inactividad y buscador de apartados del panel */
+  --z-dialog: 2000; /* ventanas modales (firma, 360°, publicación social, prospectos de la propiedad) */
+  --z-tour: 2500; /* recorrido guiado del panel */
+  --z-toast: 3000; /* avisos emergentes */
+  --z-lightbox: 4000; /* galería a pantalla completa */
+  --z-loading: 9999; /* pantalla de carga: siempre encima */
+  /* Mapa (Leaflet pone marcadores en 600 y globos en 700 dentro de su propio contexto) */
+  --z-map-popover: 750;
+  --z-map-control: 1000;
+  --z-map-fullscreen: 3000;
+
   --font-heading: "Rajdhani", "Arial Narrow", sans-serif;
   --font-body: "Inter", system-ui, -apple-system, sans-serif;
 
@@ -121,6 +144,7 @@ body {
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -188,6 +212,7 @@ ul {
   margin-bottom: 0.75rem;
 }
 
+.section-heading h1,
 .section-heading h2 {
   font-size: clamp(1.6rem, 3vw, 2.4rem);
 }
@@ -284,6 +309,11 @@ ul {
   color: var(--color-danger);
 }
 
+.badge-neutral {
+  background: var(--color-surface-alt, rgba(100, 116, 139, 0.14));
+  color: var(--color-text-muted);
+}
+
 .testimonial-stars {
   color: var(--color-warning);
   letter-spacing: 0.1em;
@@ -301,10 +331,23 @@ ul {
   margin-bottom: var(--space-4);
 }
 
-.form-field label {
+.form-field label,
+.form-field > legend {
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   color: var(--color-text);
+}
+
+/* 252: un grupo de casillas o de opciones es un <fieldset> con su <legend> (se anuncia como grupo), y se ve igual que antes. */
+fieldset.form-field {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.form-field > legend {
+  padding: 0;
+  margin-bottom: 0.4rem;
 }
 
 .form-field input,
@@ -349,7 +392,7 @@ ul {
   background: var(--color-primary-solid);
   color: var(--color-on-primary);
   padding: var(--space-3) var(--space-4);
-  z-index: 1000;
+  z-index: var(--z-drawer);
 }
 
 .skip-link:focus {
@@ -363,6 +406,17 @@ ul {
   height: 1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Texto solo para lectores de pantalla en un encabezado de tabla (<th>). A diferencia de .visually-hidden (position:
+   absolute), se queda en el flujo: dentro de una tabla que se desplaza de lado, un hijo absoluto se salía del recorte y
+   ensanchaba toda la página. */
+.visually-hidden-cell {
+  display: block;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
   white-space: nowrap;
 }
 
@@ -398,6 +452,11 @@ ul {
   .page-transition {
     animation: none;
   }
+
+  /* El indicador de carga sigue girando (es información), pero despacio. */
+  .spinner {
+    animation-duration: 2.4s;
+  }
 }
 
 .empty-state {
@@ -414,4 +473,88 @@ ul {
   .section {
     padding: 2.75rem 0;
   }
+}
+
+/* ── Accesibilidad y lectura (auditoría 247, 248, 281, 282) ── */
+
+/* Teclado: se ve en qué botón, enlace o control se está (antes solo los campos de formulario tenían contorno). */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.btn:focus-visible {
+  outline-offset: 3px;
+}
+
+/* Un enlace dentro de un párrafo se distingue del texto por algo más que el color. */
+p a:not(.btn),
+.blog-post__body a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Las listas dentro de contenido (blog, páginas legales) conservan sus viñetas y números; el reseteo de arriba es para menús y tarjetas. */
+.blog-post__body ul {
+  list-style: disc;
+}
+
+.blog-post__body ol {
+  list-style: decimal;
+}
+
+/* «/mes» junto al precio de una renta. */
+.property-price-period {
+  margin-left: 0.25em;
+  font-size: 0.6em;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+/* En teléfono un botón con texto largo (sobre todo en inglés) baja de renglón en lugar de desbordar. */
+@media (max-width: 480px) {
+  .btn {
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+/* 329: «Activo/Inactivo» se ve como un interruptor (con su palanca), no como una etiqueta más. */
+.badge--switch {
+  border: 1px solid currentColor;
+  cursor: pointer;
+}
+
+.badge--switch__track {
+  position: relative;
+  width: 1.6rem;
+  height: 0.9rem;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+.badge--switch__track::after {
+  content: "";
+  position: absolute;
+  top: 0.1rem;
+  left: 0.1rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+}
+
+.badge--switch[aria-checked="true"] .badge--switch__track::after {
+  transform: translateX(0.7rem);
+}
+
+.badge--switch:hover {
+  filter: brightness(0.95);
+}
+
+/* El enlace «Leaflet» de la atribución del mapa va dentro de un texto: sin subrayado dependía solo del color para distinguirse. */
+.leaflet-container .leaflet-control-attribution a {
+  text-decoration: underline;
 }

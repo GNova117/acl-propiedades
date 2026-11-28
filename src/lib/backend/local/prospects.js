@@ -37,6 +37,10 @@ export const prospectsMethods = {
     return readStore(KEYS.prospects, []).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
   },
 
+  async getPromotedMessageIds() {
+    return readStore(KEYS.prospects, []).map((p) => p.message_id).filter(Boolean);
+  },
+
   async getProspectById(id) {
     return readStore(KEYS.prospects, []).find((p) => p.id === id) || null;
   },
@@ -213,6 +217,16 @@ export const prospectsMethods = {
     items[idx] = { ...items[idx], revoked_at: new Date().toISOString() };
     writeStore(KEYS.selections, items);
     return items[idx];
+  },
+
+  // Espejo de selection_advisor (migración 0118): el asesor de la selección, para quien tiene el enlace — también si ya
+  // venció o se retiró, para que el cliente sepa a quién escribirle.
+  async getSelectionAdvisor(token) {
+    const found = readStore(KEYS.selections, []).find((s) => s.token === token);
+    if (!found?.advisor_id) return null;
+    const advisor = readStore(KEYS.advisors, ADVISORS).find((a) => a.id === found.advisor_id);
+    if (!advisor || advisor.active === false) return null;
+    return { id: advisor.id, name: advisor.name, photo_url: advisor.photo_url, phone: advisor.phone, whatsapp: advisor.whatsapp };
   },
 
   // Lo que consulta la página pública: null si el token no existe; si no, { status: ok | expired | revoked, … }. Con

@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { AuthContext } from "./useAuth.js";
 import { db } from "../lib/dataStore";
 import { clearDataCache } from "../lib/dataCache";
 import { resolveAccess, resolveSession } from "../lib/authStartup";
@@ -6,7 +7,6 @@ import { forgetAccess } from "../lib/offlineAccess";
 import { isSupabaseConfigured } from "../lib/supabaseClient";
 import { SECTION_KEYS, ADMIN_ROLE_SLUG } from "../lib/accessControl";
 
-const AuthContext = createContext(null);
 
 // En modo demo no hay tabla real de accesos — se trata como administrador
 // para poder explorar cualquier apartado en el sandbox local. La
@@ -177,8 +177,3 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
-}

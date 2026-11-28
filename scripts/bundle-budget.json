@@ -1,5 +1,5 @@
 {
-  "initialJsGzipKB": 360,
+  "initialJsGzipKB": 275,
   "initialCssGzipKB": 15,
   "maxChunkGzipKB": 260
 }

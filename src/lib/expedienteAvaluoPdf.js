@@ -11,8 +11,7 @@ import { db } from "./dataStore";
 import { isPdfDoc } from "./format";
 import { clientSheetData, clientSheetSections } from "./clientExpedienteFields";
 import { buildPerfilamientoPdf } from "./perfilamientoPdf";
-
-const TEMPLATE_URL = "/plantilla_acl.pdf";
+import { loadLetterhead } from "./letterhead";
 
 const MARGIN_LEFT = 60;
 const TOP_Y = 628;
@@ -175,10 +174,7 @@ async function buildBody(sections, docTypeLabel, labels) {
 
 async function buildCover(contents, { title, sections, labels }) {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
-  const templateBytes = await fetch(TEMPLATE_URL).then((res) => {
-    if (!res.ok) throw new Error("No se pudo cargar la plantilla membretada");
-    return res.arrayBuffer();
-  });
+  const templateBytes = await loadLetterhead();
 
   const doc = await PDFDocument.load(templateBytes);
   const templateDoc = await PDFDocument.load(templateBytes);
@@ -215,7 +211,7 @@ async function buildCover(contents, { title, sections, labels }) {
   for (const section of sections) {
     await write(`${section.title}: ${orderedPeople(section.people).map((p) => p.client.name).join(", ")}`);
   }
-  await write(`${labels.generatedOn}: ${new Date().toLocaleString()}`, { color: muted });
+  await write(`${labels.generatedOn}: ${new Date().toLocaleString(labels.locale)}`, { color: muted });
   y -= LINE_HEIGHT * 0.5;
 
   await write(labels.contents.toUpperCase(), { size: SIZE_SUBTITLE, font: bold, gap: LINE_HEIGHT * 1.4 });

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useFavorites } from "../context/FavoritesContext";
+import { useFavorites } from "../context/useFavorites.js";
 import { trackPropertyEvent } from "../lib/propertyEvents";
 import "./FavoriteButton.css";
 import { trackConversion } from "../lib/conversions";

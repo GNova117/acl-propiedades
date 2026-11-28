@@ -7,6 +7,7 @@ import { formatMXN } from "../../lib/format";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog, notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 export default function AdminDevelopments() {
   const { t } = useTranslation();
@@ -18,7 +19,7 @@ export default function AdminDevelopments() {
     setLoading(true);
     db.getDevelopments()
       .then(setDevelopments)
-      .finally(() => setLoading(false));
+      .catch(notifyLoadError).finally(() => setLoading(false));
   };
 
   useEffect(load, []);

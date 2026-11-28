@@ -240,6 +240,9 @@ export function validateBookingInput(input = {}) {
 export const REQUEST_MIN_NOTICE_HOURS = 1;
 export const REQUEST_MAX_DAYS = 90;
 
+// Horas que se ofrecen al pedir una visita: cada 30 minutos entre las 9:00 y las 20:00 (antes era un campo libre y permitía 13:07 o las 3:00 a. m.).
+export const REQUEST_TIME_OPTIONS = Array.from({ length: 23 }, (_, i) => `${String(9 + Math.floor(i / 2)).padStart(2, "0")}:${i % 2 ? "30" : "00"}`);
+
 export function requestSlotError(fecha, hora, now = new Date()) {
   if (!fecha || !hora || !/^\d{4}-\d{2}-\d{2}$/.test(fecha) || !Number.isFinite(toMinutes(hora))) return "invalid_slot";
   const nowMx = mexicoParts(now);

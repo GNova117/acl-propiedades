@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import Logo from "./Logo";
 import WhatsAppIcon from "./icons/WhatsAppIcon";
 import { slugify, ZONE_LANDING_CITIES } from "../lib/zoneLandingPages";
+import { analyticsAvailable } from "../lib/analytics";
+import { openConsentPreferences } from "../lib/consent";
 import "./Footer.css";
 import { OFFICE } from "../lib/office";
 
@@ -57,10 +59,13 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4>{t("footer.quickLinks")}</h4>
+          <h2 className="site-footer__title">{t("footer.quickLinks")}</h2>
           <ul className="site-footer__links">
             <li><NavLink to="/">{t("nav.home")}</NavLink></li>
             <li><NavLink to="/propiedades">{t("nav.properties")}</NavLink></li>
+            <li><NavLink to="/terrenos">{t("nav.land")}</NavLink></li>
+            <li><NavLink to="/favoritos">{t("favorites.title")}</NavLink></li>
+            <li><NavLink to="/blog">{t("nav.blog")}</NavLink></li>
             <li><NavLink to="/calculadora">{t("nav.calculator")}</NavLink></li>
             <li><NavLink to="/simulador-credito">{t("nav.creditSim")}</NavLink></li>
             <li><NavLink to="/comparar-creditos">{t("nav.compareCredits")}</NavLink></li>
@@ -73,7 +78,7 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4>{t("footer.zones")}</h4>
+          <h2 className="site-footer__title">{t("footer.zones")}</h2>
           <ul className="site-footer__links">
             {ZONE_LANDING_CITIES.map((city) => (
               <li key={city}>
@@ -84,7 +89,7 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4>{t("footer.contactInfo")}</h4>
+          <h2 className="site-footer__title">{t("footer.contactInfo")}</h2>
           <ul className="site-footer__links">
             <li>{OFFICE.addressShort}</li>
             <li>{OFFICE.addressCity}</li>
@@ -94,7 +99,7 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4>{t("footer.followUs")}</h4>
+          <h2 className="site-footer__title">{t("footer.followUs")}</h2>
           <div className="site-footer__social">
             <a href="https://www.facebook.com/Aclpropiedadess/" target="_blank" rel="noreferrer" aria-label="Facebook">
               <FacebookIcon />
@@ -127,6 +132,12 @@ export default function Footer() {
           <span>&copy; {year} ACL Propiedades. {t("footer.rights")}</span>
           <NavLink to="/aviso-de-privacidad">{t("footer.privacyLink")}</NavLink>
           <NavLink to="/carta-de-derechos">{t("footer.rightsLink")}</NavLink>
+          <NavLink to="/terminos-y-condiciones">{t("footer.termsLink")}</NavLink>
+          {analyticsAvailable && (
+            <button type="button" className="site-footer__link-button" onClick={openConsentPreferences}>
+              {t("cookieBanner.preferences")}
+            </button>
+          )}
         </div>
       </div>
     </footer>

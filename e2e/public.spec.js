@@ -38,14 +38,17 @@ test.describe("Navegación y preferencias", () => {
     });
     expect(recortados).toEqual([]);
 
-    await press(page.getByRole("button", { name: "Abrir menú" }));
+    // Abierto, el botón se llama «Cerrar menú» (la etiqueta sigue el estado).
+    await press(page.getByRole("button", { name: "Cerrar menú" }));
     await expect.poll(alto).toBeLessThanOrEqual(2);
+    await expect(page.getByRole("button", { name: "Abrir menú" })).toBeVisible();
   });
 
-  test("modo oscuro: cambia y se recuerda al recargar", async ({ page, go, press }) => {
+  test("modo oscuro: cambia y se recuerda al recargar", async ({ page, go, press, abrirMenuSitio }) => {
     await go("/");
     const tema = () => page.evaluate(() => document.documentElement.getAttribute("data-theme"));
     const antes = await tema();
+    await abrirMenuSitio(); // en teléfono el interruptor de tema está dentro del menú
     await press(page.getByRole("button", { name: /Activar modo (oscuro|claro)/ }));
     const despues = await tema();
     expect(despues).not.toBe(antes);
@@ -53,13 +56,14 @@ test.describe("Navegación y preferencias", () => {
     await expect.poll(tema).toBe(despues);
   });
 
-  test("idioma: alterna entre español e inglés", async ({ page, go, press }) => {
+  test("idioma: alterna entre español e inglés", async ({ page, go, press, abrirMenuSitio }) => {
     await go("/contacto");
-    const titulo = page.locator("h2").first();
+    const titulo = page.locator("h1").first();
     const es = await titulo.textContent();
-    await press(page.getByRole("button", { name: /Cambiar idioma/ }));
+    await abrirMenuSitio();
+    await press(page.locator(".lang-toggle").first());
     await expect(titulo).not.toHaveText(es);
-    await press(page.getByRole("button", { name: /Cambiar idioma/ }));
+    await press(page.locator(".lang-toggle").first());
     await expect(titulo).toHaveText(es);
   });
 
@@ -217,7 +221,7 @@ test.describe("Ficha de propiedad", () => {
     await form.locator("input[name=email]").fill("qa@example.com");
     await form.locator("input[name=phone]").fill("8711112222");
     await form.locator("input[name=date]").fill(isoDate(3));
-    await form.locator("input[name=time]").fill("11:00");
+    await form.locator("select[name=time]").selectOption("11:00");
     await press(form.locator("button[type=submit]"));
     await expect(page.locator("main")).toContainText(/¡Listo!|gracias|recibimos/i);
   });
@@ -227,11 +231,13 @@ test.describe("Calculadoras", () => {
   test("valor estimado: cambia con los m² y con la zona", async ({ page, go }) => {
     await go("/calculadora");
     const resultado = page.locator(".calculator-card__result, main").first();
+    await page.selectOption("#calc-zone", { index: 1 });
     const inicial = await page.locator("main").innerText();
-    await page.locator("input[type=number][aria-label]").first().fill("300");
+    await page.locator("#calc-built").fill("300");
     await expect.poll(() => page.locator("main").innerText()).not.toBe(inicial);
     const conArea = await page.locator("main").innerText();
-    await page.selectOption("#calc-zone", { index: 2 });
+    // Otra zona con otro precio por m² (hay zonas vecinas con el mismo precio, por eso no se toma la siguiente).
+    await page.locator("#calc-zone").selectOption({ index: (await page.locator("#calc-zone option").count()) - 1 });
     await expect.poll(() => page.locator("main").innerText()).not.toBe(conArea);
     await expect(resultado).toContainText(/\$[\d,]+/);
   });

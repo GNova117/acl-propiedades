@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import LoadingState from "./LoadingState";
 
 // Se usa DENTRO de ProtectedRoute (ya garantiza sesión iniciada) para

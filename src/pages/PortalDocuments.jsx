@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { usePrivatePage } from "../lib/usePrivatePage";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Logo from "../components/Logo";
@@ -14,6 +15,7 @@ import { rememberItem } from "../lib/mySpace";
 import { PORTAL_OFFICIAL_LINKS, PORTAL_CONSENT_VERSION, checklistSummary, clientTodo, latestPortalDoc, portalChecklist, requestedDocsFor } from "../lib/clientPortal";
 import "./PortalDocuments.css";
 import LoadingState from "../components/LoadingState";
+import LinkExpiry from "../components/LinkExpiry";
 
 const CONSENT_KEY_PREFIX = "acl_portal_consent_";
 
@@ -31,18 +33,7 @@ export default function PortalDocuments() {
   const state = result.token === token ? result : { status: "loading", payload: null };
   const [consentDone, setConsentDone] = useState(false);
 
-  useEffect(() => {
-    const meta = document.createElement("meta");
-    meta.name = "robots";
-    meta.content = "noindex, nofollow, noarchive";
-    document.head.appendChild(meta);
-    const previousTitle = document.title;
-    document.title = `${t("portal.pageTitle")} | ACL Propiedades`;
-    return () => {
-      meta.remove();
-      document.title = previousTitle;
-    };
-  }, [t]);
+  usePrivatePage(t("portal.pageTitle"));
 
   const load = useCallback(() => {
     db.getPortalStatus(token)
@@ -135,6 +126,8 @@ export default function PortalDocuments() {
         )}
 
         {state.status === "activo" && !consentDone && <PortalPrivacyConsent onAccept={handleAcceptConsent} />}
+
+        {state.status === "activo" && <LinkExpiry date={payload.expires_at} />}
 
         {state.status === "activo" && consentDone && (
           <>

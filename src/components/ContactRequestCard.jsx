@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { fillBlanks, useSharedContact } from "../lib/sharedContact";
+import { saveContact, withRemembered } from "../lib/rememberedContact";
+import { errorId, fieldErrorProps, focusFirstError } from "../lib/formErrors";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
@@ -6,6 +9,8 @@ import { OFFICE_WHATSAPP } from "../lib/office";
 import "./ContactRequestCard.css";
 import { propertyPath } from "../lib/propertyUrl.js";
 import { trackConversion } from "../lib/conversions";
+import { lastSubmitAt, markSubmitted } from "../lib/rateLimitStore";
+import { siteOrigin } from "../lib/site";
 
 // Reemplaza a las tarjetas de asesor (nombre + teléfono + correo + botones
 // de llamar/WhatsApp) que antes se mostraban en la ficha de cada
@@ -26,7 +31,7 @@ const RATE_LIMIT_MS = 60_000;
 const MIN_PHONE_DIGITS = 10;
 
 const propertyLabel = (property) => (property.code ? `${property.title.trim()} (${property.code})` : property.title.trim());
-const propertyLink = (property) => (typeof window !== "undefined" ? `${window.location.origin}${propertyPath(property)}` : "");
+const propertyLink = (property) => (typeof window !== "undefined" ? `${siteOrigin()}${propertyPath(property)}` : "");
 
 function buildRequestMessage(property) {
   return `Solicitud de contacto — ${propertyLabel(property)}.\nPide que le llamen o le escriban por WhatsApp.\n${propertyLink(property)}`;
@@ -46,7 +51,8 @@ function buildWhatsappUrl(property, name) {
 
 export default function ContactRequestCard({ property }) {
   const { t } = useTranslation();
-  const [form, setForm] = useState({ name: "", phone: "", empresa: "" });
+  const [form, setForm] = useState(() => fillBlanks(withRemembered({ name: "", phone: "", empresa: "" })));
+  const shareContact = useSharedContact(setForm); // 308: lo escrito aquí rellena los campos vacíos de los otros formularios de la ficha
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
   const [via, setVia] = useState("form"); // "form" | "whatsapp": cómo se mandó, para el mensaje de éxito
@@ -60,6 +66,7 @@ export default function ContactRequestCard({ property }) {
     if (!form.phone.trim()) next.phone = t("contact.required");
     else if (digits.length < MIN_PHONE_DIGITS) next.phone = t("contactRequest.invalidPhone");
     setErrors(next);
+    focusFirstError(next, ["name", "phone"], { name: "callback-name", phone: "callback-phone" }); // 261
     return Object.keys(next).length === 0;
   };
 
@@ -74,7 +81,7 @@ export default function ContactRequestCard({ property }) {
       return;
     }
 
-    const lastSubmit = Number(window.localStorage.getItem(RATE_LIMIT_KEY) || 0);
+    const lastSubmit = lastSubmitAt(RATE_LIMIT_KEY);
     if (Date.now() - lastSubmit < RATE_LIMIT_MS) {
       setStatus("rateLimited");
       return;
@@ -93,7 +100,8 @@ export default function ContactRequestCard({ property }) {
         property_id: property.id,
         channel: "solicitud",
       });
-      window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
+      markSubmitted(RATE_LIMIT_KEY);
+      saveContact(form);
       setVia("form");
       trackConversion("lead_form", { form: "info_propiedad", property_id: property.id, property_type: property.type });
       setStatus("success");
@@ -113,7 +121,7 @@ export default function ContactRequestCard({ property }) {
     if (form.empresa.trim()) return; // campo trampa: bot, no se hace nada
     window.open(buildWhatsappUrl(property, form.name), "_blank", "noopener,noreferrer");
 
-    const lastSubmit = Number(window.localStorage.getItem(RATE_LIMIT_KEY) || 0);
+    const lastSubmit = lastSubmitAt(RATE_LIMIT_KEY);
     if (Date.now() - lastSubmit < RATE_LIMIT_MS) {
       setVia("whatsapp");
       setStatus("success");
@@ -128,7 +136,8 @@ export default function ContactRequestCard({ property }) {
         property_id: property.id,
         channel: "whatsapp",
       });
-      window.localStorage.setItem(RATE_LIMIT_KEY, String(Date.now()));
+      markSubmitted(RATE_LIMIT_KEY);
+      saveContact(form);
     } catch {
       /* el chat ya se abrió */
     }
@@ -152,7 +161,7 @@ export default function ContactRequestCard({ property }) {
       <h2 className="contact-request-card__title">{t("contactRequest.title")}</h2>
       <p className="form-hint">{t("contactRequest.subtitle")}</p>
 
-      <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={handleSubmit} onBlur={() => shareContact(form)} noValidate>
         <div aria-hidden="true" className="hp-field">
           <label htmlFor="callback-empresa">Empresa</label>
           <input id="callback-empresa" name="empresa" value={form.empresa} onChange={handleChange} tabIndex={-1} autoComplete="off" />
@@ -170,9 +179,9 @@ export default function ContactRequestCard({ property }) {
               autoComplete="name"
               value={form.name}
               onChange={handleChange}
-              aria-invalid={Boolean(errors.name)}
+              {...fieldErrorProps("callback-name", errors.name)}
             />
-            {errors.name && <span className="form-error">{errors.name}</span>}
+            {errors.name && <span id={errorId("callback-name")} className="form-error">{errors.name}</span>}
           </div>
 
           <div className="form-field">
@@ -186,14 +195,14 @@ export default function ContactRequestCard({ property }) {
               placeholder={t("contactRequest.phonePlaceholder")}
               value={form.phone}
               onChange={handleChange}
-              aria-invalid={Boolean(errors.phone)}
+              {...fieldErrorProps("callback-phone", errors.phone)}
             />
-            {errors.phone && <span className="form-error">{errors.phone}</span>}
+            {errors.phone && <span id={errorId("callback-phone")} className="form-error">{errors.phone}</span>}
           </div>
         </div>
 
-        {status === "error" && <p className="form-error">{t("contact.error")}</p>}
-        {status === "rateLimited" && <p className="form-error">{t("contact.rateLimited")}</p>}
+        {status === "error" && <p className="form-error" role="alert">{t("contact.error")}</p>}
+        {status === "rateLimited" && <p className="form-error" role="alert">{t("contact.rateLimited")}</p>}
 
         <button type="submit" className="btn btn-primary btn-block" disabled={status === "sending"}>
           {status === "sending" ? <span className="spinner" /> : null}

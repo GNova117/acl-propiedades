@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import { queries } from "../lib/queries";
 import { useQuery } from "../lib/useQuery";
 import { buildTimeline } from "../lib/prospectTimeline";
@@ -115,7 +115,7 @@ export default function ProspectTimeline({ prospect, properties = NONE, refreshK
   return (
     <section className="card prospect-timeline" aria-label={t("prospects.timeline.title")}>
       <h2 className="prospect-timeline__title">{t("prospects.timeline.title")}</h2>
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
       {contacts === null && !error && <p className="form-hint">…</p>}
       <ol className="prospect-timeline__list">
         {shown.map((item) => {

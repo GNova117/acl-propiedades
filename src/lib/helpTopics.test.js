@@ -5,9 +5,9 @@ const has = (...sections) => (s) => sections.includes(s);
 
 describe("visibleTopics / tourSteps", () => {
   it("cada quien ve solo los temas de sus apartados, y «mi cuenta» siempre", () => {
-    expect(visibleTopics(has("agenda")).map((t) => t.key)).toEqual(["myDay", "agenda", "account"]);
-    expect(visibleTopics(has()).map((t) => t.key)).toEqual(["account"]);
-    expect(visibleTopics(has("roles", "liquidaciones")).map((t) => t.key)).toEqual(["commissions", "roles", "account"]);
+    expect(visibleTopics(has("agenda")).map((t) => t.key)).toEqual(["myDay", "agenda", "shortcuts", "account"]);
+    expect(visibleTopics(has()).map((t) => t.key)).toEqual(["shortcuts", "account"]);
+    expect(visibleTopics(has("roles", "liquidaciones")).map((t) => t.key)).toEqual(["commissions", "roles", "shortcuts", "account"]);
     expect(visibleTopics(() => true)).toHaveLength(HELP_TOPICS.length);
   });
 

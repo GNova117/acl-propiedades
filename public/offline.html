@@ -24,6 +24,8 @@
       img { width: 84px; height: 84px; border-radius: 18px; }
       h1 { font-size: 1.5rem; margin: 1.25rem 0 0.5rem; }
       p { color: #a9b6cc; line-height: 1.5; margin: 0 0 1.5rem; }
+      a { color: #8fc7f5; }
+      .phone { margin: 1.5rem 0 0; font-size: 0.95rem; }
       button {
         border: 0;
         border-radius: 10px;
@@ -40,8 +42,10 @@
     <main>
       <img src="/icon-192.png" alt="ACL Propiedades" />
       <h1>Sin conexión</h1>
-      <p>No hay internet en este momento. Revisa tu conexión y vuelve a intentar: tus datos siguen guardados y no se perdió nada.</p>
-      <button type="button" onclick="location.reload()">Reintentar</button>
+      <p>No hay internet en este momento. Revisa tu conexión y vuelve a intentar.</p>
+      <p lang="en">No internet connection right now. Check your connection and try again.</p>
+      <button type="button" onclick="location.reload()">Reintentar / Retry</button>
+      <p class="phone">¿Prefieres hablar con alguien? Llámanos: <a href="tel:+528713243271">871 324 3271</a></p>
     </main>
   </body>
 </html>

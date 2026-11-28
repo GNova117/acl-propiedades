@@ -2,7 +2,8 @@
 // un método puede llamar a los de otros módulos como siempre.
 import { supabase } from "../../supabaseClient";
 import { slugify } from "../../format";
-import { uploadFiles, discardUploads } from "./shared.js";
+import { uploadFiles, discardUploads, hasStaffSession, PUBLIC_ADVISOR_COLUMNS, shareBriefly, forgetShared } from "./shared.js";
+import { zoneFields, zonePriceFields } from "../../backendRules";
 
 export const catalogMethods = {
   async _syncAdvisors(propertyId, advisorIds) {
@@ -14,16 +15,33 @@ export const catalogMethods = {
     }
   },
 
+  // Con sesión del personal: todos los asesores con todos sus datos. Sin sesión (/nosotros): solo el equipo publicado
+  // (activo y con show_in_team), con el contacto que cada quien decidió mostrar ahí.
   async getAdvisors() {
-    const { data, error } = await supabase.from("advisors").select("*").order("name");
+    if (await hasStaffSession()) {
+      const { data, error } = await supabase.from("advisors").select("*").order("name");
+      if (error) throw error;
+      return data || [];
+    }
+    const { data, error } = await supabase.rpc("team_advisors");
     if (error) throw error;
-    return data || [];
+    return (data || []).map((advisor) => ({ ...advisor, active: true, show_in_team: true }));
   },
 
   async getAdvisorById(id) {
-    const { data, error } = await supabase.from("advisors").select("*").eq("id", id).maybeSingle();
+    const columns = (await hasStaffSession()) ? "*" : PUBLIC_ADVISOR_COLUMNS;
+    const { data, error } = await supabase.from("advisors").select(columns).eq("id", id).maybeSingle();
     if (error) throw error;
     return data;
+  },
+
+  // Asesor que mandó la selección, con el teléfono y WhatsApp que se le muestran a quien tiene el enlace (la función solo
+  // responde con un token que existe, aunque la selección ya haya vencido). Nulo si el enlace no sirve o el asesor ya no
+  // está activo.
+  async getSelectionAdvisor(token) {
+    const { data, error } = await supabase.rpc("selection_advisor", { p_token: token });
+    if (error) throw error;
+    return data || null;
   },
 
   async addAdvisor(data) {
@@ -96,11 +114,10 @@ export const catalogMethods = {
   },
 
   async addZone(data) {
-    const payload = { name: data.name.trim(), price_per_m2: Number(data.price_per_m2) || 0 };
+    const { land_price_per_m2, ...payload } = zoneFields(data);
     // Solo se manda si trae valor: así agregar una zona sigue funcionando en
     // una base a la que aún no se le corrió la columna `land_price_per_m2`.
-    const landPrice = Number(data.land_price_per_m2) || 0;
-    if (landPrice > 0) payload.land_price_per_m2 = landPrice;
+    if (land_price_per_m2 > 0) payload.land_price_per_m2 = land_price_per_m2;
     const { data: inserted, error } = await supabase.from("zones").insert(payload).select().single();
     if (error) throw error;
     return inserted;
@@ -141,12 +158,16 @@ export const catalogMethods = {
   },
 
   async getPropertyTypes() {
-    const { data, error } = await supabase.from("property_types").select("*").order("label");
-    if (error) throw error;
-    return data || [];
+    const rows = await shareBriefly("property-types", async () => {
+      const { data, error } = await supabase.from("property_types").select("*").order("label");
+      if (error) throw error;
+      return data || [];
+    });
+    return rows.map((row) => ({ ...row })); // cada quien recibe su copia: nadie altera la de otro
   },
 
   async addPropertyType(data) {
+    forgetShared("property-types");
     const label = data.label.trim();
     const payload = { key: slugify(label), label };
     const { data: inserted, error } = await supabase.from("property_types").insert(payload).select().single();
@@ -155,6 +176,7 @@ export const catalogMethods = {
   },
 
   async deletePropertyType(id) {
+    forgetShared("property-types");
     const { error } = await supabase.from("property_types").delete().eq("id", id);
     if (error) throw error;
   },
@@ -162,6 +184,7 @@ export const catalogMethods = {
   // Solo cambia el texto a mostrar: `key` (lo que guarda properties.type y usan
   // filtros/rutas) no se toca, así que no hay nada que arrastrar.
   async renamePropertyType(id, label) {
+    forgetShared("property-types");
     const { data, error } = await supabase.from("property_types").update({ label: label.trim() }).eq("id", id).select().single();
     if (error) throw error;
     return data;
@@ -194,12 +217,14 @@ export const catalogMethods = {
   },
 
   async togglePropertyTypeActive(id, active) {
+    forgetShared("property-types");
     const { data, error } = await supabase.from("property_types").update({ active }).eq("id", id).select().single();
     if (error) throw error;
     return data;
   },
 
   async updatePropertyTypeImage(id, file) {
+    forgetShared("property-types");
     const uploaded = [];
     const [url] = await uploadFiles("property-images", [file], uploaded);
     const { data, error } = await supabase.from("property_types").update({ image_url: url }).eq("id", id).select().single();
@@ -214,8 +239,7 @@ export const catalogMethods = {
   // UPDATE, así guardar solo el precio de construcción no depende de que la
   // columna de terreno ya exista en la base (ver schema.sql, "Valuación").
   async updateZonePrice(id, price_per_m2, land_price_per_m2) {
-    const patch = { price_per_m2: Number(price_per_m2), updated_at: new Date().toISOString() };
-    if (land_price_per_m2 !== undefined) patch.land_price_per_m2 = Number(land_price_per_m2) || 0;
+    const patch = { ...zonePriceFields(price_per_m2, land_price_per_m2), updated_at: new Date().toISOString() };
     const { data, error } = await supabase
       .from("zones")
       .update(patch)

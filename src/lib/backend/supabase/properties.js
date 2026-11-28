@@ -1,11 +1,13 @@
 // Backend con Supabase: métodos de «properties» (13). Se juntan en supabaseBackend.js; `this` es el objeto completo, así que
 // un método puede llamar a los de otros módulos como siempre.
+import { propertyMediaPaths } from "../../propertyMediaCleanup.js";
 import { FEATURED_POOL, VIDEO_POOL, buildHomeData } from "../../homeData";
 import { supabase } from "../../supabaseClient";
-import { numOrNull } from "../../format";
+import { propertyFields } from "../../backendRules";
 import { getOrCreateVisitorId } from "../../visitorId";
 import { isValidBounds, supabaseSearchFilters } from "../../propertySearch";
-import { discardUploads, collectMedia, mapPropertyRow, PROPERTY_SELECT, PROPERTY_SORTERS } from "./shared.js";
+import { discardUploads, collectMedia, mapPropertyRow, propertySelect, hasStaffSession, PROPERTY_SELECT_STAFF, PROPERTY_SELECT_PUBLIC, PROPERTY_SORTERS } from "./shared.js";
+import { normalizePropertyCode } from "../../propertyUrl.js";
 
 export const propertiesMethods = {
   // `page`/`pageSize` son opcionales: sin ellos se comporta exactamente
@@ -18,13 +20,18 @@ export const propertiesMethods = {
   // (vía el header Content-Range), sin una segunda ida y vuelta.
   async getProperties(filters = {}) {
     const paginated = filters.pageSize != null;
-    let query = supabase.from("properties").select(PROPERTY_SELECT, paginated ? { count: "exact" } : undefined);
+    let query = supabase.from("properties").select(await propertySelect(), paginated ? { count: "exact" } : undefined);
     if (filters.activeOnly) query = query.eq("active", true);
     if (filters.type) query = query.eq("type", filters.type);
     else if (filters.types) query = query.in("type", filters.types);
     if (filters.operation_type) query = query.eq("operation_type", filters.operation_type);
+    if (filters.statuses?.length) query = query.in("status", filters.statuses);
     if (filters.tipo_nave) query = query.eq("tipo_nave", filters.tipo_nave);
-    if (filters.zone) query = query.eq("zone", filters.zone);
+    if (filters.zone) {
+      // Colonia exacta (páginas de aterrizaje) o parte del nombre, sin importar mayúsculas (lo que se escribe en el filtro).
+      if (filters.zoneExact) query = query.eq("zone", filters.zone);
+      else query = query.ilike("zone", `%${String(filters.zone).replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
+    }
     if (filters.minPrice != null) query = query.gte("price", filters.minPrice);
     if (filters.maxPrice != null) query = query.lte("price", filters.maxPrice);
     if (filters.minArea != null) query = query.gte("area_m2", filters.minArea);
@@ -72,7 +79,8 @@ export const propertiesMethods = {
       return buildHomeData(await this.getProperties({ activeOnly: true })); // respaldo: aún sin el SQL
     }
     const since = new Date(Date.now() - 30 * 86400000).toISOString();
-    const base = () => supabase.from("properties").select(PROPERTY_SELECT).eq("active", true).eq("status", "disponible");
+    const select = await propertySelect();
+    const base = () => supabase.from("properties").select(select).eq("active", true).eq("status", "disponible");
     const [available, newest, dropped, videos] = await Promise.all([
       supabase.from("properties").select("id", { count: "exact", head: true }).eq("active", true).eq("status", "disponible"),
       base().not("main_image", "is", null).order("created_at", { ascending: false }).limit(FEATURED_POOL),
@@ -90,24 +98,57 @@ export const propertiesMethods = {
     };
   },
 
+  // 221: lo mínimo para el resumen de mercado de una ciudad o colonia (zona, tipo, precio, superficie, operación y estatus) de las
+  // propiedades activas: sin fotos, videos ni descripciones. La página ya pedía el catálogo completo dos veces (resumen + listado).
+  async getMarketRows() {
+    return fetchAll(() =>
+      supabase.from("properties").select("id, zone, type, status, active, operation_type, price, area_m2").eq("active", true).order("id"),
+    );
+  },
+
+  // Referencias mínimas de TODAS las propiedades (para pantallas que solo muestran código, título, precio y asesores, como Mensajes):
+  // evita bajar fotos, videos y descripciones de todo el catálogo.
+  async getPropertyRefs() {
+    const rows = await fetchAll(() =>
+      supabase.from("properties").select("id, code, title, price, property_advisors(advisor_id, advisors(id, name))").order("created_at", { ascending: false }).order("id"),
+    );
+    return rows.map((row) => ({
+      id: row.id,
+      code: row.code,
+      title: row.title,
+      price: row.price,
+      advisors: (row.property_advisors || []).map((pa) => pa.advisors).filter(Boolean),
+    }));
+  },
+
   // Solo propiedades publicadas (activas), por sus ids: el sitio público las pide así (p. ej. las vendidas del bloque de confianza).
   async getPropertiesByIds(ids) {
     const list = (ids || []).filter(Boolean);
     if (list.length === 0) return [];
-    const { data, error } = await supabase.from("properties").select(PROPERTY_SELECT).eq("active", true).in("id", list);
+    const { data, error } = await supabase.from("properties").select(await propertySelect()).eq("active", true).in("id", list);
     if (error) throw error;
     return (data || []).map(mapPropertyRow);
   },
 
   async getPropertyById(id) {
-    const { data, error } = await supabase.from("properties").select(PROPERTY_SELECT).eq("id", id).maybeSingle();
+    const staff = await hasStaffSession();
+    const { data, error } = await supabase.from("properties").select(staff ? PROPERTY_SELECT_STAFF : PROPERTY_SELECT_PUBLIC).eq("id", id).maybeSingle();
     if (error) throw error;
-    return data ? mapPropertyRow(data) : null;
+    if (!data) return null;
+    const property = mapPropertyRow(data);
+    // Con la ubicación aproximada, `lat`/`lng` de la fila son el punto difuminado. El personal con Propiedades recibe las exactas
+    // (la tabla las protege con RLS: para los demás la consulta vuelve vacía y se queda el punto difuminado), para que el formulario
+    // las muestre y vuelva a guardar las exactas, no las difuminadas.
+    if (staff && property.location_approximate) {
+      const { data: exact } = await supabase.from("property_exact_location").select("lat, lng").eq("property_id", id).maybeSingle();
+      if (exact) return { ...property, lat: exact.lat, lng: exact.lng };
+    }
+    return property;
   },
 
   async getPropertyByCode(code) {
-    const normalized = code.trim().toUpperCase();
-    const { data, error } = await supabase.from("properties").select(PROPERTY_SELECT).eq("code", normalized).maybeSingle();
+    const normalized = normalizePropertyCode(code);
+    const { data, error } = await supabase.from("properties").select(await propertySelect()).eq("code", normalized).maybeSingle();
     if (error) throw error;
     return data ? mapPropertyRow(data) : null;
   },
@@ -138,46 +179,7 @@ export const propertiesMethods = {
   async addProperty(data) {
     const uploaded = [];
     const { images, videos, tour_360_images } = await collectMedia(data, uploaded);
-    const payload = {
-      title: data.title,
-      type: data.type,
-      description: data.description,
-      price: Number(data.price),
-      area_m2: Number(data.area_m2),
-      bedrooms: data.bedrooms === "" ? null : Number(data.bedrooms),
-      bathrooms: data.bathrooms === "" ? null : Number(data.bathrooms),
-      parking: data.parking === "" ? null : Number(data.parking),
-      zone: data.zone,
-      address: data.address,
-      lat: Number(data.lat),
-      lng: Number(data.lng),
-      status: data.status || "disponible",
-      operation_type: data.operation_type || "compra",
-      active: data.active !== false,
-      images,
-      main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
-      videos,
-      tour_360_images,
-      colindancias: data.colindancias || null,
-      servicios: data.servicios || null,
-      acabados: data.acabados || null,
-      sistema_constructivo: data.sistema_constructivo || null,
-      techumbre: data.techumbre || null,
-      condicion_propiedad: data.condicion_propiedad || null,
-      estatus_construccion: data.estatus_construccion || null,
-      altura_libre: numOrNull(data.altura_libre),
-      anio_construccion: numOrNull(data.anio_construccion),
-      area_minima_divisible: numOrNull(data.area_minima_divisible),
-      area_oficina: numOrNull(data.area_oficina),
-      luz_natural_pct: numOrNull(data.luz_natural_pct),
-      sistema_contra_incendios: data.sistema_contra_incendios || null,
-      tipo_seguridad: data.tipo_seguridad || null,
-      andenes_carga: numOrNull(data.andenes_carga),
-      rampas_vehiculares: numOrNull(data.rampas_vehiculares),
-      mantenimiento_pct: numOrNull(data.mantenimiento_pct),
-      tipo_nave: data.tipo_nave || null,
-      amenities: data.amenities || [],
-    };
+    const payload = propertyFields(data, { images, videos, tour_360_images }, { isNew: true });
     const { data: inserted, error } = await supabase.from("properties").insert(payload).select().single();
     if (error) {
       await discardUploads(uploaded);
@@ -201,47 +203,7 @@ export const propertiesMethods = {
   async updateProperty(id, data) {
     const uploaded = [];
     const { images, videos, tour_360_images } = await collectMedia(data, uploaded);
-    const payload = {
-      title: data.title,
-      type: data.type,
-      description: data.description,
-      price: Number(data.price),
-      area_m2: Number(data.area_m2),
-      bedrooms: data.bedrooms === "" ? null : Number(data.bedrooms),
-      bathrooms: data.bathrooms === "" ? null : Number(data.bathrooms),
-      parking: data.parking === "" ? null : Number(data.parking),
-      zone: data.zone,
-      address: data.address,
-      lat: Number(data.lat),
-      lng: Number(data.lng),
-      status: data.status,
-      operation_type: data.operation_type || "compra",
-      active: data.active,
-      images,
-      main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
-      videos,
-      tour_360_images,
-      colindancias: data.colindancias || null,
-      servicios: data.servicios || null,
-      acabados: data.acabados || null,
-      sistema_constructivo: data.sistema_constructivo || null,
-      techumbre: data.techumbre || null,
-      condicion_propiedad: data.condicion_propiedad || null,
-      estatus_construccion: data.estatus_construccion || null,
-      altura_libre: numOrNull(data.altura_libre),
-      anio_construccion: numOrNull(data.anio_construccion),
-      area_minima_divisible: numOrNull(data.area_minima_divisible),
-      area_oficina: numOrNull(data.area_oficina),
-      luz_natural_pct: numOrNull(data.luz_natural_pct),
-      sistema_contra_incendios: data.sistema_contra_incendios || null,
-      tipo_seguridad: data.tipo_seguridad || null,
-      andenes_carga: numOrNull(data.andenes_carga),
-      rampas_vehiculares: numOrNull(data.rampas_vehiculares),
-      mantenimiento_pct: numOrNull(data.mantenimiento_pct),
-      tipo_nave: data.tipo_nave || null,
-      amenities: data.amenities || [],
-      updated_at: new Date().toISOString(),
-    };
+    const payload = { ...propertyFields(data, { images, videos, tour_360_images }), updated_at: new Date().toISOString() };
     const { data: updated, error } = await supabase.from("properties").update(payload).eq("id", id).select().single();
     if (error) {
       await discardUploads(uploaded);
@@ -287,9 +249,15 @@ export const propertiesMethods = {
     // 0 filas; si la tabla aún no existe, `data` llega vacío): nada de eso
     // debe impedir borrar la propiedad.
     const { data: logFiles } = await supabase.from("property_log").select("file_path").eq("property_id", id).not("file_path", "is", null);
+    // 501: las fotos, videos, 360° y plano de la propiedad también se limpian (se leen antes de borrar la fila).
+    const { data: media } = await supabase.from("properties").select("images, videos, tour_360_images, floor_plan_url").eq("id", id).maybeSingle();
     const { error } = await supabase.from("properties").delete().eq("id", id);
     if (error) throw error;
     if (logFiles?.length) await supabase.storage.from("property-log-files").remove(logFiles.map((f) => f.file_path));
+    for (const [bucket, paths] of Object.entries(propertyMediaPaths(media))) {
+      const { error: removeError } = await supabase.storage.from(bucket).remove(paths);
+      if (removeError) console.error("deleteProperty: no se pudieron borrar archivos de", bucket, removeError);
+    }
   },
 
   async getPropertyChanges(propertyId) {

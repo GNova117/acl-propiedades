@@ -3,6 +3,7 @@
 // no en cada departamento: un departamento solo trae número, piso, modelo,
 // precio y estatus. Todo son funciones puras para poder probarlas sin DOM.
 
+import { urlSlug } from "./slug.js";
 export const UNIT_STATUSES = ["disponible", "apartada", "vendida"];
 export const DEVELOPMENT_STAGES = ["preventa", "construccion", "entrega_inmediata"];
 
@@ -292,16 +293,9 @@ export function validateDevelopment(data) {
   return errors;
 }
 
-// Slug de URL con guiones ("Torre Aurora" → "torre-aurora"). No usa slugify()
-// de format.js porque ese separa con guion bajo (es para llaves, no URLs).
+// Slug de URL con guiones ("Torre Aurora" → "torre-aurora"); mismo criterio que el resto (lib/slug.js).
 export function developmentSlug(name) {
-  return (
-    stripAccents(name)
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "desarrollo"
-  );
+  return urlSlug(name) || "desarrollo";
 }
 
 // Llave técnica de un modelo a partir de su nombre ("Modelo B" → "modelo-b").

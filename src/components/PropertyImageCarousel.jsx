@@ -16,7 +16,8 @@ export default function PropertyImageCarousel({ images, alt }) {
   const [index, setIndex] = useState(0);
   const [activated, setActivated] = useState(false);
 
-  if (images.length === 0) return null;
+  // Sin fotos la tarjeta no deja un hueco: se muestra la imagen de reemplazo.
+  if (images.length === 0) return <img src="/sin-foto.svg" alt="" loading="lazy" decoding="async" />;
   if (images.length === 1) return <ResponsiveImg src={images[0]} sizes={CARD_SIZES} alt={alt} loading="lazy" decoding="async" />;
 
   const visible = activated ? images : images.slice(0, 1);

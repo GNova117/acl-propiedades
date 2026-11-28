@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { whatsappDigits } from "../../lib/format";
 import { citaToIcs, downloadIcs, mapsUrl } from "../../lib/calendarEvent";
 import { canRegisterVisit, citaContact, citaStatus, citaToVisitPrefill, isFromSite, isOpenRequest, isPending, statusActions, visitLink, visitLinkTextKey } from "../../lib/agendaCitas";
@@ -16,7 +16,8 @@ import { useQuery } from "../../lib/useQuery";
 import "./admin.css";
 import "./AdminAgenda.css";
 import LoadingState from "../../components/LoadingState";
-import { confirmDialog, notify } from "../../lib/toast";
+import { confirmDialog, notify, promptDialog } from "../../lib/toast";
+import { siteOrigin } from "../../lib/site";
 
 const pad2 = (n) => String(n).padStart(2, "0");
 const isoOf = (date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
@@ -163,7 +164,7 @@ export default function AdminAgenda() {
   const changeStatus = async (cita, status) => {
     let reason = "";
     if (status === "cancelada") {
-      reason = window.prompt(t("agenda.cancelReasonPrompt"));
+      reason = await promptDialog(t("agenda.cancelReasonPrompt"));
       if (reason === null) return;
     }
     setBusyId(cita.id);
@@ -338,12 +339,12 @@ export default function AdminAgenda() {
                   const status = citaStatus(cita);
                   const contact = contactOf(cita);
                   const property = propertyOf(cita.property_id);
-                  const link = status === "confirmada" ? visitLink(cita, window.location.origin) : "";
+                  const link = status === "confirmada" ? visitLink(cita, siteOrigin()) : "";
                   const open = isOpenRequest(cita);
                   return (
                   <tr key={cita.id} className={status === "cancelada" ? "agenda-row--cancelled" : open ? "agenda-row--request" : undefined}>
                     <td>
-                      {new Date(`${cita.fecha}T00:00:00`).toLocaleDateString()}
+                      {new Date(`${cita.fecha}T00:00:00`).toLocaleDateString(i18n.language)}
                       {cita.hora ? ` · ${cita.hora.slice(0, 5)}` : ""}
                     </td>
                     <td className="agenda-cell--wrap">

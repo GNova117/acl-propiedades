@@ -7,8 +7,19 @@ import { test, expect } from "./fixtures.js";
 // regla ya no falla, la prueba lo avisa para que no se quede una excepción de más). Ver también src/lib/contrast.test.js,
 // que revisa el contraste de las variables de color sin abrir el navegador.
 
-const PUBLICAS = ["/", "/propiedades", "/propiedades/prop-1", "/propiedades/zona/torreon", "/contacto", "/nosotros", "/favoritos", "/ruta-que-no-existe"];
-const PANEL = ["/admin/mi-dia", "/admin/propiedades", "/admin/propiedades/nueva", "/admin/prospectos", "/admin/agenda", "/admin/ayuda", "/admin/seguridad", "/admin/errores"];
+const PUBLICAS = [
+  "/", "/propiedades", "/propiedades?vista=mapa", "/propiedades/prop-1", "/propiedades/zona/torreon", "/desarrollos", "/desarrollos/torre-aurora", "/testimonios",
+  "/calculadora", "/vende-tu-casa", "/comparar-creditos", "/simulador-credito", "/guia-del-comprador", "/blog", "/contacto", "/nosotros", "/favoritos", "/comparar",
+  "/aviso-de-privacidad", "/ruta-que-no-existe",
+];
+const PANEL = [
+  "/admin", "/admin/mi-dia", "/admin/propiedades", "/admin/propiedades/nueva", "/admin/desarrollos", "/admin/zonas", "/admin/asesores", "/admin/clientes",
+  "/admin/clientes/nuevo", "/admin/prospectos", "/admin/prospectos/nuevo", "/admin/equipo", "/admin/estadisticas", "/admin/alertas", "/admin/mensajes",
+  "/admin/testimonios", "/admin/blog", "/admin/visitas", "/admin/gastos", "/admin/valuacion", "/admin/solicitud-avaluo", "/admin/inspecciones",
+  "/admin/credito-infonavit", "/admin/solicitud-credito", "/admin/documentos-legales", "/admin/plantillas-documentos", "/admin/firmas", "/admin/remodelaciones",
+  "/admin/materiales", "/admin/agenda", "/admin/agenda/nueva", "/admin/secretaria", "/admin/reportes", "/admin/reporte-mensual", "/admin/comisiones",
+  "/admin/actividad", "/admin/errores", "/admin/respaldo", "/admin/arco", "/admin/novedades", "/admin/roles", "/admin/ayuda", "/admin/seguridad",
+];
 
 // ruta → { regla: motivo }. Vacío = la pantalla pasa limpia.
 const EXCEPCIONES = {};

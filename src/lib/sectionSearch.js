@@ -41,9 +41,11 @@ export const KEYWORDS = {
   "/admin/reporte-mensual": "mes mensual resumen reporte ventas cierres monthly report",
   "/admin/comisiones": "utilidad liquidacion pagos comisiones ganancias asesores commissions payouts",
   "/admin/actividad": "bitacora quien cambio historial registro de cambios auditoria activity log audit",
+  "/admin/arco": "arco privacidad datos personales borrar eliminar cancelar acceso solicitud derechos erase delete privacy personal data request",
   "/admin/errores": "fallas problemas errores del sitio monitoreo bugs errors",
   "/admin/novedades": "noticias novedades avisos anuncios cambios del sistema news updates",
   "/admin/roles": "permisos accesos usuarios roles seguridad quien ve que permissions access",
+  "/admin/respaldo": "respaldo copia de seguridad descargar zip datos fotos retencion backup",
   "/admin/seguridad": "contrasena verificacion dos pasos mfa dispositivos sesion password security 2fa",
   "/admin/ayuda": "ayuda soporte guia tutorial como se usa recorrido preguntas help support guide faq",
 };

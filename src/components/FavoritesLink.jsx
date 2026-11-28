@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useFavorites } from "../context/FavoritesContext";
+import { useFavorites } from "../context/useFavorites.js";
 import "./FavoritesLink.css";
 
 export default function FavoritesLink() {

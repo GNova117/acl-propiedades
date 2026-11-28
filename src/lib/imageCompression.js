@@ -8,11 +8,23 @@
 // comprimir ahí perjudicaría la legibilidad) y adjuntos de Agenda (pueden
 // ser PDFs, no siempre imágenes); por eso se llama explícitamente solo en
 // los puntos que sí son fotos de exhibición pública.
+// Límite: si el navegador no puede decodificar una foto JPEG/PNG/WebP dañada se sube tal cual. Una foto HEIC/HEIF que el navegador no
+// puede abrir (iPhone desde una computadora con Chrome) ya NO se sube: se subía sin convertir y no se veía en Chrome ni en Android.
+// Se avisa para que se vuelva a elegir en JPEG (en el iPhone, Ajustes → Cámara → Formatos → «Más compatible»).
 const MAX_DIMENSION = 1920;
 const JPEG_QUALITY = 0.82;
 
+export const isHeic = (file) => /^image\/hei[cf]/i.test(file?.type || "") || /\.hei[cf]$/i.test(file?.name || "");
+
+export class HeicNotSupportedError extends Error {
+  constructor(name) {
+    super(`La foto «${name}» está en formato HEIC y este navegador no puede procesarla. Elígela de nuevo en JPEG (en el iPhone: Ajustes → Cámara → Formatos → «Más compatible») o ábrela desde Safari.`);
+    this.name = "HeicNotSupportedError";
+  }
+}
+
 export async function compressImageFile(file) {
-  if (!file.type?.startsWith("image/")) return file;
+  if (!file.type?.startsWith("image/") && !isHeic(file)) return file;
 
   try {
     const bitmap = await createImageBitmap(file);
@@ -23,15 +35,23 @@ export async function compressImageFile(file) {
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
-    canvas.getContext("2d").drawImage(bitmap, 0, 0, width, height);
+    const ctx = canvas.getContext("2d");
+    // El JPEG no tiene transparencia: un PNG con fondo transparente (planos, logotipos) quedaba con fondo NEGRO. Se pinta blanco debajo.
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(bitmap, 0, 0, width, height);
     bitmap.close?.();
 
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY));
-    if (!blob || blob.size >= file.size) return file;
+    // Se devuelve SIEMPRE la versión reescalada, aunque no pese menos que el original: al pasar por el canvas se
+    // pierden los metadatos EXIF (ubicación GPS, modelo del teléfono, fecha), que no deben publicarse en la
+    // ficha de una propiedad. Quedarse con el original por pesar menos los dejaba pegados a la foto.
+    if (!blob) return file;
 
     const newName = file.name.replace(/\.[^.]+$/, "") + ".jpg";
     return new File([blob], newName, { type: "image/jpeg" });
   } catch {
+    if (isHeic(file)) throw new HeicNotSupportedError(file.name);
     return file;
   }
 }

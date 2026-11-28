@@ -1,7 +1,7 @@
 // Backend de modo demo (localStorage): métodos de «agenda» (38). Se juntan en localBackend.js; `this` es el objeto completo, así que
 // un método puede llamar a los de otros módulos como siempre.
 import { ADVISORS, PROPERTIES, VISITS_SEED, DEMO_ADMIN } from "../../seedData";
-import { generateReportToken, REPORT_TOKEN_PATTERN } from "../../visitReport";
+import { generateReportToken, REPORT_TOKEN_PATTERN, reportLinkExpiry } from "../../visitReport";
 import { CITA_STATUSES } from "../../agendaCitas";
 import { findOpenProspect, mergeBookingIntoProspect, prospectFieldsFromBooking } from "../../visitProspect";
 import { BOOKING_TOKEN_PATTERN, DEFAULT_VISIT_SETTINGS, MAX_ACTIVE_BOOKINGS_PER_PHONE, activeBookingsForPhone, bookingPermissions, buildBookingChangeMessage, buildBookingMessage, buildRequestMessage, generateBookingToken, generateSlots, hhmm, mergeSlots, mexicoParts, normalizeVisitSchedule, addDays, phoneDigits, pickAdvisor, requestSlotError, validateBookingInput, MAX_RESCHEDULES } from "../../visitSlots";
@@ -73,7 +73,7 @@ export const agendaMethods = {
   // Crea el enlace o lo REGENERA (el token anterior deja de funcionar).
   async saveReportLink(propertyId) {
     const links = readStore(KEYS.reportLinks, []);
-    const record = { property_id: propertyId, token: generateReportToken(), created_by: DEMO_ADMIN.email, created_at: new Date().toISOString() };
+    const record = { property_id: propertyId, token: generateReportToken(), created_by: DEMO_ADMIN.email, created_at: new Date().toISOString(), expires_at: reportLinkExpiry() };
     const idx = links.findIndex((l) => l.property_id === propertyId);
     if (idx === -1) links.push(record);
     else links[idx] = record;
@@ -90,7 +90,10 @@ export const agendaMethods = {
   async getVisitReportByToken(token) {
     if (!REPORT_TOKEN_PATTERN.test(token || "")) return null;
     const link = readStore(KEYS.reportLinks, []).find((l) => l.token === token);
-    return link ? this._visitReportPayload(link.property_id) : null;
+    // Igual que visit_report_by_token: un enlace vencido no responde (los guardados antes de que existiera el vencimiento no vencen).
+    if (!link || (link.expires_at && new Date(link.expires_at).getTime() <= Date.now())) return null;
+    const payload = await this._visitReportPayload(link.property_id);
+    return payload ? { ...payload, link_expires_at: link.expires_at || null } : null;
   },
 
   async getAgendaCitas() {

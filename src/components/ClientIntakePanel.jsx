@@ -2,11 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import { INTAKE_LABEL_MAX, INTAKE_TYPES, INTAKE_VALID_DAYS, intakeMessage, intakeState, intakeUrl } from "../lib/clientIntake";
 import { useLiveRefresh } from "../lib/liveUpdates";
-import { confirmDialog, notify } from "../lib/toast";
+import { confirmDialog, notify, copyFallback } from "../lib/toast";
 import "./ClientIntakePanel.css";
+import { siteOrigin } from "../lib/site";
 
 const TYPE_KEY = { comprador: "buyer", vendedor: "seller", ambos: "both" };
 const fmtDate = (value) => (value ? new Date(value).toLocaleDateString("es-MX", { day: "numeric", month: "short" }) : "");
@@ -20,13 +21,13 @@ function LinkActions({ link }) {
     const timer = setTimeout(() => setCopied(false), 2500);
     return () => clearTimeout(timer);
   }, [copied]);
-  const url = intakeUrl(window.location.origin, link.token);
+  const url = intakeUrl(siteOrigin(), link.token);
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
     } catch {
-      window.prompt(t("clientIntake.copyFallback"), url);
+      copyFallback(t("clientIntake.copyFallback"), url);
     }
   };
   return (
@@ -153,7 +154,7 @@ export default function ClientIntakePanel({ onClose, onClientCreated }) {
       {created && (
         <div className="client-intake__ready" role="status">
           <strong>{t("clientIntake.ready", { type: t(`clients.${TYPE_KEY[created.type]}`).toLowerCase() })}</strong>
-          <input readOnly value={intakeUrl(window.location.origin, created.token)} aria-label={t("clientIntake.linkAria")} onFocus={(e) => e.target.select()} />
+          <input readOnly value={intakeUrl(siteOrigin(), created.token)} aria-label={t("clientIntake.linkAria")} onFocus={(e) => e.target.select()} />
           <LinkActions link={created} />
         </div>
       )}

@@ -1,6 +1,6 @@
 import FactIcon from "./FactIcon";
 import { useMemo } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import PropertyTypeIcon from "./PropertyTypeIcon";
 import FavoriteButton from "./FavoriteButton";
@@ -9,25 +9,27 @@ import ShareButton from "./ShareButton";
 import PropertyFlag from "./PropertyFlag";
 import PropertyImageCarousel from "./PropertyImageCarousel";
 import { cardImages } from "../lib/cardImages";
-import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
+import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines, statusBadgeClass } from "../lib/format";
 import { getPropertyBadge } from "../lib/propertyBadges";
 import { nextVisitTag } from "../lib/nextVisit";
 import { estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import "./PropertyCard.css";
 import { propertyPath } from "../lib/propertyUrl.js";
+import { siteOrigin } from "../lib/site";
 
 // `nextVisitSlot`: primer horario libre para visitarla ({ fecha, hora }); sale «Visítala hoy / mañana / el jueves».
 // `soldInDays`: en «Vendidas recientemente», cuántos días tardó en venderse.
 export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
   const { t, i18n } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   // De dónde viene la persona: la ficha lo usa para que «Volver» regrese a este listado con sus filtros.
   const linkState = { from: location.pathname + location.search };
   const advisor = property.advisors?.[0];
   const badge = getPropertyBadge(property);
   const monthly = estimateMonthlyPayment(property);
   const visitTag = property.status === "disponible" ? nextVisitTag(nextVisitSlot) : null;
-  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${propertyPath(property)}` : "";
+  const shareUrl = typeof window !== "undefined" ? `${siteOrigin()}${propertyPath(property)}` : "";
   // Mismo formato que el botón de Compartir de la ficha de propiedad, pero
   // sin amenidades (la tarjeta de listado no las trae cargadas) — para que
   // alguien pueda reenviar una propiedad desde los resultados o sus
@@ -38,22 +40,40 @@ export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
     return lines.join("\n");
   }, [property, t, shareUrl]);
 
+  // 251: la foto ya NO es un enlace. Dentro llevaba botones (favoritos, comparar, siguiente/anterior del carrusel) y un botón dentro
+  // de un enlace es interactivo anidado: los lectores de pantalla lo anuncian mal y no se pueden usar bien con teclado. Ahora un clic
+  // en la foto (fuera de esos botones) abre la ficha, y quien usa teclado o lector de pantalla tiene el título como enlace principal.
+  // Ctrl/Cmd/Mayús + clic la abre en otra pestaña, como un enlace.
+  const goToDetail = (e) => {
+    if (e.defaultPrevented || e.target.closest("button, a, summary, input, select, textarea")) return;
+    const to = propertyPath(property);
+    if (e.metaKey || e.ctrlKey || e.shiftKey) {
+      window.open(to, "_blank", "noopener");
+      return;
+    }
+    navigate(to, { state: linkState });
+  };
+
   return (
     <article className="property-card card">
-      <Link to={propertyPath(property)} state={linkState} className="property-card__image-link">
+      <div className="property-card__image-link" onClick={goToDetail}>
         <PropertyImageCarousel images={cardImages(property)} alt={property.title} />
-        <span className={`badge badge-${property.status === "disponible" ? "available" : property.status === "apartada" ? "reserved" : "sold"} property-card__badge`}>
+        <span className={`badge ${statusBadgeClass(property.status)} property-card__badge`}>
           {t(`propertyStatus.${property.status}`)}
         </span>
         <PropertyFlag property={property} className="property-flag--card" />
+        {(property.images?.length || 0) > 1 && (
+          <span className="property-card__photo-count">{t("propertyCard.photos", { count: property.images.length })}</span>
+        )}
         <FavoriteButton propertyId={property.id} className="property-card__favorite" />
         <CompareButton propertyId={property.id} className="property-card__compare" />
-      </Link>
+      </div>
       <div className="property-card__body">
         <div className="property-card__type">
           <PropertyTypeIcon type={property.type} size={16} />
           <span>{propertyTypeLabel(t, property.type)}</span>
-          <span className="property-card__zone">· {property.zone}</span>
+          {property.zone && <span className="property-card__zone">· {property.zone}</span>}
+          {property.code && <span className="property-card__code">{property.code}</span>}
         </div>
         <h3 className="property-card__title">
           <Link to={propertyPath(property)} state={linkState}>{property.title}</Link>
@@ -61,6 +81,7 @@ export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
         <p className="property-card__price">
           {badge?.kind === "priceDrop" && <s className="property-price-was">{formatMXN(badge.previousPrice)}</s>}
           {formatMXN(property.price)}
+          {property.operation_type === "renta" && <span className="property-price-period">{t("propertyOperation.perMonth")}</span>}
         </p>
         {monthly && (
           <p

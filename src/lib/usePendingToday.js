@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import { db } from "./dataStore";
 import { activeCitas } from "./agendaCitas";
 import { daysSince, followUpState, todayISO, unattendedAge, unattendedState } from "./prospects";

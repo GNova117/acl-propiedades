@@ -1,10 +1,10 @@
 // Backend con Supabase: métodos de «agenda» (36). Se juntan en supabaseBackend.js; `this` es el objeto completo, así que
 // un método puede llamar a los de otros módulos como siempre.
 import { supabase } from "../../supabaseClient";
-import { generateReportToken, REPORT_TOKEN_PATTERN } from "../../visitReport";
+import { generateReportToken, REPORT_TOKEN_PATTERN, reportLinkExpiry } from "../../visitReport";
 import { CITA_STATUSES } from "../../agendaCitas";
 import { BOOKING_TOKEN_PATTERN, DEFAULT_VISIT_SETTINGS, hhmm, normalizeVisitSchedule } from "../../visitSlots";
-import { isMissingTable, sanitizeFileName } from "./shared.js";
+import { fetchAll, isMissingTable, sanitizeFileName } from "./shared.js";
 
 export const agendaMethods = {
   // Crea o REGENERA la URL secreta del calendario suscribible de quien llama (la anterior deja de servir).
@@ -30,11 +30,11 @@ export const agendaMethods = {
   // ve y edita solo las suyas; un correo con el apartado 'visitas' pero sin
   // asesor vinculado ve todas — mismo patrón que agenda_citas.
   async getVisits({ propertyId } = {}) {
-    let query = supabase.from("property_visits").select("*").order("visited_at", { ascending: false });
-    if (propertyId) query = query.eq("property_id", propertyId);
-    const { data, error } = await query;
-    if (error) throw error;
-    return data || [];
+    return fetchAll(() => {
+      let query = supabase.from("property_visits").select("*").order("visited_at", { ascending: false }).order("id");
+      if (propertyId) query = query.eq("property_id", propertyId);
+      return query;
+    });
   },
 
   async getVisitById(id) {
@@ -103,6 +103,7 @@ export const agendaMethods = {
       token: generateReportToken(),
       created_by: sessionData?.session?.user?.email || null,
       created_at: new Date().toISOString(),
+      expires_at: reportLinkExpiry(),
     };
     const { data, error } = await supabase.from("property_report_links").upsert(row, { onConflict: "property_id" }).select().single();
     if (error) throw error;
@@ -126,13 +127,14 @@ export const agendaMethods = {
   },
 
   async getAgendaCitas() {
-    const { data, error } = await supabase
-      .from("agenda_citas")
-      .select("*")
-      .order("fecha", { ascending: true })
-      .order("hora", { ascending: true, nullsFirst: false });
-    if (error) throw error;
-    return data || [];
+    return fetchAll(() =>
+      supabase
+        .from("agenda_citas")
+        .select("*")
+        .order("fecha", { ascending: true })
+        .order("hora", { ascending: true, nullsFirst: false })
+        .order("id"),
+    );
   },
 
   // `contact_*`: datos de quien no es un cliente registrado (para mandarle el enlace de la cita). Como `lugar`,

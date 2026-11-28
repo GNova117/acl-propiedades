@@ -11,6 +11,24 @@
   min-width: 0;
 }
 
+/* 326: la búsqueda y el selector de asesor usaban el estilo nativo del navegador; ahora igual que el resto de los campos. */
+.prospect-filters input[type="search"],
+.prospect-filters select {
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-family: inherit;
+}
+
+.prospect-filters input[type="search"]:focus,
+.prospect-filters select:focus {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 1px;
+}
+
 .prospect-filters__check {
   display: inline-flex;
   align-items: center;

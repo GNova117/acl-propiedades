@@ -104,6 +104,8 @@ export default async function handler(req, res) {
       })),
     });
   } catch (err) {
-    res.status(502).json({ error: err.message || "No se pudo consultar Google Analytics" });
+    // El detalle (credenciales, cuotas de Google) queda en los registros del servidor, no en la respuesta.
+    console.error("analytics-summary", err?.message);
+    res.status(502).json({ error: "No se pudo consultar Google Analytics" });
   }
 }

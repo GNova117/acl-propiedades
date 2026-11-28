@@ -3,13 +3,15 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN, propertyTypeLabel } from "../../lib/format";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { isBackupStale } from "../../lib/backup";
 import { OPEN_STAGES } from "../../lib/prospects";
 import { activeCitas } from "../../lib/agendaCitas";
 import PendingToday from "../../components/PendingToday";
 import DashboardCharts from "../../components/DashboardCharts";
+import { monthTrend } from "../../lib/monthTrend";
 import "./admin.css";
+import { notifyLoadError } from "../../lib/loadError";
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
@@ -31,8 +33,8 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (hasSection("propiedades")) {
-      db.getProperties({}).then(setProperties);
-      db.getPropertyTypes().then(setPropertyTypes);
+      db.getProperties({}).then(setProperties).catch(notifyLoadError);
+      db.getPropertyTypes().then(setPropertyTypes).catch(notifyLoadError);
     }
     if (hasSection("asesores") || hasSection("agenda")) db.getAdvisors().then(setAdvisors);
     if (hasSection("clientes") || hasSection("agenda")) db.getClients().then(setClients);
@@ -159,7 +161,7 @@ export default function AdminDashboard() {
         <div className="card" style={{ padding: "1rem 1.25rem", marginBottom: "1.25rem" }}>
           <strong>{t("backup.reminderTitle")}</strong>{" "}
           <span className="form-hint">{t("backup.reminderText", { days: 7 })}</span>{" "}
-          <Link to="/admin/roles">{t("backup.reminderLink")}</Link>
+          <Link to="/admin/respaldo" className="btn btn-outline btn-sm">{t("backup.reminderLink")}</Link>
         </div>
       )}
 
@@ -167,28 +169,31 @@ export default function AdminDashboard() {
 
       <div className="admin-stats">
         {hasSection("propiedades") && (
-          <div className="card admin-stat-card">
+          <Link to="/admin/propiedades" className="card admin-stat-card">
             <span className="admin-stat-card__value">{properties.length}</span>
             <span className="admin-stat-card__label">{t("admin.totalProperties")}</span>
-          </div>
+            <MonthTrend items={properties} />
+          </Link>
         )}
         {hasSection("asesores") && (
-          <div className="card admin-stat-card">
+          <Link to="/admin/asesores" className="card admin-stat-card">
             <span className="admin-stat-card__value">{advisors.filter((a) => a.active !== false).length}</span>
             <span className="admin-stat-card__label">{t("admin.activeAdvisors")}</span>
-          </div>
+          </Link>
         )}
         {hasSection("clientes") && (
-          <div className="card admin-stat-card">
+          <Link to="/admin/clientes" className="card admin-stat-card">
             <span className="admin-stat-card__value">{clients.length}</span>
             <span className="admin-stat-card__label">{t("clients.title")}</span>
-          </div>
+            <MonthTrend items={clients} />
+          </Link>
         )}
         {hasSection("remodelaciones") && (
-          <div className="card admin-stat-card">
+          <Link to="/admin/remodelaciones" className="card admin-stat-card">
             <span className="admin-stat-card__value">{remodelProjects.length}</span>
             <span className="admin-stat-card__label">{t("admin.remodelProjects")}</span>
-          </div>
+            <MonthTrend items={remodelProjects} />
+          </Link>
         )}
         {hasSection("mensajes") && (
           <Link to="/admin/mensajes" className="card admin-stat-card">
@@ -198,10 +203,10 @@ export default function AdminDashboard() {
         )}
         {hasSection("propiedades") &&
           byType.map(({ type, count }) => (
-            <div className="card admin-stat-card" key={type}>
+            <Link to="/admin/propiedades" className="card admin-stat-card" key={type}>
               <span className="admin-stat-card__value">{count}</span>
               <span className="admin-stat-card__label">{propertyTypeLabel(t, type)}</span>
-            </div>
+            </Link>
           ))}
       </div>
 
@@ -360,5 +365,17 @@ export default function AdminDashboard() {
         </div>
       )}
     </div>
+  );
+}
+
+// 331: «+N este mes» (y cuántos fueron el mes pasado) bajo una cifra del inicio; no sale si no hay fechas o no hubo altas.
+function MonthTrend({ items }) {
+  const { t } = useTranslation();
+  const { thisMonth, lastMonth, dated } = monthTrend(items);
+  if (dated === 0 || (thisMonth === 0 && lastMonth === 0)) return null;
+  return (
+    <span className="admin-stat-card__trend">
+      {t("admin.trendThisMonth", { count: thisMonth })} · {t("admin.trendLastMonth", { count: lastMonth })}
+    </span>
   );
 }

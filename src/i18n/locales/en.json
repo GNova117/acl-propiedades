@@ -1,5 +1,8 @@
 {
   "nav": {
+    "developments": "Developments",
+    "favorites": "Favorites",
+    "call": "Call {{phone}}",
     "buyerGuide": "Buyer's guide",
     "compareCredits": "Compare credits",
     "sellHome": "Sell your home",
@@ -16,6 +19,8 @@
     "mySpace": "My space"
   },
   "hero": {
+    "callPrompt": "Prefer to talk to someone? Call us at",
+    "maxPricePlaceholder": "No limit",
     "title": "Find your next property in La Comarca Lagunera",
     "subtitle": "Houses, apartments and industrial warehouses in Torreón, Gómez Palacio and Lerdo, with certified INFONAVIT, bank and FOVISSSTE financing advice.",
     "searchType": "Property type",
@@ -26,12 +31,6 @@
     "allTypes": "All types",
     "allZones": "All zones",
     "allOperations": "All transaction types"
-  },
-  "splitHero": {
-    "cta": "See more",
-    "comingSoon": "Coming soon",
-    "properties": { "title": "Properties", "subtitle": "Houses, apartments and land" },
-    "industrial": { "title": "Industrial Warehouses", "subtitle": "Commercial and industrial spaces" }
   },
   "badges": {
     "new": "New",
@@ -60,11 +59,13 @@
     "soldInDays_other": "Sold in {{count}} days"
   },
   "mobileBar": {
+    "chat": "Chat",
     "schedule": "Schedule a visit",
     "whatsapp": "WhatsApp",
     "whatsappText": "Hi, I'm interested in {{property}}."
   },
   "monthlyEstimate": {
+    "infoShort": "How is it calculated?",
     "perMonth": "≈ {{amount}}/mo",
     "fromPerMonth": "From ≈ {{amount}} per month",
     "hint": "Estimated with {{down}}% down, {{years}} years and a {{rate}}% rate. For reference only, not a credit offer or approval.",
@@ -157,6 +158,7 @@
     "local_comercial": "Commercial Space"
   },
   "propertyOperation": {
+    "perMonth": "/month",
     "compra": "Sale",
     "renta": "Rent"
   },
@@ -167,9 +169,26 @@
   "propertyStatus": {
     "disponible": "Available",
     "apartada": "Reserved",
-    "vendida": "Sold"
+    "vendida": "Sold",
+    "rentada": "Rented"
   },
   "properties": {
+    "mapLegend": "Marker colors by property type",
+    "showMap": "Show on map",
+    "hideMap": "Hide map",
+    "onlyMine": "Only my properties",
+    "andMoreAdvisors_one": "and {{count}} more",
+    "andMoreAdvisors_other": "and {{count}} more",
+    "relaxFilter_one": "Remove \"{{filter}}\": {{count}} result",
+    "relaxFilter_other": "Remove \"{{filter}}\": {{count}} results",
+    "newSinceVisit_one": "{{count}} new since your last visit",
+    "newSinceVisit_other": "{{count}} new since your last visit",
+    "noAdvisor": "No advisor",
+    "codeSearchError": "The search failed. Check your connection and try again.",
+    "statusFilter": "Status",
+    "statusDefault": "Available and reserved",
+    "statusOnlyAvailable": "Available only",
+    "statusAll": "Include sold and rented",
     "title": "Available properties",
     "subtitle": "Filter by type, zone, price and area to find your ideal property.",
     "industrialTitle": "Available industrial warehouses",
@@ -242,6 +261,28 @@
     "coloniesTitle": "Neighborhoods in {{city}} with listings"
   },
   "detail": {
+    "presentationMode": "Presentation mode",
+    "presentationExit": "Exit presentation",
+    "reportError": "Report an error",
+    "reportErrorMessage": "I found a mistake in listing {{code}} ({{url}}): ",
+    "priceDropAgo_zero": "Dropped {{amount}} ({{percent}}%) today",
+    "priceDropAgo_one": "Dropped {{amount}} ({{percent}}%) {{count}} day ago",
+    "priceDropAgo_other": "Dropped {{amount}} ({{percent}}%) {{count}} days ago",
+    "priceDropAgo_nodate": "Dropped {{amount}} ({{percent}}%)",
+    "publishedAgo_zero": "Listed today",
+    "publishedAgo_one": "Listed {{count}} day ago",
+    "publishedAgo_other": "Listed {{count}} days ago",
+    "updatedOn": "Updated {{date}}",
+    "seoTitleSold": "Sold · {{type}} in {{zone}}",
+    "seoTitleRented": "Rented · {{type}} in {{zone}}",
+    "seoTitle": "{{type}} for {{operation}} — {{zone}} · {{price}}",
+    "seoLead": "{{facts}} in {{zone}}. ",
+    "codeLabel": "Code",
+    "rentedTitle": "This property has already been rented",
+    "soldTitle": "This property has been sold",
+    "soldText": "Visits can no longer be scheduled. See similar properties or leave your details below and we will let you know about something similar.",
+    "soldCta": "See available properties",
+    "locationApproximate": "Approximate location: the seller prefers not to publish the exact spot. Your advisor will give you the address when you schedule the visit.",
     "compareCredits": {
       "title": "How would you pay for it?",
       "text": "Compare Infonavit, a bank loan and cash for this home: how much you need upfront and what you would pay each month.",
@@ -331,8 +372,16 @@
     }
   },
   "calculator": {
+    "askFormal": "Request a formal estimate",
+    "talkToAdvisor": "Talk to an advisor",
+    "whatsappText": "Hi, I used the calculator on your site: {{type}} of {{area}} m² in {{zone}}, estimate {{value}}. I would like a formal estimate.",
     "title": "Estimated value calculator",
-    "subtitle": "Get a reference estimate of a property's value based on area, zone and type.",
+    "subtitle": "Get a reference estimate of a property's value based on its lot, its built area, the zone and the type. It is the same formula as “Sell your home”.",
+    "landArea": "Lot (sqm)",
+    "builtArea": "Built area (sqm)",
+    "landPricePerM2": "Lot per sqm",
+    "incomplete": "To estimate we need a zone with a reference price and the areas. Request the formal estimate and an advisor works it out with you.",
+    "whatsappTextNoEstimate": "Hi, I would like a formal estimate of my property's value.",
     "area": "Area (sqm)",
     "zone": "Zone",
     "type": "Property type",
@@ -360,6 +409,14 @@
     "paymentMethodsBody": "We accept cash payment, bank financing, INFONAVIT credit, and FOVISSSTE credit, subject to each institution's conditions and required documentation. Check with your advisor for the options available for each property."
   },
   "contact": {
+    "callCta": "Call",
+    "whatsappCta": "Message on WhatsApp",
+    "topicLabel": "What are you looking for?",
+    "topicNone": "Choose an option (optional)",
+    "topics": {"comprar": "I want to buy", "rentar": "I want to rent", "vender": "I want to sell my property", "rentar_mia": "I want to rent out my property", "otro": "Other"},
+    "openNow": "· Open now",
+    "closedNow": "· Closed now",
+    "sendAnother": "Send another message",
     "title": "Contact us",
     "subtitle": "Have questions or looking for a specific property? Write to us and an advisor will contact you.",
     "directTitle": "Direct contact",
@@ -376,10 +433,30 @@
     "invalidEmail": "Invalid email address",
     "privacyNotice": "By submitting this form, your data will be handled according to our",
     "privacyLinkLabel": "Privacy Notice",
+    "showMap": "Show map",
+    "mapNotice": "The map is provided by Google, which receives your IP address when you view it.",
     "mapTitle": "ACL Propiedades location",
     "serverLimited": "Too many messages were sent from your connection. Please try again later or call us."
   },
   "messages": {
+    "hideAlerts_one": "Hide search alerts ({{count}})",
+    "hideAlerts_other": "Hide search alerts ({{count}})",
+    "channel": "Channel",
+    "search": "Search",
+    "searchPlaceholder": "Name, phone, email or text",
+    "subtitle": "Everything that reaches the site: contact form, visit requests, WhatsApp, alerts, estimates and the loan comparison. Filter by channel to separate it.",
+    "channels": {
+      "contacto": "Contact form",
+      "visita": "Booked visit",
+      "visita_solicitud": "Visit request",
+      "visita_cambio": "Visit change",
+      "whatsapp": "WhatsApp",
+      "alerta": "Alert",
+      "simulador": "Loan simulator",
+      "estimacion": "Value estimate",
+      "comparador": "Loan comparison",
+      "guia": "Buyer guide"
+    },
     "via_alerta": "Asked for WhatsApp alerts",
     "via_comparador": "From the credit comparison",
     "via_whatsapp": "From WhatsApp",
@@ -395,7 +472,6 @@
     "viaWhatsapp": "From WhatsApp",
     "makeProspectError": "Could not make a prospect",
     "title": "Contact messages",
-    "subtitle": "Messages sent from the public site's contact form.",
     "date": "Date",
     "noResults": "No contact messages yet.",
     "statusNew": "New",
@@ -425,6 +501,12 @@
     }
   },
   "testimonials": {
+    "pageTitle": "What our clients say",
+    "pageSubtitle": "Opinions from people who have already bought, sold or rented with us.",
+    "pageSeoDescription": "Opinions and testimonials from ACL Propiedades clients who bought, sold or rented a property in La Comarca Lagunera.",
+    "pageEmptyTitle": "No testimonials yet",
+    "pageEmptyText": "We are gathering our clients' opinions. In the meantime, see the available properties.",
+    "viewAll": "See all testimonials",
     "title": "Testimonials",
     "subtitle": "Shown in the \"What our clients say\" section on the homepage — only the ones marked Active.",
     "new": "New testimonial",
@@ -437,6 +519,12 @@
     "homeTitle": "What our clients say"
   },
   "blog": {
+    "share": "Share this article",
+    "spanishOnly": "Articles are only available in Spanish for now.",
+    "readTime_one": "{{count}} min read",
+    "readTime_other": "{{count}} min read",
+    "byline": "By the ACL Propiedades team",
+    "related": "Keep reading",
     "eyebrow": "Blog",
     "title": "ACL Propiedades Blog",
     "subtitle": "Guides and tips on buying, selling and renting property in La Comarca Lagunera.",
@@ -484,6 +572,10 @@
     "goHome": "Go home"
   },
   "favorites": {
+    "alertDropped_one": "{{count}} of your favorites dropped in price.",
+    "alertDropped_other": "{{count}} of your favorites dropped in price.",
+    "alertUnavailable_one": "{{count}} of your favorites is no longer available.",
+    "alertUnavailable_other": "{{count}} of your favorites are no longer available.",
     "title": "Favorites",
     "subtitle": "The properties you've saved in this browser.",
     "empty": "You haven't saved any properties yet.",
@@ -502,6 +594,7 @@
     "success": "Done! An advisor will contact you shortly."
   },
   "scheduleVisit": {
+    "timePlaceholder": "Choose a time",
     "title": "Want to visit it?",
     "subtitle": "Book a visit and see the property with an ACL advisor.",
     "cta": "Schedule a visit",
@@ -520,6 +613,8 @@
       "manage": "View or cancel my request"
     },
     "booking": {
+      "another": "Book another visit",
+      "addToGoogle": "Add to Google Calendar",
       "loading": "Looking for available times…",
       "chooseDay": "Choose the day",
       "chooseTime": "Choose the time",
@@ -556,10 +651,19 @@
     }
   },
   "compare": {
+    "barCta": "Compare ({{count}})",
+    "pricePerM2": "Price per m²",
+    "monthly": "Estimated monthly payment",
+    "bestValue": "best value",
+    "share": "Copy comparison link",
+    "copied": "Link copied!",
+    "copyManual": "Copy this link to share the comparison",
     "title": "Compare properties",
     "subtitle": "Compare up to 4 properties side by side before deciding.",
     "empty": "You don't have any properties to compare yet.",
     "browseCta": "Browse properties",
+    "short": "Compare",
+    "feature": "Feature",
     "add": "Add to compare",
     "remove": "Remove from compare",
     "removeOne": "Remove",
@@ -569,7 +673,8 @@
     "parking": "Parking"
   },
   "footer": {
-    "tagline": "Buying and selling houses, land, commercial spaces and industrial warehouses in La Comarca Lagunera.",
+    "termsLink": "Terms and conditions",
+    "tagline": "Buying and selling houses, apartments, land and industrial warehouses in La Comarca Lagunera.",
     "quickLinks": "Quick links",
     "zones": "Zones",
     "contactInfo": "Contact",
@@ -596,6 +701,8 @@
     "someFailed": "Some records couldn't be updated — try again."
   },
   "common": {
+    "exportCsvEmpty": "There is nothing to export with the current filters",
+    "saveError": "Could not save. Please try again.",
     "more": "More",
     "loading": "Loading...",
     "save": "Save",
@@ -608,11 +715,19 @@
     "status": "Status",
     "active": "Active",
     "inactive": "Inactive",
+    "toggleActiveHint": "Click to turn on or off",
+    "photo": "Photo",
     "close": "Close",
     "search": "Search",
-    "exportCsv": "Export CSV"
+    "exportCsv": "Export CSV",
+    "exportXlsx": "Export Excel"
   },
   "developments": {
+    "listTitle": "Towers and developments",
+    "listSeoDescription": "ACL Propiedades towers and developments in La Comarca Lagunera: complete projects with several apartments available, all in one place.",
+    "listEmptyTitle": "Developments coming soon",
+    "listEmptyText": "There are no published developments right now. In the meantime, see all available properties.",
+    "viewAll": "See all developments",
     "eyebrow": "Developments",
     "stripTitle": "Towers and developments",
     "stripSubtitle": "Full projects with several apartments available, all in one place.",
@@ -714,6 +829,8 @@
       "illustrative": "Photos and plan are of the model; the apartment may differ in finishes and view."
     },
     "contact": {
+      "formTitle": "Or leave your details and we will contact you",
+      "formMessage": "I am interested in the {{name}} development. I would like more information.",
       "title": "Interested in {{name}}?",
       "text": "We'll tell you which apartments are left, send you the price list and schedule your visit.",
       "whatsapp": "Write on WhatsApp",
@@ -805,6 +922,15 @@
     }
   },
   "admin": {
+    "moveImageLeft": "Move photo left",
+    "moveImageRight": "Move photo right",
+    "loginNetworkError": "Could not connect. Check your connection and try again.",
+    "notFound": {
+      "title": "This screen doesn't exist",
+      "text": "The address doesn't match any panel screen. The link may be out of date.",
+      "back": "Go to the panel"
+    },
+    "tabSuffix": "ACL Panel",
     "loginTitle": "Administrator access",
     "email": "Email",
     "password": "Password",
@@ -815,7 +941,8 @@
       "clientes": "Clients",
       "herramientas": "Tools",
       "obra": "Works",
-      "oficina": "Office"
+      "oficina": "Office",
+      "sitio": "Website"
     },
     "menu": "Menu",
     "logout": "Sign out",
@@ -830,6 +957,8 @@
     "totalProperties": "Total properties",
     "activeAdvisors": "Active advisors",
     "newMessages": "New messages",
+    "trendThisMonth": "+{{count}} this month",
+    "trendLastMonth": "{{count}} last month",
     "todayAppointments": "Today's appointments",
     "noAppointmentsToday": "No appointments today.",
     "recentProperties": "Recent properties",
@@ -917,7 +1046,9 @@
       "gastos": "Expense breakdown",
       "secretaria": "Front desk",
       "prospectos": "Prospects",
-      "blog": "Blog"
+      "blog": "Blog",
+      "arco": "ARCO rights (look up and erase a person's data)",
+      "membrete": "Letterhead template (PDF with logo)"
     },
     "rolesTitle": "Roles",
     "newRole": "New role",
@@ -952,6 +1083,9 @@
     }
   },
   "zones": {
+    "suggestion_one": "Based on {{count}} sale in this zone: {{value}}/m².",
+    "suggestion_other": "Based on {{count}} sales in this zone: {{value}}/m².",
+    "useSuggestion": "Use",
     "name": "Zone name",
     "add": "Add zone",
     "builtPricePerM2": "Construction ($ per m²)",
@@ -984,6 +1118,8 @@
     "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
   },
   "materialsCatalog": {
+    "priceJumpLine": "{{label}}: from {{before}} to {{after}} (+{{pct}}%).",
+    "priceJumpConfirm": "That is a big increase. Save anyway?",
     "title": "Materials",
     "subtitle": "Materials and price catalog. Remodel projects pick from this list instead of entering prices every time.",
     "name": "Material name",
@@ -1023,6 +1159,12 @@
     "addSpace": "Add space"
   },
   "clients": {
+    "expediente": {
+      "complete": "File complete",
+      "pending_one": "{{count}} item missing",
+      "pending_other": "{{count}} items missing",
+      "missing": "Missing: {{items}}"
+    },
     "title": "Clients",
     "name": "Name",
     "type": "Client type",
@@ -1405,6 +1547,10 @@
     "clientSheet": "Client data"
   },
   "salesReports": {
+    "compare": {
+      "line": "Versus {{period}}: {{sold}} sales ({{countDelta}}), volume {{volume}} ({{volumeChange}}).",
+      "noBase": "no basis to compare"
+    },
     "title": "Sales & reports",
     "subtitle": "Internal use — none of this is shown on the public site.",
     "loadError": "Couldn't load the data: {{error}}",
@@ -1468,6 +1614,13 @@
       "commission": "Commission earned"
     },
     "profit": {
+      "monthlyTitle": "Profit by month — {{year}}",
+      "month": "Month",
+      "sales": "Sales",
+      "margin": "Margin",
+      "pendingShort_one": "{{count}} not settled",
+      "pendingShort_other": "{{count}} not settled",
+      "noSalesYear": "No sales this year.",
       "netProfit": "Partnership net profit",
       "commissions": "Advisor commissions",
       "detailTitle": "Profit per sale — {{period}}",
@@ -1786,6 +1939,7 @@
       "confirmRegenerate": "Generate a new link? The old one will stop working and the seller will need the new one.",
       "confirmDisable": "Turn the link off? The seller won't be able to open their report until you create a new one.",
       "createdOn": "Link created on {{date}}.",
+      "expiresOn": "Expires on {{date}}.",
       "rotateHint": "Anyone with the link can see the report: share it only with the seller.",
       "emailLabel": "Seller's email",
       "emailSend": "Send by email",
@@ -1848,6 +2002,7 @@
     }
   },
   "inspections": {
+    "compare": {"button": "Compare inspections", "title": "Compare inspections", "hint": "Pick two inspections of the same property (for example a tenant's move-in and move-out) to see what got worse, what improved and the photos side by side.", "before": "Before", "after": "After", "choose": "Choose an inspection", "suggest": "Suggest the two most recent for that property", "sameOne": "Pick two different inspections.", "summary": "Worse {{worse}} · Better {{better}} · Changed {{changed}} · Same {{same}}", "criterion": "Criterion", "change": "Change", "photoAlt": "Inspection photo", "changes": {"worse": "Worse", "better": "Better", "same": "Same", "changed": "Changed"}},
     "title": "Inspection",
     "button": "Inspection",
     "newInspection": "New inspection",
@@ -1968,6 +2123,7 @@
     "noRemodelProject": "This property doesn't have a linked remodel project yet."
   },
   "infonavit": {
+    "sexChoose": "Choose an option",
     "title": "Infonavit credit simulator",
     "subtitle": "Estimate your traditional Infonavit credit, monthly payment and total purchasing power from your age, salary and Housing Subaccount balance.",
     "age": "Age",
@@ -1986,6 +2142,8 @@
     "monthlyPayment": "Estimated monthly payroll deduction"
   },
   "backup": {
+    "navTitle": "Backup",
+    "movedHint": "Backup and records retention now have their own page:",
     "fullTitle": "Full backup (data + photos and documents)",
     "fullHint": "A single ZIP file with the data and every stored photo, ID, contract and other file. It can take several minutes and weigh hundreds of MB; best done from a computer with a good connection.",
     "includeVideos": "Include property videos (they can be very large)",
@@ -2011,9 +2169,10 @@
     "error": "Could not generate the backup",
     "reminderTitle": "Time to back up.",
     "reminderText": "You haven't downloaded a data backup in over {{days}} days.",
-    "reminderLink": "Go to Roles & access"
+    "reminderLink": "Go to Backup"
   },
   "prospects": {
+    "followupSet": "The next follow-up was scheduled for {{date}}.",
     "bulk": {
       "label": "Bulk actions",
       "select": "Select",
@@ -2295,10 +2454,14 @@
     "callTo": "Call {{name}}",
     "whatsappTo": "WhatsApp {{name}}",
     "placeholder": "Search client, property, phone…  ( / )",
+    "placeholderShort": "Search…  ( / )",
     "loading": "Searching…",
     "noResults": "No results for \"{{query}}\".",
     "more": "{{count}} more",
     "groups": {
+      "agenda": "Agenda",
+      "developments": "Developments",
+      "blog": "Blog",
       "properties": "Properties",
       "clients": "Clients",
       "prospects": "Prospects",
@@ -2308,6 +2471,39 @@
       "keys": "Keys",
       "docs": "Documents (Front desk)"
     }
+  },
+  "photoFreshness": {
+    "chip_one": "Review photos: {{count}} month unchanged",
+    "chip_other": "Review photos: {{count}} months unchanged",
+    "hint": "This listing has gone over 6 months without changes. Check that its photos are current or update them."
+  },
+  "liquidacionUi": {
+    "price": "Property price",
+    "totalCost": "Total settlement cost",
+    "refund": "Refund to the original seller",
+    "investRemodel": "Investment — remodeling cost",
+    "investServices": "Investment — utilities payments",
+    "whoListed": "Who listed the property",
+    "whoSold": "Who sold the property",
+    "listingPct": "% Listing commission",
+    "salePct": "% Sale commission (if applicable)",
+    "lessTotalCost": "(−) Total settlement cost",
+    "lessRefund": "(−) Refund to the seller",
+    "lessInvest": "(−) Investment (remodeling + utilities)",
+    "officeProfit": "= Office profit",
+    "netProfit": "= Net profit of the partnership"
+  },
+  "profileUi": {
+    "fieldName": "Name",
+    "fieldPhone": "Phone",
+    "fieldEmail": "Email",
+    "fieldBio": "Title / short description",
+    "bioHint": "Shown under your name on the About page."
+  },
+  "advisorsUi": {
+    "colName": "Name",
+    "colPhone": "Phone",
+    "colEmail": "Email"
   },
   "contracts": {
     "sendToSign": "Send to sign (link)",
@@ -2509,6 +2705,7 @@
     "years_other": "{{count}} years"
   },
   "sellHome": {
+    "rentInstead": "Rather rent it out than sell it? Tell us.",
     "seoTitle": "Sell your home or find out what it is worth",
     "title": "How much is your home worth?",
     "subtitle": "Tell us about your property and an advisor will contact you with a value estimate, free and with no commitment.",
@@ -2616,6 +2813,7 @@
       "badImage": "That image could not be read."
     },
     "public": {
+      "tabTitle": "Document signing",
       "title": "Document signature",
       "codeIntro": "You are about to review and sign “{{title}}”. Enter the 6-digit code your advisor gave you.",
       "codeLabel": "Code",
@@ -3097,6 +3295,7 @@
       "hintDrawing": "Click each corner of the {{kind}}. With 3 or more points, close the shape. You can then drag the vertices to adjust.",
       "currentArea": "Current area",
       "satellite": "Satellite",
+      "label": "Map to mark the lot or area to value. Use the arrow keys to move and plus and minus to zoom.",
       "streets": "Streets",
       "attribution": "Satellite imagery: Esri, Maxar, Earthstar Geographics. Search: OpenStreetMap."
     }
@@ -3207,9 +3406,17 @@
     }
   },
   "recentlyViewed": {
+    "clear": "Clear history",
     "title": "Recently viewed"
   },
   "chatWidget": {
+    "listLabel": "Conversation with the assistant",
+    "starterBuy": "I am looking for a house in Torreón",
+    "starterSell": "I want to sell my property",
+    "starterAdvisor": "Talk to an advisor",
+    "newChat": "New conversation",
+    "rateLimited": "You have reached the message limit for now. To continue, message us on WhatsApp and an advisor will help you.",
+    "aiNotice": "This assistant is an artificial intelligence: what you type is processed by an external provider. Do not share sensitive data (passwords, bank details). If you leave your phone or email, an advisor will contact you.",
     "title": "ACL Propiedades Assistant",
     "open": "Open chat",
     "close": "Close chat",
@@ -3222,6 +3429,7 @@
     "error": "Something went wrong. Try again or message us on WhatsApp."
   },
   "gallery": {
+    "download": "Download this photo",
     "expand": "Expand",
     "counter": "{{current}} / {{total}}",
     "prev": "Previous photo",
@@ -3251,10 +3459,28 @@
     "saveError": "Error saving the note",
     "deleteError": "Error deleting the note"
   },
+  "cookieBanner": {
+    "title": "Your privacy",
+    "text": "We use Google Analytics to measure how the site is used and improve it. It only loads if you accept.",
+    "privacy": "Privacy Notice",
+    "accept": "Accept",
+    "reject": "Decline",
+    "preferences": "Cookie preferences"
+  },
+  "tokenLink": { "validUntil": "This link expires on {{date}}." },
+  "retention": {
+    "title": "Client paperwork",
+    "rule": "A client's documents are kept for {{years}} years from the last activity with them (sign-up, edit, document, case or appointment) and then purged. Any activity restarts the clock.",
+    "due": "{{documents}} documents from {{clients}} clients have passed the retention period (oldest: last activity on {{date}}).",
+    "none": "No paperwork has passed the retention period.",
+    "lastDry": "Last check: {{date}} (dry run, nothing deleted): {{due}} expired documents.",
+    "lastReal": "Last purge: {{date}}: {{due}} expired, {{deleted}} deleted, {{failed}} files could not be deleted (retried next month).",
+    "noRuns": "The purge runs on the 1st of each month. It starts as a dry run: it only counts what has expired and deletes nothing until it is switched on."
+  },
   "privacy": {
     "title": "Privacy Notice",
     "intro": "ACL Propiedades is responsible for processing your personal data in accordance with Mexico's Federal Law on Protection of Personal Data Held by Private Parties (LFPDPPP) and NOM-247-SE-2021.",
-    "updated": "Last updated: September 2026",
+    "updated": "Last updated: November 2026",
     "sections": [
       {
         "title": "Data controller",
@@ -3262,7 +3488,7 @@
       },
       {
         "title": "Personal data we collect",
-        "body": "Through this site's contact form we collect your name, email address, phone number, and the content of the message you choose to share. If you later start a purchase, sale, rental or advisory process with one of our advisors, we may request additional data needed for that process; that data is collected directly by the advisor, not through this website."
+        "body": "Through this site we collect the data you choose to share: name, email, phone or WhatsApp number and the content of your message, whether in the contact form, when requesting or scheduling a visit, when asking for an estimate of your property's value, when using the credit comparison tool, when downloading the buyer's guide or when subscribing to alerts for new listings or price drops. You may also chat with our virtual assistant (see the corresponding section) and, only if you accept, we measure site usage with Google Analytics. If you later start a purchase, sale, rental or advisory process with one of our advisors, we may ask for additional data needed for that process; that data is collected directly by the advisor, not through this website, unless you use the document portal described below."
       },
       {
         "title": "Purposes of processing",
@@ -3270,7 +3496,7 @@
       },
       {
         "title": "Data transfers",
-        "body": "We do not share, sell, or transfer your personal data to third parties, except when necessary to comply with a legal obligation or a request from a competent authority."
+        "body": "We do not sell your personal data. To operate this site we rely on providers that process data on behalf of ACL Propiedades and only for that purpose: site hosting and database (Vercel and Supabase), email delivery (Resend), WhatsApp messages (Meta), the virtual assistant (Anthropic) and, if you accept, usage measurement (Google Analytics). Some of these providers may store or process information on servers located outside Mexico. Beyond those cases, we only share your data with third parties when necessary to comply with a legal obligation or a request from a competent authority."
       },
       {
         "title": "ARCO rights",
@@ -3278,11 +3504,23 @@
       },
       {
         "title": "Cookies and tracking technologies",
-        "body": "We use Google Analytics to understand how the site is used (pages visited, time on site, traffic sources); this means some of your browsing information is shared with Google. We do not use cookies for advertising purposes or sell your browsing information to third parties. We also use your browser's local storage to remember your language and appearance (light/dark mode) preferences."
+        "body": "We use Google Analytics to understand how the site is used (pages visited, time on site, traffic source) only if you accept it in the cookie notice shown when you arrive; if you decline, it is not loaded. You can change your decision at any time from \"Cookie preferences\" at the bottom of the page. If you accept, some of your browsing information is shared with Google. We do not use advertising cookies or sell your browsing information to third parties. We also use your browser's local storage to remember your preferences (language, appearance, favorites, viewed properties) and an anonymous identifier to count how many people viewed a listing. Google Maps (for example, on the Contact page) only loads when you click \"Show map\"; property maps use OpenStreetMap tiles, which receive your IP address when they load."
       },
       {
         "title": "Document portal (Tax Certificate and Birth Certificate)",
         "body": "If you use our document portal (/documentos/<link>) to upload your Tax Status Certificate or your Birth Certificate, we process the data contained in those documents (RFC, CURP, name, tax address, date of birth) solely for the transaction your advisor shared the link for. Files are stored encrypted in private storage, only authorized ACL Propiedades staff can view them through signed, time-limited links, and we never ask for or store your SAT password, e.firma, or CIEC — you download those documents directly from the corresponding official site. We keep these documents while your transaction is active and afterward under ACL Propiedades' current retention policy; you may request their early deletion by exercising your ARCO rights."
+      },
+      {
+        "title": "Virtual assistant (chat)",
+        "body": "The site's chat is an artificial intelligence assistant: the text you type is sent to an external provider (Anthropic) to generate the reply, and no person reads it at that moment. Do not enter sensitive data in it (passwords, bank details, CURP, etc.). If you share your name and phone or email so an advisor can contact you, we store them as an ACL Propiedades lead. The conversation is kept only in your browser while the tab is open; on our server we only record that a query was made (without its content and with an encrypted fingerprint of your IP address) to limit abuse, and that record is deleted after a week."
+      },
+      {
+        "title": "Electronic document signing",
+        "body": "If you sign a document through an ACL Propiedades signing link, we store your name, your signature stroke, the date and time, the IP address you sign from and a digital fingerprint (hash) of the document, so we can show that what was signed is the same document you reviewed. We keep the document sent for signing, with its signature and fingerprint, for 6 months; after that it is deleted from our systems (keep your own copy)."
+      },
+      {
+        "title": "How long we keep your data",
+        "body": "Messages you send through the contact form are kept for 1 week. Your data as a prospect (name, phone, email and the follow-up of your inquiry) is kept for 1 month from the last time we were in contact; if a follow-up with you is scheduled, from that date. Documents sent for signing are kept for 6 months. If you register as a client, the documents in your file are kept for 3 years from the last activity with you and then deleted. You can ask us to delete your data sooner by exercising your ARCO rights."
       },
       {
         "title": "Changes to this notice",
@@ -3353,6 +3591,8 @@
     "cancelAdd": "Cancel"
   },
   "agenda": {
+    "overlapWarning_one": "This advisor already has \"{{title}}\" at that time. Save anyway?",
+    "overlapWarning_other": "This advisor already has {{count}} appointments overlapping at that time (including \"{{title}}\"). Save anyway?",
     "quick": {
       "label": "Quick date and time",
       "today": "Today",
@@ -3850,6 +4090,7 @@
     "whatsappText": "Hi {{name}}, this is {{advisor}} from ACL Propiedades. Your visit ({{title}}) is set for {{when}}. Use this link to confirm you'll attend, change the time or cancel: {{link}}"
   },
   "visitPage": {
+    "addToGoogle": "Google Calendar",
     "pageTitle": "Your visit",
     "invalidTitle": "Invalid link",
     "invalidBody": "This link doesn't match any visit. Check that it is complete or message us on WhatsApp.",
@@ -3923,6 +4164,8 @@
     }
   },
   "adCopy": {
+    "language": "Language",
+    "languages": { "es": "Spanish", "en": "English" },
     "title": "Write with AI",
     "hint": "Claude writes three versions with different angles from the property's real data. Pick one and tweak it before posting.",
     "channel": "Where will you post it?",
@@ -4523,6 +4766,9 @@
     }
   },
   "dayRoute": {
+    "print": "Print day sheet",
+    "sheetTitle": "Today's visits — {{date}}",
+    "sheet": {"time": "Time", "what": "What", "where": "Where", "contact": "Contact", "notes": "Notes"},
     "title": "Today's route",
     "hint": "Your remaining visits today, in time order. The link opens Google Maps with every stop.",
     "open": "Open route in Google Maps",
@@ -4742,6 +4988,7 @@
       }
     },
     "topics": {
+      "shortcuts": { "title": "Keyboard shortcuts", "points": ["Press “G” and then a letter to jump to a screen: G D dashboard, G H My day, G P Prospects, G C Clients, G A Agenda, G M Messages, G O properties.", "“/” opens the global search from any screen.", "Shortcuts are off while you type in a field."] },
       "myDay": {
         "title": "My day",
         "points": ["It gathers today: appointments in time order, unattended prospects, overdue follow-ups and today's.", "“Today's route” opens Google Maps with your remaining visits as stops.", "“New properties for your prospects” shows what was published this week that fits someone; you decide whether to tell them.", "Holds and exclusives about to expire, your commissions and the team's monthly board also show up here."]
@@ -4783,15 +5030,68 @@
     "undo": "Undo",
     "region": "Notices"
   },
+  "breadcrumbs": {
+    "label": "Breadcrumb"
+  },
+  "priceAlert": {
+    "confirm_one": "You are lowering the price from {{from}} to {{to}}. One person asked to be told if the price drops: they will get a message within the hour. Save the change?",
+    "confirm_other": "You are lowering the price from {{from}} to {{to}}. {{count}} people asked to be told if the price drops: they will get a message within the hour. Save the change?"
+  },
+  "ownerMessage": {
+    "title": "Update the owner",
+    "intro": "A message to tell the owner how “{{title}}” is going. Edit it if you like, copy it, or open it in WhatsApp and choose who to send it to.",
+    "statusLabel": "Status to report",
+    "textLabel": "Message",
+    "copy": "Copy message",
+    "copied": "Copied ✓",
+    "copiedHint": "Message copied to the clipboard.",
+    "whatsapp": "Open in WhatsApp",
+    "action": "Update the owner",
+    "templates": {
+      "disponible": "Hi, your property “{{title}}” ({{code}}) is now published and available on our site: {{url}}\nI'll share any news or visits right away.",
+      "apartada": "Hi, good news: we received a deposit for your property “{{title}}” ({{code}}). We're coordinating the next steps with the interested party and I'll keep you posted.",
+      "vendida": "Hi, congratulations! Your property “{{title}}” ({{code}}) is now sold. I'll contact you about the next steps: paperwork, deed signing and settlement.",
+      "rentada": "Hi, good news! Your property “{{title}}” ({{code}}) is now rented. I'll contact you to coordinate the contract details and the handover."
+    }
+  },
+  "saleData": {
+    "title": "Sale details",
+    "intro": "You marked “{{title}}” as sold. Record the sale now so Reports and “days to sell” stay up to date.",
+    "date": "Sale date",
+    "advisor": "Advisor who closed it",
+    "noAdvisor": "No advisor",
+    "save": "Save sale",
+    "skip": "Skip for now",
+    "skipHint": "If you skip it, the property stays sold and shows up as “pending to record” in Reports.",
+    "error": "The sale could not be saved. Please try again.",
+    "saved": "Sale recorded.",
+    "bulkPending": "{{count}} properties were marked as sold without recording their sale. Record them from Reports (pending).",
+    "errors": {
+      "required": "Enter the sale date.",
+      "invalidDate": "The date is not valid.",
+      "futureDate": "The date cannot be in the future."
+    }
+  },
+  "zoneCombobox": {
+    "list": "Areas"
+  },
   "adminNav": {
     "pin": "Pin to top",
     "unpin": "Unpin",
     "pinned": "Pinned",
     "recent": "Recent",
     "compact": "Compact menu",
-    "expand": "Expand menu"
+    "expand": "Expand menu",
+    "scrollTable": "Scrollable table",
+    "breadcrumb": "Breadcrumb",
+    "backTo": "Back to {{section}}",
+    "signedInAs": "Signed in as {{email}}",
+    "noRole": "No role"
   },
   "a11y": {
+    "closeMenu": "Close menu",
+    "switchToEnglish": "EN · Switch to English",
+    "switchToSpanish": "ES · Cambiar a español",
     "skipToContent": "Skip to content",
     "mainNav": "Main navigation",
     "openMenu": "Open menu",
@@ -4801,6 +5101,28 @@
     "switchLanguage": "Cambiar idioma / Switch language"
   },
   "propertyForm": {
+    "photoWarning": {
+      "dark": "“{{name}}” looks very dark: a bright photo sells better.",
+      "bright": "“{{name}}” looks overexposed (too much light).",
+      "duplicate": "“{{name}}” looks like a duplicate of “{{other}}”."
+    },
+    "geoFind": "Find on map",
+    "geoSearching": "Searching…",
+    "geoEmpty": "Address not found: adjust the text or enter latitude and longitude by hand.",
+    "geoError": "The map could not be reached right now. Enter latitude and longitude by hand.",
+    "titleWarning": {"caps": "The title is all in capitals, which looks unprofessional on the site and in Google. Save anyway?", "punctuation": "The title has repeated exclamation or question marks. Save anyway?"},
+    "viewOnSite": "View on the site",
+    "descriptionCount_one": "{{count}} character (Google shows about 155)",
+    "descriptionCount_other": "{{count}} characters (Google shows about 155)",
+    "priceWarning": {"lowSale": "The price {{price}} is very low for a sale: is a zero missing? Save anyway?", "highSale": "The price {{price}} is very high for a sale: is there an extra zero? Save anyway?", "lowRent": "The price {{price}} is very low for a monthly rent: is a zero missing? Save anyway?", "highRent": "The price {{price}} is very high for a monthly rent: is there an extra zero? Save anyway?"},
+    "title": "Title",
+    "priceMxn": "Price (MXN)",
+    "address": "Address",
+    "lat": "Latitude",
+    "lng": "Longitude",
+    "parking": "Parking spaces",
+    "locationApproximate": "Show only the area, not the exact spot (approximate location)",
+    "locationApproximateHint": "The site will show a circle of about 500 m and the area, without the street, \"Directions\" or Street View. Only people with Properties access see the exact coordinates. Enter only the neighborhood in \"Address\".",
     "descriptionHint": "Leave a blank line to separate paragraphs and start a line with “- ” to make a list (with “1. ” to number it). On the site it shows with its paragraphs and bullets.",
     "steps": {
       "basics": "Basics",
@@ -4845,6 +5167,7 @@
     "featured": "In the meantime, take a look at these properties"
   },
   "propertyMap": {
+    "label": "Property map. Use the arrow keys to move, plus and minus to zoom, and Tab to reach each property.",
     "cluster": "{{count}} properties together: zoom in"
   },
   "charts": {
@@ -5005,5 +5328,185 @@
       "rateLimited": "You sent several reports in a row. Please try again in a while.",
       "generic": "The report could not be sent. Please try again."
     }
+  },
+  "loadError": {
+    "title": "We couldn't load this page",
+    "text": "Check your connection and try again.",
+    "retry": "Try again"
+  },
+  "terms": {
+    "title": "Terms and conditions of use",
+    "intro": "By using this site you accept the following conditions. If you do not agree with them, please do not use it.",
+    "updated": "Last updated: November 2026",
+    "sections": [
+      {
+        "title": "Who we are and what this site offers",
+        "body": "This site belongs to ACL Propiedades, located at Blvd. Independencia, Local 16, Plaza San Luciano, Torreón, Coahuila. It lets you browse properties for sale and rent in La Comarca Lagunera, use informational tools and contact our advisors. ACL Propiedades acts as a real estate intermediary: transactions are formalized in writing with the advisor, never through this site alone."
+      },
+      {
+        "title": "Property information",
+        "body": "We aim to keep prices, measurements, photographs and descriptions accurate and up to date, but they may change without notice (price, availability, reservation or sale). What is published is informational and is not a binding offer. Photographs, floor plans and tours may be illustrative. Before deciding, confirm the details with your advisor and review the property documentation."
+      },
+      {
+        "title": "Calculators, estimates and credit comparison",
+        "body": "The site tools (value calculator, monthly payment estimate, credit comparison, buyer guide) are a reference. They are not an appraisal, an offer, a quote or a credit approval; results depend on data and rates that change and on each institution's decision. For final figures, consult an advisor and the financial institution."
+      },
+      {
+        "title": "Virtual assistant",
+        "body": "The site chat is an artificial intelligence assistant. It may be wrong or lack up-to-date information, and its answers do not replace an advisor's guidance nor constitute legal, tax or financial advice. Do not enter sensitive data in it. You can ask to speak with a person at any time."
+      },
+      {
+        "title": "Acceptable use",
+        "body": "You agree to use the site in good faith and with truthful data. It is not allowed to: copy or extract the content in bulk or by automated means, impersonate another person, submit forms automatically or with false data, attempt to access private areas, or harm the security or operation of the site. We may block access to anyone who breaches these conditions."
+      },
+      {
+        "title": "Intellectual property",
+        "body": "The brand, logo, texts, photographs, floor plans and design of the site belong to ACL Propiedades or to whoever authorized us to use them. You may share property links for personal purposes; any other use, reproduction or exploitation requires our written permission."
+      },
+      {
+        "title": "Third-party services and links",
+        "body": "The site relies on third-party services (for example WhatsApp, Google Maps or OpenStreetMap maps) and may link to other sites. We do not control and are not responsible for their content, availability or policies; their use is governed by their own terms."
+      },
+      {
+        "title": "Limitation of liability",
+        "body": "The site is provided as is and may have interruptions or errors. To the extent permitted by law, ACL Propiedades is not liable for damages arising from using or being unable to use the site, nor for decisions made solely on published information without confirming it with an advisor. Nothing above limits the rights the law grants you as a consumer."
+      },
+      {
+        "title": "Personal data",
+        "body": "The processing of your personal data is governed by our Privacy Notice, which is part of these conditions."
+      },
+      {
+        "title": "Changes to these conditions",
+        "body": "We may modify these conditions; the current version is the one published on this page, with its update date. If you keep using the site after a change, we understand you accept it."
+      },
+      {
+        "title": "Governing law and jurisdiction",
+        "body": "These conditions are governed by the laws of the United Mexican States. For any dispute, the parties submit to the competent courts of Torreón, Coahuila, without prejudice to consumer rights before the Federal Consumer Protection Agency (PROFECO)."
+      }
+    ]
+  },
+  "pdfViewer": {
+    "pages": "{{count}} pages"
+  },
+  "arco": {
+    "navTitle": "ARCO rights",
+    "title": "ARCO rights: a person's data",
+    "subtitle": "Handle people who ask to see or erase their personal data. Rectification and opposition use the usual screens (edit the record or remove the alert).",
+    "queryLabel": "The person's phone or email",
+    "queryPlaceholder": "871 123 4567 or name@email.com",
+    "queryHint": "Searches by phone (10 digits) or full email only, never by name, so two people are never mixed up.",
+    "search": "Search",
+    "error": "The request could not be completed.",
+    "resultsTitle_one": "{{count}} record found",
+    "resultsTitle_other": "{{count}} records found",
+    "none": "No data for that person.",
+    "andMore": "…and {{count}} more",
+    "download": "Download copy (access)",
+    "erase": "Erase their data ({{count}})",
+    "confirm": "{{count}} records for this person will be erased or anonymized. This cannot be undone. Registered clients are not erased (their paperwork is kept 3 years). Continue?",
+    "doneTitle": "Request handled",
+    "doneNote": "Registered clients are kept by legal obligation. Also remove the person from lists outside the system (WhatsApp, spreadsheets) and reply to whoever asked.",
+    "historyTitle": "Requests handled",
+    "historyEmpty": "No requests yet.",
+    "when": "When",
+    "kind": "Type",
+    "who": "Handled by",
+    "kinds": {
+      "acceso": "Access",
+      "cancelacion": "Cancellation"
+    },
+    "action": {
+      "delete": "Erased",
+      "scrub": "Anonymized",
+      "retain": "Kept (3 years)"
+    },
+    "sources": {
+      "contact_messages": "Contact messages",
+      "prospectos": "Prospects",
+      "property_alerts": "Alerts",
+      "agenda_citas": "Appointments",
+      "property_visits": "Visits",
+      "property_holds": "Holds",
+      "clients": "Clients",
+      "retenidos": "Clients kept"
+    }
+  },
+  "dataRetention": {
+    "title": "Personal data cleanup",
+    "intro": "Every day the system checks what has passed its limit. «Dry run» only counts what would be erased, without erasing; check the number and turn each rule on when you agree. Erasing is permanent.",
+    "what": "Data",
+    "rule": "Limit",
+    "due": "Already due",
+    "state": "Status",
+    "lastRun": "Last run",
+    "active": "Erasing",
+    "dry": "Dry run",
+    "turnOn": "Turn on erasing",
+    "turnOff": "Back to dry run",
+    "noRuns": "Hasn't run yet",
+    "lastRunText": "{{date}}: {{due}} due, {{deleted}} erased",
+    "confirmOn": "From the next run on, {{name}} past their limit will be permanently erased (today: {{due}}). Turn on?",
+    "confirmOff": "{{name}}: erasing stops and it goes back to dry run. Continue?",
+    "error": "The rule could not be changed.",
+    "kinds": {
+      "chats": "Chats (assistant sessions and IP)",
+      "mensajes": "Contact messages",
+      "prospectos": "Prospects",
+      "contratos": "Contracts sent for signing"
+    },
+    "periods": {
+      "chats": "1 week",
+      "mensajes": "1 week",
+      "prospectos": "1 month without activity",
+      "contratos": "6 months"
+    }
+  },
+  "home": {
+    "tools": {
+      "eyebrow": "Buyer tools",
+      "title": "Decide with numbers, not hunches",
+      "cta": "Open",
+      "credits": { "title": "Compare mortgages", "text": "Infonavit, Fovissste and bank loans side by side: what you would pay per month with each." },
+      "guide": { "title": "Buyer's guide", "text": "Budget, financing, paperwork and the step-by-step to buy. Download it free." },
+      "calculator": { "title": "Value calculator", "text": "Estimate what a property is worth from its lot, its built area and the zone." }
+    },
+    "sell": {
+      "eyebrow": "Want to sell or rent?",
+      "title": "We tell you what your property is worth",
+      "text": "Tell us about your house, apartment, lot or warehouse and an advisor gives you a no-obligation estimate and explains how we promote it.",
+      "cta": "I want to sell my property",
+      "ctaSecondary": "Talk to an advisor"
+    },
+    "seoTitle": "ACL Propiedades | Real estate in La Comarca Lagunera",
+    "seoDescription": "ACL Propiedades: certified real estate advice for buying and selling houses, apartments and land in Torreón, Gómez Palacio and Lerdo."
+  },
+  "zoneFaq": {
+    "title": "Frequently asked questions about {{place}}",
+    "whatQ": "What properties are available in {{place}}?",
+    "whatA": "Today we have {{count}} properties available in {{place}}. Use the filters to narrow by type, price, area and size.",
+    "whatANone": "We are updating the properties in {{place}}. Leave us your details and we will let you know when something matches.",
+    "priceQ": "How much does a property cost in {{place}}?",
+    "priceA": "The median price of what is available today in {{place}} is {{price}}. Each listing shows its price and, for sales, an estimated monthly payment.",
+    "priceANone": "The price depends on the type, area and size of each property in {{place}}. Each listing shows its price and an estimated monthly payment.",
+    "creditQ": "Can I buy with an INFONAVIT, bank or FOVISSSTE loan?",
+    "creditA": "Yes. Our advisors guide you through INFONAVIT, bank loans and FOVISSSTE, and you can compare options in the Compare loans section.",
+    "visitQ": "How do I book a visit?",
+    "visitA": "Open the property you like and choose a day and time in \"Schedule a visit\", or message us on WhatsApp and an advisor will go with you."
+  },
+  "propertyCard": {
+    "photos_one": "{{count}} photo",
+    "photos_other": "{{count}} photos"
+  },
+  "advisorForm": {
+    "fieldName": "Name",
+    "fieldPhone": "Phone",
+    "fieldEmail": "Email",
+    "fieldBio": "Title / short description",
+    "bioHint": "Shown under the name on the About page — leaving it filled keeps every team card the same height.",
+    "teamHint": "Uncheck it for the company's general contact (e.g. \"ACL Propiedades\") — it stays available as the advisor for properties without an assigned agent, it just stops being listed as a team member.",
+    "bioPlaceholder": "E.g. Real estate advisor",
+    "deactivateWarning": "Deactivating this advisor leaves without an owner: {{upcomingCitas}} upcoming appointments, {{openProspects}} open prospects and {{ownedProperties}} properties. Reassign them afterwards. Deactivate?",
+    "photoNeeded": "Without a photo they do not appear on the About page: upload one to show them.",
+    "whatsappLabel": "WhatsApp (10 digits; saved with the 52 country code)"
   }
 }

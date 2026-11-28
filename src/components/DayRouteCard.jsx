@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { buildDayRoute, routeUrl } from "../lib/dayRoute";
+import { buildDayRoute, buildDaySheet, routeUrl } from "../lib/dayRoute";
 import "./MyDayPanels.css";
 
 // «Ruta de hoy» (Mi día): las visitas que faltan hoy como paradas en orden de hora, con un enlace que abre Google Maps
@@ -11,6 +11,7 @@ export default function DayRouteCard({ agenda, properties }) {
   const route = useMemo(() => buildDayRoute(agenda, properties), [agenda, properties]);
   if (route.stops.length === 0 && route.unplaced.length === 0) return null;
   const url = routeUrl(route.stops);
+  const sheet = buildDaySheet(agenda);
 
   return (
     <section className="card day-panel" aria-labelledby="day-route-title">
@@ -38,6 +39,42 @@ export default function DayRouteCard({ agenda, properties }) {
         <a className="btn btn-primary btn-sm" href={url} target="_blank" rel="noopener noreferrer">
           {route.stops.length > 1 ? t("dayRoute.open") : t("dayRoute.openOne")}
         </a>
+      )}
+      {sheet.length > 0 && (
+        <>
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => window.print()} style={{ marginLeft: url ? "0.5rem" : 0 }}>
+            {t("dayRoute.print")}
+          </button>
+          {/* Solo al imprimir: la hoja del día (el resto de la pantalla se oculta, ver MyDayPanels.css). */}
+          <div className="day-sheet" aria-hidden="true">
+            <p className="day-sheet__title">{t("dayRoute.sheetTitle", { date: new Date().toLocaleDateString("es-MX", { dateStyle: "full" }) })}</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>{t("dayRoute.sheet.time")}</th>
+                  <th>{t("dayRoute.sheet.what")}</th>
+                  <th>{t("dayRoute.sheet.where")}</th>
+                  <th>{t("dayRoute.sheet.contact")}</th>
+                  <th>{t("dayRoute.sheet.notes")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sheet.map((row) => (
+                  <tr key={row.id}>
+                    <td>{row.hora}</td>
+                    <td>
+                      <strong>{row.titulo}</strong>
+                      {row.propiedad && <div>{row.propiedad}</div>}
+                    </td>
+                    <td>{row.direccion}</td>
+                    <td>{row.contacto}</td>
+                    <td>{row.notas}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </section>
   );

@@ -13,14 +13,21 @@
 //   en ambos idiomas (con sus acentos — antes se perdían al humanizar la clave).
 import i18n from "../i18n";
 import es from "../i18n/locales/es.json";
-import en from "../i18n/locales/en.json";
 import { slugify } from "./format";
 
 // Copia de los textos de fábrica tomada al cargar este módulo, antes de inyectar
 // nada: i18next guarda por referencia los mismos objetos JSON importados arriba
 // y addResourceBundle los MUTA, así que sin la copia el "original" quedaría
 // pisado por el primer nombre editado y ya no habría a qué restaurar.
-const FACTORY = { es: { ...es.propertyType }, en: { ...en.propertyType } };
+// El inglés de fábrica va aquí (no se importa en.json: ese archivo se baja solo cuando se pide el idioma; una prueba cuida que coincida).
+export const FACTORY_EN = {
+  casa: "House",
+  departamento: "Apartment",
+  nave_industrial: "Industrial Warehouse",
+  terreno: "Land",
+  local_comercial: "Commercial Space",
+};
+const FACTORY = { es: { ...es.propertyType }, en: { ...FACTORY_EN } };
 
 export function applyPropertyTypeLabels(types) {
   const overrides = { es: {}, en: {} };

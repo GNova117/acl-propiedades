@@ -34,7 +34,7 @@ test.describe("Páginas por colonia", () => {
     await page.waitForURL((u) => u.pathname === "/propiedades/zona/torreon/las-villas");
 
     // La colonia: título propio, su propiedad, enlace de regreso a la ciudad y se puede indexar.
-    await expect(page.locator("h2").first()).toContainText("Propiedades en Las Villas, Torreón");
+    await expect(page.locator("h1").first()).toContainText("Propiedades en Las Villas, Torreón");
     await expect(page.locator(".property-card", { hasText: titulo })).toBeVisible();
     await expect(page.getByRole("link", { name: "Ver todo Torreón" })).toBeVisible();
     await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
@@ -47,7 +47,7 @@ test.describe("Páginas por colonia", () => {
 
   test("una colonia sin propiedades avisa y no se indexa; una que no existe es 404", async ({ page, go }) => {
     await go("/propiedades/zona/torreon/real-del-nogalar");
-    await expect(page.locator("h2").first()).toContainText("Propiedades en Real del Nogalar, Torreón");
+    await expect(page.locator("h1").first()).toContainText("Propiedades en Real del Nogalar, Torreón");
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
 
     await go("/propiedades/zona/torreon/colonia-que-no-existe");

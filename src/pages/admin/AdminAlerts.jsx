@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { formatMXN, propertyTypeLabel, whatsappDigits } from "../../lib/format";
 import { describeCriteria } from "../../lib/alertMatch";
 import "./admin.css";
@@ -124,7 +124,7 @@ export default function AdminAlerts() {
         </select>
       </div>
 
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
 
       <div className="card admin-table-wrapper">
         <table className="admin-table">

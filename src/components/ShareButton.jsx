@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { trackPropertyEvent } from "../lib/propertyEvents";
 import "./ShareButton.css";
 import { trackConversion } from "../lib/conversions";
+import { copyFallback } from "../lib/toast";
+import { useDismissDetails } from "../lib/useDismissDetails";
 
 // Con Web Share API (la mayoría de navegadores móviles y algunos de
 // escritorio) un solo botón abre la hoja nativa de compartir del sistema
@@ -18,6 +20,7 @@ import { trackConversion } from "../lib/conversions";
 export default function ShareButton({ title, text, url, openUpward = false, propertyId }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
+  const { ref: menuRef, close: closeMenu } = useDismissDetails();
   const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
   const shareText = text || `${title} — ${url}`;
 
@@ -39,15 +42,20 @@ export default function ShareButton({ title, text, url, openUpward = false, prop
     trackPropertyEvent("share", propertyId);
     trackConversion("share", { method: "copiar", property_id: propertyId });
     try {
-      await navigator.clipboard.writeText(shareText);
+      // «Copiar enlace» copia solo el enlace (antes copiaba el bloque completo con emojis).
+      await navigator.clipboard.writeText(url);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      // Se ve «Enlace copiado» un momento y el menú se cierra solo.
+      setTimeout(() => {
+        setCopied(false);
+        closeMenu();
+      }, 1400);
     } catch {
       // Último recurso si el portapapeles no está disponible — algunos
       // navegadores/contextos embebidos tampoco soportan window.prompt,
       // así que esto también va en su propio try/catch.
       try {
-        window.prompt(t("detail.copyLinkManual"), shareText);
+        copyFallback(t("detail.copyLinkManual"), url);
       } catch {
         // No hay más alternativas sin backend — se queda callado en vez
         // de tronar con una excepción sin capturar.
@@ -64,13 +72,13 @@ export default function ShareButton({ title, text, url, openUpward = false, prop
   }
 
   return (
-    <details className={`share-button${openUpward ? " share-button--up" : ""}`}>
+    <details ref={menuRef} className={`share-button${openUpward ? " share-button--up" : ""}`}>
       <summary className="btn btn-outline btn-sm">{t("detail.share")}</summary>
       <div className="share-button__menu">
-        <a href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noreferrer" onClick={() => { trackPropertyEvent("share", propertyId); trackConversion("share", { method: "whatsapp", property_id: propertyId }); }}>
+        <a href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noreferrer" onClick={() => { trackPropertyEvent("share", propertyId); trackConversion("share", { method: "whatsapp", property_id: propertyId }); closeMenu(); }}>
           WhatsApp
         </a>
-        <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} target="_blank" rel="noreferrer" onClick={() => { trackPropertyEvent("share", propertyId); trackConversion("share", { method: "facebook", property_id: propertyId }); }}>
+        <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} target="_blank" rel="noreferrer" onClick={() => { trackPropertyEvent("share", propertyId); trackConversion("share", { method: "facebook", property_id: propertyId }); closeMenu(); }}>
           Facebook
         </a>
         <button type="button" onClick={handleCopy}>

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { db } from "../lib/dataStore";
-import { getRecentlyViewedIds } from "../lib/recentlyViewed";
+import { clearRecentlyViewed, getRecentlyViewedIds } from "../lib/recentlyViewed";
 import PropertyCard from "./PropertyCard";
 import "./RecentlyViewed.css";
+import { loadPropertiesInOrder } from "../lib/propertiesByIds";
 
 // "Vistos recientemente": los ids salen de localStorage, pero los datos de
 // cada propiedad se piden frescos (precio/estatus/fotos actuales) y las que
@@ -19,8 +19,8 @@ export default function RecentlyViewed({ excludeId, className = "" }) {
       return;
     }
     let active = true;
-    Promise.all(ids.map((id) => db.getPropertyById(id).catch(() => null))).then((results) => {
-      if (active) setProperties(results.filter((p) => p && p.active));
+    loadPropertiesInOrder(ids).then((results) => {
+      if (active) setProperties(results.filter((p) => p.active));
     });
     return () => {
       active = false;
@@ -31,7 +31,19 @@ export default function RecentlyViewed({ excludeId, className = "" }) {
 
   return (
     <div className={`recently-viewed ${className}`}>
-      <h2>{t("recentlyViewed.title")}</h2>
+      <div className="recently-viewed__head">
+        <h2>{t("recentlyViewed.title")}</h2>
+        <button
+          type="button"
+          className="btn btn-outline btn-sm"
+          onClick={() => {
+            clearRecentlyViewed();
+            setProperties([]);
+          }}
+        >
+          {t("recentlyViewed.clear")}
+        </button>
+      </div>
       <div className="recently-viewed__row">
         {properties.map((p) => (
           <div className="recently-viewed__item" key={p.id}>

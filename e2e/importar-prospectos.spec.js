@@ -40,6 +40,13 @@ const TEXTO = [
   "(871) 345-6789",
 ].join("\n");
 
+// En teléfono «Pegar o importar lista» queda tras el menú «⋯ Más» (325).
+async function abrirPegar(page, press) {
+  const boton = page.getByRole("button", { name: "Pegar o importar lista" });
+  if (!(await boton.isVisible())) await press(page.locator("summary.btn", { hasText: "⋯ Más" }));
+  await press(boton);
+}
+
 test.describe("Pegar o importar prospectos", () => {
   test.beforeEach(async ({ seedAdminSession }) => {
     await seedAdminSession();
@@ -51,7 +58,7 @@ test.describe("Pegar o importar prospectos", () => {
     await poner(page, "acl_local_clients", [cliente("k1", "Cliente Existe QA", "871 555 0202")]);
     await go("/admin/prospectos");
 
-    await press(page.getByRole("button", { name: "Pegar o importar lista" }));
+    await abrirPegar(page, press);
     const dialogo = page.getByRole("dialog", { name: "Pegar o importar prospectos" });
     await expect(dialogo.getByRole("button", { name: "Revisar" })).toBeDisabled(); // sin texto no hay qué revisar
     await dialogo.getByRole("textbox", { name: "Texto o lista" }).fill(TEXTO);
@@ -108,7 +115,7 @@ test.describe("Pegar o importar prospectos", () => {
 
   test("un CSV de Facebook Lead Ads: se lee por encabezados y se importa lo marcado", async ({ page, go, press }) => {
     await go("/admin/prospectos");
-    await press(page.getByRole("button", { name: "Pegar o importar lista" }));
+    await abrirPegar(page, press);
     const dialogo = page.getByRole("dialog", { name: "Pegar o importar prospectos" });
     const csv = [
       "id,created_time,full_name,phone_number,email,city",
@@ -131,7 +138,7 @@ test.describe("Pegar o importar prospectos", () => {
 
   test("contactos compartidos (.vcf) y un texto sin nada utilizable", async ({ page, go, press }) => {
     await go("/admin/prospectos");
-    await press(page.getByRole("button", { name: "Pegar o importar lista" }));
+    await abrirPegar(page, press);
     const dialogo = page.getByRole("dialog", { name: "Pegar o importar prospectos" });
 
     await dialogo.getByRole("textbox", { name: "Texto o lista" }).fill("hola, buen día\nme interesa una casa");
@@ -149,7 +156,7 @@ test.describe("Pegar o importar prospectos", () => {
 
   test("un renglón mal (sin nombre o con el teléfono incompleto) no se puede marcar hasta corregirlo; sin conexión no se importa", async ({ page, go, press }) => {
     await go("/admin/prospectos");
-    await press(page.getByRole("button", { name: "Pegar o importar lista" }));
+    await abrirPegar(page, press);
     const dialogo = page.getByRole("dialog", { name: "Pegar o importar prospectos" });
     await dialogo.getByRole("textbox", { name: "Texto o lista" }).fill("8711234567\nPedro Gil a@x.com");
     await press(dialogo.getByRole("button", { name: "Revisar" }));

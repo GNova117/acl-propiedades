@@ -8,7 +8,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 450;
+    z-index: var(--z-contact-bar);
     display: flex;
     gap: 0.6rem;
     padding: 0.65rem 1rem calc(0.65rem + env(safe-area-inset-bottom, 0px));
@@ -18,11 +18,15 @@
   }
 
   .mobile-contact-bar__schedule {
-    flex: 1 1 60%;
+    flex: 1 1 42%;
   }
 
   .mobile-contact-bar__whatsapp {
-    flex: 1 1 40%;
+    flex: 1 1 30%;
+  }
+
+  .mobile-contact-bar__chat {
+    flex: 1 1 28%;
   }
 
   /* Que la barra no tape el final de la página, y que el botón del chatbot
@@ -31,8 +35,14 @@
     padding-bottom: 5rem;
   }
 
+  /* 271: el botón flotante del chat quedaba encima del texto de la ficha (el bloque del pago mensual). Con la barra a la vista el
+     chat se abre desde su botón «Chat»; el flotante solo reaparece con el chat abierto, para poder cerrarlo. */
   body.has-mobile-bar .chat-widget__toggle {
     bottom: 5rem;
+  }
+
+  body.has-mobile-bar .chat-widget__toggle[aria-expanded="false"] {
+    display: none;
   }
 
   body.has-mobile-bar .chat-widget__panel {

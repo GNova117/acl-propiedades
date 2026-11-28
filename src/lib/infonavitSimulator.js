@@ -14,6 +14,8 @@
 // entre esos dos puntos, no la tabla oficial real (que es escalonada, no
 // continua). Ver README.md para las fuentes y por qué se hizo así.
 
+import { principalFromPayment } from "./loanMath.js";
+
 export const UMA_2026 = {
   diario: 117.31,
   mensual: 3566.22,
@@ -75,14 +77,8 @@ export function simularCreditoInfonavit({ edad, sexo, salarioMensual, ssv }) {
 
   const pagoMensual = salario * FACTOR_DESCUENTO_REFERENCIA;
 
-  const tasaMensual = tasaAnual / 100 / 12;
-  let montoCredito = 0;
-  if (plazoMeses > 0 && pagoMensual > 0) {
-    montoCredito =
-      tasaMensual > 0
-        ? pagoMensual * ((1 - Math.pow(1 + tasaMensual, -plazoMeses)) / tasaMensual)
-        : pagoMensual * plazoMeses;
-  }
+  // Cuánto crédito alcanza con ese pago, con la misma matemática que el comparador (loanMath.js).
+  let montoCredito = principalFromPayment(pagoMensual, tasaAnual, plazoAnios);
   montoCredito = Math.min(montoCredito, CREDITO_MAXIMO_ABSOLUTO);
 
   const capacidadTotal = montoCredito + saldoSsv;

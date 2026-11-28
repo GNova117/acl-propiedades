@@ -6,13 +6,13 @@
 
 import { runVisitReminders } from "./handler.js";
 import { sendResendEmail } from "../_shared/resend.js";
+import { isCronAuthorized } from "../_shared/cronAuth.js";
 
 const SELECT =
   "id, fecha, hora, duracion_min, booking_token, contact_name, contact_email, reschedule_count, client_confirmed_at, updated_at, email_reminder_24h_at, email_reminder_2h_at, property:properties(id, title, code, address), advisor:advisors(name)";
 
 async function handler(req: Request): Promise<Response> {
-  const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || req.headers.get("x-cron-secret") !== cronSecret) {
+  if (!(await isCronAuthorized(req, "visita-recordatorios"))) {
     return new Response("unauthorized", { status: 401 });
   }
   const apiKey = Deno.env.get("RESEND_API_KEY");

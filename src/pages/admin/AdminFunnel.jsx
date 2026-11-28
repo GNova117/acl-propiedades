@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { computeFunnel } from "../../lib/funnelStats";
 import { computeVisitBookingStats } from "../../lib/visitBookingStats";
 import "./admin.css";
@@ -149,7 +149,7 @@ export default function AdminFunnel() {
         )}
       </div>
 
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
       {loading ? (
         <p className="form-hint">…</p>
       ) : stats.total === 0 ? (

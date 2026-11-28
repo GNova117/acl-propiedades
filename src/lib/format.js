@@ -2,6 +2,16 @@
 // usado por ambos backends para los campos numéricos opcionales de
 // propiedades (bedrooms, altura_libre, mantenimiento_pct, etc.), que llegan
 // del formulario como string vacío cuando no se capturan.
+import { keySlug } from "./slug.js";
+// 276: clase de la etiqueta de estatus. Disponible = verde, apartada = ámbar, vendida o rentada = rojo; cualquier estatus que no se
+// conozca (uno nuevo) sale neutro, no con el rojo de «vendida».
+export function statusBadgeClass(status) {
+  if (status === "disponible") return "badge-available";
+  if (status === "apartada") return "badge-reserved";
+  if (status === "vendida" || status === "rentada") return "badge-sold";
+  return "badge-neutral";
+}
+
 export function numOrNull(value) {
   return value === "" || value == null ? null : Number(value);
 }
@@ -15,11 +25,19 @@ export function whatsappDigits(value) {
   return (value || "").replace(/\D/g, "");
 }
 
+// Un WhatsApp mexicano en una sola forma: 52 + 10 dígitos. Acepta 10 dígitos, 52 + 10 y el formato viejo 521 + 10 (el «1» ya no se usa);
+// cualquier otra cosa (un número del extranjero) se deja solo con dígitos.
+export function normalizeMxWhatsapp(value) {
+  const digits = whatsappDigits(value);
+  if (digits.length === 10) return `52${digits}`;
+  if (digits.length === 13 && digits.startsWith("521")) return `52${digits.slice(3)}`;
+  return digits;
+}
+
 // Enlace de WhatsApp a un teléfono mexicano (10 dígitos → se antepone la lada 52),
 // con un texto ya escrito si se pasa. null si el teléfono no tiene dígitos.
 export function whatsappUrl(phone, text) {
-  let digits = whatsappDigits(phone);
-  if (digits.length === 10) digits = `52${digits}`;
+  const digits = normalizeMxWhatsapp(phone);
   if (!digits) return null;
   return text ? `https://wa.me/${digits}?text=${encodeURIComponent(text)}` : `https://wa.me/${digits}`;
 }
@@ -51,6 +69,14 @@ export function formatArea(value) {
   return `${new Intl.NumberFormat("es-MX").format(number)} m²`;
 }
 
+// 376: pies cuadrados (los compradores e inversionistas de naves industriales suelen pensar en ft²). 1 m² = 10.7639 ft².
+export const M2_TO_FT2 = 10.7639;
+export function formatAreaFt2(m2) {
+  const number = Number(m2);
+  if (!Number.isFinite(number) || number <= 0) return "";
+  return `${new Intl.NumberFormat("es-MX").format(Math.round(number * M2_TO_FT2))} ft²`;
+}
+
 // Tipos de propiedad: casa/departamento/nave_industrial/terreno vienen
 // sembrados de fábrica, pero desde /admin/zonas (sección "Tipos de
 // propiedad") se pueden agregar más — el catálogo real vive en la tabla
@@ -69,15 +95,7 @@ export function propertyListPath(type) {
 // da a cualquier slug en este proyecto (sin acentos, minúsculas, guión
 // bajo). No se persiste el acento porque `type` funciona como llave para
 // filtros/rutas, no como texto a mostrar.
-export function slugify(text) {
-  return String(text)
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-}
+export const slugify = keySlug;
 
 // Etiqueta a mostrar para un tipo de propiedad: usa la traducción i18n si
 // existe (los 4 tipos de fábrica están traducidos ES/EN); si no — un tipo
@@ -98,9 +116,14 @@ export function propertyTypeLabel(t, type) {
 // cargadas) y la ficha de propiedad (PropertyDetail, que le agrega
 // amenidades y el link antes de unir las líneas) para no repetir el mismo
 // armado de texto en los dos lugares.
+// Lo que se publica como «dónde está»: la dirección capturada, o solo la zona si la propiedad tiene la ubicación aproximada.
+export function publicPlace(property) {
+  return property.location_approximate ? property.zone : property.address;
+}
+
 export function propertyShareLines(property, t) {
   const lines = [
-    `📍 ${t(`propertyOperation.${property.operation_type}`)} | ${propertyTypeLabel(t, property.type)} en ${property.address}`,
+    `📍 ${t(`propertyOperation.${property.operation_type}`)} | ${propertyTypeLabel(t, property.type)} en ${publicPlace(property)}`,
     "",
     `💰 ${formatMXN(property.price)} MXN`,
     `📐 ${formatArea(property.area_m2)}`,
@@ -185,3 +208,21 @@ export const DOC_TYPE_ASPECT = {
   aviso_privacidad: 0.77,
   carta_derechos: 0.77,
 };
+
+// Fecha de entrega de un desarrollo: «2027-06-01» o «2027-06» → «junio de 2027»; un texto libre («Segundo semestre 2027») se deja tal cual.
+export function formatDeliveryDate(value, locale = "es-MX") {
+  const text = String(value ?? "").trim();
+  const match = text.match(/^(\d{4})-(\d{2})(?:-\d{2})?$/);
+  if (!match) return text;
+  const month = Number(match[2]);
+  if (month < 1 || month > 12) return text;
+  return new Date(Date.UTC(Number(match[1]), month - 1, 1)).toLocaleDateString(locale, { month: "long", year: "numeric", timeZone: "UTC" });
+}
+
+// Días enteros desde una fecha hasta `now` (nunca negativo); null si la fecha no es válida.
+export function daysSince(value, now = new Date()) {
+  if (value == null || value === "") return null;
+  const time = new Date(value).getTime();
+  if (!Number.isFinite(time)) return null;
+  return Math.max(0, Math.floor((now.getTime() - time) / 86400000));
+}

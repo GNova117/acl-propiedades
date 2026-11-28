@@ -5,6 +5,7 @@ import { db } from "../lib/dataStore";
 import { buildTemplateContent } from "../lib/documentTemplates";
 import { downloadContractPdf } from "../lib/contractPdf";
 import { notify } from "../lib/toast";
+import { notifyLoadError } from "../lib/loadError";
 
 // Generación de documentos a partir de una plantilla personalizada (creada
 // en /admin/plantillas-documentos, sin tocar código). A diferencia de
@@ -25,7 +26,7 @@ export default function TemplateDocGenerator() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    db.getDocumentTemplates().then((data) => setTemplates(data.filter((tpl) => tpl.active)));
+    db.getDocumentTemplates().then((data) => setTemplates(data.filter((tpl) => tpl.active))).catch(notifyLoadError);
     db.getClients().then(setClients).catch(() => setClients([]));
     db.getProperties({}).then(setProperties).catch(() => setProperties([]));
     db.getAdvisors().then(setAdvisors).catch(() => setAdvisors([]));

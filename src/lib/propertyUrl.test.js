@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isCanonicalSlug, parsePropertyRef, propertyPath, propertySlug } from "./propertyUrl";
+import { isCanonicalSlug, listPathForMissingProperty, parsePropertyRef, normalizePropertyCode, suggestedTypeForMissing, propertyPath, propertySlug } from "./propertyUrl";
 
 const casa = { id: "8d1f6b1e-3c9a-4d57-8a6e-0c2f7d9b1a44", code: "ACL-1001", title: "Casa en Residencial Senderos, con alberca y jardín" };
 
@@ -44,5 +44,35 @@ describe("isCanonicalSlug", () => {
     expect(isCanonicalSlug(propertySlug(casa), casa)).toBe(true);
     expect(isCanonicalSlug(casa.id, casa)).toBe(false);
     expect(isCanonicalSlug("titulo-viejo-ACL-1001", casa)).toBe(false);
+  });
+});
+
+describe("normalizePropertyCode", () => {
+  it("acepta el código completo, con espacio, pegado o solo el número", () => {
+    for (const input of ["ACL-1001", "acl-1001", " acl 1001 ", "ACL1001", "1001"]) expect(normalizePropertyCode(input)).toBe("ACL-1001");
+  });
+  it("lo que no es un código se deja tal cual (en mayúsculas)", () => {
+    expect(normalizePropertyCode("casa bonita")).toBe("CASA BONITA");
+    expect(normalizePropertyCode("")).toBe("");
+  });
+});
+
+describe("listPathForMissingProperty", () => {
+  it("adivina el listado por el título de la dirección", () => {
+    expect(listPathForMissingProperty("terreno-en-torreon-ACL-1004")).toBe("/terrenos");
+    expect(listPathForMissingProperty("nave-industrial-en-lerdo-ACL-1005")).toBe("/naves-industriales");
+    expect(listPathForMissingProperty("casa-en-venta-ACL-1001")).toBe("/propiedades");
+    expect(listPathForMissingProperty("5f0c")).toBe("/propiedades");
+    expect(listPathForMissingProperty(undefined)).toBe("/propiedades");
+  });
+});
+
+describe("suggestedTypeForMissing", () => {
+  it("adivina el tipo por el título de la dirección", () => {
+    expect(suggestedTypeForMissing("terreno-en-torreon-ACL-1004")).toBe("terreno");
+    expect(suggestedTypeForMissing("nave-industrial-en-lerdo-ACL-1005")).toBe("nave_industrial");
+    expect(suggestedTypeForMissing("casa-en-venta-ACL-1001")).toBe("casa");
+    expect(suggestedTypeForMissing("departamento-en-renta-ACL-1002")).toBe("departamento");
+    expect(suggestedTypeForMissing("5f0c")).toBeUndefined();
   });
 });

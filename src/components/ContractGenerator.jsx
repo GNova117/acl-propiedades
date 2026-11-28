@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import { db } from "../lib/dataStore";
 import { CONTRACT_DOC_TYPES, CONTRACT_FIELDS, buildContractContent, defaultContractValues, validateContractValues } from "../lib/contractDocs";
 import { buildContractPdf, downloadContractPdf } from "../lib/contractPdf";

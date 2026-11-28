@@ -4,7 +4,7 @@
 // agenda_citas) y visita-recordatorios (recordatorios ~24 h y ~2 h antes, por pg_cron).
 //
 // Todo en hora de México (America/Mexico_City): fecha "YYYY-MM-DD" y hora "HH:MM[:SS]"
-// son la hora de pared del consultorio; el servidor corre en UTC.
+// son la hora de pared de la oficina; el servidor corre en UTC.
 //
 // `cita` es la fila de agenda_citas con su propiedad y asesor:
 //   { id, fecha, hora, duracion_min, booking_token, contact_name, contact_email,

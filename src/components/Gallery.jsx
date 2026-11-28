@@ -32,6 +32,14 @@ export function Lightbox({ images, index, onIndexChange, onClose, alt }) {
   const imgRef = useRef(null);
   const zoomed = view.scale > 1;
 
+  // Precarga la foto siguiente y la anterior: cada deslizamiento esperaba la descarga.
+  useEffect(() => {
+    for (const offset of [1, -1]) {
+      const src = images[index + offset];
+      if (src) new Image().src = src;
+    }
+  }, [images, index]);
+
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") onClose();
@@ -117,6 +125,13 @@ export function Lightbox({ images, index, onIndexChange, onClose, alt }) {
     }
     const touch = e.changedTouches[0];
     if (g.mode === "swipe" && touch) {
+      // Deslizar hacia abajo cierra el visor (el gesto que se espera en el teléfono).
+      const dy = touch.clientY - g.startY;
+      const dx = touch.clientX - g.startX;
+      if (dy > 90 && dy > Math.abs(dx) * 1.5) {
+        onClose();
+        return;
+      }
       const direction = swipeDirection(g.startX, g.startY, touch.clientX, touch.clientY);
       if (direction) {
         go(direction);
@@ -154,6 +169,9 @@ export function Lightbox({ images, index, onIndexChange, onClose, alt }) {
       <div className="gallery-lightbox__backdrop" onClick={onClose} aria-hidden="true" />
       <div className="gallery-lightbox__top">
         <span className="gallery-lightbox__counter">{t("gallery.counter", { current: index + 1, total: images.length })}</span>
+        <a className="gallery-lightbox__download" href={images[index]} target="_blank" rel="noopener noreferrer" download aria-label={t("gallery.download")}>
+          ⬇
+        </a>
         <button type="button" className="gallery-lightbox__close" onClick={onClose} aria-label={t("common.close")}>
           ×
         </button>
@@ -209,10 +227,13 @@ export function Lightbox({ images, index, onIndexChange, onClose, alt }) {
   );
 }
 
+// Foto de reemplazo propia (sin texto, sin servicio externo): antes venía de placehold.co, en inglés y con un tercero.
+export const NO_PHOTO = "/sin-foto.svg";
+
 export default function Gallery({ images, alt }) {
   const [active, setActive] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const list = images && images.length > 0 ? images : ["https://placehold.co/1000x700?text=ACL+Propiedades"];
+  const list = images && images.length > 0 ? images : [NO_PHOTO];
   const { t } = useTranslation();
   // En computadora y con 3 fotos o más, la galería es un MOSAICO (una grande y hasta cuatro chicas); en el teléfono y con
   // pocas fotos sigue siendo la foto principal con su tira de miniaturas (que se desliza con el dedo).

@@ -1,0 +1,110 @@
+/* Con uno o dos desarrollos las tarjetas se quedan centradas (antes una sola tarjeta quedaba pegada a la izquierda con un hueco
+   enorme a la derecha); con tres, ocupan la fila. */
+.home-developments__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 380px));
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.home-developments__more {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.home-tools__list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-tools__list > li {
+  display: flex;
+}
+
+.home-tools__reveal {
+  display: flex;
+  flex: 1;
+}
+
+.home-tools__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+  padding: 1.4rem 1.5rem;
+  color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.home-tools__card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.home-tools__card h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.home-tools__card p {
+  margin: 0;
+  flex: 1;
+}
+
+.home-tools__cta {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+@media (max-width: 980px) {
+  .home-developments__grid,
+  .home-tools__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 266: en teléfono, los desarrollos se deslizan de lado (como las destacadas) y las herramientas van apiladas y compactas. */
+@media (max-width: 640px) {
+  .home-developments__grid {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin: 0 calc(var(--space-6) * -1);
+    padding: 0 var(--space-6) 0.75rem;
+    scrollbar-width: none;
+  }
+
+  .home-developments__grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .home-developments__grid > * {
+    flex: 0 0 85%;
+    min-width: 0;
+    scroll-snap-align: center;
+  }
+
+  .home-tools__list {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  /* Herramientas compactas: título y flecha en un renglón (la descripción queda en la página de cada una). */
+  .home-tools__card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.9rem 1.1rem;
+  }
+
+  .home-tools__card p {
+    display: none;
+  }
+}

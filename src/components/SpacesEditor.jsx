@@ -5,6 +5,7 @@ import { computeSpaceMetrics, suggestedQuantity } from "../lib/materialConsumpti
 import { formatArea } from "../lib/format";
 import SpaceRender from "./SpaceRender";
 import "./SpacesEditor.css";
+import { notifyLoadError } from "../lib/loadError";
 
 function uid() {
   return `space-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -21,7 +22,7 @@ export default function SpacesEditor({ spaces, onChange, onAddMaterial }) {
   const [catalog, setCatalog] = useState([]);
 
   useEffect(() => {
-    db.getMaterialsCatalog({ activeOnly: true }).then(setCatalog);
+    db.getMaterialsCatalog({ activeOnly: true }).then(setCatalog).catch(notifyLoadError);
   }, []);
 
   const updateSpace = (id, field, value) => {

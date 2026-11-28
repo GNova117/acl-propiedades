@@ -22,7 +22,7 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--color-on-primary);
 }
 
 .dev-provenance__name {
@@ -220,20 +220,20 @@
 .dev-map__model {
   font-size: 0.62rem;
   line-height: 1.1;
-  opacity: 0.85;
   text-align: center;
 }
 
 .dev-map__swatch--disponible,
 .dev-map__cell--disponible {
   background: rgba(30, 142, 90, 0.18);
-  color: var(--color-success);
+  /* Mezclado con el color de texto para que el contraste pase en claro y en oscuro. */
+  color: color-mix(in srgb, var(--color-success) 45%, var(--color-text));
   border-color: rgba(30, 142, 90, 0.5);
 }
 .dev-map__swatch--apartada,
 .dev-map__cell--apartada {
   background: rgba(184, 134, 11, 0.2);
-  color: var(--color-warning);
+  color: color-mix(in srgb, var(--color-warning) 40%, var(--color-text));
   border-color: rgba(184, 134, 11, 0.55);
 }
 .dev-map__swatch--vendida,
@@ -262,7 +262,7 @@
 .dev-dialog {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: var(--z-drawer);
   display: flex;
   align-items: center;
   justify-content: center;

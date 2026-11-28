@@ -3,6 +3,9 @@ import {
   advisorPerformance,
   availableYears,
   buildSaleRows,
+  comparePeriods,
+  monthlyProfit,
+  previousPeriod,
   currentInventory,
   dateParts,
   filterRows,
@@ -315,5 +318,60 @@ describe("availableYears", () => {
   it("incluye el año actual aunque no haya ventas ni altas registradas", () => {
     const years = availableYears([], [], new Date("2026-05-01T00:00:00.000Z"));
     expect(years).toContain(2026);
+  });
+});
+
+describe("comparePeriods", () => {
+  const row = (year, month, price, type = "casa") => ({ year, month, price, property: { type } });
+  const rows = [row(2026, 3, 1000), row(2026, 3, 500), row(2025, 3, 1000), row(2025, 4, 700), row(2026, 4, 300, "terreno")];
+
+  it("el periodo anterior de un mes es el mismo mes un año antes; de un año, el año anterior", () => {
+    expect(previousPeriod({ year: 2026, month: 3 })).toEqual({ year: 2025, month: 3 });
+    expect(previousPeriod({ year: 2026 })).toEqual({ year: 2025, month: null });
+  });
+  it("compara cuántas ventas y qué volumen contra el mismo mes del año anterior", () => {
+    const c = comparePeriods(rows, { year: 2026, month: 3 });
+    expect(c.current).toEqual({ count: 2, volume: 1500 });
+    expect(c.prior).toEqual({ count: 1, volume: 1000 });
+    expect(c.countDelta).toBe(1);
+    expect(c.countPercent).toBe(100);
+    expect(c.volumePercent).toBe(50);
+  });
+  it("todo el año contra el año anterior, y respeta el tipo", () => {
+    expect(comparePeriods(rows, { year: 2026 }).prior.count).toBe(2);
+    expect(comparePeriods(rows, { year: 2026, type: "terreno" }).current.count).toBe(1);
+  });
+  it("sin ventas el año anterior no hay porcentaje", () => {
+    const c = comparePeriods(rows, { year: 2024 });
+    expect(c.countPercent).toBeNull();
+  });
+});
+
+describe("monthlyProfit", () => {
+  const row = (year, month, price, profit) => ({ year, month, price, property: { type: "casa" }, profit });
+  const rows = [
+    row(2026, 0, 1000000, { utilidadOficina: 50000, utilidadNeta: 40000 }),
+    row(2026, 0, 500000, null),
+    row(2026, 2, 2000000, { utilidadOficina: 120000, utilidadNeta: 100000 }),
+    row(2025, 0, 900000, { utilidadOficina: 1, utilidadNeta: 1 }),
+  ];
+  const months = monthlyProfit(rows, { year: 2026 });
+
+  it("devuelve los 12 meses", () => {
+    expect(months).toHaveLength(12);
+  });
+  it("suma ventas, volumen y utilidad por mes, y separa lo que falta liquidar", () => {
+    expect(months[0]).toMatchObject({ sold: 2, liquidated: 1, pending: 1, volume: 1500000, utilidadOficina: 50000, utilidadNeta: 40000 });
+  });
+  it("el margen es utilidad entre el volumen de lo liquidado", () => {
+    expect(months[0].marginPct).toBe(5);
+    expect(months[2].marginPct).toBe(6);
+  });
+  it("un mes sin ventas o sin liquidaciones no tiene margen", () => {
+    expect(months[1].sold).toBe(0);
+    expect(months[1].marginPct).toBeNull();
+  });
+  it("solo cuenta el año pedido", () => {
+    expect(months.reduce((sum, m) => sum + m.sold, 0)).toBe(3);
   });
 });

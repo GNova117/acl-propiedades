@@ -12,7 +12,7 @@ export default function Privacy() {
 
       <div className="container privacy-page">
         <div className="section-heading" style={{ margin: "2.5rem auto 0.5rem" }}>
-          <h2>{t("privacy.title")}</h2>
+          <h1>{t("privacy.title")}</h1>
           <p>{t("privacy.intro")}</p>
         </div>
         <p className="privacy-page__updated">{t("privacy.updated")}</p>

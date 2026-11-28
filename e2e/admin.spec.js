@@ -178,6 +178,7 @@ test.describe("Mensajes de contacto", () => {
     const fila = page.locator("tr", { hasText: marca });
     await expect(fila).toHaveCount(1);
     await fila.scrollIntoViewIfNeeded();
+    await press(fila.locator("details.row-more summary")); // «Más»: ahí quedó «Eliminar» (337)
     await press(fila.locator("button.btn-danger"));
     await expect(page.locator("tr", { hasText: marca })).toHaveCount(0);
   });

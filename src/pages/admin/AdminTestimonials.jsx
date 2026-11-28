@@ -5,6 +5,7 @@ import Stars from "../../components/Stars";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog, notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const EMPTY_FORM = { name: "", role: "", quote: "", rating: 5 };
 
@@ -25,7 +26,7 @@ export default function AdminTestimonials() {
     db.getTestimonials().then((data) => {
       setTestimonials(data);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   };
 
   useEffect(load, []);

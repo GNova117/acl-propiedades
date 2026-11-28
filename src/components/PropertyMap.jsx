@@ -1,11 +1,12 @@
 import ResponsiveImg from "./ResponsiveImg";
+import MapA11y from "./MapA11y";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, LayersControl, Marker, Popup, Circle, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { formatMXN, formatArea } from "../lib/format";
+import { formatMXN, formatArea, propertyTypeLabel } from "../lib/format";
 import "leaflet/dist/leaflet.css";
 import "./PropertyMap.css";
 import { propertyPath } from "../lib/propertyUrl.js";
@@ -65,11 +66,15 @@ function getClusterIcon(count) {
 // automático del mapa no se confunda con que la persona lo movió. `skip`: con
 // una zona buscada el mapa no se reajusta a los resultados (la persona ya
 // eligió dónde mirar).
+// Solo propiedades con coordenadas de verdad: con lat/lng vacíos o nulos `fitBounds` recibía límites inválidos y el mapa se quedaba en [null, null].
+const hasCoordinates = (p) => Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng)) && p.lat !== null && p.lng !== null && p.lat !== "" && p.lng !== "";
+
 function FitBounds({ properties, suppress, skip }) {
   const map = useMap();
   useEffect(() => {
-    if (properties.length === 0 || skip) return;
-    const bounds = L.latLngBounds(properties.map((p) => [p.lat, p.lng]));
+    const located = properties.filter(hasCoordinates);
+    if (located.length === 0 || skip) return;
+    const bounds = L.latLngBounds(located.map((p) => [Number(p.lat), Number(p.lng)]));
     if (suppress) suppress.current = true;
     // Sin animación: el ajuste inicial no la necesita, y si el mapa se desmonta (p. ej. al volver al
     // listado) mientras la animación sigue, Leaflet toca un panel ya destruido y lanza
@@ -126,8 +131,8 @@ const CLUSTER_PIXEL_RADIUS = 56;
 
 function clusterByPixelDistance(map, properties) {
   const points = properties
-    .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng))
-    .map((p) => ({ property: p, point: map.latLngToLayerPoint([p.lat, p.lng]) }));
+    .filter(hasCoordinates)
+    .map((p) => ({ property: p, point: map.latLngToLayerPoint([Number(p.lat), Number(p.lng)]) }));
   const used = new Array(points.length).fill(false);
   const groups = [];
   for (let i = 0; i < points.length; i++) {
@@ -152,33 +157,60 @@ function clusterCenter(properties) {
   return [lat, lng];
 }
 
+// Radio del círculo de una propiedad con ubicación aproximada: el punto guardado está a menos de ~350 m del real (ver la migración
+// 0120), así que 500 m lo contiene siempre sin delatar la calle.
+const APPROXIMATE_RADIUS_M = 500;
+
+function PropertyPopup({ property }) {
+  const { t } = useTranslation();
+  return (
+    <Popup>
+      <div className="map-popup">
+        {property.main_image && <ResponsiveImg src={property.main_image} sizes="240px" alt={property.title} loading="lazy" decoding="async" />}
+        <strong>{property.title}</strong>
+        <span className="map-popup__price">{formatMXN(property.price)}</span>
+        <span className="map-popup__area">
+          {[formatArea(property.area_m2), property.bedrooms != null && `${property.bedrooms} ${t("properties.bedrooms")}`, property.bathrooms != null && `${property.bathrooms} ${t("properties.bathrooms")}`].filter(Boolean).join(" · ")}
+        </span>
+        <Link to={propertyPath(property)} className="btn btn-primary btn-sm">
+          {t("properties.viewDetail")}
+        </Link>
+      </div>
+    </Popup>
+  );
+}
+
 function ClusteredMarkers({ properties }) {
   const { t } = useTranslation();
   const map = useMap();
-  const [groups, setGroups] = useState(() => clusterByPixelDistance(map, properties));
+  // Las de ubicación aproximada van como círculo (nunca como punto) y no se agrupan con las demás.
+  const exact = properties.filter((p) => !p.location_approximate && hasCoordinates(p));
+  const approximate = properties.filter((p) => p.location_approximate && hasCoordinates(p));
+  const [groups, setGroups] = useState(() => clusterByPixelDistance(map, exact));
 
-  const recompute = () => setGroups(clusterByPixelDistance(map, properties));
+  const recompute = () => setGroups(clusterByPixelDistance(map, exact));
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(recompute, [properties]);
   useMapEvents({ zoomend: recompute, moveend: recompute });
 
-  return groups.map((group, i) => {
+  const circles = approximate.map((property) => (
+    <Circle
+      key={`approx-${property.id}`}
+      center={[property.lat, property.lng]}
+      radius={APPROXIMATE_RADIUS_M}
+      pathOptions={{ color: TYPE_COLORS[property.type] || TYPE_COLORS.casa, fillOpacity: 0.2, weight: 2 }}
+    >
+      <PropertyPopup property={property} />
+    </Circle>
+  ));
+
+  return [circles, ...groups.map((group, i) => {
     if (group.length === 1) {
       const property = group[0];
       return (
         <Marker key={property.id} position={[property.lat, property.lng]} icon={getIcon(property.type)} title={property.title} alt={property.title}>
-          <Popup>
-            <div className="map-popup">
-              {property.main_image && <ResponsiveImg src={property.main_image} sizes="240px" alt={property.title} loading="lazy" decoding="async" />}
-              <strong>{property.title}</strong>
-              <span className="map-popup__price">{formatMXN(property.price)}</span>
-              <span className="map-popup__area">{formatArea(property.area_m2)}</span>
-              <Link to={propertyPath(property)} className="btn btn-primary btn-sm">
-                {t("properties.viewDetail")}
-              </Link>
-            </div>
-          </Popup>
+          <PropertyPopup property={property} />
         </Marker>
       );
     }
@@ -197,7 +229,24 @@ function ClusteredMarkers({ properties }) {
         }}
       />
     );
-  });
+  })];
+}
+
+// 305: leyenda de colores de los marcadores (solo los tipos que de verdad hay en el mapa).
+function MapLegend({ properties }) {
+  const { t } = useTranslation();
+  const types = [...new Set(properties.filter(hasCoordinates).map((p) => p.type))].filter((type) => TYPE_COLORS[type]);
+  if (types.length < 2) return null;
+  return (
+    <ul className="map-legend" aria-label={t("properties.mapLegend")}>
+      {types.map((type) => (
+        <li key={type}>
+          <span className="map-legend__dot" style={{ background: TYPE_COLORS[type] }} aria-hidden="true" />
+          {propertyTypeLabel(t, type)}
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 function FullscreenButton({ fullscreen, onToggle }) {
@@ -218,9 +267,11 @@ function FullscreenButton({ fullscreen, onToggle }) {
 }
 
 export default function PropertyMap({ properties, height = 480, onSearchArea, areaActive = false }) {
+  const { t, i18n } = useTranslation();
   const [fullscreen, setFullscreen] = useState(false);
   const suppressRef = useRef(false);
-  const center = properties.length > 0 ? [properties[0].lat, properties[0].lng] : [25.5428, -103.4068];
+  const firstLocated = properties.find(hasCoordinates);
+  const center = firstLocated ? [Number(firstLocated.lat), Number(firstLocated.lng)] : [25.5428, -103.4068];
 
   useEffect(() => {
     if (!fullscreen) return undefined;
@@ -232,15 +283,31 @@ export default function PropertyMap({ properties, height = 480, onSearchArea, ar
   const map = (
     <div className={`property-map ${fullscreen ? "property-map--fullscreen" : ""}`} style={fullscreen ? undefined : { height }}>
       <MapContainer center={center} zoom={11} scrollWheelZoom={false} style={{ height: "100%", width: "100%" }}>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        {/* 383: calles o satélite. key: Leaflet fija los nombres de las capas al crear el control. */}
+        <LayersControl key={i18n.language} position="topright">
+          <LayersControl.BaseLayer checked name={t("valuation.map.streets")}>
+            <TileLayer
+              className="tile-street"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name={t("valuation.map.satellite")}>
+            <TileLayer
+              attribution="Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              maxNativeZoom={19}
+              maxZoom={20}
+            />
+          </LayersControl.BaseLayer>
+        </LayersControl>
+        <MapA11y label={t("propertyMap.label")} />
         <FitBounds properties={properties} suppress={suppressRef} skip={areaActive} />
         <ClusteredMarkers properties={properties} />
         {onSearchArea && <AreaSearchButton onSearchArea={onSearchArea} suppress={suppressRef} />}
         <FullscreenButton fullscreen={fullscreen} onToggle={() => setFullscreen((v) => !v)} />
       </MapContainer>
+      <MapLegend properties={properties} />
     </div>
   );
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { usePrivatePage } from "../lib/usePrivatePage";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Logo from "../components/Logo";
@@ -16,6 +17,9 @@ import "./PublicVisitReport.css";
 import "./PublicSelection.css";
 import LoadingState from "../components/LoadingState";
 import { propertyPath } from "../lib/propertyUrl.js";
+import { isClosedStatus } from "../lib/propertyStatus";
+import { siteOrigin } from "../lib/site";
+import { loadPropertiesInOrder } from "../lib/propertiesByIds";
 
 const seenKey = (token) => `acl_selection_seen_${token}`;
 
@@ -47,22 +51,7 @@ export default function PublicSelection() {
   };
 
   // Que no se indexe ni se archive y que el navegador no mande el enlace como «referrer» a otros sitios.
-  useEffect(() => {
-    const robots = document.createElement("meta");
-    robots.name = "robots";
-    robots.content = "noindex, nofollow, noarchive";
-    const referrer = document.createElement("meta");
-    referrer.name = "referrer";
-    referrer.content = "no-referrer";
-    document.head.append(robots, referrer);
-    const previousTitle = document.title;
-    document.title = `${t("selection.public.pageTitle")} | ACL Propiedades`;
-    return () => {
-      robots.remove();
-      referrer.remove();
-      document.title = previousTitle;
-    };
-  }, [t]);
+  usePrivatePage(t("selection.public.pageTitle"));
 
   useEffect(() => {
     let cancelled = false;
@@ -84,10 +73,10 @@ export default function PublicSelection() {
           return;
         }
         const [advisor, found] = await Promise.all([
-          selection.advisor_id ? db.getAdvisorById(selection.advisor_id).catch(() => null) : null,
-          Promise.all((selection.property_ids || []).map((id) => db.getPropertyById(id).catch(() => null))),
+          selection.advisor_id ? db.getSelectionAdvisor(token).catch(() => null) : null,
+          loadPropertiesInOrder(selection.property_ids),
         ]);
-        if (!cancelled) setResult({ token, status: selection.status, selection, advisor, properties: found.filter(Boolean) });
+        if (!cancelled) setResult({ token, status: selection.status, selection, advisor, properties: found });
       } catch {
         try {
           sessionStorage.removeItem(seenKey(token));
@@ -115,10 +104,10 @@ export default function PublicSelection() {
   const contactName = advisor?.name || "ACL Propiedades";
   const advisorPhone = advisor?.whatsapp || advisor?.phone || OFFICE_WHATSAPP;
   const hasAdvisorWhatsApp = whatsappDigits(advisorPhone).length >= 10;
-  const url = typeof window !== "undefined" ? selectionUrl(window.location.origin, token) : "";
+  const url = typeof window !== "undefined" ? selectionUrl(siteOrigin(), token) : "";
   const interestLink = (property) =>
     hasAdvisorWhatsApp
-      ? whatsappUrl(advisorPhone, t("selection.public.interestMessage", { lng: "es", title: property.title, url: `${window.location.origin}${propertyPath(property)}` }))
+      ? whatsappUrl(advisorPhone, t("selection.public.interestMessage", { lng: "es", title: property.title, url: `${siteOrigin()}${propertyPath(property)}` }))
       : null;
   const generalLink = hasAdvisorWhatsApp ? whatsappUrl(advisorPhone, t("selection.public.generalMessage", { lng: "es", url })) : null;
   const expiresOn = selection?.expires_at ? new Date(selection.expires_at).toLocaleDateString(i18n.language === "en" ? "en-US" : "es-MX", { day: "numeric", month: "long" }) : "";
@@ -203,7 +192,7 @@ export default function PublicSelection() {
             ) : (
               <div className="properties-grid public-selection__grid">
                 {properties.map((property) => {
-                  const available = property.status !== "vendida";
+                  const available = !isClosedStatus(property.status);
                   const link = available ? interestLink(property) : null;
                   return (
                     <div key={property.id} className="public-selection__item">

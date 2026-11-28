@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import { db } from "./dataStore";
 import { revalidate, snapshot } from "./dataCache";
 import { flushQueue, getQueue, isOnline, notifyQueueChanged, removeOp, retryOp, subscribeQueue } from "./offlineQueue";

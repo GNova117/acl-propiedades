@@ -8,7 +8,8 @@ const base = { id: "p", status: "disponible", active: true, main_image: "x.jpg",
 describe("getPriceDrop", () => {
   it("detecta una rebaja reciente y calcula el porcentaje", () => {
     const drop = getPriceDrop({ ...base, previous_price: 1250000, price_changed_at: daysAgo(3) }, NOW);
-    expect(drop).toEqual({ previousPrice: 1250000, percent: 20 });
+    expect(drop).toMatchObject({ previousPrice: 1250000, percent: 20, amount: 250000 });
+    expect(drop.changedAt).toBe(daysAgo(3));
   });
 
   it("la apaga pasados 30 días", () => {

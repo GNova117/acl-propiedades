@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { usePrivatePage } from "../lib/usePrivatePage";
 import { rememberItem } from "../lib/mySpace";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -11,6 +12,9 @@ import { buildSignedPdf, signedPdfFileName } from "../lib/signedPdf";
 import "./PublicSign.css";
 import LoadingState from "../components/LoadingState";
 import { notify } from "../lib/toast";
+import LinkExpiry from "../components/LinkExpiry";
+import Seo from "../components/Seo";
+import DocumentFrame from "../components/DocumentFrame";
 
 // Página pública /firmar/<token>: el cliente abre el enlace privado, pone el
 // código que le dio su asesor, lee el PDF y lo firma en pantalla. No hay inicio
@@ -36,13 +40,7 @@ export default function PublicSign() {
   const [downloading, setDownloading] = useState(false);
 
   // Página privada: que los buscadores no la indexen.
-  useEffect(() => {
-    const meta = document.createElement("meta");
-    meta.name = "robots";
-    meta.content = "noindex, nofollow";
-    document.head.appendChild(meta);
-    return () => meta.remove();
-  }, []);
+  usePrivatePage(undefined, { robots: false }); // ya trae su <Seo noindex> y su título; aquí solo falta el «referrer»
 
   useEffect(() => {
     db.signingInfo(token)
@@ -160,6 +158,7 @@ export default function PublicSign() {
         <>
           <h1>{t("signing.public.title")}</h1>
           <p className="form-hint">{t("signing.public.codeIntro", { title: info.title })}</p>
+          <LinkExpiry date={info.expires_at} />
           <form onSubmit={handleOpen} noValidate>
             <div className="form-field">
               <label htmlFor="sign-code">{t("signing.public.codeLabel")}</label>
@@ -189,7 +188,7 @@ export default function PublicSign() {
         <h1>{doc.title}</h1>
         <p className="form-hint">{t("signing.public.readIntro")}</p>
         <div className="public-sign__viewer">
-          <iframe src={pdfUrl} title={doc.title} />
+          <DocumentFrame url={pdfUrl} title={doc.title} />
         </div>
         <p className="form-hint">
           <a href={pdfUrl} target="_blank" rel="noopener noreferrer">
@@ -218,7 +217,7 @@ export default function PublicSign() {
             </button>
           </div>
 
-          {submitError && <p className="form-error">{submitError}</p>}
+          {submitError && <p className="form-error" role="alert">{submitError}</p>}
           <button type="button" className="btn btn-primary btn-block" disabled={!canSubmit} onClick={handleSubmit}>
             {signing ? <span className="spinner" /> : null}
             {t("signing.public.submit")}
@@ -244,6 +243,8 @@ export default function PublicSign() {
 
   return (
     <div className="public-sign">
+      {/* Enlace privado de un documento: título propio en la pestaña y fuera de los buscadores. */}
+      <Seo title={info?.title ? `${info.title} · ${t("signing.public.tabTitle")}` : t("signing.public.tabTitle")} noindex />
       <header className="public-sign__header">
         <Logo variant="white" size="sm" />
         <LanguageToggle />

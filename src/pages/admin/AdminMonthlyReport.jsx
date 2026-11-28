@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { formatMXN } from "../../lib/format";
 import { buildMonthlyReport } from "../../lib/monthlyReport";
 import { KPI_ROWS, downloadMonthlyReportPdf, formatChange } from "../../lib/monthlyReportPdf";
@@ -142,7 +142,7 @@ export default function AdminMonthlyReport() {
         </select>
       </div>
 
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
       {!report ? (
         <p className="form-hint">…</p>
       ) : (

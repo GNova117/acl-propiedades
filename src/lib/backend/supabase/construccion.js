@@ -1,7 +1,9 @@
 // Backend con Supabase: métodos de «construccion» (17). Se juntan en supabaseBackend.js; `this` es el objeto completo, así que
 // un método puede llamar a los de otros módulos como siempre.
 import { supabase } from "../../supabaseClient";
-import * as construccionSync from "../../construccion/sync";
+// La sincronización de Construcción (planos, geometría) se baja solo cuando alguien entra a esa pantalla del panel: antes entraba en el
+// paquete de todo el sitio público.
+const loadSync = () => import("../../construccion/sync");
 
 export const construccionMethods = {
   /**
@@ -21,35 +23,35 @@ export const construccionMethods = {
   // no comparte datos con ese módulo. La lógica de mapeo vive en
   // lib/construccion/sync.ts (portada de app-construccion); aquí solo se
   // delega, para que estas páginas también pasen por `db` como todo lo demás.
-  getConstruccionProyectos: (...args) => construccionSync.getConstruccionProyectos(...args),
+  getConstruccionProyectos: async (...args) => (await loadSync()).getConstruccionProyectos(...args),
 
-  getConstruccionProyecto: (...args) => construccionSync.getConstruccionProyecto(...args),
+  getConstruccionProyecto: async (...args) => (await loadSync()).getConstruccionProyecto(...args),
 
-  addConstruccionProyecto: (...args) => construccionSync.addConstruccionProyecto(...args),
+  addConstruccionProyecto: async (...args) => (await loadSync()).addConstruccionProyecto(...args),
 
-  pushConstruccionProyecto: (...args) => construccionSync.pushConstruccionProyecto(...args),
+  pushConstruccionProyecto: async (...args) => (await loadSync()).pushConstruccionProyecto(...args),
 
-  deleteConstruccionProyecto: (...args) => construccionSync.deleteConstruccionProyecto(...args),
+  deleteConstruccionProyecto: async (...args) => (await loadSync()).deleteConstruccionProyecto(...args),
 
-  getConstruccionCatalogo: (...args) => construccionSync.getConstruccionCatalogo(...args),
+  getConstruccionCatalogo: async (...args) => (await loadSync()).getConstruccionCatalogo(...args),
 
-  pushConstruccionCatalogo: (...args) => construccionSync.pushConstruccionCatalogo(...args),
+  pushConstruccionCatalogo: async (...args) => (await loadSync()).pushConstruccionCatalogo(...args),
 
-  getConstruccionFotos: (...args) => construccionSync.getConstruccionFotos(...args),
+  getConstruccionFotos: async (...args) => (await loadSync()).getConstruccionFotos(...args),
 
-  addConstruccionFoto: (...args) => construccionSync.addConstruccionFoto(...args),
+  addConstruccionFoto: async (...args) => (await loadSync()).addConstruccionFoto(...args),
 
-  updateConstruccionFotoNota: (...args) => construccionSync.updateConstruccionFotoNota(...args),
+  updateConstruccionFotoNota: async (...args) => (await loadSync()).updateConstruccionFotoNota(...args),
 
-  deleteConstruccionFoto: (...args) => construccionSync.deleteConstruccionFoto(...args),
+  deleteConstruccionFoto: async (...args) => (await loadSync()).deleteConstruccionFoto(...args),
 
-  deleteConstruccionFotosDeHabitacion: (...args) => construccionSync.deleteConstruccionFotosDeHabitacion(...args),
+  deleteConstruccionFotosDeHabitacion: async (...args) => (await loadSync()).deleteConstruccionFotosDeHabitacion(...args),
 
-  getConstruccionFondos: (...args) => construccionSync.getConstruccionFondos(...args),
+  getConstruccionFondos: async (...args) => (await loadSync()).getConstruccionFondos(...args),
 
-  upsertConstruccionFondo: (...args) => construccionSync.upsertConstruccionFondo(...args),
+  upsertConstruccionFondo: async (...args) => (await loadSync()).upsertConstruccionFondo(...args),
 
-  updateConstruccionFondo: (...args) => construccionSync.updateConstruccionFondo(...args),
+  updateConstruccionFondo: async (...args) => (await loadSync()).updateConstruccionFondo(...args),
 
-  deleteConstruccionFondo: (...args) => construccionSync.deleteConstruccionFondo(...args),
+  deleteConstruccionFondo: async (...args) => (await loadSync()).deleteConstruccionFondo(...args),
 };

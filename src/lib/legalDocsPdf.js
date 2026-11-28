@@ -4,8 +4,7 @@
 // lee de i18n, no se duplica aquí) — este módulo solo lo formatea para
 // imprimir y hacer firmar. Reutiliza el mismo patrón de
 // perfilamientoPdf.js (hoja membretada + paginación automática).
-
-const TEMPLATE_URL = "/plantilla_acl.pdf";
+import { loadLetterhead } from "./letterhead";
 
 const MARGIN_LEFT = 60;
 const MARGIN_RIGHT = 60;
@@ -77,10 +76,7 @@ export async function buildLegalDocPdf(content, { template, signatureLabel = "No
 
   const templateBytes =
     template ??
-    (await fetch(TEMPLATE_URL).then((res) => {
-      if (!res.ok) throw new Error("No se pudo cargar la plantilla membretada");
-      return res.arrayBuffer();
-    }));
+    (await loadLetterhead());
 
   const doc = await PDFDocument.load(templateBytes);
   const templateDoc = await PDFDocument.load(templateBytes);

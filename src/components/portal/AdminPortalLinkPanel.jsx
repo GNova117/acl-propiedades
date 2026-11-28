@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { portalLinkPath } from "../../lib/clientPortal";
-import { confirmDialog } from "../../lib/toast";
+import { confirmDialog, copyFallback } from "../../lib/toast";
+import { siteOrigin } from "../../lib/site";
 
 // Botón "Generar enlace de documentos" de la ficha del cliente: crea o
 // regenera el token de /documentos/<token> y lo comparte por WhatsApp — el
@@ -11,7 +12,7 @@ import { confirmDialog } from "../../lib/toast";
 // `requestedDocs` (opcional): los documentos que se le piden, para que el
 // mensaje de WhatsApp los nombre en vez de un texto genérico.
 export default function AdminPortalLinkPanel({ clientId, requestedDocs }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [tokenRow, setTokenRow] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -27,7 +28,7 @@ export default function AdminPortalLinkPanel({ clientId, requestedDocs }) {
 
   useEffect(load, [clientId]);
 
-  const url = tokenRow ? `${window.location.origin}${portalLinkPath(tokenRow.token)}` : "";
+  const url = tokenRow ? `${siteOrigin()}${portalLinkPath(tokenRow.token)}` : "";
   const isExpired = tokenRow && new Date(tokenRow.expires_at).getTime() < Date.now();
   const isActive = tokenRow?.active && !isExpired;
 
@@ -58,7 +59,7 @@ export default function AdminPortalLinkPanel({ clientId, requestedDocs }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      window.prompt(t("adminPortal.copyPrompt"), url);
+      copyFallback(t("adminPortal.copyPrompt"), url);
     }
   };
 
@@ -74,7 +75,7 @@ export default function AdminPortalLinkPanel({ clientId, requestedDocs }) {
       ) : (
         <>
           <span className="form-hint">
-            {t("adminPortal.linkReady", { date: new Date(tokenRow.expires_at).toLocaleDateString() })}
+            {t("adminPortal.linkReady", { date: new Date(tokenRow.expires_at).toLocaleDateString(i18n.language) })}
           </span>
           <button type="button" className="btn btn-outline btn-sm" onClick={handleCopy}>
             {copied ? t("adminPortal.copied") : t("adminPortal.copyLink")}

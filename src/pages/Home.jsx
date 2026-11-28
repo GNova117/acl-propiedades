@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import useBusinessJsonLd from "../lib/useBusinessJsonLd";
 import Seo from "../components/Seo";
-import SplitHero from "../components/SplitHero";
-import SearchBar from "../components/SearchBar";
+import HomeHero from "../components/HomeHero";
+import HomeSellBanner from "../components/HomeSellBanner";
+import HomeDevelopments from "../components/HomeDevelopments";
 import CategoryCard from "../components/CategoryCard";
 import Reveal from "../components/Reveal";
 import Stars from "../components/Stars";
@@ -66,9 +67,11 @@ export default function Home() {
         if (active) setSoldProperties(sold);
       })
       .catch(() => {});
-    db.getPropertyTypes().then((data) => {
-      if (active) setPropertyTypes(data);
-    });
+    db.getPropertyTypes()
+      .then((data) => {
+        if (active) setPropertyTypes(data);
+      })
+      .catch(() => {});
     db.getTestimonials()
       .then((data) => {
         if (active) setTestimonials(data.filter((tst) => tst.active).slice(0, MAX_HOME_TESTIMONIALS));
@@ -101,27 +104,16 @@ export default function Home() {
   });
 
   return (
-    <>
+    <div className="home-page">
       <Seo
-        title={t("nav.home")}
-        description="ACL Propiedades: compra y venta de casas, departamentos, naves industriales y terrenos en Torreón, Gómez Palacio y Lerdo."
+        absoluteTitle={t("home.seoTitle")}
+        description={t("home.seoDescription")}
         jsonLd={businessJsonLd}
       />
 
-      <SplitHero propertyTypes={propertyTypes} />
-
-      <section className="hero">
-        <div className="hero__overlay" />
-        <div className="container hero__content">
-          <h1>{t("hero.title")}</h1>
-          <p>{t("hero.subtitle")}</p>
-          <SearchBar />
-        </div>
-      </section>
+      <HomeHero />
 
       <FeaturedProperties properties={featuredPool} />
-
-      <VideoTours properties={videoPool} />
 
       <section className="section">
         <div className="container">
@@ -136,7 +128,7 @@ export default function Home() {
                 <Reveal key={type} delay={index * 80}>
                   <CategoryCard
                     type={type}
-                    count={counts?.[type] ?? 0}
+                    count={counts ? (counts[type] ?? 0) : null}
                     active={!typeRecord || typeRecord.active !== false}
                     imageUrl={typeRecord?.image_url}
                   />
@@ -147,7 +139,13 @@ export default function Home() {
         </div>
       </section>
 
+      <HomeDevelopments />
+
+      <HomeSellBanner />
+
       <TrustStats summary={trustSummary} />
+
+      <VideoTours properties={videoPool} />
 
       {hasRecentlyViewed && (
         <section className="section">
@@ -177,6 +175,9 @@ export default function Home() {
                   </div>
                 </Reveal>
               ))}
+            </div>
+            <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
+              <Link to="/testimonios" className="btn btn-outline">{t("testimonials.viewAll")}</Link>
             </div>
           </div>
         </section>
@@ -217,6 +218,6 @@ export default function Home() {
           </div>
         </section>
       )}
-    </>
+    </div>
   );
 }

@@ -23,11 +23,26 @@ function TourCard({ property, src, active, onPlay }) {
     videoRef.current?.play().catch(() => {});
   };
 
+  // El video (aunque sea solo sus metadatos) se pide cuando la tarjeta está por verse, no al abrir el inicio.
+  const cardRef = useRef(null);
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const node = cardRef.current;
+    if (!node || near) return undefined;
+    if (typeof IntersectionObserver === "undefined") {
+      setNear(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(([entry]) => entry.isIntersecting && setNear(true), { rootMargin: "300px" });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [near]);
+
   return (
-    <article className="video-tours__card">
+    <article className="video-tours__card" ref={cardRef}>
       <video
         ref={videoRef}
-        src={posterFrameUrl(src)}
+        src={near ? posterFrameUrl(src) : undefined}
         preload="metadata"
         playsInline
         controls={started}

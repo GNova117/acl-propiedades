@@ -5,6 +5,7 @@ import { db } from "../../lib/dataStore";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog, notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const ENTRY_TYPES = [
   { key: "avance", labelKey: "remodelProgress.avanceTab" },
@@ -13,7 +14,7 @@ const ENTRY_TYPES = [
 
 export default function AdminRemodelProgress() {
   const { id } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [project, setProject] = useState(null);
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +30,7 @@ export default function AdminRemodelProgress() {
       setProject(projectData);
       setEntries(entryData);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   };
 
   useEffect(load, [id]);
@@ -61,7 +62,7 @@ export default function AdminRemodelProgress() {
       resetPending();
       load();
     } catch (err) {
-      notify(err.message || "Error al guardar");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }
@@ -103,7 +104,7 @@ export default function AdminRemodelProgress() {
                       <img src={entry.signed_url} alt="" />
                       {entry.note && <p className="m-0">{entry.note}</p>}
                       <span className="form-hint">
-                        {t("remodelProgress.addedAt")} {new Date(entry.created_at).toLocaleString()}
+                        {t("remodelProgress.addedAt")} {new Date(entry.created_at).toLocaleString(i18n.language)}
                       </span>
                       <button type="button" className="btn btn-danger btn-sm" onClick={() => handleDelete(entry.id)}>
                         {t("common.delete")}

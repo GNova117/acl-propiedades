@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import ZoneCombobox from "./ZoneCombobox";
+import { hasMoreFiltersApplied } from "../lib/moreFilters";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { propertyTypeLabel } from "../lib/format";
@@ -13,7 +15,7 @@ const MIN_OPTIONS = ["1", "2", "3", "4", "5"];
 // botón "Filtros" en celular para que se sepa si hay algo activo sin tener
 // que abrir el panel.
 function countActiveFilters(filters, showHomeFilters) {
-  const fields = ["type", "operationType", "tipoNave", "zone", "minPrice", "maxPrice", "minArea", "maxArea"];
+  const fields = ["type", "operationType", "status", "tipoNave", "zone", "minPrice", "maxPrice", "minArea", "maxArea"];
   if (showHomeFilters) fields.push("minBedrooms", "minBathrooms", "minParking");
   return fields.filter((field) => filters[field]).length + (showHomeFilters ? filters.amenities?.length || 0 : 0);
 }
@@ -75,6 +77,10 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
       } else {
         setCodeError(true);
       }
+    } catch (err) {
+      // Sin red el botón se quedaba en «buscando»: ahora avisa que no se pudo buscar.
+      console.error("getPropertyByCode", err);
+      setCodeError("network");
     } finally {
       setSearchingCode(false);
     }
@@ -85,7 +91,7 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
       <div className="property-filters__header">
         <h3>{t("properties.filters")}</h3>
         <div className="property-filters__header-actions">
-          <button type="button" className="btn btn-outline btn-sm" onClick={onClear}>
+          <button type="button" className="btn btn-outline btn-sm" onClick={onClear} disabled={activeCount === 0}>
             {t("properties.clear")}
           </button>
           <button
@@ -118,7 +124,7 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
             {t("properties.codeSearchButton")}
           </button>
         </div>
-        {codeError && <span className="form-error">{t("properties.codeNotFound")}</span>}
+        {codeError && <span className="form-error">{t(codeError === "network" ? "properties.codeSearchError" : "properties.codeNotFound")}</span>}
       </form>
 
       {typeOptions.length > 0 && (
@@ -146,6 +152,15 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
         </div>
       )}
 
+      <div className="form-field">
+        <label htmlFor="filter-status">{t("properties.statusFilter")}</label>
+        <select id="filter-status" value={filters.status || ""} onChange={handle("status")}>
+          <option value="">{t("properties.statusDefault")}</option>
+          <option value="disponible">{t("properties.statusOnlyAvailable")}</option>
+          <option value="todas">{t("properties.statusAll")}</option>
+        </select>
+      </div>
+
       {showNaveTipo && (
         <div className="form-field">
           <label htmlFor="filter-nave-tipo">{t("properties.naveTipo")}</label>
@@ -159,12 +174,7 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
 
       <div className="form-field">
         <label htmlFor="filter-zone">{t("properties.zone")}</label>
-        <input id="filter-zone" list="property-filters-zones" value={filters.zone} onChange={handle("zone")} placeholder={t("hero.allZones")} />
-        <datalist id="property-filters-zones">
-          {zones.map((zone) => (
-            <option key={zone.id} value={zone.name} />
-          ))}
-        </datalist>
+        <ZoneCombobox id="filter-zone" name="zone" value={filters.zone} onChange={handle("zone")} zones={zones} placeholder={t("hero.allZones")} />
       </div>
 
       <div className="form-field">
@@ -201,7 +211,8 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
         </div>
       </div>
 
-      <details className="property-filters__more" open>
+      {/* 287: «Más filtros» arranca cerrado (antes `open`, que no ocultaba nada) y se abre solo si ya hay alguno de ellos aplicado. */}
+      <details className="property-filters__more" open={hasMoreFiltersApplied(filters) || undefined}>
         <summary>{t("properties.moreFilters")}</summary>
 
         <div className="form-row">
@@ -254,8 +265,8 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
         )}
 
         {showHomeFilters && amenities.length > 0 && (
-          <div className="form-field">
-            <label>{t("properties.amenities")}</label>
+          <fieldset className="form-field">
+            <legend>{t("properties.amenities")}</legend>
             <div className="property-filters__amenities">
               {amenities.map((amenity) => (
                 <label key={amenity.id} className="property-filters__amenity">
@@ -268,7 +279,7 @@ export default function PropertyFilters({ filters, zones, typeOptions = [], show
                 </label>
               ))}
             </div>
-          </div>
+          </fieldset>
         )}
       </details>
 

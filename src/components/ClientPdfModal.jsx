@@ -5,6 +5,7 @@ import { clientSheetData, clientSheetSections } from "../lib/clientExpedienteFie
 import { downloadMultiPerfilamientoPdf } from "../lib/perfilamientoPdf";
 import "./ExpedienteAvaluoModal.css";
 import LoadingState from "./LoadingState";
+import { notifyLoadError } from "../lib/loadError";
 
 function clientTypeLabel(t, type) {
   return t(`clients.${type === "comprador" ? "buyer" : type === "vendedor" ? "seller" : "both"}`);
@@ -37,7 +38,7 @@ export default function ClientPdfModal({ initialTypeFilter, onClose }) {
       setClients(clientsData);
       setLinkMap(map);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, []);
 
   const clientsById = useMemo(() => new Map(clients.map((c) => [c.id, c])), [clients]);
@@ -180,7 +181,7 @@ export default function ClientPdfModal({ initialTypeFilter, onClose }) {
               </p>
             )}
 
-            {error && <p className="form-error">{error}</p>}
+            {error && <p className="form-error" role="alert">{error}</p>}
 
             <div className="admin-form__actions">
               <button type="button" className="btn btn-primary" onClick={handleDownload} disabled={busy || selected.size === 0}>

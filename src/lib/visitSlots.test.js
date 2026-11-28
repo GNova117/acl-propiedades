@@ -382,3 +382,15 @@ describe("solicitud de visita sin asesor", () => {
     expect(buildRequestMessage({ title: "Casa", fecha: "2026-11-05", hora: "10:00" })).not.toContain("Nota:");
   });
 });
+
+describe("REQUEST_TIME_OPTIONS", () => {
+  it("ofrece cada 30 minutos de 9:00 a 20:00 y nunca horas raras", async () => {
+    const { REQUEST_TIME_OPTIONS } = await import("./visitSlots");
+    expect(REQUEST_TIME_OPTIONS[0]).toBe("09:00");
+    expect(REQUEST_TIME_OPTIONS.at(-1)).toBe("20:00");
+    expect(REQUEST_TIME_OPTIONS).toContain("13:30");
+    expect(REQUEST_TIME_OPTIONS).not.toContain("13:07");
+    expect(REQUEST_TIME_OPTIONS.every((hour) => /^\d{2}:(00|30)$/.test(hour))).toBe(true);
+    expect(REQUEST_TIME_OPTIONS).toHaveLength(23);
+  });
+});

@@ -4,13 +4,15 @@ import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import PropertyCard from "../components/PropertyCard";
 import ShareButton from "../components/ShareButton";
-import { useFavorites } from "../context/FavoritesContext";
-import { db } from "../lib/dataStore";
+import { useFavorites } from "../context/useFavorites.js";
 import { buildFavoritesShareUrl, parseSharedIds } from "../lib/favoritesShare";
 import "./Properties.css";
 import "./Favorites.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
+import { siteOrigin } from "../lib/site";
+import { loadPropertiesInOrder } from "../lib/propertiesByIds";
+import { favoritesAlerts } from "../lib/favoritesAlerts";
 
 export default function Favorites() {
   const { t } = useTranslation();
@@ -31,9 +33,9 @@ export default function Favorites() {
     // getProperties) — una lista de favoritos nunca es tan grande como
     // para que esto pese; una propiedad borrada después de guardarla
     // simplemente no aparece (catch -> null -> filtrada).
-    Promise.all(ids.map((id) => db.getPropertyById(id).catch(() => null))).then((results) => {
+    loadPropertiesInOrder(ids).then((results) => {
       if (active) {
-        setProperties(results.filter(Boolean));
+        setProperties(results);
         setLoading(false);
       }
     });
@@ -46,8 +48,9 @@ export default function Favorites() {
 
   useEffect(() => setSaved(false), [search]);
 
-  const shareUrl = typeof window !== "undefined" ? buildFavoritesShareUrl(window.location.origin, favorites) : "";
+  const shareUrl = typeof window !== "undefined" ? buildFavoritesShareUrl(siteOrigin(), favorites) : "";
   const shareText = `${t("favoritesShare.shareText")}\n${shareUrl}`;
+  const alerts = useMemo(() => favoritesAlerts(properties), [properties]);
   const allSaved = shared && properties.length > 0 && properties.every((p) => favorites.includes(p.id));
 
   return (
@@ -56,7 +59,7 @@ export default function Favorites() {
 
       <div className="container properties-page">
         <div className="section-heading m-section">
-          <h2>{shared ? t("favoritesShare.sharedTitle") : t("favorites.title")}</h2>
+          <h1>{shared ? t("favoritesShare.sharedTitle") : t("favorites.title")}</h1>
           <p>{shared ? t("favoritesShare.sharedSubtitle") : t("favorites.subtitle")}</p>
         </div>
 
@@ -82,6 +85,13 @@ export default function Favorites() {
                 {t("favoritesShare.viewMine")}
               </Link>
             </div>
+          </div>
+        )}
+
+        {!shared && !loading && (alerts.dropped > 0 || alerts.unavailable > 0) && (
+          <div className="card favorites-banner" role="status">
+            {alerts.dropped > 0 && <p>{t("favorites.alertDropped", { count: alerts.dropped })}</p>}
+            {alerts.unavailable > 0 && <p>{t("favorites.alertUnavailable", { count: alerts.unavailable })}</p>}
           </div>
         )}
 

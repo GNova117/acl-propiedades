@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import { db } from "../lib/dataStore";
 import { formatArea, formatMXN, propertyTypeLabel } from "../lib/format";
 import { sellEstimate } from "../lib/sellEstimate";
 import { isValidPhone, sendLead } from "../lib/lead";
+import { readSellPrefill } from "../lib/sellPrefill";
 import "./PublicForms.css";
 import { trackConversion } from "../lib/conversions";
 
@@ -18,7 +19,9 @@ export default function SellYourHome() {
   const { t } = useTranslation();
   const [zones, setZones] = useState([]);
   const [types, setTypes] = useState([]);
-  const [form, setForm] = useState(INITIAL);
+  // 364: viene de la calculadora de valor con tipo, zona y superficies ya puestos (?tipo=…&zona=…&terreno=…&construccion=…).
+  const [searchParams] = useSearchParams();
+  const [form, setForm] = useState(() => ({ ...INITIAL, ...readSellPrefill(searchParams) }));
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
 
@@ -43,7 +46,7 @@ export default function SellYourHome() {
     if (!form.phone.trim()) next.phone = t("contact.required");
     else if (!isValidPhone(form.phone)) next.phone = t("contactRequest.invalidPhone");
     if (!form.address.trim()) next.address = t("contact.required");
-    if (!(Number(form.landArea) > 0)) next.landArea = t("contact.required");
+    // El terreno ya no es obligatorio (muchos dueños no saben los m²): el asesor lo confirma en la visita.
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
@@ -94,6 +97,9 @@ export default function SellYourHome() {
         <div className="section-heading m-section">
           <h1 style={{ fontSize: "2rem" }}>{t("sellHome.title")}</h1>
           <p>{t("sellHome.subtitle")}</p>
+          <p className="form-hint">
+            <Link to="/contacto?motivo=rentar_mia">{t("sellHome.rentInstead")}</Link>
+          </p>
         </div>
 
         <div className="card public-form-card">
@@ -172,7 +178,7 @@ export default function SellYourHome() {
 
               <div className="form-row">
                 <div className="form-field">
-                  <label htmlFor="sh-land">{t("sellHome.landArea")} *</label>
+                  <label htmlFor="sh-land">{t("sellHome.landArea")}</label>
                   <input id="sh-land" name="landArea" type="number" min="0" step="any" inputMode="decimal" value={form.landArea} onChange={change} aria-invalid={Boolean(errors.landArea)} />
                   {errors.landArea && <span className="form-error">{errors.landArea}</span>}
                 </div>
@@ -207,8 +213,8 @@ export default function SellYourHome() {
                 <textarea id="sh-comments" name="comments" rows={3} value={form.comments} onChange={change} />
               </div>
 
-              {status === "error" && <p className="form-error">{t("contact.error")}</p>}
-              {status === "rateLimited" && <p className="form-error">{t("contact.rateLimited")}</p>}
+              {status === "error" && <p className="form-error" role="alert">{t("contact.error")}</p>}
+              {status === "rateLimited" && <p className="form-error" role="alert">{t("contact.rateLimited")}</p>}
 
               <button type="submit" className="btn btn-primary btn-block" disabled={status === "sending"}>
                 {status === "sending" ? <span className="spinner" /> : null}

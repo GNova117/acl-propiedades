@@ -24,8 +24,26 @@
   }
 }
 
+/* 266: en teléfono las destacadas van en una fila que se desliza de lado (antes seis tarjetas apiladas = ~3,600 px de página).
+   Cada tarjeta ocupa ~85 % del ancho para que se asome la siguiente y se note que hay más. */
 @media (max-width: 640px) {
   .featured-properties__grid {
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin: 0 calc(var(--space-6) * -1);
+    padding: 0 var(--space-6) 0.75rem;
+    scrollbar-width: none;
+  }
+
+  .featured-properties__grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .featured-properties__grid > * {
+    flex: 0 0 85%;
+    min-width: 0;
+    scroll-snap-align: center;
   }
 }

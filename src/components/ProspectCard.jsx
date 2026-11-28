@@ -9,6 +9,7 @@ import QuickReplyButton from "./QuickReplyButton";
 import ProspectContactForm from "./ProspectContactForm";
 import ProspectMatches from "./ProspectMatches";
 import { FollowChip, ScoreChip, SelectionChip, SequenceBlock, UnattendedChip } from "./ProspectChips";
+import { siteOrigin } from "../lib/site";
 
 // Tarjeta de un prospecto en el tablero de Prospectos. Lo que se hace casi
 // siempre está a la vista —mensaje rápido y llamar, que al regresar abren solos
@@ -121,7 +122,7 @@ export default function ProspectCard({
       <ProspectMatches prospect={p} matches={matches} advisorName={advisorName} onSent={(channel) => contact.open(p, channel, true)} />
       <div className="prospect-card__actions">
         <QuickReplyButton
-          templates={quickTemplates(p, { propertyTitle, advisorName, origin: window.location.origin, t })}
+          templates={quickTemplates(p, { propertyTitle, advisorName, origin: siteOrigin(), t })}
           phone={p.phone}
           email={p.email}
           emailSubject="ACL Propiedades"

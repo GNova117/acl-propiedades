@@ -7,6 +7,7 @@ import SpacesEditor from "../../components/SpacesEditor";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 const EMPTY = { name: "", client_id: "", area_m2: "", notes: "", materials: [], spaces: [] };
 
@@ -24,7 +25,7 @@ export default function AdminRemodelProjectForm() {
   const [loading, setLoading] = useState(isEdit);
 
   useEffect(() => {
-    db.getClients().then(setClients);
+    db.getClients().then(setClients).catch(notifyLoadError);
   }, []);
 
   useEffect(() => {
@@ -46,7 +47,7 @@ export default function AdminRemodelProjectForm() {
         db.getPropertyById(project.property_id).then(setLinkedProperty);
       }
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [id, isEdit]);
 
   const handleChange = (field) => (e) => {
@@ -78,7 +79,7 @@ export default function AdminRemodelProjectForm() {
       }
       navigate("/admin/remodelaciones");
     } catch (err) {
-      notify(err.message || "Error al guardar");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }

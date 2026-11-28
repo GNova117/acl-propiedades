@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import NavIcon from "./NavIcon";
 import { NAV } from "../lib/adminNav";
 import { ICON_BY_GROUP, ICON_BY_PATH } from "../lib/navIcons";

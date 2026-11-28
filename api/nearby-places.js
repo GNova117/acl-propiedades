@@ -7,7 +7,24 @@
 // CDN de Vercel conteste casi todas las visitas sin volver a consultarlo (los
 // comercios cambian poco; una semana es de sobra).
 import { fetchNearbyPlaces, NearbyError } from "../server/nearbyPlaces.js";
-import { parseCoords } from "../src/lib/nearbyPlaces.js";
+import { nearbyPropertyBox, parseCoords } from "../src/lib/nearbyPlaces.js";
+
+// true/false si se pudo consultar; null si no hay base configurada o falló (entonces solo vale la caja de México).
+async function hasPublishedPropertyNear(coords) {
+  const url = process.env.VITE_SUPABASE_URL;
+  const key = process.env.VITE_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  const box = nearbyPropertyBox(coords);
+  const query = `${url}/rest/v1/properties?select=id&active=eq.true&lat=gte.${box.minLat}&lat=lte.${box.maxLat}&lng=gte.${box.minLng}&lng=lte.${box.maxLng}&limit=1`;
+  try {
+    const res = await fetch(query, { headers: { apikey: key, Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(4000) });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    return Array.isArray(rows) && rows.length > 0;
+  } catch {
+    return null;
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -18,6 +35,13 @@ export default async function handler(req, res) {
 
   const coords = parseCoords(req.query);
   if (!coords) {
+    res.setHeader("Cache-Control", "no-store");
+    res.status(400).json({ error: "coords" });
+    return;
+  }
+
+  // Solo alrededor de una propiedad publicada (ver nearbyPropertyBox). Si no se puede consultar la base, se queda la validación de la caja.
+  if ((await hasPublishedPropertyNear(coords)) === false) {
     res.setHeader("Cache-Control", "no-store");
     res.status(400).json({ error: "coords" });
     return;

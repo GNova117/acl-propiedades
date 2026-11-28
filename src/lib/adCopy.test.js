@@ -101,3 +101,24 @@ describe("withFooter", () => {
     expect(withFooter("x", property, { channel: "portal", origin })).toBe("x");
   });
 });
+
+describe("anuncios en inglés (467)", () => {
+  it("entiende precios en inglés: million, thousand y k", () => {
+    expect(mentionedPrices("Priced at $2.45 million")).toEqual([2450000]);
+    expect(mentionedPrices("only $850 thousand")).toEqual([850000]);
+    expect(mentionedPrices("$850k")).toEqual([850000]);
+  });
+  it("acepta datos que coinciden con la ficha", () => {
+    expect(factIssue("Lovely home with 3 bedrooms, 2.5 bathrooms and 180 square meters. $2,450,000 MXN.", property)).toBeNull();
+    expect(factIssue("Spacious 180 m² house with a pool.", property)).toBeNull();
+  });
+  it("detecta recámaras, baños, superficie y precio que contradicen la ficha", () => {
+    expect(factIssue("Home with 4 bedrooms.", property)).toBe("bedrooms");
+    expect(factIssue("It has 3 bathrooms.", property)).toBe("bathrooms");
+    expect(factIssue("Offers 250 square meters of living space.", property)).toBe("area");
+    expect(factIssue("Asking $1.9 million.", property)).toBe("price");
+  });
+  it("no confunde otras palabras que empiezan igual (bathtub, bedspread)", () => {
+    expect(factIssue("Two bathtubs and 2 bedspreads included.", property)).toBeNull();
+  });
+});

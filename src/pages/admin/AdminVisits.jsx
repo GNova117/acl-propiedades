@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import VisitProspect from "../../components/VisitProspect";
 import VisitsByAdvisor from "../../components/VisitsByAdvisor";
 import { VISIT_INTERESTS, formatVisitDateTime, reasonLabel } from "../../lib/visitReport";
@@ -85,8 +85,8 @@ export default function AdminVisits() {
     }
   };
 
-  const handleExport = () => {
-    exportToCsv("visitas.csv", visible, [
+  const handleExport = (ext = "csv") => {
+    exportToCsv(`visitas.${ext}`, visible, [
       { label: t("visits.table.when"), value: (v) => formatVisitDateTime(v.visited_at, i18n.language) },
       { label: t("detail.code"), value: (v) => propertyById.get(v.property_id)?.code || "" },
       { label: t("visits.table.property"), value: (v) => propertyById.get(v.property_id)?.title || "" },
@@ -107,8 +107,11 @@ export default function AdminVisits() {
       <div className="admin-header">
         <h1>{seesAll ? t("visits.allTitle") : t("visits.myTitle")}</h1>
         <div className="admin-header__actions">
-          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={visible.length === 0}>
+          <button type="button" className="btn btn-outline" onClick={() => handleExport("csv")} disabled={visible.length === 0}>
             {t("common.exportCsv")}
+          </button>
+          <button type="button" className="btn btn-outline" onClick={() => handleExport("xlsx")} disabled={visible.length === 0}>
+            {t("common.exportXlsx")}
           </button>
           <Link to="/admin/visitas/informes" className="btn btn-outline">
             {t("visits.monthly.button")}
@@ -119,7 +122,7 @@ export default function AdminVisits() {
         </div>
       </div>
 
-      {loadError && <p className="form-error">{t("visits.loadError", { error: loadError })}</p>}
+      {loadError && <p className="form-error" role="alert">{t("visits.loadError", { error: loadError })}</p>}
 
       {seesAll && visits.length > 0 && <VisitsByAdvisor visits={visits} advisors={advisors} />}
 

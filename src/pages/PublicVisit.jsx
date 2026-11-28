@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { usePrivatePage } from "../lib/usePrivatePage";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Logo from "../components/Logo";
@@ -7,7 +8,7 @@ import LanguageToggle from "../components/LanguageToggle";
 import VisitSlotPicker from "../components/VisitSlotPicker";
 import { db } from "../lib/dataStore";
 import { OFFICE_WHATSAPP } from "../lib/office";
-import { citaToIcs, downloadIcs, mapsUrl } from "../lib/calendarEvent";
+import { citaToIcs, downloadIcs, googleCalendarUrl, mapsUrl } from "../lib/calendarEvent";
 import { MAX_RESCHEDULES } from "../lib/visitSlots";
 import { useSlotSelection } from "../lib/useSlotSelection";
 import { rememberItem } from "../lib/mySpace";
@@ -170,18 +171,7 @@ export default function PublicVisit() {
   const [notice, setNotice] = useState(null); // { tone: "ok" | "error", text }
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    const meta = document.createElement("meta");
-    meta.name = "robots";
-    meta.content = "noindex, nofollow, noarchive";
-    document.head.appendChild(meta);
-    const previousTitle = document.title;
-    document.title = `${t("visitPage.pageTitle")} | ACL Propiedades`;
-    return () => {
-      meta.remove();
-      document.title = previousTitle;
-    };
-  }, [t]);
+  usePrivatePage(t("visitPage.pageTitle"));
 
   const load = useCallback(
     () =>
@@ -233,6 +223,9 @@ export default function PublicVisit() {
     const event = bookingToCalendarEvent({ token, fecha: data.fecha, hora: data.hora, duracion_min: data.duracion_min, property: property || { title: label, address } }, { titlePrefix: t("scheduleVisit.booking.eventPrefix") });
     downloadIcs(`visita-${data.fecha}.ics`, citaToIcs(event, { advisorName: data.advisor?.name || "" }));
   };
+
+  // `data` puede no existir todavía (cargando) o ser un enlace que no existe: sin visita no hay enlace de calendario.
+  const googleHref = !data ? null : googleCalendarUrl(bookingToCalendarEvent({ token, fecha: data.fecha, hora: data.hora, duracion_min: data.duracion_min, property: property || { title: label, address } }, { titlePrefix: t("scheduleVisit.booking.eventPrefix") }), { advisorName: data.advisor?.name || "" });
 
   // El WhatsApp es el de la oficina: el sitio no publica los datos de contacto de cada asesor.
   const whatsappHref = `https://wa.me/${OFFICE_WHATSAPP}?text=${encodeURIComponent(t("visitPage.whatsappText", { property: label, when }))}`;
@@ -310,6 +303,11 @@ export default function PublicVisit() {
 
               {isConfirmed && !isPast && (
                 <div className="visit-page__links">
+                  {googleHref && (
+                    <a className="btn btn-outline btn-sm" href={googleHref} target="_blank" rel="noopener noreferrer">
+                      {t("visitPage.addToGoogle")}
+                    </a>
+                  )}
                   <button type="button" className="btn btn-outline btn-sm" onClick={addToCalendar}>
                     {t("visitPage.addToCalendar")}
                   </button>

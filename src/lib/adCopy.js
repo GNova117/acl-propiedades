@@ -13,6 +13,8 @@ import { propertyPath } from "./propertyUrl.js";
 
 export const AD_CHANNELS = ["whatsapp", "facebook", "instagram", "portal"];
 export const AD_TONES = ["cercano", "profesional", "aspiracional"];
+// 467: idioma del anuncio. En inglés los datos se siguen revisando contra la ficha (precio en pesos, m², recámaras, baños).
+export const AD_LANGUAGES = ["es", "en"];
 export const MAX_EXTRA_CHARS = 300;
 
 const OFFICE_PHONE_TEXT = `${OFFICE_WHATSAPP.slice(2, 5)} ${OFFICE_WHATSAPP.slice(5, 8)} ${OFFICE_WHATSAPP.slice(8)}`;
@@ -62,16 +64,16 @@ const toNumber = (text) => Number(String(text).replace(/[,\s]/g, ""));
 // "$850 mil", "2.4 mdp"… (siempre en pesos, sin signo).
 export function mentionedPrices(text) {
   const found = [];
-  const scale = (unit) => (/^(mil)$/i.test(unit || "") ? 1e3 : /^(millones?|mdp|m)$/i.test(unit || "") ? 1e6 : 1);
-  const withSign = /\$\s*(\d{1,3}(?:[,\s]\d{3})+|\d+)(?:\.(\d+))?\s*(millones?|mdp|mil)?\b/gi;
+  const scale = (unit) => (/^(mil|thousand|k)$/i.test(unit || "") ? 1e3 : /^(millones?|million|mdp|m)$/i.test(unit || "") ? 1e6 : 1);
+  const withSign = /\$\s*(\d{1,3}(?:[,\s]\d{3})+|\d+)(?:\.(\d+))?\s*(millones?|million|mdp|mil|thousand|k)?\b/gi;
   for (const m of text.matchAll(withSign)) found.push(toNumber(`${m[1]}.${m[2] || 0}`) * scale(m[3]));
-  const withoutSign = /(?<![$\d.,])(\d+(?:\.\d+)?)\s*(millones?|mdp)\b/gi;
+  const withoutSign = /(?<![$\d.,])(\d+(?:\.\d+)?)\s*(millones?|million|mdp)\b/gi;
   for (const m of text.matchAll(withoutSign)) found.push(Number(m[1]) * 1e6);
   return found.filter((n) => Number.isFinite(n));
 }
 
 const numbersBefore = (text, unitPattern) => [...text.matchAll(new RegExp(`(\\d+(?:\\.\\d+)?)\\s*(?:${unitPattern})`, "gi"))].map((m) => Number(m[1]));
-const AREA_UNIT = "m²|m2|metros cuadrados|mts2?";
+const AREA_UNIT = "m²|m2|metros cuadrados|mts2?|square meters?|sq\\.? ?m|sqm";
 
 // ¿Contradice el texto a la ficha? Devuelve null si está bien o el motivo.
 // Solo revisa lo que se puede comprobar sin interpretar: precio, recámaras,
@@ -87,11 +89,11 @@ export function factIssue(text, property) {
   } else if (mentionedPrices(text).length > 0) return "price";
 
   const bedrooms = num(property.bedrooms);
-  for (const n of numbersBefore(text, "rec[aá]maras?|habitaciones?|dormitorios?|cuartos")) if (bedrooms == null || n !== bedrooms) return "bedrooms";
+  for (const n of numbersBefore(text, "rec[aá]maras?|habitaciones?|dormitorios?|cuartos|bedrooms?\\b|beds?\\b")) if (bedrooms == null || n !== bedrooms) return "bedrooms";
 
   const bathrooms = num(property.bathrooms);
   const bathOk = bathrooms == null ? [] : [bathrooms, Math.floor(bathrooms)];
-  for (const n of numbersBefore(text, "ba[ñn]os?")) if (!bathOk.includes(n)) return "bathrooms";
+  for (const n of numbersBefore(text, "ba[ñn]os?|bathrooms?\\b|baths?\\b")) if (!bathOk.includes(n)) return "bathrooms";
 
   // Superficies: la de la ficha o cualquiera que ya esté escrita en la descripción.
   const knownAreas = new Set([num(property.area_m2), ...numbersBefore(String(property.description || ""), AREA_UNIT)].filter((n) => n != null));

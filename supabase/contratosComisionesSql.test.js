@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 // Bloque «Contratos de intermediación, comisiones por asesor y fusión de prospectos» de schema.sql. Se probó contra un
@@ -9,13 +9,14 @@ import { describe, expect, it } from "vitest";
 // pierda piezas ni cuele secretos.
 const schema = readFileSync(new URL("./schema.sql", import.meta.url), "utf8");
 const START = "-- Contratos de intermediación, comisiones por asesor y fusión de prospectos (2026-11-17)";
-const start = schema.lastIndexOf("-- ───", schema.indexOf(START));
-const block = schema.slice(start);
+// El bloque es la migración que lo trae (schema.sql es la unión de todas y después de este bloque siguen otras migraciones).
+const migration = readdirSync(new URL("./migrations/", import.meta.url)).find((f) => readFileSync(new URL(`./migrations/${f}`, import.meta.url), "utf8").includes(START));
+const block = readFileSync(new URL(`./migrations/${migration}`, import.meta.url), "utf8");
 
 describe("schema.sql: contratos, comisiones y fusión de prospectos", () => {
-  it("el bloque existe una sola vez y va al final", () => {
+  it("el bloque existe una sola vez y está en schema.sql", () => {
     expect(schema.split(START)).toHaveLength(2);
-    expect(schema.trimEnd().endsWith(block.trimEnd())).toBe(true);
+    expect(schema.includes(block.trimEnd())).toBe(true);
   });
 
   it("el contrato vive en una tabla aparte de properties (que se lee en público) y con RLS por apartado", () => {

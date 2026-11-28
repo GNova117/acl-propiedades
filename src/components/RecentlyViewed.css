@@ -18,3 +18,11 @@
   flex: 0 0 280px;
   scroll-snap-align: start;
 }
+
+.recently-viewed__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}

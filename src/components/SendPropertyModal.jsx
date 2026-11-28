@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import { db } from "../lib/dataStore";
 import { whatsappDigits, whatsappUrl } from "../lib/format";
 import { propertyShareMessage } from "../lib/propertyShare";
@@ -8,6 +8,8 @@ import { contactUpdate } from "../lib/prospectContacts";
 import ProspectContactForm from "./ProspectContactForm";
 import "./PropertyProspectsModal.css";
 import "./SendPropertyModal.css";
+import { copyFallback } from "../lib/toast";
+import { siteOrigin } from "../lib/site";
 
 const MAX_LISTED = 6;
 const OTHER = "other";
@@ -58,7 +60,7 @@ export default function SendPropertyModal({ property, prospects, onClose, onLogg
 
   const prospect = prospects.find((p) => p.id === selectedId) || null;
   const recipientName = prospect?.name || "";
-  const origin = window.location.origin;
+  const origin = siteOrigin();
 
   // El mensaje se vuelve a armar al cambiar de destinatario (saluda por su nombre)
   // o cuando llega el nombre del asesor; lo que el asesor edite se respeta hasta
@@ -86,7 +88,7 @@ export default function SendPropertyModal({ property, prospects, onClose, onLogg
       setTimeout(() => setCopied(false), 2000);
     } catch {
       try {
-        window.prompt(t("detail.copyLinkManual"), text);
+        copyFallback(t("detail.copyLinkManual"), text);
       } catch {
         // Sin portapapeles ni prompt: el texto sigue a la vista en el cuadro.
       }

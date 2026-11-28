@@ -6,7 +6,7 @@ import "./TrustStats.css";
 // Cifras de confianza del inicio y las vendidas más recientes. `summary` viene
 // de buildTrustSummary(); si es null (aún pocas ventas) no se muestra nada.
 export default function TrustStats({ summary }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   if (!summary) return null;
 
   const stats = [
@@ -27,7 +27,7 @@ export default function TrustStats({ summary }) {
         <ul className="trust-stats__list">
           {stats.map((stat) => (
             <li key={stat.label} className="trust-stats__item">
-              <strong>{stat.value.toLocaleString()}</strong>
+              <strong>{stat.value.toLocaleString(i18n.language)}</strong>
               <span>{stat.label}</span>
             </li>
           ))}

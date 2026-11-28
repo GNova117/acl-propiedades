@@ -1,13 +1,16 @@
 import ResponsiveImg from "../../components/ResponsiveImg";
-import { useMemo, useState } from "react";
+import { staleListingDays } from "../../lib/photoFreshness";
+import { advisorNames, advisorSummary } from "../../lib/propertyAdvisorLine";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { formatMXN, formatArea, propertyTypeLabel } from "../../lib/format";
+import { formatMXN, formatArea, propertyTypeLabel, daysSince } from "../../lib/format";
 import { downloadFichaTecnicaPdf } from "../../lib/propertyFichaPdf";
 import { exportToCsv } from "../../lib/csvExport";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import SocialPostModal from "../../components/SocialPostModal";
+import OwnerMessageModal from "../../components/OwnerMessageModal";
 import PropertyProspectsModal from "../../components/PropertyProspectsModal";
 import PropertyOffersModal from "../../components/PropertyOffersModal";
 import PropertyContractModal from "../../components/PropertyContractModal";
@@ -38,6 +41,7 @@ import { confirmDialog, notify } from "../../lib/toast";
 // pasan explícitos — así que un cambio en lote de un solo campo (estatus,
 // activo) tiene que ir con todo lo demás de la propiedad, incluyendo los
 // tres arreglos de medios ya existentes, para no perderlos.
+const PropertyMap = lazy(() => import("../../components/PropertyMap"));
 const NONE = [];
 
 function mediaPreservingPatch(property, patch) {
@@ -85,6 +89,7 @@ export default function AdminProperties({
   const { hasSection, advisorId } = useAuth();
   const [busyFichaId, setBusyFichaId] = useState(null);
   const [socialProperty, setSocialProperty] = useState(null);
+  const [ownerProperty, setOwnerProperty] = useState(null); // 460: mensaje para avisar al dueño del estatus
   const [matchProperty, setMatchProperty] = useState(null);
   const [offersProperty, setOffersProperty] = useState(null);
   const [contractProperty, setContractProperty] = useState(null);
@@ -110,6 +115,8 @@ export default function AdminProperties({
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkStatus, setBulkStatus] = useState("disponible");
   const [onlyIncomplete, setOnlyIncomplete] = useState(false);
+  const [showMap, setShowMap] = useState(false); // 427: inventario en el mapa
+  const [onlyMine, setOnlyMine] = useState(false); // 461: solo las propiedades asignadas a quien tiene la sesión
   const [priceMode, setPriceMode] = useState("percentDown");
   const [priceAmount, setPriceAmount] = useState("");
   const [bulkAdvisor, setBulkAdvisor] = useState("");
@@ -166,6 +173,7 @@ export default function AdminProperties({
     const term = search.trim().toLowerCase();
     const matching = properties.filter((p) => {
       if (onlyIncomplete && completeness.get(p.id)?.complete) return false;
+      if (onlyMine && advisorId && !(p.advisor_ids || []).includes(advisorId)) return false;
       if (stallDays && !stalled.get(p.id)?.stalled) return false;
       if (term && !p.title?.toLowerCase().includes(term) && !p.code?.toLowerCase().includes(term) && !p.address?.toLowerCase().includes(term)) return false;
       if (zoneFilter && p.zone !== zoneFilter) return false;
@@ -176,7 +184,7 @@ export default function AdminProperties({
       return true;
     });
     return sortRows(matching, sort, SORT_BY);
-  }, [properties, completeness, onlyIncomplete, stallDays, stalled, search, zoneFilter, operationFilter, statusFilter, minPrice, maxPrice, sort]);
+  }, [properties, completeness, onlyIncomplete, onlyMine, advisorId, stallDays, stalled, search, zoneFilter, operationFilter, statusFilter, minPrice, maxPrice, sort]);
 
   const handleDelete = async (id) => {
     if (!await confirmDialog(t("common.confirmDelete"))) return;
@@ -244,7 +252,12 @@ export default function AdminProperties({
 
   const handleBulkActive = (active) => runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { active })));
 
-  const handleBulkStatus = () => runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { status: bulkStatus })));
+  const handleBulkStatus = async () => {
+    const becameSold = bulkStatus === "vendida" ? selectedProperties.filter((p) => p.status !== "vendida").length : 0;
+    await runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { status: bulkStatus })));
+    // 459: en lote no se piden los datos uno por uno; se avisa que quedaron pendientes de registrar en Reportes.
+    if (becameSold > 0 && hasSection("reportes")) notify(t("saleData.bulkPending", { count: becameSold }));
+  };
 
   // Cambio de precio en lote: se calcula el nuevo precio de cada una, se muestra un ejemplo y se pide confirmar.
   // Las que no se pueden calcular (sin precio, o el cambio no lo mueve) se omiten y se avisa.
@@ -282,8 +295,8 @@ export default function AdminProperties({
     runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { advisor_ids: bulkAdvisorIds(mode, property.advisor_ids, advisor.id) })), targets);
   };
 
-  const handleExport = () => {
-    exportToCsv(`${basePath.split("/").pop()}.csv`, visibleProperties, [
+  const handleExport = (ext = "csv") => {
+    exportToCsv(`${basePath.split("/").pop()}.${ext}`, visibleProperties, [
       { label: t("detail.code"), key: "code" },
       { label: "Título", key: "title" },
       { label: t("properties.type"), value: (p) => propertyTypeLabel(t, p.type) },
@@ -332,8 +345,14 @@ export default function AdminProperties({
             onToggle={(key) => changeColumns(toggleColumn(hiddenCols, key, HIDEABLE))}
             onReset={() => changeColumns(new Set())}
           />
-          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={visibleProperties.length === 0}>
+          <button type="button" className="btn btn-outline" onClick={() => handleExport("csv")} disabled={visibleProperties.length === 0}>
             {t("common.exportCsv")}
+          </button>
+          <button type="button" className="btn btn-outline" onClick={() => handleExport("xlsx")} disabled={visibleProperties.length === 0}>
+            {t("common.exportXlsx")}
+          </button>
+          <button type="button" className="btn btn-outline" onClick={() => setShowMap((v) => !v)} aria-pressed={showMap} disabled={visibleProperties.length === 0}>
+            {showMap ? t("properties.hideMap") : t("properties.showMap")}
           </button>
         </div>
       </div>
@@ -355,7 +374,7 @@ export default function AdminProperties({
         }}
       />
       <AdminFilters
-        activeCount={[zoneFilter, operationFilter, statusFilter, minPrice, maxPrice, onlyIncomplete, stallDays].filter(Boolean).length}
+        activeCount={[zoneFilter, operationFilter, statusFilter, minPrice, maxPrice, onlyIncomplete, onlyMine, stallDays].filter(Boolean).length}
         search={
           <div className="form-field">
             <label htmlFor="ap-search">{t("common.search")}</label>
@@ -389,6 +408,8 @@ export default function AdminProperties({
             <option value="disponible">{t("propertyStatus.disponible")}</option>
             <option value="apartada">{t("propertyStatus.apartada")}</option>
             <option value="vendida">{t("propertyStatus.vendida")}</option>
+          <option value="rentada">{t("propertyStatus.rentada")}</option>
+            <option value="rentada">{t("propertyStatus.rentada")}</option>
           </select>
         </div>
         <div className="form-field">
@@ -416,6 +437,12 @@ export default function AdminProperties({
           <input type="checkbox" checked={onlyIncomplete} onChange={(e) => setOnlyIncomplete(e.target.checked)} />
           {t("completeness.onlyIncomplete")}
         </label>
+        {advisorId && (
+          <label className="prospect-filters__check">
+            <input type="checkbox" checked={onlyMine} onChange={(e) => setOnlyMine(e.target.checked)} />
+            {t("properties.onlyMine")}
+          </label>
+        )}
       </AdminFilters>
 
       <BulkActionsBar count={selected.size} onClear={() => setSelected(new Set())} busy={bulkBusy}>
@@ -423,6 +450,7 @@ export default function AdminProperties({
           <option value="disponible">{t("propertyStatus.disponible")}</option>
           <option value="apartada">{t("propertyStatus.apartada")}</option>
           <option value="vendida">{t("propertyStatus.vendida")}</option>
+          <option value="rentada">{t("propertyStatus.rentada")}</option>
         </select>
         <button type="button" className="btn btn-outline btn-sm" onClick={handleBulkStatus} disabled={bulkBusy}>
           {t("bulkActions.applyStatus")}
@@ -479,6 +507,14 @@ export default function AdminProperties({
         </button>
       </BulkActionsBar>
 
+      {showMap && (
+        <div className="card" style={{ padding: "0.75rem", marginBottom: "1rem" }}>
+          <Suspense fallback={<LoadingState variant="block" height={420} />}>
+            <PropertyMap properties={visibleProperties} height={420} />
+          </Suspense>
+        </div>
+      )}
+
       {/* En el teléfono cada fila es una tarjeta (ver admin-table--cards en admin.css). */}
       <div className="card admin-table-wrapper admin-table-wrapper--cards">
         <table className="admin-table admin-table--cards admin-table--properties">
@@ -487,7 +523,7 @@ export default function AdminProperties({
               <th className="cell-select" data-label={t("bulkActions.selectAll")}>
                 <input type="checkbox" checked={allVisibleSelected} onChange={toggleAll} aria-label={t("bulkActions.selectAll")} />
               </th>
-              <th></th>
+              <th><span className="visually-hidden-cell">{t("common.photo")}</span></th>
               <SortableTh column="code" sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))} colProps={col("code")}>
                 {t("detail.code")}
               </SortableTh>
@@ -539,6 +575,13 @@ export default function AdminProperties({
                     <td className="cell-code" {...col("code")}>{property.code || "—"}</td>
                     <td className="cell-title">
                       {property.title}
+                      {(property.advisor_ids || []).length === 0 && <span className="badge badge-reserved property-no-advisor">{t("properties.noAdvisor")}</span>}
+                      {(() => {
+                        const who = advisorSummary(advisorNames(property.advisor_ids, advisors), (n) => t("properties.andMoreAdvisors", { count: n }));
+                        const days = daysSince(property.created_at);
+                        const line = [who, days != null ? t("detail.publishedAgo", { count: days }) : ""].filter(Boolean).join(" · ");
+                        return line ? <div className="form-hint property-meta-line">{line}</div> : null;
+                      })()}
                       {(() => {
                         const c = completeness.get(property.id);
                         if (!c) return null;
@@ -557,9 +600,11 @@ export default function AdminProperties({
                         const contract = contracts.get(property.id);
                         const idle = stalled.get(property.id);
                         const cs = contract ? contractState(contract) : null;
-                        if (!(cs && cs.state !== "vigente") && !idle?.stalled) return null;
+                        const stalePhotos = staleListingDays(property);
+                        if (!(cs && cs.state !== "vigente") && !idle?.stalled && stalePhotos == null) return null;
                         return (
                           <div className="property-flags">
+                            {stalePhotos != null && <span className="prospect-chip prospect-chip--today" title={t("photoFreshness.hint")}>{t("photoFreshness.chip", { count: Math.floor(stalePhotos / 30) })}</span>}
                             {cs && cs.state !== "vigente" && (
                               <span className={`prospect-chip prospect-chip--${cs.state === "vencido" ? "overdue" : "today"}`}>
                                 {t("contract.chip", { kind: t(`contract.kinds.${contract.kind}`), state: t(`contract.states.${cs.state}`, { count: Math.abs(cs.daysLeft) }) })}
@@ -577,7 +622,8 @@ export default function AdminProperties({
                     <td className="cell-area" {...col("area")}>{formatArea(property.area_m2)}</td>
                     <td className="cell-status" {...col("status")}>{t(`propertyStatus.${property.status}`)}</td>
                     <td className="cell-active" {...col("active")}>
-                      <button type="button" className={`badge ${property.active ? "badge-available" : "badge-sold"}`} onClick={() => toggleActive(property)}>
+                      <button type="button" role="switch" aria-checked={Boolean(property.active)} className={`badge badge--switch ${property.active ? "badge-available" : "badge-sold"}`} title={t("common.toggleActiveHint")} onClick={() => toggleActive(property)}>
+                        <span className="badge--switch__track" aria-hidden="true" />
                         {property.active ? t("common.active") : t("common.inactive")}
                       </button>
                     </td>
@@ -606,6 +652,9 @@ export default function AdminProperties({
                         </button>
                         <button type="button" className="btn btn-outline btn-sm" onClick={() => setQrProperty(property)}>
                           {t("propertyQr.button")}
+                        </button>
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => setOwnerProperty(property)}>
+                          {t("ownerMessage.action")}
                         </button>
                         <button type="button" className="btn btn-outline btn-sm" onClick={() => setSocialProperty(property)}>
                           {t("socialPost.button")}
@@ -665,6 +714,7 @@ export default function AdminProperties({
       </div>
 
       {socialProperty && <SocialPostModal property={socialProperty} onClose={() => setSocialProperty(null)} />}
+      {ownerProperty && <OwnerMessageModal property={ownerProperty} onClose={() => setOwnerProperty(null)} />}
       {qrProperty && <PropertyQrModal property={qrProperty} onClose={() => setQrProperty(null)} />}
       {buildingSelection && <SelectionBuilder onClose={() => setBuildingSelection(false)} />}
       {sendProperty && (

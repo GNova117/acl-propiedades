@@ -116,7 +116,7 @@ export const documentsMethods = {
     let status = r.status;
     if (status === "pendiente" && new Date(r.expires_at) < new Date()) status = "expirado";
     else if (status === "pendiente" && r.failed_attempts >= 5) status = "bloqueado";
-    return { title: r.title, status };
+    return { title: r.title, status, expires_at: r.expires_at };
   },
 
   // Devuelve null si todo está bien o el error (mismos textos que la base).

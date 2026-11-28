@@ -30,9 +30,11 @@ export default function AvailabilityMap({ development, selected, onSelect }) {
             <div className="dev-map__cells">
               {units.map((unit) => {
                 const span = Math.max(1, Math.floor(columns / units.length));
-                const label = `${t("developments.unit.title", { number: unit.number })}, ${t("developments.unit.floor", { floor: unit.floor })}, ${
-                  modelName.get(unit.model) || unit.model
-                }, ${t(`developments.legend.${unit.status}`)}, ${formatMXN(unit.price)}`;
+                const model = modelName.get(unit.model) || unit.model;
+                // El nombre accesible EMPIEZA con el texto que se ve en el botón («101 Modelo A»): si no, quien dicta «clic en 101»
+                // no lo puede activar (WCAG 2.5.3). El título largo (tooltip) conserva la frase completa.
+                const label = `${unit.number} ${model}, ${t("developments.unit.floor", { floor: unit.floor })}, ${t(`developments.legend.${unit.status}`)}, ${formatMXN(unit.price)}`;
+                const tooltip = `${t("developments.unit.title", { number: unit.number })}, ${t("developments.unit.floor", { floor: unit.floor })}, ${model}, ${t(`developments.legend.${unit.status}`)}, ${formatMXN(unit.price)}`;
                 return (
                   <button
                     key={unit.number}
@@ -41,10 +43,12 @@ export default function AvailabilityMap({ development, selected, onSelect }) {
                     style={{ gridColumn: `span ${span}` }}
                     onClick={() => onSelect(unit.number)}
                     aria-label={label}
-                    title={label}
+                    title={tooltip}
                   >
                     <span className="dev-map__number">{unit.number}</span>
-                    <span className="dev-map__model">{modelName.get(unit.model) || unit.model}</span>
+                    {/* Un espacio entre los dos textos: el nombre accesible empieza con «101 Modelo A», tal como se lee en el botón. */}
+                    {" "}
+                    <span className="dev-map__model">{model}</span>
                   </button>
                 );
               })}

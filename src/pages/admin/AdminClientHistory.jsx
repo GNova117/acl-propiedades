@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { formatMXN, whatsappDigits } from "../../lib/format";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import "./admin.css";
 import "./AdminClientHistory.css";
 

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { __resetToastsForTests, confirmDialog, dismiss, flushPendingDeletes, getConfirmRequest, getToasts, looksLikeFailure, notify, resolveConfirm, subscribe, toast, undoableDelete } from "./toast";
+import { __resetToastsForTests, confirmDialog, dismiss, flushPendingDeletes, getConfirmRequest, getToasts, looksLikeFailure, notify, promptDialog, resolveConfirm, subscribe, toast, undoableDelete } from "./toast";
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -104,5 +104,38 @@ describe("undoableDelete", () => {
     undoableDelete("Eliminado", { commit: async () => { throw new Error("rls"); }, onError });
     await vi.advanceTimersByTimeAsync(7000);
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: "rls" }));
+  });
+});
+
+describe("promptDialog (reemplaza a window.prompt)", () => {
+  it("devuelve lo escrito al aceptar y null al cancelar", async () => {
+    const accepted = promptDialog("Motivo", { defaultValue: "" });
+    expect(getConfirmRequest().opts.input).toBe(true);
+    resolveConfirm(true, "cliente canceló");
+    await expect(accepted).resolves.toBe("cliente canceló");
+
+    const cancelled = promptDialog("Motivo");
+    resolveConfirm(false);
+    await expect(cancelled).resolves.toBeNull();
+  });
+
+  it("aceptar sin escribir devuelve cadena vacía (el motivo es opcional)", async () => {
+    const p = promptDialog("Motivo");
+    resolveConfirm(true, "");
+    await expect(p).resolves.toBe("");
+  });
+
+  it("una confirmación normal sigue devolviendo true/false", async () => {
+    const yes = confirmDialog("¿Seguro?");
+    resolveConfirm(true, "ignorado");
+    await expect(yes).resolves.toBe(true);
+    const no = confirmDialog("¿Seguro?");
+    resolveConfirm(false);
+    await expect(no).resolves.toBe(false);
+  });
+
+  it("en las pruebas de navegador (auto-confirmar) responde con el valor por omisión", async () => {
+    globalThis.__ACL_AUTO_CONFIRM__ = true;
+    await expect(promptDialog("Motivo", { defaultValue: "x" })).resolves.toBe("x");
   });
 });

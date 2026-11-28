@@ -9,6 +9,7 @@
 //    parejo para las tres opciones.
 
 import { simularCreditoInfonavit } from "./infonavitSimulator";
+import { pmt } from "./loanMath";
 
 export const COMPARE_DEFAULTS = {
   bankRate: 11.5, // tasa anual de referencia, %
@@ -26,15 +27,8 @@ const num = (v) => {
   return Number.isFinite(n) && n > 0 ? n : 0;
 };
 
-// Pago mensual de un crédito de cuota fija (sistema francés).
-export function pmt(principal, annualRatePct, years) {
-  const p = num(principal);
-  const months = Math.round(num(years) * 12);
-  if (p === 0 || months === 0) return 0;
-  const r = num(annualRatePct) / 100 / 12;
-  if (r === 0) return p / months;
-  return (p * r) / (1 - Math.pow(1 + r, -months));
-}
+// Pago mensual de un crédito de cuota fija: ver loanMath.js (misma función para todo el sitio).
+export { pmt };
 
 const round2 = (n) => Math.round(n * 100) / 100;
 

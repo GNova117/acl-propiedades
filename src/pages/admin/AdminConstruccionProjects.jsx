@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { db } from "../../lib/dataStore";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 // Sin react-i18next a propósito: herramienta interna para staff hispanohablante,
 // traducir jerga de construcción al inglés no aporta (ver docs/PLAN.md del port).
@@ -21,7 +22,7 @@ export default function AdminConstruccionProjects() {
     setLoading(true);
     db.getConstruccionProyectos()
       .then(setProyectos)
-      .finally(() => setLoading(false));
+      .catch(notifyLoadError).finally(() => setLoading(false));
   };
 
   useEffect(load, [isDemoMode]);

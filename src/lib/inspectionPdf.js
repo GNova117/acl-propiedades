@@ -7,8 +7,7 @@
 // puede probar fuera del navegador.
 
 import { failedItems, INSPECTION_CATEGORIES } from "./propertyInspection";
-
-const TEMPLATE_URL = "/plantilla_acl.pdf";
+import { loadLetterhead } from "./letterhead";
 
 const STATUS_KEY = { verde: "green", amarillo: "yellow", rojo: "red" };
 
@@ -122,10 +121,7 @@ export async function buildInspectionPdf(inspection, labels, { template } = {}) 
 
   const templateBytes =
     template ??
-    (await fetch(TEMPLATE_URL).then((res) => {
-      if (!res.ok) throw new Error("No se pudo cargar la plantilla membretada");
-      return res.arrayBuffer();
-    }));
+    (await loadLetterhead());
 
   const doc = await PDFDocument.load(templateBytes);
   const templateDoc = await PDFDocument.load(templateBytes);

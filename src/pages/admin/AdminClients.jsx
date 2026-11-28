@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { expedienteStatus } from "../../lib/clientExpedienteStatus";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
@@ -132,8 +133,8 @@ export default function AdminClients() {
     }
   };
 
-  const handleExport = () => {
-    exportToCsv("clientes.csv", filteredClients, [
+  const handleExport = (ext = "csv") => {
+    exportToCsv(`clientes.${ext}`, filteredClients, [
       { label: t("clients.name"), key: "name" },
       { label: t("clients.type"), value: (c) => clientTypeLabel(t, c.type) },
       { label: t("clients.financiamiento"), value: (c) => financiamientoLabel(t, c.financiamiento) },
@@ -163,8 +164,11 @@ export default function AdminClients() {
           <button type="button" className="btn btn-outline" onClick={() => setShowIntake((v) => !v)} aria-expanded={showIntake}>
             {t("clientIntake.button")}
           </button>
-          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={filteredClients.length === 0}>
+          <button type="button" className="btn btn-outline" onClick={() => handleExport("csv")} disabled={filteredClients.length === 0}>
             {t("common.exportCsv")}
+          </button>
+          <button type="button" className="btn btn-outline" onClick={() => handleExport("xlsx")} disabled={filteredClients.length === 0}>
+            {t("common.exportXlsx")}
           </button>
           <button type="button" className="btn btn-outline" onClick={() => setShowPdfModal(true)}>
             {t("clients.downloadPdf")}
@@ -295,7 +299,21 @@ export default function AdminClients() {
                         aria-label={t("bulkActions.selectRow")}
                       />
                     </td>
-                    <td className="cell-name">{client.name}</td>
+                    <td className="cell-name">
+                      <span className="cell-name__text">{client.name}</span>
+                      {(() => {
+                        const status = expedienteStatus(client);
+                        const missing = status.missing.map((m) => m.label).join(", ");
+                        return (
+                          <div className={`property-completeness property-completeness--${status.level}`} title={missing ? t("clients.expediente.missing", { items: missing }) : t("clients.expediente.complete")}>
+                            <span className="property-completeness__bar" aria-hidden="true">
+                              <span style={{ width: `${status.total ? Math.round((status.filled / status.total) * 100) : 0}%` }} />
+                            </span>
+                            <span>{status.level === "ok" ? t("clients.expediente.complete") : t("clients.expediente.pending", { count: status.missing.length })}</span>
+                          </div>
+                        );
+                      })()}
+                    </td>
                     <td className="cell-type" {...col("type")}>{clientTypeLabel(t, client.type)}</td>
                     <td className={`cell-fin${client.financiamiento ? "" : " cell-empty"}`} data-label={t("clients.financiamiento")} {...col("financiamiento")}>
                       {financiamientoLabel(t, client.financiamiento)}

@@ -1,17 +1,11 @@
+import { urlSlug } from "./slug.js";
 // Ciudades con página de aterrizaje propia ("/propiedades/zona/:zoneSlug").
 // Son las 3 ciudades que ya se mencionan en el resto del sitio (p. ej.
 // OFFICE_INFO.zones en chatbot.js) — no viene de la tabla admin-managed de
 // zonas/colonias, que es mucho más granular.
 export const ZONE_LANDING_CITIES = ["Torreón", "Gómez Palacio", "Lerdo"];
 
-export function slugify(text) {
-  return (text || "")
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+export const slugify = urlSlug;
 
 export function findCityBySlug(slug) {
   return ZONE_LANDING_CITIES.find((city) => slugify(city) === slug) || null;

@@ -6,6 +6,7 @@ import { formatMXN } from "../../lib/format";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog, notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 export default function AdminMaterialsCatalog() {
   const { t } = useTranslation();
@@ -26,11 +27,11 @@ export default function AdminMaterialsCatalog() {
     db.getMaterialsCatalog().then((data) => {
       setItems(data);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
     db.getLaborCatalog().then((data) => {
       setLaborItems(data);
       setLaborDrafts(Object.fromEntries(data.map((item) => [item.id, item.precio_unitario ?? ""])));
-    });
+    }).catch(notifyLoadError);
   };
 
   useEffect(load, []);

@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { fillBlanks, useSharedContact } from "../lib/sharedContact";
+import { errorId, fieldErrorProps, focusFirstError } from "../lib/formErrors";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
@@ -7,6 +9,7 @@ import { describeCriteria } from "../lib/alertMatch";
 import { isValidPhone } from "../lib/lead";
 import "./AlertSignupCard.css";
 import { trackConversion } from "../lib/conversions";
+import { lastSubmitAt } from "../lib/rateLimitStore";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -30,12 +33,20 @@ const ERRORS = {
 // similar" en una propiedad ya vendida/apartada, reusando mode="search".
 export default function AlertSignupCard({ mode, variant = mode, criteria, property, matchCount }) {
   const { t } = useTranslation();
-  const [form, setForm] = useState({ name: "", phone: "", email: "", empresa: "" });
+  const [form, setForm] = useState(() => fillBlanks({ name: "", phone: "", email: "", empresa: "" }));
+  const shareContact = useSharedContact(setForm); // 308
   const [contactMethod, setContactMethod] = useState("whatsapp");
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle"); // idle | sending | success | duplicate | error
   const [errorKey, setErrorKey] = useState("");
   const rateKey = `acl_alert_${mode}_last_submit`;
+
+  // Si cambian los criterios (otro filtro en el listado) un aviso ya confirmado o con error vuelve a ofrecerse, sin tirar lo que la
+  // persona estaba escribiendo: antes el listado remontaba la tarjeta con `key` en cada tecla y se borraban su nombre y teléfono.
+  const criteriaKey = JSON.stringify(criteria ?? {});
+  useEffect(() => {
+    setStatus((current) => (current === "success" || current === "duplicate" || current === "error" ? "idle" : current));
+  }, [criteriaKey]);
 
   const change = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
@@ -60,7 +71,10 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
       else if (!EMAIL_RE.test(form.email)) next.email = t("contact.invalidEmail");
     }
     setErrors(next);
-    if (Object.keys(next).length > 0) return;
+    if (Object.keys(next).length > 0) {
+      focusFirstError(next, ["name", "phone", "email"], { name: `alert-${mode}-name`, phone: `alert-${mode}-phone`, email: `alert-${mode}-email` });
+      return;
+    }
 
     // Campo trampa lleno: éxito falso, sin escribir nada.
     if (form.empresa.trim()) {
@@ -68,7 +82,7 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
       return;
     }
     try {
-      const last = Number(window.localStorage.getItem(rateKey) || 0);
+      const last = lastSubmitAt(rateKey);
       if (Date.now() - last < 30_000) {
         setErrorKey("alerts.errors.wait");
         setStatus("error");
@@ -156,19 +170,19 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
         </p>
       )}
 
-      <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={handleSubmit} onBlur={() => shareContact(form)} noValidate>
         <div aria-hidden="true" className="hp-field">
           <label htmlFor={`alert-${mode}-empresa`}>Empresa</label>
           <input id={`alert-${mode}-empresa`} name="empresa" value={form.empresa} onChange={change} tabIndex={-1} autoComplete="off" />
         </div>
         <div className="form-field">
           <label htmlFor={`alert-${mode}-name`}>{t("contact.name")}</label>
-          <input id={`alert-${mode}-name`} name="name" autoComplete="name" value={form.name} onChange={change} aria-invalid={Boolean(errors.name)} />
-          {errors.name && <span className="form-error">{errors.name}</span>}
+          <input id={`alert-${mode}-name`} name="name" autoComplete="name" value={form.name} onChange={change} {...fieldErrorProps(`alert-${mode}-name`, errors.name)} />
+          {errors.name && <span id={errorId(`alert-${mode}-name`)} className="form-error">{errors.name}</span>}
         </div>
 
-        <div className="form-field">
-          <label>{t("alerts.contactMethod")}</label>
+        <fieldset className="form-field">
+          <legend>{t("alerts.contactMethod")}</legend>
           <div className="alert-signup__method">
             <label>
               <input type="radio" name={`alert-${mode}-method`} checked={contactMethod === "whatsapp"} onChange={() => setContactMethod("whatsapp")} />
@@ -179,7 +193,7 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
               {t("alerts.email")}
             </label>
           </div>
-        </div>
+        </fieldset>
 
         {contactMethod === "whatsapp" ? (
           <div className="form-field">
@@ -193,9 +207,9 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
               placeholder={t("contactRequest.phonePlaceholder")}
               value={form.phone}
               onChange={change}
-              aria-invalid={Boolean(errors.phone)}
+              {...fieldErrorProps(`alert-${mode}-phone`, errors.phone)}
             />
-            {errors.phone && <span className="form-error">{errors.phone}</span>}
+            {errors.phone && <span id={errorId(`alert-${mode}-phone`)} className="form-error">{errors.phone}</span>}
           </div>
         ) : (
           <div className="form-field">
@@ -207,12 +221,12 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
               autoComplete="email"
               value={form.email}
               onChange={change}
-              aria-invalid={Boolean(errors.email)}
+              {...fieldErrorProps(`alert-${mode}-email`, errors.email)}
             />
-            {errors.email && <span className="form-error">{errors.email}</span>}
+            {errors.email && <span id={errorId(`alert-${mode}-email`)} className="form-error">{errors.email}</span>}
           </div>
         )}
-        {status === "error" && <p className="form-error">{t(errorKey || "alerts.errors.generic")}</p>}
+        {status === "error" && <p className="form-error" role="alert">{t(errorKey || "alerts.errors.generic")}</p>}
         <button type="submit" className="btn btn-primary btn-block" disabled={status === "sending"}>
           {status === "sending" ? <span className="spinner" /> : null}
           {t(`alerts.${variant}.submit`)}

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import AdCopyPanel from "./AdCopyPanel";
 import { buildCaption, canvasToBlob, downloadBlob, postFileName, propertyUrl, renderPostCanvas } from "../lib/socialPost";
 import "./SocialPostModal.css";
+import { siteOrigin } from "../lib/site";
 
 // "Publicar en redes": arma el texto y una imagen vertical con los datos, y da
 // las salidas más útiles (copiar, descargar, compartir del celular, Facebook,
@@ -10,7 +11,7 @@ import "./SocialPostModal.css";
 // una página web sin integrar su API.
 export default function SocialPostModal({ property, onClose }) {
   const { t } = useTranslation();
-  const origin = window.location.origin;
+  const origin = siteOrigin();
   const photos = useMemo(() => {
     const list = [property.main_image, ...(property.images || [])].filter(Boolean);
     return Array.from(new Set(list));
@@ -124,7 +125,7 @@ export default function SocialPostModal({ property, onClose }) {
             <div className="social-modal__preview">
               {rendering && <span className="spinner" />}
               {preview && !imageError && <img src={preview} alt={t("socialPost.previewAlt")} style={{ opacity: rendering ? 0.4 : 1 }} />}
-              {imageError && <p className="form-error">{imageError}</p>}
+              {imageError && <p className="form-error" role="alert">{imageError}</p>}
             </div>
             {photos.length > 1 && (
               <div className="social-modal__thumbs" role="listbox" aria-label={t("socialPost.choosePhoto")}>

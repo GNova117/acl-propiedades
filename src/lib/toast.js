@@ -6,6 +6,8 @@
 //   undoable(texto, { onUndo })  — aviso con «Deshacer» (ver undoableDelete abajo)
 // Todo es un almacén simple fuera de React (se puede llamar desde cualquier handler); <Toaster /> lo dibuja.
 
+import i18n from "../i18n";
+
 const MAX_VISIBLE = 4;
 const DEFAULT_DURATION = 5000;
 const ERROR_DURATION = 8000;
@@ -69,12 +71,31 @@ export function confirmDialog(message, opts = {}) {
   });
 }
 
-export function resolveConfirm(answer) {
+export function resolveConfirm(answer, value) {
   const request = confirmRequest;
   if (!request) return;
   confirmRequest = null;
   emit();
-  request.resolve(Boolean(answer));
+  // Con campo de texto (promptDialog) se devuelve lo escrito, o null si se canceló; sin campo, true/false.
+  request.resolve(request.opts.input ? (answer ? String(value ?? "") : null) : Boolean(answer));
+}
+
+// Reemplaza a window.prompt (que en la app instalada del iPhone puede no mostrarse y no se puede validar ni traducir): un diálogo
+// propio con un campo de texto. Devuelve lo escrito (puede ser "") o null si se cancela.
+//   opts: { defaultValue, readOnly, placeholder, confirmLabel, cancelLabel, hideCancel }
+export function promptDialog(message, opts = {}) {
+  if (autoConfirm()) return Promise.resolve(opts.defaultValue ?? "");
+  if (confirmRequest) resolveConfirm(false);
+  return new Promise((resolve) => {
+    confirmRequest = { id: nextId++, message: String(message ?? ""), opts: { ...opts, input: true }, resolve };
+    emit();
+  });
+}
+
+// Cuando el portapapeles no deja copiar (algunos navegadores y la app instalada): se muestra el texto en un campo ya seleccionado
+// para copiarlo a mano. Sustituye al window.prompt(texto, valor) de siempre.
+export function copyFallback(message, text) {
+  return promptDialog(message, { defaultValue: text, readOnly: true, hideCancel: true, confirmLabel: i18n.t("common.close") });
 }
 
 // ── Eliminar con «Deshacer» ───────────────────────────────────────────────────────────────────────────────────────

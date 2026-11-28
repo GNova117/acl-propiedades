@@ -19,7 +19,7 @@ export default function CreditCompare() {
   const [searchParams] = useSearchParams();
   const propertyId = searchParams.get("propiedad");
   const [property, setProperty] = useState(null);
-  const [form, setForm] = useState({ price: 1500000, salary: 20000, age: 35, sex: "hombre", ssv: 0, ...COMPARE_DEFAULTS });
+  const [form, setForm] = useState({ price: 1500000, salary: 20000, age: 35, sex: "", ssv: 0, ...COMPARE_DEFAULTS });
   const [lead, setLead] = useState({ name: "", phone: "", empresa: "" });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
@@ -159,6 +159,7 @@ export default function CreditCompare() {
             <div className="form-field">
               <label htmlFor="cc-sex">{t("infonavit.sex")}</label>
               <select id="cc-sex" value={form.sex} onChange={change("sex")}>
+                <option value="">{t("infonavit.sexChoose")}</option>
                 <option value="hombre">{t("infonavit.sexMale")}</option>
                 <option value="mujer">{t("infonavit.sexFemale")}</option>
               </select>
@@ -270,8 +271,8 @@ export default function CreditCompare() {
                   {errors.phone && <span className="form-error">{errors.phone}</span>}
                 </div>
               </div>
-              {status === "error" && <p className="form-error">{t("contact.error")}</p>}
-              {status === "rateLimited" && <p className="form-error">{t("contact.rateLimited")}</p>}
+              {status === "error" && <p className="form-error" role="alert">{t("contact.error")}</p>}
+              {status === "rateLimited" && <p className="form-error" role="alert">{t("contact.rateLimited")}</p>}
               <button type="submit" className="btn btn-primary btn-block" disabled={status === "sending"}>
                 {status === "sending" ? <span className="spinner" /> : null}
                 {status === "sending" ? t("contact.sending") : t("creditSim.leadSubmit")}

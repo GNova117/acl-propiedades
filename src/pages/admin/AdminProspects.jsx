@@ -3,8 +3,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
-import { useAuth } from "../../context/AuthContext";
-import { FOLLOWUP_OPTIONS, PROSPECT_STAGES, firstStageWithProspects, followUpState, isForgotten, unattendedState, visitToProspectFields } from "../../lib/prospects";
+import { useAuth } from "../../context/useAuth.js";
+import { FOLLOWUP_OPTIONS, PROSPECT_STAGES, firstStageWithProspects, followUpState, isForgotten, stageChangeFollowup, unattendedState, visitToProspectFields } from "../../lib/prospects";
 import { applyBulk, followupDate } from "../../lib/prospectBulk";
 import { convertProspectToClient } from "../../lib/prospectActions";
 import { matchingProperties } from "../../lib/prospectMatch";
@@ -17,6 +17,8 @@ import { queries } from "../../lib/queries";
 import { useQuery } from "../../lib/useQuery";
 import ProspectCard from "../../components/ProspectCard";
 import ProspectImportModal from "../../components/ProspectImportModal";
+import RowMore from "../../components/RowMore";
+import { useMediaQuery } from "../../lib/useMediaQuery";
 import "./admin.css";
 import SavedViews from "../../components/SavedViews";
 import "./AdminProspects.css";
@@ -161,8 +163,8 @@ export default function AdminProspects() {
     }
   }, [prospectsQ.data, filtered]);
 
-  const handleExport = () => {
-    exportToCsv("prospectos.csv", filtered, [
+  const handleExport = (ext = "csv") => {
+    exportToCsv(`prospectos.${ext}`, filtered, [
       { label: t("prospects.form.name"), key: "name" },
       { label: t("prospects.form.phone"), key: "phone" },
       { label: t("clients.email"), key: "email" },
@@ -192,7 +194,9 @@ export default function AdminProspects() {
   // En el teléfono la tarjeta se va a la pestaña de su nueva etapa: se sigue viendo.
   const changeStage = (prospect, stage) => {
     setActiveStage(stage);
-    return patch(prospect, { stage, ...(stage === "perdido" ? {} : { lost_reason: null }) });
+    const followup = stage === prospect.stage ? null : stageChangeFollowup(prospect, stage);
+    if (followup) notify(t("prospects.followupSet", { date: followup }));
+    return patch(prospect, { stage, ...(stage === "perdido" ? {} : { lost_reason: null }), ...(followup ? { next_followup_at: followup } : {}) });
   };
 
   // Soltar una tarjeta en una columna: cambia su etapa (si es otra) igual que el selector de la tarjeta.
@@ -297,6 +301,28 @@ export default function AdminProspects() {
     }
   };
 
+  // 325: en teléfono, lo de menor uso (pegar/importar y exportar) va tras un «⋯» para que la lista quede a la vista.
+  const narrow = useMediaQuery("(max-width: 640px)");
+  const secondary = (
+    <>
+    <button type="button" className="btn btn-outline" onClick={() => setPasteOpen(true)}>
+      {t("prospectImport.open")}
+    </button>
+    {canImport && importable.length > 0 && (
+      <button type="button" className="btn btn-outline" onClick={handleImport} disabled={importing}>
+        {importing ? <span className="spinner" /> : null}
+        {t("prospects.import", { count: importable.length })}
+      </button>
+    )}
+    <button type="button" className="btn btn-outline" onClick={() => handleExport("csv")} disabled={filtered.length === 0} title={filtered.length === 0 ? t("common.exportCsvEmpty") : undefined}>
+      {t("common.exportCsv")}
+    </button>
+    <button type="button" className="btn btn-outline" onClick={() => handleExport("xlsx")} disabled={filtered.length === 0} title={filtered.length === 0 ? t("common.exportCsvEmpty") : undefined}>
+      {t("common.exportXlsx")}
+    </button>
+    </>
+  );
+
   return (
     <div>
       <div className="admin-header">
@@ -311,18 +337,7 @@ export default function AdminProspects() {
           <button type="button" className={`btn btn-outline${selecting ? " is-active" : ""}`} onClick={toggleSelecting} aria-pressed={selecting}>
             {selecting ? t("prospects.bulk.exit") : t("prospects.bulk.select")}
           </button>
-          <button type="button" className="btn btn-outline" onClick={() => setPasteOpen(true)}>
-            {t("prospectImport.open")}
-          </button>
-          {canImport && importable.length > 0 && (
-            <button type="button" className="btn btn-outline" onClick={handleImport} disabled={importing}>
-              {importing ? <span className="spinner" /> : null}
-              {t("prospects.import", { count: importable.length })}
-            </button>
-          )}
-          <button type="button" className="btn btn-outline" onClick={handleExport} disabled={filtered.length === 0}>
-            {t("common.exportCsv")}
-          </button>
+          {narrow ? <RowMore label={`⋯ ${t("common.more")}`}>{secondary}</RowMore> : secondary}
         </div>
       </div>
 
@@ -389,7 +404,7 @@ export default function AdminProspects() {
       </div>
       <p className="form-hint prospect-board-hint">{t("prospects.dragHint")}</p>
 
-      {loadError && <p className="form-error">{loadError}</p>}
+      {loadError && <p className="form-error" role="alert">{loadError}</p>}
       {loading ? (
         <p className="form-hint">…</p>
       ) : (

@@ -6,6 +6,7 @@
 // función falla a medio envío, el peor caso es un recordatorio que no
 // salió (se puede reintentar a mano), nunca uno duplicado.
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { isCronAuthorized } from "../_shared/cronAuth.js";
 
 const GRAPH_VERSION = "v25.0";
 const WINDOW_MINUTES = 5;
@@ -24,8 +25,7 @@ function todayInMexico(): string {
 }
 
 Deno.serve(async (req) => {
-  const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || req.headers.get("x-cron-secret") !== cronSecret) {
+  if (!(await isCronAuthorized(req, "agenda-recordatorio-30min"))) {
     return new Response("unauthorized", { status: 401 });
   }
 

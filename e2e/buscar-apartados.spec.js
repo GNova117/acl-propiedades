@@ -69,7 +69,7 @@ test("recorre los resultados con flechas y al elegir uno cambia de pantalla", as
 
 test("funciona en inglés", async ({ page, go, press }) => {
   await go("/admin");
-  await press(page.getByRole("button", { name: /ES · / }));
+  await press(page.getByRole("button", { name: /EN · / }));
   await press(page.getByRole("button", { name: "Search panel sections" }));
   const campo = page.getByRole("dialog", { name: "Search the panel" }).getByRole("combobox");
   await campo.fill("mortgage");

@@ -2,12 +2,13 @@
 // un método puede llamar a los de otros módulos como siempre.
 import { buildHomeData } from "../../homeData";
 import { ADVISORS, PROPERTIES, VENTAS_SEED, VISITS_SEED } from "../../seedData";
-import { numOrNull } from "../../format";
+import { propertyFields } from "../../backendRules";
 import { compressImageFile, compressImageFiles } from "../../imageCompression";
 import { getOrCreateVisitorId } from "../../visitorId";
 import { applyPriceChange } from "../../propertyBadges";
 import { computeSalesStats } from "../../trustStats";
 import { KEYS, readStore, writeStore, writeStoreOrThrowFriendly, uid, nextPropertyCode, filesToDataUrls, withAdvisors, matchesFilters, SORTERS } from "./shared.js";
+import { normalizePropertyCode } from "../../propertyUrl.js";
 
 export const propertiesMethods = {
   // Mismo contrato opcional de paginación que supabaseBackend: sin
@@ -28,6 +29,16 @@ export const propertiesMethods = {
 
   async getHomeData() {
     return buildHomeData(await this.getProperties({ activeOnly: true }));
+  },
+
+  async getMarketRows() {
+    const all = await this.getProperties({ activeOnly: true });
+    return all.map((p) => ({ id: p.id, zone: p.zone, type: p.type, status: p.status, active: p.active, operation_type: p.operation_type, price: p.price, area_m2: p.area_m2 }));
+  },
+
+  async getPropertyRefs() {
+    const all = await this.getProperties({});
+    return all.map((p) => ({ id: p.id, code: p.code, title: p.title, price: p.price, advisors: (p.advisors || []).map((a) => ({ id: a.id, name: a.name })) }));
   },
 
   async getPropertiesByIds(ids) {
@@ -72,7 +83,7 @@ export const propertiesMethods = {
   async getPropertyByCode(code) {
     const properties = readStore(KEYS.properties, PROPERTIES);
     const advisors = readStore(KEYS.advisors, ADVISORS);
-    const normalized = code.trim().toUpperCase();
+    const normalized = normalizePropertyCode(code);
     const found = properties.find((p) => p.code === normalized);
     return found ? withAdvisors(found, advisors) : null;
   },
@@ -88,45 +99,8 @@ export const propertiesMethods = {
     const record = {
       id: uid("prop"),
       code: nextPropertyCode(),
-      title: data.title,
-      type: data.type,
-      description: data.description,
-      price: Number(data.price),
-      area_m2: Number(data.area_m2),
-      bedrooms: data.bedrooms === "" ? null : Number(data.bedrooms),
-      bathrooms: data.bathrooms === "" ? null : Number(data.bathrooms),
-      parking: data.parking === "" ? null : Number(data.parking),
-      zone: data.zone,
-      address: data.address,
-      lat: Number(data.lat),
-      lng: Number(data.lng),
-      status: data.status || "disponible",
-      operation_type: data.operation_type || "compra",
-      active: data.active !== false,
-      images,
-      main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
-      videos,
-      tour_360_images,
+      ...propertyFields(data, { images, videos, tour_360_images }, { isNew: true }),
       advisor_ids: data.advisor_ids || [],
-      colindancias: data.colindancias || null,
-      servicios: data.servicios || null,
-      acabados: data.acabados || null,
-      sistema_constructivo: data.sistema_constructivo || null,
-      techumbre: data.techumbre || null,
-      condicion_propiedad: data.condicion_propiedad || null,
-      estatus_construccion: data.estatus_construccion || null,
-      altura_libre: numOrNull(data.altura_libre),
-      anio_construccion: numOrNull(data.anio_construccion),
-      area_minima_divisible: numOrNull(data.area_minima_divisible),
-      area_oficina: numOrNull(data.area_oficina),
-      luz_natural_pct: numOrNull(data.luz_natural_pct),
-      sistema_contra_incendios: data.sistema_contra_incendios || null,
-      tipo_seguridad: data.tipo_seguridad || null,
-      andenes_carga: numOrNull(data.andenes_carga),
-      rampas_vehiculares: numOrNull(data.rampas_vehiculares),
-      mantenimiento_pct: numOrNull(data.mantenimiento_pct),
-      tipo_nave: data.tipo_nave || null,
-      amenities: data.amenities || [],
       created_at: new Date().toISOString(),
     };
     properties.push(record);
@@ -157,47 +131,10 @@ export const propertiesMethods = {
     const tour_360_images = [...(data.existingTour360Images || []), ...newTour360];
     const updated = {
       ...properties[idx],
-      title: data.title,
-      type: data.type,
-      description: data.description,
-      price: Number(data.price),
+      ...propertyFields(data, { images, videos, tour_360_images }),
       // Espejo del trigger set_price_drop de schema.sql.
       ...applyPriceChange(properties[idx], data.price),
-      area_m2: Number(data.area_m2),
-      bedrooms: data.bedrooms === "" ? null : Number(data.bedrooms),
-      bathrooms: data.bathrooms === "" ? null : Number(data.bathrooms),
-      parking: data.parking === "" ? null : Number(data.parking),
-      zone: data.zone,
-      address: data.address,
-      lat: Number(data.lat),
-      lng: Number(data.lng),
-      status: data.status,
-      operation_type: data.operation_type || "compra",
-      active: data.active,
-      images,
-      main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
-      videos,
-      tour_360_images,
       advisor_ids: data.advisor_ids || [],
-      colindancias: data.colindancias || null,
-      servicios: data.servicios || null,
-      acabados: data.acabados || null,
-      sistema_constructivo: data.sistema_constructivo || null,
-      techumbre: data.techumbre || null,
-      condicion_propiedad: data.condicion_propiedad || null,
-      estatus_construccion: data.estatus_construccion || null,
-      altura_libre: numOrNull(data.altura_libre),
-      anio_construccion: numOrNull(data.anio_construccion),
-      area_minima_divisible: numOrNull(data.area_minima_divisible),
-      area_oficina: numOrNull(data.area_oficina),
-      luz_natural_pct: numOrNull(data.luz_natural_pct),
-      sistema_contra_incendios: data.sistema_contra_incendios || null,
-      tipo_seguridad: data.tipo_seguridad || null,
-      andenes_carga: numOrNull(data.andenes_carga),
-      rampas_vehiculares: numOrNull(data.rampas_vehiculares),
-      mantenimiento_pct: numOrNull(data.mantenimiento_pct),
-      tipo_nave: data.tipo_nave || null,
-      amenities: data.amenities || [],
       updated_at: new Date().toISOString(),
     };
     // Modo demo del "Historial" del admin: en Supabase esto lo hace un

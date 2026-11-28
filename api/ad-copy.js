@@ -13,7 +13,7 @@
 // La llave ANTHROPIC_API_KEY (la misma de las demás funciones) vive solo en las
 // variables de entorno de Vercel.
 import { createClient } from "@supabase/supabase-js";
-import { AD_CHANNELS, AD_TONES, MAX_EXTRA_CHARS } from "../src/lib/adCopy.js";
+import { AD_CHANNELS, AD_LANGUAGES, AD_TONES, MAX_EXTRA_CHARS } from "../src/lib/adCopy.js";
 import { AdCopyError, DEFAULT_MODEL, writeAdCopy } from "../server/adCopy.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -39,7 +39,8 @@ function validateParams(body) {
   if (!channel) return null;
   const tone = AD_TONES.includes(body?.tone) ? body.tone : "cercano";
   const extra = String(body?.extra ?? "").trim().slice(0, MAX_EXTRA_CHARS);
-  return { propertyId, channel, tone, extra };
+  const language = AD_LANGUAGES.includes(body?.language) ? body.language : "es";
+  return { propertyId, channel, tone, extra, language };
 }
 
 const HTTP_STATUS_BY_CODE = {
@@ -133,7 +134,7 @@ export default async function handler(req, res) {
 
   let result;
   try {
-    result = await writeAdCopy(property, { channel: params.channel, tone: params.tone, extra: params.extra, origin }, { model: process.env.AD_COPY_MODEL || DEFAULT_MODEL });
+    result = await writeAdCopy(property, { channel: params.channel, tone: params.tone, extra: params.extra, language: params.language, origin }, { model: process.env.AD_COPY_MODEL || DEFAULT_MODEL });
   } catch (err) {
     const code = err instanceof AdCopyError ? err.code : "upstream";
     res.status(HTTP_STATUS_BY_CODE[code] || 502).json({ error: code, message: err.message });

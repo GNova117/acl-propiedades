@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import { isTourSeen, markTourSeen } from "../lib/helpTopics";
 import AdminTour from "./AdminTour";
 import "./AdminTour.css";

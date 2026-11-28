@@ -1,0 +1,39 @@
+.zone-combobox {
+  position: relative;
+}
+
+.zone-combobox > input {
+  width: 100%;
+}
+
+.zone-combobox__list {
+  position: absolute;
+  z-index: 30; /* sobre los campos vecinos del formulario, bajo el encabezado y los diálogos */
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 14rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.zone-combobox__list li {
+  display: flex;
+  align-items: center;
+  min-height: 2.5rem; /* área táctil cómoda */
+  padding: 0 0.85rem;
+  cursor: pointer;
+}
+
+.zone-combobox__list li:hover,
+.zone-combobox__list li.is-active {
+  background: var(--color-surface);
+  color: var(--color-primary);
+}

@@ -15,6 +15,7 @@ import { requestedDocsFor } from "../../lib/clientPortal";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 // Tope de Supabase Storage para el bucket client-documents: arriba de esto
 // el servidor rechaza la subida, así que se avisa antes de intentarla (un
@@ -23,7 +24,7 @@ const MAX_PDF_MB = 50;
 
 export default function AdminClientDocuments() {
   const { id } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [client, setClient] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [linkedClient, setLinkedClient] = useState(null);
@@ -47,7 +48,7 @@ export default function AdminClientDocuments() {
       setClient(clientData);
       setDocuments(docs);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   };
 
   useEffect(load, [id]);
@@ -59,7 +60,7 @@ export default function AdminClientDocuments() {
   // El cliente vinculado (expediente conjunto) solo se usa para
   // preseleccionarlo al armar el expediente para avalúos.
   useEffect(() => {
-    db.getClientLink(id).then((link) => setLinkedClient(link?.other_client || null));
+    db.getClientLink(id).then((link) => setLinkedClient(link?.other_client || null)).catch(notifyLoadError);
   }, [id]);
 
   const handleAccept = async ({ blob, qualityMetrics }) => {
@@ -211,13 +212,13 @@ export default function AdminClientDocuments() {
                         </button>
                       )}
                       <span className="form-hint">
-                        {t("documentCapture.capturedAt")} {new Date(doc.captured_at).toLocaleString()}
+                        {t("documentCapture.capturedAt")} {new Date(doc.captured_at).toLocaleString(i18n.language)}
                       </span>
                       {doc.source === "client_portal" && (
                         <AdminPortalDocumentReview doc={doc} clientId={id} onChanged={load} />
                       )}
                       {downloadErrorId === doc.id && (
-                        <p className="form-error">
+                        <p className="form-error" role="alert">
                           {t("documentCapture.downloadError")} ({downloadErrorDetail})
                         </p>
                       )}
@@ -240,7 +241,7 @@ export default function AdminClientDocuments() {
                 </div>
               )}
 
-              {uploadErrorType === docType && <p className="form-error">{uploadErrorDetail}</p>}
+              {uploadErrorType === docType && <p className="form-error" role="alert">{uploadErrorDetail}</p>}
 
               <div className="admin-doc-card__actions">
                 <button type="button" className="btn btn-primary btn-sm" onClick={() => setCapturingType(docType)}>

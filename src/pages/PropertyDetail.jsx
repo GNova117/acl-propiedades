@@ -13,6 +13,7 @@ import ContactRequestCard from "../components/ContactRequestCard";
 import PropertyCard from "../components/PropertyCard";
 import PropertyTypeIcon from "../components/PropertyTypeIcon";
 import ShareButton from "../components/ShareButton";
+import { contactPathWithMessage } from "../lib/contactPrefill";
 import FavoriteButton from "../components/FavoriteButton";
 import CompareButton from "../components/CompareButton";
 import ScheduleVisitCard from "../components/ScheduleVisitCard";
@@ -23,21 +24,26 @@ import PropertyVideo from "../components/PropertyVideo";
 import AlertSignupCard from "../components/AlertSignupCard";
 import RecentlyViewed from "../components/RecentlyViewed";
 import RecentViewsBadge from "../components/RecentViewsBadge";
+import { usePropertyViews } from "../lib/usePropertyViews";
+import { useHasSession } from "../lib/useHasSession";
 import { db } from "../lib/dataStore";
 import { recordPropertyView } from "../lib/recentlyViewed";
 import { buildSimilarCriteria } from "../lib/alertMatch";
 import { getPropertyBadge } from "../lib/propertyBadges";
+import { isClosedStatus } from "../lib/propertyStatus";
 import { CALCULATOR_ANCHOR, canEstimateMonthly, estimateMonthlyPayment } from "../lib/monthlyEstimate";
 import { directionsUrl, streetViewUrl, wazeUrl } from "../lib/mapLinks";
 import { listingFrom } from "../lib/listNavigation";
-import { formatMXN, formatArea, propertyTypeLabel, propertyShareLines } from "../lib/format";
+import { statusBadgeClass, formatMXN, formatArea, formatAreaFt2, propertyTypeLabel, propertyShareLines, publicPlace, propertyListPath, daysSince } from "../lib/format";
 import "./PropertyDetail.css";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
-import { isCanonicalSlug, parsePropertyRef, propertyPath } from "../lib/propertyUrl.js";
-import { faqJsonLd } from "../lib/structuredData.js";
+import { isCanonicalSlug, listPathForMissingProperty, parsePropertyRef, propertyPath, suggestedTypeForMissing } from "../lib/propertyUrl.js";
+import SuggestedProperties from "../components/SuggestedProperties";
+import { breadcrumbJsonLd, faqJsonLd, propertyListingJsonLd } from "../lib/structuredData.js";
 import { siteOrigin } from "../lib/site.js";
 import { colonyPath } from "../lib/zoneLandingPages.js";
+import Breadcrumbs from "../components/Breadcrumbs";
 
 // Leaflet (react-leaflet + leaflet, ~150KB) queda fuera del bundle
 // principal del sitio público — aquí siempre se termina mostrando (no es
@@ -111,8 +117,8 @@ function buildFichaTecnica(property, t) {
     {
       titleKey: "detail.fichaTecnica.dimensions",
       rows: [
-        [t("detail.fichaTecnica.totalArea"), formatArea(property.area_m2)],
-        [t("detail.areaMinimaDivisible"), property.area_minima_divisible != null ? formatArea(property.area_minima_divisible) : null],
+        [t("detail.fichaTecnica.totalArea"), `${formatArea(property.area_m2)}${formatAreaFt2(property.area_m2) ? ` (≈ ${formatAreaFt2(property.area_m2)})` : ""}`],
+        [t("detail.areaMinimaDivisible"), property.area_minima_divisible != null ? `${formatArea(property.area_minima_divisible)}${formatAreaFt2(property.area_minima_divisible) ? ` (≈ ${formatAreaFt2(property.area_minima_divisible)})` : ""}` : null],
         [t("detail.alturaLibre"), property.altura_libre != null ? `${property.altura_libre} m` : null],
         [t("detail.areaOficina"), property.area_oficina != null ? formatArea(property.area_oficina) : null],
         [t("detail.luzNatural"), property.luz_natural_pct != null ? `${property.luz_natural_pct}%` : null],
@@ -176,7 +182,7 @@ function buildFaq(property, t) {
   ]);
 
   if (property.address && property.zone) {
-    candidates.push([t("detail.faq.locationQ"), t("detail.faq.locationA", { address: property.address, zone: property.zone })]);
+    candidates.push([t("detail.faq.locationQ"), t("detail.faq.locationA", { address: publicPlace(property), zone: property.zone })]);
   }
 
   if (property.type === "nave_industrial") {
@@ -197,14 +203,25 @@ function buildFaq(property, t) {
 
 export default function PropertyDetail() {
   const { id } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [property, setProperty] = useState(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [similar, setSimilar] = useState([]);
+  // Solo si la propiedad está desactivada se pregunta si hay sesión de personal (el sitio público no inicializa la sesión).
+  const { has: hasSession, checking: checkingSession } = useHasSession(property?.active === false);
+  const recentViews = usePropertyViews(property?.id); // 502: registra la vista (fuera del indicador)
   const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
   const [showPanorama, setShowPanorama] = useState(false);
   const [showPlan, setShowPlan] = useState(false);
   const location = useLocation();
+  // 448: modo presentación (?presentacion=1) para mostrar la propiedad en la tableta: sin encabezado, pie, chat ni formularios.
+  const presentation = new URLSearchParams(location.search).get("presentacion") === "1";
+  useEffect(() => {
+    document.body.classList.toggle("presentation-mode", presentation);
+    return () => document.body.classList.remove("presentation-mode");
+  }, [presentation]);
   const navigate = useNavigate();
   // Si llegó desde un listado, «Volver» regresa a ese listado (con filtros, página y posición).
   const listFrom = listingFrom(location.state);
@@ -217,16 +234,19 @@ export default function PropertyDetail() {
   useEffect(() => {
     let active = true;
     setLoading(true);
+    setLoadFailed(false);
     // La dirección puede ser el slug legible («casa-en-senderos-ACL-12»), el código solo o el id de siempre (enlaces ya
     // compartidos): todas llegan a la misma ficha y, si no es la forma canónica, se corrige la barra de direcciones.
     const ref = parsePropertyRef(id);
     (ref.kind === "code" ? db.getPropertyByCode(ref.code) : db.getPropertyById(ref.id))
       .then((data) => active && setProperty(data))
+      // Un fallo de red NO es «propiedad no encontrada»: se avisa aparte y se ofrece reintentar.
+      .catch(() => active && setLoadFailed(true))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, reloadKey]);
 
   useEffect(() => {
     if (property && !isCanonicalSlug(id, property)) navigate(`${propertyPath(property)}${location.search}`, { replace: true, state: location.state });
@@ -243,7 +263,9 @@ export default function PropertyDetail() {
 
   const seoTitle = useMemo(() => {
     if (!property) return "";
-    return `${propertyTypeLabel(t, property.type)} en ${t(`propertyOperation.${property.operation_type}`)} — ${property.zone} · ${formatMXN(property.price)}`;
+    // Vendida o rentada: el título ya no dice «en Venta — $precio» (decía lo contrario de la verdad).
+    if (isClosedStatus(property.status)) return t(property.status === "rentada" ? "detail.seoTitleRented" : "detail.seoTitleSold", { type: propertyTypeLabel(t, property.type), zone: property.zone });
+    return t("detail.seoTitle", { type: propertyTypeLabel(t, property.type), operation: t(`propertyOperation.${property.operation_type}`), zone: property.zone, price: formatMXN(property.price) });
   }, [property, t]);
 
   const seoDescription = useMemo(() => {
@@ -255,9 +277,20 @@ export default function PropertyDetail() {
     ]
       .filter(Boolean)
       .join(", ");
-    const lead = `${facts} en ${property.zone}. `;
+    const lead = t("detail.seoLead", { facts, zone: property.zone });
     const remaining = Math.max(0, 155 - lead.length);
     return `${lead}${(property.description || "").slice(0, remaining)}`.trim();
+  }, [property, t]);
+
+  // 297: la misma lista alimenta las migas que se ven y los datos estructurados para Google.
+  const crumbs = useMemo(() => {
+    if (!property) return [];
+    const listName = property.type === "terreno" ? t("nav.land") : property.type === "nave_industrial" ? t("nav.industrial") : t("nav.properties");
+    return [
+      { name: t("nav.home"), path: "/" },
+      { name: listName, path: propertyListPath(property.type) },
+      { name: property.title, path: propertyPath(property) },
+    ];
   }, [property, t]);
 
   const jsonLd = useMemo(() => {
@@ -265,43 +298,11 @@ export default function PropertyDetail() {
     const origin = siteOrigin();
     const url = `${origin}${propertyPath(property)}`;
     return [
-      {
-        "@context": "https://schema.org",
-        "@type": "RealEstateListing",
-        name: property.title,
-        description: property.description,
-        url,
-        image: property.images,
-        offers: {
-          "@type": "Offer",
-          price: property.price,
-          priceCurrency: "MXN",
-          availability: property.status === "disponible" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-        },
-        address: {
-          "@type": "PostalAddress",
-          streetAddress: property.address,
-          addressLocality: property.zone,
-          addressCountry: "MX",
-        },
-        geo: {
-          "@type": "GeoCoordinates",
-          latitude: property.lat,
-          longitude: property.lng,
-        },
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Inicio", item: origin },
-          { "@type": "ListItem", position: 2, name: "Propiedades", item: `${origin}/propiedades` },
-          { "@type": "ListItem", position: 3, name: property.title, item: url },
-        ],
-      },
+      propertyListingJsonLd({ property, url }),
+      breadcrumbJsonLd(crumbs.map((crumb) => ({ name: crumb.name, url: crumb.path === "/" ? origin : `${origin}${crumb.path}` }))),
       faqJsonLd(buildFaq(property, t)),
     ].filter(Boolean);
-  }, [property, t]);
+  }, [property, t, crumbs]);
 
   const propertyAmenities = useMemo(() => {
     if (!property?.amenities?.length) return [];
@@ -325,27 +326,62 @@ export default function PropertyDetail() {
   useEffect(() => {
     if (!property) return;
     let active = true;
-    db.getProperties({ type: property.type, activeOnly: true }).then((data) => {
-      if (!active) return;
-      const others = data.filter((p) => p.id !== property.id && p.status === "disponible");
-      others.sort((a, b) => (a.zone === property.zone ? 0 : 1) - (b.zone === property.zone ? 0 : 1));
-      setSimilar(others.slice(0, 4));
-    });
+    // Solo se piden unas cuantas (antes se bajaba TODO el catálogo del mismo tipo para elegir 4): primero las de la misma zona y, si
+    // faltan, las demás del tipo.
+    const base = { type: property.type, activeOnly: true, statuses: ["disponible"], page: 0 };
+    const pick = (rows, chosen) => rows.filter((p) => p.id !== property.id && !chosen.some((c) => c.id === p.id));
+    (async () => {
+      const chosen = [];
+      // Primero lo que cuesta ±20 % (y, si se puede, de la misma zona); después lo demás del tipo: «similar» es también de precio parecido.
+      const price = Number(property.price);
+      const band = price > 0 ? { minPrice: Math.round(price * 0.8), maxPrice: Math.round(price * 1.2) } : {};
+      const steps = [
+        property.zone && { ...band, zone: property.zone, zoneExact: true, pageSize: 5 },
+        price > 0 && { ...band, pageSize: 8 },
+        { pageSize: 8 },
+      ].filter(Boolean);
+      for (const step of steps) {
+        if (chosen.length >= 4) break;
+        const result = await db.getProperties({ ...base, ...step });
+        chosen.push(...pick(result.data, chosen));
+      }
+      if (active) setSimilar(chosen.slice(0, 4));
+    })().catch(() => {});
     return () => {
       active = false;
     };
   }, [property?.id, property?.type, property?.zone]);
 
   if (loading) return <LoadingState tall />;
+  if (loadFailed) {
+    return (
+      <>
+        <Seo title={t("loadError.title")} noindex />
+        <EmptyState illustration="signpost" title={t("loadError.title")} text={t("loadError.text")}>
+          <button type="button" className="btn btn-primary" onClick={() => setReloadKey((n) => n + 1)}>{t("loadError.retry")}</button>
+        </EmptyState>
+      </>
+    );
+  }
   const badge = getPropertyBadge(property);
   const priceDrop = badge?.kind === "priceDrop" ? badge : null;
   const monthly = estimateMonthlyPayment(property);
 
-  if (!property) {
+  // Una propiedad desactivada (borrador) solo la ve el personal con sesión; para cualquier otra persona es como
+  // si no existiera. En Supabase la base ya no la entrega (ver schema.sql); esto cubre el modo demostración.
+  if (property?.active === false && checkingSession) return <LoadingState />;
+  if (!property || (property.active === false && !hasSession)) {
     return (
-      <EmptyState illustration="signpost" title={t("emptyState.propertyGoneTitle")} text={t("detail.notFound")}>
-        <Link to="/propiedades" className="btn btn-primary">{t("detail.back")}</Link>
-      </EmptyState>
+      <>
+        <Seo title={t("detail.notFound")} noindex />
+        <EmptyState illustration="signpost" title={t("emptyState.propertyGoneTitle")} text={t("detail.notFound")}>
+          <Link to={listPathForMissingProperty(id)} className="btn btn-primary">{t("detail.back")}</Link>
+        </EmptyState>
+        {/* Un enlace viejo compartido por WhatsApp no es un callejón sin salida: se ofrecen propiedades disponibles. */}
+        <div className="container">
+          <SuggestedProperties type={suggestedTypeForMissing(id)} />
+        </div>
+      </>
     );
   }
 
@@ -354,13 +390,21 @@ export default function PropertyDetail() {
 
   return (
     <>
-      <Seo title={seoTitle} description={seoDescription} image={`${siteOrigin()}/api/og?id=${encodeURIComponent(property.id)}`} jsonLd={jsonLd} />
+      <Seo title={seoTitle} description={seoDescription} image={`${siteOrigin()}/api/og?id=${encodeURIComponent(property.id)}`} jsonLd={jsonLd} noindex={property.active === false} />
 
       <div className="container property-detail">
-        <Link to={listFrom || "/propiedades"} onClick={handleBack} className="property-detail__back">
-          &larr; {t("detail.back")}
-        </Link>
+        <div className="property-detail__nav">
+          <Breadcrumbs items={crumbs} />
+          <Link to={listFrom || "/propiedades"} onClick={handleBack} className="property-detail__back">
+            &larr; {t("detail.back")}
+          </Link>
+        </div>
 
+        {presentation && (
+          <Link to={propertyPath(property)} className="btn btn-primary btn-sm presentation-exit">
+            {t("detail.presentationExit")}
+          </Link>
+        )}
         <div className="property-detail__layout">
           <div>
             <Gallery images={property.images} alt={property.title} />
@@ -379,29 +423,52 @@ export default function PropertyDetail() {
                   <span className="property-card__zone">· {colonyPath(property.zone) ? <Link to={colonyPath(property.zone)}>{property.zone}</Link> : property.zone}</span>
                 </div>
                 <h1>{property.title}</h1>
-                <p className="property-detail__address">{property.address}</p>
-                <RecentViewsBadge propertyId={property.id} />
+                <p className="property-detail__address">{publicPlace(property)}</p>
+                {/* El código es lo que el cliente cita por teléfono o WhatsApp (el sitio ofrece «Buscar por código»). */}
+                {property.code && (
+                  <p className="property-detail__code">
+                    {t("detail.codeLabel")}: <strong>{property.code}</strong>
+                    {daysSince(property.created_at) != null && ` · ${t("detail.publishedAgo", { count: daysSince(property.created_at) })}`}
+                    {property.updated_at && daysSince(property.updated_at) !== daysSince(property.created_at) && ` · ${t("detail.updatedOn", { date: new Date(property.updated_at).toLocaleDateString(i18n.language) })}`}
+                    {" · "}
+                    <Link to={contactPathWithMessage(t("detail.reportErrorMessage", { code: property.code, url: `${siteOrigin()}${propertyPath(property)}` }))} className="property-detail__report">
+                      {t("detail.reportError")}
+                    </Link>
+                  </p>
+                )}
+                <RecentViewsBadge count={recentViews} />
               </div>
               <div className="property-detail__price-block">
                 <div className="property-detail__price-block-top">
-                  <span className={`badge badge-${property.status === "disponible" ? "available" : property.status === "apartada" ? "reserved" : "sold"}`}>
+                  <span className={`badge ${statusBadgeClass(property.status)}`}>
                     {t(`propertyStatus.${property.status}`)}
                   </span>
                   <PropertyFlag property={property} />
                   <FavoriteButton propertyId={property.id} className="favorite-button--inline" />
                   <CompareButton propertyId={property.id} className="compare-button--inline" />
+                  <Link to={`${propertyPath(property)}?presentacion=1`} className="btn btn-outline btn-sm property-detail__present">
+                    {t("detail.presentationMode")}
+                  </Link>
                   <ShareButton title={seoTitle} text={shareText} url={`${siteOrigin()}${propertyPath(property)}`} propertyId={property.id} />
                 </div>
-                <span className="property-detail__price">{formatMXN(property.price)}</span>
+                <span className="property-detail__price">{formatMXN(property.price)}{property.operation_type === "renta" && <small className="property-price-period">{t("propertyOperation.perMonth")}</small>}</span>
                 {priceDrop && (
                   <p className="property-detail__was-price">
                     <s>{formatMXN(priceDrop.previousPrice)}</s>
+                    <span className="property-detail__drop-note">
+                      {" "}
+                      {t("detail.priceDropAgo", { amount: formatMXN(priceDrop.amount), percent: priceDrop.percent, count: daysSince(priceDrop.changedAt) ?? 0, context: daysSince(priceDrop.changedAt) == null ? "nodate" : undefined })}
+                    </span>
                   </p>
                 )}
                 {monthly && (
                   <div className="property-detail__monthly">
                     <strong>{t("monthlyEstimate.fromPerMonth", { amount: formatMXN(monthly.payment) })}</strong>
-                    <span>{t("monthlyEstimate.hint", { down: monthly.downPct, years: monthly.years, rate: monthly.rate })}</span>
+                    {/* 319: la aclaración (enganche, plazo, tasa) va detrás de un ícono de información, no en tres renglones. */}
+                    <details className="property-detail__monthly-info">
+                      <summary><span aria-hidden="true">ⓘ</span> {t("monthlyEstimate.infoShort")}</summary>
+                      <span>{t("monthlyEstimate.hint", { down: monthly.downPct, years: monthly.years, rate: monthly.rate })}</span>
+                    </details>
                     <button
                       type="button"
                       className="property-detail__monthly-adjust"
@@ -409,7 +476,6 @@ export default function PropertyDetail() {
                     >
                       {t("mortgageCalc.adjust")}
                     </button>
-                    <Link to={`/comparar-creditos?propiedad=${property.id}`}>{t("monthlyEstimate.cta")}</Link>
                   </div>
                 )}
                 <p className="property-detail__credit-notice">{t("detail.creditNotice")}</p>
@@ -517,7 +583,8 @@ export default function PropertyDetail() {
               <Suspense fallback={<LoadingState variant="block" height={360} />}>
                 <PropertyMap properties={[property]} height={360} />
               </Suspense>
-              {directionsUrl(property) && (
+              {property.location_approximate && <p className="form-hint">{t("detail.locationApproximate")}</p>}
+              {!property.location_approximate && directionsUrl(property) && (
                 <div className="property-detail__map-actions">
                   <a className="btn btn-primary btn-sm" href={directionsUrl(property)} target="_blank" rel="noopener noreferrer">
                     {t("mapLinks.directions")}
@@ -530,7 +597,7 @@ export default function PropertyDetail() {
                   </a>
                 </div>
               )}
-              <TravelTime property={property} />
+              {!property.location_approximate && <TravelTime property={property} />}
             </section>
 
             <ZoneContext property={property} />
@@ -543,6 +610,8 @@ export default function PropertyDetail() {
                 la ficha técnica en PDF. */}
             {canEstimateMonthly(property) && <MortgageCalculator property={property} />}
 
+            {/* 312: un solo llamado al comparador de créditos: con calculadora y «Desde ≈ $X» arriba ya está; esta tarjeta solo cuando no hay estimado. */}
+            {!canEstimateMonthly(property) && (
             <div className="card" style={{ padding: "1.1rem 1.25rem", marginBottom: "1.25rem" }}>
               <strong>{t("detail.compareCredits.title")}</strong>
               <p className="form-hint" style={{ margin: "0.25rem 0 0.75rem" }}>{t("detail.compareCredits.text")}</p>
@@ -550,6 +619,7 @@ export default function PropertyDetail() {
                 {t("detail.compareCredits.cta")}
               </Link>
             </div>
+            )}
 
             {property.status === "disponible" ? (
               <AlertSignupCard mode="price" property={property} />
@@ -579,7 +649,15 @@ export default function PropertyDetail() {
           </div>
 
           <aside className="property-detail__sidebar">
-            <ScheduleVisitCard key={property.id} property={property} />
+            {isClosedStatus(property.status) ? (
+              <div className="card schedule-visit-card">
+                <h3 className="property-detail__sidebar-title">{t(property.status === "rentada" ? "detail.rentedTitle" : "detail.soldTitle")}</h3>
+                <p className="form-hint">{t("detail.soldText")}</p>
+                <Link to={propertyListPath(property.type)} className="btn btn-primary btn-block">{t("detail.soldCta")}</Link>
+              </div>
+            ) : (
+              <ScheduleVisitCard key={property.id} property={property} />
+            )}
           </aside>
         </div>
 
@@ -599,8 +677,8 @@ export default function PropertyDetail() {
         <RecentlyViewed excludeId={property.id} />
       </div>
 
-      {property.status !== "vendida" && <MobileContactBar property={property} />}
-      {property.status !== "vendida" && <StickyPriceBar property={property} />}
+      {!isClosedStatus(property.status) && <MobileContactBar property={property} />}
+      {!isClosedStatus(property.status) && <StickyPriceBar property={property} />}
 
       {showPlan && (
         <Lightbox images={[property.floor_plan_url]} index={0} onIndexChange={() => {}} onClose={() => setShowPlan(false)} alt={t("floorPlan.alt", { title: property.title })} />

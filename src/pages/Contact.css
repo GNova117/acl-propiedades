@@ -6,7 +6,8 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
-  align-items: stretch;
+  /* Cada columna mide lo suyo: el formulario ya no se estira hasta la altura del mapa y deja un hueco blanco. */
+  align-items: start;
 }
 
 .contact-page__map-block {
@@ -18,6 +19,23 @@
 .contact-page__map {
   min-height: 340px;
   flex: 1;
+}
+
+.contact-page__map-placeholder {
+  height: 100%;
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.contact-page__map-placeholder p {
+  margin: 0;
+  max-width: 28ch;
 }
 
 .contact-page__info {
@@ -41,6 +59,7 @@
 .contact-page__info-list a {
   display: inline-flex;
   align-items: center;
+  min-height: 2rem; /* 258: área táctil de al menos 32 px */
   gap: 0.4rem;
   color: var(--color-text);
 }
@@ -72,4 +91,27 @@
   .contact-page__layout {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+.contact-page__open {
+  margin-left: 0.35rem;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.contact-page__open--yes {
+  color: var(--color-success);
+}
+
+.contact-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0.25rem 0 1rem;
+}
+
+.contact-page__actions .btn {
+  flex: 1 1 9rem;
+  justify-content: center;
 }

@@ -65,6 +65,11 @@
   color: var(--color-primary);
 }
 
+.development-card__title a {
+  display: block;
+  padding: 0.4rem 0; /* 258: área táctil de al menos 32 px */
+}
+
 .development-card__title {
   margin: 0;
   font-size: 1.35rem;

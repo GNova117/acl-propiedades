@@ -1,3 +1,8 @@
+[data-theme="dark"] .leaflet-tile-pane .tile-street {
+  /* En modo oscuro los mosaicos claros del mapa deslumbraban: se invierten y se rotan los tonos para que sigan viéndose como mapa. */
+  filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
+}
+
 .property-map {
   position: relative;
   width: 100%;
@@ -9,7 +14,7 @@
 .property-map--fullscreen {
   position: fixed;
   inset: 0;
-  z-index: 3000;
+  z-index: var(--z-map-fullscreen);
   border-radius: 0;
   border: none;
 }
@@ -18,7 +23,8 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  z-index: 1000;
+  z-index: var(--z-map-control);
+  min-height: 2.25rem; /* 258 */
   padding: 0.4rem 0.75rem;
   border-radius: 6px;
   border: 2px solid rgba(0, 0, 0, 0.2);
@@ -109,7 +115,7 @@
   top: 10px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1000;
+  z-index: var(--z-map-control);
 }
 
 .map-area-search button {
@@ -126,4 +132,43 @@
 
 .map-area-search button:hover {
   background: var(--color-primary);
+}
+
+/* 305: leyenda de colores por tipo, abajo a la izquierda sobre el mapa. */
+.map-legend {
+  position: absolute;
+  left: 0.6rem;
+  bottom: 1.6rem;
+  z-index: var(--z-map-popover); /* sobre los marcadores (600) y los globos (700) de Leaflet */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.8rem;
+  max-width: calc(100% - 1.2rem);
+  margin: 0;
+  padding: 0.35rem 0.6rem;
+  list-style: none;
+  font-size: 0.75rem;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.map-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.map-legend__dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+}
+
+/* 258: los botones de acercar/alejar del mapa (Leaflet) miden 30 px; en pantalla táctil, 36. */
+.leaflet-touch .leaflet-bar a {
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
 }

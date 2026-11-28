@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
 import { exportToCsv } from "../../lib/csvExport";
 import { computeMaterialsTotals } from "../../lib/materialsTotals";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth.js";
 import { todayIso } from "../../lib/salesReport";
 import {
   FILE_ACCEPT_ATTR,
@@ -273,7 +273,7 @@ export default function AdminPropertyBitacora({ listPath = "/admin/propiedades" 
         </div>
       </div>
 
-      {loadError && <p className="form-error">{t("propertyLog.loadError", { error: loadError })}</p>}
+      {loadError && <p className="form-error" role="alert">{t("propertyLog.loadError", { error: loadError })}</p>}
 
       <div className="pl-summary">
         <div className="card pl-card">

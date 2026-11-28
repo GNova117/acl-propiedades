@@ -7,10 +7,10 @@
 
 import { handlePortalAvisos } from "./handler.js";
 import { sendResendEmail } from "../_shared/resend.js";
+import { isCronAuthorized } from "../_shared/cronAuth.js";
 
 async function handler(req: Request): Promise<Response> {
-  const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || req.headers.get("x-cron-secret") !== cronSecret) {
+  if (!(await isCronAuthorized(req, "portal-avisos"))) {
     return new Response("unauthorized", { status: 401 });
   }
   const apiKey = Deno.env.get("RESEND_API_KEY");

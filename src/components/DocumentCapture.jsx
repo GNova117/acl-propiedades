@@ -222,7 +222,7 @@ export default function DocumentCapture({ docType, aspectRatio = 1.59, onAccept,
 
       {phase === "camera-error" && (
         <div className="document-capture__result">
-          <p className="form-error">{t("documentCapture.cameraError")}</p>
+          <p className="form-error" role="alert">{t("documentCapture.cameraError")}</p>
           <p className="form-hint">{t("documentCapture.cameraErrorHint")}</p>
           <label className="btn btn-outline document-capture__upload-btn">
             <input type="file" accept="image/*" onChange={handleFileInput} hidden />

@@ -6,6 +6,45 @@ import { slugify } from "../../format";
 export const adminMethods = {
   mode: "supabase",
 
+  // Papelería de clientes que ya cumplió el plazo de 3 años y qué pasó en la última depuración (migración 0123). Solo el apartado
+  // 'roles'. null si la migración aún no está aplicada: la tarjeta de Roles simplemente no se muestra.
+  async getRetentionSummary() {
+    const { data, error } = await supabase.rpc("papeleria_resumen");
+    if (error) return null;
+    return data;
+  },
+
+  // Derechos ARCO (migración 0125). Solo el apartado 'arco'. La persona se identifica por teléfono o correo completo.
+  async arcoSearch(query, { record = false } = {}) {
+    const { data, error } = await supabase.rpc("arco_buscar", { p_query: query, p_registrar: record });
+    if (error) throw error;
+    return data || {};
+  },
+
+  async arcoCancel(query) {
+    const { data, error } = await supabase.rpc("arco_cancelar", { p_query: query, p_confirmar: true });
+    if (error) throw error;
+    return data || {};
+  },
+
+  async getArcoRequests(limit = 20) {
+    const { data, error } = await supabase.from("arco_requests").select("id, created_at, kind, performed_by, result").order("created_at", { ascending: false }).limit(limit);
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Depuración de chats, mensajes, prospectos y contratos (migración 0127). Solo el apartado 'roles'. null si aún no está aplicada.
+  async getDataRetention() {
+    const { data, error } = await supabase.rpc("datos_resumen");
+    if (error) return null;
+    return data;
+  },
+
+  async setDataRetention(kind, enabled) {
+    const { error } = await supabase.rpc("datos_activar", { p_kind: kind, p_enabled: enabled });
+    if (error) throw error;
+  },
+
   // Registro de actividad (quién creó/editó/borró qué). Solo lo ve el rol con el
   // apartado 'roles'; lo escriben triggers de la base (ver schema.sql).
   async getAuditLog({ table, actor, from, to, limit = 100, offset = 0 } = {}) {

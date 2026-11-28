@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../../lib/dataStore";
-import { whatsappDigits } from "../../lib/format";
-import { useAuth } from "../../context/AuthContext";
+import { normalizeMxWhatsapp } from "../../lib/format";
+import { useAuth } from "../../context/useAuth.js";
 import VisitScheduleEditor from "../../components/VisitScheduleEditor";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
-import { notify } from "../../lib/toast";
+import { confirmDialog, notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
+import { useUnsavedChanges } from "../../lib/useUnsavedChanges";
+import { advisorImpact } from "../../lib/advisorImpact";
 
 const EMPTY = { name: "", phone: "", email: "", whatsapp: "", bio: "", active: true, show_in_team: true };
 
@@ -20,11 +23,14 @@ export default function AdminAdvisorForm() {
 
   const [form, setForm] = useState(EMPTY);
   const [existingPhoto, setExistingPhoto] = useState("");
+  const [wasActive, setWasActive] = useState(true);
   const [photoFile, setPhotoFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
+  // Cerrar la pestaña con cambios sin guardar pide confirmar.
+  useUnsavedChanges(form, { ready: !loading, enabled: !saving });
 
   useEffect(() => {
     if (!isEdit) return;
@@ -40,8 +46,9 @@ export default function AdminAdvisorForm() {
         show_in_team: advisor.show_in_team !== false,
       });
       setExistingPhoto(advisor.photo_url || "");
+      setWasActive(advisor.active !== false);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   }, [id, isEdit]);
 
   useEffect(() => {
@@ -76,12 +83,22 @@ export default function AdminAdvisorForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
+    // Al desactivar a un asesor se avisa qué se queda sin responsable (citas por venir, prospectos abiertos, propiedades).
+    if (isEdit && wasActive && !form.active) {
+      try {
+        const [citas, prospects, properties] = await Promise.all([db.getAgendaCitas(), db.getProspects(), db.getProperties({})]);
+        const impact = advisorImpact(id, { citas, prospects, properties });
+        if (impact.total > 0 && !(await confirmDialog(t("advisorForm.deactivateWarning", impact)))) return;
+      } catch {
+        /* sin poder calcular el impacto: se deja continuar (el aviso es una ayuda, no un candado) */
+      }
+    }
     setSaving(true);
     try {
       const payload = {
         ...form,
         email: form.email.trim().toLowerCase(),
-        whatsapp: whatsappDigits(form.whatsapp),
+        whatsapp: normalizeMxWhatsapp(form.whatsapp),
         existingPhoto,
         photoFile,
       };
@@ -92,7 +109,7 @@ export default function AdminAdvisorForm() {
       }
       navigate("/admin/asesores");
     } catch (err) {
-      notify(err.message || "Error al guardar");
+      notify(err.message || t("common.saveError"));
     } finally {
       setSaving(false);
     }
@@ -108,33 +125,33 @@ export default function AdminAdvisorForm() {
 
       <form className="card admin-form" onSubmit={handleSubmit} noValidate>
         <div className="form-field">
-          <label htmlFor="a-name">Nombre</label>
+          <label htmlFor="a-name">{t("advisorForm.fieldName")}</label>
           <input id="a-name" value={form.name} onChange={handleChange("name")} />
           {errors.name && <span className="form-error">{errors.name}</span>}
         </div>
 
         <div className="form-row">
           <div className="form-field">
-            <label htmlFor="a-phone">Teléfono</label>
+            <label htmlFor="a-phone">{t("advisorForm.fieldPhone")}</label>
             <input id="a-phone" value={form.phone} onChange={handleChange("phone")} />
             {errors.phone && <span className="form-error">{errors.phone}</span>}
           </div>
           <div className="form-field">
-            <label htmlFor="a-email">Correo</label>
+            <label htmlFor="a-email">{t("advisorForm.fieldEmail")}</label>
             <input id="a-email" type="email" value={form.email} onChange={handleChange("email")} />
             {errors.email && <span className="form-error">{errors.email}</span>}
           </div>
         </div>
 
         <div className="form-field">
-          <label htmlFor="a-whatsapp">WhatsApp (formato 521XXXXXXXXXX)</label>
+          <label htmlFor="a-whatsapp">{t("advisorForm.whatsappLabel")}</label>
           <input id="a-whatsapp" value={form.whatsapp} onChange={handleChange("whatsapp")} />
         </div>
 
         <div className="form-field">
-          <label htmlFor="a-bio">Puesto / descripción breve</label>
-          <textarea id="a-bio" rows={3} value={form.bio} onChange={handleChange("bio")} placeholder="Ej. Asesora Inmobiliaria" />
-          <p className="form-hint">Aparece debajo del nombre en la página de Nosotros — que no quede en blanco mantiene parejas todas las tarjetas del equipo.</p>
+          <label htmlFor="a-bio">{t("advisorForm.fieldBio")}</label>
+          <textarea id="a-bio" rows={3} value={form.bio} onChange={handleChange("bio")} placeholder={t("advisorForm.bioPlaceholder")} />
+          <p className="form-hint">{t("advisorForm.bioHint")}</p>
           {errors.bio && <span className="form-error">{errors.bio}</span>}
         </div>
 
@@ -156,7 +173,9 @@ export default function AdminAdvisorForm() {
             <input type="checkbox" checked={form.show_in_team} onChange={handleChange("show_in_team")} className="mr-2" />
             Mostrar en la página de Nosotros
           </label>
-          <p className="form-hint">Desmárcalo para el contacto general de la empresa (ej. "ACL Propiedades") — sigue disponible como asesor de propiedades sin agente asignado, solo deja de listarse como integrante del equipo.</p>
+          {/* Nosotros solo lista asesores con foto: una tarjeta sin foto se ve incompleta. */}
+          {form.show_in_team && !photoFile && !existingPhoto && <p className="form-error" role="alert">{t("advisorForm.photoNeeded")}</p>}
+          <p className="form-hint">{t("advisorForm.teamHint")}</p>
         </div>
 
         <div className="admin-form__actions">

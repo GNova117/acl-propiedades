@@ -9,6 +9,8 @@ Disallow: /visita/
 Disallow: /documentos/
 Disallow: /firmar/
 Disallow: /favoritos
+Disallow: /comparar
+Disallow: /alertas/
 Disallow: /mi-espacio
 
 Sitemap: https://acl-propiedades.vercel.app/sitemap.xml

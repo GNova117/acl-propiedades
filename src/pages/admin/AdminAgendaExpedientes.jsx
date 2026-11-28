@@ -5,10 +5,11 @@ import { db } from "../../lib/dataStore";
 import "./admin.css";
 import LoadingState from "../../components/LoadingState";
 import { confirmDialog, notify } from "../../lib/toast";
+import { notifyLoadError } from "../../lib/loadError";
 
 export default function AdminAgendaExpedientes() {
   const { id } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [cita, setCita] = useState(null);
   const [expedientes, setExpedientes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +22,7 @@ export default function AdminAgendaExpedientes() {
       setCita(citaData);
       setExpedientes(expedientesData);
       setLoading(false);
-    });
+    }).catch((err) => { notifyLoadError(err); setLoading(false); });
   };
 
   useEffect(load, [id]);
@@ -87,7 +88,7 @@ export default function AdminAgendaExpedientes() {
                         {expediente.file_name || expediente.file_path}
                       </a>
                     </td>
-                    <td>{new Date(expediente.created_at).toLocaleString()}</td>
+                    <td>{new Date(expediente.created_at).toLocaleString(i18n.language)}</td>
                     <td className="admin-table__actions">
                       <button
                         type="button"

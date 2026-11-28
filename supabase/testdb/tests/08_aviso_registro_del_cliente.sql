@@ -30,7 +30,7 @@ begin
   assert c.body ->> 'body' = 'Llenó su registro como comprador.', 'dice el tipo';
   assert c.body ->> 'url' = '/admin/clientes?registros=1', 'abre Clientes con el panel';
   assert c.body -> 'section' is null, 'no se manda a toda la oficina';
-  assert c.headers ->> 'x-cron-secret' = 'secreto-de-prueba', 'lleva el secreto de las funciones';
+  assert c.headers ->> 'x-cron-secret' = cron_secret_for('enviar-push'), 'lleva el secreto de la función enviar-push (derivado, no el maestro)';
 
   select * into c from net.http_calls where body ->> 'title' = 'Cliente nuevo: Beto Ruiz';
   assert c.body ->> 'section' = 'clientes' and (c.body ->> 'office')::boolean, 'sin asesor va a la oficina con el apartado clientes';
