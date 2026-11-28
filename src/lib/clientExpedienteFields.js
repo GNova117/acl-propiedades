@@ -1,8 +1,9 @@
 // Datos del expediente que se capturan junto con el cliente: los datos
 // personales (fecha de nacimiento, estado civil, domicilio, RFC, CURP,
-// identificación oficial) de cualquier cliente; del comprador además el
-// NSS, la contraseña del portal de crédito, los datos de la empresa donde
-// trabaja y 2 referencias personales; del vendedor el número de crédito.
+// identificación oficial) y las 2 referencias personales de cualquier cliente;
+// del comprador además los datos de la empresa donde trabaja; y con crédito
+// INFONAVIT, de cualquiera, el número de crédito, el NSS y la contraseña de Mi
+// Cuenta Infonavit. Cuáles son obligatorios: requiredClientKeys.
 //
 // Estos mismos datos también se capturan en el perfilamiento (a petición
 // explícita del negocio se piden en los dos lados). Para no hacer que el
@@ -16,13 +17,15 @@
 // /perfilamientoVendedor.js: son definiciones que se usan tanto para pintar
 // el formulario como para imprimir la hoja membretada.
 
-import { ESTADOS_CIVILES } from "./perfilamientoShared";
 
 // Comunes a comprador y vendedor — mismas llaves que la sección de datos
 // generales de cada perfilamiento, para que la precarga sea directa.
+// El expediente del cliente solo maneja estos dos estados civiles (el perfilamiento conserva su lista más larga).
+export const CLIENT_ESTADOS_CIVILES = ["Soltero", "Casado"];
+
 export const CLIENT_PERSONAL_FIELDS = [
   { key: "fecha_nacimiento", label: "Fecha de nacimiento", type: "date" },
-  { key: "estado_civil", label: "Estado civil", type: "select", options: ESTADOS_CIVILES },
+  { key: "estado_civil", label: "Estado civil", type: "select", options: CLIENT_ESTADOS_CIVILES },
   { key: "domicilio", label: "Domicilio", type: "textarea", full: true },
   { key: "rfc", label: "RFC", type: "text" },
   { key: "curp", label: "CURP", type: "text" },
@@ -33,7 +36,7 @@ export const CLIENT_BUYER_FIELDS = [
   { key: "nss", label: "Número de seguro social (NSS)", type: "text" },
   // Contraseña del portal de crédito (INFONAVIT/FOVISSSTE/banco), no del
   // sistema — mismo riesgo aceptado que en el perfilamiento, ver README.
-  { key: "contrasena_portal", label: "Contraseña del portal (INFONAVIT/FOVISSSTE/banco)", type: "text", sensitive: true },
+  { key: "contrasena_portal", label: "Contraseña de Mi Cuenta Infonavit", type: "text", sensitive: true },
 ];
 
 // Sección 1 ("Datos de identificación del derechohabiente") de la Solicitud
@@ -69,6 +72,10 @@ export const CLIENT_COMPANY_FIELDS = [
 
 export const CLIENT_SELLER_FIELDS = [{ key: "numero_credito", label: "Número de crédito", type: "text" }];
 
+// Datos del crédito INFONAVIT en el formulario del asesor: los tres se capturan con cualquier tipo de cliente (comprador,
+// vendedor o ambos) cuando el financiamiento es INFONAVIT.
+export const CLIENT_CREDIT_FIELDS = [...CLIENT_SELLER_FIELDS, ...CLIENT_BUYER_FIELDS];
+
 export const CLIENT_REFERENCE_FIELDS = [1, 2].flatMap((n) => [
   { key: `referencia${n}_nombre`, label: `Referencia ${n} — nombre completo`, type: "text" },
   { key: `referencia${n}_telefono`, label: `Referencia ${n} — número de teléfono`, type: "tel" },
@@ -90,43 +97,37 @@ const DERECHOHABIENTE_TITLE = "Datos de identificación del derechohabiente";
 const COMPANY_TITLE = "Datos de la empresa";
 const REFERENCES_TITLE = "Referencias personales";
 
-// Qué se le pide a un cliente según su tipo: los datos personales a
-// cualquiera; al comprador además la identificación del derechohabiente,
-// el crédito, la empresa y las referencias; al vendedor el número de
-// crédito. Un cliente "ambos" ve todo. Se devuelve por bloques para que el
-// formulario y la hoja membretada muestren los mismos encabezados.
+// Qué se le pide a un cliente según su tipo, por bloques para que el formulario y la hoja membretada muestren los mismos
+// encabezados. Siempre se capturan los datos personales y las 2 referencias, y del comprador (o «ambos») además los datos de su
+// empresa. Los bloques con `onlyInfonavit` solo se piden con financiamiento INFONAVIT: los datos del crédito (número de
+// crédito, NSS y contraseña de Mi Cuenta Infonavit) con cualquier tipo de cliente, y la identificación del derechohabiente
+// del comprador.
 export function clientExpedienteGroups(clientType) {
+  const buyer = clientType !== "vendedor";
   const groups = [{ key: "personal", title: PERSONAL_TITLE, fields: CLIENT_PERSONAL_FIELDS }];
-  if (clientType !== "vendedor") {
-    groups.push({ key: "derechohabiente", title: DERECHOHABIENTE_TITLE, fields: CLIENT_DERECHOHABIENTE_FIELDS });
-    groups.push({ key: "credito", title: "Datos del crédito", fields: CLIENT_BUYER_FIELDS });
-    groups.push({ key: "empresa", title: COMPANY_TITLE, fields: CLIENT_COMPANY_FIELDS });
-    groups.push({ key: "referencias", title: REFERENCES_TITLE, fields: CLIENT_REFERENCE_FIELDS });
-  }
-  if (clientType !== "comprador") {
-    groups.push({ key: "venta", title: "Datos de la venta", fields: CLIENT_SELLER_FIELDS });
-  }
+  if (buyer) groups.push({ key: "empresa", title: COMPANY_TITLE, fields: CLIENT_COMPANY_FIELDS });
+  groups.push({ key: "referencias", title: REFERENCES_TITLE, fields: CLIENT_REFERENCE_FIELDS });
+  if (buyer) groups.push({ key: "derechohabiente", title: DERECHOHABIENTE_TITLE, fields: CLIENT_DERECHOHABIENTE_FIELDS, onlyInfonavit: true });
+  groups.push({ key: "credito", title: "Datos del crédito Infonavit", fields: CLIENT_CREDIT_FIELDS, onlyInfonavit: true });
   return groups;
 }
 
-// Datos que NO se pueden dejar vacíos al guardar un cliente. Siempre (con cualquier tipo de cliente y de
-// financiamiento): los datos básicos — nombre, teléfono, correo y todos los «Datos personales» (fecha de nacimiento,
-// estado civil, domicilio, RFC, CURP e identificación oficial). Además, con financiamiento INFONAVIT (que es cuando el
-// formulario pide el expediente de crédito): el comprador debe dar su NSS y la contraseña del portal de crédito, y el
-// vendedor el número de crédito (un cliente «ambos» los tres). Sin INFONAVIT esos datos de crédito no se piden, así
-// que no se exigen. Devuelven llaves de campos; el formulario las marca con * y las valida.
-export const CLIENT_BASIC_REQUIRED_KEYS = ["name", "phone", "email", ...CLIENT_PERSONAL_FIELDS.map((f) => f.key)];
-
-export function requiredExpedienteKeys(client) {
-  if (client?.financiamiento !== "infonavit") return [];
-  const keys = [];
-  if (client.type !== "vendedor") keys.push(...CLIENT_BUYER_FIELDS.map((f) => f.key));
-  if (client.type !== "comprador") keys.push(...CLIENT_SELLER_FIELDS.map((f) => f.key));
+// Datos que NO se pueden dejar vacíos al guardar un cliente (la lista del negocio):
+//  - Cualquier cliente: nombre completo, fecha de nacimiento, domicilio, estado civil y las 2 referencias personales
+//    (nombre y teléfono de cada una).
+//  - Comprador (y «ambos»), además: número de teléfono, CURP, RFC y teléfono de su empresa.
+//  - Con financiamiento INFONAVIT, cualquier cliente: número de crédito, NSS y contraseña de Mi Cuenta Infonavit.
+// Se devuelven en el orden en que aparecen en el formulario; el formulario las marca con * y las valida.
+export function requiredClientKeys(client) {
+  const buyer = client?.type !== "vendedor";
+  const keys = ["name"];
+  if (buyer) keys.push("phone");
+  keys.push("fecha_nacimiento", "estado_civil", "domicilio");
+  if (buyer) keys.push("rfc", "curp", "tel_empresa");
+  keys.push("referencia1_nombre", "referencia1_telefono", "referencia2_nombre", "referencia2_telefono");
+  if (client?.financiamiento === "infonavit") keys.push(...CLIENT_CREDIT_FIELDS.map((f) => f.key));
   return keys;
 }
-
-// Todo lo obligatorio para este cliente, en el orden en que aparece en el formulario.
-export const requiredClientKeys = (client) => [...CLIENT_BASIC_REQUIRED_KEYS, ...requiredExpedienteKeys(client)];
 
 // Llaves obligatorias que siguen vacías (espacios no cuentan).
 export const missingRequiredClient = (client) => requiredClientKeys(client).filter((key) => !String(client?.[key] ?? "").trim());
@@ -146,19 +147,18 @@ export function clientSheetSections(client) {
       { key: "phone", label: "Número de teléfono", type: "tel" },
       { key: "email", label: "Correo", type: "email" },
       ...CLIENT_PERSONAL_FIELDS,
-      ...(client.type !== "vendedor" ? CLIENT_BUYER_FIELDS : []),
-      ...(client.type !== "comprador" ? CLIENT_SELLER_FIELDS : []),
+      ...CLIENT_CREDIT_FIELDS,
       { key: "notes", label: "Notas", type: "textarea", full: true },
     ],
   };
 
-  if (client.type === "vendedor") return [datos];
-  return [
-    datos,
-    { key: "derechohabiente", title: DERECHOHABIENTE_TITLE, optional: true, fields: CLIENT_DERECHOHABIENTE_FIELDS },
-    { key: "empresa", title: COMPANY_TITLE, optional: true, fields: CLIENT_COMPANY_FIELDS },
-    { key: "referencias", title: REFERENCES_TITLE, optional: true, fields: CLIENT_REFERENCE_FIELDS },
-  ];
+  const sections = [datos];
+  if (client.type !== "vendedor") {
+    sections.push({ key: "derechohabiente", title: DERECHOHABIENTE_TITLE, optional: true, fields: CLIENT_DERECHOHABIENTE_FIELDS });
+    sections.push({ key: "empresa", title: COMPANY_TITLE, optional: true, fields: CLIENT_COMPANY_FIELDS });
+  }
+  sections.push({ key: "referencias", title: REFERENCES_TITLE, optional: true, fields: CLIENT_REFERENCE_FIELDS });
+  return sections;
 }
 
 // `rol` no es columna de la tabla: se deriva del tipo de cliente para que la

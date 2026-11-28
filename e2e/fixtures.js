@@ -85,17 +85,30 @@ export const test = base.extend({
 // Fecha ISO (YYYY-MM-DD) a `days` días de hoy; negativo = pasado.
 export const isoDate = (days = 0) => new Date(Date.now() + days * 864e5).toISOString().slice(0, 10);
 
-// Datos básicos que el formulario de cliente exige siempre (teléfono, correo y los «Datos personales»). El nombre y el
-// tipo los pone cada prueba; con INFONAVIT además se piden los datos de crédito (NSS, contraseña, número de crédito).
-export async function llenarDatosBasicosCliente(page) {
-  await page.fill("#c-phone", "8715550101");
-  await page.fill("#c-email", "cliente.qa@example.com");
+// Datos que el formulario de cliente exige según su tipo (ver requiredClientKeys): de cualquiera, fecha de nacimiento,
+// estado civil, domicilio y 2 referencias (nombre y teléfono); del comprador además teléfono, RFC, CURP y teléfono de su
+// empresa. El nombre y el tipo los pone cada prueba. Con financiamiento INFONAVIT, además: llenarCreditoInfonavit.
+export async function llenarDatosObligatoriosCliente(page, tipo = "comprador") {
   await page.fill("#c-fecha_nacimiento", "1990-05-17");
-  await page.selectOption("#c-estado_civil", { index: 1 });
+  await page.selectOption("#c-estado_civil", "Casado");
   await page.fill("#c-domicilio", "Calle QA 123, Torreón");
-  await page.fill("#c-rfc", "XAXX010101000");
-  await page.fill("#c-curp", "XEXX010101HNEXXXA4");
-  await page.fill("#c-identificacion_oficial", "1234567890123");
+  await page.fill("#c-referencia1_nombre", "Ana Referencia Uno");
+  await page.fill("#c-referencia1_telefono", "8711111111");
+  await page.fill("#c-referencia2_nombre", "Luis Referencia Dos");
+  await page.fill("#c-referencia2_telefono", "8712222222");
+  if (tipo !== "vendedor") {
+    await page.fill("#c-phone", "8715550101");
+    await page.fill("#c-rfc", "XAXX010101000");
+    await page.fill("#c-curp", "XEXX010101HNEXXXA4");
+    await page.fill("#c-tel_empresa", "8713333333");
+  }
+}
+
+// Datos del crédito INFONAVIT: los tres se piden a cualquier cliente cuando el financiamiento es INFONAVIT.
+export async function llenarCreditoInfonavit(page) {
+  await page.fill("#c-numero_credito", "1234567890");
+  await page.fill("#c-nss", "12345678901");
+  await page.fill("#c-contrasena_portal", "Clave-QA-1");
 }
 
 // Revisión de salud común: la pantalla cargó de verdad y no está rota.
