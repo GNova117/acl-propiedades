@@ -236,7 +236,8 @@ test.describe("Calculadoras", () => {
     await page.locator("#calc-built").fill("300");
     await expect.poll(() => page.locator("main").innerText()).not.toBe(inicial);
     const conArea = await page.locator("main").innerText();
-    await page.selectOption("#calc-zone", { index: 2 });
+    // Otra zona con otro precio por m² (hay zonas vecinas con el mismo precio, por eso no se toma la siguiente).
+    await page.locator("#calc-zone").selectOption({ index: (await page.locator("#calc-zone option").count()) - 1 });
     await expect.poll(() => page.locator("main").innerText()).not.toBe(conArea);
     await expect(resultado).toContainText(/\$[\d,]+/);
   });
