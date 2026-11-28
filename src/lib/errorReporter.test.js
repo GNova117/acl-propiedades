@@ -21,6 +21,8 @@ describe("shouldIgnore", () => {
     expect(shouldIgnore("Script error.")).toBe(true);
     expect(shouldIgnore("x", "at chrome-extension://abc/content.js:1:1")).toBe(true);
     expect(shouldIgnore("error loading dynamically imported module: /assets/Foo.js")).toBe(true);
+    expect(shouldIgnore("Failed to fetch dynamically imported module: https://www.acl-propiedades.com/assets/AdminLayout-BqPQAOM2.js")).toBe(true);
+    expect(shouldIgnore("Importing a module script failed.")).toBe(true);
     expect(shouldIgnore("Cannot read properties of undefined (reading 'map')")).toBe(false);
   });
 });
