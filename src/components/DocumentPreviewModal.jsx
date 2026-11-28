@@ -78,7 +78,7 @@ export default function DocumentPreviewModal({ doc, title, subtitle, filePrefix,
 
       <div className="document-preview__stage">
         {previewFailed ? (
-          <p className="form-error">
+          <p className="form-error" role="alert">
             {t("documentCapture.previewError")} ({previewErrorDetail})
           </p>
         ) : !previewUrl ? (
@@ -92,7 +92,7 @@ export default function DocumentPreviewModal({ doc, title, subtitle, filePrefix,
 
       <div className="document-preview__actions">
         {downloadFailed && (
-          <p className="form-error">
+          <p className="form-error" role="alert">
             {t("documentCapture.downloadError")} ({downloadErrorDetail})
           </p>
         )}

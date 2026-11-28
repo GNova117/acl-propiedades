@@ -124,7 +124,7 @@ export default function AdminAlerts() {
         </select>
       </div>
 
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
 
       <div className="card admin-table-wrapper">
         <table className="admin-table">

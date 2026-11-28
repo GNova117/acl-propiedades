@@ -122,7 +122,7 @@ export default function AdminVisits() {
         </div>
       </div>
 
-      {loadError && <p className="form-error">{t("visits.loadError", { error: loadError })}</p>}
+      {loadError && <p className="form-error" role="alert">{t("visits.loadError", { error: loadError })}</p>}
 
       {seesAll && visits.length > 0 && <VisitsByAdvisor visits={visits} advisors={advisors} />}
 

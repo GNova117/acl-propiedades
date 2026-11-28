@@ -133,8 +133,8 @@ export default function ContactForm({ initialMessage = "", showTopic = true }) {
           </button>
         </div>
       )}
-      {status === "error" && <p className="form-error">{t("contact.error")}</p>}
-      {status === "rateLimited" && <p className="form-error">{t("contact.rateLimited")}</p>}
+      {status === "error" && <p className="form-error" role="alert">{t("contact.error")}</p>}
+      {status === "rateLimited" && <p className="form-error" role="alert">{t("contact.rateLimited")}</p>}
       {status === "serverLimited" && <p className="form-error" role="alert">{t("contact.serverLimited")}</p>}
 
       <p className="form-hint mb-4">

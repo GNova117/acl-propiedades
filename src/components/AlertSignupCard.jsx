@@ -226,7 +226,7 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
             {errors.email && <span id={errorId(`alert-${mode}-email`)} className="form-error">{errors.email}</span>}
           </div>
         )}
-        {status === "error" && <p className="form-error">{t(errorKey || "alerts.errors.generic")}</p>}
+        {status === "error" && <p className="form-error" role="alert">{t(errorKey || "alerts.errors.generic")}</p>}
         <button type="submit" className="btn btn-primary btn-block" disabled={status === "sending"}>
           {status === "sending" ? <span className="spinner" /> : null}
           {t(`alerts.${variant}.submit`)}

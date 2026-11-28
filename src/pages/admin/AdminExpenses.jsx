@@ -239,7 +239,7 @@ export default function AdminExpenses() {
         </div>
       </div>
 
-      {loadError && <p className="form-error">{t("expenses.loadError", { error: loadError })}</p>}
+      {loadError && <p className="form-error" role="alert">{t("expenses.loadError", { error: loadError })}</p>}
 
       <div className="card" style={{ padding: "1rem", marginBottom: "1.25rem", display: "grid", gap: "0.75rem", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
         <div className="form-field">

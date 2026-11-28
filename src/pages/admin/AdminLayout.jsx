@@ -24,6 +24,7 @@ import { getQueue } from "../../lib/offlineQueue";
 import { startPrecache } from "../../lib/offlineShell";
 import { useAuth } from "../../context/useAuth.js";
 import { useScrollableRegions } from "../../lib/scrollableRegions";
+import { useFormErrorLinks } from "../../lib/formErrorLinks";
 import { db } from "../../lib/dataStore";
 import { liveBus, startLiveUpdates, useLiveRefresh } from "../../lib/liveUpdates";
 import { queries } from "../../lib/queries";
@@ -67,6 +68,7 @@ export default function AdminLayout() {
   }, [navigate]);
   const contentRef = useRef(null);
   useScrollableRegions(contentRef, t("adminNav.scrollTable"));
+  useFormErrorLinks(); // 261
   const [newMessagesCount, setNewMessagesCount] = useState(0);
   const [openGroups, setOpenGroups] = useState(readOpen);
   // Atajos del menú (ver lib/navShortcuts.js): lo fijado arriba, lo visitado hace poco y el modo compacto (solo iconos).

@@ -134,6 +134,7 @@ function InventoryChart({ series, monthLabels, t }) {
                 <div
                   key={s.month}
                   className="sr-chart__col"
+                  role="group"
                   tabIndex={0}
                   onMouseEnter={() => setHover(s.month)}
                   onMouseLeave={() => setHover(null)}
@@ -378,7 +379,7 @@ export default function AdminSalesReports() {
         </div>
       </div>
 
-      {loadError && <p className="form-error">{t("salesReports.loadError", { error: loadError })}</p>}
+      {loadError && <p className="form-error" role="alert">{t("salesReports.loadError", { error: loadError })}</p>}
 
       <div className="sr-filters card">
         <div className="form-field">

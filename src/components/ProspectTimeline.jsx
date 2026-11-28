@@ -115,7 +115,7 @@ export default function ProspectTimeline({ prospect, properties = NONE, refreshK
   return (
     <section className="card prospect-timeline" aria-label={t("prospects.timeline.title")}>
       <h2 className="prospect-timeline__title">{t("prospects.timeline.title")}</h2>
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
       {contacts === null && !error && <p className="form-hint">…</p>}
       <ol className="prospect-timeline__list">
         {shown.map((item) => {

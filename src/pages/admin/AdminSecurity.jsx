@@ -129,7 +129,7 @@ export default function AdminSecurity() {
         <h2 id="sec-mfa">{t("mfa.title")}</h2>
         <p>{t("mfa.intro")}</p>
         {isDemoMode && <p className="form-hint">{t("mfa.demoNote")}</p>}
-        {status.error && <p className="form-error">{t("mfa.unavailable")}</p>}
+        {status.error && <p className="form-error" role="alert">{t("mfa.unavailable")}</p>}
 
         {status.enrolled && !enrollment && (
           <>

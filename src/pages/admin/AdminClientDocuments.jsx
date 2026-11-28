@@ -218,7 +218,7 @@ export default function AdminClientDocuments() {
                         <AdminPortalDocumentReview doc={doc} clientId={id} onChanged={load} />
                       )}
                       {downloadErrorId === doc.id && (
-                        <p className="form-error">
+                        <p className="form-error" role="alert">
                           {t("documentCapture.downloadError")} ({downloadErrorDetail})
                         </p>
                       )}
@@ -241,7 +241,7 @@ export default function AdminClientDocuments() {
                 </div>
               )}
 
-              {uploadErrorType === docType && <p className="form-error">{uploadErrorDetail}</p>}
+              {uploadErrorType === docType && <p className="form-error" role="alert">{uploadErrorDetail}</p>}
 
               <div className="admin-doc-card__actions">
                 <button type="button" className="btn btn-primary btn-sm" onClick={() => setCapturingType(docType)}>

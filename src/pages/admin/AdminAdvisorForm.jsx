@@ -174,7 +174,7 @@ export default function AdminAdvisorForm() {
             Mostrar en la página de Nosotros
           </label>
           {/* Nosotros solo lista asesores con foto: una tarjeta sin foto se ve incompleta. */}
-          {form.show_in_team && !photoFile && !existingPhoto && <p className="form-error">{t("advisorForm.photoNeeded")}</p>}
+          {form.show_in_team && !photoFile && !existingPhoto && <p className="form-error" role="alert">{t("advisorForm.photoNeeded")}</p>}
           <p className="form-hint">{t("advisorForm.teamHint")}</p>
         </div>
 

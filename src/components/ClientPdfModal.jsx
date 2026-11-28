@@ -181,7 +181,7 @@ export default function ClientPdfModal({ initialTypeFilter, onClose }) {
               </p>
             )}
 
-            {error && <p className="form-error">{error}</p>}
+            {error && <p className="form-error" role="alert">{error}</p>}
 
             <div className="admin-form__actions">
               <button type="button" className="btn btn-primary" onClick={handleDownload} disabled={busy || selected.size === 0}>

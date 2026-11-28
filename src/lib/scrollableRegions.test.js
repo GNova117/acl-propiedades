@@ -2,11 +2,13 @@
 import { describe, expect, it } from "vitest";
 import { syncScrollableRegions } from "./scrollableRegions";
 
-function wrapper({ scroll, client }) {
+function wrapper({ scroll, client, scrollH = 100, clientH = 100 }) {
   const el = document.createElement("div");
   el.className = "admin-table-wrapper";
   Object.defineProperty(el, "scrollWidth", { configurable: true, value: scroll });
   Object.defineProperty(el, "clientWidth", { configurable: true, value: client });
+  Object.defineProperty(el, "scrollHeight", { configurable: true, value: scrollH });
+  Object.defineProperty(el, "clientHeight", { configurable: true, value: clientH });
   return el;
 }
 
@@ -19,6 +21,15 @@ describe("syncScrollableRegions", () => {
     expect(el.getAttribute("tabindex")).toBe("0");
     expect(el.getAttribute("role")).toBe("region");
     expect(el.getAttribute("aria-label")).toBe("Tabla");
+  });
+
+  it("también la que solo se desplaza hacia abajo (alto máximo)", () => {
+    const root = document.createElement("div");
+    const el = wrapper({ scroll: 400, client: 400, scrollH: 748, clientH: 560 });
+    root.append(el);
+    syncScrollableRegions(root, "Tabla");
+    expect(el.getAttribute("tabindex")).toBe("0");
+    expect(el.getAttribute("role")).toBe("region");
   });
 
   it("no toca la que cabe", () => {

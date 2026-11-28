@@ -136,7 +136,7 @@ export default function ExpedienteAvaluoModal({ client, linkedClient, onClose })
               </select>
             </div>
 
-            {error && <p className="form-error">{t("expedienteAvaluo.downloadError")} ({error})</p>}
+            {error && <p className="form-error" role="alert">{t("expedienteAvaluo.downloadError")} ({error})</p>}
 
             <div className="admin-form__actions">
               <button type="button" className="btn btn-primary" onClick={handleDownload} disabled={busy || nothingSelected}>

@@ -273,7 +273,7 @@ export default function AdminPropertyBitacora({ listPath = "/admin/propiedades" 
         </div>
       </div>
 
-      {loadError && <p className="form-error">{t("propertyLog.loadError", { error: loadError })}</p>}
+      {loadError && <p className="form-error" role="alert">{t("propertyLog.loadError", { error: loadError })}</p>}
 
       <div className="pl-summary">
         <div className="card pl-card">

@@ -134,7 +134,7 @@ export default function AdminTeamDay() {
         </div>
       </div>
 
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
       {loading ? (
         <p className="form-hint">…</p>
       ) : (

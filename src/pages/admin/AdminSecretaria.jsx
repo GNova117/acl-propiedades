@@ -161,7 +161,7 @@ export default function AdminSecretaria() {
         <h1>Secretaría</h1>
       </div>
 
-      {error && <p className="form-error">No se pudieron cargar las bitácoras: {error}</p>}
+      {error && <p className="form-error" role="alert">No se pudieron cargar las bitácoras: {error}</p>}
 
       <div className="sec-tabs" role="tablist">
         <button type="button" role="tab" aria-selected={tab === "keys"} className={tab === "keys" ? "is-active" : ""} onClick={() => setTab("keys")}>
@@ -199,8 +199,8 @@ export default function AdminSecretaria() {
           <form className="card sec-form" onSubmit={submitKey}>
             <h2>Registrar entrega de llave</h2>
             <div className="sec-grid">
-              <div className="form-field"><label>Fecha</label><input type="date" required value={keyForm.date} onChange={setK("date")} /></div>
-              <div className="form-field"><label>Hora</label><input type="time" required value={keyForm.time} onChange={setK("time")} /></div>
+              <div className="form-field"><label htmlFor="sec-key-date">Fecha</label><input id="sec-key-date" type="date" required value={keyForm.date} onChange={setK("date")} /></div>
+              <div className="form-field"><label htmlFor="sec-key-time">Hora</label><input id="sec-key-time" type="time" required value={keyForm.time} onChange={setK("time")} /></div>
               <div className="form-field"><label>Dirección / Casa</label><input required value={keyForm.address} onChange={setK("address")} placeholder="Ej. Av. Hidalgo #123" /></div>
               <div className="form-field"><label>ID / Nombre de llave</label><input required value={keyForm.key_label} onChange={setK("key_label")} placeholder="Ej. P-01 (Principal)" /></div>
               <div className="form-field"><label>Nombre de quien recibe</label><input required value={keyForm.receiver_name} onChange={setK("receiver_name")} placeholder="Ej. Juan Pérez" /></div>
@@ -258,8 +258,8 @@ export default function AdminSecretaria() {
           <form className="card sec-form" onSubmit={submitDoc}>
             <h2>Registrar movimiento de documento</h2>
             <div className="sec-grid">
-              <div className="form-field"><label>Fecha</label><input type="date" required value={docForm.date} onChange={setD("date")} /></div>
-              <div className="form-field"><label>Hora</label><input type="time" required value={docForm.time} onChange={setD("time")} /></div>
+              <div className="form-field"><label htmlFor="sec-doc-date">Fecha</label><input id="sec-doc-date" type="date" required value={docForm.date} onChange={setD("date")} /></div>
+              <div className="form-field"><label htmlFor="sec-doc-time">Hora</label><input id="sec-doc-time" type="time" required value={docForm.time} onChange={setD("time")} /></div>
               <div className="form-field"><label>Tipo de documento</label><input required value={docForm.doc_type} onChange={setD("doc_type")} placeholder="Escrituras / Contrato" /></div>
               <div className="form-field"><label>Propiedad / Cliente</label><input required value={docForm.property_client} onChange={setD("property_client")} placeholder="Casa #45 - Col. Centro" /></div>
               <div className="form-field">

@@ -89,7 +89,7 @@ export default function AdminVisitReports() {
         </select>
       </div>
 
-      {error && <p className="form-error">{t("visits.loadError", { error })}</p>}
+      {error && <p className="form-error" role="alert">{t("visits.loadError", { error })}</p>}
       {rows && rows.length > 0 && <p className="visit-note">{t("visits.monthly.pending", { count: pending, total: rows.length })}</p>}
 
       <div className="card admin-table-wrapper">

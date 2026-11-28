@@ -157,7 +157,7 @@ export default function AdminPortalTramitePanel({ client, documents, onSaved }) 
         </div>
       )}
 
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
       <div className="admin-portal-tramite__actions">
         <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>
           {saving ? <span className="spinner" /> : null}

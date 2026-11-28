@@ -201,8 +201,8 @@ export default function ContactRequestCard({ property }) {
           </div>
         </div>
 
-        {status === "error" && <p className="form-error">{t("contact.error")}</p>}
-        {status === "rateLimited" && <p className="form-error">{t("contact.rateLimited")}</p>}
+        {status === "error" && <p className="form-error" role="alert">{t("contact.error")}</p>}
+        {status === "rateLimited" && <p className="form-error" role="alert">{t("contact.rateLimited")}</p>}
 
         <button type="submit" className="btn btn-primary btn-block" disabled={status === "sending"}>
           {status === "sending" ? <span className="spinner" /> : null}

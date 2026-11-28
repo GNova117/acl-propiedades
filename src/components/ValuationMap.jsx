@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from "react";
+import MapA11y from "./MapA11y";
 import { MapContainer, TileLayer, LayersControl, Polygon, Polyline, CircleMarker, Marker, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { useTranslation } from "react-i18next";
@@ -170,6 +171,7 @@ export default function ValuationMap({ shapes, onShapesChange }) {
 
       <div className={`valuation-map__canvas${drawing ? " is-drawing" : ""}`}>
         <MapContainer center={DEFAULT_CENTER} zoom={13} maxZoom={20} scrollWheelZoom doubleClickZoom={false} style={{ height: "100%", width: "100%" }}>
+          <MapA11y label={t("valuation.map.label")} />
           {/* key: Leaflet fija los nombres de las capas al crear el control. */}
           <LayersControl key={i18n.language} position="topright">
             <LayersControl.BaseLayer checked name={t("valuation.map.satellite")}>

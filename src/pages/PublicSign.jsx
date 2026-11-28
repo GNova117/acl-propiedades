@@ -217,7 +217,7 @@ export default function PublicSign() {
             </button>
           </div>
 
-          {submitError && <p className="form-error">{submitError}</p>}
+          {submitError && <p className="form-error" role="alert">{submitError}</p>}
           <button type="button" className="btn btn-primary btn-block" disabled={!canSubmit} onClick={handleSubmit}>
             {signing ? <span className="spinner" /> : null}
             {t("signing.public.submit")}

@@ -149,7 +149,7 @@ export default function AdminFunnel() {
         )}
       </div>
 
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
       {loading ? (
         <p className="form-hint">…</p>
       ) : stats.total === 0 ? (

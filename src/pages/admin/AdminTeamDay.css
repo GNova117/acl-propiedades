@@ -162,5 +162,9 @@
 .team-state--ok {
   border-color: var(--color-success);
   background: color-mix(in srgb, var(--color-success) 14%, transparent);
-  color: #15803d;
+  color: #166534;
+}
+
+[data-theme="dark"] .team-state--ok {
+  color: #86efac;
 }

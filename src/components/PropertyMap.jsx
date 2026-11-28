@@ -1,4 +1,5 @@
 import ResponsiveImg from "./ResponsiveImg";
+import MapA11y from "./MapA11y";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { MapContainer, TileLayer, LayersControl, Marker, Popup, Circle, useMap, useMapEvents } from "react-leaflet";
@@ -300,6 +301,7 @@ export default function PropertyMap({ properties, height = 480, onSearchArea, ar
             />
           </LayersControl.BaseLayer>
         </LayersControl>
+        <MapA11y label={t("propertyMap.label")} />
         <FitBounds properties={properties} suppress={suppressRef} skip={areaActive} />
         <ClusteredMarkers properties={properties} />
         {onSearchArea && <AreaSearchButton onSearchArea={onSearchArea} suppress={suppressRef} />}

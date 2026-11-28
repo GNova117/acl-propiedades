@@ -48,7 +48,7 @@ export default function AdminConstruccionForm() {
           <input id="construccion-direccion" value={direccion} onChange={(e) => setDireccion(e.target.value)} />
         </div>
 
-        {error && <p className="form-error">{error}</p>}
+        {error && <p className="form-error" role="alert">{error}</p>}
 
         <button type="submit" className="btn btn-primary" disabled={saving}>
           {saving ? "Creando…" : "Crear y abrir editor"}

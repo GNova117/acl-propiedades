@@ -75,7 +75,7 @@ export default function AdminInspections() {
         </div>
       </div>
 
-      {loadError && <p className="form-error">{t("inspections.loadError", { error: loadError })}</p>}
+      {loadError && <p className="form-error" role="alert">{t("inspections.loadError", { error: loadError })}</p>}
 
       <div className="inspections-filters">
         <div className="form-field">

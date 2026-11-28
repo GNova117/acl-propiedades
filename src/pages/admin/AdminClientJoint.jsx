@@ -166,7 +166,7 @@ export default function AdminClientJoint() {
                       )}
                       <span className="form-hint">{doc.owner.name}</span>
                       {downloadErrorId === doc.id && (
-                        <p className="form-error">
+                        <p className="form-error" role="alert">
                           {t("documentCapture.downloadError")} ({downloadErrorDetail})
                         </p>
                       )}

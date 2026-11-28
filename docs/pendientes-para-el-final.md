@@ -16,7 +16,7 @@ Numeración = la de `docs/auditoria-areas-de-oportunidad.md` (101–506).
 
 **Ficha y tarjetas**: 251 botones dentro de enlaces y 3 enlaces por tarjeta (revisado: el carrusel de fotos tiene botones de siguiente/anterior y se desliza con el dedo, así que sacarlos del enlace exige rediseñar la tarjeta —un enlace que cubra toda la tarjeta rompe el deslizado—; falta decidir el diseño).
 
-**Accesibilidad que toca varias pantallas**: hechos 250, 252, 253, 254, 255, 257, 258, 259, 260 y 261 (en Contacto, «¿Te interesa?», solicitud y reserva de visita y alerta «avísame»); quedan 249 marcadores del mapa y gráficas · 261 en el resto de formularios.
+**Accesibilidad que toca varias pantallas**: completa (249, 250, 252–255, 257–261 hechos; la prueba automática revisa 63 pantallas).
 
 **Estilos globales**: completo (281, 294 y 322 hechos).
 

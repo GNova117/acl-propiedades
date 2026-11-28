@@ -127,7 +127,7 @@ export default function BuyerGuide() {
                   {errors.phone && <span className="form-error">{errors.phone}</span>}
                 </div>
               </div>
-              {status === "error" && <p className="form-error">{t("contact.error")}</p>}
+              {status === "error" && <p className="form-error" role="alert">{t("contact.error")}</p>}
               <button type="submit" className="btn btn-primary btn-block" disabled={status === "sending"}>
                 {status === "sending" ? <span className="spinner" /> : null}
                 {status === "sending" ? t("buyerGuide.preparing") : t("buyerGuide.submit")}

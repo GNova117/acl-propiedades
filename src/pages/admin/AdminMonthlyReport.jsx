@@ -142,7 +142,7 @@ export default function AdminMonthlyReport() {
         </select>
       </div>
 
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
       {!report ? (
         <p className="form-hint">…</p>
       ) : (

@@ -3290,6 +3290,7 @@
       "hintDrawing": "Haz clic en cada esquina del {{kind}}. Con 3 o más puntos, cierra la figura. Después puedes arrastrar los vértices para ajustar.",
       "currentArea": "Área actual",
       "satellite": "Satélite",
+      "label": "Mapa para marcar el terreno o la zona a valuar. Usa las flechas para moverte y más y menos para acercar o alejar.",
       "streets": "Calles",
       "attribution": "Imagen satelital: Esri, Maxar, Earthstar Geographics. Búsqueda: OpenStreetMap."
     }
@@ -5037,7 +5038,7 @@
     "recent": "Recientes",
     "compact": "Compactar menú",
     "expand": "Expandir menú",
-    "scrollTable": "Tabla con desplazamiento horizontal",
+    "scrollTable": "Tabla con desplazamiento",
     "breadcrumb": "Migas de pan",
     "backTo": "Volver a {{section}}",
     "signedInAs": "Sesión de {{email}}",
@@ -5122,6 +5123,7 @@
     "featured": "Mientras tanto, mira estas propiedades"
   },
   "propertyMap": {
+    "label": "Mapa de propiedades. Usa las flechas para moverte, más y menos para acercar o alejar, y Tab para llegar a cada propiedad.",
     "cluster": "{{count}} propiedades juntas: acercar el mapa"
   },
   "charts": {

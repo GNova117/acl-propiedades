@@ -33,7 +33,7 @@ export default function PortalPrivacyConsent({ onAccept }) {
         <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} />
         {t("portal.consent.checkbox")}
       </label>
-      {error && <p className="form-error">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
       <button type="button" className="btn btn-primary btn-block" disabled={!checked || busy} onClick={handleContinue}>
         {busy ? <span className="spinner" /> : null}
         {t("portal.consent.continue")}

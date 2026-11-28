@@ -90,7 +90,7 @@ export default function AdminInspectionCompare() {
             {t("inspections.compare.suggest")}
           </button>
         )}
-        {a && b && a === b && <p className="form-error">{t("inspections.compare.sameOne")}</p>}
+        {a && b && a === b && <p className="form-error" role="alert">{t("inspections.compare.sameOne")}</p>}
       </div>
 
       {loadingPair && <LoadingState />}

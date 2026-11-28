@@ -47,7 +47,7 @@ export default function AlertUnsubscribe() {
             <>
               <h1 style={{ fontSize: "1.6rem" }}>{t("alerts.unsubscribe.title")}</h1>
               <p className="form-hint">{t("alerts.unsubscribe.text")}</p>
-              {state === "error" && <p className="form-error">{t("alerts.errors.generic")}</p>}
+              {state === "error" && <p className="form-error" role="alert">{t("alerts.errors.generic")}</p>}
               <button type="button" className="btn btn-primary" onClick={unsubscribe} disabled={state === "working"}>
                 {state === "working" ? <span className="spinner" /> : null}
                 {t("alerts.unsubscribe.button")}

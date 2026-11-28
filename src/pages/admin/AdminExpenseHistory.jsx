@@ -224,7 +224,7 @@ export default function AdminExpenseHistory() {
         </div>
       </div>
 
-      {error && <p className="form-error">{t("expenses.history.loadError", { error })}</p>}
+      {error && <p className="form-error" role="alert">{t("expenses.history.loadError", { error })}</p>}
 
       <div className="card admin-table-wrapper">
         <table className="admin-table">
@@ -338,7 +338,7 @@ export default function AdminExpenseHistory() {
             </p>
           )}
 
-          {editError && <p className="form-error">{editError}</p>}
+          {editError && <p className="form-error" role="alert">{editError}</p>}
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
             <button type="button" className="btn btn-outline" onClick={recalculate} title={t("expenses.history.recalculateHint")}>

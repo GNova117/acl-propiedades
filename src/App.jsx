@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
+import { useFormErrorLinks } from "./lib/formErrorLinks";
 import { useTranslation } from "react-i18next";
 import { Routes, Route, useLocation } from "react-router-dom";
 import Header from "./components/Header";
@@ -156,6 +157,7 @@ function PublicLayout({ children }) {
   const { pathname } = useLocation();
   // Google Analytics solo corre si la persona lo aceptó en el aviso de cookies (CookieBanner).
   const [consent, setConsentState] = useState(getConsent);
+  useFormErrorLinks(); // 261: errores ligados a su campo y foco al primer error tras enviar
 
   useEffect(() => subscribeConsent(setConsentState), []);
 

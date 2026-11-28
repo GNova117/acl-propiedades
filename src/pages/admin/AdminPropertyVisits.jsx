@@ -169,7 +169,7 @@ export default function AdminPropertyVisits() {
             {t("visits.backToList")}
           </Link>
         </div>
-        <p className="form-error">{loadError ? t("visits.loadError", { error: loadError }) : t("visits.property.notFound")}</p>
+        <p className="form-error" role="alert">{loadError ? t("visits.loadError", { error: loadError }) : t("visits.property.notFound")}</p>
       </div>
     );
   }

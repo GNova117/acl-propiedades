@@ -692,4 +692,28 @@ test.describe("Tanda A y B", () => {
     const alto = page.viewportSize().height;
     expect(arribaResultados, "los filtros/resultados empiezan en la primera pantalla").toBeLessThan(alto);
   });
+  test("el mapa de propiedades tiene rol y nombre que explican cómo usarlo con teclado (249)", async ({ page, go }) => {
+    await go("/propiedades?vista=mapa");
+    const mapa = page.locator(".leaflet-container").first();
+    await expect(mapa).toHaveAttribute("role", "region");
+    await expect(mapa).toHaveAttribute("aria-label", /Mapa de propiedades.*flechas/);
+    // Los marcadores son botones con el nombre de la propiedad.
+    const marcador = page.locator(".leaflet-marker-icon[role=button]").first();
+    await expect(marcador).toHaveAttribute("title", /\S+/);
+  });
+
+  test("panel: al enviar un formulario con errores el foco va al primer campo con error y cada error queda ligado a su campo (261)", async ({ page, seedAdminSession, go, press }) => {
+    await seedAdminSession();
+    await go("/admin/propiedades/nueva");
+    await press(page.locator("main form button[type=submit]").first());
+    const enfocado = page.locator(":focus");
+    await expect(enfocado).toHaveAttribute("aria-invalid", "true");
+    const ids = ((await enfocado.getAttribute("aria-describedby")) || "").split(/\s+/).filter(Boolean);
+    expect(ids.length).toBeGreaterThan(0);
+    const mensajes = await page.evaluate((lista) => lista.map((id) => document.getElementById(id)?.textContent?.trim()), ids);
+    expect(mensajes.some((m) => m && m.length > 0), "el campo apunta a un mensaje de error con texto").toBe(true);
+    // Los errores sueltos se anuncian solos.
+    const sueltosSinAlerta = await page.evaluate(() => [...document.querySelectorAll("p.form-error")].filter((el) => el.getAttribute("role") !== "alert").length);
+    expect(sueltosSinAlerta).toBe(0);
+  });
 });

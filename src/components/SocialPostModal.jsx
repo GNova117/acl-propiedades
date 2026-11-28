@@ -125,7 +125,7 @@ export default function SocialPostModal({ property, onClose }) {
             <div className="social-modal__preview">
               {rendering && <span className="spinner" />}
               {preview && !imageError && <img src={preview} alt={t("socialPost.previewAlt")} style={{ opacity: rendering ? 0.4 : 1 }} />}
-              {imageError && <p className="form-error">{imageError}</p>}
+              {imageError && <p className="form-error" role="alert">{imageError}</p>}
             </div>
             {photos.length > 1 && (
               <div className="social-modal__thumbs" role="listbox" aria-label={t("socialPost.choosePhoto")}>

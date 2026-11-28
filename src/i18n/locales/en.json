@@ -3290,6 +3290,7 @@
       "hintDrawing": "Click each corner of the {{kind}}. With 3 or more points, close the shape. You can then drag the vertices to adjust.",
       "currentArea": "Current area",
       "satellite": "Satellite",
+      "label": "Map to mark the lot or area to value. Use the arrow keys to move and plus and minus to zoom.",
       "streets": "Streets",
       "attribution": "Satellite imagery: Esri, Maxar, Earthstar Geographics. Search: OpenStreetMap."
     }
@@ -5037,7 +5038,7 @@
     "recent": "Recent",
     "compact": "Compact menu",
     "expand": "Expand menu",
-    "scrollTable": "Horizontally scrollable table",
+    "scrollTable": "Scrollable table",
     "breadcrumb": "Breadcrumb",
     "backTo": "Back to {{section}}",
     "signedInAs": "Signed in as {{email}}",
@@ -5122,6 +5123,7 @@
     "featured": "In the meantime, take a look at these properties"
   },
   "propertyMap": {
+    "label": "Property map. Use the arrow keys to move, plus and minus to zoom, and Tab to reach each property.",
     "cluster": "{{count}} properties together: zoom in"
   },
   "charts": {

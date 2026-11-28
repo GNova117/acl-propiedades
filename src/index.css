@@ -553,3 +553,8 @@ p a:not(.btn),
 .badge--switch:hover {
   filter: brightness(0.95);
 }
+
+/* El enlace «Leaflet» de la atribución del mapa va dentro de un texto: sin subrayado dependía solo del color para distinguirse. */
+.leaflet-container .leaflet-control-attribution a {
+  text-decoration: underline;
+}

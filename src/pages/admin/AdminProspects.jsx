@@ -404,7 +404,7 @@ export default function AdminProspects() {
       </div>
       <p className="form-hint prospect-board-hint">{t("prospects.dragHint")}</p>
 
-      {loadError && <p className="form-error">{loadError}</p>}
+      {loadError && <p className="form-error" role="alert">{loadError}</p>}
       {loading ? (
         <p className="form-hint">…</p>
       ) : (
