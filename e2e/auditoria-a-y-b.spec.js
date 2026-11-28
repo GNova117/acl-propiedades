@@ -640,4 +640,56 @@ test.describe("Tanda A y B", () => {
     expect(medidas.desborde).toBeLessThanOrEqual(1);
     expect(medidas.alto, "alto del inicio en teléfono (px)").toBeLessThanOrEqual(6500);
   });
+  test("desarrollos: página con la lista, enlace en el menú y tira en el inicio (270, 316)", async ({ page, go, press, isMobile, abrirMenuSitio }) => {
+    await go("/");
+    // Tira de desarrollos y herramientas del comprador en el inicio.
+    const tira = page.locator(".home-developments__grid");
+    await expect(tira).toBeVisible();
+    expect(await tira.locator(".development-card").count()).toBeGreaterThan(0);
+    const herramientas = page.locator(".home-tools__card");
+    expect(await herramientas.count()).toBe(3);
+    for (const href of ["/comparar-creditos", "/guia-del-comprador", "/calculadora"]) await expect(page.locator(`.home-tools__card[href='${href}']`)).toHaveCount(1);
+    // El menú trae «Desarrollos» (en teléfono, dentro del menú abierto).
+    if (isMobile) await abrirMenuSitio();
+    const enlace = page.locator(".site-nav").getByRole("link", { name: "Desarrollos" });
+    await expect(enlace).toBeVisible();
+    await press(enlace);
+    await expect(page).toHaveURL(/\/desarrollos$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Torres y desarrollos" })).toBeVisible();
+    expect(await page.locator(".developments-page__grid .development-card").count()).toBeGreaterThan(0);
+    // «Ver todos los desarrollos» del inicio lleva ahí.
+    await go("/");
+    await press(page.getByRole("link", { name: "Ver todos los desarrollos" }));
+    await expect(page).toHaveURL(/\/desarrollos$/);
+  });
+
+  test("testimonios: página con todos y enlace «Ver todos» desde el inicio (302)", async ({ page, go, press }) => {
+    const hoy = new Date().toISOString();
+    await page.addInitScript((creado) => {
+      const lista = Array.from({ length: 4 }, (_, i) => ({ id: `t-qa-${i}`, name: `Cliente QA ${i + 1}`, role: "Compró en Torreón", quote: `Excelente servicio ${i + 1}`, rating: 5, active: true, created_at: creado }));
+      localStorage.setItem("acl_local_testimonials", JSON.stringify(lista));
+    }, hoy);
+    await go("/");
+    const todos = page.getByRole("link", { name: "Ver todos los testimonios" });
+    await expect(todos).toBeVisible();
+    await press(todos);
+    await expect(page).toHaveURL(/\/testimonios$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Lo que dicen nuestros clientes" })).toBeVisible();
+    // La página trae todos (el inicio en teléfono solo los primeros tres).
+    expect(await page.locator(".testimonials-page__grid .testimonial-card").count()).toBe(4);
+  });
+
+  test("listado de propiedades: filtros y resultados van antes que la tira de desarrollos (267)", async ({ page, go }) => {
+    await go("/propiedades");
+    const resultados = page.locator(".properties-page__layout");
+    const tira = page.locator(".properties-page__developments");
+    await expect(resultados).toBeVisible();
+    await expect(tira).toBeVisible();
+    const arribaResultados = await resultados.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+    const arribaTira = await tira.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+    expect(arribaTira, "la tira de desarrollos queda debajo de los resultados").toBeGreaterThan(arribaResultados);
+    // Y los resultados empiezan dentro de la primera pantalla.
+    const alto = page.viewportSize().height;
+    expect(arribaResultados, "los filtros/resultados empiezan en la primera pantalla").toBeLessThan(alto);
+  });
 });

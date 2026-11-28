@@ -39,7 +39,9 @@ export const config = {
     "/simulador-credito",
     "/blog",
     "/blog/:slug",
+    "/desarrollos",
     "/desarrollos/:slug",
+    "/testimonios",
     "/aviso-de-privacidad",
     "/carta-de-derechos",
     "/terminos-y-condiciones",
@@ -93,6 +95,14 @@ const GENERIC_PAGES = {
   "/simulador-credito": {
     title: "Simulador de crédito hipotecario | ACL Propiedades",
     description: "Calcula tu mensualidad y cuánto crédito puedes pedir para comprar una propiedad.",
+  },
+  "/desarrollos": {
+    title: "Torres y desarrollos | ACL Propiedades",
+    description: "Proyectos completos con varios departamentos disponibles en La Comarca Lagunera, desde un mismo lugar.",
+  },
+  "/testimonios": {
+    title: "Lo que dicen nuestros clientes | ACL Propiedades",
+    description: "Opiniones de quienes ya compraron, vendieron o rentaron con ACL Propiedades en Torreón, Gómez Palacio y Lerdo.",
   },
   "/blog": {
     title: "Blog | ACL Propiedades",

@@ -5,6 +5,7 @@ import useBusinessJsonLd from "../lib/useBusinessJsonLd";
 import Seo from "../components/Seo";
 import HomeHero from "../components/HomeHero";
 import HomeSellBanner from "../components/HomeSellBanner";
+import HomeDevelopments from "../components/HomeDevelopments";
 import CategoryCard from "../components/CategoryCard";
 import Reveal from "../components/Reveal";
 import Stars from "../components/Stars";
@@ -103,7 +104,7 @@ export default function Home() {
   });
 
   return (
-    <>
+    <div className="home-page">
       <Seo
         absoluteTitle={t("home.seoTitle")}
         description={t("home.seoDescription")}
@@ -137,6 +138,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <HomeDevelopments />
 
       <HomeSellBanner />
 
@@ -172,6 +175,9 @@ export default function Home() {
                   </div>
                 </Reveal>
               ))}
+            </div>
+            <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
+              <Link to="/testimonios" className="btn btn-outline">{t("testimonials.viewAll")}</Link>
             </div>
           </div>
         </section>
@@ -212,6 +218,6 @@ export default function Home() {
           </div>
         </section>
       )}
-    </>
+    </div>
   );
 }

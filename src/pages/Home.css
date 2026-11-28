@@ -115,6 +115,15 @@
     margin-bottom: 1.5rem;
   }
 
+  /* Menos aire entre secciones del inicio en teléfono (el relleno general es de 4rem arriba y abajo). */
+  .home-page .section {
+    padding: 2.5rem 0;
+  }
+
+  .home-page .section-heading {
+    margin-bottom: 1.5rem;
+  }
+
   .testimonials-grid > :nth-child(n + 4),
   .blog-grid > :nth-child(n + 3) {
     display: none;

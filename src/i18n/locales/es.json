@@ -1,5 +1,6 @@
 {
   "nav": {
+    "developments": "Desarrollos",
     "buyerGuide": "Guía del comprador",
     "favorites": "Favoritos",
     "call": "Llamar {{phone}}",
@@ -495,6 +496,12 @@
     }
   },
   "testimonials": {
+    "pageTitle": "Lo que dicen nuestros clientes",
+    "pageSubtitle": "Opiniones de quienes ya compraron, vendieron o rentaron con nosotros.",
+    "pageSeoDescription": "Opiniones y testimonios de clientes de ACL Propiedades que compraron, vendieron o rentaron una propiedad en La Comarca Lagunera.",
+    "pageEmptyTitle": "Aún no hay testimonios",
+    "pageEmptyText": "Estamos reuniendo las opiniones de nuestros clientes. Mientras tanto, mira las propiedades disponibles.",
+    "viewAll": "Ver todos los testimonios",
     "title": "Testimonios",
     "subtitle": "Se muestran en la sección \"Lo que dicen nuestros clientes\" del inicio — solo los marcados como Activos.",
     "new": "Nuevo testimonio",
@@ -711,6 +718,11 @@
     "exportXlsx": "Exportar Excel"
   },
   "developments": {
+    "listTitle": "Torres y desarrollos",
+    "listSeoDescription": "Torres y desarrollos de ACL Propiedades en La Comarca Lagunera: proyectos completos con varios departamentos disponibles, desde un mismo lugar.",
+    "listEmptyTitle": "Pronto habrá desarrollos",
+    "listEmptyText": "Por ahora no hay desarrollos publicados. Mientras tanto, mira todas las propiedades disponibles.",
+    "viewAll": "Ver todos los desarrollos",
     "eyebrow": "Desarrollos",
     "stripTitle": "Torres y desarrollos",
     "stripSubtitle": "Proyectos completos con varios departamentos disponibles, desde un mismo lugar.",
@@ -5404,6 +5416,14 @@
     }
   },
   "home": {
+    "tools": {
+      "eyebrow": "Herramientas para el comprador",
+      "title": "Decide con números, no con corazonadas",
+      "cta": "Abrir",
+      "credits": { "title": "Compara créditos", "text": "Infonavit, Fovissste y bancario lado a lado: cuánto pagarías al mes con cada uno." },
+      "guide": { "title": "Guía del comprador", "text": "Presupuesto, créditos, documentos y el paso a paso para comprar. Descárgala gratis." },
+      "calculator": { "title": "Calculadora de gastos", "text": "Calcula enganche, escrituración y todo lo que cuesta cerrar la compra." }
+    },
     "sell": {
       "eyebrow": "¿Quieres vender o rentar?",
       "title": "Te decimos cuánto vale tu propiedad",

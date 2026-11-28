@@ -1,5 +1,5 @@
-/* Puntos de corte: solo hay cuatro (max-width) — 480 (teléfono chico), 640 (teléfono), 860 (tableta: el menú del panel pasa a
-   cajón) y 980 (laptop chica) — más el par 641/861 de los pocos @media (min-width). Las media queries no aceptan variables,
+/* Puntos de corte: solo hay cinco (max-width) — 480 (teléfono chico), 640 (teléfono), 860 (tableta: el menú del panel pasa a
+   cajón), 980 (laptop chica) y 1180 (el menú del sitio público pasa a hamburguesa: con 8 enlaces no cabe antes) — más el par 641/861 de los pocos @media (min-width). Las media queries no aceptan variables,
    así que usa estos números tal cual. La única excepción es la tabla de Propiedades (admin.css, 1500 px), que oculta una
    columna por falta de ancho, no por el tipo de pantalla. */
 

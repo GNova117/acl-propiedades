@@ -1,5 +1,6 @@
 {
   "nav": {
+    "developments": "Developments",
     "favorites": "Favorites",
     "call": "Call {{phone}}",
     "buyerGuide": "Buyer's guide",
@@ -495,6 +496,12 @@
     }
   },
   "testimonials": {
+    "pageTitle": "What our clients say",
+    "pageSubtitle": "Opinions from people who have already bought, sold or rented with us.",
+    "pageSeoDescription": "Opinions and testimonials from ACL Propiedades clients who bought, sold or rented a property in La Comarca Lagunera.",
+    "pageEmptyTitle": "No testimonials yet",
+    "pageEmptyText": "We are gathering our clients' opinions. In the meantime, see the available properties.",
+    "viewAll": "See all testimonials",
     "title": "Testimonials",
     "subtitle": "Shown in the \"What our clients say\" section on the homepage — only the ones marked Active.",
     "new": "New testimonial",
@@ -711,6 +718,11 @@
     "exportXlsx": "Export Excel"
   },
   "developments": {
+    "listTitle": "Towers and developments",
+    "listSeoDescription": "ACL Propiedades towers and developments in La Comarca Lagunera: complete projects with several apartments available, all in one place.",
+    "listEmptyTitle": "Developments coming soon",
+    "listEmptyText": "There are no published developments right now. In the meantime, see all available properties.",
+    "viewAll": "See all developments",
     "eyebrow": "Developments",
     "stripTitle": "Towers and developments",
     "stripSubtitle": "Full projects with several apartments available, all in one place.",
@@ -5404,6 +5416,14 @@
     }
   },
   "home": {
+    "tools": {
+      "eyebrow": "Buyer tools",
+      "title": "Decide with numbers, not hunches",
+      "cta": "Open",
+      "credits": { "title": "Compare mortgages", "text": "Infonavit, Fovissste and bank loans side by side: what you would pay per month with each." },
+      "guide": { "title": "Buyer's guide", "text": "Budget, financing, paperwork and the step-by-step to buy. Download it free." },
+      "calculator": { "title": "Closing-cost calculator", "text": "Work out the down payment, deed fees and everything it costs to close the purchase." }
+    },
     "sell": {
       "eyebrow": "Want to sell or rent?",
       "title": "We tell you what your property is worth",

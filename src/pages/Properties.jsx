@@ -511,20 +511,6 @@ export default function Properties({
 
         {headerExtra}
 
-        {showDevelopments && (
-          <section className="properties-page__developments" aria-labelledby="developments-strip-title">
-            <div className="properties-page__developments-head">
-              <h3 id="developments-strip-title">{t("developments.stripTitle")}</h3>
-              <p>{t("developments.stripSubtitle")}</p>
-            </div>
-            <div className="properties-page__developments-grid">
-              {developments.map((development) => (
-                <DevelopmentCard key={development.id} development={development} />
-              ))}
-            </div>
-          </section>
-        )}
-
         <div className="properties-page__layout">
           <aside>
             <PropertyFilters
@@ -708,6 +694,21 @@ export default function Properties({
             )}
           </div>
         </div>
+        {/* 267: la tira de torres y desarrollos ocupaba toda la primera pantalla; ahora va después de los resultados (filtros y lista primero). */}
+        {showDevelopments && (
+          <section className="properties-page__developments" aria-labelledby="developments-strip-title">
+            <div className="properties-page__developments-head">
+              <h3 id="developments-strip-title">{t("developments.stripTitle")}</h3>
+              <p>{t("developments.stripSubtitle")}</p>
+            </div>
+            <div className="properties-page__developments-grid">
+              {developments.map((development) => (
+                <DevelopmentCard key={development.id} development={development} />
+              ))}
+            </div>
+          </section>
+        )}
+
         {footerExtra}
         <CompareBar />
       </div>

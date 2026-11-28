@@ -98,10 +98,15 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 297 | La ficha muestra migas de pan (Inicio › tipo › título) y son la misma lista que se manda a Google en los datos estructurados, así que nunca se contradicen. Van en el mismo renglón que «Volver a propiedades». |
 | 298 | En laptop (1366×800) la galería se limita a ~46 % del alto de pantalla y el título, el estatus y el precio se ven en la primera pantalla. |
 | 308 | Lo que se escribe en un formulario de la ficha (contacto, visita, reserva, alerta) rellena los campos vacíos de los otros y no se pisa lo ya escrito. Solo vive en memoria: no se guarda en el navegador hasta enviar un formulario. |
+| 267 | En el listado de propiedades, la tira «Torres y desarrollos» baja a después de los resultados: filtros y lista empiezan en la primera pantalla. Con uno o dos desarrollos las tarjetas quedan centradas (antes una sola quedaba pegada a la izquierda con un hueco enorme). |
+| 270 | Nueva página pública `/desarrollos` con la lista de torres y proyectos, y «Desarrollos» en el menú (solo si hay al menos uno publicado). Entra al mapa del sitio y a las vistas previas de WhatsApp. |
+| 302 | Nueva página pública `/testimonios` con todos los testimonios activos (y las reseñas de Google debajo), enlazada con «Ver todos los testimonios» desde el inicio. En teléfono el inicio muestra solo los primeros tres. |
+| 316 | El inicio muestra hasta tres desarrollos (con «Ver todos los desarrollos») y una fila de herramientas del comprador: comparar créditos, guía del comprador y calculadora de gastos. |
+| (menú del sitio) | Con «Desarrollos» el menú tiene hasta 8 enlaces y en la laptop se partían en dos renglones: el encabezado usa un contenedor un poco más ancho, los enlaces no se parten, el teléfono pasa a ícono entre 1181 y 1299 px, y por debajo de 1180 px el menú pasa a hamburguesa (antes 860). Comprobado a 1366, 1200 y 1024 px. |
 | 222 | Las imágenes de las tarjetas de categoría del inicio pasan de `background-image` a `<img>` con `loading="lazy"` y `srcset` (480 y 900 px; solo para fotos de stock de Unsplash, que aceptan el ancho en la dirección). Las dos fotos de 1400 px de los paneles gigantes desaparecen con ellos. |
 | 264 | La portada del inicio es un solo bloque con el buscador arriba: en laptop (1366×800) y en teléfono (390×844) el botón «Buscar propiedades» queda dentro de la primera pantalla, con «¿Prefieres hablar con alguien? Llámanos al 871 324 3271 · WhatsApp» debajo. La foto o video propios (`VITE_HERO_*`) se conservan: ahora son el fondo de este bloque. |
 | 265 | Desaparece el panel de «Naves Industriales / Próximamente» de la portada. Las naves siguen anunciadas (o como «Próximamente» si están desactivadas) en las tarjetas de categoría, más abajo. |
-| 266 | El inicio en teléfono pasa de ~8,840 a ~5,260 px (datos de demostración): las destacadas van en una fila que se desliza de lado (antes seis tarjetas apiladas), las categorías de dos en dos y más bajas, y de testimonios y blog solo los primeros; el video y las reseñas bajan en la página. |
+| 266 | El inicio en teléfono pasa de ~8,840 a ~6,300 px (datos de demostración, ya contando los bloques nuevos de vendedores, desarrollos y herramientas): las destacadas y los desarrollos van en una fila que se desliza de lado, las categorías de dos en dos, las herramientas en un renglón cada una, menos aire entre secciones, y de testimonios y blog solo los primeros; el video y las reseñas bajan en la página. |
 | 315 | Bloque «Te decimos cuánto vale tu propiedad» para quien quiere vender o rentar, con «Quiero vender mi propiedad» (→ Vende tu casa) y «Hablar con un asesor» (→ Contacto). |
 | 320 | Se quitan los dos paneles gigantes, que repetían lo que ya hacían el selector de tipo del buscador y las tarjetas de categoría: quedan dos formas distintas (buscar y explorar por tipo). |
 | 268 | El logotipo del encabezado pasa de ~56 a ~85 px de ancho (3.3 em de alto; el encabezado conserva sus 72 px). |
@@ -126,7 +131,7 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 
 ## Pruebas
 
-- Unitarias: 2,155. e2e local: 972 (+32 omitidas). e2e local: 959 (+31 omitidas). CI de GitHub en verde para `e23d276`. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,155. e2e local: 990+ en tres partes. e2e local: 972 (+32 omitidas). e2e local: 959 (+31 omitidas). CI de GitHub en verde para `e23d276`. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 

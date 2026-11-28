@@ -33,6 +33,8 @@ const Properties = lazy(() => import("./pages/Properties"));
 const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
 const ZoneLanding = lazy(() => import("./pages/ZoneLanding"));
 const Development = lazy(() => import("./pages/Development"));
+const Developments = lazy(() => import("./pages/Developments"));
+const Testimonials = lazy(() => import("./pages/Testimonials"));
 const Calculator = lazy(() => import("./pages/Calculator"));
 const AuthShell = lazy(() => import("./context/AuthShell"));
 const SellYourHome = lazy(() => import("./pages/SellYourHome"));
@@ -215,7 +217,9 @@ export default function App() {
       <Route path="/propiedades/zona/:zoneSlug" element={<PublicLayout><ZoneLanding /></PublicLayout>} />
       <Route path="/propiedades/zona/:zoneSlug/:colonySlug" element={<PublicLayout><ZoneLanding /></PublicLayout>} />
       <Route path="/propiedades/:id" element={<PublicLayout><PropertyDetail /></PublicLayout>} />
+      <Route path="/desarrollos" element={<PublicLayout><Developments /></PublicLayout>} />
       <Route path="/desarrollos/:slug" element={<PublicLayout><Development /></PublicLayout>} />
+      <Route path="/testimonios" element={<PublicLayout><Testimonials /></PublicLayout>} />
       <Route
         path="/naves-industriales"
         element={

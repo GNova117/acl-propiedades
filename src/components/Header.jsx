@@ -22,6 +22,8 @@ const NAV_ITEMS = [
   { to: "/propiedades", key: "nav.properties" },
   { to: "/naves-industriales", key: "nav.industrial", typeKey: "nave_industrial" },
   { to: "/terrenos", key: "nav.land", typeKey: "terreno" },
+  // «Desarrollos» solo aparece si hay al menos uno publicado (si no, llevaría a una página vacía).
+  { to: "/desarrollos", key: "nav.developments", needsDevelopments: true },
   { to: "/vende-tu-casa", key: "nav.sellHome" },
   { to: "/blog", key: "nav.blog" },
   { to: "/nosotros", key: "nav.about" },
@@ -36,8 +38,9 @@ export default function Header() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   // 318: en teléfono el encabezado solo lleva logotipo, favoritos y menú; tema e idioma viven dentro del menú.
-  const narrow = useMediaQuery("(max-width: 860px)");
+  const narrow = useMediaQuery("(max-width: 1180px)");
   const [propertyTypes, setPropertyTypes] = useState([]);
+  const [hasDevelopments, setHasDevelopments] = useState(false);
   // null = aún no llega (o falló): en ese caso no se oculta nada por
   // conteo, igual que isTypeActive con propertyTypes vacío.
   const [typeCounts, setTypeCounts] = useState(null);
@@ -57,6 +60,7 @@ export default function Header() {
 
   useEffect(() => {
     db.getPropertyTypes().then(setPropertyTypes).catch(() => setPropertyTypes([]));
+    db.getDevelopments({ publishedOnly: true }).then((list) => setHasDevelopments(list.length > 0)).catch(() => setHasDevelopments(false));
     // Solo los conteos por tipo (antes bajaba todas las propiedades activas).
     db.getTypeCounts()
       .then((counts) => setTypeCounts(Object.fromEntries(NAV_TYPE_KEYS.map((key) => [key, counts[key] || 0]))))
@@ -71,7 +75,7 @@ export default function Header() {
   const hasListings = (key) => !typeCounts || typeCounts[key] > 0;
 
   const visibleNavItems = NAV_ITEMS.filter(
-    (item) => (!item.mobileOnly || narrow) && (!item.typeKey || (isTypeActive(item.typeKey) && hasListings(item.typeKey))),
+    (item) => (!item.mobileOnly || narrow) && (!item.needsDevelopments || hasDevelopments) && (!item.typeKey || (isTypeActive(item.typeKey) && hasListings(item.typeKey))),
   );
 
   return (

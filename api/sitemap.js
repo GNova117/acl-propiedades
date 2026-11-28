@@ -16,7 +16,7 @@ const SITE_URL = resolveSiteUrl(process.env);
 // /naves-industriales no va aquí: solo se lista cuando hay al menos una nave publicada (si no, es la pantalla «Próximamente»).
 const STATIC_PATHS = [
   "/", "/propiedades", "/terrenos", "/calculadora", "/simulador-credito", "/comparar-creditos", "/vende-tu-casa", "/guia-del-comprador",
-  "/nosotros", "/contacto", "/blog", "/aviso-de-privacidad", "/carta-de-derechos", "/terminos-y-condiciones",
+  "/nosotros", "/contacto", "/blog", "/testimonios", "/aviso-de-privacidad", "/carta-de-derechos", "/terminos-y-condiciones",
 ];
 const ZONE_PATHS = ZONE_LANDING_CITIES.map((city) => `/propiedades/zona/${slugify(city)}`);
 

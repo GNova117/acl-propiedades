@@ -26,6 +26,8 @@ const PUBLIC_ROUTES = [
   "/carta-de-derechos",
   "/blog",
   "/blog/no-existe",
+  "/desarrollos",
+  "/testimonios",
   "/alertas/baja/token-falso",
   "/informe/token-falso",
   "/firmar/token-falso",
