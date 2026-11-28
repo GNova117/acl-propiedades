@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { errorId, fieldErrorProps, focusFirstError } from "../lib/formErrors";
 import { saveContact, withRemembered } from "../lib/rememberedContact";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -60,6 +61,7 @@ function VisitRequestForm({ property, onBack, noSlots }) {
     if (!form.date) next.date = t("contact.required");
     if (!form.time) next.time = t("contact.required");
     setErrors(next);
+    focusFirstError(next, ["name", "email", "phone", "date", "time"], { name: "visit-name", email: "visit-email", phone: "visit-phone", date: "visit-date", time: "visit-time" });
     return Object.keys(next).length === 0;
   };
 
@@ -163,20 +165,20 @@ function VisitRequestForm({ property, onBack, noSlots }) {
 
       <div className="form-field">
         <label htmlFor="visit-name">{t("contact.name")}</label>
-        <input id="visit-name" name="name" autoComplete="name" value={form.name} onChange={handleChange} aria-invalid={Boolean(errors.name)} />
-        {errors.name && <span className="form-error">{errors.name}</span>}
+        <input id="visit-name" name="name" autoComplete="name" value={form.name} onChange={handleChange} {...fieldErrorProps("visit-name", errors.name)} />
+        {errors.name && <span id={errorId("visit-name")} className="form-error">{errors.name}</span>}
       </div>
 
       <div className="form-row">
         <div className="form-field">
           <label htmlFor="visit-email">{t("contact.email")}</label>
-          <input id="visit-email" name="email" type="email" autoComplete="email" value={form.email} onChange={handleChange} aria-invalid={Boolean(errors.email)} />
-          {errors.email && <span className="form-error">{errors.email}</span>}
+          <input id="visit-email" name="email" type="email" autoComplete="email" value={form.email} onChange={handleChange} {...fieldErrorProps("visit-email", errors.email)} />
+          {errors.email && <span id={errorId("visit-email")} className="form-error">{errors.email}</span>}
         </div>
         <div className="form-field">
           <label htmlFor="visit-phone">{t("contact.phone")}</label>
-          <input id="visit-phone" name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={handleChange} aria-invalid={Boolean(errors.phone)} />
-          {errors.phone && <span className="form-error">{errors.phone}</span>}
+          <input id="visit-phone" name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={handleChange} {...fieldErrorProps("visit-phone", errors.phone)} />
+          {errors.phone && <span id={errorId("visit-phone")} className="form-error">{errors.phone}</span>}
         </div>
       </div>
 
@@ -190,19 +192,19 @@ function VisitRequestForm({ property, onBack, noSlots }) {
             min={mexicoParts().date}
             value={form.date}
             onChange={handleChange}
-            aria-invalid={Boolean(errors.date)}
+            {...fieldErrorProps("visit-date", errors.date)}
           />
-          {errors.date && <span className="form-error">{errors.date}</span>}
+          {errors.date && <span id={errorId("visit-date")} className="form-error">{errors.date}</span>}
         </div>
         <div className="form-field">
           <label htmlFor="visit-time">{t("scheduleVisit.time")}</label>
-          <select id="visit-time" name="time" value={form.time} onChange={handleChange} aria-invalid={Boolean(errors.time)}>
+          <select id="visit-time" name="time" value={form.time} onChange={handleChange} {...fieldErrorProps("visit-time", errors.time)}>
             <option value="">{t("scheduleVisit.timePlaceholder")}</option>
             {REQUEST_TIME_OPTIONS.map((hour) => (
               <option key={hour} value={hour}>{hour}</option>
             ))}
           </select>
-          {errors.time && <span className="form-error">{errors.time}</span>}
+          {errors.time && <span id={errorId("visit-time")} className="form-error">{errors.time}</span>}
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { errorId, fieldErrorProps, focusFirstError } from "../lib/formErrors";
 import { saveContact, withRemembered } from "../lib/rememberedContact";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -62,6 +63,7 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
     const fields = Object.keys(codes);
     if (fields.length > 0) {
       setErrors(Object.fromEntries(fields.map((field) => [field, fieldMessage(field, codes[field])])));
+      focusFirstError(codes, ["name", "email", "phone", "note"], { name: "booking-name", email: "booking-email", phone: "booking-phone", note: "booking-note" });
       return;
     }
     // Campo trampa para bots (invisible para personas): no se manda nada.
@@ -189,27 +191,27 @@ export default function VisitBooking({ property, slots, onReload, onRequestInste
 
       <div className="form-field">
         <label htmlFor="booking-name">{t("contact.name")}</label>
-        <input id="booking-name" name="name" value={form.name} onChange={handleChange} autoComplete="name" aria-invalid={Boolean(errors.name)} />
-        {errors.name && <span className="form-error">{errors.name}</span>}
+        <input id="booking-name" name="name" value={form.name} onChange={handleChange} autoComplete="name" {...fieldErrorProps("booking-name", errors.name)} />
+        {errors.name && <span id={errorId("booking-name")} className="form-error">{errors.name}</span>}
       </div>
 
       <div className="form-row">
         <div className="form-field">
           <label htmlFor="booking-email">{t("contact.email")}</label>
-          <input id="booking-email" name="email" type="email" value={form.email} onChange={handleChange} autoComplete="email" aria-invalid={Boolean(errors.email)} />
-          {errors.email && <span className="form-error">{errors.email}</span>}
+          <input id="booking-email" name="email" type="email" value={form.email} onChange={handleChange} autoComplete="email" {...fieldErrorProps("booking-email", errors.email)} />
+          {errors.email && <span id={errorId("booking-email")} className="form-error">{errors.email}</span>}
         </div>
         <div className="form-field">
           <label htmlFor="booking-phone">{t("contact.phone")}</label>
-          <input id="booking-phone" name="phone" type="tel" value={form.phone} onChange={handleChange} autoComplete="tel" aria-invalid={Boolean(errors.phone)} />
-          {errors.phone && <span className="form-error">{errors.phone}</span>}
+          <input id="booking-phone" name="phone" type="tel" value={form.phone} onChange={handleChange} autoComplete="tel" {...fieldErrorProps("booking-phone", errors.phone)} />
+          {errors.phone && <span id={errorId("booking-phone")} className="form-error">{errors.phone}</span>}
         </div>
       </div>
 
       <div className="form-field">
         <label htmlFor="booking-note">{t("scheduleVisit.note")}</label>
-        <textarea id="booking-note" name="note" rows={2} value={form.note} onChange={handleChange} placeholder={t("scheduleVisit.booking.notePlaceholder")} aria-invalid={Boolean(errors.note)} />
-        {errors.note && <span className="form-error">{errors.note}</span>}
+        <textarea id="booking-note" name="note" rows={2} value={form.note} onChange={handleChange} placeholder={t("scheduleVisit.booking.notePlaceholder")} {...fieldErrorProps("booking-note", errors.note)} />
+        {errors.note && <span id={errorId("booking-note")} className="form-error">{errors.note}</span>}
       </div>
 
       {formError && (

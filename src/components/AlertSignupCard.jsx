@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { errorId, fieldErrorProps, focusFirstError } from "../lib/formErrors";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { db } from "../lib/dataStore";
@@ -68,7 +69,10 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
       else if (!EMAIL_RE.test(form.email)) next.email = t("contact.invalidEmail");
     }
     setErrors(next);
-    if (Object.keys(next).length > 0) return;
+    if (Object.keys(next).length > 0) {
+      focusFirstError(next, ["name", "phone", "email"], { name: `alert-${mode}-name`, phone: `alert-${mode}-phone`, email: `alert-${mode}-email` });
+      return;
+    }
 
     // Campo trampa lleno: éxito falso, sin escribir nada.
     if (form.empresa.trim()) {
@@ -171,8 +175,8 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
         </div>
         <div className="form-field">
           <label htmlFor={`alert-${mode}-name`}>{t("contact.name")}</label>
-          <input id={`alert-${mode}-name`} name="name" autoComplete="name" value={form.name} onChange={change} aria-invalid={Boolean(errors.name)} />
-          {errors.name && <span className="form-error">{errors.name}</span>}
+          <input id={`alert-${mode}-name`} name="name" autoComplete="name" value={form.name} onChange={change} {...fieldErrorProps(`alert-${mode}-name`, errors.name)} />
+          {errors.name && <span id={errorId(`alert-${mode}-name`)} className="form-error">{errors.name}</span>}
         </div>
 
         <fieldset className="form-field">
@@ -201,9 +205,9 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
               placeholder={t("contactRequest.phonePlaceholder")}
               value={form.phone}
               onChange={change}
-              aria-invalid={Boolean(errors.phone)}
+              {...fieldErrorProps(`alert-${mode}-phone`, errors.phone)}
             />
-            {errors.phone && <span className="form-error">{errors.phone}</span>}
+            {errors.phone && <span id={errorId(`alert-${mode}-phone`)} className="form-error">{errors.phone}</span>}
           </div>
         ) : (
           <div className="form-field">
@@ -215,9 +219,9 @@ export default function AlertSignupCard({ mode, variant = mode, criteria, proper
               autoComplete="email"
               value={form.email}
               onChange={change}
-              aria-invalid={Boolean(errors.email)}
+              {...fieldErrorProps(`alert-${mode}-email`, errors.email)}
             />
-            {errors.email && <span className="form-error">{errors.email}</span>}
+            {errors.email && <span id={errorId(`alert-${mode}-email`)} className="form-error">{errors.email}</span>}
           </div>
         )}
         {status === "error" && <p className="form-error">{t(errorKey || "alerts.errors.generic")}</p>}

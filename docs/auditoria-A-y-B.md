@@ -93,6 +93,7 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 332 | El respaldo y la retención de papelería tienen su propio apartado «Respaldo» en la carpeta Oficina (ruta `/admin/respaldo`); «Roles y accesos» solo trae un enlace, y el aviso del inicio lleva ahí. |
 | 325 | En Prospectos, en teléfono, «Pegar o importar lista», «Importar desde visitas» y los exportes van tras un menú «⋯ Más»; «Nuevo» y «Seleccionar» siguen a la vista. En pantalla grande no cambia nada. |
 | 326 | En Prospectos, la búsqueda y el selector de asesor dejan el estilo nativo del navegador y usan el mismo borde, radio y foco que los demás campos. |
+| 261 (visitas y alertas) | La solicitud de visita, la reserva de horario y la alerta «avísame» ahora ligan cada error a su campo (`aria-invalid` + `aria-describedby`) y, al enviar con errores, llevan el foco al primer campo con error: el mismo patrón que ya tenía Contacto. |
 | 322 | La zona del buscador del inicio y del filtro del listado es un selector con búsqueda (`ZoneCombobox`) en vez de un `<datalist>` nativo: la lista se ve debajo del campo al enfocarlo, filtra al escribir sin importar acentos ni mayúsculas (primero las que empiezan con el texto), se maneja con ↑ ↓ Enter Esc, se elige tocando y sigue aceptando texto libre. Patrón combobox con `role="listbox"` y `aria-activedescendant`. |
 | 281 | Los textos largos (descripción de la propiedad, entradas del blog y el aviso de privacidad/términos) se leen en el color de texto normal; el gris global de `<p>` se queda para textos de apoyo (pies, ayudas, metadatos), que son la gran mayoría de los párrafos del sitio. Una prueba compara el color calculado. |
 | 254 | En las tablas del panel, los `<th>` vacíos ahora tienen texto para lectores de pantalla («Foto», «Acciones», «Característica») y la zona de una tabla que se desborda de lado se vuelve enfocable con teclado y con nombre («Tabla con desplazamiento horizontal»): un solo efecto en el diseño del panel (`scrollableRegions.js`) en vez de editar las 43 tablas. Solo se marca la que de verdad se desborda. |
@@ -109,7 +110,7 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 
 ## Pruebas
 
-- Unitarias: 2,146. e2e local: 959 (+31 omitidas). CI de GitHub en verde para `e23d276`. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,146. e2e local: 972 (+32 omitidas). e2e local: 959 (+31 omitidas). CI de GitHub en verde para `e23d276`. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 

@@ -482,4 +482,28 @@ test.describe("Tanda A y B", () => {
     await campo.press("Tab");
     await expect(lista).toHaveCount(0);
   });
+  test("formularios de visita: al enviar con errores el foco va al primer campo y cada error queda ligado a su campo (261)", async ({ page, go, press }) => {
+    await go("/propiedades/prop-1");
+    await press(page.locator("#agendar-visita").getByRole("button", { name: "Agendar visita" }));
+    await expect(page.locator("#visit-date")).toBeVisible();
+    await press(page.locator("#agendar-visita").getByRole("button", { name: /Solicitar|Enviar|Confirmar/ }).last());
+    await expect(page.locator("#visit-name")).toBeFocused();
+    await expect(page.locator("#visit-name")).toHaveAttribute("aria-invalid", "true");
+    const describedby = await page.locator("#visit-name").getAttribute("aria-describedby");
+    expect(describedby).toBe("visit-name-error");
+    await expect(page.locator("#visit-name-error")).toContainText("obligatorio");
+  });
+
+  test("alerta «avísame»: con errores el foco va al primer campo y el error queda ligado (261)", async ({ page, go, press }) => {
+    await go("/propiedades");
+    const tarjeta = page.locator(".alert-signup").first();
+    await expect(tarjeta).toBeVisible();
+    await press(tarjeta.locator("button[type=submit]").first());
+    const nombre = tarjeta.locator("input[name=name]");
+    await expect(nombre).toBeFocused();
+    await expect(nombre).toHaveAttribute("aria-invalid", "true");
+    const id = await nombre.getAttribute("id");
+    await expect(nombre).toHaveAttribute("aria-describedby", `${id}-error`);
+    await expect(page.locator(`#${id}-error`)).toBeVisible();
+  });
 });
