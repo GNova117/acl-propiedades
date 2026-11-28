@@ -605,4 +605,39 @@ test.describe("Tanda A y B", () => {
     // Sin enviar, nada se guarda en el navegador.
     expect(await page.evaluate(() => localStorage.getItem("acl_remembered_contact"))).toBeNull();
   });
+  test("inicio: el buscador se ve en la primera pantalla, con teléfono de contacto y un solo héroe (264, 265, 320)", async ({ page, go }) => {
+    await go("/");
+    await expect(page.locator(".split-hero")).toHaveCount(0);
+    await expect(page.locator("h1")).toHaveCount(1);
+    const alto = page.viewportSize().height;
+    const boton = await page.locator(".search-bar__submit").first().evaluate((el) => el.getBoundingClientRect().bottom);
+    expect(boton, "el botón «Buscar propiedades» termina dentro de la primera pantalla").toBeLessThanOrEqual(alto);
+    await expect(page.locator(".hero__call a[href^='tel:']")).toBeVisible();
+  });
+
+  test("inicio: bloque para quien quiere vender y categorías con imágenes diferidas (315, 222)", async ({ page, go, press }) => {
+    await go("/");
+    const vender = page.locator(".home-sell");
+    await expect(vender).toBeVisible();
+    await expect(vender.getByRole("link", { name: "Quiero vender mi propiedad" })).toHaveAttribute("href", "/vende-tu-casa");
+    const imagenes = page.locator(".category-card__image");
+    expect(await imagenes.count()).toBeGreaterThan(0);
+    for (const loading of await imagenes.evaluateAll((els) => els.map((el) => el.tagName + ":" + el.getAttribute("loading")))) expect(loading).toBe("IMG:lazy");
+    const srcset = await imagenes.first().getAttribute("srcset");
+    if (srcset) expect(srcset).toMatch(/480w.*900w/);
+    await press(vender.getByRole("link", { name: "Quiero vender mi propiedad" }));
+    await expect(page).toHaveURL(/\/vende-tu-casa$/);
+  });
+
+  test("inicio en teléfono: más corto, las destacadas se deslizan de lado y no hay desborde (266)", async ({ page, go, isMobile }) => {
+    test.skip(!isMobile, "solo aplica a teléfono");
+    await go("/");
+    await expect(page.locator(".featured-properties__grid")).toBeVisible();
+    const carrusel = await page.locator(".featured-properties__grid").evaluate((el) => ({ ancho: el.scrollWidth, visible: el.clientWidth, flex: getComputedStyle(el).display }));
+    expect(carrusel.flex).toBe("flex");
+    expect(carrusel.ancho, "hay más tarjetas fuera de pantalla").toBeGreaterThan(carrusel.visible);
+    const medidas = await page.evaluate(() => ({ alto: document.documentElement.scrollHeight, desborde: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
+    expect(medidas.desborde).toBeLessThanOrEqual(1);
+    expect(medidas.alto, "alto del inicio en teléfono (px)").toBeLessThanOrEqual(6500);
+  });
 });

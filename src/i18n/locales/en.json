@@ -18,6 +18,7 @@
     "mySpace": "My space"
   },
   "hero": {
+    "callPrompt": "Prefer to talk to someone? Call us at",
     "maxPricePlaceholder": "No limit",
     "title": "Find your next property in La Comarca Lagunera",
     "subtitle": "Houses, apartments and industrial warehouses in Torreón, Gómez Palacio and Lerdo, with certified INFONAVIT, bank and FOVISSSTE financing advice.",
@@ -29,12 +30,6 @@
     "allTypes": "All types",
     "allZones": "All zones",
     "allOperations": "All transaction types"
-  },
-  "splitHero": {
-    "cta": "See more",
-    "comingSoon": "Coming soon",
-    "properties": { "title": "Properties", "subtitle": "Houses, apartments and land" },
-    "industrial": { "title": "Industrial Warehouses", "subtitle": "Commercial and industrial spaces" }
   },
   "badges": {
     "new": "New",
@@ -5409,6 +5404,13 @@
     }
   },
   "home": {
+    "sell": {
+      "eyebrow": "Want to sell or rent?",
+      "title": "We tell you what your property is worth",
+      "text": "Tell us about your house, apartment, lot or warehouse and an advisor gives you a no-obligation estimate and explains how we promote it.",
+      "cta": "I want to sell my property",
+      "ctaSecondary": "Talk to an advisor"
+    },
     "seoTitle": "ACL Propiedades | Real estate in La Comarca Lagunera",
     "seoDescription": "ACL Propiedades: certified real estate advice for buying and selling houses, apartments and land in Torreón, Gómez Palacio and Lerdo."
   },

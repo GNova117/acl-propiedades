@@ -18,6 +18,7 @@
     "mySpace": "Mi espacio"
   },
   "hero": {
+    "callPrompt": "¿Prefieres hablar con alguien? Llámanos al",
     "maxPricePlaceholder": "Sin límite",
     "title": "Encuentra tu próxima propiedad en La Comarca Lagunera",
     "subtitle": "Casas, departamentos y naves industriales en Torreón, Gómez Palacio y Lerdo, con asesoría certificada en INFONAVIT, bancario y FOVISSSTE.",
@@ -29,12 +30,6 @@
     "allTypes": "Todos los tipos",
     "allZones": "Todas las zonas",
     "allOperations": "Todas las operaciones"
-  },
-  "splitHero": {
-    "cta": "Ver más",
-    "comingSoon": "Próximamente",
-    "properties": { "title": "Propiedades", "subtitle": "Casas, departamentos y terrenos" },
-    "industrial": { "title": "Naves Industriales", "subtitle": "Espacios comerciales e industriales" }
   },
   "badges": {
     "new": "Nuevo",
@@ -5409,6 +5404,13 @@
     }
   },
   "home": {
+    "sell": {
+      "eyebrow": "¿Quieres vender o rentar?",
+      "title": "Te decimos cuánto vale tu propiedad",
+      "text": "Cuéntanos de tu casa, departamento, terreno o nave y un asesor te da una estimación sin compromiso y te explica cómo la promovemos.",
+      "cta": "Quiero vender mi propiedad",
+      "ctaSecondary": "Hablar con un asesor"
+    },
     "seoTitle": "ACL Propiedades | Inmobiliaria en La Comarca Lagunera",
     "seoDescription": "ACL Propiedades: compra, venta y asesoría inmobiliaria certificada de casas, departamentos y terrenos en Torreón, Gómez Palacio y Lerdo."
   },

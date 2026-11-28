@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import PropertyTypeIcon from "./PropertyTypeIcon";
 import { propertyListPath } from "../lib/format";
+import { unsplashSrcSet } from "../lib/imageSizes";
 import "./CategoryCard.css";
 
 const IMAGES = {
@@ -23,7 +24,16 @@ export default function CategoryCard({ type, count, active = true, imageUrl }) {
 
   const content = (
     <>
-      <div className="category-card__image" style={{ backgroundImage: `url(${image})` }} />
+      {/* 222: <img> con carga diferida y varios anchos (antes un background-image de 900 px que siempre se bajaba completo). */}
+      <img
+        className="category-card__image"
+        src={image}
+        srcSet={unsplashSrcSet(image) || undefined}
+        sizes="(max-width: 980px) 100vw, 33vw"
+        alt=""
+        loading="lazy"
+        decoding="async"
+      />
       <div className="category-card__overlay" />
       <div className="category-card__content">
         <span className="category-card__icon">

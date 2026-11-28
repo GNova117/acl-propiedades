@@ -1,0 +1,44 @@
+.home-sell__card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem 2rem;
+  padding: 2rem 2.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm, 0 1px 4px rgba(0, 0, 0, 0.08));
+}
+
+.home-sell__text h2 {
+  margin: 0.25rem 0 0.5rem;
+}
+
+.home-sell__text p {
+  margin: 0;
+  max-width: 56ch;
+}
+
+.home-sell__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+@media (max-width: 860px) {
+  .home-sell__card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.5rem 1.25rem;
+  }
+
+  .home-sell__actions {
+    width: 100%;
+  }
+
+  .home-sell__actions .btn {
+    flex: 1 1 100%;
+    justify-content: center;
+    text-align: center;
+  }
+}

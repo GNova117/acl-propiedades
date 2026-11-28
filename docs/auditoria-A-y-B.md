@@ -98,6 +98,12 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 297 | La ficha muestra migas de pan (Inicio › tipo › título) y son la misma lista que se manda a Google en los datos estructurados, así que nunca se contradicen. Van en el mismo renglón que «Volver a propiedades». |
 | 298 | En laptop (1366×800) la galería se limita a ~46 % del alto de pantalla y el título, el estatus y el precio se ven en la primera pantalla. |
 | 308 | Lo que se escribe en un formulario de la ficha (contacto, visita, reserva, alerta) rellena los campos vacíos de los otros y no se pisa lo ya escrito. Solo vive en memoria: no se guarda en el navegador hasta enviar un formulario. |
+| 222 | Las imágenes de las tarjetas de categoría del inicio pasan de `background-image` a `<img>` con `loading="lazy"` y `srcset` (480 y 900 px; solo para fotos de stock de Unsplash, que aceptan el ancho en la dirección). Las dos fotos de 1400 px de los paneles gigantes desaparecen con ellos. |
+| 264 | La portada del inicio es un solo bloque con el buscador arriba: en laptop (1366×800) y en teléfono (390×844) el botón «Buscar propiedades» queda dentro de la primera pantalla, con «¿Prefieres hablar con alguien? Llámanos al 871 324 3271 · WhatsApp» debajo. La foto o video propios (`VITE_HERO_*`) se conservan: ahora son el fondo de este bloque. |
+| 265 | Desaparece el panel de «Naves Industriales / Próximamente» de la portada. Las naves siguen anunciadas (o como «Próximamente» si están desactivadas) en las tarjetas de categoría, más abajo. |
+| 266 | El inicio en teléfono pasa de ~8,840 a ~5,260 px (datos de demostración): las destacadas van en una fila que se desliza de lado (antes seis tarjetas apiladas), las categorías de dos en dos y más bajas, y de testimonios y blog solo los primeros; el video y las reseñas bajan en la página. |
+| 315 | Bloque «Te decimos cuánto vale tu propiedad» para quien quiere vender o rentar, con «Quiero vender mi propiedad» (→ Vende tu casa) y «Hablar con un asesor» (→ Contacto). |
+| 320 | Se quitan los dos paneles gigantes, que repetían lo que ya hacían el selector de tipo del buscador y las tarjetas de categoría: quedan dos formas distintas (buscar y explorar por tipo). |
 | 268 | El logotipo del encabezado pasa de ~56 a ~85 px de ancho (3.3 em de alto; el encabezado conserva sus 72 px). |
 | 269 | El teléfono de la oficina (`tel:`) va siempre a la vista en el encabezado de pantalla grande; en laptop chica queda solo el ícono. |
 | 270 | En teléfono el menú trae «Favoritos» con texto. (Falta «Desarrollos»: hoy no existe una página que liste los desarrollos; se hace junto con el inicio.) |
@@ -120,7 +126,7 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 
 ## Pruebas
 
-- Unitarias: 2,152. e2e local: 972 (+32 omitidas). e2e local: 959 (+31 omitidas). CI de GitHub en verde para `e23d276`. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
+- Unitarias: 2,155. e2e local: 972 (+32 omitidas). e2e local: 959 (+31 omitidas). CI de GitHub en verde para `e23d276`. SQL: 20 pruebas. e2e nuevo: `e2e/auditoria-a-y-b.spec.js`.
 
 ## Pasó a otro grupo
 
@@ -134,3 +140,4 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 - **La ficha no muestra al asesor** → 354 (WhatsApp al asesor de la propiedad), 355–356 (unificar lo que piden los formularios según el asesor) y 317 (foto y nombre del asesor en la visita) **se cierran sin hacerse**: el WhatsApp de la ficha sigue yendo a la oficina.
 - **El precio es solo en pesos mexicanos** → 376 (precio en dólares) **se cierra**; los pies cuadrados para naves ya estaban hechos.
 - **Todo lo demás de inicio y ficha lo decide el equipo técnico pensando en el largo plazo**, con propuesta y capturas en cada tanda.
+- **286** (buscador del inicio y filtros del listado): se deja como está a propósito. El del inicio es una búsqueda rápida (tipo, zona, precio, código) que lleva al listado con los mismos parámetros que usan los filtros; unificar las dos pantallas en una sola sacrificaría la portada o el listado. Lo que sí se unificó es el selector de zona (322).

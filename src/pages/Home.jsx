@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import useBusinessJsonLd from "../lib/useBusinessJsonLd";
 import Seo from "../components/Seo";
-import SplitHero from "../components/SplitHero";
-import SearchBar from "../components/SearchBar";
+import HomeHero from "../components/HomeHero";
+import HomeSellBanner from "../components/HomeSellBanner";
 import CategoryCard from "../components/CategoryCard";
 import Reveal from "../components/Reveal";
 import Stars from "../components/Stars";
@@ -110,20 +110,9 @@ export default function Home() {
         jsonLd={businessJsonLd}
       />
 
-      <SplitHero propertyTypes={propertyTypes} counts={counts} />
-
-      <section className="hero">
-        <div className="hero__overlay" />
-        <div className="container hero__content">
-          <h1>{t("hero.title")}</h1>
-          <p>{t("hero.subtitle")}</p>
-          <SearchBar />
-        </div>
-      </section>
+      <HomeHero />
 
       <FeaturedProperties properties={featuredPool} />
-
-      <VideoTours properties={videoPool} />
 
       <section className="section">
         <div className="container">
@@ -149,7 +138,11 @@ export default function Home() {
         </div>
       </section>
 
+      <HomeSellBanner />
+
       <TrustStats summary={trustSummary} />
+
+      <VideoTours properties={videoPool} />
 
       {hasRecentlyViewed && (
         <section className="section">
