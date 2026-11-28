@@ -231,8 +231,9 @@ test.describe("Calculadoras", () => {
   test("valor estimado: cambia con los m² y con la zona", async ({ page, go }) => {
     await go("/calculadora");
     const resultado = page.locator(".calculator-card__result, main").first();
+    await page.selectOption("#calc-zone", { index: 1 });
     const inicial = await page.locator("main").innerText();
-    await page.locator("input[type=number][aria-label]").first().fill("300");
+    await page.locator("#calc-built").fill("300");
     await expect.poll(() => page.locator("main").innerText()).not.toBe(inicial);
     const conArea = await page.locator("main").innerText();
     await page.selectOption("#calc-zone", { index: 2 });

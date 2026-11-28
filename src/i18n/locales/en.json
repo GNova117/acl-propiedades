@@ -376,7 +376,12 @@
     "talkToAdvisor": "Talk to an advisor",
     "whatsappText": "Hi, I used the calculator on your site: {{type}} of {{area}} m² in {{zone}}, estimate {{value}}. I would like a formal estimate.",
     "title": "Estimated value calculator",
-    "subtitle": "Get a reference estimate of a property's value based on area, zone and type.",
+    "subtitle": "Get a reference estimate of a property's value based on its lot, its built area, the zone and the type. It is the same formula as “Sell your home”.",
+    "landArea": "Lot (sqm)",
+    "builtArea": "Built area (sqm)",
+    "landPricePerM2": "Lot per sqm",
+    "incomplete": "To estimate we need a zone with a reference price and the areas. Request the formal estimate and an advisor works it out with you.",
+    "whatsappTextNoEstimate": "Hi, I would like a formal estimate of my property's value.",
     "area": "Area (sqm)",
     "zone": "Zone",
     "type": "Property type",
@@ -5463,7 +5468,7 @@
       "cta": "Open",
       "credits": { "title": "Compare mortgages", "text": "Infonavit, Fovissste and bank loans side by side: what you would pay per month with each." },
       "guide": { "title": "Buyer's guide", "text": "Budget, financing, paperwork and the step-by-step to buy. Download it free." },
-      "calculator": { "title": "Closing-cost calculator", "text": "Work out the down payment, deed fees and everything it costs to close the purchase." }
+      "calculator": { "title": "Value calculator", "text": "Estimate what a property is worth from its lot, its built area and the zone." }
     },
     "sell": {
       "eyebrow": "Want to sell or rent?",

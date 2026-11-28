@@ -376,7 +376,12 @@
     "talkToAdvisor": "Hablar con un asesor",
     "whatsappText": "Hola, usé la calculadora del sitio: {{type}} de {{area}} m² en {{zone}}, estimación {{value}}. Me gustaría una estimación formal.",
     "title": "Calculadora de valor estimado",
-    "subtitle": "Obtén una estimación referencial del valor de una propiedad según su superficie, zona y tipo.",
+    "subtitle": "Obtén una estimación referencial del valor de una propiedad según su terreno, su construcción, la zona y el tipo. Es la misma fórmula de «Vende tu casa».",
+    "landArea": "Terreno (m²)",
+    "builtArea": "Construcción (m²)",
+    "landPricePerM2": "Terreno por m²",
+    "incomplete": "Para estimar necesitamos una zona con precio de referencia y las superficies. Pide la estimación formal y un asesor la calcula contigo.",
+    "whatsappTextNoEstimate": "Hola, quiero una estimación formal del valor de mi propiedad.",
     "area": "Superficie (m²)",
     "zone": "Zona",
     "type": "Tipo de propiedad",
@@ -5463,7 +5468,7 @@
       "cta": "Abrir",
       "credits": { "title": "Compara créditos", "text": "Infonavit, Fovissste y bancario lado a lado: cuánto pagarías al mes con cada uno." },
       "guide": { "title": "Guía del comprador", "text": "Presupuesto, créditos, documentos y el paso a paso para comprar. Descárgala gratis." },
-      "calculator": { "title": "Calculadora de gastos", "text": "Calcula enganche, escrituración y todo lo que cuesta cerrar la compra." }
+      "calculator": { "title": "Calculadora de valor", "text": "Estima cuánto vale una propiedad según su terreno, su construcción y la zona." }
     },
     "sell": {
       "eyebrow": "¿Quieres vender o rentar?",

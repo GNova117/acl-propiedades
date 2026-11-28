@@ -26,7 +26,7 @@ Numeración = la de `docs/auditoria-areas-de-oportunidad.md` (101–506).
 
 ## B. Se pueden construir sin SQL (se hacen antes del final)
 
-Ya hechos en `docs/auditoria-A-y-B.md`: 351, 357, 360, 368, 376 (pies²), 378, 381, 383, 388, 389, 396, 400, 402, 403, 404, 405, 406, 408, 409, 411, 416, 421, 427, 430, 431, 437, 440, 442 (motor), 443, 445, 446, 447, 448, 449, 461, 463, 467, 469, 470, 472, 480, 482, 486, 487, 490, 491, 492, 493, 494, 450, 452 (al editar), 465, 499 (hook común), 501, 502, 503, 505 (SQL en el CI). Quedan de este grupo: 364 unificar calculadora y «Vende tu casa» · 500 reglas compartidas entre backends.
+Ya hechos en `docs/auditoria-A-y-B.md`: 351, 357, 360, 368, 376 (pies²), 378, 381, 383, 388, 389, 396, 400, 402, 403, 404, 405, 406, 408, 409, 411, 416, 421, 427, 430, 431, 437, 440, 442 (motor), 443, 445, 446, 447, 448, 449, 461, 463, 467, 469, 470, 472, 480, 482, 486, 487, 490, 491, 492, 493, 494, 450, 452 (al editar), 465, 499 (hook común), 501, 502, 503, 505 (SQL en el CI). 364 (calculadora unificada con «Vende tu casa») ya está hecho. Queda de este grupo: 500 reglas compartidas entre backends.
 
 ## C. Necesitan Supabase / SQL (se hacen al final, con todo el SQL junto)
 

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Seo from "../components/Seo";
 import { db } from "../lib/dataStore";
 import { formatArea, formatMXN, propertyTypeLabel } from "../lib/format";
 import { sellEstimate } from "../lib/sellEstimate";
 import { isValidPhone, sendLead } from "../lib/lead";
+import { readSellPrefill } from "../lib/sellPrefill";
 import "./PublicForms.css";
 import { trackConversion } from "../lib/conversions";
 
@@ -18,7 +19,9 @@ export default function SellYourHome() {
   const { t } = useTranslation();
   const [zones, setZones] = useState([]);
   const [types, setTypes] = useState([]);
-  const [form, setForm] = useState(INITIAL);
+  // 364: viene de la calculadora de valor con tipo, zona y superficies ya puestos (?tipo=…&zona=…&terreno=…&construccion=…).
+  const [searchParams] = useSearchParams();
+  const [form, setForm] = useState(() => ({ ...INITIAL, ...readSellPrefill(searchParams) }));
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
 

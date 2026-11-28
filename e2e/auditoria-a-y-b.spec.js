@@ -838,4 +838,30 @@ test.describe("Tanda A y B", () => {
       await pestana.close();
     }
   });
+  test("la calculadora y «Vende tu casa» dan la misma estimación y la primera le pasa sus datos a la segunda (364)", async ({ page, go, press }) => {
+    await go("/calculadora");
+    await page.selectOption("#calc-type", "casa").catch(() => {});
+    await page.selectOption("#calc-zone", "zone-torreon");
+    await page.fill("#calc-land", "250");
+    await page.fill("#calc-built", "140");
+    // El mismo rango en las dos páginas (cada una lo escribe a su manera: «$a – $b» y «Entre $a y $b»).
+    const cifras = (texto) => texto.match(/\$[\d,]+/g);
+    const rango = cifras(await page.locator(".calculator-card__range").innerText());
+    expect(rango).toHaveLength(2);
+
+    await press(page.getByRole("link", { name: "Pedir estimación formal" }));
+    await expect(page).toHaveURL(/\/vende-tu-casa\?.*zona=zone-torreon/);
+    await expect(page.locator("#sh-zone")).toHaveValue("zone-torreon");
+    await expect(page.locator("#sh-land")).toHaveValue("250");
+    await expect(page.locator("#sh-built")).toHaveValue("140");
+    await expect.poll(async () => cifras(await page.locator(".sell-estimate").innerText())).toEqual(rango);
+  });
+
+  test("«Vende tu casa» ignora lo raro que venga en la dirección", async ({ page, go }) => {
+    await go("/vende-tu-casa?tipo=<script>&zona=../x&terreno=-5&construccion=abc");
+    await expect(page.locator("#sh-type")).toHaveValue("casa");
+    await expect(page.locator("#sh-zone")).toHaveValue("");
+    await expect(page.locator("#sh-land")).toHaveValue("");
+    await expect(page.locator("#sh-built")).toHaveValue("");
+  });
 });
