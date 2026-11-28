@@ -26,7 +26,7 @@ Numeración = la de `docs/auditoria-areas-de-oportunidad.md` (101–506).
 
 ## B. Se pueden construir sin SQL (se hacen antes del final)
 
-Ya hechos en `docs/auditoria-A-y-B.md`: 351, 357, 360, 368, 376 (pies²), 378, 381, 383, 388, 389, 396, 400, 402, 403, 404, 405, 406, 408, 409, 411, 416, 421, 427, 430, 431, 437, 440, 442 (motor), 443, 445, 446, 447, 448, 449, 461, 463, 467, 469, 470, 472, 480, 482, 486, 487, 490, 491, 492, 493, 494, 450, 452 (al editar), 465, 499 (hook común), 501, 502, 503, 505 (SQL en el CI). Quedan de este grupo: 364 unificar calculadora y «Vende tu casa» · 458–460 avisos al cambiar precio y estatus (envío a interesados: necesita servidor) · 500 reglas compartidas entre backends.
+Ya hechos en `docs/auditoria-A-y-B.md`: 351, 357, 360, 368, 376 (pies²), 378, 381, 383, 388, 389, 396, 400, 402, 403, 404, 405, 406, 408, 409, 411, 416, 421, 427, 430, 431, 437, 440, 442 (motor), 443, 445, 446, 447, 448, 449, 461, 463, 467, 469, 470, 472, 480, 482, 486, 487, 490, 491, 492, 493, 494, 450, 452 (al editar), 465, 499 (hook común), 501, 502, 503, 505 (SQL en el CI). Quedan de este grupo: 364 unificar calculadora y «Vende tu casa» · 500 reglas compartidas entre backends.
 
 ## C. Necesitan Supabase / SQL (se hacen al final, con todo el SQL junto)
 
@@ -34,7 +34,7 @@ Ya hechos en `docs/auditoria-A-y-B.md`: 351, 357, 360, 368, 376 (pies²), 378, 3
 
 **Contenido y marketing**: 200 y 418 blog con categorías, etiquetas, autor, URL editable, programación y versión en inglés · 371 casa abierta · 372 referidos · 373 boletín · 374 testimonios con video · 419 testimonios con foto, fecha y origen · 387 «avísame si se libera» · 444 fecha de actualización del precio por m².
 
-**Panel y operación**: 452 historial de compras de materiales (alerta contra la última compra) · 413 prospecto con crédito, monto y urgencia · 414 permisos de solo lectura por sección · 428 spam y bloqueo · 429 recordatorio de mensajes sin atender · 434 citas recurrentes · 435–436 etiquetas y cumpleaños de clientes · 438–439 vencimiento de documentos y recordatorio de firmas · 441 reporte por fuente · 451 avance de obra compartido por enlace · 453 interruptor de temporada · 456–457 configuración del negocio y textos editables · 464 preferencias de notificación · 466 operaciones compartidas con otras inmobiliarias · 471 novedades sin leer · 473 plantillas de WhatsApp editables · 474 unificar Clientes y Prospectos · 481 renombrar `compra` → `venta` · 504 renombrar una zona con transacción y alertas · 506 ciudades configurables.
+**Panel y operación**: precio final de cierre en las ventas (columna nueva en `ventas`) y «no avisar» al bajar el precio sin cancelar el cambio (bandera en la propiedad) · 452 historial de compras de materiales (alerta contra la última compra) · 413 prospecto con crédito, monto y urgencia · 414 permisos de solo lectura por sección · 428 spam y bloqueo · 429 recordatorio de mensajes sin atender · 434 citas recurrentes · 435–436 etiquetas y cumpleaños de clientes · 438–439 vencimiento de documentos y recordatorio de firmas · 441 reporte por fuente · 451 avance de obra compartido por enlace · 453 interruptor de temporada · 456–457 configuración del negocio y textos editables · 464 preferencias de notificación · 466 operaciones compartidas con otras inmobiliarias · 471 novedades sin leer · 473 plantillas de WhatsApp editables · 474 unificar Clientes y Prospectos · 481 renombrar `compra` → `venta` · 504 renombrar una zona con transacción y alertas · 506 ciudades configurables.
 
 ## D. Necesitan datos o cuentas tuyas
 

@@ -10,6 +10,7 @@ import { downloadFichaTecnicaPdf } from "../../lib/propertyFichaPdf";
 import { exportToCsv } from "../../lib/csvExport";
 import { useAuth } from "../../context/useAuth.js";
 import SocialPostModal from "../../components/SocialPostModal";
+import OwnerMessageModal from "../../components/OwnerMessageModal";
 import PropertyProspectsModal from "../../components/PropertyProspectsModal";
 import PropertyOffersModal from "../../components/PropertyOffersModal";
 import PropertyContractModal from "../../components/PropertyContractModal";
@@ -88,6 +89,7 @@ export default function AdminProperties({
   const { hasSection, advisorId } = useAuth();
   const [busyFichaId, setBusyFichaId] = useState(null);
   const [socialProperty, setSocialProperty] = useState(null);
+  const [ownerProperty, setOwnerProperty] = useState(null); // 460: mensaje para avisar al dueño del estatus
   const [matchProperty, setMatchProperty] = useState(null);
   const [offersProperty, setOffersProperty] = useState(null);
   const [contractProperty, setContractProperty] = useState(null);
@@ -250,7 +252,12 @@ export default function AdminProperties({
 
   const handleBulkActive = (active) => runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { active })));
 
-  const handleBulkStatus = () => runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { status: bulkStatus })));
+  const handleBulkStatus = async () => {
+    const becameSold = bulkStatus === "vendida" ? selectedProperties.filter((p) => p.status !== "vendida").length : 0;
+    await runBulk((property) => db.updateProperty(property.id, mediaPreservingPatch(property, { status: bulkStatus })));
+    // 459: en lote no se piden los datos uno por uno; se avisa que quedaron pendientes de registrar en Reportes.
+    if (becameSold > 0 && hasSection("reportes")) notify(t("saleData.bulkPending", { count: becameSold }));
+  };
 
   // Cambio de precio en lote: se calcula el nuevo precio de cada una, se muestra un ejemplo y se pide confirmar.
   // Las que no se pueden calcular (sin precio, o el cambio no lo mueve) se omiten y se avisa.
@@ -646,6 +653,9 @@ export default function AdminProperties({
                         <button type="button" className="btn btn-outline btn-sm" onClick={() => setQrProperty(property)}>
                           {t("propertyQr.button")}
                         </button>
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => setOwnerProperty(property)}>
+                          {t("ownerMessage.action")}
+                        </button>
                         <button type="button" className="btn btn-outline btn-sm" onClick={() => setSocialProperty(property)}>
                           {t("socialPost.button")}
                         </button>
@@ -704,6 +714,7 @@ export default function AdminProperties({
       </div>
 
       {socialProperty && <SocialPostModal property={socialProperty} onClose={() => setSocialProperty(null)} />}
+      {ownerProperty && <OwnerMessageModal property={ownerProperty} onClose={() => setOwnerProperty(null)} />}
       {qrProperty && <PropertyQrModal property={qrProperty} onClose={() => setQrProperty(null)} />}
       {buildingSelection && <SelectionBuilder onClose={() => setBuildingSelection(false)} />}
       {sendProperty && (

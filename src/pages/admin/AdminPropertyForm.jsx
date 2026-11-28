@@ -21,6 +21,10 @@ import { STEPS, clampStep, firstStepWithErrors, progressPercent, stepsWithErrors
 import { clearDraft, draftKey, isMeaningful, loadDraft, saveDraft } from "../../lib/formDraft";
 import { notifyLoadError } from "../../lib/loadError";
 import { useUnsavedChanges } from "../../lib/useUnsavedChanges";
+import SaleDataModal from "../../components/SaleDataModal";
+import { needsSaleData } from "../../lib/saleData";
+import { priceAlertNotice } from "../../lib/priceAlertNotice";
+import { useAuth } from "../../context/useAuth.js";
 
 const EMPTY = {
   title: "",
@@ -149,6 +153,9 @@ export default function AdminPropertyForm({
     setGeo({ status: "idle", results: [] });
   };
   const [advisors, setAdvisors] = useState([]);
+  const { hasSection } = useAuth();
+  // 459: al guardar una propiedad que pasó a «vendida» se piden los datos de la venta antes de salir.
+  const [saleFor, setSaleFor] = useState(null);
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
   const [propertyCode, setPropertyCode] = useState("");
@@ -292,6 +299,18 @@ export default function AdminPropertyForm({
     const titleWarning = titleStyleWarning(form.title);
     if (titleWarning && !(await confirmDialog(t(`propertyForm.titleWarning.${titleWarning}`)))) return;
     if (priceWarning && !(await confirmDialog(t(`propertyForm.priceWarning.${priceWarning}`, { price: formatMXN(form.price) })))) return;
+    // 458: si baja el precio, se dice a cuántas personas con alerta de baja les va a llegar el aviso (lo manda el servidor) y se confirma.
+    if (isEdit && hasSection("prospectos") && Number(form.price) < Number(baselineRef.current.price)) {
+      try {
+        const notice = priceAlertNotice({ oldPrice: baselineRef.current.price, newPrice: form.price, alerts: await db.getAlerts(), propertyId: id });
+        if (notice.drop && notice.count > 0) {
+          const message = t("priceAlert.confirm", { count: notice.count, from: formatMXN(baselineRef.current.price), to: formatMXN(form.price) });
+          if (!(await confirmDialog(message))) return;
+        }
+      } catch {
+        // Sin permiso para ver las alertas o sin conexión: se guarda como siempre.
+      }
+    }
     setSaving(true);
     try {
       const payload = {
@@ -315,6 +334,19 @@ export default function AdminPropertyForm({
         }
       }
       clearDraft(draftStorageKey);
+      // 459: si pasó a «vendida» y todavía no tiene venta registrada, se piden fecha y asesor en este mismo paso.
+      if (hasSection("reportes")) {
+        try {
+          const savedId = isEdit ? id : saved?.id;
+          const ventas = await db.getVentas();
+          if (savedId && needsSaleData({ previousStatus: isEdit ? baselineRef.current.status : undefined, nextStatus: form.status, hasSale: ventas.some((v) => v.property_id === savedId) })) {
+            setSaleFor({ id: savedId, title: form.title, advisor_ids: form.advisor_ids || [] });
+            return;
+          }
+        } catch {
+          // Sin permiso para ver las ventas o sin conexión: se sigue como siempre (la venta se registra desde Reportes).
+        }
+      }
       navigate(listPath);
     } catch (err) {
       notify(err.message || t("common.saveError"));
@@ -775,6 +807,17 @@ export default function AdminPropertyForm({
       </form>
 
       {isEdit && <InternalNotes entityType="property" entityId={id} />}
+
+      {saleFor && (
+        <SaleDataModal
+          property={saleFor}
+          advisors={advisors}
+          onDone={(registered) => {
+            if (registered) notify(t("saleData.saved"));
+            navigate(listPath);
+          }}
+        />
+      )}
     </div>
   );
 }

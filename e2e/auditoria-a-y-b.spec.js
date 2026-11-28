@@ -716,4 +716,95 @@ test.describe("Tanda A y B", () => {
     const sueltosSinAlerta = await page.evaluate(() => [...document.querySelectorAll("p.form-error")].filter((el) => el.getAttribute("role") !== "alert").length);
     expect(sueltosSinAlerta).toBe(0);
   });
+  test("marcar una propiedad como vendida pide la fecha y el asesor en el mismo paso y registra la venta (459)", async ({ page, seedAdminSession, go, press }) => {
+    await seedAdminSession();
+    const ventas = () => page.evaluate(() => JSON.parse(localStorage.getItem("acl_local_ventas") || "[]"));
+    await go("/admin/propiedades/prop-2");
+    // (Sin nada guardado todavía, la lista de ventas es la de demostración: se cuenta solo la de esta propiedad.)
+    expect((await ventas()).some((v) => v.property_id === "prop-2")).toBe(false);
+    // El estatus está en el segundo paso del formulario (ubicación).
+    await press(page.getByRole("button", { name: "Siguiente", exact: true }));
+    await expect(page.locator("#p-status")).toBeVisible();
+    await page.selectOption("#p-status", "vendida");
+    await press(page.locator("form.admin-form button[type=submit]").last());
+    const modal = page.getByRole("dialog", { name: "Datos de la venta" });
+    await expect(modal).toBeVisible();
+    // La fecha ya viene con hoy y no puede ser futura.
+    const hoy = new Date().toISOString().slice(0, 10);
+    await expect(modal.getByLabel("Fecha de la venta")).toHaveValue(hoy);
+    await modal.getByLabel("Fecha de la venta").fill("2999-01-01");
+    await press(modal.getByRole("button", { name: "Guardar venta" }));
+    await expect(modal.locator(".form-error")).toContainText("futura");
+    await modal.getByLabel("Fecha de la venta").fill(hoy);
+    await press(modal.getByRole("button", { name: "Guardar venta" }));
+    await page.waitForURL((u) => u.pathname === "/admin/propiedades");
+    const registradas = (await ventas()).filter((v) => v.property_id === "prop-2");
+    expect(registradas).toHaveLength(1);
+    expect(registradas[0].fecha_venta).toBe(hoy);
+  });
+
+  test("al omitir los datos de la venta la propiedad queda vendida y aparece pendiente en Reportes (459)", async ({ page, seedAdminSession, go, press }) => {
+    await seedAdminSession();
+    await go("/admin/propiedades/prop-3");
+    await press(page.getByRole("button", { name: "Siguiente", exact: true }));
+    await expect(page.locator("#p-status")).toBeVisible();
+    await page.selectOption("#p-status", "vendida");
+    await press(page.locator("form.admin-form button[type=submit]").last());
+    const modal = page.getByRole("dialog", { name: "Datos de la venta" });
+    await expect(modal).toBeVisible();
+    await press(modal.getByRole("button", { name: "Omitir por ahora" }));
+    await page.waitForURL((u) => u.pathname === "/admin/propiedades");
+    const props = await page.evaluate(() => JSON.parse(localStorage.getItem("acl_local_properties") || "[]"));
+    expect(props.find((p) => p.id === "prop-3")?.status).toBe("vendida");
+    const ventas = await page.evaluate(() => JSON.parse(localStorage.getItem("acl_local_ventas") || "[]"));
+    expect(ventas.some((v) => v.property_id === "prop-3")).toBe(false);
+  });
+  test("«Avisar al dueño» arma un mensaje según el estatus, editable, para copiar o abrir en WhatsApp (460)", async ({ page, seedAdminSession, go, press }) => {
+    await seedAdminSession();
+    await go("/admin/propiedades");
+    const fila = page.locator(".admin-table tbody tr").first();
+    await fila.scrollIntoViewIfNeeded();
+    const titulo = (await fila.locator(".cell-name__text, .cell-name, td").nth(2).textContent())?.trim();
+    await press(fila.locator("details.row-more summary"));
+    await press(fila.getByRole("button", { name: "Avisar al dueño" }));
+    const modal = page.getByRole("dialog", { name: "Avisar al dueño" });
+    await expect(modal).toBeVisible();
+    const texto = modal.getByLabel("Mensaje");
+    await expect(texto).toHaveValue(/Hola/);
+    await expect(texto).toHaveValue(/ACL-\d+/);
+    await modal.getByLabel("Estatus que se le avisa").selectOption("vendida");
+    await expect(texto).toHaveValue(/felicidades/);
+    await texto.fill("Mensaje editado a mano");
+    await expect(modal.getByRole("link", { name: "Abrir en WhatsApp" })).toHaveAttribute("href", "https://wa.me/?text=Mensaje%20editado%20a%20mano");
+    expect(titulo).toBeTruthy();
+  });
+  test("al bajar el precio se avisa a cuántas personas con alerta de baja les llegará un mensaje y se confirma (458)", async ({ page, seedAdminSession, go, press }) => {
+    await seedAdminSession();
+    await go("/admin/propiedades/prop-1");
+    await page.evaluate(() => {
+      const alerta = (id, active) => ({ id, kind: "price", name: `Interesado ${id}`, phone: "8710000000", email: null, contact_method: "whatsapp", criteria: {}, property_id: "prop-1", price_at_subscribe: 2450000, active, unsubscribe_token: `tok-${id}`, created_at: new Date().toISOString() });
+      localStorage.setItem("acl_local_property_alerts", JSON.stringify([alerta("a1", true), alerta("a2", true), alerta("a3", false)]));
+    });
+    const precio = page.locator("#p-price");
+    await expect(precio).toBeVisible();
+    const original = Number((await precio.inputValue()).replace(/\D/g, ""));
+    // Subir el precio no avisa a nadie: guarda directo.
+    await precio.fill(String(original + 50000));
+    await press(page.locator("form.admin-form button[type=submit]").last());
+    await page.waitForURL((u) => u.pathname === "/admin/propiedades");
+    // Bajarlo sí: dice a cuántas personas (2 activas; la inactiva no cuenta) y pide confirmar.
+    await go("/admin/propiedades/prop-1");
+    await page.evaluate(() => { window.__ACL_AUTO_CONFIRM__ = false; }); // las pruebas aceptan los avisos solas; aquí se quiere ver el diálogo
+    await page.locator("#p-price").fill(String(original - 100000));
+    await press(page.locator("form.admin-form button[type=submit]").last());
+    const aviso = page.getByRole("alertdialog");
+    await expect(aviso).toContainText("2 personas");
+    await expect(aviso).toContainText("próxima hora");
+    // Cancelar deja todo como estaba (sigue en el formulario).
+    await press(aviso.getByRole("button", { name: "Cancelar" }));
+    await expect(page).toHaveURL(/\/admin\/propiedades\/prop-1$/);
+    await press(page.locator("form.admin-form button[type=submit]").last());
+    await press(page.getByRole("alertdialog").getByRole("button", { name: "Aceptar" }));
+    await page.waitForURL((u) => u.pathname === "/admin/propiedades");
+  });
 });

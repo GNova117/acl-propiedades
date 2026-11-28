@@ -5028,6 +5028,45 @@
   "breadcrumbs": {
     "label": "Breadcrumb"
   },
+  "priceAlert": {
+    "confirm_one": "You are lowering the price from {{from}} to {{to}}. One person asked to be told if the price drops: they will get a message within the hour. Save the change?",
+    "confirm_other": "You are lowering the price from {{from}} to {{to}}. {{count}} people asked to be told if the price drops: they will get a message within the hour. Save the change?"
+  },
+  "ownerMessage": {
+    "title": "Update the owner",
+    "intro": "A message to tell the owner how “{{title}}” is going. Edit it if you like, copy it, or open it in WhatsApp and choose who to send it to.",
+    "statusLabel": "Status to report",
+    "textLabel": "Message",
+    "copy": "Copy message",
+    "copied": "Copied ✓",
+    "copiedHint": "Message copied to the clipboard.",
+    "whatsapp": "Open in WhatsApp",
+    "action": "Update the owner",
+    "templates": {
+      "disponible": "Hi, your property “{{title}}” ({{code}}) is now published and available on our site: {{url}}\nI'll share any news or visits right away.",
+      "apartada": "Hi, good news: we received a deposit for your property “{{title}}” ({{code}}). We're coordinating the next steps with the interested party and I'll keep you posted.",
+      "vendida": "Hi, congratulations! Your property “{{title}}” ({{code}}) is now sold. I'll contact you about the next steps: paperwork, deed signing and settlement.",
+      "rentada": "Hi, good news! Your property “{{title}}” ({{code}}) is now rented. I'll contact you to coordinate the contract details and the handover."
+    }
+  },
+  "saleData": {
+    "title": "Sale details",
+    "intro": "You marked “{{title}}” as sold. Record the sale now so Reports and “days to sell” stay up to date.",
+    "date": "Sale date",
+    "advisor": "Advisor who closed it",
+    "noAdvisor": "No advisor",
+    "save": "Save sale",
+    "skip": "Skip for now",
+    "skipHint": "If you skip it, the property stays sold and shows up as “pending to record” in Reports.",
+    "error": "The sale could not be saved. Please try again.",
+    "saved": "Sale recorded.",
+    "bulkPending": "{{count}} properties were marked as sold without recording their sale. Record them from Reports (pending).",
+    "errors": {
+      "required": "Enter the sale date.",
+      "invalidDate": "The date is not valid.",
+      "futureDate": "The date cannot be in the future."
+    }
+  },
   "zoneCombobox": {
     "list": "Areas"
   },

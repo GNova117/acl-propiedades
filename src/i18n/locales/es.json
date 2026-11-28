@@ -5028,6 +5028,45 @@
   "breadcrumbs": {
     "label": "Migas de pan"
   },
+  "priceAlert": {
+    "confirm_one": "Bajas el precio de {{from}} a {{to}}. Una persona pidió que le avisemos si baja de precio: le llegará un mensaje en la próxima hora. ¿Guardar el cambio?",
+    "confirm_other": "Bajas el precio de {{from}} a {{to}}. {{count}} personas pidieron que les avisemos si baja de precio: les llegará un mensaje en la próxima hora. ¿Guardar el cambio?"
+  },
+  "ownerMessage": {
+    "title": "Avisar al dueño",
+    "intro": "Mensaje para contarle al dueño cómo va «{{title}}». Edítalo si quieres, cópialo o ábrelo en WhatsApp y elige a quién enviarlo.",
+    "statusLabel": "Estatus que se le avisa",
+    "textLabel": "Mensaje",
+    "copy": "Copiar mensaje",
+    "copied": "Copiado ✓",
+    "copiedHint": "Mensaje copiado al portapapeles.",
+    "whatsapp": "Abrir en WhatsApp",
+    "action": "Avisar al dueño",
+    "templates": {
+      "disponible": "Hola, te aviso que tu propiedad «{{title}}» ({{code}}) ya está publicada y disponible en nuestro sitio: {{url}}\nCualquier novedad o visita te la comparto de inmediato.",
+      "apartada": "Hola, buenas noticias: recibimos un apartado por tu propiedad «{{title}}» ({{code}}). Estamos coordinando los siguientes pasos con el interesado y te mantengo al tanto.",
+      "vendida": "Hola, ¡felicidades! Tu propiedad «{{title}}» ({{code}}) quedó como vendida. Te contacto para los siguientes pasos: documentos, escrituración y liquidación.",
+      "rentada": "Hola, ¡buenas noticias! Tu propiedad «{{title}}» ({{code}}) quedó rentada. Te contacto para coordinar los detalles del contrato y la entrega."
+    }
+  },
+  "saleData": {
+    "title": "Datos de la venta",
+    "intro": "Marcaste «{{title}}» como vendida. Registra la venta ahora para que Reportes y «días para vender» queden al día.",
+    "date": "Fecha de la venta",
+    "advisor": "Asesor que la cerró",
+    "noAdvisor": "Sin asesor",
+    "save": "Guardar venta",
+    "skip": "Omitir por ahora",
+    "skipHint": "Si la omites, la propiedad queda vendida y aparece como «pendiente de registrar» en Reportes.",
+    "error": "No se pudo guardar la venta. Intenta de nuevo.",
+    "saved": "Venta registrada.",
+    "bulkPending": "{{count}} propiedades quedaron como vendidas sin registrar su venta. Regístralas desde Reportes (pendientes).",
+    "errors": {
+      "required": "Pon la fecha de la venta.",
+      "invalidDate": "La fecha no es válida.",
+      "futureDate": "La fecha no puede ser futura."
+    }
+  },
   "zoneCombobox": {
     "list": "Zonas"
   },
