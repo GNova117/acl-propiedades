@@ -21,8 +21,10 @@ export function sanitizeUrl(url) {
   return parts.join("/").slice(0, 300) || "/";
 }
 
-// Ruido que no es un fallo de la aplicación (extensiones del navegador, avisos benignos, red caída).
-const IGNORED = [/ResizeObserver loop/i, /^Script error\.?\s*$/im, /Non-Error promise rejection/i, /chrome-extension:|moz-extension:|safari-extension:/i, /AbortError/i, /Loading chunk .* failed|Importing a module script failed|error loading dynamically imported module/i];
+// Ruido que no es un fallo de la aplicación (extensiones del navegador, avisos benignos, red caída). Los fallos al bajar un
+// fragmento de código son una pestaña que quedó con una versión vieja tras un despliegue: main.jsx recarga la página sola
+// (cada navegador lo redacta distinto: Chrome «Failed to fetch…», Firefox «error loading…», Safari «Importing a module…»).
+const IGNORED = [/ResizeObserver loop/i, /^Script error\.?\s*$/im, /Non-Error promise rejection/i, /chrome-extension:|moz-extension:|safari-extension:/i, /AbortError/i, /Loading chunk .* failed|Importing a module script failed|error loading dynamically imported module|Failed to fetch dynamically imported module/i];
 
 export function shouldIgnore(message, stack = "") {
   const text = `${message || ""}\n${stack || ""}`;
