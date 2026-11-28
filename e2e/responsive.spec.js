@@ -79,7 +79,8 @@ test.describe("Móvil y tableta", () => {
     await press(page.getByRole("button", { name: "Abrir menú" }));
     const nav = page.locator(".site-nav--open");
     await expect(nav).toBeVisible();
-    await expect.poll(() => page.locator(".site-nav a").count()).toBe(8);
+    // 8 enlaces de página + «Favoritos» (solo en el menú del teléfono) = 9; el botón «Llamar» no es un enlace de página.
+    await expect.poll(() => page.locator(".site-nav li a").count()).toBe(9);
     await page.waitForTimeout(400); // fin de la transición de apertura
     const clipped = await page.evaluate(() => {
       const bottom = document.querySelector(".site-nav").getBoundingClientRect().bottom;

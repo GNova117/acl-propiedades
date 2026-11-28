@@ -44,10 +44,11 @@ test.describe("Navegación y preferencias", () => {
     await expect(page.getByRole("button", { name: "Abrir menú" })).toBeVisible();
   });
 
-  test("modo oscuro: cambia y se recuerda al recargar", async ({ page, go, press }) => {
+  test("modo oscuro: cambia y se recuerda al recargar", async ({ page, go, press, abrirMenuSitio }) => {
     await go("/");
     const tema = () => page.evaluate(() => document.documentElement.getAttribute("data-theme"));
     const antes = await tema();
+    await abrirMenuSitio(); // en teléfono el interruptor de tema está dentro del menú
     await press(page.getByRole("button", { name: /Activar modo (oscuro|claro)/ }));
     const despues = await tema();
     expect(despues).not.toBe(antes);
@@ -55,10 +56,11 @@ test.describe("Navegación y preferencias", () => {
     await expect.poll(tema).toBe(despues);
   });
 
-  test("idioma: alterna entre español e inglés", async ({ page, go, press }) => {
+  test("idioma: alterna entre español e inglés", async ({ page, go, press, abrirMenuSitio }) => {
     await go("/contacto");
     const titulo = page.locator("h1").first();
     const es = await titulo.textContent();
+    await abrirMenuSitio();
     await press(page.locator(".lang-toggle").first());
     await expect(titulo).not.toHaveText(es);
     await press(page.locator(".lang-toggle").first());

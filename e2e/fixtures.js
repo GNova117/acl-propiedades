@@ -61,6 +61,17 @@ export const test = base.extend({
     await use((locator) => (hasTouch ? locator.tap() : locator.click()));
   },
 
+  // En teléfono el tema y el idioma viven dentro del menú del sitio (burger): lo abre si hace falta; en pantalla grande no hace nada.
+  abrirMenuSitio: async ({ page, hasTouch }, use) => {
+    await use(async () => {
+      const burger = page.locator(".site-header__burger");
+      if (!(await burger.isVisible())) return;
+      if ((await burger.getAttribute("aria-expanded")) === "true") return;
+      await (hasTouch ? burger.tap() : burger.click());
+      await page.locator(".site-nav--open").waitFor({ state: "visible" });
+    });
+  },
+
   // Entrar al panel por el formulario de login (modo demo).
   loginAdmin: async ({ page, go, press }, use) => {
     await use(async () => {

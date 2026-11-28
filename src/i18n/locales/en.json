@@ -1,5 +1,7 @@
 {
   "nav": {
+    "favorites": "Favorites",
+    "call": "Call {{phone}}",
     "buyerGuide": "Buyer's guide",
     "compareCredits": "Compare credits",
     "sellHome": "Sell your home",

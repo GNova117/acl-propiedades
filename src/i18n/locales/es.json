@@ -1,6 +1,8 @@
 {
   "nav": {
     "buyerGuide": "Guía del comprador",
+    "favorites": "Favoritos",
+    "call": "Llamar {{phone}}",
     "compareCredits": "Comparar créditos",
     "sellHome": "Vende tu casa",
     "blog": "Blog",

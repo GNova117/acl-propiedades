@@ -115,12 +115,14 @@ test.describe("Pantallas vacías", () => {
 });
 
 test.describe("Textos en inglés", () => {
-  test("al cambiar de idioma cambian el enlace de saltar, los nombres accesibles y los datos de la ficha", async ({ page, go, press, isMobile }) => {
+  test("al cambiar de idioma cambian el enlace de saltar, los nombres accesibles y los datos de la ficha", async ({ page, go, press, isMobile, abrirMenuSitio }) => {
     await go("/propiedades/prop-1");
+    await abrirMenuSitio();
     await press(page.locator(".lang-toggle"));
     await expect(page.locator(".skip-link")).toHaveText("Skip to content");
     await expect(page.getByRole("navigation", { name: "Main navigation" })).toBeAttached();
-    if (isMobile) await expect(page.getByRole("button", { name: "Open menu" })).toBeVisible();
+    // En teléfono el idioma se cambió desde dentro del menú, que sigue abierto: el botón del menú ya está en inglés.
+    if (isMobile) await expect(page.getByRole("button", { name: /^(Open|Close) menu$/ })).toBeVisible();
     await expect(page.locator(".property-detail__features")).toContainText("Parking");
     await expect(page.locator(".property-detail__features")).not.toContainText("Estacionamiento");
     // El botón muestra el idioma al que se cambia («ES» estando en inglés) y su nombre accesible empieza con ese texto.

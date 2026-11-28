@@ -93,6 +93,11 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 | 332 | El respaldo y la retención de papelería tienen su propio apartado «Respaldo» en la carpeta Oficina (ruta `/admin/respaldo`); «Roles y accesos» solo trae un enlace, y el aviso del inicio lleva ahí. |
 | 325 | En Prospectos, en teléfono, «Pegar o importar lista», «Importar desde visitas» y los exportes van tras un menú «⋯ Más»; «Nuevo» y «Seleccionar» siguen a la vista. En pantalla grande no cambia nada. |
 | 326 | En Prospectos, la búsqueda y el selector de asesor dejan el estilo nativo del navegador y usan el mismo borde, radio y foco que los demás campos. |
+| 268 | El logotipo del encabezado pasa de ~56 a ~85 px de ancho (3.3 em de alto; el encabezado conserva sus 72 px). |
+| 269 | El teléfono de la oficina (`tel:`) va siempre a la vista en el encabezado de pantalla grande; en laptop chica queda solo el ícono. |
+| 270 | En teléfono el menú trae «Favoritos» con texto. (Falta «Desarrollos»: hoy no existe una página que liste los desarrollos; se hace junto con el inicio.) |
+| 318 | En teléfono el encabezado solo lleva logotipo, favoritos (y comparar si hay algo) y menú; tema e idioma pasaron al menú, junto con un botón «Llamar». |
+| (extra) | El menú cerrado del teléfono ya no es alcanzable con Tab ni por lectores de pantalla (`visibility: hidden` tras la animación de cierre): antes sus enlaces seguían recibiendo foco aunque no se vieran. |
 | 261 (visitas y alertas) | La solicitud de visita, la reserva de horario y la alerta «avísame» ahora ligan cada error a su campo (`aria-invalid` + `aria-describedby`) y, al enviar con errores, llevan el foco al primer campo con error: el mismo patrón que ya tenía Contacto. |
 | 322 | La zona del buscador del inicio y del filtro del listado es un selector con búsqueda (`ZoneCombobox`) en vez de un `<datalist>` nativo: la lista se ve debajo del campo al enfocarlo, filtra al escribir sin importar acentos ni mayúsculas (primero las que empiezan con el texto), se maneja con ↑ ↓ Enter Esc, se elige tocando y sigue aceptando texto libre. Patrón combobox con `role="listbox"` y `aria-activedescendant`. |
 | 281 | Los textos largos (descripción de la propiedad, entradas del blog y el aviso de privacidad/términos) se leen en el color de texto normal; el gris global de `<p>` se queda para textos de apoyo (pies, ayudas, metadatos), que son la gran mayoría de los párrafos del sitio. Una prueba compara el color calculado. |
@@ -117,3 +122,10 @@ Solo publicar el sitio (merge a `main`). Sin migraciones nuevas.
 - **401** (conteo de propiedades por zona en el filtro): sin una consulta agregada por zona cada conteo pediría el catálogo completo; necesita una función en la base → grupo C (SQL).
 - **375** (página por asesor): el sitio hoy no expone qué propiedades tiene cada asesor (decisión de privacidad) y no hay una consulta pública por asesor → grupo A/C.
 - **424** (gráfica del historial de precios): la base solo guarda el precio anterior, no el historial completo; necesita una tabla nueva → grupo C (SQL).
+
+
+## Decisiones del dueño (28 nov)
+
+- **La ficha no muestra al asesor** → 354 (WhatsApp al asesor de la propiedad), 355–356 (unificar lo que piden los formularios según el asesor) y 317 (foto y nombre del asesor en la visita) **se cierran sin hacerse**: el WhatsApp de la ficha sigue yendo a la oficina.
+- **El precio es solo en pesos mexicanos** → 376 (precio en dólares) **se cierra**; los pies cuadrados para naves ya estaban hechos.
+- **Todo lo demás de inicio y ficha lo decide el equipo técnico pensando en el largo plazo**, con propuesta y capturas en cada tanda.

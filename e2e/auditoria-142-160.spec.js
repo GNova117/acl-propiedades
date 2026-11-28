@@ -23,9 +23,10 @@ test.describe("Auditoría 142–160", () => {
     await expect(page.locator(".property-detail__code")).toContainText("ACL-1001");
   });
 
-  test("el tema solo se guarda cuando la persona lo elige", async ({ page, go, press }) => {
+  test("el tema solo se guarda cuando la persona lo elige", async ({ page, go, press, abrirMenuSitio }) => {
     await go("/");
     expect(await page.evaluate(() => localStorage.getItem("acl_theme"))).toBeNull();
+    await abrirMenuSitio(); // en teléfono el interruptor de tema está dentro del menú
     const boton = page.locator("button[aria-label^='Activar modo']").first();
     await press(boton);
     expect(await page.evaluate(() => localStorage.getItem("acl_theme"))).toMatch(/light|dark/);

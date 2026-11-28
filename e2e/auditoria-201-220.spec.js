@@ -7,12 +7,14 @@ test.describe("Auditoría 201–220", () => {
   test("con ?lang=en el sitio sale en inglés desde el primer pintado", async ({ page, go }) => {
     await go("/?lang=en");
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
-    await expect(page.locator("header").getByRole("link", { name: "Properties" }).first()).toBeVisible();
-    await expect(page.locator("header").getByRole("link", { name: "Propiedades", exact: true })).toHaveCount(0);
+    // Se mira el texto de los enlaces del menú aunque en teléfono esté cerrado (cerrado no es visible ni alcanzable, a propósito).
+    await expect(page.locator("header .site-nav a", { hasText: "Properties" })).toHaveCount(1);
+    await expect(page.locator("header .site-nav a", { hasText: "Propiedades" })).toHaveCount(0);
   });
 
-  test("el botón de idioma baja el inglés y cambia el sitio sin parpadeo", async ({ page, go, press }) => {
+  test("el botón de idioma baja el inglés y cambia el sitio sin parpadeo", async ({ page, go, press, abrirMenuSitio }) => {
     await go("/contacto");
+    await abrirMenuSitio();
     await press(page.locator(".lang-toggle").first());
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
     await expect(page.locator("header").getByRole("link", { name: "Properties" }).first()).toBeVisible();

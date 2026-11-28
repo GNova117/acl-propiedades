@@ -506,4 +506,25 @@ test.describe("Tanda A y B", () => {
     await expect(nombre).toHaveAttribute("aria-describedby", `${id}-error`);
     await expect(page.locator(`#${id}-error`)).toBeVisible();
   });
+  test("encabezado: logotipo más grande, teléfono a la vista en pantalla grande y, en teléfono, tema e idioma dentro del menú (268, 269, 270, 318)", async ({ page, go, press, isMobile, abrirMenuSitio }) => {
+    await go("/");
+    const logo = await page.locator(".site-header__logo .acl-logo").evaluate((el) => el.getBoundingClientRect().height);
+    expect(logo, "alto del logotipo del encabezado (px)").toBeGreaterThanOrEqual(44);
+    if (isMobile) {
+      // Menú cerrado: sus enlaces no deben ser alcanzables con Tab ni por lectores de pantalla.
+      await expect(page.locator(".site-nav")).toHaveCSS("visibility", "hidden");
+      await expect(page.locator(".site-nav__call")).toBeHidden();
+      await expect(page.locator(".site-header__actions .lang-toggle")).toHaveCount(0);
+      await expect(page.locator(".site-header__actions .theme-toggle, .site-header__actions .icon-toggle:not(.favorites-link)")).toHaveCount(0);
+      await abrirMenuSitio();
+      await expect(page.locator(".site-nav .lang-toggle")).toBeVisible();
+      await expect(page.locator(".site-nav").getByRole("link", { name: "Favoritos" })).toBeVisible();
+      await expect(page.locator(".site-nav__call")).toHaveAttribute("href", /^tel:\+52871/);
+    } else {
+      await expect(page.locator(".site-header__phone")).toBeVisible();
+      await expect(page.locator(".site-header__phone")).toHaveAttribute("href", /^tel:\+52871/);
+      await expect(page.locator(".site-header__actions .lang-toggle")).toBeVisible();
+      await expect(page.locator(".site-nav").getByRole("link", { name: "Favoritos" })).toHaveCount(0);
+    }
+  });
 });
