@@ -3,6 +3,7 @@
 import { supabase } from "../../supabaseClient";
 import { compressImageFile } from "../../imageCompression";
 import { sanitizeFileName, discardUploads, SECRETARIA_TABLES, signInspectionChecklist, uploadInspectionChecklistPhotos } from "./shared.js";
+import { materialFields, laborFields } from "../../backendRules";
 
 export const operationsMethods = {
   async getRemodelProjects(filters = {}) {
@@ -116,33 +117,14 @@ export const operationsMethods = {
   },
 
   async addMaterialCatalogItem(data) {
-    const payload = {
-      name: data.name,
-      category: data.category || null,
-      unit: data.unit || null,
-      unit_price_internal: data.unit_price_internal === "" ? null : Number(data.unit_price_internal),
-      unit_price_external: data.unit_price_external === "" ? null : Number(data.unit_price_external),
-      consumption_rate: data.consumption_rate === "" || data.consumption_rate == null ? null : Number(data.consumption_rate),
-      consumption_basis: data.consumption_basis || null,
-      active: data.active !== false,
-    };
+    const payload = materialFields(data);
     const { data: inserted, error } = await supabase.from("materials_catalog").insert(payload).select().single();
     if (error) throw error;
     return inserted;
   },
 
   async updateMaterialCatalogItem(id, data) {
-    const payload = {
-      name: data.name,
-      category: data.category || null,
-      unit: data.unit || null,
-      unit_price_internal: data.unit_price_internal === "" ? null : Number(data.unit_price_internal),
-      unit_price_external: data.unit_price_external === "" ? null : Number(data.unit_price_external),
-      consumption_rate: data.consumption_rate === "" || data.consumption_rate == null ? null : Number(data.consumption_rate),
-      consumption_basis: data.consumption_basis || null,
-      active: data.active !== false,
-      updated_at: new Date().toISOString(),
-    };
+    const payload = { ...materialFields(data), updated_at: new Date().toISOString() };
     const { data: updated, error } = await supabase.from("materials_catalog").update(payload).eq("id", id).select().single();
     if (error) throw error;
     return updated;
@@ -160,11 +142,7 @@ export const operationsMethods = {
   },
 
   async addLaborCatalogItem(data) {
-    const payload = {
-      concepto: data.concepto.trim(),
-      unidad: data.unidad?.trim() || null,
-      precio_unitario: data.precio_unitario === "" ? null : Number(data.precio_unitario),
-    };
+    const payload = laborFields(data);
     const { data: inserted, error } = await supabase.from("labor_catalog").insert(payload).select().single();
     if (error) throw error;
     return inserted;

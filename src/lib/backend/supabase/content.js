@@ -4,6 +4,7 @@ import { supabase } from "../../supabaseClient";
 import { slugify } from "../../format";
 import { developmentSlug, resolveDevelopmentMedia, buildDevelopmentPayload } from "../../developments";
 import { fetchAll, isMissingTable, uploadFiles, discardUploads } from "./shared.js";
+import { testimonialFields, siteUpdateFields } from "../../backendRules";
 
 export const contentMethods = {
   async getTestimonials() {
@@ -13,24 +14,14 @@ export const contentMethods = {
   },
 
   async addTestimonial(data) {
-    const payload = {
-      name: data.name.trim(),
-      role: data.role?.trim() || null,
-      quote: data.quote.trim(),
-      rating: Number(data.rating) || 5,
-    };
+    const payload = testimonialFields(data);
     const { data: inserted, error } = await supabase.from("testimonials").insert(payload).select().single();
     if (error) throw error;
     return inserted;
   },
 
   async updateTestimonial(id, data) {
-    const payload = {
-      name: data.name.trim(),
-      role: data.role?.trim() || null,
-      quote: data.quote.trim(),
-      rating: Number(data.rating) || 5,
-    };
+    const payload = testimonialFields(data);
     const { data: updated, error } = await supabase.from("testimonials").update(payload).eq("id", id).select().single();
     if (error) throw error;
     return updated;
@@ -216,8 +207,7 @@ export const contentMethods = {
   async addSiteUpdate(data) {
     const { data: sessionData } = await supabase.auth.getSession();
     const payload = {
-      title: data.title.trim(),
-      body: data.body.trim(),
+      ...siteUpdateFields(data),
       created_by: sessionData?.session?.user?.email || null,
     };
     const { data: inserted, error } = await supabase.from("site_updates").insert(payload).select().single();
@@ -226,11 +216,7 @@ export const contentMethods = {
   },
 
   async updateSiteUpdate(id, data) {
-    const payload = {
-      title: data.title.trim(),
-      body: data.body.trim(),
-      updated_at: new Date().toISOString(),
-    };
+    const payload = { ...siteUpdateFields(data), updated_at: new Date().toISOString() };
     const { data: updated, error } = await supabase.from("site_updates").update(payload).eq("id", id).select().single();
     if (error) throw error;
     return updated;

@@ -3,7 +3,8 @@
 import { supabase } from "../../supabaseClient";
 import { HOLD_STATUSES, OFFER_STATUSES, validateHold, validateOffer } from "../../offers";
 import { validateContract } from "../../contracts";
-import { COMMISSION_CONCEPTS, validatePayment } from "../../commissions";
+import { validatePayment } from "../../commissions";
+import { commissionFields, propertyStatusAfterHoldAdded, propertyStatusAfterHoldChange } from "../../backendRules";
 import { isMissingTable } from "./shared.js";
 
 export const salesMethods = {
@@ -112,7 +113,8 @@ export const salesMethods = {
       throw error;
     }
     const { data: property } = await supabase.from("properties").select("status").eq("id", propertyId).maybeSingle();
-    if (property?.status === "disponible") await this.setPropertyStatus(propertyId, "apartada");
+    const heldStatus = propertyStatusAfterHoldAdded(property?.status);
+    if (heldStatus) await this.setPropertyStatus(propertyId, heldStatus);
     return data;
   },
 
@@ -124,7 +126,8 @@ export const salesMethods = {
     if (error) throw error;
     if (status === "cancelado") {
       const { data: property } = await supabase.from("properties").select("status").eq("id", data.property_id).maybeSingle();
-      if (property?.status === "apartada") await this.setPropertyStatus(data.property_id, "disponible");
+      const freed = propertyStatusAfterHoldChange(status, property?.status);
+      if (freed) await this.setPropertyStatus(data.property_id, freed);
     }
     return data;
   },
@@ -171,11 +174,11 @@ export const salesMethods = {
 
   // Registra (o actualiza el monto de) la comisión de ese concepto. Una ya pagada no se toca.
   async saveCommission(propertyId, { advisor_id, concept, amount }) {
-    if (!COMMISSION_CONCEPTS.includes(concept) || !advisor_id || !(Number(amount) >= 0)) throw new Error("commission:invalid");
+    const fields = commissionFields({ advisor_id, concept, amount });
     const { data: existing, error: readError } = await supabase.from("commissions").select("id,status").eq("property_id", propertyId).eq("concept", concept).maybeSingle();
     if (readError) throw readError;
     if (existing?.status === "pagada") throw new Error("commission:paid");
-    const row = { property_id: propertyId, advisor_id, concept, amount: Math.round(Number(amount)), updated_at: new Date().toISOString() };
+    const row = { property_id: propertyId, ...fields, updated_at: new Date().toISOString() };
     const { data, error } = existing
       ? await supabase.from("commissions").update(row).eq("id", existing.id).select().single()
       : await supabase.from("commissions").insert(row).select().single();

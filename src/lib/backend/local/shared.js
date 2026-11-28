@@ -1,10 +1,7 @@
 // Piezas compartidas por los módulos de Backend de modo demo (localStorage) (ver localBackend.js): constantes y ayudantes de este lado.
-import { CLIENT_EXPEDIENTE_KEYS } from "../../clientExpedienteFields";
 import { matchesBounds, matchesSearch } from "../../propertySearch";
 
-export function clientExpedientePayload(data) {
-  return Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, data[key] || null]));
-}
+export { clientExpedientePayload } from "../../backendRules";
 
 // Marca (solo de esta pestaña/sesión del navegador) de que ya se confirmó el código de dos pasos en modo demo.
 export const MFA_OK_KEY = "acl_local_mfa_ok";

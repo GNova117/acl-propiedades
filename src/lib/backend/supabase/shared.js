@@ -1,6 +1,5 @@
 // Piezas compartidas por los módulos de Backend con Supabase (ver supabaseBackend.js): constantes y ayudantes de este lado.
 import { supabase } from "../../supabaseClient";
-import { CLIENT_EXPEDIENTE_KEYS } from "../../clientExpedienteFields";
 import { compressImageFile, compressImageFiles, makeImageVariants } from "../../imageCompression";
 import { markVariantName, variantUrl } from "../../imageVariants";
 
@@ -42,12 +41,7 @@ export function shareBriefly(key, load, ttlMs = 5000) {
 }
 export const forgetShared = (key) => shortLived.delete(key);
 
-// Los campos del expediente del cliente (NSS, contraseña del portal, número
-// de crédito y las 2 referencias) se guardan igual al crear y al editar — se
-// arman desde una sola lista para no repetirlos campo por campo.
-export function clientExpedientePayload(data) {
-  return Object.fromEntries(CLIENT_EXPEDIENTE_KEYS.map((key) => [key, data[key] || null]));
-}
+export { clientExpedientePayload } from "../../backendRules";
 
 // Supabase Storage rechaza ciertos caracteres en la key del objeto (espacios,
 // acentos, "{"/"}", etc. — el nombre real del archivo que sube el usuario no

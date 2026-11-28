@@ -4,6 +4,7 @@ import { ZONES, ADVISORS, PROPERTIES, PROPERTY_TYPES_SEED, AMENITIES_SEED } from
 import { slugify } from "../../format";
 import { compressImageFile, compressImageFiles } from "../../imageCompression";
 import { KEYS, readStore, writeStore, uid, fileToDataUrl, filesToDataUrls } from "./shared.js";
+import { zoneFields, zonePriceFields } from "../../backendRules";
 
 export const catalogMethods = {
   async getAdvisors() {
@@ -67,12 +68,7 @@ export const catalogMethods = {
     if (zones.some((z) => z.name.toLowerCase() === name.toLowerCase())) {
       throw new Error("Ya existe una zona con ese nombre");
     }
-    const record = {
-      id: uid("zone"),
-      name,
-      price_per_m2: Number(data.price_per_m2) || 0,
-      land_price_per_m2: Number(data.land_price_per_m2) || 0,
-    };
+    const record = { id: uid("zone"), ...zoneFields({ ...data, name }) };
     zones.push(record);
     writeStore(KEYS.zones, zones);
     return record;
@@ -106,8 +102,7 @@ export const catalogMethods = {
     const zones = readStore(KEYS.zones, ZONES);
     const idx = zones.findIndex((z) => z.id === id);
     if (idx === -1) throw new Error("Zona no encontrada");
-    zones[idx] = { ...zones[idx], price_per_m2: Number(price_per_m2) };
-    if (land_price_per_m2 !== undefined) zones[idx].land_price_per_m2 = Number(land_price_per_m2) || 0;
+    zones[idx] = { ...zones[idx], ...zonePriceFields(price_per_m2, land_price_per_m2) };
     writeStore(KEYS.zones, zones);
     return zones[idx];
   },

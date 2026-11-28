@@ -3,7 +3,7 @@
 import { propertyMediaPaths } from "../../propertyMediaCleanup.js";
 import { FEATURED_POOL, VIDEO_POOL, buildHomeData } from "../../homeData";
 import { supabase } from "../../supabaseClient";
-import { numOrNull } from "../../format";
+import { propertyFields } from "../../backendRules";
 import { getOrCreateVisitorId } from "../../visitorId";
 import { isValidBounds, supabaseSearchFilters } from "../../propertySearch";
 import { discardUploads, collectMedia, mapPropertyRow, propertySelect, hasStaffSession, PROPERTY_SELECT_STAFF, PROPERTY_SELECT_PUBLIC, PROPERTY_SORTERS } from "./shared.js";
@@ -179,47 +179,7 @@ export const propertiesMethods = {
   async addProperty(data) {
     const uploaded = [];
     const { images, videos, tour_360_images } = await collectMedia(data, uploaded);
-    const payload = {
-      title: data.title,
-      type: data.type,
-      description: data.description,
-      price: Number(data.price),
-      area_m2: Number(data.area_m2),
-      bedrooms: data.bedrooms === "" ? null : Number(data.bedrooms),
-      bathrooms: data.bathrooms === "" ? null : Number(data.bathrooms),
-      parking: data.parking === "" ? null : Number(data.parking),
-      zone: data.zone,
-      address: data.address,
-      lat: Number(data.lat),
-      lng: Number(data.lng),
-      location_approximate: data.location_approximate === true,
-      status: data.status || "disponible",
-      operation_type: data.operation_type || "compra",
-      active: data.active !== false,
-      images,
-      main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
-      videos,
-      tour_360_images,
-      colindancias: data.colindancias || null,
-      servicios: data.servicios || null,
-      acabados: data.acabados || null,
-      sistema_constructivo: data.sistema_constructivo || null,
-      techumbre: data.techumbre || null,
-      condicion_propiedad: data.condicion_propiedad || null,
-      estatus_construccion: data.estatus_construccion || null,
-      altura_libre: numOrNull(data.altura_libre),
-      anio_construccion: numOrNull(data.anio_construccion),
-      area_minima_divisible: numOrNull(data.area_minima_divisible),
-      area_oficina: numOrNull(data.area_oficina),
-      luz_natural_pct: numOrNull(data.luz_natural_pct),
-      sistema_contra_incendios: data.sistema_contra_incendios || null,
-      tipo_seguridad: data.tipo_seguridad || null,
-      andenes_carga: numOrNull(data.andenes_carga),
-      rampas_vehiculares: numOrNull(data.rampas_vehiculares),
-      mantenimiento_pct: numOrNull(data.mantenimiento_pct),
-      tipo_nave: data.tipo_nave || null,
-      amenities: data.amenities || [],
-    };
+    const payload = propertyFields(data, { images, videos, tour_360_images }, { isNew: true });
     const { data: inserted, error } = await supabase.from("properties").insert(payload).select().single();
     if (error) {
       await discardUploads(uploaded);
@@ -243,48 +203,7 @@ export const propertiesMethods = {
   async updateProperty(id, data) {
     const uploaded = [];
     const { images, videos, tour_360_images } = await collectMedia(data, uploaded);
-    const payload = {
-      title: data.title,
-      type: data.type,
-      description: data.description,
-      price: Number(data.price),
-      area_m2: Number(data.area_m2),
-      bedrooms: data.bedrooms === "" ? null : Number(data.bedrooms),
-      bathrooms: data.bathrooms === "" ? null : Number(data.bathrooms),
-      parking: data.parking === "" ? null : Number(data.parking),
-      zone: data.zone,
-      address: data.address,
-      lat: Number(data.lat),
-      lng: Number(data.lng),
-      location_approximate: data.location_approximate === true,
-      status: data.status,
-      operation_type: data.operation_type || "compra",
-      active: data.active,
-      images,
-      main_image: images[data.mainImageIndex ?? 0] || images[0] || "",
-      videos,
-      tour_360_images,
-      colindancias: data.colindancias || null,
-      servicios: data.servicios || null,
-      acabados: data.acabados || null,
-      sistema_constructivo: data.sistema_constructivo || null,
-      techumbre: data.techumbre || null,
-      condicion_propiedad: data.condicion_propiedad || null,
-      estatus_construccion: data.estatus_construccion || null,
-      altura_libre: numOrNull(data.altura_libre),
-      anio_construccion: numOrNull(data.anio_construccion),
-      area_minima_divisible: numOrNull(data.area_minima_divisible),
-      area_oficina: numOrNull(data.area_oficina),
-      luz_natural_pct: numOrNull(data.luz_natural_pct),
-      sistema_contra_incendios: data.sistema_contra_incendios || null,
-      tipo_seguridad: data.tipo_seguridad || null,
-      andenes_carga: numOrNull(data.andenes_carga),
-      rampas_vehiculares: numOrNull(data.rampas_vehiculares),
-      mantenimiento_pct: numOrNull(data.mantenimiento_pct),
-      tipo_nave: data.tipo_nave || null,
-      amenities: data.amenities || [],
-      updated_at: new Date().toISOString(),
-    };
+    const payload = { ...propertyFields(data, { images, videos, tour_360_images }), updated_at: new Date().toISOString() };
     const { data: updated, error } = await supabase.from("properties").update(payload).eq("id", id).select().single();
     if (error) {
       await discardUploads(uploaded);

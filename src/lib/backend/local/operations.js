@@ -4,6 +4,7 @@ import { DEMO_ADMIN } from "../../seedData";
 import { compressImageFile } from "../../imageCompression";
 import { buildDemoSnapshot } from "../../marketDemo";
 import { KEYS, readStore, writeStore, FILE_QUOTA_MESSAGE, writeStoreOrThrowFriendly, uid, fileToDataUrl, filesToDataUrls } from "./shared.js";
+import { materialFields, laborFields } from "../../backendRules";
 
 export const operationsMethods = {
   async getRemodelProjects(filters = {}) {
@@ -114,14 +115,7 @@ export const operationsMethods = {
     const items = readStore(KEYS.materialsCatalog, []);
     const record = {
       id: uid("material"),
-      name: data.name,
-      category: data.category || null,
-      unit: data.unit || null,
-      unit_price_internal: data.unit_price_internal === "" ? null : Number(data.unit_price_internal),
-      unit_price_external: data.unit_price_external === "" ? null : Number(data.unit_price_external),
-      consumption_rate: data.consumption_rate === "" || data.consumption_rate == null ? null : Number(data.consumption_rate),
-      consumption_basis: data.consumption_basis || null,
-      active: data.active !== false,
+      ...materialFields(data),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -136,14 +130,7 @@ export const operationsMethods = {
     if (idx === -1) throw new Error("Material no encontrado");
     const updated = {
       ...items[idx],
-      name: data.name,
-      category: data.category || null,
-      unit: data.unit || null,
-      unit_price_internal: data.unit_price_internal === "" ? null : Number(data.unit_price_internal),
-      unit_price_external: data.unit_price_external === "" ? null : Number(data.unit_price_external),
-      consumption_rate: data.consumption_rate === "" || data.consumption_rate == null ? null : Number(data.consumption_rate),
-      consumption_basis: data.consumption_basis || null,
-      active: data.active !== false,
+      ...materialFields(data),
       updated_at: new Date().toISOString(),
     };
     items[idx] = updated;
@@ -165,9 +152,7 @@ export const operationsMethods = {
     const items = readStore(KEYS.laborCatalog, []);
     const record = {
       id: uid("labor"),
-      concepto: data.concepto.trim(),
-      unidad: data.unidad?.trim() || null,
-      precio_unitario: data.precio_unitario === "" ? null : Number(data.precio_unitario),
+      ...laborFields(data),
     };
     items.push(record);
     writeStore(KEYS.laborCatalog, items);

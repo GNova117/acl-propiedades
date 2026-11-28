@@ -3,6 +3,7 @@
 import { supabase } from "../../supabaseClient";
 import { slugify } from "../../format";
 import { uploadFiles, discardUploads, hasStaffSession, PUBLIC_ADVISOR_COLUMNS, shareBriefly, forgetShared } from "./shared.js";
+import { zoneFields, zonePriceFields } from "../../backendRules";
 
 export const catalogMethods = {
   async _syncAdvisors(propertyId, advisorIds) {
@@ -113,11 +114,10 @@ export const catalogMethods = {
   },
 
   async addZone(data) {
-    const payload = { name: data.name.trim(), price_per_m2: Number(data.price_per_m2) || 0 };
+    const { land_price_per_m2, ...payload } = zoneFields(data);
     // Solo se manda si trae valor: así agregar una zona sigue funcionando en
     // una base a la que aún no se le corrió la columna `land_price_per_m2`.
-    const landPrice = Number(data.land_price_per_m2) || 0;
-    if (landPrice > 0) payload.land_price_per_m2 = landPrice;
+    if (land_price_per_m2 > 0) payload.land_price_per_m2 = land_price_per_m2;
     const { data: inserted, error } = await supabase.from("zones").insert(payload).select().single();
     if (error) throw error;
     return inserted;
@@ -239,8 +239,7 @@ export const catalogMethods = {
   // UPDATE, así guardar solo el precio de construcción no depende de que la
   // columna de terreno ya exista en la base (ver schema.sql, "Valuación").
   async updateZonePrice(id, price_per_m2, land_price_per_m2) {
-    const patch = { price_per_m2: Number(price_per_m2), updated_at: new Date().toISOString() };
-    if (land_price_per_m2 !== undefined) patch.land_price_per_m2 = Number(land_price_per_m2) || 0;
+    const patch = { ...zonePriceFields(price_per_m2, land_price_per_m2), updated_at: new Date().toISOString() };
     const { data, error } = await supabase
       .from("zones")
       .update(patch)

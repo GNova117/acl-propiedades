@@ -3,7 +3,8 @@
 import { PROPERTIES, VENTAS_SEED, DEMO_ADMIN } from "../../seedData";
 import { HOLD_STATUSES, OFFER_STATUSES, validateHold, validateOffer } from "../../offers";
 import { validateContract } from "../../contracts";
-import { COMMISSION_CONCEPTS, validatePayment } from "../../commissions";
+import { validatePayment } from "../../commissions";
+import { commissionFields, propertyStatusAfterHoldAdded, propertyStatusAfterHoldChange } from "../../backendRules";
 import { KEYS, readStore, writeStore, uid } from "./shared.js";
 
 export const salesMethods = {
@@ -114,7 +115,8 @@ export const salesMethods = {
     holds.push(record);
     writeStore(KEYS.propertyHolds, holds);
     const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === propertyId);
-    if (property?.status === "disponible") await this.setPropertyStatus(propertyId, "apartada");
+    const heldStatus = propertyStatusAfterHoldAdded(property?.status);
+    if (heldStatus) await this.setPropertyStatus(propertyId, heldStatus);
     return record;
   },
 
@@ -127,7 +129,8 @@ export const salesMethods = {
     writeStore(KEYS.propertyHolds, holds);
     if (status === "cancelado") {
       const property = readStore(KEYS.properties, PROPERTIES).find((p) => p.id === holds[idx].property_id);
-      if (property?.status === "apartada") await this.setPropertyStatus(property.id, "disponible");
+      const freed = propertyStatusAfterHoldChange(status, property?.status);
+      if (freed) await this.setPropertyStatus(property.id, freed);
     }
     return holds[idx];
   },
@@ -157,15 +160,15 @@ export const salesMethods = {
   },
 
   async saveCommission(propertyId, { advisor_id, concept, amount }) {
-    if (!COMMISSION_CONCEPTS.includes(concept) || !advisor_id || !(Number(amount) >= 0)) throw new Error("commission:invalid");
+    const fields = commissionFields({ advisor_id, concept, amount });
     const rows = readStore(KEYS.commissions, []);
     const idx = rows.findIndex((c) => c.property_id === propertyId && c.concept === concept);
     if (idx !== -1 && rows[idx].status === "pagada") throw new Error("commission:paid");
     const now = new Date().toISOString();
     if (idx === -1) {
-      rows.push({ id: uid("comm"), property_id: propertyId, advisor_id, concept, amount: Math.round(Number(amount)), status: "pendiente", paid_on: null, created_at: now, updated_at: now });
+      rows.push({ id: uid("comm"), property_id: propertyId, advisor_id, concept, amount: fields.amount, status: "pendiente", paid_on: null, created_at: now, updated_at: now });
     } else {
-      rows[idx] = { ...rows[idx], advisor_id, amount: Math.round(Number(amount)), updated_at: now };
+      rows[idx] = { ...rows[idx], advisor_id, amount: fields.amount, updated_at: now };
     }
     writeStore(KEYS.commissions, rows);
     return rows[idx === -1 ? rows.length - 1 : idx];
