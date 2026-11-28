@@ -13,6 +13,7 @@
 .property-card__image-link {
   position: relative;
   display: block;
+  cursor: pointer; /* 251: ya no es un <a>: el clic en la foto abre la ficha (ver PropertyCard.jsx) */
   aspect-ratio: 4 / 3;
   overflow: hidden;
   background: var(--color-bg-alt);

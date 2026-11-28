@@ -807,4 +807,35 @@ test.describe("Tanda A y B", () => {
     await press(page.getByRole("alertdialog").getByRole("button", { name: "Aceptar" }));
     await page.waitForURL((u) => u.pathname === "/admin/propiedades");
   });
+  test("tarjetas: ningún botón va dentro de un enlace, solo dos enlaces por tarjeta y la foto abre la ficha (251)", async ({ page, go, press, context, isMobile }) => {
+    await go("/propiedades");
+    const tarjeta = page.locator(".property-card").first();
+    await expect(tarjeta).toBeVisible();
+    // HTML válido: ningún botón (favoritos, comparar, siguiente/anterior) dentro de un <a>.
+    expect(await page.locator(".property-card a button, .property-card a [role=button], .property-card a summary").count()).toBe(0);
+    // Antes eran tres enlaces a la misma ficha (foto, título y «Ver detalle»); ahora dos.
+    const enlaces = await page.locator(".property-card").evaluateAll((cards) => cards.map((card) => card.querySelectorAll("a[href^='/propiedades/']").length));
+    expect(Math.max(...enlaces)).toBeLessThanOrEqual(2);
+    // Favoritos no navega: solo se marca.
+    const favorito = tarjeta.locator(".favorite-button").first();
+    const antes = await favorito.getAttribute("aria-pressed");
+    await press(favorito);
+    await expect(page).toHaveURL(/\/propiedades$/);
+    await expect(favorito).not.toHaveAttribute("aria-pressed", antes);
+    // Un clic en la foto abre la ficha.
+    const titulo = (await tarjeta.locator(".property-card__title a").textContent()).trim();
+    await press(tarjeta.locator(".property-card__image-link"));
+    await expect(page).toHaveURL(/\/propiedades\/.+/);
+    await expect(page.locator("h1").first()).toHaveText(titulo);
+    // Con Ctrl + clic se abre en otra pestaña, como un enlace (solo con ratón).
+    if (!isMobile) {
+      await go("/propiedades");
+      const otra = context.waitForEvent("page");
+      await page.locator(".property-card .property-card__image-link").first().click({ modifiers: ["Control"], position: { x: 40, y: 80 } });
+      const pestana = await otra;
+      await pestana.waitForLoadState("domcontentloaded");
+      expect(pestana.url()).toMatch(/\/propiedades\/.+/);
+      await pestana.close();
+    }
+  });
 });

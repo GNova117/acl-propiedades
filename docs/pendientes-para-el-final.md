@@ -14,7 +14,7 @@ Numeración = la de `docs/auditoria-areas-de-oportunidad.md` (101–506).
 
 **Inicio y navegación**: 277 «Nosotros» con historia, años, certificaciones y fotos.
 
-**Ficha y tarjetas**: 251 botones dentro de enlaces y 3 enlaces por tarjeta (revisado: el carrusel de fotos tiene botones de siguiente/anterior y se desliza con el dedo, así que sacarlos del enlace exige rediseñar la tarjeta —un enlace que cubra toda la tarjeta rompe el deslizado—; falta decidir el diseño).
+**Ficha y tarjetas**: completo (251 hecho).
 
 **Accesibilidad que toca varias pantallas**: completa (249, 250, 252–255, 257–261 hechos; la prueba automática revisa 63 pantallas).
 

@@ -1,6 +1,6 @@
 import FactIcon from "./FactIcon";
 import { useMemo } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import PropertyTypeIcon from "./PropertyTypeIcon";
 import FavoriteButton from "./FavoriteButton";
@@ -22,6 +22,7 @@ import { siteOrigin } from "../lib/site";
 export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
   const { t, i18n } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   // De dónde viene la persona: la ficha lo usa para que «Volver» regrese a este listado con sus filtros.
   const linkState = { from: location.pathname + location.search };
   const advisor = property.advisors?.[0];
@@ -39,9 +40,23 @@ export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
     return lines.join("\n");
   }, [property, t, shareUrl]);
 
+  // 251: la foto ya NO es un enlace. Dentro llevaba botones (favoritos, comparar, siguiente/anterior del carrusel) y un botón dentro
+  // de un enlace es interactivo anidado: los lectores de pantalla lo anuncian mal y no se pueden usar bien con teclado. Ahora un clic
+  // en la foto (fuera de esos botones) abre la ficha, y quien usa teclado o lector de pantalla tiene el título como enlace principal.
+  // Ctrl/Cmd/Mayús + clic la abre en otra pestaña, como un enlace.
+  const goToDetail = (e) => {
+    if (e.defaultPrevented || e.target.closest("button, a, summary, input, select, textarea")) return;
+    const to = propertyPath(property);
+    if (e.metaKey || e.ctrlKey || e.shiftKey) {
+      window.open(to, "_blank", "noopener");
+      return;
+    }
+    navigate(to, { state: linkState });
+  };
+
   return (
     <article className="property-card card">
-      <Link to={propertyPath(property)} state={linkState} className="property-card__image-link">
+      <div className="property-card__image-link" onClick={goToDetail}>
         <PropertyImageCarousel images={cardImages(property)} alt={property.title} />
         <span className={`badge ${statusBadgeClass(property.status)} property-card__badge`}>
           {t(`propertyStatus.${property.status}`)}
@@ -52,7 +67,7 @@ export default function PropertyCard({ property, nextVisitSlot, soldInDays }) {
         )}
         <FavoriteButton propertyId={property.id} className="property-card__favorite" />
         <CompareButton propertyId={property.id} className="property-card__compare" />
-      </Link>
+      </div>
       <div className="property-card__body">
         <div className="property-card__type">
           <PropertyTypeIcon type={property.type} size={16} />
